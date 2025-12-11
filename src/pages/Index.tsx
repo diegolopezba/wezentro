@@ -2,22 +2,21 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Bell, Search } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { CategoryFilter } from "@/components/events/CategoryFilter";
 import { EventFeed } from "@/components/events/EventFeed";
 import { mockEvents } from "@/data/mockEvents";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Index = () => {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
+  // For now, both tabs show the same events - this will be differentiated with real data
   const filteredEvents = mockEvents.filter((event) => {
-    const matchesCategory = selectedCategory === "all" || event.category === selectedCategory;
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && (searchQuery === "" || matchesSearch);
+    return searchQuery === "" || matchesSearch;
   });
 
   return (
@@ -70,42 +69,49 @@ const Index = () => {
           </motion.div>
         )}
 
-        {/* Category filter */}
-        <CategoryFilter
-          selected={selectedCategory}
-          onSelect={setSelectedCategory}
-        />
+        {/* Tabs */}
+        <div className="flex px-4 pb-3 gap-2">
+          <button
+            onClick={() => setActiveTab("for-you")}
+            className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all ${
+              activeTab === "for-you"
+                ? "text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {activeTab === "for-you" && (
+              <motion.div
+                layoutId="activeTab"
+                className="absolute inset-0 gradient-primary rounded-full"
+                transition={{ type: "spring", duration: 0.5 }}
+              />
+            )}
+            <span className="relative z-10">For You</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("following")}
+            className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all ${
+              activeTab === "following"
+                ? "text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {activeTab === "following" && (
+              <motion.div
+                layoutId="activeTab"
+                className="absolute inset-0 gradient-primary rounded-full"
+                transition={{ type: "spring", duration: 0.5 }}
+              />
+            )}
+            <span className="relative z-10">Following</span>
+          </button>
+        </div>
       </header>
-
-      {/* Welcome section for new users */}
-      {selectedCategory === "all" && searchQuery === "" && (
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="px-4 py-6"
-        >
-          <div className="relative overflow-hidden rounded-3xl gradient-primary p-6 shadow-glow">
-            <div className="relative z-10">
-              <h2 className="font-brand text-xl font-bold text-primary-foreground mb-2">
-                Tonight's Hot Picks 🔥
-              </h2>
-              <p className="text-primary-foreground/80 text-sm mb-4">
-                Discover the best events happening near you
-              </p>
-              <Button variant="glass" size="sm">
-                Explore Now
-              </Button>
-            </div>
-            <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-white/10 blur-2xl" />
-            <div className="absolute right-12 top-4 w-16 h-16 rounded-full bg-white/10 blur-xl" />
-          </div>
-        </motion.section>
-      )}
 
       {/* Section title */}
       <div className="px-4 py-2 flex items-center justify-between">
         <h2 className="font-brand text-lg font-semibold text-foreground">
-          {selectedCategory === "all" ? "For You" : `${selectedCategory.replace("_", " ")} Events`}
+          {activeTab === "for-you" ? "For You" : "Following"}
         </h2>
         <span className="text-sm text-muted-foreground">
           {filteredEvents.length} events
