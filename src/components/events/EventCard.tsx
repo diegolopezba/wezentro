@@ -64,16 +64,6 @@ export const EventCard = ({
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
           
-
-          {/* Guestlist badge */}
-          {hasGuestlist && (
-            <div className="absolute top-3 right-3">
-              <span className="px-2 py-1 rounded-full text-xs font-medium bg-primary/90 text-primary-foreground flex items-center gap-1">
-                <Users className="w-3 h-3" />
-                VIP
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Content */}
