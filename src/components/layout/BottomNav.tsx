@@ -21,29 +21,11 @@ export const BottomNav = () => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
 
-          if (item.isCenter) {
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className="relative -mt-6"
-              >
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center shadow-glow"
-                >
-                  <Icon className="w-6 h-6 text-primary-foreground" />
-                </motion.div>
-              </NavLink>
-            );
-          }
-
           return (
             <NavLink
               key={item.path}
               to={item.path}
-              className="relative flex flex-col items-center gap-1 px-4 py-2"
+              className="relative flex items-center justify-center px-4 py-2"
             >
               <motion.div
                 whileHover={{ scale: 1.1 }}
@@ -59,19 +41,11 @@ export const BottomNav = () => {
                 {isActive && (
                   <motion.div
                     layoutId="activeIndicator"
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
+                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
                 )}
               </motion.div>
-              <span
-                className={cn(
-                  "text-[10px] font-medium transition-colors duration-200",
-                  isActive ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                {item.label}
-              </span>
             </NavLink>
           );
         })}
