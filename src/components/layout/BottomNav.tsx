@@ -35,7 +35,7 @@ export const BottomNav = () => {
                 <Icon
                   className={cn(
                     "w-6 h-6 transition-colors duration-200",
-                    isActive ? "text-primary" : "text-muted-foreground"
+                    isActive ? "text-foreground" : "text-muted-foreground"
                   )}
                 />
                 {isActive && (
