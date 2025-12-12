@@ -26,7 +26,7 @@ const Profile = () => {
       <header className="sticky top-0 z-40 safe-top">
         <div className="flex items-center justify-between px-4 py-4">
           <h1 className="font-brand text-xl font-bold text-foreground">
-            Profile
+            @nightowl_mike
           </h1>
           <Button variant="ghost" size="icon">
             <Settings className="w-5 h-5" />
@@ -45,7 +45,7 @@ const Profile = () => {
             <img
               src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80"
               alt="Profile"
-              className="w-24 h-24 rounded-3xl object-cover border-2 border-primary"
+              className="w-24 h-24 rounded-full object-cover border-2 border-primary"
             />
             <button className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full gradient-primary flex items-center justify-center shadow-glow">
               <Edit2 className="w-4 h-4 text-primary-foreground" />
