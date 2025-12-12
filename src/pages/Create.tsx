@@ -23,7 +23,7 @@ const Create = () => {
   return (
     <AppLayout hideNav>
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-strong safe-top">
+      <header className="sticky top-0 z-40 safe-top">
         <div className="flex items-center gap-4 px-4 py-4">
           <Button
             variant="ghost"

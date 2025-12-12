@@ -23,7 +23,7 @@ const Profile = () => {
   return (
     <AppLayout>
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-strong safe-top">
+      <header className="sticky top-0 z-40 safe-top">
         <div className="flex items-center justify-between px-4 py-4">
           <h1 className="font-brand text-xl font-bold text-foreground">
             Profile
@@ -124,7 +124,7 @@ const Profile = () => {
       </div>
 
       {/* Tabs */}
-      <div className="sticky top-[72px] z-30 glass-strong">
+      <div className="sticky top-[72px] z-30">
         <div className="flex border-b border-border">
           {tabs.map((tab) => {
             const Icon = tab.icon;

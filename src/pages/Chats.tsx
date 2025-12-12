@@ -56,7 +56,7 @@ const Chats = () => {
   return (
     <AppLayout>
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-strong safe-top">
+      <header className="sticky top-0 z-40 safe-top">
         <div className="flex items-center justify-between px-4 py-4">
           <h1 className="font-brand text-xl font-bold text-foreground">
             Messages
