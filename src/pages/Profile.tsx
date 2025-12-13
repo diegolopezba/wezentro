@@ -43,7 +43,7 @@ const Profile = () => {
       </header>
 
       {/* Profile info */}
-      <div className="px-4 py-6">
+      <div className="px-4 py-0">
         <motion.div initial={{
         opacity: 0,
         y: 20
