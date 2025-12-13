@@ -5,15 +5,12 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { mockEvents } from "@/data/mockEvents";
-
 const Discover = () => {
   const [searchQuery, setSearchQuery] = useState("");
-
-  return (
-    <AppLayout>
+  return <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top">
-        <div className="px-4 py-4">
+        <div className="px-4 py-4 opacity-100 bg-transparent">
           <h1 className="font-brand text-xl font-bold text-foreground mb-4">
             Discover
           </h1>
@@ -21,12 +18,7 @@ const Discover = () => {
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search events, venues, users..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Search events, venues, users..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
             </div>
             <Button variant="secondary" size="icon">
               <SlidersHorizontal className="w-4 h-4" />
@@ -52,18 +44,16 @@ const Discover = () => {
         </div>
 
         {/* Event markers preview */}
-        {mockEvents.slice(0, 3).map((event, index) => (
-          <motion.div
-            key={event.id}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: index * 0.1 }}
-            className="absolute"
-            style={{
-              top: `${30 + index * 15}%`,
-              left: `${20 + index * 25}%`,
-            }}
-          >
+        {mockEvents.slice(0, 3).map((event, index) => <motion.div key={event.id} initial={{
+        scale: 0
+      }} animate={{
+        scale: 1
+      }} transition={{
+        delay: index * 0.1
+      }} className="absolute" style={{
+        top: `${30 + index * 15}%`,
+        left: `${20 + index * 25}%`
+      }}>
             <div className="relative">
               <div className="w-3 h-3 rounded-full bg-primary animate-pulse-glow" />
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
@@ -72,8 +62,7 @@ const Discover = () => {
                 </div>
               </div>
             </div>
-          </motion.div>
-        ))}
+          </motion.div>)}
       </div>
 
       {/* Nearby events */}
@@ -83,19 +72,16 @@ const Discover = () => {
         </h2>
         
         <div className="space-y-3">
-          {mockEvents.slice(0, 5).map((event, index) => (
-            <motion.div
-              key={event.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="flex gap-4 p-3 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all cursor-pointer"
-            >
-              <img
-                src={event.imageUrl}
-                alt={event.title}
-                className="w-20 h-20 rounded-xl object-cover"
-              />
+          {mockEvents.slice(0, 5).map((event, index) => <motion.div key={event.id} initial={{
+          opacity: 0,
+          x: -20
+        }} animate={{
+          opacity: 1,
+          x: 0
+        }} transition={{
+          delay: index * 0.05
+        }} className="flex gap-4 p-3 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all cursor-pointer">
+              <img src={event.imageUrl} alt={event.title} className="w-20 h-20 rounded-xl object-cover" />
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-foreground truncate">
                   {event.title}
@@ -106,12 +92,9 @@ const Discover = () => {
                   <span className="truncate">{event.location}</span>
                 </div>
               </div>
-            </motion.div>
-          ))}
+            </motion.div>)}
         </div>
       </section>
-    </AppLayout>
-  );
+    </AppLayout>;
 };
-
 export default Discover;
