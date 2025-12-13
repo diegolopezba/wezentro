@@ -52,10 +52,8 @@ const Profile = () => {
         y: 0
       }} className="flex items-start gap-4">
           <div className="relative">
-            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80" alt="Profile" className="w-24 h-24 rounded-full object-cover border-2 border-primary" />
-            <button className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full gradient-primary flex items-center justify-center shadow-glow">
-              <Edit2 className="w-4 h-4 text-primary-foreground" />
-            </button>
+            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80" alt="Profile" className="w-24 h-24 rounded-full object-cover border-primary border-0" />
+            
           </div>
 
           <div className="flex-1">
