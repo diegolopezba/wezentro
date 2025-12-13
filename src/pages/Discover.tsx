@@ -12,15 +12,10 @@ const Discover = () => {
       <div className="relative h-[calc(100vh-80px)] bg-secondary">
         {/* Floating search bar */}
         <div className="absolute top-0 left-0 right-0 z-40 safe-top px-4 py-4">
-          <div className="flex gap-2">
+          <div className="flex gap-2 py-[26px]">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search events, venues, users..." 
-                value={searchQuery} 
-                onChange={e => setSearchQuery(e.target.value)} 
-                className="pl-10 bg-card/90 backdrop-blur-md border-border/50" 
-              />
+              <Input placeholder="Search events, venues, users..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-card/90 backdrop-blur-md border-border/50" />
             </div>
             <Button variant="secondary" size="icon" className="bg-card/90 backdrop-blur-md border-border/50">
               <SlidersHorizontal className="w-4 h-4" />
@@ -44,18 +39,16 @@ const Discover = () => {
         </div>
 
         {/* Event markers preview */}
-        {mockEvents.slice(0, 3).map((event, index) => (
-          <motion.div
-            key={event.id}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: index * 0.1 }}
-            className="absolute"
-            style={{
-              top: `${30 + index * 15}%`,
-              left: `${20 + index * 25}%`
-            }}
-          >
+        {mockEvents.slice(0, 3).map((event, index) => <motion.div key={event.id} initial={{
+        scale: 0
+      }} animate={{
+        scale: 1
+      }} transition={{
+        delay: index * 0.1
+      }} className="absolute" style={{
+        top: `${30 + index * 15}%`,
+        left: `${20 + index * 25}%`
+      }}>
             <div className="relative">
               <div className="w-3 h-3 rounded-full bg-primary animate-pulse-glow" />
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
@@ -64,8 +57,7 @@ const Discover = () => {
                 </div>
               </div>
             </div>
-          </motion.div>
-        ))}
+          </motion.div>)}
       </div>
     </AppLayout>;
 };
