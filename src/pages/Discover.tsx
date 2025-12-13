@@ -8,27 +8,27 @@ import { mockEvents } from "@/data/mockEvents";
 const Discover = () => {
   const [searchQuery, setSearchQuery] = useState("");
   return <AppLayout>
-      {/* Header */}
-      <header className="sticky top-0 z-40 safe-top">
-        <div className="px-4 py-4 opacity-100 bg-transparent">
-          <h1 className="font-brand text-xl font-bold text-foreground mb-4">
-            Discover
-          </h1>
-          
+      {/* Full screen map container */}
+      <div className="relative h-[calc(100vh-80px)] bg-secondary">
+        {/* Floating search bar */}
+        <div className="absolute top-0 left-0 right-0 z-40 safe-top px-4 py-4">
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search events, venues, users..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+              <Input 
+                placeholder="Search events, venues, users..." 
+                value={searchQuery} 
+                onChange={e => setSearchQuery(e.target.value)} 
+                className="pl-10 bg-card/90 backdrop-blur-md border-border/50" 
+              />
             </div>
-            <Button variant="secondary" size="icon">
+            <Button variant="secondary" size="icon" className="bg-card/90 backdrop-blur-md border-border/50">
               <SlidersHorizontal className="w-4 h-4" />
             </Button>
           </div>
         </div>
-      </header>
 
-      {/* Map placeholder - full screen */}
-      <div className="relative h-[calc(100vh-180px)] bg-secondary">
+        {/* Map content */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
@@ -67,7 +67,6 @@ const Discover = () => {
           </motion.div>
         ))}
       </div>
-
     </AppLayout>;
 };
 export default Discover;
