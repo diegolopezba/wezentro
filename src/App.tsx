@@ -8,6 +8,8 @@ import Discover from "./pages/Discover";
 import Create from "./pages/Create";
 import Chats from "./pages/Chats";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import EditProfile from "./pages/EditProfile";
 import EventDetail from "./pages/EventDetail";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/create" element={<Create />} />
           <Route path="/chats" element={<Chats />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/event/:id" element={<EventDetail />} />
           <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -36,7 +36,7 @@ const Profile = () => {
           <h1 className="font-brand text-xl font-bold text-foreground">
             @nightowl_mike
           </h1>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => window.location.href = '/settings'}>
             <Settings className="w-5 h-5" />
           </Button>
         </div>
@@ -85,24 +85,6 @@ const Profile = () => {
           <p className="text-sm text-foreground/80">
             Living for the night vibes 🌙 LA scene explorer
           </p>
-        </motion.div>
-
-        {/* Action buttons */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.1
-      }} className="flex gap-3 mt-4">
-          <Button className="flex-1" variant="default">
-            Edit Profile
-          </Button>
-          <Button className="flex-1" variant="secondary">
-            Share Profile
-          </Button>
         </motion.div>
 
         {/* Subscription badge */}
