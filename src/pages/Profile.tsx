@@ -59,15 +59,20 @@ const Profile = () => {
           </div>
 
           <div className="flex-1">
-            
             <p className="text-sm text-muted-foreground mb-2">Mike Rodriguez</p>
-            <p className="text-sm text-foreground/80">
-              Living for the night vibes 🌙 LA scene explorer
-            </p>
+            {/* Stats */}
+            <div className="flex gap-6 mt-2">
+              {stats.map(stat => <div key={stat.label} className="text-center">
+                  <p className="font-brand text-lg font-bold text-foreground">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                </div>)}
+            </div>
           </div>
         </motion.div>
 
-        {/* Stats */}
+        {/* Bio */}
         <motion.div initial={{
         opacity: 0,
         y: 20
@@ -76,13 +81,10 @@ const Profile = () => {
         y: 0
       }} transition={{
         delay: 0.05
-      }} className="flex justify-around mt-6 py-4 rounded-2xl bg-secondary/50">
-          {stats.map(stat => <div key={stat.label} className="text-center">
-              <p className="font-brand text-xl font-bold text-foreground">
-                {stat.value}
-              </p>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
-            </div>)}
+      }} className="mt-4">
+          <p className="text-sm text-foreground/80">
+            Living for the night vibes 🌙 LA scene explorer
+          </p>
         </motion.div>
 
         {/* Action buttons */}
