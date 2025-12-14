@@ -27,7 +27,7 @@ const Index = () => {
           opacity: 1,
           x: 0
         }}>
-            <h1 className="font-brand text-2xl font-bold text-gradient text-primary-foreground bg-transparent">Zentro</h1>
+            <h1 className="font-brand text-2xl font-bold text-foreground">Zentro</h1>
             
           </motion.div>
           
