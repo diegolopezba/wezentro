@@ -54,9 +54,7 @@ const Chats = () => {
           <h1 className="font-brand text-xl font-bold text-foreground">
             Messages
           </h1>
-          <Button variant="ghost" size="icon">
-            <Plus className="w-5 h-5" />
-          </Button>
+          
         </div>
 
         
@@ -97,7 +95,7 @@ const Chats = () => {
               </p>
             </div>
 
-            {chat.unread > 0 && <div className="w-6 h-6 rounded-full gradient-primary flex items-center justify-center">
+            {chat.unread > 0 && <div className="w-6 h-6 rounded-full gradient-primary flex items-center justify-center bg-[#ff2600]">
                 <span className="text-xs font-medium text-primary-foreground">
                   {chat.unread}
                 </span>
