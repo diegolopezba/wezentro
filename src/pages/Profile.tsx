@@ -43,7 +43,7 @@ const Profile = () => {
       </header>
 
       {/* Profile info */}
-      <div className="px-4 py-0">
+      <div className="px-4 py-0 bg-background">
         <motion.div initial={{
         opacity: 0,
         y: 20
@@ -118,7 +118,7 @@ const Profile = () => {
 
       {/* Tabs */}
       <div className="sticky top-[72px] z-30">
-        <div className="flex border-b border-border">
+        <div className="flex border-b border-border bg-background">
           {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
