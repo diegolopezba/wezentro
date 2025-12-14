@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import EditProfile from "./pages/EditProfile";
 import EventDetail from "./pages/EventDetail";
 import Auth from "./pages/Auth";
+import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/event/:id" element={<EventDetail />} />
+          <Route path="/user/:id" element={<UserProfile />} />
           <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -81,7 +81,10 @@ const EventDetail = () => {
 
           {/* Host */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div 
+              className="flex items-center gap-3 cursor-pointer"
+              onClick={() => navigate("/user/user-1")}
+            >
               <img
                 src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"
                 alt="Host"
@@ -161,7 +164,11 @@ const EventDetail = () => {
                       key={i}
                       src={avatar}
                       alt={`Attendee ${i + 1}`}
-                      className="w-10 h-10 rounded-full border-2 border-card object-cover"
+                      className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/user/user-${i + 1}`);
+                      }}
                     />
                   ))}
                 </div>
@@ -175,21 +182,27 @@ const EventDetail = () => {
                 {attendees.slice(0, 3).map((avatar, i) => (
                   <div
                     key={i}
-                    onClick={() => navigate(`/chats/user-${i + 1}`)}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 cursor-pointer hover:bg-secondary/50 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30"
                   >
                     <img
                       src={avatar}
                       alt={`Attendee ${i + 1}`}
-                      className="w-10 h-10 rounded-xl object-cover"
+                      className="w-10 h-10 rounded-xl object-cover cursor-pointer hover:scale-105 transition-transform"
+                      onClick={() => navigate(`/user/user-${i + 1}`)}
                     />
-                    <div className="flex-1">
+                    <div 
+                      className="flex-1 cursor-pointer"
+                      onClick={() => navigate(`/user/user-${i + 1}`)}
+                    >
                       <p className="font-medium text-foreground text-sm">
                         @partygoer_{i + 1}
                       </p>
                       <p className="text-xs text-muted-foreground">Joined 2h ago</p>
                     </div>
-                    <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                    <MessageCircle 
+                      className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" 
+                      onClick={() => navigate(`/chats/user-${i + 1}`)}
+                    />
                   </div>
                 ))}
               </div>
