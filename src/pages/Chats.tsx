@@ -91,11 +91,19 @@ const Chats = () => {
             onClick={() => navigate(`/chats/${chat.id}`)}
             className="flex items-center gap-4 p-4 rounded-2xl hover:bg-secondary/50 cursor-pointer transition-colors"
           >
-            <div className="relative">
+            <div 
+              className="relative"
+              onClick={(e) => {
+                if (chat.type === "private") {
+                  e.stopPropagation();
+                  navigate(`/user/user-${chat.id}`);
+                }
+              }}
+            >
               <img
                 src={chat.avatar}
                 alt={chat.name}
-                className="w-14 h-14 rounded-2xl object-cover"
+                className={`w-14 h-14 rounded-2xl object-cover ${chat.type === "private" ? "cursor-pointer hover:scale-105 transition-transform" : ""}`}
               />
               {chat.type === "event" && (
                 <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full gradient-primary flex items-center justify-center text-xs">
