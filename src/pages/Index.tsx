@@ -77,14 +77,7 @@ const Index = () => {
       </header>
 
       {/* Section title */}
-      <div className="px-4 py-2 flex items-center justify-between">
-        <h2 className="font-brand text-lg font-semibold text-foreground">
-          {activeTab === "for-you" ? "For You" : "Following"}
-        </h2>
-        <span className="text-sm text-muted-foreground">
-          {filteredEvents.length} events
-        </span>
-      </div>
+      
 
       {/* Event feed */}
       <EventFeed events={filteredEvents} />
