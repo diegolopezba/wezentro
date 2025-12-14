@@ -18,7 +18,7 @@ const Index = () => {
   });
   return <AppLayout>
       {/* Header */}
-      <header className="sticky top-0 z-40 safe-top">
+      <header className="sticky top-0 z-40 safe-top bg-background">
         <div className="flex items-center justify-between px-4 py-4">
           <motion.div initial={{
           opacity: 0,
