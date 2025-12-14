@@ -147,7 +147,7 @@ const Profile = () => {
                 <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3">
-                  <p className="text-xs text-foreground font-medium line-clamp-2">
+                  <p className="text-xs text-foreground line-clamp-2 font-normal">
                     {event.title}
                   </p>
                 </div>
