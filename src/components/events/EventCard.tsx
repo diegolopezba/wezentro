@@ -60,24 +60,18 @@ export const EventCard = ({
 
         {/* Content */}
         <div className="space-y-1 px-1">
-          <h3 className="font-brand font-semibold text-foreground line-clamp-2 text-sm">
+          <h3 className="font-brand font-semibold text-foreground line-clamp-2 text-xs">
             {title}
           </h3>
 
-          {attendees > 0 && (
-            <div className="flex items-center gap-2">
+          {attendees > 0 && <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
-                {[...Array(Math.min(3, attendees))].map((_, i) => (
-                  <div key={i} className="w-5 h-5 rounded-full bg-secondary border-2 border-background" />
-                ))}
+                {[...Array(Math.min(3, attendees))].map((_, i) => <div key={i} className="w-5 h-5 rounded-full bg-secondary border-2 border-background" />)}
               </div>
-              {attendees > 3 && (
-                <span className="text-xs text-muted-foreground">
+              {attendees > 3 && <span className="text-xs text-muted-foreground">
                   +{attendees - 3} going
-                </span>
-              )}
-            </div>
-          )}
+                </span>}
+            </div>}
         </div>
       </div>
     </motion.div>;
