@@ -52,7 +52,7 @@ export const EventCard = ({
   }} whileTap={{
     scale: 0.98
   }} className="masonry-item cursor-pointer" onClick={() => navigate(`/event/${id}`)}>
-      <div className="space-y-2">
+      <div className="space-y-2 px-0">
         {/* Image */}
         <div className={cn("relative rounded-2xl overflow-hidden", heightClass)}>
           <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
