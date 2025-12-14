@@ -118,7 +118,7 @@ const Discover = () => {
           <DrawerContent className="max-h-[70vh]">
             
             <div className="px-4 pb-8 overflow-y-auto">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 pt-[16px] pb-[16px]">
                 {mockEvents.slice(0, 6).map(event => <EventCard key={event.id} {...event} />)}
               </div>
             </div>
