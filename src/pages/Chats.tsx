@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Search, Plus } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,8 @@ const mockChats = [
 ];
 
 const Chats = () => {
+  const navigate = useNavigate();
+
   return (
     <AppLayout>
       {/* Header */}
@@ -85,6 +88,7 @@ const Chats = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
+            onClick={() => navigate(`/chats/${chat.id}`)}
             className="flex items-center gap-4 p-4 rounded-2xl hover:bg-secondary/50 cursor-pointer transition-colors"
           >
             <div className="relative">
