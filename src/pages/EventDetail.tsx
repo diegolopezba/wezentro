@@ -175,7 +175,8 @@ const EventDetail = () => {
                 {attendees.slice(0, 3).map((avatar, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30"
+                    onClick={() => navigate(`/chats/user-${i + 1}`)}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 cursor-pointer hover:bg-secondary/50 transition-colors"
                   >
                     <img
                       src={avatar}
@@ -188,6 +189,7 @@ const EventDetail = () => {
                       </p>
                       <p className="text-xs text-muted-foreground">Joined 2h ago</p>
                     </div>
+                    <MessageCircle className="w-4 h-4 text-muted-foreground" />
                   </div>
                 ))}
               </div>

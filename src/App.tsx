@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Discover from "./pages/Discover";
 import Create from "./pages/Create";
 import Chats from "./pages/Chats";
+import ChatDetail from "./pages/ChatDetail";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import EditProfile from "./pages/EditProfile";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/discover" element={<Discover />} />
           <Route path="/create" element={<Create />} />
           <Route path="/chats" element={<Chats />} />
+          <Route path="/chats/:id" element={<ChatDetail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/edit-profile" element={<EditProfile />} />
