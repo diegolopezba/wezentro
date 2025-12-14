@@ -23,11 +23,11 @@ const Discover = () => {
         {/* Floating search bar */}
         <div className="absolute top-0 left-0 right-0 z-40 safe-top px-4 py-4">
           <div className="flex gap-2 py-[26px]">
-            <div className="relative flex-1 bg-background">
+            <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input placeholder="Search events, venues, users..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-card/90 backdrop-blur-md border-border/50" />
             </div>
-            <Button variant="secondary" size="icon" className="backdrop-blur-md border-border/50 bg-background">
+            <Button variant="secondary" size="icon" className="bg-card/90 backdrop-blur-md border-border/50">
               <SlidersHorizontal className="w-4 h-4" />
             </Button>
           </div>
@@ -109,7 +109,7 @@ const Discover = () => {
           }} transition={{
             delay: 0.3
           }} className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40">
-              <Button variant="secondary" className="backdrop-blur-md shadow-elevated px-6 bg-background">
+              <Button variant="secondary" className="bg-card/95 backdrop-blur-md shadow-elevated px-6">
                 <MapPin className="w-4 h-4 mr-2" />
                 Nearby Events
               </Button>
