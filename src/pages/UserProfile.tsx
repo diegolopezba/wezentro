@@ -169,7 +169,7 @@ const UserProfile = () => {
       </div>
 
       {/* Events grid */}
-      <div className="px-4 py-4">
+      <div className="py-4">
         <div className="masonry-grid">
           {mockEvents.slice(0, 6).map((event, index) => (
             <motion.div

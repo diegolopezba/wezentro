@@ -132,7 +132,7 @@ const Profile = () => {
       </div>
 
       {/* Events grid */}
-      <div className="px-4 py-4">
+      <div className="py-4">
         <div className="masonry-grid">
           {mockEvents.slice(0, 8).map((event, index) => <motion.div key={event.id} initial={{
           opacity: 0,
