@@ -61,7 +61,7 @@ export const EventCard = ({
           
           {/* Attendees overlay - top left */}
           {attendees > 0 && (
-            <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-background/80 backdrop-blur-sm rounded-full px-2 py-1">
+            <div className="absolute top-2 left-2 flex items-center gap-1.5">
               <div className="flex -space-x-1.5">
                 {/* Owner avatar first */}
                 {ownerAvatar && (
