@@ -1,146 +1,202 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle, UserPlus, Calendar, MapPin } from "lucide-react";
+import { ArrowLeft, MessageCircle, UserPlus, Grid3X3, Star, Heart } from "lucide-react";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
+import { mockEvents } from "@/data/mockEvents";
 
 const mockUsers: Record<string, {
   name: string;
   username: string;
   avatar: string;
   bio: string;
-  location: string;
-  followers: number;
+  followers: string;
   following: number;
-  eventsAttended: number;
+  events: number;
 }> = {
   "user-1": {
     name: "Alex Martinez",
-    username: "@partygoer_1",
+    username: "partygoer_1",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
     bio: "Nightlife enthusiast. Always chasing the best vibes 🎉",
-    location: "Los Angeles, CA",
-    followers: 1234,
+    followers: "1.2K",
     following: 567,
-    eventsAttended: 89
+    events: 89
   },
   "user-2": {
     name: "Sarah Chen",
-    username: "@partygoer_2",
+    username: "partygoer_2",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80",
     bio: "Music lover & festival addict ✨",
-    location: "San Francisco, CA",
-    followers: 2341,
+    followers: "2.3K",
     following: 432,
-    eventsAttended: 156
+    events: 156
   },
   "user-3": {
     name: "Jordan Lee",
-    username: "@partygoer_3",
+    username: "partygoer_3",
     avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&q=80",
     bio: "Living for the weekend 🌙",
-    location: "New York, NY",
-    followers: 876,
+    followers: "876",
     following: 234,
-    eventsAttended: 45
+    events: 45
   }
 };
 
 const UserProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<"all" | "created" | "joined">("all");
   
   const user = mockUsers[id || "user-1"] || mockUsers["user-1"];
 
+  const stats = [
+    { label: "Events", value: user.events },
+    { label: "Followers", value: user.followers },
+    { label: "Following", value: user.following }
+  ];
+
+  const tabs = [
+    { id: "all", label: "All", icon: Grid3X3 },
+    { id: "created", label: "Created", icon: Star },
+    { id: "joined", label: "Joined", icon: Heart }
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header with back button */}
-      <header className="sticky top-0 z-40 glass-strong safe-top">
-        <div className="flex items-center gap-3 px-4 py-4">
+    <AppLayout>
+      {/* Header */}
+      <header className="sticky top-0 z-40 safe-top">
+        <div className="flex items-center gap-3 px-4 py-0 bg-background">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-semibold text-foreground">{user.username}</h1>
+          <h1 className="font-brand text-xl font-bold text-foreground">
+            @{user.username}
+          </h1>
         </div>
       </header>
 
-      {/* Profile content */}
-      <div className="px-4 py-6">
+      {/* Profile info */}
+      <div className="px-4 py-0 bg-background">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
+          className="flex items-start gap-4"
         >
-          {/* Avatar and name */}
-          <div className="flex flex-col items-center text-center">
+          <div className="relative">
             <img
               src={user.avatar}
-              alt={user.name}
-              className="w-28 h-28 rounded-3xl object-cover mb-4"
+              alt="Profile"
+              className="w-24 h-24 rounded-full object-cover border-primary border-0"
             />
-            <h2 className="font-brand text-2xl font-bold text-foreground">
-              {user.name}
-            </h2>
-            <p className="text-muted-foreground">{user.username}</p>
           </div>
 
-          {/* Bio */}
-          <p className="text-center text-foreground/80">{user.bio}</p>
-
-          {/* Location */}
-          <div className="flex items-center justify-center gap-2 text-muted-foreground">
-            <MapPin className="w-4 h-4" />
-            <span className="text-sm">{user.location}</span>
-          </div>
-
-          {/* Stats */}
-          <div className="flex justify-center gap-8">
-            <div className="text-center">
-              <p className="font-bold text-foreground text-xl">{user.followers.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">Followers</p>
-            </div>
-            <div className="text-center">
-              <p className="font-bold text-foreground text-xl">{user.following.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">Following</p>
-            </div>
-            <div className="text-center">
-              <p className="font-bold text-foreground text-xl">{user.eventsAttended}</p>
-              <p className="text-sm text-muted-foreground">Events</p>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex gap-3 pt-2">
-            <Button variant="hero" className="flex-1">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Follow
-            </Button>
-            <Button 
-              variant="secondary" 
-              className="flex-1"
-              onClick={() => navigate(`/chats/${id}`)}
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Message
-            </Button>
-          </div>
-
-          {/* Recent events section placeholder */}
-          <div className="pt-4">
-            <h3 className="font-brand text-lg font-semibold text-foreground mb-4">
-              Recent Events
-            </h3>
-            <div className="grid grid-cols-3 gap-2">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="aspect-square rounded-xl bg-secondary/50"
-                />
+          <div className="flex-1">
+            <p className="text-sm text-muted-foreground mb-2">{user.name}</p>
+            {/* Stats */}
+            <div className="flex gap-6 mt-2">
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <p className="font-brand text-lg font-bold text-foreground">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                </div>
               ))}
             </div>
           </div>
         </motion.div>
+
+        {/* Bio */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mt-4"
+        >
+          <p className="text-sm text-foreground/80">{user.bio}</p>
+        </motion.div>
+
+        {/* Action buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="flex gap-3 mt-4"
+        >
+          <Button variant="hero" className="flex-1">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Follow
+          </Button>
+          <Button
+            variant="secondary"
+            className="flex-1"
+            onClick={() => navigate(`/chats/${id}`)}
+          >
+            <MessageCircle className="w-4 h-4 mr-2" />
+            Message
+          </Button>
+        </motion.div>
       </div>
-    </div>
+
+      {/* Tabs */}
+      <div className="sticky top-[72px] z-30 mt-4">
+        <div className="flex border-b border-border bg-background">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                className={`flex-1 flex items-center justify-center gap-2 py-4 transition-colors relative ${
+                  isActive ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="text-sm font-medium">{tab.label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="userProfileTabIndicator"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Events grid */}
+      <div className="px-4 py-4">
+        <div className="masonry-grid">
+          {mockEvents.slice(0, 6).map((event, index) => (
+            <motion.div
+              key={event.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.05 }}
+              className="masonry-item"
+            >
+              <div className="relative rounded-2xl overflow-hidden aspect-[3/4]">
+                <img
+                  src={event.imageUrl}
+                  alt={event.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3">
+                  <p className="text-xs text-foreground line-clamp-2 font-normal">
+                    {event.title}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </AppLayout>
   );
 };
 
