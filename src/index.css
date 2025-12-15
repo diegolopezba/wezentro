@@ -152,7 +152,9 @@
 
   .masonry-grid {
     column-count: 2;
-    column-gap: 12px;
+    column-gap: 4px;
+    padding-left: 4px;
+    padding-right: 4px;
   }
 
   @media (min-width: 640px) {

@@ -8,7 +8,7 @@ interface EventFeedProps {
 export const EventFeed = ({ events, isLoading = false }: EventFeedProps) => {
   if (isLoading) {
     return (
-      <div className="masonry-grid px-4">
+      <div className="masonry-grid">
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
@@ -37,7 +37,7 @@ export const EventFeed = ({ events, isLoading = false }: EventFeedProps) => {
   }
 
   return (
-    <div className="masonry-grid px-4">
+    <div className="masonry-grid">
       {events.map((event, index) => (
         <EventCard key={event.id} {...event} index={index} />
       ))}
