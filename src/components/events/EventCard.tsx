@@ -12,6 +12,7 @@ export interface EventCardProps {
   attendees?: number;
   hasGuestlist?: boolean;
   index?: number;
+  ownerAvatar?: string;
 }
 const categoryColors: Record<string, string> = {
   club: "from-purple-500 to-pink-500",
@@ -30,7 +31,8 @@ export const EventCard = ({
   category,
   attendees = 0,
   hasGuestlist = false,
-  index = 0
+  index = 0,
+  ownerAvatar
 }: EventCardProps) => {
   const navigate = useNavigate();
   const gradientClass = categoryColors[category] || categoryColors.default;
@@ -56,6 +58,29 @@ export const EventCard = ({
         {/* Image */}
         <div className={cn("relative rounded-2xl overflow-hidden", heightClass)}>
           <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+          
+          {/* Attendees overlay - top left */}
+          {attendees > 0 && (
+            <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-background/80 backdrop-blur-sm rounded-full px-2 py-1">
+              <div className="flex -space-x-1.5">
+                {/* Owner avatar first */}
+                {ownerAvatar && (
+                  <img 
+                    src={ownerAvatar} 
+                    alt="Owner" 
+                    className="w-5 h-5 rounded-full border-2 border-background object-cover"
+                  />
+                )}
+                {/* Other attendees */}
+                {[...Array(Math.min(ownerAvatar ? 2 : 3, attendees))].map((_, i) => (
+                  <div key={i} className="w-5 h-5 rounded-full bg-secondary border-2 border-background" />
+                ))}
+              </div>
+              <span className="text-[10px] font-medium text-foreground">
+                {attendees}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -63,15 +88,6 @@ export const EventCard = ({
           <h3 className="font-brand font-semibold text-foreground line-clamp-2 text-xs">
             {title}
           </h3>
-
-          {attendees > 0 && <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {[...Array(Math.min(3, attendees))].map((_, i) => <div key={i} className="w-5 h-5 rounded-full bg-secondary border-2 border-background" />)}
-              </div>
-              {attendees > 3 && <span className="text-xs text-muted-foreground">
-                  +{attendees - 3} going
-                </span>}
-            </div>}
         </div>
       </div>
     </motion.div>;
