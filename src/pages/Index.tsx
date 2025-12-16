@@ -4,38 +4,58 @@ import { useNavigate } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventFeed } from "@/components/events/EventFeed";
-import { mockEvents } from "@/data/mockEvents";
+import { useEvents } from "@/hooks/useEvents";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { format } from "date-fns";
+
 const Index = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
-  // For now, both tabs show the same events - this will be differentiated with real data
-  const filteredEvents = mockEvents.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) || event.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return searchQuery === "" || matchesSearch;
-  });
-  return <AppLayout>
+  const { data: events = [], isLoading } = useEvents();
+
+  // Transform events to EventCard format and filter
+  const transformedEvents = events
+    .filter((event) => {
+      const matchesSearch =
+        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (event.location_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      return searchQuery === "" || matchesSearch;
+    })
+    .map((event) => ({
+      id: event.id,
+      title: event.title,
+      imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
+      date: format(new Date(event.start_datetime), "EEE, MMM d • h:mm a"),
+      location: event.location_name || "Location TBA",
+      category: event.category || "party",
+      attendees: 0,
+      hasGuestlist: event.has_guestlist || false,
+      ownerAvatar: event.creator?.avatar_url || undefined,
+    }));
+
+  return (
+    <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background">
         <div className="flex items-center justify-between px-4 py-4">
-          <motion.div initial={{
-          opacity: 0,
-          x: -20
-        }} animate={{
-          opacity: 1,
-          x: 0
-        }}>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
             <h1 className="font-brand text-2xl font-bold text-foreground">Zentro</h1>
-            
           </motion.div>
-          
+
           <div className="flex items-center gap-2">
-            
-            <Button variant="ghost" size="icon" className="relative" onClick={() => navigate('/settings/notifications')}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={() => navigate("/settings/notifications")}
+            >
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
             </Button>
@@ -43,46 +63,68 @@ const Index = () => {
         </div>
 
         {/* Search bar */}
-        {showSearch && <motion.div initial={{
-        opacity: 0,
-        height: 0
-      }} animate={{
-        opacity: 1,
-        height: "auto"
-      }} exit={{
-        opacity: 0,
-        height: 0
-      }} className="px-4 pb-4">
+        {showSearch && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="px-4 pb-4"
+          >
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search events, venues..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+              <Input
+                placeholder="Search events, venues..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
-          </motion.div>}
+          </motion.div>
+        )}
 
         {/* Tabs */}
         <div className="flex px-4 pb-3 gap-2">
-          <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "for-you" ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-            {activeTab === "for-you" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
-            type: "spring",
-            duration: 0.5
-          }} />}
+          <button
+            onClick={() => setActiveTab("for-you")}
+            className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${
+              activeTab === "for-you"
+                ? "text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {activeTab === "for-you" && (
+              <motion.div
+                layoutId="activeTab"
+                className="absolute inset-0 gradient-primary rounded-full"
+                transition={{ type: "spring", duration: 0.5 }}
+              />
+            )}
             <span className="relative z-10">For You</span>
           </button>
-          <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "following" ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-            {activeTab === "following" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
-            type: "spring",
-            duration: 0.5
-          }} />}
+          <button
+            onClick={() => setActiveTab("following")}
+            className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${
+              activeTab === "following"
+                ? "text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {activeTab === "following" && (
+              <motion.div
+                layoutId="activeTab"
+                className="absolute inset-0 gradient-primary rounded-full"
+                transition={{ type: "spring", duration: 0.5 }}
+              />
+            )}
             <span className="relative z-10">Following</span>
           </button>
         </div>
       </header>
 
-      {/* Section title */}
-      
-
       {/* Event feed */}
-      <EventFeed events={filteredEvents} />
-    </AppLayout>;
+      <EventFeed events={transformedEvents} isLoading={isLoading} />
+    </AppLayout>
+  );
 };
+
 export default Index;
