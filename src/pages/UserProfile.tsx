@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle, UserPlus, Grid3X3, Star, Heart } from "lucide-react";
+import { ArrowLeft, MessageCircle, UserPlus, Image, Star, Heart } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { mockEvents } from "@/data/mockEvents";
@@ -47,9 +47,18 @@ const mockUsers: Record<string, {
 const UserProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"all" | "created" | "joined">("all");
+  const [activeTab, setActiveTab] = useState<"photos" | "created" | "joined">("photos");
   
   const user = mockUsers[id || "user-1"] || mockUsers["user-1"];
+
+  // Mock user photos for the Photos tab
+  const userPhotos = [
+    "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80",
+    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80",
+    "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80",
+    "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80",
+    "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=400&q=80",
+  ];
 
   const stats = [
     { label: "Events", value: user.events },
@@ -58,7 +67,7 @@ const UserProfile = () => {
   ];
 
   const tabs = [
-    { id: "all", label: "All", icon: Grid3X3 },
+    { id: "photos", label: "Photos", icon: Image },
     { id: "created", label: "Created", icon: Star },
     { id: "joined", label: "Joined", icon: Heart }
   ];
@@ -168,33 +177,65 @@ const UserProfile = () => {
         </div>
       </div>
 
-      {/* Events grid */}
+      {/* Content based on active tab */}
       <div className="py-4">
-        <div className="masonry-grid">
-          {mockEvents.slice(0, 6).map((event, index) => (
-            <motion.div
-              key={event.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.05 }}
-              className="masonry-item"
-            >
-              <div className="relative rounded-2xl overflow-hidden aspect-[3/4]">
-                <img
-                  src={event.imageUrl}
-                  alt={event.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-                <div className="absolute bottom-3 left-3 right-3">
-                  <p className="text-xs text-foreground line-clamp-2 font-normal">
-                    {event.title}
-                  </p>
+        {activeTab === "photos" && (
+          <div className="masonry-grid">
+            {userPhotos.map((photo, index) => (
+              <motion.div 
+                key={index} 
+                initial={{ opacity: 0, scale: 0.9 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                transition={{ delay: index * 0.05 }} 
+                className="masonry-item"
+              >
+                <div className="rounded-2xl overflow-hidden">
+                  <img 
+                    src={photo} 
+                    alt={`Photo ${index + 1}`} 
+                    className="w-full h-auto object-cover" 
+                  />
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+        
+        {activeTab === "created" && (
+          <div className="masonry-grid">
+            {mockEvents.slice(0, 4).map((event, index) => (
+              <motion.div 
+                key={event.id} 
+                initial={{ opacity: 0, scale: 0.9 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                transition={{ delay: index * 0.05 }} 
+                className="masonry-item"
+              >
+                <div className="rounded-2xl overflow-hidden">
+                  <img src={event.imageUrl} alt={event.title} className="w-full h-auto object-cover" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+        
+        {activeTab === "joined" && (
+          <div className="masonry-grid">
+            {mockEvents.slice(4, 8).map((event, index) => (
+              <motion.div 
+                key={event.id} 
+                initial={{ opacity: 0, scale: 0.9 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                transition={{ delay: index * 0.05 }} 
+                className="masonry-item"
+              >
+                <div className="rounded-2xl overflow-hidden">
+                  <img src={event.imageUrl} alt={event.title} className="w-full h-auto object-cover" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </AppLayout>
   );
