@@ -3,9 +3,12 @@ import { ChevronLeft, User, Bell, Shield, CreditCard, HelpCircle, LogOut } from 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const settingsItems = [
     { icon: User, label: "Edit Profile", path: "/edit-profile" },
@@ -14,6 +17,12 @@ const Settings = () => {
     { icon: CreditCard, label: "Subscription", path: "/settings/subscription" },
     { icon: HelpCircle, label: "Help & Support", path: "/settings/help" },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out successfully");
+    navigate("/auth");
+  };
 
   return (
     <AppLayout>
@@ -53,6 +62,7 @@ const Settings = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
+          onClick={handleSignOut}
           className="w-full flex items-center gap-4 p-4 rounded-2xl bg-destructive/10 hover:bg-destructive/20 transition-colors mt-6"
         >
           <div className="w-10 h-10 rounded-xl bg-destructive/20 flex items-center justify-center">
