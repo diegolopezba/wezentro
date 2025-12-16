@@ -103,10 +103,6 @@ const Create = () => {
     }
 
     // Validation
-    if (!formData.title.trim()) {
-      toast.error("Please enter an event title");
-      return;
-    }
     if (!formData.date || !formData.time) {
       toast.error("Please select a date and time");
       return;
@@ -134,7 +130,7 @@ const Create = () => {
       const { data, error } = await supabase
         .from("events")
         .insert({
-          title: formData.title.trim(),
+          title: formData.title.trim() || null,
           description: formData.description.trim() || null,
           category: formData.category || null,
           start_datetime: startDatetime.toISOString(),
@@ -266,7 +262,7 @@ const Create = () => {
         >
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
-              Event Title *
+              Event Title
             </label>
             <Input
               placeholder="Give your event a catchy name"

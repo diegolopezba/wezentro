@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 export interface EventCardProps {
   id: string;
-  title: string;
+  title?: string;
   imageUrl: string;
   date: string;
   location: string;
@@ -84,11 +84,13 @@ export const EventCard = ({
         </div>
 
         {/* Content */}
-        <div className="space-y-1 px-1">
-          <h3 className="font-brand font-semibold text-foreground line-clamp-2 text-xs">
-            {title}
-          </h3>
-        </div>
+        {title && (
+          <div className="space-y-1 px-1">
+            <h3 className="font-brand font-semibold text-foreground line-clamp-2 text-xs">
+              {title}
+            </h3>
+          </div>
+        )}
       </div>
     </motion.div>;
 };

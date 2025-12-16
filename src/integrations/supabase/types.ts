@@ -179,7 +179,7 @@ export type Database = {
           price: number | null
           requires_premium: boolean | null
           start_datetime: string
-          title: string
+          title: string | null
         }
         Insert: {
           category?: string | null
@@ -200,7 +200,7 @@ export type Database = {
           price?: number | null
           requires_premium?: boolean | null
           start_datetime: string
-          title: string
+          title?: string | null
         }
         Update: {
           category?: string | null
@@ -221,7 +221,7 @@ export type Database = {
           price?: number | null
           requires_premium?: boolean | null
           start_datetime?: string
-          title?: string
+          title?: string | null
         }
         Relationships: [
           {
