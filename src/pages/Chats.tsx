@@ -70,7 +70,7 @@ const Chats = () => {
         y: 0
       }} transition={{
         delay: index * 0.05
-      }} onClick={() => navigate(`/chats/${chat.id}`)} className="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors bg-background px-px">
+      }} onClick={() => navigate(`/chats/${chat.id}`)} className="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors bg-background px-0">
             <div className="relative" onClick={e => {
           if (chat.type === "private") {
             e.stopPropagation();
