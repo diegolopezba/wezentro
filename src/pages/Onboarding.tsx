@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, User, MapPin, Sparkles, Check } from "lucide-react";
+import { ArrowRight, User, Sparkles, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,6 @@ const Onboarding = () => {
   const [formData, setFormData] = useState({
     username: "",
     fullName: "",
-    city: "",
     interests: [] as string[],
     isBusiness: false,
   });
@@ -48,10 +47,13 @@ const Onboarding = () => {
   };
 
   const checkUsernameAvailability = async (username: string) => {
+    if (!user) return false;
+    
     const { data, error } = await supabase
       .from("profiles")
       .select("username")
       .eq("username", username.toLowerCase())
+      .neq("id", user.id)
       .maybeSingle();
 
     if (error) {
@@ -110,7 +112,6 @@ const Onboarding = () => {
       .update({
         username: formData.username.toLowerCase(),
         full_name: formData.fullName || null,
-        city: formData.city || null,
         interests: formData.interests.length > 0 ? formData.interests : null,
         is_business: formData.isBusiness,
       })
@@ -243,23 +244,6 @@ const Onboarding = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">
-                  Your City
-                </label>
-                <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Los Angeles, CA"
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
-                    }
-                    className="pl-12"
-                  />
-                </div>
-              </div>
 
               <div>
                 <label className="text-sm font-medium text-foreground mb-3 block">
