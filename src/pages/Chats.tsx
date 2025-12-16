@@ -78,9 +78,7 @@ const Chats = () => {
           }
         }}>
               <img src={chat.avatar} alt={chat.name} className={`w-14 h-14 rounded-2xl object-cover ${chat.type === "private" ? "cursor-pointer hover:scale-105 transition-transform" : ""}`} />
-              {chat.type === "event" && <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full gradient-primary flex items-center justify-center text-xs">
-                  👥
-                </div>}
+              {chat.type === "event"}
             </div>
 
             <div className="flex-1 min-w-0">
