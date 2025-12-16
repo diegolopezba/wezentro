@@ -1,53 +1,65 @@
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Share2, 
-  Heart, 
-  Calendar, 
-  MapPin, 
-  Users, 
+import {
+  ArrowLeft,
+  Share2,
+  Heart,
+  Calendar,
+  MapPin,
+  Users,
   DollarSign,
   MessageCircle,
   Send,
-  Star
+  Star,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { mockEvents } from "@/data/mockEvents";
+import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
+import { format } from "date-fns";
 
 const EventDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
-  const event = mockEvents.find((e) => e.id === id) || mockEvents[0];
 
-  const attendees = [
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80",
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80",
-    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80",
-    "https://images.unsplash.com/photo-1599566150163-29194dcabd36?w=100&q=80",
-    "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100&q=80",
-  ];
+  const { data: event, isLoading, error } = useEvent(id);
+  const { data: guestlist = [] } = useEventGuestlist(id);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
+        <h1 className="font-brand text-xl font-bold text-foreground mb-2">Event not found</h1>
+        <p className="text-muted-foreground mb-4">This event may have been removed or doesn't exist.</p>
+        <Button onClick={() => navigate("/")}>Go Home</Button>
+      </div>
+    );
+  }
+
+  const formattedDate = format(new Date(event.start_datetime), "EEE, MMM d • h:mm a");
+  const formattedPrice = event.price ? `$${event.price}` : "Free";
 
   return (
     <div className="min-h-screen bg-background">
       {/* Hero image */}
       <div className="relative h-[50vh]">
         <img
-          src={event.imageUrl}
+          src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
           alt={event.title}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-        
+
         {/* Back button */}
         <div className="absolute top-0 left-0 right-0 safe-top">
           <div className="flex items-center justify-between px-4 py-4">
-            <Button
-              variant="glass"
-              size="icon"
-              onClick={() => navigate(-1)}
-            >
+            <Button variant="glass" size="icon" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex gap-2">
@@ -71,28 +83,28 @@ const EventDetail = () => {
         >
           {/* Category & title */}
           <div>
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-primary text-primary-foreground mb-3">
-              {event.category.replace("_", " ")}
-            </span>
-            <h1 className="font-brand text-3xl font-bold text-foreground">
-              {event.title}
-            </h1>
+            {event.category && (
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-primary text-primary-foreground mb-3">
+                {event.category.replace("_", " ")}
+              </span>
+            )}
+            <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>
           </div>
 
           {/* Host */}
           <div className="flex items-center justify-between">
-            <div 
+            <div
               className="flex items-center gap-3 cursor-pointer"
-              onClick={() => navigate("/user/user-1")}
+              onClick={() => navigate(`/user/${event.creator_id}`)}
             >
               <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"
+                src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"}
                 alt="Host"
                 className="w-12 h-12 rounded-xl object-cover"
               />
               <div>
                 <p className="text-sm text-muted-foreground">Hosted by</p>
-                <p className="font-semibold text-foreground">@club_pulse</p>
+                <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
               </div>
             </div>
             <Button variant="secondary" size="sm">
@@ -108,17 +120,17 @@ const EventDetail = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">When</p>
-                <p className="font-semibold text-foreground">{event.date}</p>
+                <p className="font-semibold text-foreground">{formattedDate}</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50">
               <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-accent" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Price</p>
-                <p className="font-semibold text-foreground">$25</p>
+                <p className="font-semibold text-foreground">{formattedPrice}</p>
               </div>
             </div>
           </div>
@@ -129,83 +141,90 @@ const EventDetail = () => {
             </div>
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">Location</p>
-              <p className="font-semibold text-foreground">{event.location}</p>
+              <p className="font-semibold text-foreground">{event.location_name || "Location TBA"}</p>
             </div>
           </div>
 
           {/* Description */}
-          <div>
-            <h2 className="font-brand text-lg font-semibold text-foreground mb-3">
-              About
-            </h2>
-            <p className="text-muted-foreground leading-relaxed">
-              Get ready for an unforgettable night at {event.title}! Join us for the best 
-              music, incredible vibes, and an atmosphere you won't want to miss. Our world-class 
-              DJs will keep you dancing until sunrise. Dress to impress and prepare for an epic 
-              experience.
-            </p>
-          </div>
+          {event.description && (
+            <div>
+              <h2 className="font-brand text-lg font-semibold text-foreground mb-3">About</h2>
+              <p className="text-muted-foreground leading-relaxed">{event.description}</p>
+            </div>
+          )}
 
           {/* Guestlist attendees */}
-          {event.hasGuestlist && (
+          {event.has_guestlist && (
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-brand text-lg font-semibold text-foreground">
-                  Guestlist ({event.attendees})
+                  Guestlist ({guestlist.length})
                 </h2>
-                <span className="text-sm text-primary">View all</span>
-              </div>
-              
-              {/* Avatars row */}
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex -space-x-3">
-                  {attendees.map((avatar, i) => (
-                    <img
-                      key={i}
-                      src={avatar}
-                      alt={`Attendee ${i + 1}`}
-                      className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/user/user-${i + 1}`);
-                      }}
-                    />
-                  ))}
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  +{(event.attendees || 0) - 5} more
-                </span>
+                {guestlist.length > 0 && (
+                  <span className="text-sm text-primary cursor-pointer">View all</span>
+                )}
               </div>
 
-              {/* Attendee list */}
-              <div className="space-y-3">
-                {attendees.slice(0, 3).map((avatar, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30"
-                  >
-                    <img
-                      src={avatar}
-                      alt={`Attendee ${i + 1}`}
-                      className="w-10 h-10 rounded-xl object-cover cursor-pointer hover:scale-105 transition-transform"
-                      onClick={() => navigate(`/user/user-${i + 1}`)}
-                    />
-                    <div 
-                      className="flex-1 cursor-pointer"
-                      onClick={() => navigate(`/user/user-${i + 1}`)}
-                    >
-                      <p className="font-medium text-foreground text-sm">
-                        @partygoer_{i + 1}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Joined 2h ago</p>
+              {guestlist.length > 0 ? (
+                <>
+                  {/* Avatars row */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex -space-x-3">
+                      {guestlist.slice(0, 5).map((entry: any, i: number) => (
+                        <img
+                          key={entry.id}
+                          src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`}
+                          alt={`Attendee ${i + 1}`}
+                          className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/user/${entry.user_id}`);
+                          }}
+                        />
+                      ))}
                     </div>
-                    <MessageCircle 
-                      className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" 
-                      onClick={() => navigate(`/chats/user-${i + 1}`)}
-                    />
+                    {guestlist.length > 5 && (
+                      <span className="text-sm text-muted-foreground">
+                        +{guestlist.length - 5} more
+                      </span>
+                    )}
                   </div>
-                ))}
-              </div>
+
+                  {/* Attendee list */}
+                  <div className="space-y-3">
+                    {guestlist.slice(0, 3).map((entry: any) => (
+                      <div
+                        key={entry.id}
+                        className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30"
+                      >
+                        <img
+                          src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.id}`}
+                          alt={entry.user?.username || "User"}
+                          className="w-10 h-10 rounded-xl object-cover cursor-pointer hover:scale-105 transition-transform"
+                          onClick={() => navigate(`/user/${entry.user_id}`)}
+                        />
+                        <div
+                          className="flex-1 cursor-pointer"
+                          onClick={() => navigate(`/user/${entry.user_id}`)}
+                        >
+                          <p className="font-medium text-foreground text-sm">
+                            @{entry.user?.username || "user"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Joined {format(new Date(entry.joined_at), "MMM d")}
+                          </p>
+                        </div>
+                        <MessageCircle
+                          className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors"
+                          onClick={() => navigate(`/chats/${entry.user_id}`)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="text-muted-foreground text-sm">No one has joined yet. Be the first!</p>
+              )}
             </div>
           )}
         </motion.div>
@@ -220,7 +239,7 @@ const EventDetail = () => {
           <Button variant="secondary" size="icon-lg">
             <Send className="w-5 h-5" />
           </Button>
-          {event.hasGuestlist ? (
+          {event.has_guestlist ? (
             <Button variant="hero" className="flex-1">
               <Users className="w-5 h-5 mr-2" />
               Join Guestlist
