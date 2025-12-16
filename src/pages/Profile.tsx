@@ -175,14 +175,8 @@ const Profile = () => {
                 transition={{ delay: index * 0.05 }} 
                 className="masonry-item"
               >
-                <div className="relative rounded-2xl overflow-hidden aspect-[3/4]">
-                  <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <p className="text-xs text-foreground line-clamp-2 font-normal">
-                      {event.title}
-                    </p>
-                  </div>
+                <div className="rounded-2xl overflow-hidden">
+                  <img src={event.imageUrl} alt={event.title} className="w-full h-auto object-cover" />
                 </div>
               </motion.div>
             ))}
@@ -199,14 +193,8 @@ const Profile = () => {
                 transition={{ delay: index * 0.05 }} 
                 className="masonry-item"
               >
-                <div className="relative rounded-2xl overflow-hidden aspect-[3/4]">
-                  <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <p className="text-xs text-foreground line-clamp-2 font-normal">
-                      {event.title}
-                    </p>
-                  </div>
+                <div className="rounded-2xl overflow-hidden">
+                  <img src={event.imageUrl} alt={event.title} className="w-full h-auto object-cover" />
                 </div>
               </motion.div>
             ))}
