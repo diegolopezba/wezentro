@@ -51,7 +51,7 @@ const EventDetail = () => {
       <div className="relative h-[50vh]">
         <img
           src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
-          alt={event.title}
+          alt={event.title || "Event"}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
@@ -88,7 +88,9 @@ const EventDetail = () => {
                 {event.category.replace("_", " ")}
               </span>
             )}
-            <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>
+            {event.title && (
+              <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>
+            )}
           </div>
 
           {/* Host */}

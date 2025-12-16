@@ -21,13 +21,13 @@ const Index = () => {
   const transformedEvents = events
     .filter((event) => {
       const matchesSearch =
-        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (event.location_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
       return searchQuery === "" || matchesSearch;
     })
     .map((event) => ({
       id: event.id,
-      title: event.title,
+      title: event.title || undefined,
       imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
       date: format(new Date(event.start_datetime), "EEE, MMM d • h:mm a"),
       location: event.location_name || "Location TBA",
