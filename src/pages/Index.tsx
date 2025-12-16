@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventFeed } from "@/components/events/EventFeed";
@@ -7,6 +8,7 @@ import { mockEvents } from "@/data/mockEvents";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 const Index = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -33,7 +35,7 @@ const Index = () => {
           
           <div className="flex items-center gap-2">
             
-            <Button variant="ghost" size="icon" className="relative">
+            <Button variant="ghost" size="icon" className="relative" onClick={() => navigate('/settings/notifications')}>
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
             </Button>
