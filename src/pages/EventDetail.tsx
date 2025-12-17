@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -14,23 +15,32 @@ import {
   Loader2,
   Check,
   Clock,
-  LogOut,
+  Settings2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
-import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription } from "@/hooks/useGuestlist";
+import { 
+  useIsOnGuestlist, 
+  useJoinGuestlist, 
+  useLeaveGuestlist, 
+  useHasActiveSubscription,
+  usePendingGuestlistRequests 
+} from "@/hooks/useGuestlist";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 
 const EventDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [showManagement, setShowManagement] = useState(false);
 
   const { data: event, isLoading, error } = useEvent(id);
   const { data: guestlistStatus } = useIsOnGuestlist(id);
   const { data: hasSubscription } = useHasActiveSubscription();
+  const { data: pendingRequests = [] } = usePendingGuestlistRequests(id);
   const joinGuestlist = useJoinGuestlist();
   const leaveGuestlist = useLeaveGuestlist();
 
@@ -38,6 +48,7 @@ const EventDetail = () => {
   const isPending = guestlistStatus?.status === "pending";
   const isApproved = guestlistStatus?.status === "approved";
   const isOwner = user?.id === event?.creator_id;
+  const pendingCount = pendingRequests.length;
 
   const handleJoinGuestlist = async () => {
     if (!user) {
@@ -288,9 +299,18 @@ const EventDetail = () => {
           </Button>
           {event.has_guestlist ? (
             isOwner ? (
-              <Button variant="secondary" className="flex-1" disabled>
-                <Users className="w-5 h-5 mr-2" />
-                Your Event
+              <Button 
+                variant="hero" 
+                className="flex-1 relative"
+                onClick={() => setShowManagement(true)}
+              >
+                <Settings2 className="w-5 h-5 mr-2" />
+                Manage Guestlist
+                {pendingCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
+                    {pendingCount}
+                  </span>
+                )}
               </Button>
             ) : isOnGuestlist ? (
               isPending ? (
@@ -345,6 +365,15 @@ const EventDetail = () => {
           )}
         </div>
       </div>
+
+      {/* Guestlist Management Sheet */}
+      {isOwner && event.has_guestlist && (
+        <GuestlistManagementSheet
+          eventId={id!}
+          open={showManagement}
+          onOpenChange={setShowManagement}
+        />
+      )}
     </div>
   );
 };

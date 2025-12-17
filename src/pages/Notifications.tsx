@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronLeft, Bell, UserPlus, Calendar, Check, Loader2, Users } from "lucide-react";
+import { ChevronLeft, Bell, UserPlus, Calendar, Check, Loader2, Users, CheckCircle, XCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { 
@@ -20,6 +20,10 @@ const getNotificationIcon = (type: string) => {
     case "guestlist":
     case "guestlist_request":
       return Users;
+    case "guestlist_approved":
+      return CheckCircle;
+    case "guestlist_rejected":
+      return XCircle;
     default:
       return Bell;
   }
