@@ -123,7 +123,15 @@ export const useUserCreatedEvents = (userId: string | undefined) => {
 
       const { data, error } = await supabase
         .from("events")
-        .select("*")
+        .select(`
+          *,
+          creator:profiles!events_creator_id_fkey(
+            id,
+            username,
+            avatar_url
+          ),
+          guestlist_entries(count)
+        `)
         .eq("creator_id", userId)
         .is("deleted_at", null)
         .order("start_datetime", { ascending: false });
@@ -144,7 +152,15 @@ export const useUserJoinedEvents = (userId: string | undefined) => {
       const { data, error } = await supabase
         .from("guestlist_entries")
         .select(`
-          event:events(*)
+          event:events(
+            *,
+            creator:profiles!events_creator_id_fkey(
+              id,
+              username,
+              avatar_url
+            ),
+            guestlist_entries(count)
+          )
         `)
         .eq("user_id", userId)
         .order("joined_at", { ascending: false });
