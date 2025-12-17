@@ -90,7 +90,13 @@ const EventDetail = () => {
         {/* Back button */}
         <div className="absolute top-0 left-0 right-0 safe-top">
           <div className="flex items-center justify-between px-4 py-4">
-            <Button variant="glass" size="icon" onClick={() => navigate(-1)}>
+            <Button variant="glass" size="icon" onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate("/");
+              }
+            }}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex gap-2">
