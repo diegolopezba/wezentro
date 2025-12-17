@@ -1,14 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Settings, Image, Star, Heart } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { mockEvents } from "@/data/mockEvents";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ProfilePhoto {
+  id: string;
+  photo_url: string;
+  display_order: number;
+}
 
 const Profile = () => {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [activeTab, setActiveTab] = useState<"photos" | "created" | "joined">("photos");
+  const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
   
   const stats = [
     { label: "Events", value: 12 },
@@ -22,15 +30,24 @@ const Profile = () => {
     { id: "joined", label: "Joined", icon: Heart },
   ];
 
-  // Mock user photos for the Photos tab
-  const userPhotos = [
-    "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80",
-    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80",
-    "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80",
-    "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80",
-    "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=400&q=80",
-    "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80",
-  ];
+  useEffect(() => {
+    if (user) {
+      fetchPhotos();
+    }
+  }, [user]);
+
+  const fetchPhotos = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("profile_photos")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("display_order", { ascending: true });
+
+    if (!error && data) {
+      setPhotos(data);
+    }
+  };
 
   return (
     <AppLayout>
@@ -161,23 +178,29 @@ const Profile = () => {
       <div className="py-4">
         {activeTab === "photos" && (
           <div className="masonry-grid">
-            {userPhotos.map((photo, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.05 }}
-                className="masonry-item"
-              >
-                <div className="rounded-2xl overflow-hidden">
-                  <img
-                    src={photo}
-                    alt={`Photo ${index + 1}`}
-                    className="w-full h-auto object-cover"
-                  />
-                </div>
-              </motion.div>
-            ))}
+            {photos.length === 0 ? (
+              <div className="col-span-2 text-center py-8 text-muted-foreground text-sm">
+                No photos yet. Add some from your profile settings!
+              </div>
+            ) : (
+              photos.map((photo, index) => (
+                <motion.div
+                  key={photo.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="masonry-item"
+                >
+                  <div className="rounded-2xl overflow-hidden">
+                    <img
+                      src={photo.photo_url}
+                      alt={`Photo ${index + 1}`}
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
         )}
 
