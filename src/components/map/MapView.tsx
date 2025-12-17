@@ -3,7 +3,8 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Event } from '@/hooks/useEvents';
 import { useMapboxToken } from '@/hooks/useMapboxToken';
-import { Loader2 } from 'lucide-react';
+import { Loader2, LocateFixed } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface MapViewProps {
   events: Event[];
@@ -22,9 +23,14 @@ const MapView: React.FC<MapViewProps> = ({
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   
   const { token: mapboxToken, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
+
+  const handleRefreshLocation = () => {
+    geolocateControlRef.current?.trigger();
+  };
 
   // Convert events to GeoJSON for clustering
   const eventsGeoJSON = useMemo(() => {
@@ -75,6 +81,7 @@ const MapView: React.FC<MapViewProps> = ({
       trackUserLocation: true,
       showUserHeading: true,
     });
+    geolocateControlRef.current = geolocateControl;
     
     map.current.addControl(geolocateControl, 'top-right');
 
@@ -241,6 +248,7 @@ const MapView: React.FC<MapViewProps> = ({
     return () => {
       map.current?.remove();
       map.current = null;
+      geolocateControlRef.current = null;
     };
   }, [mapboxToken]);
 
@@ -290,7 +298,20 @@ const MapView: React.FC<MapViewProps> = ({
   }
 
   return (
-    <div ref={mapContainer} className="absolute inset-0" />
+    <div className="absolute inset-0">
+      <div ref={mapContainer} className="absolute inset-0" />
+      
+      {/* Refresh Location Button */}
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={handleRefreshLocation}
+        className="absolute bottom-24 right-3 z-10 shadow-lg gap-2"
+      >
+        <LocateFixed className="w-4 h-4" />
+        Refresh Location
+      </Button>
+    </div>
   );
 };
 
