@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Share2, Heart, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Star, Loader2, Check, Clock, Settings2, UserPlus, UserMinus } from "lucide-react";
+import { ArrowLeft, Share2, Heart, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
 import { useAuth } from "@/contexts/AuthContext";
-import { useIsFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useUserProfile";
+
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
@@ -37,34 +37,12 @@ const EventDetail = () => {
     data: pendingRequests = []
   } = usePendingGuestlistRequests(id);
 
-  // Follow hooks for event creator
-  const {
-    data: isFollowingCreator,
-    isLoading: followStatusLoading
-  } = useIsFollowing(event?.creator_id);
-  const followMutation = useFollowUser();
-  const unfollowMutation = useUnfollowUser();
   const joinGuestlist = useJoinGuestlist();
   const leaveGuestlist = useLeaveGuestlist();
   const isOnGuestlist = !!guestlistStatus;
   const isPending = guestlistStatus?.status === "pending";
-  const isApproved = guestlistStatus?.status === "approved";
   const isOwner = user?.id === event?.creator_id;
   const pendingCount = pendingRequests.length;
-  const isFollowPending = followMutation.isPending || unfollowMutation.isPending;
-  const handleFollowToggle = () => {
-    if (!event?.creator_id) return;
-    if (!user) {
-      toast.error("Please sign in to follow users");
-      navigate("/auth");
-      return;
-    }
-    if (isFollowingCreator) {
-      unfollowMutation.mutate(event.creator_id);
-    } else {
-      followMutation.mutate(event.creator_id);
-    }
-  };
   const handleJoinGuestlist = async () => {
     if (!user) {
       toast.error("Please sign in to join guestlists");
@@ -138,7 +116,7 @@ const EventDetail = () => {
       </div>
 
       {/* Content */}
-      <div className="relative -mt-16 px-4 pb-32">
+      <div className="relative -mt-16 px-4 pb-8">
         <motion.div initial={{
         opacity: 0,
         y: 20
@@ -158,20 +136,44 @@ const EventDetail = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/user/${event.creator_id}`)}>
               <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-xl object-cover" />
-              <div>
-                <p className="text-sm text-muted-foreground">Hosted by</p>
-                <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
-              </div>
+              <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
             </div>
-            {!isOwner && <Button variant={isFollowingCreator ? "secondary" : "hero"} size="sm" onClick={handleFollowToggle} disabled={followStatusLoading || isFollowPending}>
-                {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowingCreator ? <>
-                    <UserMinus className="w-3 h-3 mr-1" />
-                    Unfollow
-                  </> : <>
-                    <UserPlus className="w-3 h-3 mr-1" />
-                    Follow
-                  </>}
-              </Button>}
+            
+            {/* Event action buttons */}
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" size="icon" onClick={() => setShowShareModal(true)}>
+                <Send className="w-4 h-4" />
+              </Button>
+              <Button variant="secondary" size="icon">
+                <Heart className="w-4 h-4" />
+              </Button>
+              {event.has_guestlist && (
+                isOwner ? (
+                  <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
+                    Manage
+                    {pendingCount > 0 && (
+                      <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
+                        {pendingCount}
+                      </span>
+                    )}
+                  </Button>
+                ) : isOnGuestlist ? (
+                  isPending ? (
+                    <Button variant="secondary" size="sm" disabled>
+                      <Clock className="w-4 h-4 mr-1" /> Pending
+                    </Button>
+                  ) : (
+                    <Button variant="secondary" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                      {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Joined</>}
+                    </Button>
+                  )
+                ) : (
+                  <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
+                    {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Join</>}
+                  </Button>
+                )
+              )}
+            </div>
           </div>
 
           {/* Details */}
@@ -256,47 +258,6 @@ const EventDetail = () => {
         </motion.div>
       </div>
 
-      {/* Fixed bottom actions */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 glass-strong safe-bottom">
-        <div className="flex gap-3">
-          {/* Send invite button */}
-          <Button variant="secondary" size="icon" className="shrink-0" onClick={() => setShowShareModal(true)}>
-            <Send className="w-5 h-5" />
-          </Button>
-
-          {/* Guestlist actions */}
-          {event.has_guestlist && (
-            isOwner ? (
-              <Button className="flex-1" variant="hero" onClick={() => setShowManagement(true)}>
-                <Settings2 className="w-4 h-4 mr-2" />
-                Manage Guestlist
-                {pendingCount > 0 && (
-                  <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-full text-xs">
-                    {pendingCount} pending
-                  </span>
-                )}
-              </Button>
-            ) : isOnGuestlist ? (
-              isPending ? (
-                <Button className="flex-1" variant="secondary" disabled>
-                  <Clock className="w-4 h-4 mr-2" />
-                  Request Pending
-                </Button>
-              ) : (
-                <Button className="flex-1" variant="secondary" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
-                  {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-                  On Guestlist
-                </Button>
-              )
-            ) : (
-              <Button className="flex-1" variant="hero" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
-                {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Users className="w-4 h-4 mr-2" />}
-                Join Guestlist
-              </Button>
-            )
-          )}
-        </div>
-      </div>
 
       {/* Guestlist Management Sheet */}
       {isOwner && event.has_guestlist && <GuestlistManagementSheet eventId={id!} open={showManagement} onOpenChange={setShowManagement} />}
