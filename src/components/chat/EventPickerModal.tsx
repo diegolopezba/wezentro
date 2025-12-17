@@ -28,6 +28,7 @@ const EventPickerModal = ({ open, onOpenChange, onSelectEvent }: EventPickerModa
   ) || [];
 
   const handleSelectEvent = (eventId: string) => {
+    console.log("EventPickerModal - Event selected:", eventId);
     onSelectEvent(eventId);
     onOpenChange(false);
     setSearchQuery("");
