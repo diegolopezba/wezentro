@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   Upload,
   Calendar,
-  MapPin,
   DollarSign,
   Users,
   X,
@@ -19,6 +18,7 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { LocationPicker } from "@/components/map/LocationPicker";
 
 const categories = [
   { id: "club", label: "Club", emoji: "🪩" },
@@ -36,6 +36,11 @@ const Create = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [location, setLocation] = useState({
+    address: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
+  });
 
   const [formData, setFormData] = useState({
     title: "",
@@ -43,7 +48,6 @@ const Create = () => {
     category: "",
     date: "",
     time: "",
-    location: "",
     price: "",
     capacity: "",
     hasGuestlist: false,
@@ -134,7 +138,9 @@ const Create = () => {
           description: formData.description.trim() || null,
           category: formData.category || null,
           start_datetime: startDatetime.toISOString(),
-          location_name: formData.location.trim() || null,
+          location_name: location.address.trim() || null,
+          latitude: location.latitude,
+          longitude: location.longitude,
           price: formData.price ? parseFloat(formData.price) : 0,
           max_guestlist_capacity: formData.capacity
             ? parseInt(formData.capacity)
@@ -341,23 +347,10 @@ const Create = () => {
             </div>
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
-              Location
-            </label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Enter venue or address"
-                className="pl-10"
-                value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
-                }
-                maxLength={200}
-              />
-            </div>
-          </div>
+          <LocationPicker
+            value={location}
+            onChange={setLocation}
+          />
 
           <div className="grid grid-cols-2 gap-4">
             <div>
