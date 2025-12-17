@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, MapPin, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -14,6 +14,7 @@ import { useNearbyEvents, formatDistance, FilterOptions } from "@/hooks/useNearb
 import { format } from "date-fns";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type EventWithDistance = ReturnType<typeof useNearbyEvents>[number];
 
@@ -31,9 +32,33 @@ const Discover = () => {
     maxDistance: null,
     hasGuestlistOnly: false,
   });
+
+  const hasAutoOpenedRef = useRef(false);
   
   const { data: events = [] } = useEvents();
   const { location: userLocation } = useUserLocation();
+
+  // Handle geolocation success - auto-open nearby drawer once
+  const handleGeolocationSuccess = () => {
+    if (!hasAutoOpenedRef.current && filteredEvents.length > 0) {
+      hasAutoOpenedRef.current = true;
+      setTimeout(() => {
+        setIsNearbyOpen(true);
+        toast.success(`Found ${filteredEvents.length} events near you!`);
+      }, 500);
+    }
+  };
+
+  // Handle geolocation error
+  const handleGeolocationError = (error: string) => {
+    toast.error(error, {
+      duration: 5000,
+      action: {
+        label: "How to enable",
+        onClick: () => window.open("https://support.google.com/chrome/answer/142065", "_blank"),
+      },
+    });
+  };
 
   // Combine search query with filters
   const activeFilters = useMemo(() => ({
@@ -103,6 +128,8 @@ const Discover = () => {
           events={filteredEvents}
           onMarkerClick={handleMarkerClick}
           selectedEventId={selectedEvents[currentSlide]?.id}
+          onGeolocationSuccess={handleGeolocationSuccess}
+          onGeolocationError={handleGeolocationError}
         />
 
         {/* Floating search bar */}

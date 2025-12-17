@@ -9,12 +9,16 @@ interface MapViewProps {
   events: Event[];
   onMarkerClick?: (events: Event[]) => void;
   selectedEventId?: string | null;
+  onGeolocationSuccess?: () => void;
+  onGeolocationError?: (error: string) => void;
 }
 
 const MapView: React.FC<MapViewProps> = ({ 
   events, 
   onMarkerClick, 
   selectedEventId,
+  onGeolocationSuccess,
+  onGeolocationError,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -73,6 +77,20 @@ const MapView: React.FC<MapViewProps> = ({
     });
     
     map.current.addControl(geolocateControl, 'top-right');
+
+    // Handle geolocation events
+    geolocateControl.on('geolocate', () => {
+      onGeolocationSuccess?.();
+    });
+
+    geolocateControl.on('error', (e: GeolocationPositionError) => {
+      const errorMessages: Record<number, string> = {
+        1: "Location access denied. Enable location in your browser settings.",
+        2: "Location unavailable. Please try again.",
+        3: "Location request timed out. Please try again.",
+      };
+      onGeolocationError?.(errorMessages[e.code] || "Failed to get location");
+    });
 
     // Auto-trigger geolocation when map loads
     map.current.on('load', () => {
