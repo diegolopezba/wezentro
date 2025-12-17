@@ -1,122 +1,239 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, Phone, Video, MoreVertical } from "lucide-react";
+import { ArrowLeft, Send, MoreVertical, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-const mockUsers: Record<string, {
-  name: string;
-  username: string;
-  avatar: string;
-}> = {
-  "user-1": {
-    name: "Alex Martinez",
-    username: "@partygoer_1",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"
-  },
-  "user-2": {
-    name: "Sarah Chen",
-    username: "@partygoer_2",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80"
-  },
-  "user-3": {
-    name: "Jordan Lee",
-    username: "@partygoer_3",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80"
-  }
-};
-const mockMessages = [{
-  id: "1",
-  text: "Hey! Are you going to the event tonight?",
-  sender: "them",
-  time: "10:30 AM"
-}, {
-  id: "2",
-  text: "Yes! Can't wait 🎉",
-  sender: "me",
-  time: "10:32 AM"
-}, {
-  id: "3",
-  text: "Should be amazing, the DJ lineup looks incredible",
-  sender: "them",
-  time: "10:33 AM"
-}, {
-  id: "4",
-  text: "Right? See you there!",
-  sender: "me",
-  time: "10:35 AM"
-}];
+import { useChatDetails, useChatMessages, useSendMessage } from "@/hooks/useChats";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import MessageBubble from "@/components/chat/MessageBubble";
+import EventPickerModal from "@/components/chat/EventPickerModal";
+
 const ChatDetail = () => {
-  const {
-    id
-  } = useParams();
+  const { id: chatId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  
   const [message, setMessage] = useState("");
-  const user = mockUsers[id || "user-1"] || mockUsers["user-1"];
+  const [eventPickerOpen, setEventPickerOpen] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const { data: chatDetails, isLoading: chatLoading } = useChatDetails(chatId);
+  const { data: messages, isLoading: messagesLoading } = useChatMessages(chatId);
+  const sendMessage = useSendMessage();
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!chatId) return;
+
+    const channel = supabase
+      .channel(`chat-${chatId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `chat_id=eq.${chatId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["chat-messages", chatId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [chatId, queryClient]);
+
   const handleSend = () => {
-    if (message.trim()) {
-      // TODO: Implement actual message sending
-      setMessage("");
+    if (!message.trim() || !chatId) return;
+    
+    sendMessage.mutate({
+      chatId,
+      content: message.trim(),
+      messageType: "text",
+    });
+    setMessage("");
+  };
+
+  const handleSendEventInvite = (eventId: string) => {
+    if (!chatId) return;
+    
+    sendMessage.mutate({
+      chatId,
+      content: "Check out this event!",
+      messageType: "event_invite",
+      eventId,
+    });
+  };
+
+  const handleHeaderClick = () => {
+    if (chatDetails?.type === "private" && chatDetails.otherParticipant) {
+      navigate(`/user/${chatDetails.otherParticipant.id}`);
+    } else if (chatDetails?.event) {
+      navigate(`/event/${chatDetails.event.id}`);
     }
   };
-  return <div className="min-h-screen bg-background flex flex-col">
+
+  // Get display info for header
+  const getHeaderInfo = () => {
+    if (!chatDetails) return { name: "", avatar: "", subtitle: "" };
+    
+    if (chatDetails.type === "private" && chatDetails.otherParticipant) {
+      return {
+        name: chatDetails.otherParticipant.full_name || chatDetails.otherParticipant.username,
+        avatar: chatDetails.otherParticipant.avatar_url,
+        subtitle: `@${chatDetails.otherParticipant.username}`,
+      };
+    }
+    
+    if (chatDetails.event) {
+      return {
+        name: chatDetails.event.title || "Event Chat",
+        avatar: chatDetails.event.image_url,
+        subtitle: `${chatDetails.participants.length} members`,
+      };
+    }
+    
+    return {
+      name: chatDetails.name || "Group Chat",
+      avatar: null,
+      subtitle: `${chatDetails.participants.length} members`,
+    };
+  };
+
+  const headerInfo = getHeaderInfo();
+
+  if (chatLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!chatDetails) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <p className="text-muted-foreground">Chat not found</p>
+        <Button variant="ghost" onClick={() => navigate("/chats")}>
+          Back to Messages
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong safe-top">
         <div className="flex items-center gap-3 px-4 py-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/chats")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          
-          <div 
+
+          <div
             className="flex items-center gap-3 flex-1 cursor-pointer"
-            onClick={() => navigate(`/user/${id}`)}
+            onClick={handleHeaderClick}
           >
-            <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-xl object-cover" />
+            {headerInfo.avatar ? (
+              <img
+                src={headerInfo.avatar}
+                alt={headerInfo.name}
+                className="w-10 h-10 rounded-xl object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                <span className="text-lg font-semibold text-muted-foreground">
+                  {headerInfo.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
             <div>
-              <h1 className="font-semibold text-foreground">{user.name}</h1>
-              <p className="text-xs text-muted-foreground">{user.username}</p>
+              <h1 className="font-semibold text-foreground">{headerInfo.name}</h1>
+              <p className="text-xs text-muted-foreground">{headerInfo.subtitle}</p>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            
-            
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="w-5 h-5" />
-            </Button>
-          </div>
+          <Button variant="ghost" size="icon">
+            <MoreVertical className="w-5 h-5" />
+          </Button>
         </div>
       </header>
 
       {/* Messages */}
-      <div className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
-        {mockMessages.map((msg, index) => <motion.div key={msg.id} initial={{
-        opacity: 0,
-        y: 10
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: index * 0.05
-      }} className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[75%] px-4 py-3 rounded-2xl ${msg.sender === "me" ? "bg-primary text-primary-foreground rounded-br-md" : "bg-secondary text-foreground rounded-bl-md"}`}>
-              <p className="text-sm">{msg.text}</p>
-              <p className={`text-xs mt-1 ${msg.sender === "me" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                {msg.time}
-              </p>
-            </div>
-          </motion.div>)}
+      <div className="flex-1 px-4 py-4 space-y-3 overflow-y-auto">
+        {messagesLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : messages && messages.length > 0 ? (
+          <>
+            {messages.map((msg, index) => (
+              <MessageBubble key={msg.id} message={msg} index={index} />
+            ))}
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full py-16">
+            <p className="text-muted-foreground text-sm">No messages yet</p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Send a message to start the conversation
+            </p>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
       <div className="sticky bottom-0 p-4 glass-strong safe-bottom">
-        <div className="flex gap-3">
-          <Input placeholder="Type a message..." value={message} onChange={e => setMessage(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSend()} className="flex-1" />
-          <Button variant="hero" size="icon" onClick={handleSend}>
-            <Send className="w-5 h-5" />
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setEventPickerOpen(true)}
+            className="flex-shrink-0"
+          >
+            <Plus className="w-5 h-5" />
+          </Button>
+          <Input
+            placeholder="Type a message..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+            className="flex-1"
+          />
+          <Button
+            variant="hero"
+            size="icon"
+            onClick={handleSend}
+            disabled={!message.trim() || sendMessage.isPending}
+          >
+            {sendMessage.isPending ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
           </Button>
         </div>
       </div>
-    </div>;
+
+      {/* Event Picker Modal */}
+      <EventPickerModal
+        open={eventPickerOpen}
+        onOpenChange={setEventPickerOpen}
+        onSelectEvent={handleSendEventInvite}
+      />
+    </div>
+  );
 };
+
 export default ChatDetail;
