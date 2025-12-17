@@ -10,16 +10,15 @@ import { useIsFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useUserP
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
+import { ShareEventModal } from "@/components/events/ShareEventModal";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+
 const EventDetail = () => {
-  const {
-    id
-  } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const [showManagement, setShowManagement] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
@@ -276,7 +275,7 @@ const EventDetail = () => {
           <Button variant="secondary" size="icon-lg">
             <MessageCircle className="w-5 h-5" />
           </Button>
-          <Button variant="secondary" size="icon-lg">
+          <Button variant="secondary" size="icon-lg" onClick={() => setShowShareModal(true)}>
             <Send className="w-5 h-5" />
           </Button>
           {event.has_guestlist ? isOwner ? <Button variant="hero" className="flex-1 relative" onClick={() => setShowManagement(true)}>
@@ -303,6 +302,9 @@ const EventDetail = () => {
 
       {/* Guestlist Management Sheet */}
       {isOwner && event.has_guestlist && <GuestlistManagementSheet eventId={id!} open={showManagement} onOpenChange={setShowManagement} />}
+
+      {/* Share Event Modal */}
+      <ShareEventModal eventId={id!} open={showShareModal} onOpenChange={setShowShareModal} />
     </div>;
 };
 export default EventDetail;
