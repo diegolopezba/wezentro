@@ -140,12 +140,12 @@ const EventDetail = () => {
             </div>
             
             {/* Event action buttons */}
-            <div className="flex items-center gap-2">
-              <Button variant="secondary" size="icon" onClick={() => setShowShareModal(true)}>
-                <Send className="w-4 h-4" />
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
+                <Send className="w-5 h-5" />
               </Button>
-              <Button variant="secondary" size="icon">
-                <Heart className="w-4 h-4" />
+              <Button variant="ghost" size="icon">
+                <Heart className="w-5 h-5" />
               </Button>
               {event.has_guestlist && (
                 isOwner ? (
@@ -159,11 +159,11 @@ const EventDetail = () => {
                   </Button>
                 ) : isOnGuestlist ? (
                   isPending ? (
-                    <Button variant="secondary" size="sm" disabled>
+                    <Button variant="ghost" size="sm" disabled>
                       <Clock className="w-4 h-4 mr-1" /> Pending
                     </Button>
                   ) : (
-                    <Button variant="secondary" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                    <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
                       {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Joined</>}
                     </Button>
                   )
