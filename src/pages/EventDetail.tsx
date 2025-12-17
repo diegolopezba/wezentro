@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 const EventDetail = () => {
   const {
     id
@@ -18,6 +19,10 @@ const EventDetail = () => {
     user
   } = useAuth();
   const [showManagement, setShowManagement] = useState(false);
+  
+  // Enable swipe-from-left-edge to go back on mobile
+  useSwipeBack();
+  
   const {
     data: event,
     isLoading,
