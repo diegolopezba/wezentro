@@ -171,3 +171,45 @@ export const useUserJoinedEvents = (userId: string | undefined) => {
     enabled: !!userId,
   });
 };
+
+export const useFollowingEvents = () => {
+  return useQuery({
+    queryKey: ["following-events"],
+    queryFn: async () => {
+      // First get the current user's following list
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      // Get the list of user IDs the current user is following
+      const { data: followingData, error: followingError } = await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", user.id);
+
+      if (followingError) throw followingError;
+      if (!followingData || followingData.length === 0) return [];
+
+      const followingIds = followingData.map((f) => f.following_id);
+
+      // Get events from followed users
+      const { data, error } = await supabase
+        .from("events")
+        .select(`
+          *,
+          creator:profiles!events_creator_id_fkey(
+            id,
+            username,
+            full_name,
+            avatar_url
+          )
+        `)
+        .in("creator_id", followingIds)
+        .eq("is_public", true)
+        .is("deleted_at", null)
+        .order("start_datetime", { ascending: true });
+
+      if (error) throw error;
+      return data as EventWithCreator[];
+    },
+  });
+};

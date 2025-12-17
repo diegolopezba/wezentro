@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Users } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventFeed } from "@/components/events/EventFeed";
-import { useEvents } from "@/hooks/useEvents";
+import { useEvents, useFollowingEvents } from "@/hooks/useEvents";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -15,28 +15,35 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
-  const { data: events = [], isLoading } = useEvents();
+  const { data: allEvents = [], isLoading: allEventsLoading } = useEvents();
+  const { data: followingEvents = [], isLoading: followingLoading } = useFollowingEvents();
+
+  const events = activeTab === "for-you" ? allEvents : followingEvents;
+  const isLoading = activeTab === "for-you" ? allEventsLoading : followingLoading;
 
   // Transform events to EventCard format and filter
-  const transformedEvents = events
-    .filter((event) => {
-      const matchesSearch =
-        event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (event.location_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
-      return searchQuery === "" || matchesSearch;
-    })
-    .map((event) => ({
-      id: event.id,
-      title: event.title || undefined,
-      imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
-      date: format(new Date(event.start_datetime), "EEE, MMM d • h:mm a"),
-      location: event.location_name || "Location TBA",
-      category: event.category || "party",
-      attendees: 0,
-      hasGuestlist: event.has_guestlist || false,
-      ownerAvatar: event.creator?.avatar_url || undefined,
-      creatorId: event.creator_id,
-    }));
+  const transformedEvents = useMemo(() => 
+    events
+      .filter((event) => {
+        const matchesSearch =
+          event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (event.location_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+        return searchQuery === "" || matchesSearch;
+      })
+      .map((event) => ({
+        id: event.id,
+        title: event.title || undefined,
+        imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
+        date: format(new Date(event.start_datetime), "EEE, MMM d • h:mm a"),
+        location: event.location_name || "Location TBA",
+        category: event.category || "party",
+        attendees: 0,
+        hasGuestlist: event.has_guestlist || false,
+        ownerAvatar: event.creator?.avatar_url || undefined,
+        creatorId: event.creator_id,
+      })),
+    [events, searchQuery]
+  );
 
   return (
     <AppLayout>
@@ -123,7 +130,11 @@ const Index = () => {
       </header>
 
       {/* Event feed */}
-      <EventFeed events={transformedEvents} isLoading={isLoading} />
+      <EventFeed 
+        events={transformedEvents} 
+        isLoading={isLoading} 
+        emptyStateType={activeTab}
+      />
     </AppLayout>
   );
 };
