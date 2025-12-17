@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { format } from "date-fns";
 import { Settings, Image, Star, Heart, Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUserCreatedEvents, useUserJoinedEvents } from "@/hooks/useEvents";
 import { useUserStats } from "@/hooks/useUserStats";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
+import { EventCard } from "@/components/events/EventCard";
 
 interface ProfilePhoto {
   id: string;
@@ -66,28 +68,19 @@ const Profile = () => {
   };
 
   const renderEventCard = (event: any, index: number) => (
-    <motion.div
+    <EventCard
       key={event.id}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.05 }}
-      className="masonry-item cursor-pointer"
-      onClick={() => navigate(`/event/${event.id}`)}
-    >
-      <div className="rounded-2xl overflow-hidden bg-secondary">
-        {event.image_url ? (
-          <img
-            src={event.image_url}
-            alt={event.title || "Event"}
-            className="w-full h-auto object-cover"
-          />
-        ) : (
-          <div className="w-full aspect-square flex items-center justify-center text-muted-foreground">
-            <Star className="w-8 h-8" />
-          </div>
-        )}
-      </div>
-    </motion.div>
+      id={event.id}
+      title={event.title || undefined}
+      imageUrl={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
+      date={format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")}
+      location={event.location_name || "Location TBA"}
+      category={event.category || "party"}
+      attendees={event.guestlist_entries?.[0]?.count || 0}
+      ownerAvatar={event.creator?.avatar_url}
+      creatorId={event.creator_id}
+      index={index}
+    />
   );
 
   const renderEmptyState = (message: string) => (
