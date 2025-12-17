@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Share2, Heart, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Star, Loader2, Check, Clock, Settings2 } from "lucide-react";
+import { ArrowLeft, Share2, Heart, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Star, Loader2, Check, Clock, Settings2, UserPlus, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useUserProfile";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
@@ -37,6 +38,12 @@ const EventDetail = () => {
   const {
     data: pendingRequests = []
   } = usePendingGuestlistRequests(id);
+  
+  // Follow hooks for event creator
+  const { data: isFollowingCreator, isLoading: followStatusLoading } = useIsFollowing(event?.creator_id);
+  const followMutation = useFollowUser();
+  const unfollowMutation = useUnfollowUser();
+  
   const joinGuestlist = useJoinGuestlist();
   const leaveGuestlist = useLeaveGuestlist();
   const isOnGuestlist = !!guestlistStatus;
@@ -44,6 +51,21 @@ const EventDetail = () => {
   const isApproved = guestlistStatus?.status === "approved";
   const isOwner = user?.id === event?.creator_id;
   const pendingCount = pendingRequests.length;
+  const isFollowPending = followMutation.isPending || unfollowMutation.isPending;
+
+  const handleFollowToggle = () => {
+    if (!event?.creator_id) return;
+    if (!user) {
+      toast.error("Please sign in to follow users");
+      navigate("/auth");
+      return;
+    }
+    if (isFollowingCreator) {
+      unfollowMutation.mutate(event.creator_id);
+    } else {
+      followMutation.mutate(event.creator_id);
+    }
+  };
   const handleJoinGuestlist = async () => {
     if (!user) {
       toast.error("Please sign in to join guestlists");
@@ -142,9 +164,28 @@ const EventDetail = () => {
                 <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
               </div>
             </div>
-            <Button variant="secondary" size="sm">
-              Follow
-            </Button>
+            {!isOwner && (
+              <Button 
+                variant={isFollowingCreator ? "secondary" : "hero"} 
+                size="sm"
+                onClick={handleFollowToggle}
+                disabled={followStatusLoading || isFollowPending}
+              >
+                {isFollowPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : isFollowingCreator ? (
+                  <>
+                    <UserMinus className="w-3 h-3 mr-1" />
+                    Unfollow
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-3 h-3 mr-1" />
+                    Follow
+                  </>
+                )}
+              </Button>
+            )}
           </div>
 
           {/* Details */}
