@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Event } from '@/hooks/useEvents';
@@ -20,11 +20,35 @@ const MapView: React.FC<MapViewProps> = ({
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<{ [key: string]: mapboxgl.Marker }>({});
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   
   const { token: mapboxToken, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
+
+  // Convert events to GeoJSON for clustering
+  const eventsGeoJSON = useMemo(() => {
+    const features = events
+      .filter(event => event.latitude && event.longitude)
+      .map(event => ({
+        type: 'Feature' as const,
+        properties: {
+          id: event.id,
+          title: event.title,
+          category: event.category,
+          start_datetime: event.start_datetime,
+          isTonight: isEventTonight(event.start_datetime),
+        },
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [event.longitude!, event.latitude!],
+        },
+      }));
+
+    return {
+      type: 'FeatureCollection' as const,
+      features,
+    };
+  }, [events]);
 
   // Initialize map
   useEffect(() => {
@@ -35,7 +59,7 @@ const MapView: React.FC<MapViewProps> = ({
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: userLocation ? [userLocation.lng, userLocation.lat] : [-74.006, 40.7128], // Default: NYC
+      center: userLocation ? [userLocation.lng, userLocation.lat] : [-74.006, 40.7128],
       zoom: 12,
       pitch: 0,
     });
@@ -55,7 +79,135 @@ const MapView: React.FC<MapViewProps> = ({
     );
 
     map.current.on('load', () => {
+      if (!map.current) return;
+
+      // Add clustered source
+      map.current.addSource('events', {
+        type: 'geojson',
+        data: eventsGeoJSON,
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 50,
+      });
+
+      // Cluster circles layer
+      map.current.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: 'events',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            'hsl(351, 100%, 45%)', // Primary red for small clusters
+            10, 'hsl(351, 100%, 40%)', // Darker for medium
+            50, 'hsl(351, 100%, 35%)', // Even darker for large
+          ],
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            20, // Small clusters
+            10, 25, // Medium clusters
+            50, 35, // Large clusters
+          ],
+          'circle-stroke-width': 2,
+          'circle-stroke-color': 'hsla(351, 100%, 60%, 0.5)',
+        },
+      });
+
+      // Cluster count labels
+      map.current.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: 'events',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': ['get', 'point_count_abbreviated'],
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': 14,
+        },
+        paint: {
+          'text-color': '#ffffff',
+        },
+      });
+
+      // Unclustered event points
+      map.current.addLayer({
+        id: 'unclustered-point',
+        type: 'circle',
+        source: 'events',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': [
+            'case',
+            ['get', 'isTonight'],
+            'hsl(351, 100%, 55%)', // Brighter for tonight
+            'hsl(351, 100%, 45%)', // Normal primary
+          ],
+          'circle-radius': 8,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': 'hsla(351, 100%, 70%, 0.6)',
+        },
+      });
+
+      // Pulsing effect layer for tonight's events
+      map.current.addLayer({
+        id: 'unclustered-point-pulse',
+        type: 'circle',
+        source: 'events',
+        filter: ['all', ['!', ['has', 'point_count']], ['get', 'isTonight']],
+        paint: {
+          'circle-color': 'hsl(351, 100%, 45%)',
+          'circle-radius': 12,
+          'circle-opacity': 0.3,
+        },
+      });
+
       setMapLoaded(true);
+    });
+
+    // Click on cluster to zoom
+    map.current.on('click', 'clusters', (e) => {
+      if (!map.current) return;
+      const features = map.current.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+      if (!features.length) return;
+
+      const clusterId = features[0].properties?.cluster_id;
+      const source = map.current.getSource('events') as mapboxgl.GeoJSONSource;
+      
+      source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+        if (err || !map.current) return;
+        const geometry = features[0].geometry as GeoJSON.Point;
+        map.current.easeTo({
+          center: geometry.coordinates as [number, number],
+          zoom: zoom ?? 14,
+        });
+      });
+    });
+
+    // Click on individual event
+    map.current.on('click', 'unclustered-point', (e) => {
+      if (!e.features?.length) return;
+      const eventId = e.features[0].properties?.id;
+      const event = events.find(ev => ev.id === eventId);
+      if (event && onMarkerClick) {
+        onMarkerClick(event);
+      }
+    });
+
+    // Cursor changes
+    map.current.on('mouseenter', 'clusters', () => {
+      if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current.on('mouseleave', 'clusters', () => {
+      if (map.current) map.current.getCanvas().style.cursor = '';
+    });
+    map.current.on('mouseenter', 'unclustered-point', () => {
+      if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current.on('mouseleave', 'unclustered-point', () => {
+      if (map.current) map.current.getCanvas().style.cursor = '';
     });
 
     return () => {
@@ -63,6 +215,15 @@ const MapView: React.FC<MapViewProps> = ({
       map.current = null;
     };
   }, [mapboxToken]);
+
+  // Update GeoJSON source when events change
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    const source = map.current.getSource('events') as mapboxgl.GeoJSONSource;
+    if (source) {
+      source.setData(eventsGeoJSON);
+    }
+  }, [eventsGeoJSON, mapLoaded]);
 
   // Update user location marker
   useEffect(() => {
@@ -85,49 +246,6 @@ const MapView: React.FC<MapViewProps> = ({
     }
   }, [userLocation, mapLoaded]);
 
-  // Update event markers
-  useEffect(() => {
-    if (!map.current || !mapLoaded) return;
-
-    // Remove old markers that are no longer in events
-    const eventIds = new Set(events.map(e => e.id));
-    Object.keys(markersRef.current).forEach(id => {
-      if (!eventIds.has(id)) {
-        markersRef.current[id].remove();
-        delete markersRef.current[id];
-      }
-    });
-
-    // Add or update markers for events with coordinates
-    events.forEach(event => {
-      if (!event.latitude || !event.longitude) return;
-
-      const isSelected = event.id === selectedEventId;
-      const isTonight = isEventTonight(event.start_datetime);
-
-      if (markersRef.current[event.id]) {
-        // Update existing marker position and style
-        markersRef.current[event.id].setLngLat([event.longitude, event.latitude]);
-        const el = markersRef.current[event.id].getElement();
-        updateMarkerElement(el, event, isSelected, isTonight);
-      } else {
-        // Create new marker
-        const el = createMarkerElement(event, isSelected, isTonight);
-        
-        el.addEventListener('click', (e) => {
-          e.stopPropagation();
-          onMarkerClick?.(event);
-        });
-
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
-          .setLngLat([event.longitude, event.latitude])
-          .addTo(map.current!);
-
-        markersRef.current[event.id] = marker;
-      }
-    });
-  }, [events, selectedEventId, mapLoaded, onMarkerClick]);
-
   // Center map on selected event
   useEffect(() => {
     if (!map.current || !mapLoaded || !selectedEventId) return;
@@ -136,7 +254,7 @@ const MapView: React.FC<MapViewProps> = ({
     if (event?.latitude && event?.longitude) {
       map.current.flyTo({
         center: [event.longitude, event.latitude],
-        zoom: 14,
+        zoom: 15,
         duration: 1000,
       });
     }
@@ -168,7 +286,7 @@ const MapView: React.FC<MapViewProps> = ({
   );
 };
 
-// Helper functions
+// Helper function
 function isEventTonight(startDatetime: string): boolean {
   const eventDate = new Date(startDatetime);
   const today = new Date();
@@ -177,43 +295,6 @@ function isEventTonight(startDatetime: string): boolean {
     eventDate.getMonth() === today.getMonth() &&
     eventDate.getFullYear() === today.getFullYear()
   );
-}
-
-function getCategoryColor(category: string | null): string {
-  const colors: { [key: string]: string } = {
-    'Club': 'hsl(351, 100%, 45%)', // Primary red
-    'Bar': 'hsl(200, 80%, 50%)',   // Blue
-    'Concert': 'hsl(280, 80%, 60%)', // Purple
-    'Festival': 'hsl(45, 100%, 50%)', // Gold
-    'Lounge': 'hsl(160, 70%, 45%)',  // Teal
-    'Rooftop': 'hsl(30, 90%, 55%)',  // Orange
-  };
-  return colors[category || ''] || 'hsl(351, 100%, 45%)';
-}
-
-function createMarkerElement(event: Event, isSelected: boolean, isTonight: boolean): HTMLDivElement {
-  const el = document.createElement('div');
-  el.className = 'event-marker cursor-pointer transition-transform duration-200 hover:scale-110';
-  updateMarkerElement(el, event, isSelected, isTonight);
-  return el;
-}
-
-function updateMarkerElement(el: HTMLElement, event: Event, isSelected: boolean, isTonight: boolean): void {
-  const color = getCategoryColor(event.category);
-  const size = isSelected ? 'w-6 h-6' : 'w-4 h-4';
-  const pulseClass = isTonight && !isSelected ? 'animate-pulse' : '';
-  
-  el.innerHTML = `
-    <div class="relative">
-      <div class="${size} rounded-full shadow-lg transition-all duration-200 ${pulseClass}" 
-           style="background-color: ${color}; box-shadow: 0 0 ${isSelected ? '20px' : '10px'} ${color}40;">
-      </div>
-      ${isTonight ? `
-        <div class="absolute inset-0 ${size} rounded-full animate-ping opacity-40" 
-             style="background-color: ${color};"></div>
-      ` : ''}
-    </div>
-  `;
 }
 
 export default MapView;
