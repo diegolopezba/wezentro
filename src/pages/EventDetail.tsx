@@ -10,16 +10,15 @@ import { useIsFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useUserP
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
+import { ShareEventModal } from "@/components/events/ShareEventModal";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+
 const EventDetail = () => {
-  const {
-    id
-  } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const [showManagement, setShowManagement] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
@@ -259,11 +258,51 @@ const EventDetail = () => {
 
       {/* Fixed bottom actions */}
       <div className="fixed bottom-0 left-0 right-0 p-4 glass-strong safe-bottom">
-        
+        <div className="flex gap-3">
+          {/* Send invite button */}
+          <Button variant="secondary" size="icon" className="shrink-0" onClick={() => setShowShareModal(true)}>
+            <Send className="w-5 h-5" />
+          </Button>
+
+          {/* Guestlist actions */}
+          {event.has_guestlist && (
+            isOwner ? (
+              <Button className="flex-1" variant="hero" onClick={() => setShowManagement(true)}>
+                <Settings2 className="w-4 h-4 mr-2" />
+                Manage Guestlist
+                {pendingCount > 0 && (
+                  <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-full text-xs">
+                    {pendingCount} pending
+                  </span>
+                )}
+              </Button>
+            ) : isOnGuestlist ? (
+              isPending ? (
+                <Button className="flex-1" variant="secondary" disabled>
+                  <Clock className="w-4 h-4 mr-2" />
+                  Request Pending
+                </Button>
+              ) : (
+                <Button className="flex-1" variant="secondary" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                  {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
+                  On Guestlist
+                </Button>
+              )
+            ) : (
+              <Button className="flex-1" variant="hero" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
+                {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Users className="w-4 h-4 mr-2" />}
+                Join Guestlist
+              </Button>
+            )
+          )}
+        </div>
       </div>
 
       {/* Guestlist Management Sheet */}
       {isOwner && event.has_guestlist && <GuestlistManagementSheet eventId={id!} open={showManagement} onOpenChange={setShowManagement} />}
+
+      {/* Share Event Modal */}
+      <ShareEventModal eventId={id!} open={showShareModal} onOpenChange={setShowShareModal} />
     </div>;
 };
 export default EventDetail;
