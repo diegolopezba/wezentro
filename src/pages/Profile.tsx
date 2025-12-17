@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Settings, Image, Star, Heart, Loader2 } from "lucide-react";
+import { Settings, Image, Star, Heart, Loader2, Crown, Sparkles } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserCreatedEvents, useUserJoinedEvents } from "@/hooks/useEvents";
 import { useUserStats } from "@/hooks/useUserStats";
+import { useUserSubscription, getPlanDisplayName } from "@/hooks/useSubscription";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { EventCard } from "@/components/events/EventCard";
 
@@ -28,6 +29,11 @@ const Profile = () => {
   const { data: userStats, isLoading: statsLoading } = useUserStats(user?.id);
   const { data: createdEvents, isLoading: createdLoading } = useUserCreatedEvents(user?.id);
   const { data: joinedEvents, isLoading: joinedLoading } = useUserJoinedEvents(user?.id);
+  const { data: subscription } = useUserSubscription();
+  
+  const currentPlan = subscription?.plan_type || "free";
+  const isPremium = currentPlan !== "free";
+  const isBusiness = currentPlan === "business_premium";
 
   const formatCount = (count: number) => {
     if (count >= 1000) {
@@ -175,22 +181,40 @@ const Profile = () => {
           transition={{ delay: 0.15 }}
           className="mt-4"
         >
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30">
+          <div className={`p-4 rounded-2xl border ${
+            isPremium 
+              ? "bg-gradient-to-r from-primary/20 to-primary/10 border-primary/30" 
+              : "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-500/30"
+          }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center">
-                  <Star className="w-5 h-5 text-white" />
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  isPremium 
+                    ? "bg-gradient-to-r from-primary to-primary/80" 
+                    : "bg-gradient-to-r from-amber-500 to-orange-500"
+                }`}>
+                  {isBusiness ? (
+                    <Crown className="w-5 h-5 text-white" />
+                  ) : isPremium ? (
+                    <Star className="w-5 h-5 text-white" />
+                  ) : (
+                    <Sparkles className="w-5 h-5 text-white" />
+                  )}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Free Plan</h3>
+                  <h3 className="font-semibold text-foreground">
+                    {getPlanDisplayName(currentPlan)}
+                  </h3>
                   <p className="text-xs text-muted-foreground">
-                    Upgrade to join guestlists
+                    {isPremium ? "Premium member" : "Upgrade to join guestlists"}
                   </p>
                 </div>
               </div>
-              <Button variant="premium" size="sm">
-                Upgrade
-              </Button>
+              {!isPremium && (
+                <Button variant="premium" size="sm" onClick={() => navigate("/settings/subscription")}>
+                  Upgrade
+                </Button>
+              )}
             </div>
           </div>
         </motion.div>
