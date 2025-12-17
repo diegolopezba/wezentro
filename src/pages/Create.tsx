@@ -113,6 +113,13 @@ const Create = () => {
   const uploadMedia = async (file: File): Promise<string | null> => {
     if (!user) return null;
 
+    // Get the user's session for authentication
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      toast.error("Not authenticated");
+      return null;
+    }
+
     const fileExt = file.name.split(".").pop();
     const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
@@ -147,13 +154,12 @@ const Create = () => {
         reject(new Error('Upload failed'));
       });
 
-      // Get the upload URL and auth token
+      // Get the upload URL and use session token for auth
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const uploadUrl = `${supabaseUrl}/storage/v1/object/event-images/${fileName}`;
 
       xhr.open('POST', uploadUrl);
-      xhr.setRequestHeader('Authorization', `Bearer ${supabaseKey}`);
+      xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
       xhr.setRequestHeader('x-upsert', 'true');
       xhr.send(file);
     });
