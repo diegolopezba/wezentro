@@ -66,14 +66,18 @@ const MapView: React.FC<MapViewProps> = ({
       'top-right'
     );
 
-    map.current.addControl(
-      new mapboxgl.GeolocateControl({
-        positionOptions: { enableHighAccuracy: true },
-        trackUserLocation: true,
-        showUserHeading: true,
-      }),
-      'top-right'
-    );
+    const geolocateControl = new mapboxgl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: true,
+      showUserHeading: true,
+    });
+    
+    map.current.addControl(geolocateControl, 'top-right');
+
+    // Auto-trigger geolocation when map loads
+    map.current.on('load', () => {
+      geolocateControl.trigger();
+    });
 
     map.current.on('load', () => {
       if (!map.current) return;
