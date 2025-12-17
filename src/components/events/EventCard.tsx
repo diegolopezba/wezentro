@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { isVideoUrl } from "@/lib/mediaUtils";
+
 export interface EventCardProps {
   id: string;
   title?: string;
@@ -38,6 +40,7 @@ export const EventCard = ({
 }: EventCardProps) => {
   const navigate = useNavigate();
   const gradientClass = categoryColors[category] || categoryColors.default;
+  const isVideo = isVideoUrl(imageUrl);
 
   // Generate random height for masonry effect
   const heights = ["h-48", "h-56", "h-64", "h-72"];
@@ -57,9 +60,20 @@ export const EventCard = ({
     scale: 0.98
   }} className="masonry-item cursor-pointer" onClick={() => navigate(`/event/${id}`)}>
       <div className="space-y-2 px-0">
-        {/* Image */}
+        {/* Media */}
         <div className={cn("relative rounded-2xl overflow-hidden", heightClass)}>
-          <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+          {isVideo ? (
+            <video 
+              src={imageUrl} 
+              className="w-full h-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          ) : (
+            <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+          )}
           
           {/* Attendees overlay - top left */}
           {attendees > 0 && (
