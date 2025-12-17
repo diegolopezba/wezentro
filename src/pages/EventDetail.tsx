@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { isVideoUrl } from "@/lib/mediaUtils";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -85,11 +86,25 @@ const EventDetail = () => {
   }
   const formattedDate = format(new Date(event.start_datetime), "EEE, MMM d • h:mm a");
   const formattedPrice = event.price ? `$${event.price}` : "Free";
+  const isVideo = isVideoUrl(event.image_url);
+  
   return <div className="min-h-screen bg-background">
-      {/* Hero image */}
+      {/* Hero media */}
       <div className="relative h-[50vh]">
-        <img src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} alt={event.title || "Event"} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        {isVideo ? (
+          <video 
+            src={event.image_url || ""} 
+            className="w-full h-full object-cover"
+            controls
+            playsInline
+            autoPlay
+            muted
+            loop
+          />
+        ) : (
+          <img src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} alt={event.title || "Event"} className="w-full h-full object-cover" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
 
         {/* Back button */}
         <div className="absolute top-0 left-0 right-0 safe-top">

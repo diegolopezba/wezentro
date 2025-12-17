@@ -9,6 +9,7 @@ import {
   X,
   Loader2,
   ImageIcon,
+  Video,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -19,6 +20,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LocationPicker } from "@/components/map/LocationPicker";
+import { 
+  isVideoFile, 
+  isImageFile, 
+  validateVideoFile, 
+  validateImageFile,
+  formatDuration 
+} from "@/lib/mediaUtils";
 
 const categories = [
   { id: "club", label: "Club", emoji: "🪩" },
@@ -34,8 +42,10 @@ const Create = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [location, setLocation] = useState({
     address: "",
     latitude: null as number | null,
@@ -53,31 +63,52 @@ const Create = () => {
     hasGuestlist: false,
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image must be less than 5MB");
+    if (!file) return;
+
+    if (isVideoFile(file)) {
+      // Validate video (15s max, 50MB max)
+      const validation = await validateVideoFile(file, 15, 50);
+      if (!validation.valid) {
+        toast.error(validation.error);
         return;
       }
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setMediaType('video');
+      setVideoDuration(validation.duration || null);
+    } else if (isImageFile(file)) {
+      // Validate image (5MB max)
+      const validation = validateImageFile(file, 5);
+      if (!validation.valid) {
+        toast.error(validation.error);
+        return;
+      }
+      setMediaType('image');
+      setVideoDuration(null);
+    } else {
+      toast.error("Please upload an image or video file");
+      return;
     }
+
+    setMediaFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setMediaPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const removeImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
+  const removeMedia = () => {
+    setMediaFile(null);
+    setMediaPreview(null);
+    setMediaType(null);
+    setVideoDuration(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
-  const uploadImage = async (file: File): Promise<string | null> => {
+  const uploadMedia = async (file: File): Promise<string | null> => {
     if (!user) return null;
 
     const fileExt = file.name.split(".").pop();
@@ -123,9 +154,9 @@ const Create = () => {
     try {
       let imageUrl: string | null = null;
 
-      // Upload image if selected
-      if (imageFile) {
-        imageUrl = await uploadImage(imageFile);
+      // Upload media if selected
+      if (mediaFile) {
+        imageUrl = await uploadMedia(mediaFile);
       }
 
       // Combine date and time into a single datetime
@@ -206,44 +237,62 @@ const Create = () => {
           animate={{ opacity: 1, y: 0 }}
         >
           <label className="block">
-            {imagePreview ? (
+            {mediaPreview ? (
               <div className="relative h-48 rounded-2xl overflow-hidden">
-                <img
-                  src={imagePreview}
-                  alt="Event cover"
-                  className="w-full h-full object-cover"
-                />
+                {mediaType === 'video' ? (
+                  <video
+                    src={mediaPreview}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={mediaPreview}
+                    alt="Event cover"
+                    className="w-full h-full object-cover"
+                  />
+                )}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.preventDefault();
-                    removeImage();
+                    removeMedia();
                   }}
                   className="absolute top-3 right-3 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
                 <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm text-xs text-foreground flex items-center gap-2">
-                  <ImageIcon className="w-3 h-3" />
-                  Change image
+                  {mediaType === 'video' ? (
+                    <>
+                      <Video className="w-3 h-3" />
+                      {videoDuration && formatDuration(videoDuration)}
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon className="w-3 h-3" />
+                      Change image
+                    </>
+                  )}
                 </div>
               </div>
             ) : (
               <div className="relative h-48 rounded-2xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
                 <Upload className="w-10 h-10 text-muted-foreground mb-2" />
                 <span className="text-sm text-muted-foreground">
-                  Upload cover image
+                  Upload cover image or video
                 </span>
                 <span className="text-xs text-muted-foreground/60 mt-1">
-                  Recommended: 1080 x 1350px
+                  Max 15 seconds for videos
                 </span>
               </div>
             )}
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
-              onChange={handleImageChange}
+              accept="image/*,video/mp4,video/webm,video/quicktime"
+              onChange={handleMediaChange}
               className="hidden"
             />
           </label>
