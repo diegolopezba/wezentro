@@ -9,18 +9,15 @@ interface MapViewProps {
   events: Event[];
   onMarkerClick?: (events: Event[]) => void;
   selectedEventId?: string | null;
-  userLocation?: { lat: number; lng: number } | null;
 }
 
 const MapView: React.FC<MapViewProps> = ({ 
   events, 
   onMarkerClick, 
   selectedEventId,
-  userLocation 
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   
   const { token: mapboxToken, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
@@ -59,7 +56,7 @@ const MapView: React.FC<MapViewProps> = ({
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: userLocation ? [userLocation.lng, userLocation.lat] : [-74.006, 40.7128],
+      center: [-74.006, 40.7128], // Default to NYC, GeolocateControl will center on user
       zoom: 12,
       pitch: 0,
     });
@@ -234,26 +231,6 @@ const MapView: React.FC<MapViewProps> = ({
     }
   }, [eventsGeoJSON, mapLoaded]);
 
-  // Update user location marker
-  useEffect(() => {
-    if (!map.current || !mapLoaded || !userLocation) return;
-
-    if (userMarkerRef.current) {
-      userMarkerRef.current.setLngLat([userLocation.lng, userLocation.lat]);
-    } else {
-      const el = document.createElement('div');
-      el.className = 'user-location-marker';
-      el.innerHTML = `
-        <div class="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-lg relative">
-          <div class="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-75"></div>
-        </div>
-      `;
-
-      userMarkerRef.current = new mapboxgl.Marker({ element: el })
-        .setLngLat([userLocation.lng, userLocation.lat])
-        .addTo(map.current);
-    }
-  }, [userLocation, mapLoaded]);
 
   // Center map on selected event
   useEffect(() => {

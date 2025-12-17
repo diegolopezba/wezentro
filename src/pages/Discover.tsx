@@ -103,7 +103,6 @@ const Discover = () => {
           events={filteredEvents}
           onMarkerClick={handleMarkerClick}
           selectedEventId={selectedEvents[currentSlide]?.id}
-          userLocation={userLocation}
         />
 
         {/* Floating search bar */}
