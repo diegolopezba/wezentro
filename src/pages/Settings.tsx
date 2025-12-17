@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, User, Bell, Shield, CreditCard, HelpCircle, LogOut } from "lucide-react";
+import { ChevronLeft, User, Shield, CreditCard, HelpCircle, LogOut } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +12,6 @@ const Settings = () => {
 
   const settingsItems = [
     { icon: User, label: "Edit Profile", path: "/edit-profile" },
-    { icon: Bell, label: "Notifications", path: "/settings/notifications" },
     { icon: Shield, label: "Privacy", path: "/settings/privacy" },
     { icon: CreditCard, label: "Subscription", path: "/settings/subscription" },
     { icon: HelpCircle, label: "Help & Support", path: "/settings/help" },
