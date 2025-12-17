@@ -1,67 +1,54 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Share2,
-  Heart,
-  Calendar,
-  MapPin,
-  Users,
-  DollarSign,
-  MessageCircle,
-  Send,
-  Star,
-  Loader2,
-  Check,
-  Clock,
-  Settings2,
-} from "lucide-react";
+import { ArrowLeft, Share2, Heart, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Star, Loader2, Check, Clock, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
-import { 
-  useIsOnGuestlist, 
-  useJoinGuestlist, 
-  useLeaveGuestlist, 
-  useHasActiveSubscription,
-  usePendingGuestlistRequests 
-} from "@/hooks/useGuestlist";
+import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
-
 const EventDetail = () => {
-  const { id } = useParams();
+  const {
+    id
+  } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [showManagement, setShowManagement] = useState(false);
-
-  const { data: event, isLoading, error } = useEvent(id);
-  const { data: guestlistStatus } = useIsOnGuestlist(id);
-  const { data: hasSubscription } = useHasActiveSubscription();
-  const { data: pendingRequests = [] } = usePendingGuestlistRequests(id);
+  const {
+    data: event,
+    isLoading,
+    error
+  } = useEvent(id);
+  const {
+    data: guestlistStatus
+  } = useIsOnGuestlist(id);
+  const {
+    data: hasSubscription
+  } = useHasActiveSubscription();
+  const {
+    data: pendingRequests = []
+  } = usePendingGuestlistRequests(id);
   const joinGuestlist = useJoinGuestlist();
   const leaveGuestlist = useLeaveGuestlist();
-
   const isOnGuestlist = !!guestlistStatus;
   const isPending = guestlistStatus?.status === "pending";
   const isApproved = guestlistStatus?.status === "approved";
   const isOwner = user?.id === event?.creator_id;
   const pendingCount = pendingRequests.length;
-
   const handleJoinGuestlist = async () => {
     if (!user) {
       toast.error("Please sign in to join guestlists");
       navigate("/auth");
       return;
     }
-
     if (!hasSubscription) {
       toast.error("Premium subscription required to join guestlists");
       return;
     }
-
     try {
       await joinGuestlist.mutateAsync(id!);
       toast.success("Guestlist request sent!");
@@ -69,7 +56,6 @@ const EventDetail = () => {
       toast.error(error.message || "Failed to join guestlist");
     }
   };
-
   const handleLeaveGuestlist = async () => {
     try {
       await leaveGuestlist.mutateAsync(id!);
@@ -78,38 +64,27 @@ const EventDetail = () => {
       toast.error(error.message || "Failed to leave guestlist");
     }
   };
-  const { data: guestlist = [] } = useEventGuestlist(id);
-
+  const {
+    data: guestlist = []
+  } = useEventGuestlist(id);
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+      </div>;
   }
-
   if (error || !event) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
+    return <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
         <h1 className="font-brand text-xl font-bold text-foreground mb-2">Event not found</h1>
         <p className="text-muted-foreground mb-4">This event may have been removed or doesn't exist.</p>
         <Button onClick={() => navigate("/")}>Go Home</Button>
-      </div>
-    );
+      </div>;
   }
-
   const formattedDate = format(new Date(event.start_datetime), "EEE, MMM d • h:mm a");
   const formattedPrice = event.price ? `$${event.price}` : "Free";
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Hero image */}
       <div className="relative h-[50vh]">
-        <img
-          src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
-          alt={event.title || "Event"}
-          className="w-full h-full object-cover"
-        />
+        <img src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} alt={event.title || "Event"} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
         {/* Back button */}
@@ -132,34 +107,25 @@ const EventDetail = () => {
 
       {/* Content */}
       <div className="relative -mt-16 px-4 pb-32">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
+        <motion.div initial={{
+        opacity: 0,
+        y: 20
+      }} animate={{
+        opacity: 1,
+        y: 0
+      }} className="space-y-6">
           {/* Category & title */}
           <div>
-            {event.category && (
-              <span className="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-primary text-primary-foreground mb-3">
+            {event.category && <span className="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-primary text-primary-foreground mb-3">
                 {event.category.replace("_", " ")}
-              </span>
-            )}
-            {event.title && (
-              <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>
-            )}
+              </span>}
+            {event.title && <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>}
           </div>
 
           {/* Host */}
           <div className="flex items-center justify-between">
-            <div
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => navigate(`/user/${event.creator_id}`)}
-            >
-              <img
-                src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"}
-                alt="Host"
-                className="w-12 h-12 rounded-xl object-cover"
-              />
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/user/${event.creator_id}`)}>
+              <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-xl object-cover" />
               <div>
                 <p className="text-sm text-muted-foreground">Hosted by</p>
                 <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
@@ -172,28 +138,28 @@ const EventDetail = () => {
 
           {/* Details */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50">
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
               <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">When</p>
-                <p className="font-semibold text-foreground">{formattedDate}</p>
+                
+                <p className="font-semibold text-foreground text-xs">{formattedDate}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50">
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
               <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-accent" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Price</p>
+                
                 <p className="font-semibold text-foreground">{formattedPrice}</p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50">
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
             <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
               <MapPin className="w-5 h-5 text-primary" />
             </div>
@@ -204,67 +170,39 @@ const EventDetail = () => {
           </div>
 
           {/* Description */}
-          {event.description && (
-            <div>
+          {event.description && <div>
               <h2 className="font-brand text-lg font-semibold text-foreground mb-3">About</h2>
               <p className="text-muted-foreground leading-relaxed">{event.description}</p>
-            </div>
-          )}
+            </div>}
 
           {/* Guestlist attendees */}
-          {event.has_guestlist && (
-            <div>
+          {event.has_guestlist && <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-brand text-lg font-semibold text-foreground">
                   Guestlist ({guestlist.length})
                 </h2>
-                {guestlist.length > 0 && (
-                  <span className="text-sm text-primary cursor-pointer">View all</span>
-                )}
+                {guestlist.length > 0 && <span className="text-sm text-primary cursor-pointer">View all</span>}
               </div>
 
-              {guestlist.length > 0 ? (
-                <>
+              {guestlist.length > 0 ? <>
                   {/* Avatars row */}
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex -space-x-3">
-                      {guestlist.slice(0, 5).map((entry: any, i: number) => (
-                        <img
-                          key={entry.id}
-                          src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`}
-                          alt={`Attendee ${i + 1}`}
-                          className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/user/${entry.user_id}`);
-                          }}
-                        />
-                      ))}
+                      {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={e => {
+                  e.stopPropagation();
+                  navigate(`/user/${entry.user_id}`);
+                }} />)}
                     </div>
-                    {guestlist.length > 5 && (
-                      <span className="text-sm text-muted-foreground">
+                    {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
                         +{guestlist.length - 5} more
-                      </span>
-                    )}
+                      </span>}
                   </div>
 
                   {/* Attendee list */}
                   <div className="space-y-3">
-                    {guestlist.slice(0, 3).map((entry: any) => (
-                      <div
-                        key={entry.id}
-                        className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30"
-                      >
-                        <img
-                          src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.id}`}
-                          alt={entry.user?.username || "User"}
-                          className="w-10 h-10 rounded-xl object-cover cursor-pointer hover:scale-105 transition-transform"
-                          onClick={() => navigate(`/user/${entry.user_id}`)}
-                        />
-                        <div
-                          className="flex-1 cursor-pointer"
-                          onClick={() => navigate(`/user/${entry.user_id}`)}
-                        >
+                    {guestlist.slice(0, 3).map((entry: any) => <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
+                        <img src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.id}`} alt={entry.user?.username || "User"} className="w-10 h-10 rounded-xl object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate(`/user/${entry.user_id}`)} />
+                        <div className="flex-1 cursor-pointer" onClick={() => navigate(`/user/${entry.user_id}`)}>
                           <p className="font-medium text-foreground text-sm">
                             @{entry.user?.username || "user"}
                           </p>
@@ -272,19 +210,11 @@ const EventDetail = () => {
                             Joined {format(new Date(entry.joined_at), "MMM d")}
                           </p>
                         </div>
-                        <MessageCircle
-                          className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors"
-                          onClick={() => navigate(`/chats/${entry.user_id}`)}
-                        />
-                      </div>
-                    ))}
+                        <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
+                      </div>)}
                   </div>
-                </>
-              ) : (
-                <p className="text-muted-foreground text-sm">No one has joined yet. Be the first!</p>
-              )}
-            </div>
-          )}
+                </> : <p className="text-muted-foreground text-sm">No one has joined yet. Be the first!</p>}
+            </div>}
         </motion.div>
       </div>
 
@@ -297,85 +227,30 @@ const EventDetail = () => {
           <Button variant="secondary" size="icon-lg">
             <Send className="w-5 h-5" />
           </Button>
-          {event.has_guestlist ? (
-            isOwner ? (
-              <Button 
-                variant="hero" 
-                className="flex-1 relative"
-                onClick={() => setShowManagement(true)}
-              >
+          {event.has_guestlist ? isOwner ? <Button variant="hero" className="flex-1 relative" onClick={() => setShowManagement(true)}>
                 <Settings2 className="w-5 h-5 mr-2" />
                 Manage Guestlist
-                {pendingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
+                {pendingCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
                     {pendingCount}
-                  </span>
-                )}
-              </Button>
-            ) : isOnGuestlist ? (
-              isPending ? (
-                <Button 
-                  variant="secondary" 
-                  className="flex-1"
-                  onClick={handleLeaveGuestlist}
-                  disabled={leaveGuestlist.isPending}
-                >
-                  {leaveGuestlist.isPending ? (
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  ) : (
-                    <Clock className="w-5 h-5 mr-2" />
-                  )}
+                  </span>}
+              </Button> : isOnGuestlist ? isPending ? <Button variant="secondary" className="flex-1" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                  {leaveGuestlist.isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Clock className="w-5 h-5 mr-2" />}
                   Pending Approval
-                </Button>
-              ) : (
-                <Button 
-                  variant="secondary" 
-                  className="flex-1"
-                  onClick={handleLeaveGuestlist}
-                  disabled={leaveGuestlist.isPending}
-                >
-                  {leaveGuestlist.isPending ? (
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  ) : (
-                    <Check className="w-5 h-5 mr-2" />
-                  )}
+                </Button> : <Button variant="secondary" className="flex-1" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                  {leaveGuestlist.isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Check className="w-5 h-5 mr-2" />}
                   On Guestlist
-                </Button>
-              )
-            ) : (
-              <Button 
-                variant="hero" 
-                className="flex-1"
-                onClick={handleJoinGuestlist}
-                disabled={joinGuestlist.isPending}
-              >
-                {joinGuestlist.isPending ? (
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                ) : (
-                  <Users className="w-5 h-5 mr-2" />
-                )}
+                </Button> : <Button variant="hero" className="flex-1" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
+                {joinGuestlist.isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Users className="w-5 h-5 mr-2" />}
                 Join Guestlist
-              </Button>
-            )
-          ) : (
-            <Button variant="hero" className="flex-1">
+              </Button> : <Button variant="hero" className="flex-1">
               <Star className="w-5 h-5 mr-2" />
               Interested
-            </Button>
-          )}
+            </Button>}
         </div>
       </div>
 
       {/* Guestlist Management Sheet */}
-      {isOwner && event.has_guestlist && (
-        <GuestlistManagementSheet
-          eventId={id!}
-          open={showManagement}
-          onOpenChange={setShowManagement}
-        />
-      )}
-    </div>
-  );
+      {isOwner && event.has_guestlist && <GuestlistManagementSheet eventId={id!} open={showManagement} onOpenChange={setShowManagement} />}
+    </div>;
 };
-
 export default EventDetail;
