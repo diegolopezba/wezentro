@@ -42,6 +42,8 @@ const Create = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
@@ -114,20 +116,47 @@ const Create = () => {
     const fileExt = file.name.split(".").pop();
     const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("event-images")
-      .upload(fileName, file);
+    setIsUploading(true);
+    setUploadProgress(0);
 
-    if (uploadError) {
-      console.error("Upload error:", uploadError);
-      throw uploadError;
-    }
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      
+      // Track upload progress
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          setUploadProgress(progress);
+        }
+      });
 
-    const { data } = supabase.storage
-      .from("event-images")
-      .getPublicUrl(fileName);
+      xhr.addEventListener('load', async () => {
+        setIsUploading(false);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const { data } = supabase.storage
+            .from("event-images")
+            .getPublicUrl(fileName);
+          resolve(data.publicUrl);
+        } else {
+          reject(new Error('Upload failed'));
+        }
+      });
 
-    return data.publicUrl;
+      xhr.addEventListener('error', () => {
+        setIsUploading(false);
+        reject(new Error('Upload failed'));
+      });
+
+      // Get the upload URL and auth token
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const uploadUrl = `${supabaseUrl}/storage/v1/object/event-images/${fileName}`;
+
+      xhr.open('POST', uploadUrl);
+      xhr.setRequestHeader('Authorization', `Bearer ${supabaseKey}`);
+      xhr.setRequestHeader('x-upsert', 'true');
+      xhr.send(file);
+    });
   };
 
   const handleSubmit = async () => {
@@ -253,16 +282,39 @@ const Create = () => {
                     className="w-full h-full object-cover"
                   />
                 )}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    removeMedia();
-                  }}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                
+                {/* Upload progress overlay */}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <div className="w-3/4">
+                      <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                        <motion.div 
+                          className="h-full bg-primary rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${uploadProgress}%` }}
+                          transition={{ duration: 0.2 }}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground text-center mt-2">
+                        Uploading... {uploadProgress}%
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {!isUploading && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      removeMedia();
+                    }}
+                    className="absolute top-3 right-3 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
                 <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm text-xs text-foreground flex items-center gap-2">
                   {mediaType === 'video' ? (
                     <>
@@ -499,12 +551,12 @@ const Create = () => {
           variant="hero"
           className="w-full"
           onClick={handleSubmit}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isUploading}
         >
           {isSubmitting ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Creating...
+              {isUploading ? `Uploading... ${uploadProgress}%` : "Creating..."}
             </>
           ) : (
             "Create Event"
