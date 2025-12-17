@@ -557,6 +557,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_mutual_followers: {
+        Args: { _user_id: string }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          id: string
+          username: string
+        }[]
+      }
+      get_or_create_private_chat: {
+        Args: { _other_user_id: string; _user_id: string }
+        Returns: string
+      }
       get_subscription_plan: { Args: { _user_id: string }; Returns: string }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
