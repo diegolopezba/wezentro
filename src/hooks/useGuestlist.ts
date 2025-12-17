@@ -129,3 +129,89 @@ export const useHasActiveSubscription = () => {
     enabled: !!user,
   });
 };
+
+export const usePendingGuestlistRequests = (eventId: string | undefined) => {
+  return useQuery({
+    queryKey: ["pending-guestlist", eventId],
+    queryFn: async () => {
+      if (!eventId) return [];
+
+      const { data, error } = await supabase
+        .from("guestlist_entries")
+        .select(`
+          id,
+          user_id,
+          status,
+          joined_at,
+          user:profiles!guestlist_entries_user_id_fkey(
+            id,
+            username,
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq("event_id", eventId)
+        .eq("status", "pending")
+        .order("joined_at", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!eventId,
+  });
+};
+
+export const useApproveGuestlistEntry = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ entryId, eventId }: { entryId: string; eventId: string }) => {
+      const { error } = await supabase
+        .from("guestlist_entries")
+        .update({ status: "approved" })
+        .eq("id", entryId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, { eventId }) => {
+      queryClient.invalidateQueries({ queryKey: ["pending-guestlist", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["event-guestlist", eventId] });
+    },
+  });
+};
+
+export const useRejectGuestlistEntry = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ entryId, eventId, userId }: { entryId: string; eventId: string; userId: string }) => {
+      // First remove from chat participants if they were added
+      const { data: chat } = await supabase
+        .from("chats")
+        .select("id")
+        .eq("event_id", eventId)
+        .eq("type", "event")
+        .maybeSingle();
+
+      if (chat) {
+        await supabase
+          .from("chat_participants")
+          .delete()
+          .eq("chat_id", chat.id)
+          .eq("user_id", userId);
+      }
+
+      // Update status to rejected
+      const { error } = await supabase
+        .from("guestlist_entries")
+        .update({ status: "rejected" })
+        .eq("id", entryId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, { eventId }) => {
+      queryClient.invalidateQueries({ queryKey: ["pending-guestlist", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["event-guestlist", eventId] });
+    },
+  });
+};
