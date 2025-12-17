@@ -297,9 +297,9 @@ const Discover = () => {
                   }
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3 pb-4">
+              <div className="columns-2 gap-3 pb-4">
                 {filteredEvents.map((event, index) => (
-                  <div key={event.id} className="relative">
+                  <div key={event.id} className="relative break-inside-avoid mb-3">
                     {/* Distance badge */}
                     {event.distance !== null && (
                       <div className="absolute top-2 right-2 z-10 px-2 py-0.5 bg-background/80 backdrop-blur-sm text-foreground text-[10px] font-medium rounded-full">
