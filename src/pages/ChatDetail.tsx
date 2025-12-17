@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import MessageBubble from "@/components/chat/MessageBubble";
 import EventPickerModal from "@/components/chat/EventPickerModal";
+import { toast } from "sonner";
 
 const ChatDetail = () => {
   const { id: chatId } = useParams();
@@ -66,14 +67,32 @@ const ChatDetail = () => {
   };
 
   const handleSendEventInvite = (eventId: string) => {
-    if (!chatId) return;
+    console.log("handleSendEventInvite called with:", { chatId, eventId });
     
-    sendMessage.mutate({
-      chatId,
-      content: "Check out this event!",
-      messageType: "event_invite",
-      eventId,
-    });
+    if (!chatId) {
+      console.error("No chatId available");
+      toast.error("Cannot send invite - no chat selected");
+      return;
+    }
+    
+    sendMessage.mutate(
+      {
+        chatId,
+        content: "Check out this event!",
+        messageType: "event_invite",
+        eventId,
+      },
+      {
+        onSuccess: () => {
+          console.log("Event invite sent successfully");
+          toast.success("Event invitation sent!");
+        },
+        onError: (error) => {
+          console.error("Failed to send event invite:", error);
+          toast.error("Failed to send invitation");
+        },
+      }
+    );
   };
 
   const handleHeaderClick = () => {
