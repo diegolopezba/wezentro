@@ -213,8 +213,12 @@ const Discover = () => {
                       </CarouselContent>
                     </Carousel>
                     
-                    {/* Pagination dots */}
-                    <div className="flex justify-center items-center gap-1.5">
+                    {/* Counter and pagination dots */}
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {currentSlide + 1} of {selectedEvents.length} events
+                      </span>
+                      <div className="flex justify-center items-center gap-1.5">
                       {selectedEvents.map((_, index) => (
                         <button
                           key={index}
@@ -227,6 +231,7 @@ const Discover = () => {
                           )}
                         />
                       ))}
+                      </div>
                     </div>
                   </div>
                 )}
