@@ -215,7 +215,7 @@ const Discover = () => {
                     
                     {/* Counter and pagination dots */}
                     <div className="flex flex-col items-center gap-2">
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-foreground">
                         {currentSlide + 1} of {selectedEvents.length} events
                       </span>
                       <div className="flex justify-center items-center gap-1.5">
