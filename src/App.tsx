@@ -14,6 +14,7 @@ import ChatDetail from "./pages/ChatDetail";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
+import Subscription from "./pages/Subscription";
 import EditProfile from "./pages/EditProfile";
 import EventDetail from "./pages/EventDetail";
 import Auth from "./pages/Auth";
@@ -105,6 +106,14 @@ const App = () => (
                 element={
                   <ProtectedRoute requireProfile>
                     <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/subscription"
+                element={
+                  <ProtectedRoute requireProfile>
+                    <Subscription />
                   </ProtectedRoute>
                 }
               />
