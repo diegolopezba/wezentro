@@ -114,3 +114,44 @@ export const useEventGuestlist = (eventId: string | undefined) => {
     enabled: !!eventId,
   });
 };
+
+export const useUserCreatedEvents = (userId: string | undefined) => {
+  return useQuery({
+    queryKey: ["user-created-events", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("User ID required");
+
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("creator_id", userId)
+        .is("deleted_at", null)
+        .order("start_datetime", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
+};
+
+export const useUserJoinedEvents = (userId: string | undefined) => {
+  return useQuery({
+    queryKey: ["user-joined-events", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("User ID required");
+
+      const { data, error } = await supabase
+        .from("guestlist_entries")
+        .select(`
+          event:events(*)
+        `)
+        .eq("user_id", userId)
+        .order("joined_at", { ascending: false });
+
+      if (error) throw error;
+      return data?.map((entry) => entry.event).filter(Boolean) || [];
+    },
+    enabled: !!userId,
+  });
+};
