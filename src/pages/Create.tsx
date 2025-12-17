@@ -149,6 +149,26 @@ const Create = () => {
 
       if (error) throw error;
 
+      // If event has guestlist, create the group chat and add creator
+      if (formData.hasGuestlist && data.id) {
+        const { data: chat, error: chatError } = await supabase
+          .from("chats")
+          .insert({
+            type: "event",
+            event_id: data.id,
+            name: formData.title.trim() || "Event Chat",
+          })
+          .select()
+          .single();
+
+        if (!chatError && chat) {
+          await supabase.from("chat_participants").insert({
+            chat_id: chat.id,
+            user_id: user.id,
+          });
+        }
+      }
+
       toast.success("Event created successfully!");
       navigate(`/event/${data.id}`);
     } catch (error: any) {
