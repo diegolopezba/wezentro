@@ -10,19 +10,19 @@ import { useIsFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useUserP
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
-import { ShareEventModal } from "@/components/events/ShareEventModal";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
-
 const EventDetail = () => {
-  const { id } = useParams();
+  const {
+    id
+  } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [showManagement, setShowManagement] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  
+
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
-  
   const {
     data: event,
     isLoading,
@@ -37,12 +37,14 @@ const EventDetail = () => {
   const {
     data: pendingRequests = []
   } = usePendingGuestlistRequests(id);
-  
+
   // Follow hooks for event creator
-  const { data: isFollowingCreator, isLoading: followStatusLoading } = useIsFollowing(event?.creator_id);
+  const {
+    data: isFollowingCreator,
+    isLoading: followStatusLoading
+  } = useIsFollowing(event?.creator_id);
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
-  
   const joinGuestlist = useJoinGuestlist();
   const leaveGuestlist = useLeaveGuestlist();
   const isOnGuestlist = !!guestlistStatus;
@@ -51,7 +53,6 @@ const EventDetail = () => {
   const isOwner = user?.id === event?.creator_id;
   const pendingCount = pendingRequests.length;
   const isFollowPending = followMutation.isPending || unfollowMutation.isPending;
-
   const handleFollowToggle = () => {
     if (!event?.creator_id) return;
     if (!user) {
@@ -117,12 +118,12 @@ const EventDetail = () => {
         <div className="absolute top-0 left-0 right-0 safe-top">
           <div className="flex items-center justify-between px-4 py-4">
             <Button variant="glass" size="icon" onClick={() => {
-              if (window.history.length > 1) {
-                navigate(-1);
-              } else {
-                navigate("/");
-              }
-            }}>
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              navigate("/");
+            }
+          }}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex gap-2">
@@ -163,28 +164,15 @@ const EventDetail = () => {
                 <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
               </div>
             </div>
-            {!isOwner && (
-              <Button 
-                variant={isFollowingCreator ? "secondary" : "hero"} 
-                size="sm"
-                onClick={handleFollowToggle}
-                disabled={followStatusLoading || isFollowPending}
-              >
-                {isFollowPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : isFollowingCreator ? (
-                  <>
+            {!isOwner && <Button variant={isFollowingCreator ? "secondary" : "hero"} size="sm" onClick={handleFollowToggle} disabled={followStatusLoading || isFollowPending}>
+                {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowingCreator ? <>
                     <UserMinus className="w-3 h-3 mr-1" />
                     Unfollow
-                  </>
-                ) : (
-                  <>
+                  </> : <>
                     <UserPlus className="w-3 h-3 mr-1" />
                     Follow
-                  </>
-                )}
-              </Button>
-            )}
+                  </>}
+              </Button>}
           </div>
 
           {/* Details */}
@@ -271,40 +259,11 @@ const EventDetail = () => {
 
       {/* Fixed bottom actions */}
       <div className="fixed bottom-0 left-0 right-0 p-4 glass-strong safe-bottom">
-        <div className="flex gap-3">
-          <Button variant="secondary" size="icon-lg">
-            <MessageCircle className="w-5 h-5" />
-          </Button>
-          <Button variant="secondary" size="icon-lg" onClick={() => setShowShareModal(true)}>
-            <Send className="w-5 h-5" />
-          </Button>
-          {event.has_guestlist ? isOwner ? <Button variant="hero" className="flex-1 relative" onClick={() => setShowManagement(true)}>
-                <Settings2 className="w-5 h-5 mr-2" />
-                Manage Guestlist
-                {pendingCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
-                    {pendingCount}
-                  </span>}
-              </Button> : isOnGuestlist ? isPending ? <Button variant="secondary" className="flex-1" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
-                  {leaveGuestlist.isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Clock className="w-5 h-5 mr-2" />}
-                  Pending Approval
-                </Button> : <Button variant="secondary" className="flex-1" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
-                  {leaveGuestlist.isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Check className="w-5 h-5 mr-2" />}
-                  On Guestlist
-                </Button> : <Button variant="hero" className="flex-1" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
-                {joinGuestlist.isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Users className="w-5 h-5 mr-2" />}
-                Join Guestlist
-              </Button> : <Button variant="hero" className="flex-1">
-              <Star className="w-5 h-5 mr-2" />
-              Interested
-            </Button>}
-        </div>
+        
       </div>
 
       {/* Guestlist Management Sheet */}
       {isOwner && event.has_guestlist && <GuestlistManagementSheet eventId={id!} open={showManagement} onOpenChange={setShowManagement} />}
-
-      {/* Share Event Modal */}
-      <ShareEventModal eventId={id!} open={showShareModal} onOpenChange={setShowShareModal} />
     </div>;
 };
 export default EventDetail;
