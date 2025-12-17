@@ -12,16 +12,61 @@ import {
   Send,
   Star,
   Loader2,
+  Check,
+  Clock,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
+import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription } from "@/hooks/useGuestlist";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 const EventDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: event, isLoading, error } = useEvent(id);
+  const { data: guestlistStatus } = useIsOnGuestlist(id);
+  const { data: hasSubscription } = useHasActiveSubscription();
+  const joinGuestlist = useJoinGuestlist();
+  const leaveGuestlist = useLeaveGuestlist();
+
+  const isOnGuestlist = !!guestlistStatus;
+  const isPending = guestlistStatus?.status === "pending";
+  const isApproved = guestlistStatus?.status === "approved";
+  const isOwner = user?.id === event?.creator_id;
+
+  const handleJoinGuestlist = async () => {
+    if (!user) {
+      toast.error("Please sign in to join guestlists");
+      navigate("/auth");
+      return;
+    }
+
+    if (!hasSubscription) {
+      toast.error("Premium subscription required to join guestlists");
+      return;
+    }
+
+    try {
+      await joinGuestlist.mutateAsync(id!);
+      toast.success("Guestlist request sent!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to join guestlist");
+    }
+  };
+
+  const handleLeaveGuestlist = async () => {
+    try {
+      await leaveGuestlist.mutateAsync(id!);
+      toast.success("Left the guestlist");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to leave guestlist");
+    }
+  };
   const { data: guestlist = [] } = useEventGuestlist(id);
 
   if (isLoading) {
@@ -242,10 +287,56 @@ const EventDetail = () => {
             <Send className="w-5 h-5" />
           </Button>
           {event.has_guestlist ? (
-            <Button variant="hero" className="flex-1">
-              <Users className="w-5 h-5 mr-2" />
-              Join Guestlist
-            </Button>
+            isOwner ? (
+              <Button variant="secondary" className="flex-1" disabled>
+                <Users className="w-5 h-5 mr-2" />
+                Your Event
+              </Button>
+            ) : isOnGuestlist ? (
+              isPending ? (
+                <Button 
+                  variant="secondary" 
+                  className="flex-1"
+                  onClick={handleLeaveGuestlist}
+                  disabled={leaveGuestlist.isPending}
+                >
+                  {leaveGuestlist.isPending ? (
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  ) : (
+                    <Clock className="w-5 h-5 mr-2" />
+                  )}
+                  Pending Approval
+                </Button>
+              ) : (
+                <Button 
+                  variant="secondary" 
+                  className="flex-1"
+                  onClick={handleLeaveGuestlist}
+                  disabled={leaveGuestlist.isPending}
+                >
+                  {leaveGuestlist.isPending ? (
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  ) : (
+                    <Check className="w-5 h-5 mr-2" />
+                  )}
+                  On Guestlist
+                </Button>
+              )
+            ) : (
+              <Button 
+                variant="hero" 
+                className="flex-1"
+                onClick={handleJoinGuestlist}
+                disabled={joinGuestlist.isPending}
+              >
+                {joinGuestlist.isPending ? (
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                ) : (
+                  <Users className="w-5 h-5 mr-2" />
+                )}
+                Join Guestlist
+              </Button>
+            )
           ) : (
             <Button variant="hero" className="flex-1">
               <Star className="w-5 h-5 mr-2" />
