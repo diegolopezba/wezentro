@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, SlidersHorizontal, MapPin, X } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,16 @@ import { useEvents } from "@/hooks/useEvents";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { useNearbyEvents, formatDistance, FilterOptions } from "@/hooks/useNearbyEvents";
 import { format } from "date-fns";
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
+import { cn } from "@/lib/utils";
+
+type EventWithDistance = ReturnType<typeof useNearbyEvents>[number];
 
 const Discover = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedEvent, setSelectedEvent] = useState<ReturnType<typeof useNearbyEvents>[number] | null>(null);
+  const [selectedEvents, setSelectedEvents] = useState<EventWithDistance[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [isNearbyOpen, setIsNearbyOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
@@ -38,14 +44,28 @@ const Discover = () => {
   // Get filtered and sorted events with distance
   const filteredEvents = useNearbyEvents(events, userLocation, activeFilters);
 
-  const handleMarkerClick = (event: ReturnType<typeof useNearbyEvents>[number]) => {
-    const eventWithDistance = filteredEvents.find(e => e.id === event.id);
-    setSelectedEvent(eventWithDistance || null);
+  // Track carousel slide changes
+  useEffect(() => {
+    if (!carouselApi) return;
+    
+    carouselApi.on("select", () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap());
+    });
+  }, [carouselApi]);
+
+  const handleMarkerClick = (events: EventWithDistance[]) => {
+    // Map to events with distance info from filtered events
+    const eventsWithDistance = events.map(e => 
+      filteredEvents.find(fe => fe.id === e.id) || e
+    );
+    setSelectedEvents(eventsWithDistance);
+    setCurrentSlide(0);
     setIsNearbyOpen(false);
   };
 
   const handleCloseEventCard = () => {
-    setSelectedEvent(null);
+    setSelectedEvents([]);
+    setCurrentSlide(0);
   };
 
   const handleApplyFilters = (newFilters: FilterOptions) => {
@@ -82,7 +102,7 @@ const Discover = () => {
         <MapView
           events={filteredEvents}
           onMarkerClick={handleMarkerClick}
-          selectedEventId={selectedEvent?.id}
+          selectedEventId={selectedEvents[currentSlide]?.id}
           userLocation={userLocation}
         />
 
@@ -143,16 +163,16 @@ const Discover = () => {
         )}
 
         {/* Click outside to close */}
-        {selectedEvent && (
+        {selectedEvents.length > 0 && (
           <div 
             className="absolute inset-0 z-30" 
             onClick={handleCloseEventCard}
           />
         )}
 
-        {/* Selected event card */}
+        {/* Selected event card(s) */}
         <AnimatePresence>
-          {selectedEvent && (
+          {selectedEvents.length > 0 && (
             <motion.div
               initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -170,13 +190,46 @@ const Discover = () => {
                 >
                   <X className="w-4 h-4" />
                 </Button>
-                {/* Distance badge */}
-                {selectedEvent.distance !== null && (
+                
+                {/* Distance badge - shows current event's distance */}
+                {selectedEvents[currentSlide]?.distance !== null && (
                   <div className="absolute -top-2 -left-2 z-10 px-2 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full shadow-elevated">
-                    {formatDistance(selectedEvent.distance)}
+                    {formatDistance(selectedEvents[currentSlide].distance!)}
                   </div>
                 )}
-                <EventCard {...eventToCardProps(selectedEvent)} />
+
+                {/* Single event or carousel */}
+                {selectedEvents.length === 1 ? (
+                  <EventCard {...eventToCardProps(selectedEvents[0])} />
+                ) : (
+                  <div className="space-y-3">
+                    <Carousel className="w-full" setApi={setCarouselApi}>
+                      <CarouselContent>
+                        {selectedEvents.map((event) => (
+                          <CarouselItem key={event.id}>
+                            <EventCard {...eventToCardProps(event)} />
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                    </Carousel>
+                    
+                    {/* Pagination dots */}
+                    <div className="flex justify-center items-center gap-1.5">
+                      {selectedEvents.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => carouselApi?.scrollTo(index)}
+                          className={cn(
+                            "w-2 h-2 rounded-full transition-all duration-200",
+                            index === currentSlide 
+                              ? "bg-primary w-4" 
+                              : "bg-muted-foreground/40 hover:bg-muted-foreground/60"
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

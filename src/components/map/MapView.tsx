@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 
 interface MapViewProps {
   events: Event[];
-  onMarkerClick?: (event: Event) => void;
+  onMarkerClick?: (events: Event[]) => void;
   selectedEventId?: string | null;
   userLocation?: { lat: number; lng: number } | null;
 }
@@ -186,13 +186,22 @@ const MapView: React.FC<MapViewProps> = ({
       });
     });
 
-    // Click on individual event
+    // Click on individual event marker - find ALL events at this location
     map.current.on('click', 'unclustered-point', (e) => {
       if (!e.features?.length) return;
-      const eventId = e.features[0].properties?.id;
-      const event = events.find(ev => ev.id === eventId);
-      if (event && onMarkerClick) {
-        onMarkerClick(event);
+      
+      const clickedCoords = (e.features[0].geometry as GeoJSON.Point).coordinates;
+      const tolerance = 0.0001; // Small tolerance for floating point comparison
+      
+      // Find all events at this location
+      const eventsAtLocation = events.filter(ev => 
+        ev.latitude && ev.longitude &&
+        Math.abs(ev.latitude - clickedCoords[1]) < tolerance &&
+        Math.abs(ev.longitude - clickedCoords[0]) < tolerance
+      );
+      
+      if (eventsAtLocation.length > 0 && onMarkerClick) {
+        onMarkerClick(eventsAtLocation);
       }
     });
 
