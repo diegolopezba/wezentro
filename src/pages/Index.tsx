@@ -35,6 +35,7 @@ const Index = () => {
       attendees: 0,
       hasGuestlist: event.has_guestlist || false,
       ownerAvatar: event.creator?.avatar_url || undefined,
+      creatorId: event.creator_id,
     }));
 
   return (

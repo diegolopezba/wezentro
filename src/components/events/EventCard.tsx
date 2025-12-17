@@ -13,6 +13,7 @@ export interface EventCardProps {
   hasGuestlist?: boolean;
   index?: number;
   ownerAvatar?: string;
+  creatorId?: string;
 }
 const categoryColors: Record<string, string> = {
   club: "from-purple-500 to-pink-500",
@@ -32,7 +33,8 @@ export const EventCard = ({
   attendees = 0,
   hasGuestlist = false,
   index = 0,
-  ownerAvatar
+  ownerAvatar,
+  creatorId
 }: EventCardProps) => {
   const navigate = useNavigate();
   const gradientClass = categoryColors[category] || categoryColors.default;
@@ -68,7 +70,16 @@ export const EventCard = ({
                   <img 
                     src={ownerAvatar} 
                     alt="Owner" 
-                    className="w-5 h-5 rounded-full border-2 border-background object-cover"
+                    className={cn(
+                      "w-5 h-5 rounded-full border-2 border-background object-cover",
+                      creatorId && "cursor-pointer hover:scale-110 transition-transform z-10"
+                    )}
+                    onClick={(e) => {
+                      if (creatorId) {
+                        e.stopPropagation();
+                        navigate(`/user/${creatorId}`);
+                      }
+                    }}
                   />
                 )}
                 {/* Other attendees */}

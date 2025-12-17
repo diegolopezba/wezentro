@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserCreatedEvents, useUserJoinedEvents } from "@/hooks/useEvents";
 import { useUserStats } from "@/hooks/useUserStats";
+import { FollowersSheet } from "@/components/profile/FollowersSheet";
 
 interface ProfilePhoto {
   id: string;
@@ -20,6 +21,7 @@ const Profile = () => {
   const { profile, user } = useAuth();
   const [activeTab, setActiveTab] = useState<"photos" | "created" | "joined">("photos");
   const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
+  const [followSheetType, setFollowSheetType] = useState<"followers" | "following" | null>(null);
   
   const { data: userStats, isLoading: statsLoading } = useUserStats(user?.id);
   const { data: createdEvents, isLoading: createdLoading } = useUserCreatedEvents(user?.id);
@@ -34,8 +36,8 @@ const Profile = () => {
 
   const stats = [
     { label: "Events", value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0) },
-    { label: "Followers", value: statsLoading ? "..." : formatCount(userStats?.followersCount || 0) },
-    { label: "Following", value: statsLoading ? "..." : formatCount(userStats?.followingCount || 0) },
+    { label: "Followers", value: statsLoading ? "..." : formatCount(userStats?.followersCount || 0), onClick: () => setFollowSheetType("followers") },
+    { label: "Following", value: statsLoading ? "..." : formatCount(userStats?.followingCount || 0), onClick: () => setFollowSheetType("following") },
   ];
   
   const tabs = [
@@ -143,7 +145,11 @@ const Profile = () => {
             {/* Stats */}
             <div className="flex gap-6 mt-2">
               {stats.map((stat) => (
-                <div key={stat.label} className="text-center">
+                <div 
+                  key={stat.label} 
+                  className={`text-center ${stat.onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                  onClick={stat.onClick}
+                >
                   <p className="font-brand text-lg font-bold text-foreground">
                     {stat.value}
                   </p>
@@ -277,6 +283,16 @@ const Profile = () => {
           </div>
         )}
       </div>
+
+      {/* Followers/Following Sheet */}
+      {user && (
+        <FollowersSheet
+          userId={user.id}
+          type={followSheetType || "followers"}
+          open={!!followSheetType}
+          onOpenChange={(open) => !open && setFollowSheetType(null)}
+        />
+      )}
     </AppLayout>
   );
 };
