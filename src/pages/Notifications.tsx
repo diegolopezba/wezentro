@@ -1,20 +1,20 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronLeft, Bell, UserPlus, Calendar, Check, Loader2, Users, CheckCircle, XCircle } from "lucide-react";
+import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   useNotifications, 
   useMarkNotificationRead, 
   useMarkAllNotificationsRead,
   Notification 
 } from "@/hooks/useNotifications";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
-    case "follow":
-      return UserPlus;
     case "event":
       return Calendar;
     case "guestlist":
@@ -27,6 +27,70 @@ const getNotificationIcon = (type: string) => {
     default:
       return Bell;
   }
+};
+
+interface NotificationItemProps {
+  notification: Notification;
+  index: number;
+  onRead: () => void;
+  onClick: () => void;
+}
+
+const FollowNotificationItem = ({ 
+  notification, 
+  index, 
+  onRead, 
+  onClick 
+}: NotificationItemProps) => {
+  const { data: followerProfile } = useUserProfile(notification.entity_id || undefined);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.03 }}
+      className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
+        notification.is_read 
+          ? "bg-secondary/30 hover:bg-secondary/50" 
+          : "bg-primary/10 hover:bg-primary/15"
+      }`}
+      onClick={onClick}
+    >
+      <Avatar className="w-10 h-10 shrink-0">
+        <AvatarImage src={followerProfile?.avatar_url || ""} />
+        <AvatarFallback>
+          {followerProfile?.username?.charAt(0).toUpperCase() || "?"}
+        </AvatarFallback>
+      </Avatar>
+      
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
+          <span className="font-semibold">@{followerProfile?.username || "someone"}</span>
+          {" started following you"}
+        </p>
+        <p className="text-xs text-muted-foreground/70 mt-0.5">
+          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+        </p>
+      </div>
+      
+      {!notification.is_read && (
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRead();
+            }}
+          >
+            <Check className="w-4 h-4" />
+          </Button>
+          <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+        </>
+      )}
+    </motion.div>
+  );
 };
 
 const NotificationItem = ({ 
@@ -110,13 +174,12 @@ const Notifications = () => {
   const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
 
   const handleNotificationClick = (notification: Notification) => {
-    // Mark as read
     if (!notification.is_read) {
       markRead.mutate(notification.id);
     }
 
-    // Navigate based on entity type
-    if (notification.entity_type === "profile" && notification.entity_id) {
+    // Navigate based on entity type - handle both 'profile' and 'user' types
+    if ((notification.entity_type === "profile" || notification.entity_type === "user") && notification.entity_id) {
       navigate(`/user/${notification.entity_id}`);
     } else if (notification.entity_type === "event" && notification.entity_id) {
       navigate(`/event/${notification.entity_id}`);
@@ -176,13 +239,23 @@ const Notifications = () => {
           </motion.div>
         ) : (
           notifications.map((notification, index) => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              index={index}
-              onRead={() => markRead.mutate(notification.id)}
-              onClick={() => handleNotificationClick(notification)}
-            />
+            notification.type === "follow" ? (
+              <FollowNotificationItem
+                key={notification.id}
+                notification={notification}
+                index={index}
+                onRead={() => markRead.mutate(notification.id)}
+                onClick={() => handleNotificationClick(notification)}
+              />
+            ) : (
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
+                index={index}
+                onRead={() => markRead.mutate(notification.id)}
+                onClick={() => handleNotificationClick(notification)}
+              />
+            )
           ))
         )}
       </div>
