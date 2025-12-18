@@ -44,6 +44,7 @@ export interface Message {
     image_url: string | null;
     start_datetime: string;
     location_name: string | null;
+    creator_id: string;
   } | null;
 }
 
@@ -291,7 +292,7 @@ export const useChatMessages = (chatId: string | undefined) => {
       if (eventIds.length > 0) {
         const { data: events } = await supabase
           .from("events")
-          .select("id, title, image_url, start_datetime, location_name")
+          .select("id, title, image_url, start_datetime, location_name, creator_id")
           .in("id", eventIds);
 
         if (events) {
