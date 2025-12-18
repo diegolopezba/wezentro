@@ -65,7 +65,7 @@ export const useSubscriptionPlans = (): SubscriptionPlan[] => {
     },
     {
       id: "user_premium",
-      name: "User Premium",
+      name: "Zentro Premium",
       price: 4.20,
       interval: "month",
       features: [
@@ -79,11 +79,11 @@ export const useSubscriptionPlans = (): SubscriptionPlan[] => {
     },
     {
       id: "business_premium",
-      name: "Business Premium",
+      name: "Zentro Business",
       price: 19.99,
       interval: "month",
       features: [
-        "Everything in User Premium",
+        "Everything in Zentro Premium",
         "Create events with guestlists",
         "Set guestlist capacity limits",
         "View event analytics",
@@ -97,9 +97,9 @@ export const useSubscriptionPlans = (): SubscriptionPlan[] => {
 export const getPlanDisplayName = (planType: string | null | undefined): string => {
   switch (planType) {
     case "user_premium":
-      return "User Premium";
+      return "Zentro Premium";
     case "business_premium":
-      return "Business Premium";
+      return "Zentro Business";
     default:
       return "Free";
   }
