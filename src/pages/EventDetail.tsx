@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Share2, Heart, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
@@ -22,6 +22,7 @@ const EventDetail = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+  const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -35,6 +36,24 @@ const EventDetail = () => {
       const { videoWidth, videoHeight } = videoRef.current;
       setAspectRatio(videoWidth / videoHeight);
       setMediaLoaded(true);
+    }
+  };
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const togglePlayPause = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
     }
   };
 
@@ -119,9 +138,9 @@ const EventDetail = () => {
           <video 
             ref={videoRef}
             src={event.image_url || ""} 
-            className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`}
+            className={`w-full h-full object-cover transition-opacity duration-500 cursor-pointer ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoadedMetadata={handleVideoMetadata}
-            controls
+            onClick={togglePlayPause}
             playsInline
             autoPlay
             muted
@@ -149,14 +168,18 @@ const EventDetail = () => {
           }}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div className="flex gap-2">
-              <Button variant="glass" size="icon">
-                <Heart className="w-5 h-5" />
-              </Button>
-              <Button variant="glass" size="icon">
-                <Share2 className="w-5 h-5" />
-              </Button>
-            </div>
+            {isVideo && (
+              <button
+                onClick={toggleMute}
+                className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
+              >
+                {isMuted ? (
+                  <VolumeX className="w-5 h-5 text-white" />
+                ) : (
+                  <Volume2 className="w-5 h-5 text-white" />
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
