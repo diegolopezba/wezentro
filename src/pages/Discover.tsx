@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, SlidersHorizontal, MapPin, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, X, Users } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,15 @@ import MapView from "@/components/map/MapView";
 import { useEvents } from "@/hooks/useEvents";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { useNearbyEvents, formatDistance, FilterOptions } from "@/hooks/useNearbyEvents";
+import { useSearchUsers } from "@/hooks/useSearchUsers";
+import { UserSearchResultCard } from "@/components/search/UserSearchResultCard";
 import { format } from "date-fns";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 type EventWithDistance = ReturnType<typeof useNearbyEvents>[number];
+type SearchTab = "events" | "people";
 
 const Discover = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,6 +28,9 @@ const Discover = () => {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [isNearbyOpen, setIsNearbyOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [searchTab, setSearchTab] = useState<SearchTab>("events");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState<FilterOptions>({
     searchQuery: "",
     dateFilter: "all",
@@ -37,6 +43,19 @@ const Discover = () => {
   
   const { data: events = [] } = useEvents();
   const { location: userLocation } = useUserLocation();
+  const { data: searchedUsers = [], isLoading: isLoadingUsers } = useSearchUsers(searchQuery);
+
+  // Close search dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Handle geolocation success - auto-open nearby drawer once
   const handleGeolocationSuccess = () => {
@@ -86,6 +105,7 @@ const Discover = () => {
     setSelectedEvents(eventsWithDistance);
     setCurrentSlide(0);
     setIsNearbyOpen(false);
+    setIsSearchFocused(false);
   };
 
   const handleCloseEventCard = () => {
@@ -97,6 +117,16 @@ const Discover = () => {
     setFilters(newFilters);
   };
 
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setIsSearchFocused(false);
+  };
+
+  const handleUserClick = () => {
+    setIsSearchFocused(false);
+    setSearchQuery("");
+  };
+
   // Filter events with coordinates for the map
   const eventsWithLocation = filteredEvents.filter(e => e.latitude && e.longitude);
 
@@ -106,6 +136,9 @@ const Discover = () => {
     filters.categories.length +
     (filters.maxDistance !== null ? 1 : 0) +
     (filters.hasGuestlistOnly ? 1 : 0);
+
+  // Show search dropdown
+  const showSearchDropdown = isSearchFocused && searchQuery.length >= 2;
 
   // Convert Event to EventCard props
   const eventToCardProps = (event: ReturnType<typeof useNearbyEvents>[number]) => ({
@@ -134,23 +167,127 @@ const Discover = () => {
 
         {/* Floating search bar */}
         <div className="absolute top-0 left-0 right-0 z-40 safe-top px-4 py-4">
-          <div className="flex gap-2 py-[26px]">
+          <div className="flex gap-2 py-[26px]" ref={searchContainerRef}>
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
               <Input
-                placeholder="Search events, venues..."
+                placeholder="Search events, people..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
                 className="pl-10 pr-10 bg-card/90 backdrop-blur-md border-border/50"
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
                 >
                   <X className="w-4 h-4" />
                 </button>
               )}
+
+              {/* Search Results Dropdown */}
+              <AnimatePresence>
+                {showSearchDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-card/95 backdrop-blur-md rounded-xl border border-border/50 shadow-elevated overflow-hidden max-h-[60vh]"
+                  >
+                    {/* Tabs */}
+                    <div className="flex border-b border-border/50">
+                      <button
+                        onClick={() => setSearchTab("events")}
+                        className={cn(
+                          "flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2",
+                          searchTab === "events"
+                            ? "text-primary border-b-2 border-primary bg-primary/5"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        <MapPin className="w-4 h-4" />
+                        Events ({filteredEvents.length})
+                      </button>
+                      <button
+                        onClick={() => setSearchTab("people")}
+                        className={cn(
+                          "flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2",
+                          searchTab === "people"
+                            ? "text-primary border-b-2 border-primary bg-primary/5"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        <Users className="w-4 h-4" />
+                        People ({searchedUsers.length})
+                      </button>
+                    </div>
+
+                    {/* Results */}
+                    <div className="overflow-y-auto max-h-[calc(60vh-48px)]">
+                      {searchTab === "events" ? (
+                        <div className="p-2">
+                          {filteredEvents.length > 0 ? (
+                            filteredEvents.slice(0, 10).map((event) => (
+                              <button
+                                key={event.id}
+                                onClick={() => handleMarkerClick([event])}
+                                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-colors text-left"
+                              >
+                                <div className="w-12 h-12 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
+                                  <img
+                                    src={event.image_url || "/placeholder.svg"}
+                                    alt={event.title || "Event"}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-foreground truncate">
+                                    {event.title || "Untitled Event"}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground truncate">
+                                    {event.location_name || "Location TBA"}
+                                  </p>
+                                </div>
+                                {event.distance !== null && (
+                                  <span className="text-xs text-muted-foreground flex-shrink-0">
+                                    {formatDistance(event.distance)}
+                                  </span>
+                                )}
+                              </button>
+                            ))
+                          ) : (
+                            <div className="py-8 text-center text-muted-foreground">
+                              No events found
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="p-2">
+                          {isLoadingUsers ? (
+                            <div className="py-8 text-center text-muted-foreground">
+                              Searching...
+                            </div>
+                          ) : searchedUsers.length > 0 ? (
+                            searchedUsers.map((user) => (
+                              <UserSearchResultCard
+                                key={user.id}
+                                user={user}
+                                onClick={handleUserClick}
+                              />
+                            ))
+                          ) : (
+                            <div className="py-8 text-center text-muted-foreground">
+                              No people found
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             <Button
               variant="secondary"
