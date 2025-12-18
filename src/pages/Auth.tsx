@@ -156,7 +156,7 @@ const Auth = () => {
             <Sparkles className="w-10 h-10 text-primary-foreground" />
           </div>
         </motion.div>
-        <h1 className="font-brand text-4xl font-bold text-gradient mb-2">Zentro</h1>
+        <h1 className="font-brand text-4xl font-bold text-foreground mb-2">Zentro</h1>
         <p className="text-muted-foreground">Your nightlife, discovered</p>
       </motion.div>
 
