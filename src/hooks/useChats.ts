@@ -64,16 +64,22 @@ export const useUserChats = () => {
     queryFn: async (): Promise<ChatWithDetails[]> => {
       if (!user?.id) return [];
 
-      // Get all chats where user is a participant
+      // Get all chats where user is a participant, including last_read_at
       const { data: participations, error: partError } = await supabase
         .from("chat_participants")
-        .select("chat_id")
+        .select("chat_id, last_read_at")
         .eq("user_id", user.id);
 
       if (partError) throw partError;
       if (!participations || participations.length === 0) return [];
 
       const chatIds = participations.map((p) => p.chat_id);
+      
+      // Create a map of chat_id to last_read_at for quick lookup
+      const lastReadMap: Record<string, string | null> = {};
+      participations.forEach((p) => {
+        lastReadMap[p.chat_id] = p.last_read_at;
+      });
 
       // Get chat details
       const { data: chats, error: chatsError } = await supabase
@@ -109,7 +115,7 @@ export const useUserChats = () => {
 
       if (allPartError) throw allPartError;
 
-      // Get last message for each chat
+      // Get ALL messages for these chats to count unread
       const { data: messages, error: msgError } = await supabase
         .from("messages")
         .select("chat_id, content, created_at, sender_id")
@@ -147,9 +153,22 @@ export const useUserChats = () => {
           .map((p) => p.profiles as unknown as ChatParticipant)
           .filter((p): p is ChatParticipant => p !== null);
 
-        // Get last message
+        // Get messages for this chat
         const chatMessages = (messages || []).filter((m) => m.chat_id === chat.id);
         const lastMessage = chatMessages.length > 0 ? chatMessages[0] : null;
+
+        // Calculate unread count
+        const lastReadAt = lastReadMap[chat.id];
+        let unreadCount = 0;
+        if (lastReadAt) {
+          const lastReadTime = new Date(lastReadAt).getTime();
+          unreadCount = chatMessages.filter((m) => {
+            // Don't count own messages as unread
+            if (m.sender_id === user.id) return false;
+            const msgTime = m.created_at ? new Date(m.created_at).getTime() : 0;
+            return msgTime > lastReadTime;
+          }).length;
+        }
 
         // For private chats, get the other participant
         const otherParticipants = chatParticipants.filter((p) => p.id !== user.id);
@@ -170,7 +189,7 @@ export const useUserChats = () => {
                 sender_id: lastMessage.sender_id,
               }
             : null,
-          unreadCount: 0, // TODO: Implement unread tracking
+          unreadCount,
           event: chat.event_id ? eventsMap[chat.event_id] : null,
         };
       });
@@ -183,6 +202,29 @@ export const useUserChats = () => {
       });
     },
     enabled: !!user?.id,
+  });
+};
+
+// Mark chat as read by updating last_read_at
+export const useMarkChatAsRead = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (chatId: string) => {
+      if (!user?.id) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from("chat_participants")
+        .update({ last_read_at: new Date().toISOString() })
+        .eq("chat_id", chatId)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-chats"] });
+    },
   });
 };
 

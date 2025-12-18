@@ -10,6 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile, useIsFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useUserProfile";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useUserCreatedEvents, useUserJoinedEvents } from "@/hooks/useEvents";
+import { useCanMessageUser } from "@/hooks/useUserSettings";
+import { useCreatePrivateChat } from "@/hooks/useChats";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { EventCard } from "@/components/events/EventCard";
 
@@ -35,9 +39,11 @@ const UserProfile = () => {
   const { data: isFollowing, isLoading: followStatusLoading } = useIsFollowing(id);
   const { data: createdEvents, isLoading: createdLoading } = useUserCreatedEvents(id);
   const { data: joinedEvents, isLoading: joinedLoading } = useUserJoinedEvents(id);
+  const { data: canMessageData, isLoading: canMessageLoading } = useCanMessageUser(id);
   
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
+  const createChatMutation = useCreatePrivateChat();
 
   useEffect(() => {
     if (id) {
@@ -72,6 +78,22 @@ const UserProfile = () => {
     } else {
       followMutation.mutate(id);
     }
+  };
+
+  const handleMessage = () => {
+    if (!id) return;
+    if (!canMessageData?.canMessage) {
+      toast.error(canMessageData?.reason || "Cannot message this user");
+      return;
+    }
+    createChatMutation.mutate(id, {
+      onSuccess: (chatId) => {
+        navigate(`/chats/${chatId}`);
+      },
+      onError: () => {
+        toast.error("Failed to start conversation");
+      },
+    });
   };
 
   if (profileLoading) {
@@ -227,14 +249,32 @@ const UserProfile = () => {
                 </>
               )}
             </Button>
-            <Button
-              variant="secondary"
-              className="flex-1"
-              onClick={() => navigate(`/chats/${id}`)}
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Message
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex-1">
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    onClick={handleMessage}
+                    disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}
+                  >
+                    {createChatMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Message
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              {!canMessageData?.canMessage && canMessageData?.reason && (
+                <TooltipContent>
+                  <p>{canMessageData.reason}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
           </motion.div>
         )}
       </div>

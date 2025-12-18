@@ -19,18 +19,21 @@ export type Database = {
           chat_id: string
           id: string
           joined_at: string | null
+          last_read_at: string | null
           user_id: string
         }
         Insert: {
           chat_id: string
           id?: string
           joined_at?: string | null
+          last_read_at?: string | null
           user_id: string
         }
         Update: {
           chat_id?: string
           id?: string
           joined_at?: string | null
+          last_read_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -548,6 +551,30 @@ export type Database = {
         Update: {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          allow_messages_from: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          allow_messages_from?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          allow_messages_from?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
