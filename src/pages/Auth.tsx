@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, Sparkles, AlertCircle } from "lucide-react";
+import { Mail, Lock, ArrowRight, Sparkles, AlertCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +10,6 @@ import { z } from "zod";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
-const usernameSchema = z
-  .string()
-  .min(3, "Username must be at least 3 characters")
-  .max(20, "Username must be less than 20 characters")
-  .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores");
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -23,12 +18,11 @@ const Auth = () => {
 
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; username?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    username: "",
   });
 
   // Redirect if already logged in
@@ -40,7 +34,7 @@ const Auth = () => {
   }, [user, authLoading, navigate, location]);
 
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string; username?: string } = {};
+    const newErrors: { email?: string; password?: string } = {};
 
     try {
       emailSchema.parse(formData.email);
@@ -58,15 +52,6 @@ const Auth = () => {
       }
     }
 
-    if (mode === "signup") {
-      try {
-        usernameSchema.parse(formData.username);
-      } catch (e) {
-        if (e instanceof z.ZodError) {
-          newErrors.username = e.errors[0].message;
-        }
-      }
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -96,8 +81,7 @@ const Auth = () => {
     } else {
       const { error } = await signUp(
         formData.email,
-        formData.password,
-        formData.username.toLowerCase()
+        formData.password
       );
 
       if (error) {
@@ -202,37 +186,6 @@ const Auth = () => {
 
             {/* Form */}
             <div className="space-y-4">
-              {mode === "signup" && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                >
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      placeholder="Username"
-                      value={formData.username}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "username",
-                          e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "")
-                        )
-                      }
-                      className={`pl-12 ${errors.username ? "border-destructive" : ""}`}
-                      maxLength={20}
-                    />
-                  </div>
-                  {errors.username && (
-                    <p className="text-destructive text-xs mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {errors.username}
-                    </p>
-                  )}
-                </motion.div>
-              )}
-
               <div>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
