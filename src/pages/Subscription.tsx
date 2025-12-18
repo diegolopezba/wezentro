@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, Check, Crown, Sparkles, Star } from "lucide-react";
+import { ChevronLeft, Check, Crown, Sparkles, Star, Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -7,25 +7,72 @@ import { useUserSubscription, useSubscriptionPlans, getPlanDisplayName } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 const Subscription = () => {
   const navigate = useNavigate();
-  const { data: subscription, isLoading } = useUserSubscription();
+  const { data: subscription, isLoading, refetch } = useUserSubscription();
   const plans = useSubscriptionPlans();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [managingSubscription, setManagingSubscription] = useState(false);
 
   const currentPlanId = subscription?.plan_type || "free";
   const isActive = subscription?.status === "active" || subscription?.status === "trialing";
 
-  const handleUpgrade = (planId: string) => {
-    toast.info("Stripe payments coming soon!", {
-      description: "We're working on integrating payments. Stay tuned!",
-    });
+  const handleUpgrade = async (planId: string) => {
+    if (planId === "free") {
+      toast.info("To downgrade, please manage your subscription below.");
+      return;
+    }
+
+    setLoadingPlan(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout-session", {
+        body: { planId },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      toast.error("Failed to start checkout", {
+        description: "Please try again or contact support.",
+      });
+    } finally {
+      setLoadingPlan(null);
+    }
   };
 
-  const handleManageSubscription = () => {
-    toast.info("Subscription management coming soon!", {
-      description: "You'll be able to manage your subscription here.",
-    });
+  const handleManageSubscription = async () => {
+    setManagingSubscription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-portal-session");
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("Error creating portal session:", error);
+      toast.error("Failed to open subscription portal", {
+        description: "Please try again or contact support.",
+      });
+    } finally {
+      setManagingSubscription(false);
+    }
+  };
+
+  const handleRefreshStatus = async () => {
+    try {
+      await supabase.functions.invoke("check-subscription");
+      await refetch();
+      toast.success("Subscription status refreshed");
+    } catch (error) {
+      console.error("Error refreshing subscription:", error);
+    }
   };
 
   const getPlanIcon = (planId: string) => {
@@ -79,7 +126,17 @@ const Subscription = () => {
             animate={{ opacity: 1, y: 0 }}
             className="rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6"
           >
-            <h2 className="text-lg font-semibold mb-4">Current Plan</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Current Plan</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRefreshStatus}
+                className="text-xs"
+              >
+                Refresh Status
+              </Button>
+            </div>
             
             {isLoading ? (
               <div className="animate-pulse space-y-3">
@@ -112,8 +169,16 @@ const Subscription = () => {
                     variant="outline"
                     className="w-full mt-4"
                     onClick={handleManageSubscription}
+                    disabled={managingSubscription}
                   >
-                    Manage Subscription
+                    {managingSubscription ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Opening Portal...
+                      </>
+                    ) : (
+                      "Manage Subscription"
+                    )}
                   </Button>
                 )}
               </div>
@@ -127,6 +192,7 @@ const Subscription = () => {
             {plans.map((plan, index) => {
               const isCurrentPlan = currentPlanId === plan.id;
               const isPremium = plan.id !== "free";
+              const isLoadingThisPlan = loadingPlan === plan.id;
               
               return (
                 <motion.div
@@ -197,8 +263,18 @@ const Subscription = () => {
                       }`}
                       variant={plan.highlighted ? "default" : "outline"}
                       onClick={() => handleUpgrade(plan.id)}
+                      disabled={loadingPlan !== null}
                     >
-                      {plan.price === 0 ? "Downgrade to Free" : `Upgrade to ${plan.name}`}
+                      {isLoadingThisPlan ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : plan.price === 0 ? (
+                        "Downgrade to Free"
+                      ) : (
+                        `Upgrade to ${plan.name}`
+                      )}
                     </Button>
                   )}
                 </motion.div>

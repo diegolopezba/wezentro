@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import Subscription from "./pages/Subscription";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 import PrivacySettings from "./pages/PrivacySettings";
 import EditProfile from "./pages/EditProfile";
 import EventDetail from "./pages/EventDetail";
@@ -117,6 +118,14 @@ const App = () => (
                 element={
                   <ProtectedRoute requireProfile>
                     <Subscription />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/checkout-success"
+                element={
+                  <ProtectedRoute requireProfile>
+                    <CheckoutSuccess />
                   </ProtectedRoute>
                 }
               />
