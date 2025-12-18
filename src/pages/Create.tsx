@@ -19,6 +19,7 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useUserSubscription } from "@/hooks/useSubscription";
 import { LocationPicker } from "@/components/map/LocationPicker";
 import { 
   isVideoFile, 
@@ -38,8 +39,10 @@ const categories = [
 
 const Create = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
+  const { data: subscription } = useUserSubscription();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasBusinessSubscription = subscription?.plan_type === "business_premium";
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -178,9 +181,9 @@ const Create = () => {
       return;
     }
 
-    // Check business premium for guestlist
-    if (formData.hasGuestlist && !profile?.is_business) {
-      toast.error("Business Premium required to enable guestlists");
+    // Check Zentro Business subscription for guestlist
+    if (formData.hasGuestlist && !hasBusinessSubscription) {
+      toast.error("Zentro Business subscription required to enable guestlists");
       return;
     }
 
@@ -517,18 +520,18 @@ const Create = () => {
                     Enable Guestlist
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    {profile?.is_business
+                    {hasBusinessSubscription
                       ? "Create a guestlist for your event"
-                      : "Requires Business Premium"}
+                      : "Requires Zentro Business subscription"}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => {
-                  if (!profile?.is_business) {
+                  if (!hasBusinessSubscription) {
                     toast.error(
-                      "Upgrade to Business Premium to enable guestlists"
+                      "Upgrade to Zentro Business to enable guestlists"
                     );
                     return;
                   }
