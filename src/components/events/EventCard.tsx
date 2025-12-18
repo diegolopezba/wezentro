@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { isVideoUrl } from "@/lib/mediaUtils";
+import { isVideoUrl, formatDuration } from "@/lib/mediaUtils";
 
 export interface EventCardProps {
   id: string;
@@ -41,6 +42,34 @@ export const EventCard = ({
   const navigate = useNavigate();
   const gradientClass = categoryColors[category] || categoryColors.default;
   const isVideo = isVideoUrl(imageUrl);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !isVideo) return;
+
+    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
+    const handleLoadedMetadata = () => setDuration(video.duration);
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [isVideo]);
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
 
   // Generate random height for masonry effect
   const heights = ["h-48", "h-56", "h-64", "h-72"];
@@ -64,6 +93,7 @@ export const EventCard = ({
         <div className={cn("relative rounded-2xl overflow-hidden", heightClass)}>
           {isVideo ? (
             <video 
+              ref={videoRef}
               src={imageUrl} 
               className="w-full h-full object-cover"
               autoPlay
@@ -73,6 +103,29 @@ export const EventCard = ({
             />
           ) : (
             <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+          )}
+          
+          {/* Sound toggle button - top right */}
+          {isVideo && (
+            <button
+              onClick={toggleMute}
+              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors z-10"
+            >
+              {isMuted ? (
+                <VolumeX className="w-3.5 h-3.5 text-white" />
+              ) : (
+                <Volume2 className="w-3.5 h-3.5 text-white" />
+              )}
+            </button>
+          )}
+
+          {/* Timer counter - bottom right */}
+          {isVideo && duration > 0 && (
+            <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm">
+              <span className="text-[10px] font-medium text-white">
+                {formatDuration(currentTime)} / {formatDuration(duration)}
+              </span>
+            </div>
           )}
           
           {/* Attendees overlay - top left */}
