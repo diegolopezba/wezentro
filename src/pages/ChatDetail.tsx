@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Send, MoreVertical, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useChatDetails, useChatMessages, useSendMessage } from "@/hooks/useChats";
+import { useChatDetails, useChatMessages, useSendMessage, useMarkChatAsRead } from "@/hooks/useChats";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -24,6 +24,14 @@ const ChatDetail = () => {
   const { data: chatDetails, isLoading: chatLoading } = useChatDetails(chatId);
   const { data: messages, isLoading: messagesLoading } = useChatMessages(chatId);
   const sendMessage = useSendMessage();
+  const markAsRead = useMarkChatAsRead();
+
+  // Mark chat as read when opening
+  useEffect(() => {
+    if (chatId && chatDetails) {
+      markAsRead.mutate(chatId);
+    }
+  }, [chatId, chatDetails]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
