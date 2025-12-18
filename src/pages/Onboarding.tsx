@@ -153,7 +153,7 @@ const Onboarding = () => {
         animate={{ opacity: 1, y: 0 }}
         className="pt-16 pb-6 text-center relative z-10"
       >
-        <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-glow mx-auto mb-4">
+        <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mx-auto mb-4">
           <Sparkles className="w-8 h-8 text-primary-foreground" />
         </div>
         <h1 className="font-brand text-2xl font-bold text-foreground mb-1">
