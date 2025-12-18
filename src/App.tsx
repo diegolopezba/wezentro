@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { NotificationFeedbackProvider } from "@/components/NotificationFeedbackProvider";
 import Index from "./pages/Index";
 import Discover from "./pages/Discover";
 import Create from "./pages/Create";
@@ -31,8 +32,9 @@ const App = () => (
       <Sonner position="top-center" theme="dark" />
       <BrowserRouter>
         <AuthProvider>
-          <LocationProvider>
-            <Routes>
+          <NotificationFeedbackProvider>
+            <LocationProvider>
+              <Routes>
               {/* Public routes */}
               <Route path="/auth" element={<Auth />} />
               
@@ -145,6 +147,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </LocationProvider>
+          </NotificationFeedbackProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
