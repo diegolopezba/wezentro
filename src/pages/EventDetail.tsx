@@ -20,18 +20,21 @@ const EventDetail = () => {
   const { user } = useAuth();
   const [showManagement, setShowManagement] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     setAspectRatio(img.naturalWidth / img.naturalHeight);
+    setMediaLoaded(true);
   };
 
   const handleVideoMetadata = () => {
     if (videoRef.current) {
       const { videoWidth, videoHeight } = videoRef.current;
       setAspectRatio(videoWidth / videoHeight);
+      setMediaLoaded(true);
     }
   };
 
@@ -116,7 +119,7 @@ const EventDetail = () => {
           <video 
             ref={videoRef}
             src={event.image_url || ""} 
-            className="w-full h-full object-cover"
+            className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoadedMetadata={handleVideoMetadata}
             controls
             playsInline
@@ -128,7 +131,7 @@ const EventDetail = () => {
           <img 
             src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} 
             alt={event.title || "Event"} 
-            className="w-full h-full object-cover" 
+            className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={handleImageLoad}
           />
         )}
