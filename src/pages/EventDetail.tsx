@@ -157,7 +157,7 @@ const EventDetail = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
 
         {/* Back button */}
-        <div className="absolute top-0 left-0 right-0 safe-top">
+        <div className="absolute top-0 left-0 right-0 safe-top z-20">
           <div className="flex items-center justify-between px-4 py-4">
             <Button variant="glass" size="icon" onClick={() => {
             if (window.history.length > 1) {
