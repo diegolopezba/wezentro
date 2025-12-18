@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import {
   Notification 
 } from "@/hooks/useNotifications";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useEvent } from "@/hooks/useEvents";
+import { supabase } from "@/integrations/supabase/client";
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
@@ -67,6 +70,142 @@ const FollowNotificationItem = ({
         <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
           <span className="font-semibold">@{followerProfile?.username || "someone"}</span>
           {" started following you"}
+        </p>
+        <p className="text-xs text-muted-foreground/70 mt-0.5">
+          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+        </p>
+      </div>
+      
+      {!notification.is_read && (
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRead();
+            }}
+          >
+            <Check className="w-4 h-4" />
+          </Button>
+          <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+        </>
+      )}
+    </motion.div>
+  );
+};
+
+const GuestlistRequestNotificationItem = ({ 
+  notification, 
+  index, 
+  onRead, 
+  onClick 
+}: NotificationItemProps) => {
+  // Extract username from body: "@username wants to join..."
+  const extractedUsername = notification.body?.match(/@(\w+)/)?.[1];
+  
+  const { data: requesterProfile } = useQuery({
+    queryKey: ["profile-by-username", extractedUsername],
+    queryFn: async () => {
+      if (!extractedUsername) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .eq("username", extractedUsername)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!extractedUsername,
+  });
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.03 }}
+      className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
+        notification.is_read 
+          ? "bg-secondary/30 hover:bg-secondary/50" 
+          : "bg-primary/10 hover:bg-primary/15"
+      }`}
+      onClick={onClick}
+    >
+      <Avatar className="w-10 h-10 shrink-0">
+        <AvatarImage src={requesterProfile?.avatar_url || ""} />
+        <AvatarFallback>
+          {extractedUsername?.charAt(0).toUpperCase() || "?"}
+        </AvatarFallback>
+      </Avatar>
+      
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
+          <span className="font-semibold">@{extractedUsername || "someone"}</span>
+          {" wants to join your event"}
+        </p>
+        <p className="text-xs text-muted-foreground/70 mt-0.5">
+          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+        </p>
+      </div>
+      
+      {!notification.is_read && (
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRead();
+            }}
+          >
+            <Check className="w-4 h-4" />
+          </Button>
+          <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+        </>
+      )}
+    </motion.div>
+  );
+};
+
+const GuestlistStatusNotificationItem = ({ 
+  notification, 
+  index, 
+  onRead, 
+  onClick 
+}: NotificationItemProps) => {
+  const { data: event } = useEvent(notification.entity_id || undefined);
+  const isApproved = notification.type === "guestlist_approved";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.03 }}
+      className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
+        notification.is_read 
+          ? "bg-secondary/30 hover:bg-secondary/50" 
+          : "bg-primary/10 hover:bg-primary/15"
+      }`}
+      onClick={onClick}
+    >
+      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
+        {event?.image_url ? (
+          <img src={event.image_url} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Calendar className="w-5 h-5 text-muted-foreground" />
+          </div>
+        )}
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
+          {isApproved ? (
+            <>You're on the guestlist for <span className="font-semibold">{event?.title || "an event"}</span>!</>
+          ) : (
+            <>Your request for <span className="font-semibold">{event?.title || "an event"}</span> was declined</>
+          )}
         </p>
         <p className="text-xs text-muted-foreground/70 mt-0.5">
           {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
@@ -186,6 +325,27 @@ const Notifications = () => {
     }
   };
 
+  const renderNotification = (notification: Notification, index: number) => {
+    const commonProps = {
+      notification,
+      index,
+      onRead: () => markRead.mutate(notification.id),
+      onClick: () => handleNotificationClick(notification),
+    };
+
+    switch (notification.type) {
+      case "follow":
+        return <FollowNotificationItem key={notification.id} {...commonProps} />;
+      case "guestlist_request":
+        return <GuestlistRequestNotificationItem key={notification.id} {...commonProps} />;
+      case "guestlist_approved":
+      case "guestlist_rejected":
+        return <GuestlistStatusNotificationItem key={notification.id} {...commonProps} />;
+      default:
+        return <NotificationItem key={notification.id} {...commonProps} />;
+    }
+  };
+
   return (
     <AppLayout>
       {/* Header */}
@@ -238,25 +398,7 @@ const Notifications = () => {
             </p>
           </motion.div>
         ) : (
-          notifications.map((notification, index) => (
-            notification.type === "follow" ? (
-              <FollowNotificationItem
-                key={notification.id}
-                notification={notification}
-                index={index}
-                onRead={() => markRead.mutate(notification.id)}
-                onClick={() => handleNotificationClick(notification)}
-              />
-            ) : (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-                index={index}
-                onRead={() => markRead.mutate(notification.id)}
-                onClick={() => handleNotificationClick(notification)}
-              />
-            )
-          ))
+          notifications.map((notification, index) => renderNotification(notification, index))
         )}
       </div>
     </AppLayout>
