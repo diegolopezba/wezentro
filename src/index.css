@@ -172,6 +172,7 @@
   .masonry-item {
     break-inside: avoid;
     margin-bottom: 12px;
+    width: 100%;
   }
 
   .safe-bottom {

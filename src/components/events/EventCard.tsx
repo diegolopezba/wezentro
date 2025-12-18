@@ -88,6 +88,7 @@ export const EventCard = ({
         <div 
           className="relative rounded-2xl overflow-hidden bg-secondary"
           style={{ 
+            width: '100%',
             aspectRatio: aspectRatio ? `${aspectRatio}` : '3/4',
             minHeight: '120px',
             maxHeight: '350px'
