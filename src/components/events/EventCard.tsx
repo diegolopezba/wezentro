@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { isVideoUrl, formatDuration } from "@/lib/mediaUtils";
+import { isVideoUrl } from "@/lib/mediaUtils";
 
 export interface EventCardProps {
   id: string;
@@ -44,24 +44,6 @@ export const EventCard = ({
   const isVideo = isVideoUrl(imageUrl);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(true);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !isVideo) return;
-
-    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
-    const handleLoadedMetadata = () => setDuration(video.duration);
-
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-
-    return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-    };
-  }, [isVideo]);
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -118,16 +100,6 @@ export const EventCard = ({
               )}
             </button>
           )}
-
-          {/* Timer counter - bottom right */}
-          {isVideo && duration > 0 && (
-            <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm">
-              <span className="text-[10px] font-medium text-white">
-                {formatDuration(currentTime)} / {formatDuration(duration)}
-              </span>
-            </div>
-          )}
-          
           {/* Attendees overlay - top left */}
           {attendees > 0 && (
             <div className="absolute top-2 left-2 flex items-center gap-1.5">
