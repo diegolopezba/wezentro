@@ -30,7 +30,6 @@ const Onboarding = () => {
     username: "",
     fullName: "",
     interests: [] as string[],
-    isBusiness: false,
   });
 
   const validateUsername = (username: string) => {
@@ -113,7 +112,6 @@ const Onboarding = () => {
         username: formData.username.toLowerCase(),
         full_name: formData.fullName || null,
         interests: formData.interests.length > 0 ? formData.interests : null,
-        is_business: formData.isBusiness,
       })
       .eq("id", user.id);
 
@@ -243,44 +241,6 @@ const Onboarding = () => {
                   />
                 </div>
               </div>
-
-
-              <div>
-                <label className="text-sm font-medium text-foreground mb-3 block">
-                  Account Type
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, isBusiness: false })}
-                    className={`p-4 rounded-2xl text-left transition-all ${
-                      !formData.isBusiness
-                        ? "bg-primary/10 border-2 border-primary"
-                        : "bg-secondary border-2 border-transparent hover:border-border"
-                    }`}
-                  >
-                    <p className="font-semibold text-foreground">Personal</p>
-                    <p className="text-xs text-muted-foreground">
-                      Discover & join events
-                    </p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, isBusiness: true })}
-                    className={`p-4 rounded-2xl text-left transition-all ${
-                      formData.isBusiness
-                        ? "bg-primary/10 border-2 border-primary"
-                        : "bg-secondary border-2 border-transparent hover:border-border"
-                    }`}
-                  >
-                    <p className="font-semibold text-foreground">Business</p>
-                    <p className="text-xs text-muted-foreground">
-                      Promote your venue
-                    </p>
-                  </button>
-                </div>
-              </div>
-
               <div className="flex gap-3">
                 <Button
                   variant="secondary"
