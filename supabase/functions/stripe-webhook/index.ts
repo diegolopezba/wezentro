@@ -14,8 +14,8 @@ const logStep = (step: string, details?: unknown) => {
 
 // Map Stripe product IDs to plan types
 const PRODUCT_TO_PLAN: Record<string, string> = {
-  "prod_user_premium": "user_premium", // Replace with actual Stripe product ID
-  "prod_business_premium": "business_premium", // Replace with actual Stripe product ID
+  "prod_Td3jVaQwDP8Fdz": "user_premium",
+  "prod_Td3kU1JBlekyrO": "business_premium",
 };
 
 serve(async (req) => {

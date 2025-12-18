@@ -14,8 +14,8 @@ const logStep = (step: string, details?: unknown) => {
 
 // Price IDs for each plan
 const PRICE_IDS = {
-  user_premium: "price_user_premium", // Replace with actual Stripe price ID
-  business_premium: "price_business_premium", // Replace with actual Stripe price ID
+  user_premium: "price_1SfncJA2meaZKvFRcEA1Jsyu",
+  business_premium: "price_1SfndIA2meaZKvFRdZTDttRv",
 };
 
 serve(async (req) => {
