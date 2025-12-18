@@ -152,7 +152,7 @@ const Auth = () => {
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
           className="inline-block mb-6"
         >
-          <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center shadow-glow mx-auto">
+          <div className="w-20 h-20 rounded-3xl bg-secondary flex items-center justify-center mx-auto">
             <Sparkles className="w-10 h-10 text-primary-foreground" />
           </div>
         </motion.div>
