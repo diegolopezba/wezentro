@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Share2, Heart, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock } from "lucide-react";
@@ -20,6 +20,20 @@ const EventDetail = () => {
   const { user } = useAuth();
   const [showManagement, setShowManagement] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    setAspectRatio(img.naturalWidth / img.naturalHeight);
+  };
+
+  const handleVideoMetadata = () => {
+    if (videoRef.current) {
+      const { videoWidth, videoHeight } = videoRef.current;
+      setAspectRatio(videoWidth / videoHeight);
+    }
+  };
 
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
@@ -90,11 +104,20 @@ const EventDetail = () => {
   
   return <div className="min-h-screen bg-background">
       {/* Hero media */}
-      <div className="relative h-[50vh]">
+      <div 
+        className="relative w-full"
+        style={{ 
+          aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
+          minHeight: '250px',
+          maxHeight: '70vh',
+        }}
+      >
         {isVideo ? (
           <video 
+            ref={videoRef}
             src={event.image_url || ""} 
             className="w-full h-full object-cover"
+            onLoadedMetadata={handleVideoMetadata}
             controls
             playsInline
             autoPlay
@@ -102,7 +125,12 @@ const EventDetail = () => {
             loop
           />
         ) : (
-          <img src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} alt={event.title || "Event"} className="w-full h-full object-cover" />
+          <img 
+            src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} 
+            alt={event.title || "Event"} 
+            className="w-full h-full object-cover" 
+            onLoad={handleImageLoad}
+          />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
 
