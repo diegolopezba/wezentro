@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +13,8 @@ import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
 import { ShareGuestlistModal } from "@/components/events/ShareGuestlistModal";
+import { EditEventSheet } from "@/components/events/EditEventSheet";
+import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
 
@@ -22,6 +25,8 @@ const EventDetail = () => {
   const [showManagement, setShowManagement] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showGuestlistInviteModal, setShowGuestlistInviteModal] = useState(false);
+  const [showEditSheet, setShowEditSheet] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(true);
@@ -214,6 +219,28 @@ const EventDetail = () => {
             
             {/* Event action buttons */}
             <div className="flex items-center gap-1">
+              {isOwner && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="w-5 h-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit Event
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Event
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
                 <Send className="w-5 h-5" />
               </Button>
@@ -346,6 +373,21 @@ const EventDetail = () => {
       {/* Share Guestlist Invite Modal */}
       {event.has_guestlist && canInviteToGuestlist && (
         <ShareGuestlistModal eventId={id!} open={showGuestlistInviteModal} onOpenChange={setShowGuestlistInviteModal} />
+      )}
+
+      {/* Edit Event Sheet - Owner only */}
+      {isOwner && (
+        <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} />
+      )}
+
+      {/* Delete Event Dialog - Owner only */}
+      {isOwner && (
+        <DeleteEventDialog
+          eventId={id!}
+          eventTitle={event.title}
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+        />
       )}
     </div>;
 };
