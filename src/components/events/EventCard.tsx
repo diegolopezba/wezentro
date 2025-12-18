@@ -44,6 +44,7 @@ export const EventCard = ({
   const isVideo = isVideoUrl(imageUrl);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(true);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -53,9 +54,21 @@ export const EventCard = ({
     }
   };
 
-  // Generate random height for masonry effect
-  const heights = ["h-48", "h-56", "h-64", "h-72"];
-  const heightClass = heights[index % heights.length];
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth && img.naturalHeight) {
+      setAspectRatio(img.naturalWidth / img.naturalHeight);
+    }
+  };
+
+  const handleVideoMetadata = () => {
+    if (videoRef.current) {
+      const { videoWidth, videoHeight } = videoRef.current;
+      if (videoWidth && videoHeight) {
+        setAspectRatio(videoWidth / videoHeight);
+      }
+    }
+  };
   return <motion.div initial={{
     opacity: 0,
     y: 20
@@ -72,7 +85,14 @@ export const EventCard = ({
   }} className="masonry-item cursor-pointer" onClick={() => navigate(`/event/${id}`)}>
       <div className="space-y-2 px-0">
         {/* Media */}
-        <div className={cn("relative rounded-2xl overflow-hidden", heightClass)}>
+        <div 
+          className="relative rounded-2xl overflow-hidden bg-secondary"
+          style={{ 
+            aspectRatio: aspectRatio ? `${aspectRatio}` : '3/4',
+            minHeight: '120px',
+            maxHeight: '350px'
+          }}
+        >
           {isVideo ? (
             <video 
               ref={videoRef}
@@ -82,9 +102,15 @@ export const EventCard = ({
               muted
               loop
               playsInline
+              onLoadedMetadata={handleVideoMetadata}
             />
           ) : (
-            <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+            <img 
+              src={imageUrl} 
+              alt={title} 
+              className="w-full h-full object-cover"
+              onLoad={handleImageLoad}
+            />
           )}
           
           {/* Sound toggle button - top right */}
