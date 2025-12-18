@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useUserSubscription } from "@/hooks/useSubscription";
 import { LocationPicker } from "@/components/map/LocationPicker";
+import { SubscriptionUpsellModal } from "@/components/subscription/SubscriptionUpsellModal";
 import { 
   isVideoFile, 
   isImageFile, 
@@ -47,6 +48,7 @@ const Create = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
@@ -530,9 +532,7 @@ const Create = () => {
                 type="button"
                 onClick={() => {
                   if (!hasBusinessSubscription) {
-                    toast.error(
-                      "Upgrade to Zentro Business to enable guestlists"
-                    );
+                    setShowUpsellModal(true);
                     return;
                   }
                   setFormData({
@@ -572,6 +572,13 @@ const Create = () => {
           )}
         </Button>
       </div>
+
+      {/* Subscription upsell modal */}
+      <SubscriptionUpsellModal
+        isOpen={showUpsellModal}
+        onClose={() => setShowUpsellModal(false)}
+        feature="guestlists"
+      />
     </AppLayout>
   );
 };
