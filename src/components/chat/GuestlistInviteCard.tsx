@@ -1,21 +1,24 @@
 import { useNavigate } from "react-router-dom";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, Users } from "lucide-react";
 import { format } from "date-fns";
 import { isVideoUrl } from "@/lib/mediaUtils";
 
-interface EventInviteCardProps {
+interface GuestlistInviteCardProps {
   event: {
     id: string;
     title: string | null;
     image_url: string | null;
     start_datetime: string;
     location_name: string | null;
+    creator_id: string;
   };
+  senderId: string | null;
 }
 
-const EventInviteCard = ({ event }: EventInviteCardProps) => {
+const GuestlistInviteCard = ({ event, senderId }: GuestlistInviteCardProps) => {
   const navigate = useNavigate();
   const isVideo = isVideoUrl(event.image_url);
+  const isFromOwner = senderId === event.creator_id;
 
   const handleClick = () => {
     navigate(`/event/${event.id}`);
@@ -24,10 +27,10 @@ const EventInviteCard = ({ event }: EventInviteCardProps) => {
   return (
     <div
       onClick={handleClick}
-      className="cursor-pointer rounded-xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-colors max-w-[280px]"
+      className="cursor-pointer rounded-xl overflow-hidden bg-card border border-primary/30 hover:border-primary/50 transition-colors max-w-[280px]"
     >
       {event.image_url && (
-        <div className="aspect-[16/9] overflow-hidden">
+        <div className="aspect-[16/9] overflow-hidden relative">
           {isVideo ? (
             <video
               src={event.image_url}
@@ -44,6 +47,11 @@ const EventInviteCard = ({ event }: EventInviteCardProps) => {
               className="w-full h-full object-cover"
             />
           )}
+          {/* Guestlist badge */}
+          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full bg-primary/90 text-primary-foreground text-xs font-medium">
+            <Users className="w-3 h-3" />
+            <span>Guestlist Invite</span>
+          </div>
         </div>
       )}
       <div className="p-3 space-y-2">
@@ -63,11 +71,13 @@ const EventInviteCard = ({ event }: EventInviteCardProps) => {
           </div>
         )}
         <div className="pt-1">
-          <span className="text-xs text-primary font-medium">View Event →</span>
+          <span className="text-xs text-primary font-medium">
+            {isFromOwner ? "Join my guestlist →" : "Join the guestlist →"}
+          </span>
         </div>
       </div>
     </div>
   );
 };
 
-export default EventInviteCard;
+export default GuestlistInviteCard;

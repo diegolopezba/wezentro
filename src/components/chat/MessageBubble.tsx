@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Message } from "@/hooks/useChats";
 import { useAuth } from "@/contexts/AuthContext";
 import EventInviteCard from "./EventInviteCard";
+import GuestlistInviteCard from "./GuestlistInviteCard";
 
 interface MessageBubbleProps {
   message: Message;
@@ -16,6 +17,7 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
   const isMe = message.sender_id === user?.id;
   const isSystem = message.message_type === "system";
   const isEventInvite = message.message_type === "event_invite";
+  const isGuestlistInvite = message.message_type === "guestlist_invite";
 
   // System messages
   if (isSystem) {
@@ -52,6 +54,33 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
             </p>
           )}
           <EventInviteCard event={message.event} />
+          <p className={`text-xs mt-1 ${isMe ? "text-right mr-1" : "ml-1"} text-muted-foreground`}>
+            {formatTime(message.created_at)}
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Guestlist invite messages
+  if (isGuestlistInvite && message.event) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.03 }}
+        className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+      >
+        <div className="max-w-[80%]">
+          {!isMe && message.sender && (
+            <p 
+              className="text-xs text-muted-foreground mb-1 ml-1 cursor-pointer hover:underline"
+              onClick={() => navigate(`/user/${message.sender_id}`)}
+            >
+              {message.sender.full_name || message.sender.username}
+            </p>
+          )}
+          <GuestlistInviteCard event={message.event} senderId={message.sender_id} />
           <p className={`text-xs mt-1 ${isMe ? "text-right mr-1" : "ml-1"} text-muted-foreground`}>
             {formatTime(message.created_at)}
           </p>

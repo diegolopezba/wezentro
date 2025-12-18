@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
+import { ShareGuestlistModal } from "@/components/events/ShareGuestlistModal";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
 
@@ -20,6 +21,7 @@ const EventDetail = () => {
   const { user } = useAuth();
   const [showManagement, setShowManagement] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showGuestlistInviteModal, setShowGuestlistInviteModal] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(true);
@@ -78,7 +80,9 @@ const EventDetail = () => {
   const leaveGuestlist = useLeaveGuestlist();
   const isOnGuestlist = !!guestlistStatus;
   const isPending = guestlistStatus?.status === "pending";
+  const isApproved = guestlistStatus?.status === "approved";
   const isOwner = user?.id === event?.creator_id;
+  const canInviteToGuestlist = isOwner || isApproved;
   const pendingCount = pendingRequests.length;
   const handleJoinGuestlist = async () => {
     if (!user) {
@@ -216,6 +220,11 @@ const EventDetail = () => {
               <Button variant="ghost" size="icon">
                 <Heart className="w-5 h-5" />
               </Button>
+              {event.has_guestlist && canInviteToGuestlist && (
+                <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
+                  <UserPlus className="w-5 h-5" />
+                </Button>
+              )}
               {event.has_guestlist && (
                 isOwner ? (
                   <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
@@ -333,6 +342,11 @@ const EventDetail = () => {
 
       {/* Share Event Modal */}
       <ShareEventModal eventId={id!} open={showShareModal} onOpenChange={setShowShareModal} />
+
+      {/* Share Guestlist Invite Modal */}
+      {event.has_guestlist && canInviteToGuestlist && (
+        <ShareGuestlistModal eventId={id!} open={showGuestlistInviteModal} onOpenChange={setShowGuestlistInviteModal} />
+      )}
     </div>;
 };
 export default EventDetail;
