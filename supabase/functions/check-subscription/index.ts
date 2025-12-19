@@ -73,7 +73,13 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      
+      // Safe date parsing with null checks
+      const periodEnd = subscription.current_period_end;
+      const periodStart = subscription.current_period_start;
+      subscriptionEnd = periodEnd ? new Date(periodEnd * 1000).toISOString() : null;
+      const periodStartISO = periodStart ? new Date(periodStart * 1000).toISOString() : null;
+      
       const productId = subscription.items.data[0].price.product as string;
       planType = PRODUCT_TO_PLAN[productId] || "user_premium";
       logStep("Active subscription found", { 
@@ -92,7 +98,7 @@ serve(async (req) => {
           status: subscription.status,
           stripe_customer_id: customerId,
           stripe_subscription_id: subscription.id,
-          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+          current_period_start: periodStartISO,
           current_period_end: subscriptionEnd,
         }, { onConflict: "user_id" });
 
