@@ -111,7 +111,7 @@ export const GuestlistManagementSheet = ({
                       <img
                         src={request.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${request.id}`}
                         alt={request.user?.username || "User"}
-                        className="w-12 h-12 rounded-xl object-cover cursor-pointer hover:scale-105 transition-transform"
+                        className="w-12 h-12 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform"
                         onClick={() => {
                           onOpenChange(false);
                           navigate(`/user/${request.user_id}`);

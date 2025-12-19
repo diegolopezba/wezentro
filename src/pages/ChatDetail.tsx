@@ -176,10 +176,10 @@ const ChatDetail = () => {
               <img
                 src={headerInfo.avatar}
                 alt={headerInfo.name}
-                className="w-10 h-10 rounded-xl object-cover"
+                className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
                 <span className="text-lg font-semibold text-muted-foreground">
                   {headerInfo.name.charAt(0).toUpperCase()}
                 </span>

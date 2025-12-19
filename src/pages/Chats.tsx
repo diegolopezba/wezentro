@@ -118,12 +118,12 @@ const Chats = () => {
                   }
                 }}
               >
-                <Avatar className={`w-14 h-14 rounded-2xl ${chat.type === "private" ? "cursor-pointer hover:scale-105 transition-transform" : ""}`}>
+                <Avatar className={`w-14 h-14 ${chat.type === "private" ? "cursor-pointer hover:scale-105 transition-transform" : ""}`}>
                   <AvatarImage
                     src={getChatAvatar(chat) || undefined}
                     className="object-cover"
                   />
-                  <AvatarFallback className="rounded-2xl bg-primary/20 text-primary text-lg">
+                  <AvatarFallback className="bg-primary/20 text-primary text-lg">
                     {getChatDisplayName(chat)[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
