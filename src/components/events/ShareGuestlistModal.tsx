@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useMutualFollowers, useCreatePrivateChat, useSendMessage } from "@/hooks/useChats";
+import { useMutualFollowers } from "@/hooks/useChats";
 import { useEventGuestlist } from "@/hooks/useEvents";
 import { useSearchUsers } from "@/hooks/useSearchUsers";
 import { useUserSubscription } from "@/hooks/useSubscription";
+import { useSendGuestlistInvitations, useEventInvitations } from "@/hooks/useGuestlistInvitations";
 import { Loader2, Search, Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,7 +22,6 @@ interface ShareGuestlistModalProps {
 export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestlistModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [isSending, setIsSending] = useState(false);
 
   const { data: subscription } = useUserSubscription();
   const isBusinessUser = subscription?.plan_type === 'business_premium';
@@ -31,17 +31,18 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
     isBusinessUser ? searchQuery : ""
   );
   const { data: guestlist = [], isLoading: loadingGuestlist } = useEventGuestlist(eventId);
-  const createPrivateChat = useCreatePrivateChat();
-  const sendMessage = useSendMessage();
+  const { data: existingInvitations = [] } = useEventInvitations(eventId);
+  const sendInvitations = useSendGuestlistInvitations();
 
-  // Get IDs of users already on the guestlist
+  // Get IDs of users already on the guestlist or already invited
   const guestlistUserIds = new Set(guestlist.map((entry: any) => entry.user_id));
+  const invitedUserIds = new Set(existingInvitations.map((inv) => inv.invited_user_id));
 
   // Business users search all users; regular users filter mutual followers
   const baseUsers = isBusinessUser && searchQuery.length >= 2
-    ? searchResults.filter((user) => !guestlistUserIds.has(user.id))
+    ? searchResults.filter((user) => !guestlistUserIds.has(user.id) && !invitedUserIds.has(user.id))
     : mutualFollowers
-        .filter((user) => !guestlistUserIds.has(user.id))
+        .filter((user) => !guestlistUserIds.has(user.id) && !invitedUserIds.has(user.id))
         .filter((user) =>
           user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
           user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -65,28 +66,21 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
       return;
     }
 
-    setIsSending(true);
-    let successCount = 0;
-
     try {
-      for (const userId of selectedUsers) {
-        const chatId = await createPrivateChat.mutateAsync(userId);
-        await sendMessage.mutateAsync({
-          chatId,
-          content: "You're invited to join the guestlist!",
-          messageType: "guestlist_invite",
-          eventId,
-        });
-        successCount++;
-      }
+      await sendInvitations.mutateAsync({
+        eventId,
+        userIds: selectedUsers,
+      });
 
-      toast.success(`Guestlist invite sent to ${successCount} ${successCount === 1 ? "person" : "people"}`);
+      toast.success(`Invitation sent to ${selectedUsers.length} ${selectedUsers.length === 1 ? "person" : "people"}`);
       setSelectedUsers([]);
       onOpenChange(false);
-    } catch (error) {
-      toast.error("Failed to send some invitations");
-    } finally {
-      setIsSending(false);
+    } catch (error: any) {
+      if (error.message?.includes("duplicate")) {
+        toast.error("Some users were already invited");
+      } else {
+        toast.error("Failed to send invitations");
+      }
     }
   };
 
@@ -178,9 +172,9 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
             variant="hero"
             className="w-full"
             onClick={handleSend}
-            disabled={selectedUsers.length === 0 || isSending}
+            disabled={selectedUsers.length === 0 || sendInvitations.isPending}
           >
-            {isSending ? (
+            {sendInvitations.isPending ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <Users className="w-4 h-4 mr-2" />
