@@ -7,6 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMutualFollowers, useCreatePrivateChat, useSendMessage } from "@/hooks/useChats";
 import { useEventGuestlist } from "@/hooks/useEvents";
+import { useSearchUsers } from "@/hooks/useSearchUsers";
+import { useUserSubscription } from "@/hooks/useSubscription";
 import { Loader2, Search, Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,7 +23,13 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [isSending, setIsSending] = useState(false);
 
+  const { data: subscription } = useUserSubscription();
+  const isBusinessUser = subscription?.plan_type === 'business_premium';
+
   const { data: mutualFollowers = [], isLoading: loadingFollowers } = useMutualFollowers();
+  const { data: searchResults = [], isLoading: loadingSearch } = useSearchUsers(
+    isBusinessUser ? searchQuery : ""
+  );
   const { data: guestlist = [], isLoading: loadingGuestlist } = useEventGuestlist(eventId);
   const createPrivateChat = useCreatePrivateChat();
   const sendMessage = useSendMessage();
@@ -29,15 +37,19 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
   // Get IDs of users already on the guestlist
   const guestlistUserIds = new Set(guestlist.map((entry: any) => entry.user_id));
 
-  // Filter out users already on the guestlist
-  const availableFollowers = mutualFollowers.filter(
-    (user) => !guestlistUserIds.has(user.id)
-  );
+  // Business users search all users; regular users filter mutual followers
+  const baseUsers = isBusinessUser && searchQuery.length >= 2
+    ? searchResults.filter((user) => !guestlistUserIds.has(user.id))
+    : mutualFollowers
+        .filter((user) => !guestlistUserIds.has(user.id))
+        .filter((user) =>
+          user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
 
-  const filteredFollowers = availableFollowers.filter((user) =>
-    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const isLoading = isBusinessUser 
+    ? (loadingSearch || loadingGuestlist) 
+    : (loadingFollowers || loadingGuestlist);
 
   const toggleUser = (userId: string) => {
     setSelectedUsers((prev) =>
@@ -78,8 +90,8 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
     }
   };
 
-  const isLoading = loadingFollowers || loadingGuestlist;
-
+  // Count available mutual followers (excluding those on guestlist)
+  const availableFollowersCount = mutualFollowers.filter(u => !guestlistUserIds.has(u.id)).length;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -95,7 +107,7 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search mutual followers..."
+              placeholder={isBusinessUser ? "Search users..." : "Search mutual followers..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -108,23 +120,28 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
-            ) : filteredFollowers.length === 0 ? (
+            ) : baseUsers.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center px-4">
                 <p className="text-muted-foreground text-sm">
-                  {searchQuery 
-                    ? "No matching followers found" 
-                    : availableFollowers.length === 0 
-                      ? "All your mutual followers are already on the guestlist!"
-                      : "No mutual followers yet"
+                  {isBusinessUser 
+                    ? (searchQuery.length < 2 ? "Type to search for any user" : "No users found")
+                    : (searchQuery 
+                        ? "No matching followers found" 
+                        : availableFollowersCount === 0 
+                          ? "All your mutual followers are already on the guestlist!"
+                          : "No mutual followers yet"
+                      )
                   }
                 </p>
-                <p className="text-muted-foreground text-xs mt-1">
-                  You can only invite people who follow you back
-                </p>
+                {!isBusinessUser && (
+                  <p className="text-muted-foreground text-xs mt-1">
+                    You can only invite people who follow you back
+                  </p>
+                )}
               </div>
             ) : (
               <div className="space-y-1">
-                {filteredFollowers.map((user) => (
+                {baseUsers.map((user) => (
                   <div
                     key={user.id}
                     onClick={() => toggleUser(user.id)}
