@@ -15,6 +15,7 @@ import { ShareEventModal } from "@/components/events/ShareEventModal";
 import { ShareGuestlistModal } from "@/components/events/ShareGuestlistModal";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
+import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
 
@@ -360,6 +361,11 @@ const EventDetail = () => {
                   </div>
                 </> : <p className="text-muted-foreground text-sm">No one has joined yet. Be the first!</p>}
             </div>}
+
+          {/* Invitations Sent Section - Owner only */}
+          {isOwner && event.has_guestlist && (
+            <InvitationsSentSection eventId={id!} />
+          )}
         </motion.div>
       </div>
 

@@ -22,6 +22,7 @@ const getNotificationIcon = (type: string) => {
       return Calendar;
     case "guestlist":
     case "guestlist_request":
+    case "guestlist_invitation":
       return Users;
     case "guestlist_approved":
       return CheckCircle;
@@ -232,7 +233,71 @@ const GuestlistStatusNotificationItem = ({
   );
 };
 
-const NotificationItem = ({ 
+const GuestlistInvitationNotificationItem = ({ 
+  notification, 
+  index, 
+  onRead, 
+  onClick 
+}: NotificationItemProps) => {
+  const { data: event } = useEvent(notification.entity_id || undefined);
+  
+  // Extract username from body: "@username invited you..."
+  const extractedUsername = notification.body?.match(/@(\w+)/)?.[1];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.03 }}
+      className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
+        notification.is_read 
+          ? "bg-secondary/30 hover:bg-secondary/50" 
+          : "bg-primary/10 hover:bg-primary/15"
+      }`}
+      onClick={onClick}
+    >
+      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
+        {event?.image_url ? (
+          <img src={event.image_url} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Users className="w-5 h-5 text-muted-foreground" />
+          </div>
+        )}
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
+          <span className="font-semibold">@{extractedUsername || "someone"}</span>
+          {" invited you to join "}
+          <span className="font-semibold">{event?.title || "an event"}</span>
+        </p>
+        <p className="text-xs text-muted-foreground/70 mt-0.5">
+          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+        </p>
+      </div>
+      
+      {!notification.is_read && (
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRead();
+            }}
+          >
+            <Check className="w-4 h-4" />
+          </Button>
+          <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+        </>
+      )}
+    </motion.div>
+  );
+};
+
+const NotificationItem = ({
   notification, 
   index, 
   onRead, 
@@ -341,6 +406,8 @@ const Notifications = () => {
       case "guestlist_approved":
       case "guestlist_rejected":
         return <GuestlistStatusNotificationItem key={notification.id} {...commonProps} />;
+      case "guestlist_invitation":
+        return <GuestlistInvitationNotificationItem key={notification.id} {...commonProps} />;
       default:
         return <NotificationItem key={notification.id} {...commonProps} />;
     }
