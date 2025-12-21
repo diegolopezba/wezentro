@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -15,6 +16,8 @@ import {
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useEvent } from "@/hooks/useEvents";
 import { supabase } from "@/integrations/supabase/client";
+import { useRespondToInvitation, useMyPendingInvitations } from "@/hooks/useGuestlistInvitations";
+import { toast } from "sonner";
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
@@ -240,58 +243,131 @@ const GuestlistInvitationNotificationItem = ({
   onClick 
 }: NotificationItemProps) => {
   const { data: event } = useEvent(notification.entity_id || undefined);
+  const { data: pendingInvitations } = useMyPendingInvitations();
+  const respondToInvitation = useRespondToInvitation();
+  const [isResponding, setIsResponding] = useState(false);
   
   // Extract username from body: "@username invited you..."
   const extractedUsername = notification.body?.match(/@(\w+)/)?.[1];
+  
+  // Find the invitation for this event
+  const invitation = pendingInvitations?.find(
+    (inv: any) => inv.event_id === notification.entity_id
+  );
+
+  const handleAccept = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!invitation) return;
+    
+    setIsResponding(true);
+    try {
+      await respondToInvitation.mutateAsync({ 
+        invitationId: invitation.id, 
+        status: "accepted" 
+      });
+      toast.success("Invitation accepted!");
+      if (!notification.is_read) onRead();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to accept");
+    } finally {
+      setIsResponding(false);
+    }
+  };
+
+  const handleDecline = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!invitation) return;
+    
+    setIsResponding(true);
+    try {
+      await respondToInvitation.mutateAsync({ 
+        invitationId: invitation.id, 
+        status: "declined" 
+      });
+      toast.success("Invitation declined");
+      if (!notification.is_read) onRead();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to decline");
+    } finally {
+      setIsResponding(false);
+    }
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03 }}
-      className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
+      className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
         notification.is_read 
           ? "bg-secondary/30 hover:bg-secondary/50" 
           : "bg-primary/10 hover:bg-primary/15"
       }`}
       onClick={onClick}
     >
-      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
-        {event?.image_url ? (
-          <img src={event.image_url} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Users className="w-5 h-5 text-muted-foreground" />
-          </div>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
+          {event?.image_url ? (
+            <img src={event.image_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Users className="w-5 h-5 text-muted-foreground" />
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
+            <span className="font-semibold">@{extractedUsername || "someone"}</span>
+            {" invited you to join "}
+            <span className="font-semibold">{event?.title || "an event"}</span>
+          </p>
+          <p className="text-xs text-muted-foreground/70 mt-0.5">
+            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+          </p>
+        </div>
+        
+        {!notification.is_read && !invitation && (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRead();
+              }}
+            >
+              <Check className="w-4 h-4" />
+            </Button>
+            <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+          </>
         )}
       </div>
       
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-          <span className="font-semibold">@{extractedUsername || "someone"}</span>
-          {" invited you to join "}
-          <span className="font-semibold">{event?.title || "an event"}</span>
-        </p>
-        <p className="text-xs text-muted-foreground/70 mt-0.5">
-          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-        </p>
-      </div>
-      
-      {!notification.is_read && (
-        <>
+      {/* Accept/Decline buttons for pending invitations */}
+      {invitation && (
+        <div className="flex gap-2 ml-13">
           <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRead();
-            }}
+            variant="outline"
+            size="sm"
+            className="flex-1 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
+            onClick={handleDecline}
+            disabled={isResponding}
           >
-            <Check className="w-4 h-4" />
+            {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1.5" />}
+            Decline
           </Button>
-          <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-        </>
+          <Button
+            size="sm"
+            className="flex-1 rounded-xl"
+            onClick={handleAccept}
+            disabled={isResponding}
+          >
+            {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1.5" />}
+            Accept
+          </Button>
+        </div>
       )}
     </motion.div>
   );
