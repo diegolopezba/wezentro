@@ -37,7 +37,7 @@ const Index = () => {
         date: format(new Date(event.start_datetime), "EEE, MMM d • h:mm a"),
         location: event.location_name || "Location TBA",
         category: event.category || "party",
-        attendees: 0,
+        attendees: (event as any).guestlist_entries?.[0]?.count || 0,
         hasGuestlist: event.has_guestlist || false,
         ownerAvatar: event.creator?.avatar_url || undefined,
         creatorId: event.creator_id,
