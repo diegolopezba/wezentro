@@ -34,10 +34,10 @@ export const GuestlistManagementSheet = ({
   const rejectEntry = useRejectGuestlistEntry();
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
-  const handleApprove = async (entryId: string, userId: string) => {
+  const handleApprove = async (entryId: string) => {
     setProcessingIds((prev) => new Set(prev).add(entryId));
     try {
-      await approveEntry.mutateAsync({ entryId, eventId, userId });
+      await approveEntry.mutateAsync({ entryId, eventId });
       toast.success("Request approved");
     } catch (error: any) {
       toast.error(error.message || "Failed to approve");
@@ -149,7 +149,7 @@ export const GuestlistManagementSheet = ({
                           variant="ghost"
                           size="icon"
                           className="h-9 w-9 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary"
-                          onClick={() => handleApprove(request.id, request.user_id)}
+                          onClick={() => handleApprove(request.id)}
                           disabled={isProcessing}
                         >
                           {isProcessing ? (
