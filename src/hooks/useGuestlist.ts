@@ -165,39 +165,14 @@ export const useApproveGuestlistEntry = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ entryId, eventId, userId }: { entryId: string; eventId: string; userId: string }) => {
-      // Update status to approved
+    mutationFn: async ({ entryId, eventId }: { entryId: string; eventId: string }) => {
+      // Update status to approved - trigger handles adding to chat
       const { error } = await supabase
         .from("guestlist_entries")
         .update({ status: "approved" })
         .eq("id", entryId);
 
       if (error) throw error;
-
-      // Add user to event group chat
-      const { data: chat } = await supabase
-        .from("chats")
-        .select("id")
-        .eq("event_id", eventId)
-        .eq("type", "event")
-        .maybeSingle();
-
-      if (chat) {
-        // Check if already a participant (to avoid duplicates)
-        const { data: existing } = await supabase
-          .from("chat_participants")
-          .select("id")
-          .eq("chat_id", chat.id)
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (!existing) {
-          await supabase.from("chat_participants").insert({
-            chat_id: chat.id,
-            user_id: userId,
-          });
-        }
-      }
     },
     onSuccess: (_, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ["pending-guestlist", eventId] });
