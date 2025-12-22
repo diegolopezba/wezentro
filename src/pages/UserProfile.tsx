@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Image, Star, Heart, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Image, Star, Heart, Loader2, Crown } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,7 @@ import { useUserStats } from "@/hooks/useUserStats";
 import { useUserCreatedEvents, useUserJoinedEvents } from "@/hooks/useEvents";
 import { useCanMessageUser } from "@/hooks/useUserSettings";
 import { useCreatePrivateChat } from "@/hooks/useChats";
+import { useUserSubscriptionById } from "@/hooks/useSubscription";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
@@ -40,7 +41,9 @@ const UserProfile = () => {
   const { data: createdEvents, isLoading: createdLoading } = useUserCreatedEvents(id);
   const { data: joinedEvents, isLoading: joinedLoading } = useUserJoinedEvents(id);
   const { data: canMessageData, isLoading: canMessageLoading } = useCanMessageUser(id);
+  const { data: userSubscription } = useUserSubscriptionById(id);
   
+  const isPremium = userSubscription?.plan_type && userSubscription.plan_type !== "free";
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
   const createChatMutation = useCreatePrivateChat();
@@ -182,6 +185,11 @@ const UserProfile = () => {
               alt="Profile"
               className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary"
             />
+            {isPremium && (
+              <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg border-2 border-background">
+                <Crown className="w-4 h-4 text-white" />
+              </div>
+            )}
           </div>
 
           <div className="flex-1">
