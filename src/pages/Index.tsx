@@ -30,18 +30,27 @@ const Index = () => {
           (event.location_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
         return searchQuery === "" || matchesSearch;
       })
-      .map((event) => ({
-        id: event.id,
-        title: event.title || undefined,
-        imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
-        date: format(new Date(event.start_datetime), "EEE, MMM d • h:mm a"),
-        location: event.location_name || "Location TBA",
-        category: event.category || "party",
-        attendees: (event as any).guestlist_entries?.[0]?.count || 0,
-        hasGuestlist: event.has_guestlist || false,
-        ownerAvatar: event.creator?.avatar_url || undefined,
-        creatorId: event.creator_id,
-      })),
+      .map((event) => {
+        const guestlistEntries = (event as any).guestlist_entries || [];
+        const attendeeAvatars = guestlistEntries
+          .map((entry: any) => entry.user)
+          .filter(Boolean)
+          .map((user: any) => ({ id: user.id, avatar_url: user.avatar_url }));
+        
+        return {
+          id: event.id,
+          title: event.title || undefined,
+          imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
+          date: format(new Date(event.start_datetime), "EEE, MMM d • h:mm a"),
+          location: event.location_name || "Location TBA",
+          category: event.category || "party",
+          attendees: guestlistEntries.length,
+          attendeeAvatars,
+          hasGuestlist: event.has_guestlist || false,
+          ownerAvatar: event.creator?.avatar_url || undefined,
+          creatorId: event.creator_id,
+        };
+      }),
     [events, searchQuery]
   );
 
