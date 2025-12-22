@@ -135,6 +135,11 @@ const Profile = () => {
               alt="Profile"
               className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary"
             />
+            {isPremium && (
+              <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg border-2 border-background">
+                <Crown className="w-4 h-4 text-white" />
+              </div>
+            )}
           </div>
 
           <div className="flex-1">
@@ -174,50 +179,36 @@ const Profile = () => {
           )}
         </motion.div>
 
-        {/* Subscription badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="mt-4"
-        >
-          <div className={`p-4 rounded-2xl border ${
-            isPremium 
-              ? "bg-gradient-to-r from-primary/20 to-primary/10 border-primary/30" 
-              : "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-500/30"
-          }`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  isPremium 
-                    ? "bg-gradient-to-r from-primary to-primary/80" 
-                    : "bg-gradient-to-r from-amber-500 to-orange-500"
-                }`}>
-                  {isBusiness ? (
-                    <Crown className="w-5 h-5 text-white" />
-                  ) : isPremium ? (
-                    <Star className="w-5 h-5 text-white" />
-                  ) : (
+        {/* Subscription badge - only show for free users */}
+        {!isPremium && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mt-4"
+          >
+            <div className="p-4 rounded-2xl border bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-500/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500">
                     <Sparkles className="w-5 h-5 text-white" />
-                  )}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">
+                      {getPlanDisplayName(currentPlan)}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Upgrade to join guestlists
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">
-                    {getPlanDisplayName(currentPlan)}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {isPremium ? "Premium member" : "Upgrade to join guestlists"}
-                  </p>
-                </div>
-              </div>
-              {!isPremium && (
                 <Button variant="premium" size="sm" onClick={() => navigate("/settings/subscription")}>
                   Upgrade
                 </Button>
-              )}
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
       </div>
 
       {/* Tabs */}
