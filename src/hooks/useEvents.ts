@@ -48,7 +48,8 @@ export const useEvents = () => {
             username,
             full_name,
             avatar_url
-          )
+          ),
+          guestlist_entries(count)
         `)
         .eq("is_public", true)
         .is("deleted_at", null)
@@ -201,7 +202,8 @@ export const useFollowingEvents = () => {
             username,
             full_name,
             avatar_url
-          )
+          ),
+          guestlist_entries(count)
         `)
         .in("creator_id", followingIds)
         .eq("is_public", true)
