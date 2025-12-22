@@ -48,6 +48,28 @@ export const useUserSubscription = () => {
   });
 };
 
+export const useUserSubscriptionById = (userId: string | undefined) => {
+  return useQuery({
+    queryKey: ["subscription", userId],
+    queryFn: async () => {
+      if (!userId) return null;
+
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", userId)
+        .in("status", ["active", "trialing"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as Subscription | null;
+    },
+    enabled: !!userId,
+  });
+};
+
 export const useSubscriptionPlans = (): SubscriptionPlan[] => {
   return [
     {
