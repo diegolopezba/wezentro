@@ -73,7 +73,7 @@ const Index = () => {
               variant="ghost"
               size="icon"
               className="relative"
-              onClick={() => navigate("/settings/notifications")}
+              onClick={() => navigate("/notifications")}
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
