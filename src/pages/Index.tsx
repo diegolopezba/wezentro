@@ -5,6 +5,7 @@ import { Bell, Search, Users } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventFeed } from "@/components/events/EventFeed";
 import { useEvents, useFollowingEvents } from "@/hooks/useEvents";
+import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -17,6 +18,7 @@ const Index = () => {
 
   const { data: allEvents = [], isLoading: allEventsLoading } = useEvents();
   const { data: followingEvents = [], isLoading: followingLoading } = useFollowingEvents();
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount();
 
   const events = activeTab === "for-you" ? allEvents : followingEvents;
   const isLoading = activeTab === "for-you" ? allEventsLoading : followingLoading;
@@ -74,7 +76,9 @@ const Index = () => {
               onClick={() => navigate("/settings/notifications")}
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
+              )}
             </Button>
           </div>
         </div>
