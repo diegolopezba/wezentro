@@ -288,7 +288,7 @@ const UserProfile = () => {
       </div>
 
       {/* Tabs */}
-      <div className="sticky top-[72px] z-30 mt-4">
+      <div className="sticky top-[44px] z-30 mt-4">
         <div className="flex border-b border-border bg-background">
           {tabs.map((tab) => {
             const Icon = tab.icon;
