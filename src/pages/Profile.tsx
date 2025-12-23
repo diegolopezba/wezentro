@@ -113,7 +113,7 @@ const Profile = () => {
       </header>
 
       {/* Profile info */}
-      <div className="px-4 bg-background py-[10px]">
+      <div className="px-4 py-[10px] bg-background">
         <motion.div initial={{
         opacity: 0,
         y: 20
