@@ -13,7 +13,7 @@ export const UserSearchResultCard = ({ user, onClick }: UserSearchResultCardProp
 
   const handleClick = () => {
     onClick?.();
-    navigate(`/profile/${user.id}`);
+    navigate(`/user/${user.id}`);
   };
 
   return (
