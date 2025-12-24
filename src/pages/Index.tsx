@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Bell, Search, Users } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventFeed } from "@/components/events/EventFeed";
-import { useEvents, useFollowingEvents } from "@/hooks/useEvents";
+import { useFollowingEvents } from "@/hooks/useEvents";
+import { useForYouEvents } from "@/hooks/useForYouEvents";
 import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,12 +17,12 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
-  const { data: allEvents = [], isLoading: allEventsLoading } = useEvents();
+  const { data: forYouEvents = [], isLoading: forYouLoading } = useForYouEvents();
   const { data: followingEvents = [], isLoading: followingLoading } = useFollowingEvents();
   const { data: unreadCount = 0 } = useUnreadNotificationsCount();
 
-  const events = activeTab === "for-you" ? allEvents : followingEvents;
-  const isLoading = activeTab === "for-you" ? allEventsLoading : followingLoading;
+  const events = activeTab === "for-you" ? forYouEvents : followingEvents;
+  const isLoading = activeTab === "for-you" ? forYouLoading : followingLoading;
 
   // Transform events to EventCard format and filter
   const transformedEvents = useMemo(() => 

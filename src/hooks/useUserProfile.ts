@@ -10,6 +10,7 @@ export interface UserProfile {
   bio: string | null;
   city: string | null;
   is_business: boolean;
+  interests: string[] | null;
 }
 
 export interface FollowUser {
