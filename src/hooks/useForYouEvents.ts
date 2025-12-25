@@ -104,12 +104,31 @@ const getTimingScore = (startDatetime: string): number => {
   return 20;
 };
 
+// Calculate friends going score (20% weight) - events with friends attending
+const getFriendsGoingScore = (
+  guestlistEntries: { user: { id: string } }[] | undefined,
+  followingIds: string[] | null
+): number => {
+  if (!followingIds || followingIds.length === 0) return 50; // Neutral if not logged in or no following
+  if (!guestlistEntries || guestlistEntries.length === 0) return 10;
+
+  const guestUserIds = guestlistEntries.map((entry) => entry.user?.id).filter(Boolean);
+  const friendsGoing = guestUserIds.filter((id) => followingIds.includes(id)).length;
+
+  if (friendsGoing >= 5) return 100;
+  if (friendsGoing >= 3) return 80;
+  if (friendsGoing >= 2) return 60;
+  if (friendsGoing >= 1) return 40;
+  return 10;
+};
+
 // Calculate final score with weighted components
 const calculateEventScore = (
-  event: EventWithCreator & { guestlist_entries?: any[] },
+  event: EventWithCreator & { guestlist_entries?: { user: { id: string; avatar_url: string | null } }[] },
   userLat: number | null,
   userLon: number | null,
-  userInterests: string[] | null
+  userInterests: string[] | null,
+  followingIds: string[] | null
 ): number => {
   const attendeeCount = event.guestlist_entries?.length || 0;
 
@@ -123,14 +142,16 @@ const calculateEventScore = (
   const interestScore = getInterestScore(event.category, userInterests);
   const recencyScore = getRecencyScore(event.created_at);
   const timingScore = getTimingScore(event.start_datetime);
+  const friendsGoingScore = getFriendsGoingScore(event.guestlist_entries, followingIds);
 
-  // Weighted formula
+  // Weighted formula (adjusted for friends going factor)
   return (
-    proximityScore * 0.3 +
-    popularityScore * 0.25 +
-    interestScore * 0.25 +
-    recencyScore * 0.15 +
-    timingScore * 0.05
+    proximityScore * 0.25 +      // 25% - nearby events
+    popularityScore * 0.20 +     // 20% - popular events
+    interestScore * 0.20 +       // 20% - matches interests
+    friendsGoingScore * 0.20 +   // 20% - friends attending
+    recencyScore * 0.10 +        // 10% - recently created
+    timingScore * 0.05           // 5% - happening soon
   );
 };
 
@@ -152,6 +173,23 @@ export const useForYouEvents = () => {
 
       if (error) throw error;
       return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch user's following list
+  const { data: following } = useQuery({
+    queryKey: ["user-following-ids", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data, error } = await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", user.id);
+
+      if (error) throw error;
+      return data.map((f) => f.following_id);
     },
     enabled: !!user?.id,
   });
@@ -200,14 +238,15 @@ export const useForYouEvents = () => {
     const userLat = location?.lat || null;
     const userLon = location?.lng || null;
     const userInterests = userProfile?.interests || null;
+    const followingIds = following || null;
 
     return events
       .map((event) => ({
         ...event,
-        _score: calculateEventScore(event, userLat, userLon, userInterests),
+        _score: calculateEventScore(event, userLat, userLon, userInterests, followingIds),
       }))
       .sort((a, b) => b._score - a._score);
-  }, [events, location, userProfile?.interests]);
+  }, [events, location, userProfile?.interests, following]);
 
   return {
     data: scoredEvents,
