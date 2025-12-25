@@ -158,8 +158,9 @@ const calculateEventScore = (
 export const useForYouEvents = () => {
   const { user } = useAuth();
   const { location } = useLocationContext();
+  const userId = user?.id;
 
-  // Fetch user's interests
+  // Fetch user's interests from profile
   const { data: userProfile } = useQuery({
     queryKey: ["user-interests", user?.id],
     queryFn: async () => {
