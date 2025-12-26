@@ -17,11 +17,15 @@ import { format } from "date-fns";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 type EventWithDistance = ReturnType<typeof useNearbyEvents>[number];
 type SearchTab = "events" | "people";
 
 const Discover = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEvents, setSelectedEvents] = useState<EventWithDistance[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -37,6 +41,7 @@ const Discover = () => {
     categories: [],
     maxDistance: null,
     hasGuestlistOnly: false,
+    friendsGoingOnly: false,
   });
 
   const hasAutoOpenedRef = useRef(false);
@@ -44,6 +49,56 @@ const Discover = () => {
   const { data: events = [] } = useEvents();
   const { location: userLocation } = useUserLocation();
   const { data: searchedUsers = [], isLoading: isLoadingUsers } = useSearchUsers(searchQuery);
+
+  // Fetch user's following list for friends going filter
+  const { data: followingIds = [] } = useQuery({
+    queryKey: ["user-following-discover", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", user.id);
+      
+      if (error) throw error;
+      return data.map(f => f.following_id);
+    },
+    enabled: !!user?.id && filters.friendsGoingOnly,
+  });
+
+  // Fetch guestlist entries for friends going filter
+  const { data: guestlistByEvent } = useQuery({
+    queryKey: ["guestlist-entries-discover", events.map(e => e.id).join(",")],
+    queryFn: async () => {
+      if (events.length === 0) return new Map<string, string[]>();
+      
+      const { data, error } = await supabase
+        .from("guestlist_entries")
+        .select("event_id, user_id")
+        .in("event_id", events.map(e => e.id));
+      
+      if (error) throw error;
+      
+      const map = new Map<string, string[]>();
+      data.forEach(entry => {
+        const existing = map.get(entry.event_id) || [];
+        existing.push(entry.user_id);
+        map.set(entry.event_id, existing);
+      });
+      return map;
+    },
+    enabled: events.length > 0 && filters.friendsGoingOnly,
+  });
+
+  // Prepare friends data for filtering
+  const friendsData = useMemo(() => {
+    if (!filters.friendsGoingOnly || !guestlistByEvent) return null;
+    return {
+      followingIds,
+      guestlistByEvent,
+    };
+  }, [filters.friendsGoingOnly, followingIds, guestlistByEvent]);
 
   // Close search dropdown on outside click
   useEffect(() => {
@@ -86,7 +141,7 @@ const Discover = () => {
   }), [filters, searchQuery]);
 
   // Get filtered and sorted events with distance
-  const filteredEvents = useNearbyEvents(events, userLocation, activeFilters);
+  const filteredEvents = useNearbyEvents(events, userLocation, activeFilters, friendsData);
 
   // Track carousel slide changes
   useEffect(() => {
@@ -135,7 +190,8 @@ const Discover = () => {
     (filters.dateFilter !== "all" ? 1 : 0) +
     filters.categories.length +
     (filters.maxDistance !== null ? 1 : 0) +
-    (filters.hasGuestlistOnly ? 1 : 0);
+    (filters.hasGuestlistOnly ? 1 : 0) +
+    (filters.friendsGoingOnly ? 1 : 0);
 
   // Show search dropdown
   const showSearchDropdown = isSearchFocused && searchQuery.length >= 2;

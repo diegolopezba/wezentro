@@ -37,6 +37,7 @@ export interface FilterOptions {
   categories: string[];
   maxDistance: number | null; // in miles, null means no limit
   hasGuestlistOnly: boolean;
+  friendsGoingOnly: boolean;
 }
 
 const isTonight = (date: Date): boolean => {
@@ -75,10 +76,16 @@ const isThisWeekend = (date: Date): boolean => {
   return date >= friday && date <= sundayEnd;
 };
 
+interface FriendsGoingData {
+  followingIds: string[];
+  guestlistByEvent: Map<string, string[]>; // event_id -> user_ids
+}
+
 export const useNearbyEvents = (
   events: Event[],
   userLocation: UserLocation | null,
-  filters: FilterOptions
+  filters: FilterOptions,
+  friendsData?: FriendsGoingData | null
 ): EventWithDistance[] => {
   return useMemo(() => {
     let result: EventWithDistance[] = events.map((event) => {
@@ -150,6 +157,14 @@ export const useNearbyEvents = (
       result = result.filter((event) => event.has_guestlist);
     }
 
+    // Apply friends going filter
+    if (filters.friendsGoingOnly && friendsData) {
+      result = result.filter((event) => {
+        const guestlistUsers = friendsData.guestlistByEvent.get(event.id) || [];
+        return guestlistUsers.some((userId) => friendsData.followingIds.includes(userId));
+      });
+    }
+
     // Sort by distance if user location is available
     if (userLocation) {
       result.sort((a, b) => {
@@ -161,7 +176,7 @@ export const useNearbyEvents = (
     }
 
     return result;
-  }, [events, userLocation, filters]);
+  }, [events, userLocation, filters, friendsData]);
 };
 
 export const formatDistance = (distance: number | null): string => {
