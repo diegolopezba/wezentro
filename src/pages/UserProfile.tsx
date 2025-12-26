@@ -221,9 +221,11 @@ const UserProfile = () => {
           transition={{ delay: 0.05 }}
           className="mt-4"
         >
-          <p className="text-sm text-foreground/80">
-            {userProfile.bio || "No bio yet"}
-          </p>
+          {userProfile.bio && (
+            <p className="text-sm text-foreground/80">
+              {userProfile.bio}
+            </p>
+          )}
           {userProfile.city && (
             <p className="text-xs text-muted-foreground mt-1">📍 {userProfile.city}</p>
           )}
