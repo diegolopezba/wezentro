@@ -154,9 +154,11 @@ const Profile = () => {
       }} transition={{
         delay: 0.05
       }} className="mt-4">
-          <p className="text-sm text-foreground/80">
-            {profile?.bio || "No bio yet"}
-          </p>
+          {profile?.bio && (
+            <p className="text-sm text-foreground/80">
+              {profile.bio}
+            </p>
+          )}
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
         </motion.div>
 
