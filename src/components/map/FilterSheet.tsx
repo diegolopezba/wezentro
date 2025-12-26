@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Calendar, MapPin, Users, RotateCcw } from "lucide-react";
+import { X, Calendar, MapPin, Users, RotateCcw, UserCheck } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { FilterOptions } from "@/hooks/useNearbyEvents";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface FilterSheetProps {
   open: boolean;
@@ -53,6 +54,7 @@ export const FilterSheet = ({
       categories: [],
       maxDistance: null,
       hasGuestlistOnly: false,
+      friendsGoingOnly: false,
     };
     setLocalFilters(resetFilters);
   };
@@ -71,11 +73,14 @@ export const FilterSheet = ({
     }));
   };
 
+  const { user } = useAuth();
+
   const activeFilterCount = 
     (localFilters.dateFilter !== "all" ? 1 : 0) +
     localFilters.categories.length +
     (localFilters.maxDistance !== null ? 1 : 0) +
-    (localFilters.hasGuestlistOnly ? 1 : 0);
+    (localFilters.hasGuestlistOnly ? 1 : 0) +
+    (localFilters.friendsGoingOnly ? 1 : 0);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -193,6 +198,30 @@ export const FilterSheet = ({
               }
             />
           </div>
+
+          {/* Friends Going Filter */}
+          {user && (
+            <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-2xl">
+              <div className="flex items-center gap-3">
+                <UserCheck className="w-5 h-5 text-primary" />
+                <div>
+                  <Label className="font-medium">Friends Going</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Only show events friends are attending
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={localFilters.friendsGoingOnly}
+                onCheckedChange={(checked) =>
+                  setLocalFilters((prev) => ({
+                    ...prev,
+                    friendsGoingOnly: checked,
+                  }))
+                }
+              />
+            </div>
+          )}
         </div>
 
         {/* Apply Button */}
