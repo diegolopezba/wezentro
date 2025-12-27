@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
@@ -327,39 +327,79 @@ const EventDetail = () => {
                 <h2 className="font-brand text-lg font-semibold text-foreground">
                   Guestlist ({guestlist.length})
                 </h2>
-                {guestlist.length > 0 && <span className="text-sm text-primary cursor-pointer">View all</span>}
+                {guestlist.length > 0 && hasSubscription && <span className="text-sm text-primary cursor-pointer">View all</span>}
               </div>
 
-              {guestlist.length > 0 ? <>
-                  {/* Avatars row */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex -space-x-3">
-                      {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={e => {
-                  e.stopPropagation();
-                  navigate(`/user/${entry.user_id}`);
-                }} />)}
+              {guestlist.length > 0 ? (
+                hasSubscription ? (
+                  <>
+                    {/* Avatars row - Premium users see real avatars */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="flex -space-x-3">
+                        {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={e => {
+                    e.stopPropagation();
+                    navigate(`/user/${entry.user_id}`);
+                  }} />)}
+                      </div>
+                      {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
+                          +{guestlist.length - 5} more
+                        </span>}
                     </div>
-                    {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
-                        +{guestlist.length - 5} more
-                      </span>}
-                  </div>
 
-                  {/* Attendee list */}
-                  <div className="space-y-3">
-                    {guestlist.slice(0, 3).map((entry: any) => <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
-                        <img src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.id}`} alt={entry.user?.username || "User"} className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate(`/user/${entry.user_id}`)} />
-                        <div className="flex-1 cursor-pointer" onClick={() => navigate(`/user/${entry.user_id}`)}>
-                          <p className="font-medium text-foreground text-sm">
-                            @{entry.user?.username || "user"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Joined {format(new Date(entry.joined_at), "MMM d")}
-                          </p>
-                        </div>
-                        <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
-                      </div>)}
-                  </div>
-                </> : <p className="text-muted-foreground text-sm">No one has joined yet. Be the first!</p>}
+                    {/* Attendee list */}
+                    <div className="space-y-3">
+                      {guestlist.slice(0, 3).map((entry: any) => <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
+                          <img src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.id}`} alt={entry.user?.username || "User"} className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate(`/user/${entry.user_id}`)} />
+                          <div className="flex-1 cursor-pointer" onClick={() => navigate(`/user/${entry.user_id}`)}>
+                            <p className="font-medium text-foreground text-sm">
+                              @{entry.user?.username || "user"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Joined {format(new Date(entry.joined_at), "MMM d")}
+                            </p>
+                          </div>
+                          <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
+                        </div>)}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Non-premium: show blurred/placeholder avatars */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="flex -space-x-3">
+                        {[...Array(Math.min(5, guestlist.length))].map((_, i) => (
+                          <div 
+                            key={i} 
+                            className="w-10 h-10 rounded-full border-2 border-card bg-muted"
+                          />
+                        ))}
+                      </div>
+                      {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
+                          +{guestlist.length - 5} more
+                        </span>}
+                    </div>
+
+                    {/* Upsell card for non-premium users */}
+                    <div className="p-4 rounded-2xl bg-secondary/50 border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lock className="w-4 h-4 text-primary" />
+                        <span className="font-semibold text-foreground text-sm">Members Only</span>
+                      </div>
+                      <p className="text-muted-foreground text-sm mb-4">
+                        Become a Zentro member to see who's on the guestlist
+                      </p>
+                      <Button 
+                        variant="hero" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => navigate("/subscription")}
+                      >
+                        Become a Member
+                      </Button>
+                    </div>
+                  </>
+                )
+              ) : <p className="text-muted-foreground text-sm">No one has joined yet. Be the first!</p>}
             </div>}
 
           {/* Invitations Sent Section - Owner only */}
