@@ -364,13 +364,15 @@ const EventDetail = () => {
                   </>
                 ) : (
                   <>
-                    {/* Non-premium: show blurred/placeholder avatars */}
+                    {/* Non-premium: show blurred real avatars */}
                     <div className="flex items-center gap-2 mb-4">
                       <div className="flex -space-x-3">
-                        {[...Array(Math.min(5, guestlist.length))].map((_, i) => (
-                          <div 
-                            key={i} 
-                            className="w-10 h-10 rounded-full border-2 border-card bg-muted"
+                        {guestlist.slice(0, 5).map((entry: any, i: number) => (
+                          <img 
+                            key={entry.id} 
+                            src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`}
+                            alt={`Attendee ${i + 1}`}
+                            className="w-10 h-10 rounded-full border-2 border-card object-cover blur-[3px]"
                           />
                         ))}
                       </div>
