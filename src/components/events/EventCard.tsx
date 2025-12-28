@@ -121,8 +121,19 @@ export const EventCard = ({
                     {attendeeAvatars.filter(a => a.id !== creatorId).slice(0, ownerAvatar ? 2 : 3).map((attendee, i) => attendee.avatar_url ? <img key={attendee.id} src={attendee.avatar_url} alt="Attendee" className="w-5 h-5 rounded-full border-2 border-background object-cover" /> : <div key={attendee.id} className="w-5 h-5 rounded-full bg-secondary border-2 border-background" />)}
                     {/* Show placeholder circles if we don't have enough avatars */}
                     {attendeeAvatars.filter(a => a.id !== creatorId).length < (ownerAvatar ? 2 : 3) && attendees > attendeeAvatars.filter(a => a.id !== creatorId).length && [...Array(Math.min((ownerAvatar ? 2 : 3) - attendeeAvatars.filter(a => a.id !== creatorId).length, attendees - attendeeAvatars.filter(a => a.id !== creatorId).length))].map((_, i) => <div key={`placeholder-${i}`} className="w-5 h-5 rounded-full bg-secondary border-2 border-background" />)}
-                  </> : (/* Non-premium: show placeholder circles */
-            [...Array(Math.min(3, attendees))].map((_, i) => <div key={`placeholder-${i}`} className="w-5 h-5 rounded-full bg-muted border-background border-0" />))}
+              </> : (/* Non-premium: show blurred real avatars */
+            attendeeAvatars.slice(0, 3).map((attendee, i) => 
+              attendee.avatar_url ? (
+                <img 
+                  key={attendee.id} 
+                  src={attendee.avatar_url} 
+                  alt="Attendee" 
+                  className="w-5 h-5 rounded-full border-2 border-background object-cover blur-[2px]" 
+                />
+              ) : (
+                <div key={attendee.id} className="w-5 h-5 rounded-full bg-muted border-2 border-background blur-[2px]" />
+              )
+            ))}
               </div>
               <span className="text-[10px] font-medium text-foreground">
                 {attendees}
