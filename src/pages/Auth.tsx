@@ -52,7 +52,6 @@ const Auth = () => {
       }
     }
 
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -79,10 +78,7 @@ const Auth = () => {
 
       toast.success("Welcome back!");
     } else {
-      const { error } = await signUp(
-        formData.email,
-        formData.password
-      );
+      const { error } = await signUp(formData.email, formData.password);
 
       if (error) {
         if (error.message.includes("already registered")) {
@@ -137,7 +133,7 @@ const Auth = () => {
           className="inline-block mb-6"
         >
           <div className="w-20 h-20 rounded-3xl bg-secondary flex items-center justify-center mx-auto">
-            <Sparkles className="w-10 h-10 text-primary-foreground" />
+            <img src="/pwa-512x512.png" alt="Zentro logo" className="w-12 h-12 object-contain" />
           </div>
         </motion.div>
         <h1 className="font-brand text-4xl font-bold text-foreground mb-2">Zentro</h1>
@@ -162,9 +158,7 @@ const Auth = () => {
                   setErrors({});
                 }}
                 className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
-                  mode === "login"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground"
+                  mode === "login" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
                 }`}
               >
                 Log In
@@ -175,9 +169,7 @@ const Auth = () => {
                   setErrors({});
                 }}
                 className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
-                  mode === "signup"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground"
+                  mode === "signup" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
                 }`}
               >
                 Sign Up
@@ -224,12 +216,7 @@ const Auth = () => {
                 )}
               </div>
 
-              <Button
-                variant="hero"
-                className="w-full"
-                onClick={handleAuth}
-                disabled={isLoading}
-              >
+              <Button variant="hero" className="w-full" onClick={handleAuth} disabled={isLoading}>
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 ) : (
@@ -281,8 +268,7 @@ const Auth = () => {
 
             {mode === "login" && (
               <p className="text-center text-sm text-muted-foreground">
-                Forgot password?{" "}
-                <button className="text-primary hover:underline">Reset it</button>
+                Forgot password? <button className="text-primary hover:underline">Reset it</button>
               </p>
             )}
           </motion.div>
@@ -291,8 +277,7 @@ const Auth = () => {
 
       {/* Terms */}
       <div className="p-6 text-center text-xs text-muted-foreground relative z-10">
-        By continuing, you agree to our{" "}
-        <button className="text-primary hover:underline">Terms</button> and{" "}
+        By continuing, you agree to our <button className="text-primary hover:underline">Terms</button> and{" "}
         <button className="text-primary hover:underline">Privacy Policy</button>
       </div>
     </div>
