@@ -45,7 +45,7 @@ const Discover = () => {
   });
 
   const hasAutoOpenedRef = useRef(false);
-  
+
   const { data: events = [] } = useEvents();
   const { location: userLocation } = useUserLocation();
   const { data: searchedUsers = [], isLoading: isLoadingUsers } = useSearchUsers(searchQuery);
@@ -55,33 +55,33 @@ const Discover = () => {
     queryKey: ["user-following-discover", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      
-      const { data, error } = await supabase
-        .from("follows")
-        .select("following_id")
-        .eq("follower_id", user.id);
-      
+
+      const { data, error } = await supabase.from("follows").select("following_id").eq("follower_id", user.id);
+
       if (error) throw error;
-      return data.map(f => f.following_id);
+      return data.map((f) => f.following_id);
     },
     enabled: !!user?.id && filters.friendsGoingOnly,
   });
 
   // Fetch guestlist entries for friends going filter
   const { data: guestlistByEvent } = useQuery({
-    queryKey: ["guestlist-entries-discover", events.map(e => e.id).join(",")],
+    queryKey: ["guestlist-entries-discover", events.map((e) => e.id).join(",")],
     queryFn: async () => {
       if (events.length === 0) return new Map<string, string[]>();
-      
+
       const { data, error } = await supabase
         .from("guestlist_entries")
         .select("event_id, user_id")
-        .in("event_id", events.map(e => e.id));
-      
+        .in(
+          "event_id",
+          events.map((e) => e.id),
+        );
+
       if (error) throw error;
-      
+
       const map = new Map<string, string[]>();
-      data.forEach(entry => {
+      data.forEach((entry) => {
         const existing = map.get(entry.event_id) || [];
         existing.push(entry.user_id);
         map.set(entry.event_id, existing);
@@ -135,10 +135,13 @@ const Discover = () => {
   };
 
   // Combine search query with filters
-  const activeFilters = useMemo(() => ({
-    ...filters,
-    searchQuery,
-  }), [filters, searchQuery]);
+  const activeFilters = useMemo(
+    () => ({
+      ...filters,
+      searchQuery,
+    }),
+    [filters, searchQuery],
+  );
 
   // Get filtered and sorted events with distance
   const filteredEvents = useNearbyEvents(events, userLocation, activeFilters, friendsData);
@@ -146,7 +149,7 @@ const Discover = () => {
   // Track carousel slide changes
   useEffect(() => {
     if (!carouselApi) return;
-    
+
     carouselApi.on("select", () => {
       setCurrentSlide(carouselApi.selectedScrollSnap());
     });
@@ -154,9 +157,7 @@ const Discover = () => {
 
   const handleMarkerClick = (events: EventWithDistance[]) => {
     // Map to events with distance info from filtered events
-    const eventsWithDistance = events.map(e => 
-      filteredEvents.find(fe => fe.id === e.id) || e
-    );
+    const eventsWithDistance = events.map((e) => filteredEvents.find((fe) => fe.id === e.id) || e);
     setSelectedEvents(eventsWithDistance);
     setCurrentSlide(0);
     setIsNearbyOpen(false);
@@ -183,10 +184,10 @@ const Discover = () => {
   };
 
   // Filter events with coordinates for the map
-  const eventsWithLocation = filteredEvents.filter(e => e.latitude && e.longitude);
+  const eventsWithLocation = filteredEvents.filter((e) => e.latitude && e.longitude);
 
   // Count active filters (excluding search)
-  const activeFilterCount = 
+  const activeFilterCount =
     (filters.dateFilter !== "all" ? 1 : 0) +
     filters.categories.length +
     (filters.maxDistance !== null ? 1 : 0) +
@@ -260,7 +261,7 @@ const Discover = () => {
                           "flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2",
                           searchTab === "events"
                             ? "text-primary border-b-2 border-primary bg-primary/5"
-                            : "text-muted-foreground hover:text-foreground"
+                            : "text-muted-foreground hover:text-foreground",
                         )}
                       >
                         <MapPin className="w-4 h-4" />
@@ -272,7 +273,7 @@ const Discover = () => {
                           "flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2",
                           searchTab === "people"
                             ? "text-primary border-b-2 border-primary bg-primary/5"
-                            : "text-muted-foreground hover:text-foreground"
+                            : "text-muted-foreground hover:text-foreground",
                         )}
                       >
                         <Users className="w-4 h-4" />
@@ -314,29 +315,19 @@ const Discover = () => {
                               </button>
                             ))
                           ) : (
-                            <div className="py-8 text-center text-muted-foreground">
-                              No events found
-                            </div>
+                            <div className="py-8 text-center text-muted-foreground">No events found</div>
                           )}
                         </div>
                       ) : (
                         <div className="p-2">
                           {isLoadingUsers ? (
-                            <div className="py-8 text-center text-muted-foreground">
-                              Searching...
-                            </div>
+                            <div className="py-8 text-center text-muted-foreground">Searching...</div>
                           ) : searchedUsers.length > 0 ? (
                             searchedUsers.map((user) => (
-                              <UserSearchResultCard
-                                key={user.id}
-                                user={user}
-                                onClick={handleUserClick}
-                              />
+                              <UserSearchResultCard key={user.id} user={user} onClick={handleUserClick} />
                             ))
                           ) : (
-                            <div className="py-8 text-center text-muted-foreground">
-                              No people found
-                            </div>
+                            <div className="py-8 text-center text-muted-foreground">No people found</div>
                           )}
                         </div>
                       )}
@@ -372,22 +363,16 @@ const Discover = () => {
                 {searchQuery || activeFilterCount > 0 ? "No Events Match" : "No Events on Map Yet"}
               </h3>
               <p className="text-sm text-muted-foreground max-w-xs">
-                {searchQuery || activeFilterCount > 0 
+                {searchQuery || activeFilterCount > 0
                   ? "Try adjusting your search or filters"
-                  : "Events with locations will appear here as pins"
-                }
+                  : "Events with locations will appear here as pins"}
               </p>
             </div>
           </div>
         )}
 
         {/* Click outside to close */}
-        {selectedEvents.length > 0 && (
-          <div 
-            className="absolute inset-0 z-30" 
-            onClick={handleCloseEventCard}
-          />
-        )}
+        {selectedEvents.length > 0 && <div className="absolute inset-0 z-30" onClick={handleCloseEventCard} />}
 
         {/* Selected event card(s) */}
         <AnimatePresence>
@@ -409,7 +394,7 @@ const Discover = () => {
                 >
                   <X className="w-4 h-4" />
                 </Button>
-                
+
                 {/* Distance badge - shows current event's distance */}
                 {selectedEvents[currentSlide]?.distance !== null && (
                   <div className="absolute -top-2 -left-2 z-10 px-2 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full shadow-elevated">
@@ -431,25 +416,25 @@ const Discover = () => {
                         ))}
                       </CarouselContent>
                     </Carousel>
-                    
+
                     {/* Counter and pagination dots */}
                     <div className="flex flex-col items-center gap-2">
                       <span className="text-xs text-foreground">
                         {currentSlide + 1} of {selectedEvents.length} events
                       </span>
                       <div className="flex justify-center items-center gap-1.5">
-                      {selectedEvents.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => carouselApi?.scrollTo(index)}
-                          className={cn(
-                            "w-2 h-2 rounded-full transition-all duration-200",
-                            index === currentSlide 
-                              ? "bg-primary w-4" 
-                              : "bg-muted-foreground/40 hover:bg-muted-foreground/60"
-                          )}
-                        />
-                      ))}
+                        {selectedEvents.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => carouselApi?.scrollTo(index)}
+                            className={cn(
+                              "w-2 h-2 rounded-full transition-all duration-200",
+                              index === currentSlide
+                                ? "bg-primary w-4"
+                                : "bg-muted-foreground/40 hover:bg-muted-foreground/60",
+                            )}
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -466,12 +451,9 @@ const Discover = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40"
+              className="absolute bottom-[calc(1rem+96px+env(safe-area-inset-bottom,0px))] sm:bottom-4 left-1/2 -translate-x-1/2 z-40"
             >
-              <Button
-                variant="secondary"
-                className="bg-card/95 backdrop-blur-md shadow-elevated px-6"
-              >
+              <Button variant="secondary" className="bg-card/95 backdrop-blur-md shadow-elevated px-6">
                 <MapPin className="w-4 h-4 mr-2" />
                 Nearby Events ({filteredEvents.length})
               </Button>
@@ -480,14 +462,9 @@ const Discover = () => {
           <DrawerContent className="max-h-[70vh]">
             <div className="px-4 pb-8 overflow-y-auto">
               <div className="py-4">
-                <h3 className="font-brand text-lg font-semibold text-foreground mb-1">
-                  Nearby Events
-                </h3>
+                <h3 className="font-brand text-lg font-semibold text-foreground mb-1">Nearby Events</h3>
                 <p className="text-sm text-muted-foreground">
-                  {userLocation 
-                    ? "Sorted by distance from you"
-                    : "Enable location for distance sorting"
-                  }
+                  {userLocation ? "Sorted by distance from you" : "Enable location for distance sorting"}
                 </p>
               </div>
               <div className="columns-2 gap-3 pb-4">
@@ -505,10 +482,7 @@ const Discover = () => {
               </div>
               {filteredEvents.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
-                  {searchQuery || activeFilterCount > 0
-                    ? "No events match your filters"
-                    : "No events found nearby"
-                  }
+                  {searchQuery || activeFilterCount > 0 ? "No events match your filters" : "No events found nearby"}
                 </div>
               )}
             </div>
