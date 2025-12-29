@@ -133,7 +133,7 @@ const Auth = () => {
           className="inline-block mb-6"
         >
           <div className="w-20 h-20 rounded-3xl bg-secondary flex items-center justify-center mx-auto">
-            <img src="/pwa-512x512.png" alt="Zentro logo" className="w-12 h-12 object-contain" />
+            <img src="/pwa-512x512.png" alt="Zentro logo" className="w-20 h-20 object-contain" />
           </div>
         </motion.div>
         <h1 className="font-brand text-4xl font-bold text-foreground mb-2">Zentro</h1>
