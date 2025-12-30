@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { sendPushNotification } from "@/lib/pushNotifications";
 
 export const useIsOnGuestlist = (eventId: string | undefined) => {
   const { user } = useAuth();
@@ -32,6 +33,12 @@ export const useJoinGuestlist = () => {
     mutationFn: async (eventId: string) => {
       if (!user) throw new Error("Must be logged in");
 
+      // Get user's profile and event details for notifications
+      const [{ data: userProfile }, { data: event }] = await Promise.all([
+        supabase.from("profiles").select("username").eq("id", user.id).single(),
+        supabase.from("events").select("creator_id, title").eq("id", eventId).single(),
+      ]);
+
       // Insert guestlist entry
       const { data: entry, error: entryError } = await supabase
         .from("guestlist_entries")
@@ -58,6 +65,38 @@ export const useJoinGuestlist = () => {
           chat_id: chat.id,
           user_id: user.id,
         });
+      }
+
+      // Notify event creator about guestlist request
+      if (event && event.creator_id !== user.id) {
+        sendPushNotification({
+          userIds: [event.creator_id],
+          title: "Guestlist Request",
+          body: `@${userProfile?.username || "Someone"} wants to join ${event.title || "your event"}`,
+          data: { type: "guestlist_request", eventId },
+          url: `/events/${eventId}`,
+        });
+      }
+
+      // Notify other guestlist members that someone new joined
+      if (chat) {
+        const { data: otherMembers } = await supabase
+          .from("guestlist_entries")
+          .select("user_id")
+          .eq("event_id", eventId)
+          .eq("status", "approved")
+          .neq("user_id", user.id);
+
+        if (otherMembers && otherMembers.length > 0) {
+          const memberIds = otherMembers.map((m) => m.user_id);
+          sendPushNotification({
+            userIds: memberIds,
+            title: "New Guestlist Member",
+            body: `@${userProfile?.username || "Someone"} joined the guestlist for ${event?.title || "an event"}`,
+            data: { type: "guestlist_join", eventId },
+            url: `/events/${eventId}`,
+          });
+        }
       }
 
       return entry;
@@ -165,7 +204,14 @@ export const useApproveGuestlistEntry = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ entryId, eventId }: { entryId: string; eventId: string }) => {
+    mutationFn: async ({ entryId, eventId, userId }: { entryId: string; eventId: string; userId: string }) => {
+      // Get event details for notification
+      const { data: event } = await supabase
+        .from("events")
+        .select("title")
+        .eq("id", eventId)
+        .single();
+
       // Update status to approved - trigger handles adding to chat
       const { error } = await supabase
         .from("guestlist_entries")
@@ -173,6 +219,15 @@ export const useApproveGuestlistEntry = () => {
         .eq("id", entryId);
 
       if (error) throw error;
+
+      // Send push notification to the approved user
+      sendPushNotification({
+        userIds: [userId],
+        title: "Guestlist Approved",
+        body: `You're on the guestlist for ${event?.title || "an event"}!`,
+        data: { type: "guestlist_approved", eventId },
+        url: `/events/${eventId}`,
+      });
     },
     onSuccess: (_, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ["pending-guestlist", eventId] });
