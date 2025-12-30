@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowRight, Sparkles, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ArrowRight, Sparkles, AlertCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,6 @@ const Auth = () => {
   } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -195,27 +194,14 @@ const Auth = () => {
 
               <div>
                 <div className="relative">
-  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-
-  <Input
-    type={showPassword ? "text" : "password"}
-    placeholder="Password"
-    value={formData.password}
-    onChange={(e) => handleInputChange("password", e.target.value)}
-    className={`pl-12 pr-12 ${errors.password ? "border-destructive" : ""}`}
-  />
-
-  <button
-    type="button"
-    onClick={() => setShowPassword((v) => !v)}
-    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground"
-    aria-label={showPassword ? "Hide password" : "Show password"}
-  >
-    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-  </button>
-</div>
-
-
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input type="password" placeholder="Password" value={formData.password} onChange={e => handleInputChange("password", e.target.value)} className={`pl-12 ${errors.password ? "border-destructive" : ""}`} />
+                </div>
+                {errors.password && <p className="text-destructive text-xs mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.password}
+                  </p>}
+              </div>
 
               <Button variant="hero" className="w-full" onClick={handleAuth} disabled={isLoading}>
                 {isLoading ? <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <>
