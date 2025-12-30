@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { PushNotificationSettings } from "@/components/settings/PushNotificationSettings";
 const Settings = () => {
   const navigate = useNavigate();
   const {
@@ -43,7 +44,11 @@ const Settings = () => {
         </div>
       </header>
 
-      <div className="px-4 py-4 space-y-2">
+      <div className="px-4 py-4 space-y-4">
+        {/* Push Notification Settings */}
+        <PushNotificationSettings />
+        
+        <div className="space-y-2">
         {settingsItems.map((item, index) => {
         const Icon = item.icon;
         return <motion.button key={item.label} initial={{
@@ -61,6 +66,7 @@ const Settings = () => {
               <span className="text-foreground font-medium">{item.label}</span>
             </motion.button>;
       })}
+        </div>
 
         <motion.button initial={{
         opacity: 0,
