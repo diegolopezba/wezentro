@@ -196,6 +196,7 @@ const Auth = () => {
               <div>
                 <div className="relative">
   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+
   <Input
     type={showPassword ? "text" : "password"}
     placeholder="Password"
@@ -203,15 +204,17 @@ const Auth = () => {
     onChange={(e) => handleInputChange("password", e.target.value)}
     className={`pl-12 pr-12 ${errors.password ? "border-destructive" : ""}`}
   />
+
   <button
     type="button"
     onClick={() => setShowPassword((v) => !v)}
-    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground"
     aria-label={showPassword ? "Hide password" : "Show password"}
   >
     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
   </button>
 </div>
+
 
 
               <Button variant="hero" className="w-full" onClick={handleAuth} disabled={isLoading}>
