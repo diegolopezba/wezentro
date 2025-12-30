@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { sendPushNotification } from "@/lib/pushNotifications";
 
 export interface ChatParticipant {
   id: string;
@@ -378,6 +379,20 @@ export const useSendMessage = () => {
       messageType?: string;
       eventId?: string;
     }) => {
+      // Get sender's profile for notification
+      const { data: senderProfile } = await supabase
+        .from("profiles")
+        .select("username, full_name")
+        .eq("id", user?.id)
+        .single();
+
+      // Get other participants in the chat to notify
+      const { data: participants } = await supabase
+        .from("chat_participants")
+        .select("user_id")
+        .eq("chat_id", chatId)
+        .neq("user_id", user?.id);
+
       const { data, error } = await supabase
         .from("messages")
         .insert({
@@ -391,6 +406,21 @@ export const useSendMessage = () => {
         .single();
 
       if (error) throw error;
+
+      // Send push notification to other participants
+      if (participants && participants.length > 0) {
+        const recipientIds = participants.map((p) => p.user_id);
+        const senderName = senderProfile?.full_name || senderProfile?.username || "Someone";
+        
+        sendPushNotification({
+          userIds: recipientIds,
+          title: `Message from ${senderName}`,
+          body: content.length > 100 ? content.substring(0, 97) + "..." : content,
+          data: { type: "message", chatId },
+          url: `/chats/${chatId}`,
+        });
+      }
+
       return data;
     },
     onSuccess: (_, variables) => {

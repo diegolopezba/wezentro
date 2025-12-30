@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { sendPushNotification } from "@/lib/pushNotifications";
 
 export interface UserProfile {
   id: string;
@@ -122,12 +123,28 @@ export const useFollowUser = () => {
     mutationFn: async (targetUserId: string) => {
       if (!user?.id) throw new Error("Must be logged in");
 
+      // Get current user's username for notification
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .single();
+
       const { error } = await supabase.from("follows").insert({
         follower_id: user.id,
         following_id: targetUserId,
       });
 
       if (error) throw error;
+
+      // Send push notification to the followed user
+      sendPushNotification({
+        userIds: [targetUserId],
+        title: "New Follower",
+        body: `@${profile?.username || "Someone"} started following you`,
+        data: { type: "follow", userId: user.id },
+        url: `/profile/${user.id}`,
+      });
     },
     onSuccess: (_, targetUserId) => {
       queryClient.invalidateQueries({ queryKey: ["is-following", user?.id, targetUserId] });

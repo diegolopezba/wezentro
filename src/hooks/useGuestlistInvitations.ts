@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { sendPushNotification } from "@/lib/pushNotifications";
 
 export interface GuestlistInvitation {
   id: string;
@@ -84,6 +85,12 @@ export function useSendGuestlistInvitations() {
     }) => {
       if (!user) throw new Error("Must be logged in");
 
+      // Get inviter's profile and event details for notification
+      const [{ data: inviterProfile }, { data: event }] = await Promise.all([
+        supabase.from("profiles").select("username").eq("id", user.id).single(),
+        supabase.from("events").select("title").eq("id", eventId).single(),
+      ]);
+
       const invitations = userIds.map(userId => ({
         event_id: eventId,
         inviter_id: user.id,
@@ -97,6 +104,16 @@ export function useSendGuestlistInvitations() {
         .select();
 
       if (error) throw error;
+
+      // Send push notification to all invited users
+      sendPushNotification({
+        userIds,
+        title: "Guestlist Invitation",
+        body: `@${inviterProfile?.username || "Someone"} invited you to ${event?.title || "an event"}`,
+        data: { type: "guestlist_invitation", eventId },
+        url: `/events/${eventId}`,
+      });
+
       return data;
     },
     onSuccess: (_, { eventId }) => {
