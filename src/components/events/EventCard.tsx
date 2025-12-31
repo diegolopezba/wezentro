@@ -78,16 +78,22 @@ export const EventCard = ({
       }
     }
   };
-  return <motion.div initial={{
-    opacity: 0,
-    y: 20
-  }} animate={{
-    opacity: 1,
-    y: 0
-  }} transition={{
-    delay: index * 0.05,
-    duration: 0.3
-  }} whileHover={{
+  return <motion.div 
+    layoutId={`event-card-${id}`}
+    initial={{
+      opacity: 0,
+      y: 20
+    }} 
+    animate={{
+      opacity: 1,
+      y: 0
+    }} 
+    transition={{
+      delay: index * 0.05,
+      duration: 0.3,
+      layout: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
+    }} 
+    whileHover={{
     scale: 1.02
   }} whileTap={{
     scale: 0.98
