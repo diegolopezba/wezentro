@@ -11,22 +11,103 @@ declare global {
 }
 
 const ONESIGNAL_APP_ID = "5b6aae46-50f4-4a83-b3cf-bf62ec1138f1";
+const PERMISSION_TIMEOUT_MS = 15000;
+
+// Platform detection helpers
+const isPWA = () => {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         (window.navigator as any).standalone === true;
+};
+
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isAndroid = () => /Android/.test(navigator.userAgent);
+
+const getIOSVersion = (): number => {
+  const match = navigator.userAgent.match(/OS (\d+)_/);
+  return match ? parseInt(match[1], 10) : 0;
+};
+
+// Timeout wrapper for async operations
+const withTimeout = <T>(promise: Promise<T>, ms: number, errorMessage: string): Promise<T> => {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(errorMessage)), ms)
+  );
+  return Promise.race([promise, timeout]);
+};
+
+export interface PlatformSupport {
+  supported: boolean;
+  reason?: string;
+  canRetry?: boolean;
+}
 
 export const usePushNotifications = () => {
   const { user } = useAuth();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [playerId, setPlayerId] = useState<string | null>(null);
+  const [platformSupport, setPlatformSupport] = useState<PlatformSupport>({ supported: true });
+
+  // Check platform support on mount
+  useEffect(() => {
+    const checkPlatformSupport = () => {
+      // Check if Notification API is available
+      if (!('Notification' in window)) {
+        setPlatformSupport({
+          supported: false,
+          reason: "Your browser doesn't support push notifications",
+          canRetry: false,
+        });
+        return;
+      }
+
+      // iOS-specific checks
+      if (isIOS()) {
+        const iosVersion = getIOSVersion();
+        
+        if (iosVersion < 16) {
+          setPlatformSupport({
+            supported: false,
+            reason: "Push notifications require iOS 16.4 or later",
+            canRetry: false,
+          });
+          return;
+        }
+
+        if (!isPWA()) {
+          setPlatformSupport({
+            supported: false,
+            reason: "Add this app to your Home Screen first, then enable notifications",
+            canRetry: true,
+          });
+          return;
+        }
+      }
+
+      // Check if permission was previously denied
+      if (Notification.permission === 'denied') {
+        setPlatformSupport({
+          supported: false,
+          reason: "Notifications are blocked. Please enable them in your device settings",
+          canRetry: false,
+        });
+        return;
+      }
+
+      setPlatformSupport({ supported: true });
+    };
+
+    checkPlatformSupport();
+  }, []);
 
   // Initialize OneSignal
   useEffect(() => {
     const initOneSignal = async () => {
-      // Skip if already initialized or no window
       if (typeof window === "undefined") return;
       
       console.log("[Push] Initializing OneSignal...");
+      console.log("[Push] Platform - iOS:", isIOS(), "Android:", isAndroid(), "PWA:", isPWA());
       
-      // Load OneSignal SDK if not already loaded
       if (!window.OneSignal) {
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         
@@ -40,11 +121,15 @@ export const usePushNotifications = () => {
         window.OneSignalDeferred.push(async (OneSignal: any) => {
           try {
             console.log("[Push] Calling OneSignal.init()...");
-            await OneSignal.init({
-              appId: ONESIGNAL_APP_ID,
-              allowLocalhostAsSecureOrigin: true,
-              serviceWorkerParam: { scope: "/" },
-            });
+            await withTimeout(
+              OneSignal.init({
+                appId: ONESIGNAL_APP_ID,
+                allowLocalhostAsSecureOrigin: true,
+                serviceWorkerParam: { scope: "/" },
+              }),
+              10000,
+              "OneSignal initialization timed out"
+            );
             console.log("[Push] OneSignal initialized successfully");
             checkSubscriptionStatus(OneSignal);
           } catch (error) {
@@ -76,7 +161,6 @@ export const usePushNotifications = () => {
 
     initOneSignal();
     
-    // Timeout fallback in case initialization hangs
     const timeout = setTimeout(() => {
       setIsLoading(false);
       console.log("[Push] Initialization timeout - setting loading to false");
@@ -91,7 +175,6 @@ export const usePushNotifications = () => {
       if (!user?.id || !playerId) return;
 
       try {
-        // Check if already synced
         const { data: existing } = await supabase
           .from("push_subscriptions")
           .select("id")
@@ -100,7 +183,6 @@ export const usePushNotifications = () => {
           .single();
 
         if (!existing) {
-          // Insert new subscription
           const { error } = await supabase.from("push_subscriptions").insert({
             user_id: user.id,
             onesignal_player_id: playerId,
@@ -120,25 +202,57 @@ export const usePushNotifications = () => {
   }, [user?.id, playerId]);
 
   const subscribe = useCallback(async () => {
+    // Check platform support first
+    if (!platformSupport.supported) {
+      toast.error(platformSupport.reason || "Push notifications not supported");
+      return false;
+    }
+
     if (!window.OneSignal) {
-      toast.error("Push notifications not available");
+      toast.error("Push notifications are still loading. Please try again.");
+      return false;
+    }
+
+    // Check current permission status
+    if ('Notification' in window && Notification.permission === 'denied') {
+      toast.error("Notifications are blocked. Please enable them in your device settings.");
+      setPlatformSupport({
+        supported: false,
+        reason: "Notifications are blocked. Please enable them in your device settings",
+        canRetry: false,
+      });
       return false;
     }
 
     try {
       setIsLoading(true);
+      console.log("[Push] Requesting permission with timeout...");
       
-      // Request permission
-      await window.OneSignal.Notifications.requestPermission();
+      // Request permission with timeout
+      await withTimeout(
+        window.OneSignal.Notifications.requestPermission(),
+        PERMISSION_TIMEOUT_MS,
+        "Permission request timed out"
+      );
       
-      const permission = await window.OneSignal.Notifications.permission;
-      const id = await window.OneSignal.User.PushSubscription.id;
+      console.log("[Push] Permission request completed, checking status...");
+      
+      // Get the results with timeout
+      const [permission, id] = await withTimeout(
+        Promise.all([
+          window.OneSignal.Notifications.permission,
+          window.OneSignal.User.PushSubscription.id,
+        ]),
+        5000,
+        "Failed to get subscription status"
+      );
+      
+      console.log("[Push] Permission:", permission, "Player ID:", id);
       
       if (permission && id) {
         setIsSubscribed(true);
         setPlayerId(id);
         
-        // Sync with database
         if (user?.id) {
           await supabase.from("push_subscriptions").upsert({
             user_id: user.id,
@@ -151,18 +265,37 @@ export const usePushNotifications = () => {
         
         toast.success("Push notifications enabled!");
         return true;
-      } else {
+      } else if (!permission) {
+        // Permission was denied
+        setPlatformSupport({
+          supported: false,
+          reason: "Notifications are blocked. Please enable them in your device settings",
+          canRetry: false,
+        });
         toast.error("Permission denied for push notifications");
+        return false;
+      } else {
+        toast.error("Could not enable push notifications. Please try again.");
         return false;
       }
     } catch (error) {
-      console.error("Error subscribing to push notifications:", error);
-      toast.error("Failed to enable push notifications");
+      console.error("[Push] Error subscribing:", error);
+      
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      
+      if (errorMessage.includes("timed out")) {
+        toast.error("Request timed out. Please try again.");
+      } else if (isIOS() && !isPWA()) {
+        toast.error("Add this app to your Home Screen first, then enable notifications");
+      } else {
+        toast.error("Failed to enable push notifications. Please try again.");
+      }
+      
       return false;
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, platformSupport]);
 
   const unsubscribe = useCallback(async () => {
     if (!window.OneSignal) return false;
@@ -170,9 +303,12 @@ export const usePushNotifications = () => {
     try {
       setIsLoading(true);
       
-      await window.OneSignal.User.PushSubscription.optOut();
+      await withTimeout(
+        window.OneSignal.User.PushSubscription.optOut(),
+        10000,
+        "Unsubscribe timed out"
+      );
       
-      // Remove from database
       if (user?.id && playerId) {
         await supabase
           .from("push_subscriptions")
@@ -186,7 +322,7 @@ export const usePushNotifications = () => {
       toast.success("Push notifications disabled");
       return true;
     } catch (error) {
-      console.error("Error unsubscribing from push notifications:", error);
+      console.error("[Push] Error unsubscribing:", error);
       toast.error("Failed to disable push notifications");
       return false;
     } finally {
@@ -194,11 +330,21 @@ export const usePushNotifications = () => {
     }
   }, [user?.id, playerId]);
 
+  const recheckPlatformSupport = useCallback(() => {
+    if (isIOS() && isPWA()) {
+      setPlatformSupport({ supported: true });
+      return true;
+    }
+    return false;
+  }, []);
+
   return {
     isSubscribed,
     isLoading,
     subscribe,
     unsubscribe,
     playerId,
+    platformSupport,
+    recheckPlatformSupport,
   };
 };
