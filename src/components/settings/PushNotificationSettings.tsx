@@ -1,4 +1,4 @@
-import { Bell, BellOff, Loader2, Send, AlertTriangle, Info } from "lucide-react";
+import { Bell, BellOff, Loader2, Send, AlertTriangle, Info, RefreshCw } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
@@ -17,6 +17,7 @@ export const PushNotificationSettings = () => {
     playerId,
     platformSupport,
     recheckPlatformSupport,
+    lastError,
   } = usePushNotifications();
   const { user } = useAuth();
   const [isSendingTest, setIsSendingTest] = useState(false);
@@ -38,6 +39,10 @@ export const PushNotificationSettings = () => {
     }
   };
 
+  const handleRetrySubscription = () => {
+    subscribe();
+  };
+
   const sendTestNotification = async () => {
     if (!user?.id || !playerId) {
       toast.error("Not subscribed to push notifications");
@@ -46,7 +51,7 @@ export const PushNotificationSettings = () => {
 
     setIsSendingTest(true);
     try {
-      console.log("[Push Test] Sending test notification to player:", playerId);
+      console.log("[Push Test] Sending to player:", playerId);
       
       const { data, error } = await supabase.functions.invoke("send-push-notification", {
         body: {
@@ -95,6 +100,25 @@ export const PushNotificationSettings = () => {
                 I've added it
               </Button>
             )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Error with retry */}
+      {lastError && !isLoading && !isSubscribed && platformSupport.supported && (
+        <Alert variant="default">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between gap-2">
+            <span className="text-sm">Setup failed. Tap retry to try again.</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRetrySubscription}
+              className="shrink-0"
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Retry
+            </Button>
           </AlertDescription>
         </Alert>
       )}
