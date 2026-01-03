@@ -11,7 +11,9 @@ declare global {
 }
 
 const ONESIGNAL_APP_ID = "5b6aae46-50f4-4a83-b3cf-bf62ec1138f1";
-const PERMISSION_TIMEOUT_MS = 15000;
+const PERMISSION_TIMEOUT_MS = 20000;
+const SUBSCRIPTION_CHECK_INTERVAL = 500;
+const MAX_SUBSCRIPTION_CHECKS = 20;
 
 // Platform detection helpers
 const isPWA = () => {
@@ -226,28 +228,75 @@ export const usePushNotifications = () => {
 
     try {
       setIsLoading(true);
-      console.log("[Push] Requesting permission with timeout...");
+      console.log("[Push] Starting subscription flow...");
+      console.log("[Push] Current Notification.permission:", Notification.permission);
       
-      // Request permission with timeout
-      await withTimeout(
-        window.OneSignal.Notifications.requestPermission(),
-        PERMISSION_TIMEOUT_MS,
-        "Permission request timed out"
-      );
+      // Step 1: Request native notification permission first (more reliable on mobile PWA)
+      if ('Notification' in window && Notification.permission === 'default') {
+        console.log("[Push] Requesting native notification permission...");
+        try {
+          const nativePermission = await withTimeout(
+            Notification.requestPermission(),
+            PERMISSION_TIMEOUT_MS,
+            "Permission request timed out"
+          );
+          console.log("[Push] Native permission result:", nativePermission);
+          
+          if (nativePermission === 'denied') {
+            setPlatformSupport({
+              supported: false,
+              reason: "Notifications are blocked. Please enable them in your device settings",
+              canRetry: false,
+            });
+            toast.error("Permission denied for push notifications");
+            return false;
+          }
+        } catch (error) {
+          console.error("[Push] Native permission request failed:", error);
+          // Continue anyway - OneSignal might handle it
+        }
+      }
       
-      console.log("[Push] Permission request completed, checking status...");
+      // Step 2: Use OneSignal to set up the subscription
+      console.log("[Push] Setting up OneSignal subscription...");
       
-      // Get the results with timeout
-      const [permission, id] = await withTimeout(
-        Promise.all([
-          window.OneSignal.Notifications.permission,
-          window.OneSignal.User.PushSubscription.id,
-        ]),
-        5000,
-        "Failed to get subscription status"
-      );
+      // Try to opt in the user (this is more reliable than requestPermission on some platforms)
+      try {
+        await withTimeout(
+          window.OneSignal.User.PushSubscription.optIn(),
+          10000,
+          "Subscription setup timed out"
+        );
+        console.log("[Push] optIn() completed");
+      } catch (optInError) {
+        console.log("[Push] optIn() failed, trying requestPermission...", optInError);
+        // Fallback to requestPermission
+        await withTimeout(
+          window.OneSignal.Notifications.requestPermission(),
+          10000,
+          "Permission request timed out"
+        );
+      }
       
-      console.log("[Push] Permission:", permission, "Player ID:", id);
+      // Step 3: Poll for subscription ID (sometimes takes a moment to be available)
+      console.log("[Push] Polling for subscription ID...");
+      let id: string | null = null;
+      let permission = false;
+      
+      for (let i = 0; i < MAX_SUBSCRIPTION_CHECKS; i++) {
+        permission = await window.OneSignal.Notifications.permission;
+        id = await window.OneSignal.User.PushSubscription.id;
+        
+        console.log(`[Push] Check ${i + 1}: permission=${permission}, id=${id}`);
+        
+        if (permission && id) {
+          break;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, SUBSCRIPTION_CHECK_INTERVAL));
+      }
+      
+      console.log("[Push] Final: Permission:", permission, "Player ID:", id);
       
       if (permission && id) {
         setIsSubscribed(true);
@@ -275,7 +324,8 @@ export const usePushNotifications = () => {
         toast.error("Permission denied for push notifications");
         return false;
       } else {
-        toast.error("Could not enable push notifications. Please try again.");
+        // Permission granted but no ID yet - might need more time
+        toast.error("Subscription pending. Please try again in a moment.");
         return false;
       }
     } catch (error) {
@@ -284,7 +334,12 @@ export const usePushNotifications = () => {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       
       if (errorMessage.includes("timed out")) {
-        toast.error("Request timed out. Please try again.");
+        // Check if permission was actually granted despite timeout
+        if ('Notification' in window && Notification.permission === 'granted') {
+          toast.error("Setup taking longer than expected. Please try again.");
+        } else {
+          toast.error("Request timed out. Please try again.");
+        }
       } else if (isIOS() && !isPWA()) {
         toast.error("Add this app to your Home Screen first, then enable notifications");
       } else {
