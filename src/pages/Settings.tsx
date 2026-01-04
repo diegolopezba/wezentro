@@ -1,11 +1,9 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, User, Shield, CreditCard, HelpCircle, LogOut } from "lucide-react";
+import { User, Shield, CreditCard, HelpCircle, LogOut } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { PushNotificationSettings } from "@/components/settings/PushNotificationSettings";
 const Settings = () => {
   const navigate = useNavigate();
   const {
@@ -45,9 +43,6 @@ const Settings = () => {
       </header>
 
       <div className="px-4 py-4 space-y-4">
-        {/* Push Notification Settings */}
-        <PushNotificationSettings />
-        
         <div className="space-y-2">
         {settingsItems.map((item, index) => {
         const Icon = item.icon;
