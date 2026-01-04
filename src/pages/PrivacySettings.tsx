@@ -1,15 +1,31 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, Users, UserCheck, Heart, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, Users, UserCheck, Heart, Loader2, Bell, BellOff, Send, AlertTriangle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 import { useUserSettings, useUpdateUserSettings, AllowMessagesFrom } from "@/hooks/useUserSettings";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const PrivacySettings = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: settings, isLoading } = useUserSettings();
   const updateSettings = useUpdateUserSettings();
+  const { 
+    isSubscribed, 
+    isLoading: isPushLoading, 
+    subscribe, 
+    unsubscribe, 
+    playerId,
+    platformSupport,
+  } = usePushNotifications();
+  const [isSendingTest, setIsSendingTest] = useState(false);
 
   const messagingOptions: {
     value: AllowMessagesFrom;
@@ -52,6 +68,44 @@ const PrivacySettings = () => {
   };
 
   const currentValue = settings?.allow_messages_from || "everyone";
+
+  const handlePushToggle = async () => {
+    if (isSubscribed) {
+      await unsubscribe();
+    } else {
+      await subscribe();
+    }
+  };
+
+  const sendTestNotification = async () => {
+    if (!user?.id || !playerId) {
+      toast.error("Not subscribed to push notifications");
+      return;
+    }
+
+    setIsSendingTest(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-push-notification", {
+        body: {
+          player_ids: [playerId],
+          title: "Test Notification",
+          body: "Push notifications are working!",
+        },
+      });
+
+      if (error) {
+        toast.error("Failed to send test notification");
+      } else {
+        toast.success("Test notification sent!");
+      }
+    } catch (error) {
+      toast.error("Failed to send test notification");
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
+
+  const isPushDisabled = !platformSupport.supported && !platformSupport.canRetry;
 
   return (
     <AppLayout>
@@ -144,6 +198,87 @@ const PrivacySettings = () => {
                 );
               })}
             </div>
+
+            {/* Notifications Section */}
+            <div className="mt-8 mb-4">
+              <h2 className="font-semibold text-foreground">Notifications</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Manage push notification preferences
+              </p>
+            </div>
+
+            {/* Platform warning */}
+            {!platformSupport.supported && platformSupport.reason && (
+              <Alert variant="destructive" className="mb-3">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  {platformSupport.reason}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Push notification toggle */}
+            <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-2xl">
+              <div className="flex items-center gap-4">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    isSubscribed ? "bg-primary/20" : "bg-muted"
+                  }`}
+                >
+                  {isSubscribed ? (
+                    <Bell className="w-5 h-5 text-primary" />
+                  ) : (
+                    <BellOff className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div>
+                  <p className={`font-medium ${isSubscribed ? "text-primary" : "text-foreground"}`}>
+                    Push Notifications
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {isSubscribed
+                      ? "Enabled"
+                      : isPushDisabled
+                      ? "Not available"
+                      : "Disabled"}
+                  </p>
+                </div>
+              </div>
+              
+              {isPushLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : (
+                <Switch
+                  checked={isSubscribed}
+                  onCheckedChange={handlePushToggle}
+                  disabled={isPushDisabled}
+                />
+              )}
+            </div>
+
+            {/* Test notification button */}
+            {isSubscribed && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-3"
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={sendTestNotification}
+                  disabled={isSendingTest}
+                  className="w-full"
+                >
+                  {isSendingTest ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  Send Test Notification
+                </Button>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </div>

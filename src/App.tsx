@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { NotificationFeedbackProvider } from "@/components/NotificationFeedbackProvider";
+import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import Index from "./pages/Index";
 import Discover from "./pages/Discover";
 import Create from "./pages/Create";
@@ -35,7 +36,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <NotificationFeedbackProvider>
-            <LocationProvider>
+            <PushNotificationPrompt>
+              <LocationProvider>
               <Routes>
               {/* Public routes */}
               <Route path="/auth" element={<Auth />} />
@@ -172,7 +174,8 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </LocationProvider>
+              </LocationProvider>
+            </PushNotificationPrompt>
           </NotificationFeedbackProvider>
         </AuthProvider>
       </BrowserRouter>
