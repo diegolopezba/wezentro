@@ -1,17 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOneSignal } from "@/contexts/OneSignalContext";
 
-const PROMPT_DELAY_MS = 4000; // Wait 4 seconds after page load
-const PROMPTED_KEY = "push_notification_prompted";
-
-declare global {
-  interface Window {
-    OneSignalDeferred?: Array<(OneSignal: any) => void>;
-    OneSignal?: any;
-  }
-}
-
-const ONESIGNAL_APP_ID = "5b6aae46-50f4-4a83-b3cf-bf62ec1138f1";
+const PROMPT_DELAY_MS = 5000; // Wait 5 seconds after everything is ready
+const PROMPTED_KEY = "push_notification_prompted_v2"; // Versioned key to force re-prompt
 
 // Platform detection helpers
 const isPWA = () => {
@@ -26,101 +18,124 @@ const getIOSVersion = (): number => {
   return match ? parseInt(match[1], 10) : 0;
 };
 
-const isPlatformSupported = (): boolean => {
-  // Check if Notification API is available
-  if (!('Notification' in window)) return false;
-  
-  // Check if permission was previously denied
-  if (Notification.permission === 'denied') return false;
-  
-  // iOS-specific checks
-  if (isIOS()) {
-    const iosVersion = getIOSVersion();
-    if (iosVersion < 16) return false;
-    if (!isPWA()) return false;
-  }
-  
-  return true;
+// Async platform check with retry for iOS PWA detection
+const checkPlatformSupport = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const check = () => {
+      console.log("[PushPrompt] Platform check - Notification API:", 'Notification' in window);
+      console.log("[PushPrompt] Platform check - iOS:", isIOS(), "PWA:", isPWA());
+      
+      if (!('Notification' in window)) return false;
+      if (Notification.permission === 'denied') return false;
+      
+      if (isIOS()) {
+        const iosVersion = getIOSVersion();
+        console.log("[PushPrompt] iOS version:", iosVersion);
+        if (iosVersion < 16) return false;
+        if (!isPWA()) return false;
+      }
+      
+      return true;
+    };
+    
+    const result = check();
+    if (result) {
+      console.log("[PushPrompt] Platform supported on first check");
+      resolve(true);
+    } else if (isIOS()) {
+      // On iOS, PWA detection might fail initially - retry after a delay
+      console.log("[PushPrompt] iOS detected, will retry PWA check in 1.5s...");
+      setTimeout(() => {
+        const retryResult = check();
+        console.log("[PushPrompt] iOS retry result:", retryResult);
+        resolve(retryResult);
+      }, 1500);
+    } else {
+      console.log("[PushPrompt] Platform not supported");
+      resolve(false);
+    }
+  });
 };
 
 export const usePushNotificationPrompt = () => {
-  const { user } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
+  const { isReady, isSubscribed, subscribe } = useOneSignal();
   const hasPrompted = useRef(false);
   
   useEffect(() => {
-    // Only prompt once per session, and only if user is logged in
-    if (!user?.id || hasPrompted.current) return;
+    // Wait for auth to fully load
+    if (authLoading) {
+      console.log("[PushPrompt] Waiting for auth to load...");
+      return;
+    }
+    
+    // Only prompt if user is logged in and has a profile (completed onboarding)
+    if (!user?.id) {
+      console.log("[PushPrompt] No user logged in");
+      return;
+    }
+    
+    if (!profile) {
+      console.log("[PushPrompt] No profile yet (onboarding not complete)");
+      return;
+    }
+    
+    // Prevent duplicate prompts in this session
+    if (hasPrompted.current) {
+      console.log("[PushPrompt] Already prompted this session");
+      return;
+    }
     
     // Check if already prompted before (in localStorage)
     const alreadyPrompted = localStorage.getItem(PROMPTED_KEY);
     if (alreadyPrompted) {
-      console.log("[PushPrompt] User was already prompted before");
+      console.log("[PushPrompt] User was already prompted before (localStorage)");
       return;
     }
     
-    // Check platform support
-    if (!isPlatformSupported()) {
-      console.log("[PushPrompt] Platform not supported for auto-prompt");
-      return;
-    }
-    
-    // Check if already subscribed (permission already granted)
-    if (Notification.permission === 'granted') {
-      console.log("[PushPrompt] Already has permission, skipping prompt");
+    // Skip if already subscribed
+    if (isSubscribed) {
+      console.log("[PushPrompt] Already subscribed, skipping prompt");
       localStorage.setItem(PROMPTED_KEY, "true");
       return;
     }
     
+    // Wait for OneSignal to be ready
+    if (!isReady) {
+      console.log("[PushPrompt] Waiting for OneSignal to be ready...");
+      return;
+    }
+    
     const promptForNotifications = async () => {
+      console.log("[PushPrompt] Checking platform support...");
+      
+      const platformSupported = await checkPlatformSupport();
+      if (!platformSupported) {
+        console.log("[PushPrompt] Platform not supported, skipping prompt");
+        return;
+      }
+      
+      // Mark as prompted to prevent duplicate attempts
       hasPrompted.current = true;
       
-      console.log("[PushPrompt] Starting auto-prompt flow...");
+      console.log("[PushPrompt] All conditions met! Triggering native prompt...");
       
-      // Initialize OneSignal if not already done
-      if (!window.OneSignal) {
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
+      try {
+        const success = await subscribe();
+        console.log("[PushPrompt] Subscribe result:", success);
         
-        const script = document.createElement("script");
-        script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
-        script.defer = true;
-        document.head.appendChild(script);
-        
-        window.OneSignalDeferred.push(async (OneSignal: any) => {
-          try {
-            await OneSignal.init({
-              appId: ONESIGNAL_APP_ID,
-              allowLocalhostAsSecureOrigin: true,
-            });
-            
-            console.log("[PushPrompt] OneSignal initialized, triggering opt-in...");
-            
-            // This triggers the native permission prompt
-            await OneSignal.User.PushSubscription.optIn();
-            
-            // Mark as prompted regardless of outcome
-            localStorage.setItem(PROMPTED_KEY, "true");
-            console.log("[PushPrompt] Prompt flow completed");
-          } catch (error) {
-            console.error("[PushPrompt] Error during prompt:", error);
-            localStorage.setItem(PROMPTED_KEY, "true");
-          }
-        });
-      } else {
-        // OneSignal already loaded
-        try {
-          console.log("[PushPrompt] OneSignal already loaded, triggering opt-in...");
-          await window.OneSignal.User.PushSubscription.optIn();
-          localStorage.setItem(PROMPTED_KEY, "true");
-        } catch (error) {
-          console.error("[PushPrompt] Error during prompt:", error);
-          localStorage.setItem(PROMPTED_KEY, "true");
-        }
+        // Mark as prompted regardless of outcome
+        localStorage.setItem(PROMPTED_KEY, "true");
+      } catch (error) {
+        console.error("[PushPrompt] Error during prompt:", error);
+        localStorage.setItem(PROMPTED_KEY, "true");
       }
     };
     
-    // Delay the prompt for better UX
+    // Delay the prompt for better UX - let the user see the app first
+    console.log("[PushPrompt] Scheduling prompt in", PROMPT_DELAY_MS, "ms...");
     const timeout = setTimeout(promptForNotifications, PROMPT_DELAY_MS);
     
     return () => clearTimeout(timeout);
-  }, [user?.id]);
+  }, [user?.id, profile, authLoading, isReady, isSubscribed, subscribe]);
 };
