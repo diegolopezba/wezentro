@@ -24,6 +24,7 @@ const PrivacySettings = () => {
     unsubscribe, 
     playerId,
     platformSupport,
+    isReady,
   } = usePushNotifications();
   const [isSendingTest, setIsSendingTest] = useState(false);
 
@@ -105,7 +106,9 @@ const PrivacySettings = () => {
     }
   };
 
+  // Disable toggle only when truly not supported (not just loading)
   const isPushDisabled = !platformSupport.supported && !platformSupport.canRetry;
+  const showPushLoading = isPushLoading || !isReady;
 
   return (
     <AppLayout>
@@ -245,7 +248,7 @@ const PrivacySettings = () => {
                 </div>
               </div>
               
-              {isPushLoading ? (
+              {showPushLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               ) : (
                 <Switch
