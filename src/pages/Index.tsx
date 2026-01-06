@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, LayoutGroup } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -10,6 +10,8 @@ import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
+import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
+import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -58,98 +60,105 @@ const Index = () => {
   );
 
   return (
-    <AppLayout>
-      {/* Header */}
-      <header className="sticky top-0 z-40 safe-top bg-background">
-        <div className="flex items-center justify-between px-4 py-4">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <h1 className="font-brand text-2xl font-bold text-foreground">Zentro</h1>
-          </motion.div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative"
-              onClick={() => navigate("/notifications")}
+    <SelectedEventProvider>
+      <AppLayout>
+        {/* Header */}
+        <header className="sticky top-0 z-40 safe-top bg-background">
+          <div className="flex items-center justify-between px-4 py-4">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
             >
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
-              )}
-            </Button>
-          </div>
-        </div>
+              <h1 className="font-brand text-2xl font-bold text-foreground">Zentro</h1>
+            </motion.div>
 
-        {/* Search bar */}
-        {showSearch && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="px-4 pb-4"
-          >
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search events, venues..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                onClick={() => navigate("/notifications")}
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
+                )}
+              </Button>
             </div>
-          </motion.div>
-        )}
+          </div>
 
-        {/* Tabs */}
-        <div className="flex px-4 pb-3 gap-2">
-          <button
-            onClick={() => setActiveTab("for-you")}
-            className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${
-              activeTab === "for-you"
-                ? "text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {activeTab === "for-you" && (
-              <motion.div
-                layoutId="activeTab"
-                className="absolute inset-0 gradient-primary rounded-full"
-                transition={{ type: "spring", duration: 0.5 }}
-              />
-            )}
-            <span className="relative z-10">For You</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("following")}
-            className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${
-              activeTab === "following"
-                ? "text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {activeTab === "following" && (
-              <motion.div
-                layoutId="activeTab"
-                className="absolute inset-0 gradient-primary rounded-full"
-                transition={{ type: "spring", duration: 0.5 }}
-              />
-            )}
-            <span className="relative z-10">Following</span>
-          </button>
-        </div>
-      </header>
+          {/* Search bar */}
+          {showSearch && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="px-4 pb-4"
+            >
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search events, venues..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </motion.div>
+          )}
 
-      {/* Event feed */}
-      <EventFeed 
-        events={transformedEvents} 
-        isLoading={isLoading} 
-        emptyStateType={activeTab}
-      />
-    </AppLayout>
+          {/* Tabs */}
+          <div className="flex px-4 pb-3 gap-2">
+            <button
+              onClick={() => setActiveTab("for-you")}
+              className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${
+                activeTab === "for-you"
+                  ? "text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {activeTab === "for-you" && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 gradient-primary rounded-full"
+                  transition={{ type: "spring", duration: 0.5 }}
+                />
+              )}
+              <span className="relative z-10">For You</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("following")}
+              className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${
+                activeTab === "following"
+                  ? "text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {activeTab === "following" && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 gradient-primary rounded-full"
+                  transition={{ type: "spring", duration: 0.5 }}
+                />
+              )}
+              <span className="relative z-10">Following</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Event feed */}
+        <LayoutGroup>
+          <EventFeed 
+            events={transformedEvents} 
+            isLoading={isLoading} 
+            emptyStateType={activeTab}
+          />
+        </LayoutGroup>
+      </AppLayout>
+      
+      {/* Overlay for expansion transition */}
+      <EventDetailOverlay />
+    </SelectedEventProvider>
   );
 };
 

@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { useHasActiveSubscription } from "@/hooks/useGuestlist";
+import { useSelectedEvent } from "@/contexts/SelectedEventContext";
 export interface AttendeeAvatar {
   id: string;
   avatar_url: string | null;
@@ -36,7 +37,7 @@ export const EventCard = ({
   title,
   imageUrl,
   date,
-  location,
+  location: locationName,
   category,
   attendees = 0,
   attendeeAvatars = [],
@@ -46,9 +47,27 @@ export const EventCard = ({
   creatorId
 }: EventCardProps) => {
   const navigate = useNavigate();
-  const {
-    data: hasSubscription
-  } = useHasActiveSubscription();
+  const routerLocation = useLocation();
+  const { data: hasSubscription } = useHasActiveSubscription();
+  
+  // Use expansion transition only on home page
+  const isHomePage = routerLocation.pathname === "/";
+  let selectedEventContext: { openEvent: (id: string) => void } | null = null;
+  
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    selectedEventContext = useSelectedEvent();
+  } catch {
+    // Context not available, will use navigation
+  }
+
+  const handleCardClick = () => {
+    if (isHomePage && selectedEventContext) {
+      selectedEventContext.openEvent(id);
+    } else {
+      navigate(`/event/${id}`);
+    }
+  };
   const gradientClass = categoryColors[category] || categoryColors.default;
   const isVideo = isVideoUrl(imageUrl);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -97,7 +116,7 @@ export const EventCard = ({
     scale: 1.02
   }} whileTap={{
     scale: 0.98
-  }} className="masonry-item cursor-pointer" onClick={() => navigate(`/event/${id}`)}>
+  }} className="masonry-item cursor-pointer" onClick={handleCardClick}>
       <div className="space-y-2 px-0">
         {/* Media */}
         <div className="relative rounded-2xl overflow-hidden bg-secondary" style={{
