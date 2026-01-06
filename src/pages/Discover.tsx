@@ -444,50 +444,6 @@ const Discover = () => {
           )}
         </AnimatePresence>
 
-        {/* Nearby Events Bottom Sheet */}
-        <Drawer open={isNearbyOpen} onOpenChange={setIsNearbyOpen}>
-          <DrawerTrigger asChild>
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40"
-            >
-              <Button variant="secondary" className="bg-card/95 backdrop-blur-md shadow-elevated px-6">
-                <MapPin className="w-4 h-4 mr-2" />
-                Nearby Events ({filteredEvents.length})
-              </Button>
-            </motion.div>
-          </DrawerTrigger>
-          <DrawerContent className="max-h-[70vh]">
-            <div className="px-4 pb-8 overflow-y-auto">
-              <div className="py-4">
-                <h3 className="font-brand text-lg font-semibold text-foreground mb-1">Nearby Events</h3>
-                <p className="text-sm text-muted-foreground">
-                  {userLocation ? "Sorted by distance from you" : "Enable location for distance sorting"}
-                </p>
-              </div>
-              <div className="columns-2 gap-3 pb-4">
-                {filteredEvents.map((event, index) => (
-                  <div key={event.id} className="relative break-inside-avoid mb-3">
-                    {/* Distance badge */}
-                    {event.distance !== null && (
-                      <div className="absolute top-2 right-2 z-10 px-2 py-0.5 bg-background/80 backdrop-blur-sm text-foreground text-[10px] font-medium rounded-full">
-                        {formatDistance(event.distance)}
-                      </div>
-                    )}
-                    <EventCard {...eventToCardProps(event)} index={index} />
-                  </div>
-                ))}
-              </div>
-              {filteredEvents.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  {searchQuery || activeFilterCount > 0 ? "No events match your filters" : "No events found nearby"}
-                </div>
-              )}
-            </div>
-          </DrawerContent>
-        </Drawer>
 
         {/* Filter Sheet */}
         <FilterSheet
