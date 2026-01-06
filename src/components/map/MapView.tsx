@@ -276,7 +276,7 @@ const MapView: React.FC<MapViewProps> = ({
       {/* Refresh Location Button */}
       <Button variant="secondary" size="sm" onClick={handleRefreshLocation} className="absolute bottom-14 right-3 z-10 shadow-lg gap-2">
         <LocateFixed className="w-4 h-4" />
-        ​
+        ​Refresh
       </Button>
     </div>;
 };
