@@ -201,11 +201,11 @@ const Profile = () => {
             }}
             className="mt-4"
           >
-            <div className="p-4 rounded-2xl border bg-gradient-to-r from-amber-400 to-amber-600 border-amber-500/30">
+            <div className="p-4 rounded-2xl border bg-gradient-to-r from-amber-500/20 to-amber-500/20 border-amber-500/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500">
-                    <Sparkles className="w-5 h-5 text-white" />
+                    <Crown className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground">{getPlanDisplayName(currentPlan)}</h3>
