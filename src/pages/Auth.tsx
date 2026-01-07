@@ -122,7 +122,7 @@ const Auth = () => {
           muted
           playsInline
           className="absolute w-full h-full object-cover"
-          src="https://assets.mixkit.co/videos/preview/mixkit-people-partying-in-a-nightclub-4718-large.mp4"
+          src="/auth-background.mp4"
         >
         </video>
         
