@@ -29,14 +29,14 @@ interface EditEventSheetProps {
 }
 
 const CATEGORIES = [
-  { value: "party", label: "Party" },
+  { value: "club", label: "Club" },
+  { value: "bar", label: "Bar" },
   { value: "concert", label: "Concert" },
-  { value: "sports", label: "Sports" },
-  { value: "networking", label: "Networking" },
-  { value: "food_drink", label: "Food & Drink" },
-  { value: "arts_culture", label: "Arts & Culture" },
-  { value: "outdoor", label: "Outdoor" },
-  { value: "other", label: "Other" },
+  { value: "festival", label: "Festival" },
+  { value: "house_party", label: "House Party" },
+  { value: "rooftop", label: "Rooftop" },
+  { value: "restaurant", label: "Restaurant" },
+  { value: "coffee", label: "Coffee" },
 ];
 
 export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProps) {
