@@ -1,6 +1,15 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Upload, Calendar, DollarSign, Users, X, Loader2, ImageIcon, Video } from "lucide-react";
+import {
+  Upload,
+  Calendar,
+  DollarSign,
+  Users,
+  X,
+  Loader2,
+  ImageIcon,
+  Video,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -12,7 +21,13 @@ import { toast } from "sonner";
 import { useUserSubscription } from "@/hooks/useSubscription";
 import { LocationPicker } from "@/components/map/LocationPicker";
 import { SubscriptionUpsellModal } from "@/components/subscription/SubscriptionUpsellModal";
-import { isVideoFile, isImageFile, validateVideoFile, validateImageFile, formatDuration } from "@/lib/mediaUtils";
+import { 
+  isVideoFile, 
+  isImageFile, 
+  validateVideoFile, 
+  validateImageFile,
+  formatDuration 
+} from "@/lib/mediaUtils";
 
 const categories = [
   { id: "club", label: "Club", emoji: "🪩" },
@@ -38,7 +53,7 @@ const Create = () => {
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [location, setLocation] = useState({
     address: "",
@@ -68,7 +83,7 @@ const Create = () => {
         toast.error(validation.error);
         return;
       }
-      setMediaType("video");
+      setMediaType('video');
       setVideoDuration(validation.duration || null);
     } else if (isImageFile(file)) {
       // Validate image (5MB max)
@@ -77,7 +92,7 @@ const Create = () => {
         toast.error(validation.error);
         return;
       }
-      setMediaType("image");
+      setMediaType('image');
       setVideoDuration(null);
     } else {
       toast.error("Please upload an image or video file");
@@ -106,9 +121,7 @@ const Create = () => {
     if (!user) return null;
 
     // Get the user's session for authentication
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) {
       toast.error("Not authenticated");
       return null;
@@ -122,37 +135,39 @@ const Create = () => {
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-
+      
       // Track upload progress
-      xhr.upload.addEventListener("progress", (event) => {
+      xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
           const progress = Math.round((event.loaded / event.total) * 100);
           setUploadProgress(progress);
         }
       });
 
-      xhr.addEventListener("load", async () => {
+      xhr.addEventListener('load', async () => {
         setIsUploading(false);
         if (xhr.status >= 200 && xhr.status < 300) {
-          const { data } = supabase.storage.from("event-images").getPublicUrl(fileName);
+          const { data } = supabase.storage
+            .from("event-images")
+            .getPublicUrl(fileName);
           resolve(data.publicUrl);
         } else {
-          reject(new Error("Upload failed"));
+          reject(new Error('Upload failed'));
         }
       });
 
-      xhr.addEventListener("error", () => {
+      xhr.addEventListener('error', () => {
         setIsUploading(false);
-        reject(new Error("Upload failed"));
+        reject(new Error('Upload failed'));
       });
 
       // Get the upload URL and use session token for auth
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const uploadUrl = `${supabaseUrl}/storage/v1/object/event-images/${fileName}`;
 
-      xhr.open("POST", uploadUrl);
-      xhr.setRequestHeader("Authorization", `Bearer ${session.access_token}`);
-      xhr.setRequestHeader("x-upsert", "true");
+      xhr.open('POST', uploadUrl);
+      xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
+      xhr.setRequestHeader('x-upsert', 'true');
       xhr.send(file);
     });
   };
@@ -200,7 +215,9 @@ const Create = () => {
           latitude: location.latitude,
           longitude: location.longitude,
           price: formData.price ? parseFloat(formData.price) : 0,
-          max_guestlist_capacity: formData.capacity ? parseInt(formData.capacity) : null,
+          max_guestlist_capacity: formData.capacity
+            ? parseInt(formData.capacity)
+            : null,
           has_guestlist: formData.hasGuestlist,
           image_url: imageUrl,
           creator_id: user.id,
@@ -242,47 +259,60 @@ const Create = () => {
   };
 
   return (
-    <AppLayout hideNav>
+    <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
-        <div className="flex items-center gap-4 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="font-brand text-xl font-bold text-foreground">Create Event</h1>
+        <div className="px-4 py-4">
+          <h1 className="font-brand text-xl font-bold text-foreground">
+            Create Event
+          </h1>
         </div>
       </header>
 
       <div className="px-4 py-6 space-y-6 pb-32">
         {/* Media upload */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
           <label className="block">
             {mediaPreview ? (
               <div className="relative h-48 rounded-2xl overflow-hidden">
-                {mediaType === "video" ? (
-                  <video src={mediaPreview} className="w-full h-full object-cover" muted playsInline />
+                {mediaType === 'video' ? (
+                  <video
+                    src={mediaPreview}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                  />
                 ) : (
-                  <img src={mediaPreview} alt="Event cover" className="w-full h-full object-cover" />
+                  <img
+                    src={mediaPreview}
+                    alt="Event cover"
+                    className="w-full h-full object-cover"
+                  />
                 )}
-
+                
                 {/* Upload progress overlay */}
                 {isUploading && (
                   <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
                     <div className="w-3/4">
                       <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                        <motion.div
+                        <motion.div 
                           className="h-full bg-primary rounded-full"
                           initial={{ width: 0 }}
                           animate={{ width: `${uploadProgress}%` }}
                           transition={{ duration: 0.2 }}
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground text-center mt-2">Uploading... {uploadProgress}%</p>
+                      <p className="text-xs text-muted-foreground text-center mt-2">
+                        Uploading... {uploadProgress}%
+                      </p>
                     </div>
                   </div>
                 )}
-
+                
                 {!isUploading && (
                   <button
                     type="button"
@@ -296,7 +326,7 @@ const Create = () => {
                   </button>
                 )}
                 <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm text-xs text-foreground flex items-center gap-2">
-                  {mediaType === "video" ? (
+                  {mediaType === 'video' ? (
                     <>
                       <Video className="w-3 h-3" />
                       {videoDuration && formatDuration(videoDuration)}
@@ -312,8 +342,12 @@ const Create = () => {
             ) : (
               <div className="relative h-48 rounded-2xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
                 <Upload className="w-10 h-10 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground">Upload cover image or video</span>
-                <span className="text-xs text-muted-foreground/60 mt-1">Max 15 seconds for videos</span>
+                <span className="text-sm text-muted-foreground">
+                  Upload cover image or video
+                </span>
+                <span className="text-xs text-muted-foreground/60 mt-1">
+                  Max 15 seconds for videos
+                </span>
               </div>
             )}
             <input
@@ -327,14 +361,22 @@ const Create = () => {
         </motion.div>
 
         {/* Category selection */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <label className="text-sm font-medium text-foreground mb-3 block">Event Category</label>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <label className="text-sm font-medium text-foreground mb-3 block">
+            Event Category
+          </label>
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
               <button
                 key={category.id}
                 type="button"
-                onClick={() => setFormData({ ...formData, category: category.id })}
+                onClick={() =>
+                  setFormData({ ...formData, category: category.id })
+                }
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
                   formData.category === category.id
                     ? "gradient-primary text-primary-foreground shadow-glow"
@@ -356,21 +398,29 @@ const Create = () => {
           className="space-y-4"
         >
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Event Title</label>
+            <label className="text-sm font-medium text-foreground mb-2 block">
+              Event Title
+            </label>
             <Input
               placeholder="Give your event a catchy name"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               maxLength={100}
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Description</label>
+            <label className="text-sm font-medium text-foreground mb-2 block">
+              Description
+            </label>
             <textarea
               placeholder="Tell people what your event is about..."
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               maxLength={2000}
               className="flex w-full rounded-xl border border-border bg-secondary/50 px-4 py-3 text-base text-foreground placeholder:text-muted-foreground transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary min-h-[120px] resize-none"
             />
@@ -378,33 +428,46 @@ const Create = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Date *</label>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Date *
+              </label>
               <div className="relative">
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="date"
                   className="pl-10"
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date: e.target.value })
+                  }
                   min={new Date().toISOString().split("T")[0]}
                 />
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Time *</label>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Time *
+              </label>
               <Input
                 type="time"
                 value={formData.time}
-                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, time: e.target.value })
+                }
               />
             </div>
           </div>
 
-          <LocationPicker value={location} onChange={setLocation} />
+          <LocationPicker
+            value={location}
+            onChange={setLocation}
+          />
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Price</label>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Price
+              </label>
               <div className="relative">
                 <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -412,14 +475,18 @@ const Create = () => {
                   placeholder="0 (Free)"
                   className="pl-10"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, price: e.target.value })
+                  }
                   min="0"
                   step="0.01"
                 />
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Capacity</label>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Capacity
+              </label>
               <div className="relative">
                 <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -427,7 +494,9 @@ const Create = () => {
                   placeholder="Unlimited"
                   className="pl-10"
                   value={formData.capacity}
-                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, capacity: e.target.value })
+                  }
                   min="1"
                 />
               </div>
@@ -436,7 +505,11 @@ const Create = () => {
         </motion.div>
 
         {/* Guestlist toggle - Premium feature */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
           <Card className="glass border-white/10 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -444,7 +517,9 @@ const Create = () => {
                   <Users className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Enable Guestlist</h3>
+                  <h3 className="font-semibold text-foreground">
+                    Enable Guestlist
+                  </h3>
                   <p className="text-xs text-muted-foreground">
                     {hasBusinessSubscription
                       ? "Create a guestlist for your event"
@@ -479,8 +554,13 @@ const Create = () => {
       </div>
 
       {/* Fixed bottom button */}
-      <div className="p-4 pb-8">
-        <Button variant="hero" className="w-full" onClick={handleSubmit} disabled={isSubmitting || isUploading}>
+      <div className="fixed bottom-0 left-0 right-0 p-4 glass-strong safe-bottom">
+        <Button
+          variant="hero"
+          className="w-full"
+          onClick={handleSubmit}
+          disabled={isSubmitting || isUploading}
+        >
           {isSubmitting ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
