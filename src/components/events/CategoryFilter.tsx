@@ -8,6 +8,9 @@ const categories = [
   { id: "concert", label: "Concerts", emoji: "🎵" },
   { id: "festival", label: "Festivals", emoji: "🎪" },
   { id: "house_party", label: "House Parties", emoji: "🏠" },
+  { id: "rooftop", label: "Rooftops", emoji: "🌆" },
+  { id: "restaurant", label: "Restaurants", emoji: "🍽️" },
+  { id: "coffee", label: "Coffee", emoji: "☕" },
 ];
 
 interface CategoryFilterProps {

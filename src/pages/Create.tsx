@@ -36,6 +36,9 @@ const categories = [
   { id: "concert", label: "Concert", emoji: "🎵" },
   { id: "festival", label: "Festival", emoji: "🎪" },
   { id: "house_party", label: "House Party", emoji: "🏠" },
+  { id: "rooftop", label: "Rooftop", emoji: "🌆" },
+  { id: "restaurant", label: "Restaurant", emoji: "🍽️" },
+  { id: "coffee", label: "Coffee", emoji: "☕" },
 ];
 
 const Create = () => {

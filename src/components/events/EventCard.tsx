@@ -30,6 +30,9 @@ const categoryColors: Record<string, string> = {
   concert: "from-blue-500 to-cyan-500",
   festival: "from-green-500 to-emerald-500",
   house_party: "from-red-500 to-rose-500",
+  rooftop: "from-sky-500 to-blue-500",
+  restaurant: "from-rose-500 to-pink-500",
+  coffee: "from-amber-600 to-yellow-500",
   default: "from-primary to-accent"
 };
 export const EventCard = ({

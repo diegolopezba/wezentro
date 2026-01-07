@@ -29,6 +29,9 @@ const CATEGORIES = [
   { value: "festival", label: "Festival", color: "from-green-500 to-emerald-500" },
   { value: "house_party", label: "House Party", color: "from-red-500 to-rose-500" },
   { value: "lounge", label: "Lounge", color: "from-indigo-500 to-violet-500" },
+  { value: "rooftop", label: "Rooftop", color: "from-sky-500 to-blue-500" },
+  { value: "restaurant", label: "Restaurant", color: "from-rose-500 to-pink-500" },
+  { value: "coffee", label: "Coffee", color: "from-amber-600 to-yellow-500" },
 ];
 
 const DISTANCE_OPTIONS = [
