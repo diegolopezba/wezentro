@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft,
   Upload,
   Calendar,
   DollarSign,
@@ -260,13 +259,10 @@ const Create = () => {
   };
 
   return (
-    <AppLayout hideNav>
+    <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
-        <div className="flex items-center gap-4 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+        <div className="px-4 py-4">
           <h1 className="font-brand text-xl font-bold text-foreground">
             Create Event
           </h1>
