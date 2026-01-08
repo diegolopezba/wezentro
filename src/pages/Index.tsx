@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventFeed } from "@/components/events/EventFeed";
-import { useFollowingEvents } from "@/hooks/useEvents";
 import { useForYouEvents } from "@/hooks/useForYouEvents";
+import { useFollowingEventsScored } from "@/hooks/useFollowingEventsScored";
 import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ const Index = () => {
   const [showSearch, setShowSearch] = useState(false);
 
   const { data: forYouEvents = [], isLoading: forYouLoading } = useForYouEvents();
-  const { data: followingEvents = [], isLoading: followingLoading } = useFollowingEvents();
+  const { data: followingEvents = [], isLoading: followingLoading } = useFollowingEventsScored();
   const { data: unreadCount = 0 } = useUnreadNotificationsCount();
 
   const events = activeTab === "for-you" ? forYouEvents : followingEvents;
