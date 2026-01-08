@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowRight, Sparkles, AlertCircle } from "lucide-react";
+import { Mail, Lock, ArrowRight, Sparkles, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +14,11 @@ const passwordSchema = z.string().min(6, "Password must be at least 6 characters
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signIn, signUp, isLoading: authLoading } = useAuth();
+  const { user, signIn, signUp, resetPassword, isLoading: authLoading } = useAuth();
 
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const [formData, setFormData] = useState({
@@ -97,6 +98,28 @@ const Auth = () => {
     setIsLoading(false);
   };
 
+  const handleResetPassword = async () => {
+    try {
+      emailSchema.parse(formData.email);
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        setErrors({ email: e.errors[0].message });
+        return;
+      }
+    }
+
+    setIsLoading(true);
+    const { error } = await resetPassword(formData.email);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Check your email for a reset link!");
+      setMode("login");
+    }
+    setIsLoading(false);
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
     if (errors[field as keyof typeof errors]) {
@@ -169,30 +192,39 @@ const Auth = () => {
             className="max-w-sm mx-auto space-y-6"
           >
             {/* Toggle */}
-            <div className="flex p-1 rounded-xl bg-secondary">
-              <button
-                onClick={() => {
-                  setMode("login");
-                  setErrors({});
-                }}
-                className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
-                  mode === "login" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-                }`}
-              >
-                Log In
-              </button>
-              <button
-                onClick={() => {
-                  setMode("signup");
-                  setErrors({});
-                }}
-                className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
-                  mode === "signup" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-                }`}
-              >
-                Sign Up
-              </button>
-            </div>
+            {mode !== "reset" && (
+              <div className="flex p-1 rounded-xl bg-secondary">
+                <button
+                  onClick={() => {
+                    setMode("login");
+                    setErrors({});
+                  }}
+                  className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
+                    mode === "login" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                  }`}
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => {
+                    setMode("signup");
+                    setErrors({});
+                  }}
+                  className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
+                    mode === "signup" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                  }`}
+                >
+                  Sign Up
+                </button>
+              </div>
+            )}
+
+            {mode === "reset" && (
+              <div className="text-center">
+                <h2 className="text-xl font-semibold text-foreground mb-2">Reset Password</h2>
+                <p className="text-sm text-muted-foreground">Enter your email to receive a reset link</p>
+              </div>
+            )}
 
             {/* Form */}
             <div className="space-y-4">
@@ -215,31 +247,45 @@ const Auth = () => {
                 )}
               </div>
 
-              <div>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    type="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange("password", e.target.value)}
-                    className={`pl-12 ${errors.password ? "border-destructive" : ""}`}
-                  />
+              {mode !== "reset" && (
+                <div>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Password"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange("password", e.target.value)}
+                      className={`pl-12 pr-12 ${errors.password ? "border-destructive" : ""}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-destructive text-xs mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.password}
+                    </p>
+                  )}
                 </div>
-                {errors.password && (
-                  <p className="text-destructive text-xs mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {errors.password}
-                  </p>
-                )}
-              </div>
+              )}
 
-              <Button variant="hero" className="w-full" onClick={handleAuth} disabled={isLoading}>
+              <Button 
+                variant="hero" 
+                className="w-full" 
+                onClick={mode === "reset" ? handleResetPassword : handleAuth} 
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 ) : (
                   <>
-                    {mode === "login" ? "Log In" : "Create Account"}
+                    {mode === "login" ? "Log In" : mode === "signup" ? "Create Account" : "Send Reset Link"}
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </>
                 )}
@@ -286,7 +332,31 @@ const Auth = () => {
 
             {mode === "login" && (
               <p className="text-center text-sm text-muted-foreground">
-                Forgot password? <button className="text-primary hover:underline">Reset it</button>
+                Forgot password?{" "}
+                <button 
+                  className="text-primary hover:underline"
+                  onClick={() => {
+                    setMode("reset");
+                    setErrors({});
+                  }}
+                >
+                  Reset it
+                </button>
+              </p>
+            )}
+
+            {mode === "reset" && (
+              <p className="text-center text-sm text-muted-foreground">
+                Remember your password?{" "}
+                <button 
+                  className="text-primary hover:underline"
+                  onClick={() => {
+                    setMode("login");
+                    setErrors({});
+                  }}
+                >
+                  Back to login
+                </button>
               </p>
             )}
           </motion.div>
