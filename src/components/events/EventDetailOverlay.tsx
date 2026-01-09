@@ -29,6 +29,8 @@ export const EventDetailOverlay = () => {
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [mediaLoaded, setMediaLoaded] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { data: event, isLoading, error } = useEvent(selectedEventId || undefined);
@@ -62,6 +64,20 @@ export const EventDetailOverlay = () => {
       } else {
         videoRef.current.pause();
       }
+    }
+  };
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    setAspectRatio(img.naturalWidth / img.naturalHeight);
+    setMediaLoaded(true);
+  };
+
+  const handleVideoMetadata = () => {
+    if (videoRef.current) {
+      const { videoWidth, videoHeight } = videoRef.current;
+      setAspectRatio(videoWidth / videoHeight);
+      setMediaLoaded(true);
     }
   };
 
@@ -125,7 +141,7 @@ export const EventDetailOverlay = () => {
                 layoutId={`event-image-${selectedEventId}`}
                 className="relative w-full"
                 style={{ 
-                  aspectRatio: '16/9',
+                  aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
                   minHeight: '250px',
                   maxHeight: '70vh',
                 }}
@@ -134,7 +150,8 @@ export const EventDetailOverlay = () => {
                   <video 
                     ref={videoRef}
                     src={event.image_url || ""} 
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoadedMetadata={handleVideoMetadata}
                     onClick={togglePlayPause}
                     playsInline
                     autoPlay
@@ -145,7 +162,8 @@ export const EventDetailOverlay = () => {
                   <img 
                     src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} 
                     alt={event.title || "Event"} 
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoad={handleImageLoad}
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
