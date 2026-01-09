@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,7 @@ import { LocationProvider } from "@/contexts/LocationContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { NotificationFeedbackProvider } from "@/components/NotificationFeedbackProvider";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
+import { SplashScreen } from "@/components/SplashScreen";
 import Index from "./pages/Index";
 import Discover from "./pages/Discover";
 import Create from "./pages/Create";
@@ -29,161 +31,168 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner position="top-center" theme="dark" />
-      <BrowserRouter>
-        <AuthProvider>
-          <OneSignalProvider>
-            <NotificationFeedbackProvider>
-              <PushNotificationPrompt>
-                <LocationProvider>
-                <Routes>
-                {/* Public routes */}
-                <Route path="/auth" element={<Auth />} />
-                
-                {/* Protected routes */}
-                <Route
-                  path="/onboarding"
-                  element={
-                    <ProtectedRoute>
-                      <Onboarding />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <Index />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/discover"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <Discover />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/create"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <Create />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/chats"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <Chats />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/chats/:id"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <ChatDetail />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <Settings />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/notifications"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <Notifications />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings/notifications"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <Notifications />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings/subscription"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <Subscription />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/checkout-success"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <CheckoutSuccess />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings/privacy"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <PrivacySettings />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/edit-profile"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <EditProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/event/:id"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <EventDetail />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/user/:id"
-                  element={
-                    <ProtectedRoute requireProfile>
-                      <UserProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-                </LocationProvider>
-              </PushNotificationPrompt>
-            </NotificationFeedbackProvider>
-          </OneSignalProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+
+  return (
+    <>
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="top-center" theme="dark" />
+          <BrowserRouter>
+            <AuthProvider>
+              <OneSignalProvider>
+                <NotificationFeedbackProvider>
+                  <PushNotificationPrompt>
+                    <LocationProvider>
+                      <Routes>
+                        {/* Public routes */}
+                        <Route path="/auth" element={<Auth />} />
+                        
+                        {/* Protected routes */}
+                        <Route
+                          path="/onboarding"
+                          element={
+                            <ProtectedRoute>
+                              <Onboarding />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Index />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/discover"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Discover />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/create"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Create />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/chats"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Chats />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/chats/:id"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <ChatDetail />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/profile"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Profile />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Settings />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/notifications"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Notifications />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings/notifications"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Notifications />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings/subscription"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Subscription />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/checkout-success"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <CheckoutSuccess />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings/privacy"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <PrivacySettings />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/edit-profile"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <EditProfile />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/event/:id"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <EventDetail />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/user/:id"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <UserProfile />
+                            </ProtectedRoute>
+                          }
+                        />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </LocationProvider>
+                  </PushNotificationPrompt>
+                </NotificationFeedbackProvider>
+              </OneSignalProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </>
+  );
+};
 
 export default App;
