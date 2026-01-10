@@ -269,7 +269,7 @@ const Create = () => {
         </div>
       </header>
 
-      <div className="px-4 py-6 space-y-6 pb-32">
+      <div className="px-4 py-6 space-y-6 pb-24">
         {/* Media upload */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -551,25 +551,25 @@ const Create = () => {
             </div>
           </Card>
         </motion.div>
-      </div>
 
-      {/* Fixed bottom button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 glass-strong safe-bottom">
-        <Button
-          variant="hero"
-          className="w-full"
-          onClick={handleSubmit}
-          disabled={isSubmitting || isUploading}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              {isUploading ? `Uploading... ${uploadProgress}%` : "Creating..."}
-            </>
-          ) : (
-            "Create Event"
-          )}
-        </Button>
+        {/* Create button */}
+        <div className="pt-2">
+          <Button
+            variant="hero"
+            className="w-full"
+            onClick={handleSubmit}
+            disabled={isSubmitting || isUploading}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                {isUploading ? `Uploading... ${uploadProgress}%` : "Creating..."}
+              </>
+            ) : (
+              "Create Event"
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Subscription upsell modal */}
