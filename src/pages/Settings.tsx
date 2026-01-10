@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { User, Shield, CreditCard, HelpCircle, LogOut } from "lucide-react";
+import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +10,10 @@ const Settings = () => {
     signOut
   } = useAuth();
   const settingsItems = [{
+    icon: Bookmark,
+    label: "Saved",
+    path: "/saved"
+  }, {
     icon: User,
     label: "Edit Profile",
     path: "/edit-profile"

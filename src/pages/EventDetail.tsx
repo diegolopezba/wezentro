@@ -1,11 +1,12 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
+import { useIsEventSaved, useSaveEvent, useUnsaveEvent } from "@/hooks/useSavedEvents";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { format } from "date-fns";
@@ -82,6 +83,10 @@ const EventDetail = () => {
     data: pendingRequests = []
   } = usePendingGuestlistRequests(id);
 
+  const { data: isSaved } = useIsEventSaved(id);
+  const saveEvent = useSaveEvent();
+  const unsaveEvent = useUnsaveEvent();
+
   const joinGuestlist = useJoinGuestlist();
   const leaveGuestlist = useLeaveGuestlist();
   const isOnGuestlist = !!guestlistStatus;
@@ -90,6 +95,26 @@ const EventDetail = () => {
   const isOwner = user?.id === event?.creator_id;
   const canInviteToGuestlist = isOwner || isApproved;
   const pendingCount = pendingRequests.length;
+
+  const handleSaveToggle = async () => {
+    if (!user) {
+      toast.error("Please sign in to save events");
+      navigate("/auth");
+      return;
+    }
+    try {
+      if (isSaved) {
+        await unsaveEvent.mutateAsync(id!);
+        toast.success("Event removed from saved");
+      } else {
+        await saveEvent.mutateAsync(id!);
+        toast.success("Event saved!");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save event");
+    }
+  };
+
   const handleJoinGuestlist = async () => {
     if (!user) {
       toast.error("Please sign in to join guestlists");
@@ -245,8 +270,13 @@ const EventDetail = () => {
               <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
                 <Send className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="icon">
-                <Heart className="w-5 h-5" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleSaveToggle}
+                disabled={saveEvent.isPending || unsaveEvent.isPending}
+              >
+                <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
               </Button>
               {event.has_guestlist && canInviteToGuestlist && (
                 <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
