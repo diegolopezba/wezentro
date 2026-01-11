@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
 import { useIsEventSaved, useSaveEvent, useUnsaveEvent } from "@/hooks/useSavedEvents";
+import { useIsEventLiked, useLikeEvent, useUnlikeEvent } from "@/hooks/useEventLikes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSelectedEvent } from "@/contexts/SelectedEventContext";
 import { format } from "date-fns";
@@ -46,6 +47,10 @@ export const EventDetailOverlay = () => {
   const { data: isSaved } = useIsEventSaved(selectedEventId || undefined);
   const saveEvent = useSaveEvent();
   const unsaveEvent = useUnsaveEvent();
+
+  const { data: isLiked } = useIsEventLiked(selectedEventId!);
+  const likeEvent = useLikeEvent();
+  const unlikeEvent = useUnlikeEvent();
   
   const isOnGuestlist = !!guestlistStatus;
   const isPending = guestlistStatus?.status === "pending";
@@ -71,6 +76,24 @@ export const EventDetailOverlay = () => {
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to save event");
+    }
+  };
+
+  const handleLikeToggle = async () => {
+    if (!user) {
+      toast.error("Please sign in to like events");
+      closeEvent();
+      navigate("/auth");
+      return;
+    }
+    try {
+      if (isLiked) {
+        await unlikeEvent.mutateAsync(selectedEventId!);
+      } else {
+        await likeEvent.mutateAsync(selectedEventId!);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to like event");
     }
   };
 
@@ -272,6 +295,14 @@ export const EventDetailOverlay = () => {
                       )}
                       <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
                         <Send className="w-5 h-5" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={handleLikeToggle}
+                        disabled={likeEvent.isPending || unlikeEvent.isPending}
+                      >
+                        <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
                       </Button>
                       <Button 
                         variant="ghost" 

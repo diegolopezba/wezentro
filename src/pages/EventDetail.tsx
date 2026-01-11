@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
 import { useIsEventSaved, useSaveEvent, useUnsaveEvent } from "@/hooks/useSavedEvents";
+import { useIsEventLiked, useLikeEvent, useUnlikeEvent } from "@/hooks/useEventLikes";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { format } from "date-fns";
@@ -87,6 +88,10 @@ const EventDetail = () => {
   const saveEvent = useSaveEvent();
   const unsaveEvent = useUnsaveEvent();
 
+  const { data: isLiked } = useIsEventLiked(id!);
+  const likeEvent = useLikeEvent();
+  const unlikeEvent = useUnlikeEvent();
+
   const joinGuestlist = useJoinGuestlist();
   const leaveGuestlist = useLeaveGuestlist();
   const isOnGuestlist = !!guestlistStatus;
@@ -112,6 +117,23 @@ const EventDetail = () => {
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to save event");
+    }
+  };
+
+  const handleLikeToggle = async () => {
+    if (!user) {
+      toast.error("Please sign in to like events");
+      navigate("/auth");
+      return;
+    }
+    try {
+      if (isLiked) {
+        await unlikeEvent.mutateAsync(id!);
+      } else {
+        await likeEvent.mutateAsync(id!);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to like event");
     }
   };
 
@@ -269,6 +291,14 @@ const EventDetail = () => {
               )}
               <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
                 <Send className="w-5 h-5" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleLikeToggle}
+                disabled={likeEvent.isPending || unlikeEvent.isPending}
+              >
+                <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
               </Button>
               <Button 
                 variant="ghost" 
