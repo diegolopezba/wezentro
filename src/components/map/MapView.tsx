@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+// src/components/map/MapView.tsx
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Event } from "@/hooks/useEvents";
@@ -14,6 +15,13 @@ interface MapViewProps {
   onGeolocationError?: (error: string) => void;
 }
 
+const WORLD_VIEW = {
+  center: [0, 20] as [number, number], // world-ish view
+  zoom: 1.2,
+  pitch: 0,
+  bearing: 0,
+};
+
 const MapView: React.FC<MapViewProps> = ({
   events,
   onMarkerClick,
@@ -24,10 +32,16 @@ const MapView: React.FC<MapViewProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
+
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [hasAnimated, setHasAnimated] = useState(false); // Track if intro played
-  const userLocationRef = useRef<[number, number] | null>(null); // Store user location
-  
+
+  // IMPORTANT: use refs to avoid stale closures inside mapbox event handlers
+  const hasAnimatedRef = useRef(false);
+  const geoTriggeredRef = useRef(false);
+
+  // track timeouts so we can clean up safely on unmount
+  const timeoutsRef = useRef<number[]>([]);
+
   const { token: mapboxToken, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
 
   const handleRefreshLocation = () => {
@@ -52,55 +66,77 @@ const MapView: React.FC<MapViewProps> = ({
           coordinates: [event.longitude!, event.latitude!],
         },
       }));
+
     return {
       type: "FeatureCollection" as const,
       features,
     };
   }, [events]);
 
-  // Globe spin animation function
-  const playGlobeSpinAnimation = (targetLocation: [number, number]) => {
-    if (!map.current || hasAnimated) return;
-    
-    console.log("🌍 Starting globe spin animation");
-    setHasAnimated(true);
+  const clearAllTimeouts = () => {
+    timeoutsRef.current.forEach((id) => window.clearTimeout(id));
+    timeoutsRef.current = [];
+  };
 
-    // Phase 1: Jump to space view ABOVE user's location (zoomed out)
+  const scheduleTimeout = (fn: () => void, ms: number) => {
+    const id = window.setTimeout(fn, ms);
+    timeoutsRef.current.push(id);
+    return id;
+  };
+
+  // Full-globe spin → then fly to user
+  const playGlobeSpinAnimation = (targetLocation: [number, number]) => {
+    if (!map.current || hasAnimatedRef.current) return;
+
+    hasAnimatedRef.current = true;
+
+    // Phase 0: jump to world center (full globe view)
     map.current.jumpTo({
-      center: targetLocation, // Already centered on user
-      zoom: 2.5, // Zoomed out to see region
-      pitch: 0,
+      center: WORLD_VIEW.center,
+      zoom: WORLD_VIEW.zoom,
+      pitch: WORLD_VIEW.pitch,
       bearing: 0,
     });
 
-    // Phase 2: Spin 360° around the user's location
-    setTimeout(() => {
-      if (!map.current) return;
-      console.log("🔄 Spinning globe 360°...");
-      map.current.easeTo({
-        bearing: 360, // Full rotation
-        duration: 1500, // 1.5 seconds for spin
-        easing: (t) => t, // Linear easing for smooth rotation
-      });
-    }, 300);
+    // Optional: if you're using globe projection, atmosphere looks nicer if fog is set
+    // (safe even if not supported in some versions)
+    try {
+      map.current.setFog({
+        range: [-1, 2],
+        color: "rgba(255,255,255,0.15)",
+        "high-color": "rgba(255,255,255,0.08)",
+        "space-color": "rgba(0,0,0,1)",
+        "horizon-blend": 0.2,
+      } as any);
+    } catch {
+      // ignore
+    }
 
-    // Phase 3: Zoom in to street level
-    setTimeout(() => {
+    // Phase 1: spin the globe for ~1.6s
+    scheduleTimeout(() => {
       if (!map.current) return;
-      console.log("📍 Zooming to street level:", targetLocation);
-      map.current.flyTo({
-        center: targetLocation, // Same location
-        zoom: 12, // Street level
-        pitch: 0,
-        bearing: 0, // Reset bearing to 0
-        duration: 1200, // 1.2 seconds zoom
-        essential: true,
-        easing: (t) => {
-          // Smooth deceleration
-          return 1 - Math.pow(1 - t, 3);
-        },
+
+      map.current.easeTo({
+        bearing: 360, // one rotation
+        duration: 1600,
+        easing: (t) => t, // linear looks "earthy"
       });
-    }, 1800);
+    }, 150);
+
+    // Phase 2: fly to the user (zoom + pan)
+    scheduleTimeout(() => {
+      if (!map.current) return;
+
+      map.current.flyTo({
+        center: targetLocation,
+        zoom: 12.5,
+        pitch: 0,
+        bearing: 0,
+        duration: 1600,
+        essential: true,
+        easing: (t) => 1 - Math.pow(1 - t, 3),
+      });
+    }, 1750);
   };
 
   // Initialize map
@@ -112,10 +148,11 @@ const MapView: React.FC<MapViewProps> = ({
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/dark-v11",
-      center: [-95, 40], // Start over USA
-      zoom: 1.5, // Zoomed way out to see globe
-      pitch: 0,
-      projection: { name: 'globe' } as any, // Enable globe projection for that Earth effect
+      center: WORLD_VIEW.center,
+      zoom: WORLD_VIEW.zoom,
+      pitch: WORLD_VIEW.pitch,
+      bearing: WORLD_VIEW.bearing,
+      projection: { name: "globe" } as any,
     });
 
     map.current.addControl(
@@ -125,52 +162,89 @@ const MapView: React.FC<MapViewProps> = ({
       "top-right",
     );
 
+    // IMPORTANT: trackUserLocation false prevents constant geolocate updates that can spam animations
     const geolocateControl = new mapboxgl.GeolocateControl({
       positionOptions: {
         enableHighAccuracy: true,
+        timeout: 8000,
       },
-      trackUserLocation: true,
+      trackUserLocation: false,
       showUserHeading: true,
     });
+
     geolocateControlRef.current = geolocateControl;
     map.current.addControl(geolocateControl, "top-right");
 
-    // Handle geolocation events
-    geolocateControl.on("geolocate", (e: any) => {
+    const handleGeoLocate = (e: any) => {
       const userLocation: [number, number] = [e.coords.longitude, e.coords.latitude];
-      userLocationRef.current = userLocation;
-      
-      console.log("📍 Got user location:", userLocation, "hasAnimated:", hasAnimated);
-      
-      // Play globe spin animation on first geolocation
-      if (!hasAnimated) {
-        playGlobeSpinAnimation(userLocation);
-      }
-      
-      onGeolocationSuccess?.();
-    });
 
-    geolocateControl.on("error", (e: GeolocationPositionError) => {
+      // Run animation only once (prevents freeze)
+      if (!hasAnimatedRef.current) {
+        playGlobeSpinAnimation(userLocation);
+      } else if (map.current) {
+        // If user manually refreshes location later, just fly (no spin)
+        map.current.flyTo({
+          center: userLocation,
+          zoom: Math.max(map.current.getZoom(), 12),
+          duration: 900,
+          essential: true,
+        });
+      }
+
+      onGeolocationSuccess?.();
+    };
+
+    const handleGeoError = (e: GeolocationPositionError) => {
       const errorMessages: Record<number, string> = {
         1: "Location access denied. Enable location in your browser settings.",
         2: "Location unavailable. Please try again.",
         3: "Location request timed out. Please try again.",
       };
       onGeolocationError?.(errorMessages[e.code] || "Failed to get location");
-      
-      // Fallback: If geolocation fails, still show some animation to NYC
-      if (!hasAnimated) {
-        playGlobeSpinAnimation([-74.006, 40.7128]); // NYC
+
+      // If location fails, do a short spin then settle back into world view
+      if (!hasAnimatedRef.current && map.current) {
+        hasAnimatedRef.current = true;
+
+        map.current.jumpTo({
+          center: WORLD_VIEW.center,
+          zoom: WORLD_VIEW.zoom,
+          bearing: 0,
+          pitch: 0,
+        });
+
+        scheduleTimeout(() => {
+          if (!map.current) return;
+          map.current.easeTo({ bearing: 360, duration: 1400, easing: (t) => t });
+        }, 150);
+
+        scheduleTimeout(() => {
+          if (!map.current) return;
+          map.current.easeTo({
+            center: WORLD_VIEW.center,
+            zoom: WORLD_VIEW.zoom,
+            bearing: 0,
+            duration: 900,
+            easing: (t) => 1 - Math.pow(1 - t, 3),
+          });
+        }, 1650);
       }
-    });
+    };
 
-    // Auto-trigger geolocation when map loads
-    map.current.on("load", () => {
-      geolocateControl.trigger();
-    });
+    geolocateControl.on("geolocate", handleGeoLocate);
+    geolocateControl.on("error", handleGeoError);
 
+    // Single load handler: trigger geolocation + add sources/layers
     map.current.on("load", () => {
       if (!map.current) return;
+
+      // Ensure we start on full globe (world center), not NYC
+      map.current.jumpTo({
+        center: WORLD_VIEW.center,
+        zoom: WORLD_VIEW.zoom,
+        pitch: WORLD_VIEW.pitch,
+        bearing: WORLD_VIEW.bearing,
+      });
 
       // Add clustered source
       map.current.addSource("events", {
@@ -197,15 +271,7 @@ const MapView: React.FC<MapViewProps> = ({
             50,
             "hsl(351, 100%, 35%)",
           ],
-          "circle-radius": [
-            "step",
-            ["get", "point_count"],
-            20,
-            10,
-            25,
-            50,
-            35,
-          ],
+          "circle-radius": ["step", ["get", "point_count"], 20, 10, 25, 50, 35],
           "circle-stroke-width": 2,
           "circle-stroke-color": "hsla(351, 100%, 60%, 0.5)",
         },
@@ -234,12 +300,7 @@ const MapView: React.FC<MapViewProps> = ({
         source: "events",
         filter: ["!", ["has", "point_count"]],
         paint: {
-          "circle-color": [
-            "case",
-            ["get", "isTonight"],
-            "hsl(351, 100%, 55%)",
-            "hsl(351, 100%, 45%)",
-          ],
+          "circle-color": ["case", ["get", "isTonight"], "hsl(351, 100%, 55%)", "hsl(351, 100%, 45%)"],
           "circle-radius": 8,
           "circle-stroke-width": 2,
           "circle-stroke-color": "hsla(351, 100%, 70%, 0.6)",
@@ -260,17 +321,25 @@ const MapView: React.FC<MapViewProps> = ({
       });
 
       setMapLoaded(true);
+
+      // Auto-trigger geolocation ONCE after map loads (prevents repeated triggers)
+      if (!geoTriggeredRef.current) {
+        geoTriggeredRef.current = true;
+        // small delay helps avoid race conditions on some devices
+        scheduleTimeout(() => geolocateControl.trigger(), 150);
+      }
     });
 
     // Click on cluster to zoom
     map.current.on("click", "clusters", (e) => {
       if (!map.current) return;
-      const features = map.current.queryRenderedFeatures(e.point, {
-        layers: ["clusters"],
-      });
+
+      const features = map.current.queryRenderedFeatures(e.point, { layers: ["clusters"] });
       if (!features.length) return;
+
       const clusterId = features[0].properties?.cluster_id;
       const source = map.current.getSource("events") as mapboxgl.GeoJSONSource;
+
       source.getClusterExpansionZoom(clusterId, (err, zoom) => {
         if (err || !map.current) return;
         const geometry = features[0].geometry as GeoJSON.Point;
@@ -294,6 +363,7 @@ const MapView: React.FC<MapViewProps> = ({
           Math.abs(ev.latitude - clickedCoords[1]) < tolerance &&
           Math.abs(ev.longitude - clickedCoords[0]) < tolerance,
       );
+
       if (eventsAtLocation.length > 0 && onMarkerClick) {
         onMarkerClick(eventsAtLocation);
       }
@@ -314,19 +384,28 @@ const MapView: React.FC<MapViewProps> = ({
     });
 
     return () => {
+      clearAllTimeouts();
+      geolocateControl.off("geolocate", handleGeoLocate);
+      geolocateControl.off("error", handleGeoError);
+
       map.current?.remove();
       map.current = null;
       geolocateControlRef.current = null;
+
+      // reset refs for safety if the component remounts
+      hasAnimatedRef.current = false;
+      geoTriggeredRef.current = false;
+      setMapLoaded(false);
     };
+    // We only want to initialize once per token.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapboxToken]);
 
   // Update GeoJSON source when events change
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
-    const source = map.current.getSource("events") as mapboxgl.GeoJSONSource;
-    if (source) {
-      source.setData(eventsGeoJSON);
-    }
+    const source = map.current.getSource("events") as mapboxgl.GeoJSONSource | undefined;
+    if (source) source.setData(eventsGeoJSON);
   }, [eventsGeoJSON, mapLoaded]);
 
   // Center map on selected event
@@ -338,6 +417,7 @@ const MapView: React.FC<MapViewProps> = ({
         center: [event.longitude, event.latitude],
         zoom: 15,
         duration: 1000,
+        essential: true,
       });
     }
   }, [selectedEventId, events, mapLoaded]);
