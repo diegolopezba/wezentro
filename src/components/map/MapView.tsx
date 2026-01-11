@@ -5,6 +5,7 @@ import { Event } from "@/hooks/useEvents";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { Loader2, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
 interface MapViewProps {
   events: Event[];
   onMarkerClick?: (events: Event[]) => void;
@@ -12,6 +13,7 @@ interface MapViewProps {
   onGeolocationSuccess?: () => void;
   onGeolocationError?: (error: string) => void;
 }
+
 const MapView: React.FC<MapViewProps> = ({
   events,
   onMarkerClick,
@@ -23,7 +25,11 @@ const MapView: React.FC<MapViewProps> = ({
   const map = useRef<mapboxgl.Map | null>(null);
   const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false); // Track if intro played
+  const userLocationRef = useRef<[number, number] | null>(null); // Store user location
+  
   const { token: mapboxToken, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
+
   const handleRefreshLocation = () => {
     geolocateControlRef.current?.trigger();
   };
@@ -52,24 +58,70 @@ const MapView: React.FC<MapViewProps> = ({
     };
   }, [events]);
 
+  // Globe spin animation function
+  const playGlobeSpinAnimation = (targetLocation: [number, number]) => {
+    if (!map.current || hasAnimated) return;
+    
+    setHasAnimated(true);
+
+    // Phase 1: Start from space view (zoomed way out, tilted view)
+    map.current.jumpTo({
+      center: [0, 20], // Start centered on Atlantic Ocean
+      zoom: 1.5,
+      pitch: 0,
+      bearing: 0,
+    });
+
+    // Phase 2: Spin the globe 360° 
+    setTimeout(() => {
+      if (!map.current) return;
+      map.current.easeTo({
+        bearing: 360, // Full rotation
+        duration: 1000, // 1 second for full spin
+        easing: (t) => t, // Linear easing for smooth rotation
+      });
+    }, 100);
+
+    // Phase 3: Zoom in to user location
+    setTimeout(() => {
+      if (!map.current) return;
+      map.current.flyTo({
+        center: targetLocation,
+        zoom: 12,
+        pitch: 0,
+        bearing: 0,
+        duration: 1000, // 1 second zoom
+        essential: true,
+        easing: (t) => {
+          // Smooth easing
+          return t * t * (3 - 2 * t);
+        },
+      });
+    }, 1100);
+  };
+
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current || map.current || !mapboxToken) return;
+
     mapboxgl.accessToken = mapboxToken;
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/dark-v11",
-      center: [-74.006, 40.7128],
-      // Default to NYC, GeolocateControl will center on user
-      zoom: 12,
+      center: [0, 20], // Start at space view
+      zoom: 1.5, // Zoomed way out to see globe
       pitch: 0,
+      projection: { name: 'globe' } as any, // Enable globe projection for that Earth effect
     });
+
     map.current.addControl(
       new mapboxgl.NavigationControl({
         visualizePitch: false,
       }),
       "top-right",
     );
+
     const geolocateControl = new mapboxgl.GeolocateControl({
       positionOptions: {
         enableHighAccuracy: true,
@@ -81,9 +133,18 @@ const MapView: React.FC<MapViewProps> = ({
     map.current.addControl(geolocateControl, "top-right");
 
     // Handle geolocation events
-    geolocateControl.on("geolocate", () => {
+    geolocateControl.on("geolocate", (e: any) => {
+      const userLocation: [number, number] = [e.coords.longitude, e.coords.latitude];
+      userLocationRef.current = userLocation;
+      
+      // Play globe spin animation on first geolocation
+      if (!hasAnimated) {
+        playGlobeSpinAnimation(userLocation);
+      }
+      
       onGeolocationSuccess?.();
     });
+
     geolocateControl.on("error", (e: GeolocationPositionError) => {
       const errorMessages: Record<number, string> = {
         1: "Location access denied. Enable location in your browser settings.",
@@ -91,12 +152,18 @@ const MapView: React.FC<MapViewProps> = ({
         3: "Location request timed out. Please try again.",
       };
       onGeolocationError?.(errorMessages[e.code] || "Failed to get location");
+      
+      // Fallback: If geolocation fails, still show some animation to NYC
+      if (!hasAnimated) {
+        playGlobeSpinAnimation([-74.006, 40.7128]); // NYC
+      }
     });
 
     // Auto-trigger geolocation when map loads
     map.current.on("load", () => {
       geolocateControl.trigger();
     });
+
     map.current.on("load", () => {
       if (!map.current) return;
 
@@ -120,23 +187,19 @@ const MapView: React.FC<MapViewProps> = ({
             "step",
             ["get", "point_count"],
             "hsl(351, 100%, 45%)",
-            // Primary red for small clusters
             10,
             "hsl(351, 100%, 40%)",
-            // Darker for medium
             50,
-            "hsl(351, 100%, 35%)", // Even darker for large
+            "hsl(351, 100%, 35%)",
           ],
           "circle-radius": [
             "step",
             ["get", "point_count"],
             20,
-            // Small clusters
             10,
             25,
-            // Medium clusters
             50,
-            35, // Large clusters
+            35,
           ],
           "circle-stroke-width": 2,
           "circle-stroke-color": "hsla(351, 100%, 60%, 0.5)",
@@ -170,8 +233,7 @@ const MapView: React.FC<MapViewProps> = ({
             "case",
             ["get", "isTonight"],
             "hsl(351, 100%, 55%)",
-            // Brighter for tonight
-            "hsl(351, 100%, 45%)", // Normal primary
+            "hsl(351, 100%, 45%)",
           ],
           "circle-radius": 8,
           "circle-stroke-width": 2,
@@ -191,6 +253,7 @@ const MapView: React.FC<MapViewProps> = ({
           "circle-opacity": 0.3,
         },
       });
+
       setMapLoaded(true);
     });
 
@@ -213,13 +276,12 @@ const MapView: React.FC<MapViewProps> = ({
       });
     });
 
-    // Click on individual event marker - find ALL events at this location
+    // Click on individual event marker
     map.current.on("click", "unclustered-point", (e) => {
       if (!e.features?.length) return;
       const clickedCoords = (e.features[0].geometry as GeoJSON.Point).coordinates;
-      const tolerance = 0.0001; // Small tolerance for floating point comparison
+      const tolerance = 0.0001;
 
-      // Find all events at this location
       const eventsAtLocation = events.filter(
         (ev) =>
           ev.latitude &&
@@ -245,6 +307,7 @@ const MapView: React.FC<MapViewProps> = ({
     map.current.on("mouseleave", "unclustered-point", () => {
       if (map.current) map.current.getCanvas().style.cursor = "";
     });
+
     return () => {
       map.current?.remove();
       map.current = null;
@@ -294,6 +357,7 @@ const MapView: React.FC<MapViewProps> = ({
       </div>
     );
   }
+
   return (
     <div className="absolute inset-0">
       <div ref={mapContainer} className="absolute inset-0" />
@@ -321,4 +385,5 @@ function isEventTonight(startDatetime: string): boolean {
     eventDate.getFullYear() === today.getFullYear()
   );
 }
+
 export default MapView;
