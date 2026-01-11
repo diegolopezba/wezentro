@@ -62,42 +62,45 @@ const MapView: React.FC<MapViewProps> = ({
   const playGlobeSpinAnimation = (targetLocation: [number, number]) => {
     if (!map.current || hasAnimated) return;
     
+    console.log("🌍 Starting globe spin animation");
     setHasAnimated(true);
 
-    // Phase 1: Start from space view (zoomed way out, tilted view)
+    // Phase 1: Jump to space view ABOVE user's location (zoomed out)
     map.current.jumpTo({
-      center: [0, 20], // Start centered on Atlantic Ocean
-      zoom: 1.5,
+      center: targetLocation, // Already centered on user
+      zoom: 2.5, // Zoomed out to see region
       pitch: 0,
       bearing: 0,
     });
 
-    // Phase 2: Spin the globe 360° 
+    // Phase 2: Spin 360° around the user's location
     setTimeout(() => {
       if (!map.current) return;
+      console.log("🔄 Spinning globe 360°...");
       map.current.easeTo({
         bearing: 360, // Full rotation
-        duration: 1000, // 1 second for full spin
+        duration: 1500, // 1.5 seconds for spin
         easing: (t) => t, // Linear easing for smooth rotation
       });
-    }, 100);
+    }, 300);
 
-    // Phase 3: Zoom in to user location
+    // Phase 3: Zoom in to street level
     setTimeout(() => {
       if (!map.current) return;
+      console.log("📍 Zooming to street level:", targetLocation);
       map.current.flyTo({
-        center: targetLocation,
-        zoom: 12,
+        center: targetLocation, // Same location
+        zoom: 12, // Street level
         pitch: 0,
-        bearing: 0,
-        duration: 1000, // 1 second zoom
+        bearing: 0, // Reset bearing to 0
+        duration: 1200, // 1.2 seconds zoom
         essential: true,
         easing: (t) => {
-          // Smooth easing
-          return t * t * (3 - 2 * t);
+          // Smooth deceleration
+          return 1 - Math.pow(1 - t, 3);
         },
       });
-    }, 1100);
+    }, 1800);
   };
 
   // Initialize map
@@ -109,7 +112,7 @@ const MapView: React.FC<MapViewProps> = ({
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/dark-v11",
-      center: [0, 20], // Start at space view
+      center: [-95, 40], // Start over USA
       zoom: 1.5, // Zoomed way out to see globe
       pitch: 0,
       projection: { name: 'globe' } as any, // Enable globe projection for that Earth effect
@@ -136,6 +139,8 @@ const MapView: React.FC<MapViewProps> = ({
     geolocateControl.on("geolocate", (e: any) => {
       const userLocation: [number, number] = [e.coords.longitude, e.coords.latitude];
       userLocationRef.current = userLocation;
+      
+      console.log("📍 Got user location:", userLocation, "hasAnimated:", hasAnimated);
       
       // Play globe spin animation on first geolocation
       if (!hasAnimated) {
