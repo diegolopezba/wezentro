@@ -16,11 +16,14 @@ interface MapViewProps {
 }
 
 const WORLD_VIEW = {
-  center: [0, 20] as [number, number], // world-ish view
+  center: [0, 20] as [number, number],
   zoom: 1.2,
   pitch: 0,
   bearing: 0,
 };
+
+// Runs only once per app session (until the PWA/browser context is closed)
+const INTRO_SESSION_KEY = "zentro.discoveryIntroPlayed.v1";
 
 const MapView: React.FC<MapViewProps> = ({
   events,
@@ -35,7 +38,7 @@ const MapView: React.FC<MapViewProps> = ({
 
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  // IMPORTANT: use refs to avoid stale closures inside mapbox event handlers
+  // IMPORTANT: refs avoid stale closures inside mapbox event handlers
   const hasAnimatedRef = useRef(false);
   const geoTriggeredRef = useRef(false);
 
@@ -84,7 +87,13 @@ const MapView: React.FC<MapViewProps> = ({
     return id;
   };
 
-  // Full-globe spin → then fly to user
+  // "Subtle premium" timings (total ~4–5s)
+  const SPIN_DURATION_MS = 2600;
+  const FLY_DURATION_MS = 2200;
+  const SPIN_START_DELAY_MS = 150;
+  const GAP_AFTER_SPIN_MS = 250; // small pause between spin and zoom
+
+  // Full-globe spin → then fly to user (only once per session)
   const playGlobeSpinAnimation = (targetLocation: [number, number]) => {
     if (!map.current || hasAnimatedRef.current) return;
 
@@ -98,8 +107,7 @@ const MapView: React.FC<MapViewProps> = ({
       bearing: 0,
     });
 
-    // Optional: if you're using globe projection, atmosphere looks nicer if fog is set
-    // (safe even if not supported in some versions)
+    // Optional: globe atmosphere (safe-guarded)
     try {
       map.current.setFog({
         range: [-1, 2],
@@ -112,18 +120,18 @@ const MapView: React.FC<MapViewProps> = ({
       // ignore
     }
 
-    // Phase 1: spin the globe for ~1.6s
+    // Phase 1: spin
     scheduleTimeout(() => {
       if (!map.current) return;
 
       map.current.easeTo({
-        bearing: 360, // one rotation
-        duration: 1600,
-        easing: (t) => t, // linear looks "earthy"
+        bearing: 360,
+        duration: SPIN_DURATION_MS,
+        easing: (t) => t,
       });
-    }, 150);
+    }, SPIN_START_DELAY_MS);
 
-    // Phase 2: fly to the user (zoom + pan)
+    // Phase 2: fly to user (starts after spin + small gap)
     scheduleTimeout(() => {
       if (!map.current) return;
 
@@ -132,11 +140,23 @@ const MapView: React.FC<MapViewProps> = ({
         zoom: 12.5,
         pitch: 0,
         bearing: 0,
-        duration: 1600,
+        duration: FLY_DURATION_MS,
         essential: true,
         easing: (t) => 1 - Math.pow(1 - t, 3),
       });
-    }, 1750);
+    }, SPIN_START_DELAY_MS + SPIN_DURATION_MS + GAP_AFTER_SPIN_MS);
+  };
+
+  const flyToUserNoIntro = (targetLocation: [number, number]) => {
+    if (!map.current) return;
+
+    map.current.flyTo({
+      center: targetLocation,
+      zoom: Math.max(map.current.getZoom(), 12),
+      duration: 900,
+      essential: true,
+      easing: (t) => 1 - Math.pow(1 - t, 3),
+    });
   };
 
   // Initialize map
@@ -162,7 +182,7 @@ const MapView: React.FC<MapViewProps> = ({
       "top-right",
     );
 
-    // IMPORTANT: trackUserLocation false prevents constant geolocate updates that can spam animations
+    // IMPORTANT: trackUserLocation false prevents constant geolocate updates
     const geolocateControl = new mapboxgl.GeolocateControl({
       positionOptions: {
         enableHighAccuracy: true,
@@ -178,17 +198,14 @@ const MapView: React.FC<MapViewProps> = ({
     const handleGeoLocate = (e: any) => {
       const userLocation: [number, number] = [e.coords.longitude, e.coords.latitude];
 
-      // Run animation only once (prevents freeze)
-      if (!hasAnimatedRef.current) {
+      const introPlayedThisSession = sessionStorage.getItem(INTRO_SESSION_KEY) === "1";
+
+      // Intro animation only once per session; otherwise do a normal fly
+      if (!introPlayedThisSession && !hasAnimatedRef.current) {
+        sessionStorage.setItem(INTRO_SESSION_KEY, "1");
         playGlobeSpinAnimation(userLocation);
-      } else if (map.current) {
-        // If user manually refreshes location later, just fly (no spin)
-        map.current.flyTo({
-          center: userLocation,
-          zoom: Math.max(map.current.getZoom(), 12),
-          duration: 900,
-          essential: true,
-        });
+      } else {
+        flyToUserNoIntro(userLocation);
       }
 
       onGeolocationSuccess?.();
@@ -202,43 +219,23 @@ const MapView: React.FC<MapViewProps> = ({
       };
       onGeolocationError?.(errorMessages[e.code] || "Failed to get location");
 
-      // If location fails, do a short spin then settle back into world view
-      if (!hasAnimatedRef.current && map.current) {
-        hasAnimatedRef.current = true;
-
-        map.current.jumpTo({
-          center: WORLD_VIEW.center,
-          zoom: WORLD_VIEW.zoom,
-          bearing: 0,
-          pitch: 0,
-        });
-
-        scheduleTimeout(() => {
-          if (!map.current) return;
-          map.current.easeTo({ bearing: 360, duration: 1400, easing: (t) => t });
-        }, 150);
-
-        scheduleTimeout(() => {
-          if (!map.current) return;
-          map.current.easeTo({
-            center: WORLD_VIEW.center,
-            zoom: WORLD_VIEW.zoom,
-            bearing: 0,
-            duration: 900,
-            easing: (t) => 1 - Math.pow(1 - t, 3),
-          });
-        }, 1650);
+      // If location fails, do NOT block UX. Keep world view.
+      // Optionally play intro once per session using a fallback location (NYC).
+      const introPlayedThisSession = sessionStorage.getItem(INTRO_SESSION_KEY) === "1";
+      if (!introPlayedThisSession && !hasAnimatedRef.current && map.current) {
+        sessionStorage.setItem(INTRO_SESSION_KEY, "1");
+        playGlobeSpinAnimation([-74.006, 40.7128]); // fallback NYC
       }
     };
 
     geolocateControl.on("geolocate", handleGeoLocate);
     geolocateControl.on("error", handleGeoError);
 
-    // Single load handler: trigger geolocation + add sources/layers
+    // Single load handler: add sources/layers + trigger geolocation once
     map.current.on("load", () => {
       if (!map.current) return;
 
-      // Ensure we start on full globe (world center), not NYC
+      // Ensure we start on full globe (world center)
       map.current.jumpTo({
         center: WORLD_VIEW.center,
         zoom: WORLD_VIEW.zoom,
@@ -322,10 +319,9 @@ const MapView: React.FC<MapViewProps> = ({
 
       setMapLoaded(true);
 
-      // Auto-trigger geolocation ONCE after map loads (prevents repeated triggers)
+      // Trigger geolocation ONCE after load
       if (!geoTriggeredRef.current) {
         geoTriggeredRef.current = true;
-        // small delay helps avoid race conditions on some devices
         scheduleTimeout(() => geolocateControl.trigger(), 150);
       }
     });
@@ -392,12 +388,11 @@ const MapView: React.FC<MapViewProps> = ({
       map.current = null;
       geolocateControlRef.current = null;
 
-      // reset refs for safety if the component remounts
+      // reset runtime-only flags (sessionStorage remains)
       hasAnimatedRef.current = false;
       geoTriggeredRef.current = false;
       setMapLoaded(false);
     };
-    // We only want to initialize once per token.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapboxToken]);
 
