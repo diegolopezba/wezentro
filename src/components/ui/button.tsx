@@ -9,14 +9,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-glow",
+        default: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "text-foreground underline-offset-4 hover:underline",
         glass: "glass border-white/10 text-foreground hover:bg-white/10",
-        hero: "gradient-primary text-primary-foreground font-semibold shadow-glow hover:shadow-glow-lg hover:scale-[1.02] active:scale-[0.98]",
+        // Hero button uses red accent for primary CTAs
+        hero: "gradient-red text-white font-semibold shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]",
+        // Premium button with gold/amber accent
         premium: "bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold hover:from-amber-400 hover:to-orange-400 shadow-lg",
       },
       size: {

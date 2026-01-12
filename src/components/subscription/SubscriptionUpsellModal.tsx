@@ -49,10 +49,7 @@ export const SubscriptionUpsellModal = ({
             transition={{ type: "spring", duration: 0.5 }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-md mx-auto"
           >
-            <div className="relative bg-card border border-border rounded-3xl overflow-hidden shadow-2xl">
-              {/* Gradient accent */}
-              <div className="absolute top-0 left-0 right-0 h-32 gradient-primary opacity-20" />
-              
+            <div className="relative bg-card border border-border rounded-3xl overflow-hidden shadow-elevated">
               {/* Close button */}
               <button
                 onClick={onClose}
@@ -63,8 +60,8 @@ export const SubscriptionUpsellModal = ({
 
               <div className="relative p-6 pt-8">
                 {/* Icon */}
-                <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4 shadow-glow">
-                  <Crown className="w-8 h-8 text-primary-foreground" />
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <Crown className="w-8 h-8 text-white" />
                 </div>
 
                 {/* Title */}
@@ -85,11 +82,11 @@ export const SubscriptionUpsellModal = ({
                       transition={{ delay: index * 0.1 }}
                       className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <item.icon className="w-4 h-4 text-primary" />
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                        <item.icon className="w-4 h-4 text-amber-500" />
                       </div>
                       <span className="text-sm text-foreground">{item.label}</span>
-                      <Check className="w-4 h-4 text-primary ml-auto" />
+                      <Check className="w-4 h-4 text-amber-500 ml-auto" />
                     </motion.div>
                   ))}
                 </div>
@@ -108,7 +105,7 @@ export const SubscriptionUpsellModal = ({
                 {/* Actions */}
                 <div className="space-y-3">
                   <Button
-                    variant="hero"
+                    variant="premium"
                     className="w-full"
                     onClick={handleSubscribe}
                   >

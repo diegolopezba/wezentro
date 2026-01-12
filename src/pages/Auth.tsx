@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowRight, Sparkles, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,7 +141,7 @@ const Auth = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-muted-foreground/30 border-t-foreground rounded-full animate-spin" />
       </div>
     );
   }
@@ -161,15 +161,10 @@ const Auth = () => {
         </video>
         
         {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-black/70" />
         
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
-      </div>
-      {/* Ambient effects */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-10">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/10 rounded-full blur-[80px]" />
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
       </div>
 
       {/* Logo section */}
@@ -293,7 +288,7 @@ const Auth = () => {
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     {mode === "login" ? "Log In" : mode === "signup" ? "Create Account" : "Send Reset Link"}
@@ -365,7 +360,7 @@ const Auth = () => {
               <p className="text-center text-sm text-muted-foreground">
                 Forgot password?{" "}
                 <button 
-                  className="text-primary hover:underline"
+                  className="text-foreground hover:underline"
                   onClick={() => {
                     setMode("reset");
                     setErrors({});
@@ -380,7 +375,7 @@ const Auth = () => {
               <p className="text-center text-sm text-muted-foreground">
                 Remember your password?{" "}
                 <button 
-                  className="text-primary hover:underline"
+                  className="text-foreground hover:underline"
                   onClick={() => {
                     setMode("login");
                     setErrors({});
@@ -396,8 +391,8 @@ const Auth = () => {
 
       {/* Terms */}
       <div className="p-6 text-center text-xs text-muted-foreground relative z-10">
-        By continuing, you agree to our <button className="text-primary hover:underline">Terms</button> and{" "}
-        <button className="text-primary hover:underline">Privacy Policy</button>
+        By continuing, you agree to our <button className="text-foreground hover:underline">Terms</button> and{" "}
+        <button className="text-foreground hover:underline">Privacy Policy</button>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, User, Sparkles, Check } from "lucide-react";
+import { ArrowRight, User, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,16 +129,10 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Ambient effects */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/10 rounded-full blur-[80px]" />
-      </div>
-
       {/* Progress bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-secondary z-20">
         <motion.div
-          className="h-full gradient-primary"
+          className="h-full bg-foreground"
           initial={{ width: "33%" }}
           animate={{ width: `${(step / 3) * 100}%` }}
           transition={{ duration: 0.3 }}
@@ -152,7 +146,7 @@ const Onboarding = () => {
         className="pt-16 pb-6 text-center relative z-10"
       >
         <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mx-auto mb-4">
-          <Sparkles className="w-8 h-8 text-primary-foreground" />
+          <img src="/logo.png" alt="Zentro" className="w-10 h-10 object-contain" />
         </div>
         <h1 className="font-brand text-2xl font-bold text-foreground mb-1">
           {step === 1 && "Choose your username"}
@@ -207,7 +201,7 @@ const Onboarding = () => {
                 disabled={isLoading || !formData.username || !!usernameError}
               >
                 {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     Continue
@@ -275,7 +269,7 @@ const Onboarding = () => {
                     onClick={() => handleInterestToggle(interest)}
                     className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
                       formData.interests.includes(interest)
-                        ? "gradient-primary text-primary-foreground"
+                        ? "gradient-red text-white"
                         : "bg-secondary text-muted-foreground hover:text-foreground"
                     }`}
                   >
@@ -306,7 +300,7 @@ const Onboarding = () => {
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
                       Let's Go

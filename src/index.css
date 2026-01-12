@@ -6,62 +6,64 @@
 
 @layer base {
   :root {
-    /* Zentro Dark Theme - Pinterest-inspired nightlife aesthetic */
-    --background: 240 6% 4%;
+    /* Zentro Premium Dark Theme - Elevated, minimal, sophisticated */
+    --background: 0 0% 4%;
     --foreground: 0 0% 98%;
 
-    --card: 240 5% 8%;
+    --card: 0 0% 7%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 5% 10%;
+    --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 351 100% 45%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary is now neutral/white for most UI elements */
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 4%;
 
-    --secondary: 240 4% 14%;
+    --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 60%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 351 100% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 98%;
+
+    /* Red accent - reserved for specific elements */
+    --accent-red: 351 100% 45%;
+    --accent-red-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 4% 18%;
-    --input: 240 4% 18%;
-    --ring: 351 100% 45%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 0 0% 40%;
 
     --radius: 1rem;
 
-    /* Zentro Custom Tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(351 100% 45%) 0%, hsl(351 100% 55%) 100%);
-    --gradient-dark: linear-gradient(180deg, hsl(240 6% 6%) 0%, hsl(240 6% 2%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(240 5% 10%) 0%, hsl(240 5% 6%) 100%);
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(351 100% 45% / 0.15) 0%, transparent 50%);
-
-    --shadow-glow: 0 0 60px hsl(351 100% 45% / 0.2);
+    /* Zentro Premium Tokens */
+    --gradient-red: linear-gradient(135deg, hsl(351 100% 45%) 0%, hsl(351 100% 55%) 100%);
+    
+    --shadow-subtle: 0 2px 8px hsl(0 0% 0% / 0.3);
     --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.4);
     --shadow-elevated: 0 8px 32px hsl(0 0% 0% / 0.5);
 
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-    --sidebar-background: 240 5% 8%;
+    --sidebar-background: 0 0% 6%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 351 100% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4% 14%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 12%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 4% 18%;
-    --sidebar-ring: 351 100% 45%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 0 0% 40%;
   }
 
   .dark {
-    --background: 240 6% 4%;
+    --background: 0 0% 4%;
     --foreground: 0 0% 98%;
   }
 }
@@ -78,7 +80,6 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: "Inter", system-ui, sans-serif;
-    background: var(--gradient-dark);
     min-height: 100vh;
   }
 
@@ -102,20 +103,13 @@
     font-family: "Inter", sans-serif;
   }
 
-  .gradient-primary {
-    background: var(--gradient-primary);
+  /* Red gradient for CTAs */
+  .gradient-red {
+    background: var(--gradient-red);
   }
 
-  .gradient-card {
-    background: var(--gradient-card);
-  }
-
-  .gradient-glow {
-    background: var(--gradient-glow);
-  }
-
-  .shadow-glow {
-    box-shadow: var(--shadow-glow);
+  .shadow-subtle {
+    box-shadow: var(--shadow-subtle);
   }
 
   .shadow-card {
@@ -134,9 +128,9 @@
     @apply bg-card/80 backdrop-blur-2xl border border-border/60;
   }
 
-  .text-gradient {
+  .text-gradient-red {
     @apply bg-clip-text text-transparent;
-    background: var(--gradient-primary);
+    background: var(--gradient-red);
   }
 
   .animate-fade-in {
@@ -149,10 +143,6 @@
 
   .animate-scale-in {
     animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  }
-
-  .animate-pulse-glow {
-    animation: pulseGlow 2s ease-in-out infinite;
   }
 
   .masonry-grid {
@@ -217,16 +207,6 @@
   to {
     opacity: 1;
     transform: scale(1);
-  }
-}
-
-@keyframes pulseGlow {
-  0%,
-  100% {
-    box-shadow: 0 0 20px hsl(351 100% 45% / 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px hsl(351 100% 45% / 0.5);
   }
 }
 
