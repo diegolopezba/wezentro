@@ -271,13 +271,10 @@ const EventDetail = () => {
           </div>
 
           {/* Host */}
-          <div 
-            className="flex items-center gap-3 cursor-pointer" 
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/user/${event.creator_id}`);
-            }}
-          >
+          <div className="flex items-center gap-3 cursor-pointer" onClick={e => {
+          e.stopPropagation();
+          navigate(`/user/${event.creator_id}`);
+        }}>
             <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-full object-cover" />
             <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
           </div>
@@ -295,7 +292,7 @@ const EventDetail = () => {
 
             <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
               <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-accent" />
+                <DollarSign className="w-5 h-5 text-accent bg-primary" />
               </div>
               <div>
                 <p className="font-semibold text-foreground">{formattedPrice}</p>
