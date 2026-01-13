@@ -190,7 +190,7 @@ const Auth = () => {
             <img src="/logo.png" alt="Zentro logo" className="w-20 h-20 object-contain" />
           </div>
         </motion.div>
-        <h1 className="font-brand text-4xl font-bold text-foreground mb-2">Zentro</h1>
+        <h1 className="font-brand text-4xl text-foreground mb-2 font-semibold">zentro</h1>
         
       </motion.div>
 
