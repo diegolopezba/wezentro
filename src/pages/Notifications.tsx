@@ -242,6 +242,7 @@ const GuestlistInvitationNotificationItem = ({
   onRead, 
   onClick 
 }: NotificationItemProps) => {
+  const navigate = useNavigate();
   const { data: event } = useEvent(notification.entity_id || undefined);
   const { data: pendingInvitations } = useMyPendingInvitations();
   const respondToInvitation = useRespondToInvitation();
@@ -267,6 +268,8 @@ const GuestlistInvitationNotificationItem = ({
       });
       toast.success("Invitation accepted!");
       if (!notification.is_read) onRead();
+      // Navigate to the "You Are Going" page
+      navigate(`/going/${notification.entity_id}`);
     } catch (error: any) {
       toast.error(error.message || "Failed to accept");
     } finally {
@@ -458,8 +461,11 @@ const Notifications = () => {
       markRead.mutate(notification.id);
     }
 
-    // Navigate based on entity type - handle both 'profile' and 'user' types
-    if ((notification.entity_type === "profile" || notification.entity_type === "user") && notification.entity_id) {
+    // Navigate based on notification type and entity type
+    if (notification.type === "guestlist_approved" && notification.entity_id) {
+      // Navigate to the "You Are Going" page for approved guestlist
+      navigate(`/going/${notification.entity_id}`);
+    } else if ((notification.entity_type === "profile" || notification.entity_type === "user") && notification.entity_id) {
       navigate(`/user/${notification.entity_id}`);
     } else if (notification.entity_type === "event" && notification.entity_id) {
       navigate(`/event/${notification.entity_id}`);
