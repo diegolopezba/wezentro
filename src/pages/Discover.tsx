@@ -352,24 +352,6 @@ const Discover = () => {
           </div>
         </div>
 
-        {/* No events message */}
-        {eventsWithLocation.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            <div className="text-center bg-card/80 backdrop-blur-md rounded-2xl p-6 mx-4">
-              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="font-brand text-lg font-semibold text-foreground mb-2">
-                {searchQuery || activeFilterCount > 0 ? "No Events Match" : "No Events on Map Yet"}
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                {searchQuery || activeFilterCount > 0
-                  ? "Try adjusting your search or filters"
-                  : "Events with locations will appear here as pins"}
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* Click outside to close */}
         {selectedEvents.length > 0 && <div className="absolute inset-0 z-30" onClick={handleCloseEventCard} />}
