@@ -124,7 +124,7 @@ const Index = () => {
                   transition={{ type: "spring", duration: 0.5 }}
                 />
               )}
-              <span className="relative z-10">For You</span>
+              <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary-foreground" : ""}`}>For You</span>
             </button>
             <button
               onClick={() => setActiveTab("following")}
@@ -141,7 +141,7 @@ const Index = () => {
                   transition={{ type: "spring", duration: 0.5 }}
                 />
               )}
-              <span className="relative z-10">Following</span>
+              <span className={`relative z-10 ${activeTab === "following" ? "text-primary-foreground" : ""}`}>Following</span>
             </button>
           </div>
         </header>
