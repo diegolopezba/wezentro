@@ -51,19 +51,21 @@ export const EventCard = ({
 }: EventCardProps) => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
-  const { data: hasSubscription } = useHasActiveSubscription();
-  
+  const {
+    data: hasSubscription
+  } = useHasActiveSubscription();
+
   // Use expansion transition only on home page
   const isHomePage = routerLocation.pathname === "/";
-  let selectedEventContext: { openEvent: (id: string) => void } | null = null;
-  
+  let selectedEventContext: {
+    openEvent: (id: string) => void;
+  } | null = null;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     selectedEventContext = useSelectedEvent();
   } catch {
     // Context not available, will use navigation
   }
-
   const handleCardClick = () => {
     if (isHomePage && selectedEventContext) {
       selectedEventContext.openEvent(id);
@@ -100,22 +102,20 @@ export const EventCard = ({
       }
     }
   };
-  return <motion.div 
-    layoutId={`event-card-${id}`}
-    initial={{
-      opacity: 0,
-      y: 20
-    }} 
-    animate={{
-      opacity: 1,
-      y: 0
-    }} 
-    transition={{
-      delay: index * 0.05,
-      duration: 0.3,
-      layout: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
-    }} 
-    whileHover={{
+  return <motion.div layoutId={`event-card-${id}`} initial={{
+    opacity: 0,
+    y: 20
+  }} animate={{
+    opacity: 1,
+    y: 0
+  }} transition={{
+    delay: index * 0.05,
+    duration: 0.3,
+    layout: {
+      duration: 0.4,
+      ease: [0.22, 1, 0.36, 1]
+    }
+  }} whileHover={{
     scale: 1.02
   }} whileTap={{
     scale: 0.98
@@ -139,29 +139,18 @@ export const EventCard = ({
               <div className="flex -space-x-1.5">
                 {hasSubscription ? <>
                     {/* Owner avatar first */}
-                    {ownerAvatar && <img src={ownerAvatar} alt="Owner" className={cn("w-5 h-5 rounded-full border-2 border-background object-cover", creatorId && "cursor-pointer hover:scale-110 transition-transform z-10")} onClick={e => {
+                    {ownerAvatar && <img src={ownerAvatar} alt="Owner" className={cn("w-5 h-5 rounded-full border-background object-cover border-0", creatorId && "cursor-pointer hover:scale-110 transition-transform z-10")} onClick={e => {
                 if (creatorId) {
                   e.stopPropagation();
                   navigate(`/user/${creatorId}`);
                 }
               }} />}
                     {/* Attendee avatars (up to 3, excluding owner) */}
-                    {attendeeAvatars.filter(a => a.id !== creatorId).slice(0, ownerAvatar ? 2 : 3).map((attendee, i) => attendee.avatar_url ? <img key={attendee.id} src={attendee.avatar_url} alt="Attendee" className="w-5 h-5 rounded-full border-2 border-background object-cover" /> : <div key={attendee.id} className="w-5 h-5 rounded-full bg-secondary border-2 border-background" />)}
+                    {attendeeAvatars.filter(a => a.id !== creatorId).slice(0, ownerAvatar ? 2 : 3).map((attendee, i) => attendee.avatar_url ? <img key={attendee.id} src={attendee.avatar_url} alt="Attendee" className="w-5 h-5 rounded-full border-background object-cover border-0" /> : <div key={attendee.id} className="w-5 h-5 rounded-full bg-secondary border-2 border-background" />)}
                     {/* Show placeholder circles if we don't have enough avatars */}
                     {attendeeAvatars.filter(a => a.id !== creatorId).length < (ownerAvatar ? 2 : 3) && attendees > attendeeAvatars.filter(a => a.id !== creatorId).length && [...Array(Math.min((ownerAvatar ? 2 : 3) - attendeeAvatars.filter(a => a.id !== creatorId).length, attendees - attendeeAvatars.filter(a => a.id !== creatorId).length))].map((_, i) => <div key={`placeholder-${i}`} className="w-5 h-5 rounded-full bg-secondary border-2 border-background" />)}
               </> : (/* Non-premium: show blurred real avatars */
-            attendeeAvatars.slice(0, 3).map((attendee, i) => 
-              attendee.avatar_url ? (
-                <img 
-                  key={attendee.id} 
-                  src={attendee.avatar_url} 
-                  alt="Attendee" 
-                  className="w-5 h-5 rounded-full border-2 border-background object-cover blur-[2px]" 
-                />
-              ) : (
-                <div key={attendee.id} className="w-5 h-5 rounded-full bg-muted border-2 border-background blur-[2px]" />
-              )
-            ))}
+            attendeeAvatars.slice(0, 3).map((attendee, i) => attendee.avatar_url ? <img key={attendee.id} src={attendee.avatar_url} alt="Attendee" className="w-5 h-5 rounded-full border-2 border-background object-cover blur-[2px]" /> : <div key={attendee.id} className="w-5 h-5 rounded-full bg-muted border-2 border-background blur-[2px]" />))}
               </div>
               <span className="text-[10px] font-medium text-foreground">
                 {attendees}
