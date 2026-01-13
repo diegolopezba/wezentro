@@ -9,7 +9,6 @@ import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubs
 import { useIsEventSaved, useSaveEvent, useUnsaveEvent } from "@/hooks/useSavedEvents";
 import { useIsEventLiked, useLikeEvent, useUnlikeEvent } from "@/hooks/useEventLikes";
 import { useAuth } from "@/contexts/AuthContext";
-
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
@@ -20,11 +19,14 @@ import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
-
 const EventDetail = () => {
-  const { id } = useParams();
+  const {
+    id
+  } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [showManagement, setShowManagement] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showGuestlistInviteModal, setShowGuestlistInviteModal] = useState(false);
@@ -34,21 +36,21 @@ const EventDetail = () => {
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
-
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     setAspectRatio(img.naturalWidth / img.naturalHeight);
     setMediaLoaded(true);
   };
-
   const handleVideoMetadata = () => {
     if (videoRef.current) {
-      const { videoWidth, videoHeight } = videoRef.current;
+      const {
+        videoWidth,
+        videoHeight
+      } = videoRef.current;
       setAspectRatio(videoWidth / videoHeight);
       setMediaLoaded(true);
     }
   };
-
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (videoRef.current) {
@@ -56,7 +58,6 @@ const EventDetail = () => {
       setIsMuted(!isMuted);
     }
   };
-
   const togglePlayPause = () => {
     if (videoRef.current) {
       if (videoRef.current.paused) {
@@ -83,15 +84,16 @@ const EventDetail = () => {
   const {
     data: pendingRequests = []
   } = usePendingGuestlistRequests(id);
-
-  const { data: isSaved } = useIsEventSaved(id);
+  const {
+    data: isSaved
+  } = useIsEventSaved(id);
   const saveEvent = useSaveEvent();
   const unsaveEvent = useUnsaveEvent();
-
-  const { data: isLiked } = useIsEventLiked(id!);
+  const {
+    data: isLiked
+  } = useIsEventLiked(id!);
   const likeEvent = useLikeEvent();
   const unlikeEvent = useUnlikeEvent();
-
   const joinGuestlist = useJoinGuestlist();
   const leaveGuestlist = useLeaveGuestlist();
   const isOnGuestlist = !!guestlistStatus;
@@ -100,7 +102,6 @@ const EventDetail = () => {
   const isOwner = user?.id === event?.creator_id;
   const canInviteToGuestlist = isOwner || isApproved;
   const pendingCount = pendingRequests.length;
-
   const handleSaveToggle = async () => {
     if (!user) {
       toast.error("Please sign in to save events");
@@ -119,7 +120,6 @@ const EventDetail = () => {
       toast.error(error.message || "Failed to save event");
     }
   };
-
   const handleLikeToggle = async () => {
     if (!user) {
       toast.error("Please sign in to like events");
@@ -136,7 +136,6 @@ const EventDetail = () => {
       toast.error(error.message || "Failed to like event");
     }
   };
-
   const handleJoinGuestlist = async () => {
     if (!user) {
       toast.error("Please sign in to join guestlists");
@@ -180,37 +179,14 @@ const EventDetail = () => {
   const formattedDate = format(new Date(event.start_datetime), "EEE, MMM d • h:mm a");
   const formattedPrice = event.price ? `$${event.price}` : "Free";
   const isVideo = isVideoUrl(event.image_url);
-  
   return <div className="min-h-screen bg-background">
       {/* Hero media */}
-      <div 
-        className="relative w-full"
-        style={{ 
-          aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
-          minHeight: '250px',
-          maxHeight: '70vh',
-        }}
-      >
-        {isVideo ? (
-          <video 
-            ref={videoRef}
-            src={event.image_url || ""} 
-            className={`w-full h-full object-cover transition-opacity duration-500 cursor-pointer ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onLoadedMetadata={handleVideoMetadata}
-            onClick={togglePlayPause}
-            playsInline
-            autoPlay
-            muted
-            loop
-          />
-        ) : (
-          <img 
-            src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} 
-            alt={event.title || "Event"} 
-            className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onLoad={handleImageLoad}
-          />
-        )}
+      <div className="relative w-full" style={{
+      aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
+      minHeight: '250px',
+      maxHeight: '70vh'
+    }}>
+        {isVideo ? <video ref={videoRef} src={event.image_url || ""} className={`w-full h-full object-cover transition-opacity duration-500 cursor-pointer ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`} onLoadedMetadata={handleVideoMetadata} onClick={togglePlayPause} playsInline autoPlay muted loop /> : <img src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} alt={event.title || "Event"} className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`} onLoad={handleImageLoad} />}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
 
         {/* Back button */}
@@ -225,18 +201,9 @@ const EventDetail = () => {
           }}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            {isVideo && (
-              <button
-                onClick={toggleMute}
-                className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
-              >
-                {isMuted ? (
-                  <VolumeX className="w-5 h-5 text-white" />
-                ) : (
-                  <Volume2 className="w-5 h-5 text-white" />
-                )}
-              </button>
-            )}
+            {isVideo && <button onClick={toggleMute} className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors">
+                {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
+              </button>}
           </div>
         </div>
       </div>
@@ -260,21 +227,14 @@ const EventDetail = () => {
 
           {/* Host */}
           <div className="flex items-center justify-between">
-            <div 
-  className="flex items-center gap-3 cursor-pointer" 
-  onClick={(e) => {
-    e.stopPropagation();
-    navigate(`/user/${event.creator_id}`);
-  }}
->
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/user/${event.creator_id}`)}>
               <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-full object-cover" />
               <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
             </div>
             
             {/* Event action buttons */}
             <div className="flex items-center gap-1">
-              {isOwner && (
-                <DropdownMenu>
+              {isOwner && <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
                       <MoreVertical className="w-5 h-5" />
@@ -285,66 +245,36 @@ const EventDetail = () => {
                       <Pencil className="w-4 h-4 mr-2" />
                       Edit Event
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setShowDeleteDialog(true)}
-                      className="text-destructive focus:text-destructive"
-                    >
+                    <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
                       <Trash2 className="w-4 h-4 mr-2" />
                       Delete Event
                     </DropdownMenuItem>
                   </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+                </DropdownMenu>}
               <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
                 <Send className="w-5 h-5" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleLikeToggle}
-                disabled={likeEvent.isPending || unlikeEvent.isPending}
-              >
+              <Button variant="ghost" size="icon" onClick={handleLikeToggle} disabled={likeEvent.isPending || unlikeEvent.isPending}>
                 <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleSaveToggle}
-                disabled={saveEvent.isPending || unsaveEvent.isPending}
-              >
+              <Button variant="ghost" size="icon" onClick={handleSaveToggle} disabled={saveEvent.isPending || unsaveEvent.isPending}>
                 <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
               </Button>
-              {event.has_guestlist && canInviteToGuestlist && (
-                <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
+              {event.has_guestlist && canInviteToGuestlist && <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
                   <UserPlus className="w-5 h-5" />
-                </Button>
-              )}
-              {event.has_guestlist && (
-                isOwner ? (
-                  <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
+                </Button>}
+              {event.has_guestlist && (isOwner ? <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
                     Manage
-                    {pendingCount > 0 && (
-                      <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
+                    {pendingCount > 0 && <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
                         {pendingCount}
-                      </span>
-                    )}
-                  </Button>
-                ) : isOnGuestlist ? (
-                  isPending ? (
-                    <Button variant="ghost" size="sm" disabled>
+                      </span>}
+                  </Button> : isOnGuestlist ? isPending ? <Button variant="ghost" size="sm" disabled>
                       <Clock className="w-4 h-4 mr-1" /> Pending
-                    </Button>
-                  ) : (
-                    <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                    </Button> : <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
                       {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Joined</>}
-                    </Button>
-                  )
-                ) : (
-                  <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
+                    </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
                     {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Join</>}
-                  </Button>
-                )
-              )}
+                  </Button>)}
             </div>
           </div>
 
@@ -382,10 +312,7 @@ const EventDetail = () => {
           </div>
 
           {/* Description */}
-          {event.description && <div>
-              <h2 className="font-brand text-lg font-semibold text-foreground mb-3">About</h2>
-              <p className="text-muted-foreground leading-relaxed">{event.description}</p>
-            </div>}
+          {event.description}
 
           {/* Guestlist attendees */}
           {event.has_guestlist && <div>
@@ -396,16 +323,14 @@ const EventDetail = () => {
                 {guestlist.length > 0 && hasSubscription && <span className="text-sm text-primary cursor-pointer">View all</span>}
               </div>
 
-              {guestlist.length > 0 ? (
-                hasSubscription ? (
-                  <>
+              {guestlist.length > 0 ? hasSubscription ? <>
                     {/* Avatars row - Premium users see real avatars */}
                     <div className="flex items-center gap-2 mb-4">
                       <div className="flex -space-x-3">
                         {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={e => {
-                    e.stopPropagation();
-                    navigate(`/user/${entry.user_id}`);
-                  }} />)}
+                  e.stopPropagation();
+                  navigate(`/user/${entry.user_id}`);
+                }} />)}
                       </div>
                       {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
                           +{guestlist.length - 5} more
@@ -427,20 +352,11 @@ const EventDetail = () => {
                           <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
                         </div>)}
                     </div>
-                  </>
-                ) : (
-                  <>
+                  </> : <>
                     {/* Non-premium: show blurred real avatars */}
                     <div className="flex items-center gap-2 mb-4">
                       <div className="flex -space-x-3">
-                        {guestlist.slice(0, 5).map((entry: any, i: number) => (
-                          <img 
-                            key={entry.id} 
-                            src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`}
-                            alt={`Attendee ${i + 1}`}
-                            className="w-10 h-10 rounded-full border-2 border-card object-cover blur-[3px]"
-                          />
-                        ))}
+                        {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover blur-[3px]" />)}
                       </div>
                       {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
                           +{guestlist.length - 5} more
@@ -456,24 +372,15 @@ const EventDetail = () => {
                       <p className="text-muted-foreground text-sm mb-4">
                         Become a Zentro member to see who's on the guestlist
                       </p>
-                      <Button 
-                        variant="hero" 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => navigate("/subscription")}
-                      >
+                      <Button variant="hero" size="sm" className="w-full" onClick={() => navigate("/subscription")}>
                         Become a Member
                       </Button>
                     </div>
-                  </>
-                )
-              ) : <p className="text-muted-foreground text-sm">No one has joined yet. Be the first!</p>}
+                  </> : <p className="text-muted-foreground text-sm">No one has joined yet. Be the first!</p>}
             </div>}
 
           {/* Invitations Sent Section - Owner only */}
-          {isOwner && event.has_guestlist && (
-            <InvitationsSentSection eventId={id!} />
-          )}
+          {isOwner && event.has_guestlist && <InvitationsSentSection eventId={id!} />}
         </motion.div>
       </div>
 
@@ -485,24 +392,13 @@ const EventDetail = () => {
       <ShareEventModal eventId={id!} open={showShareModal} onOpenChange={setShowShareModal} />
 
       {/* Share Guestlist Invite Modal */}
-      {event.has_guestlist && canInviteToGuestlist && (
-        <ShareGuestlistModal eventId={id!} open={showGuestlistInviteModal} onOpenChange={setShowGuestlistInviteModal} />
-      )}
+      {event.has_guestlist && canInviteToGuestlist && <ShareGuestlistModal eventId={id!} open={showGuestlistInviteModal} onOpenChange={setShowGuestlistInviteModal} />}
 
       {/* Edit Event Sheet - Owner only */}
-      {isOwner && (
-        <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} />
-      )}
+      {isOwner && <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} />}
 
       {/* Delete Event Dialog - Owner only */}
-      {isOwner && (
-        <DeleteEventDialog
-          eventId={id!}
-          eventTitle={event.title}
-          open={showDeleteDialog}
-          onOpenChange={setShowDeleteDialog}
-        />
-      )}
+      {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} />}
     </div>;
 };
 export default EventDetail;
