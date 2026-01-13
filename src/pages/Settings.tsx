@@ -75,7 +75,7 @@ const Settings = () => {
         y: 0
       }} transition={{
         delay: 0.3
-      }} onClick={handleSignOut} className="w-full flex items-center gap-4 py-4 mt-8 hover:bg-destructive/10 px-4 transition-colors mx-0">
+      }} onClick={handleSignOut} className="w-full flex items-center gap-4 py-4 mt-8 px-4 transition-colors mx-0 bg-primary-foreground">
           <LogOut className="w-5 h-5 text-destructive" />
           <span className="text-destructive font-medium flex-1 text-left">Log Out</span>
         </motion.button>
