@@ -7,31 +7,21 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-
-const interests = [
-  "Clubs",
-  "Bars",
-  "Concerts",
-  "Festivals",
-  "House Parties",
-  "Rooftops",
-  "Live Music",
-  "DJ Sets",
-];
-
+const interests = ["Clubs", "Bars", "Concerts", "Festivals", "House Parties", "Rooftops", "Live Music", "DJ Sets"];
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { user, refreshProfile } = useAuth();
+  const {
+    user,
+    refreshProfile
+  } = useAuth();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [usernameError, setUsernameError] = useState("");
-
   const [formData, setFormData] = useState({
     username: "",
     fullName: "",
-    interests: [] as string[],
+    interests: [] as string[]
   });
-
   const validateUsername = (username: string) => {
     if (username.length < 3) {
       return "Username must be at least 3 characters";
@@ -44,40 +34,32 @@ const Onboarding = () => {
     }
     return "";
   };
-
   const checkUsernameAvailability = async (username: string) => {
     if (!user) return false;
-    
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("username")
-      .eq("username", username.toLowerCase())
-      .neq("id", user.id)
-      .maybeSingle();
-
+    const {
+      data,
+      error
+    } = await supabase.from("profiles").select("username").eq("username", username.toLowerCase()).neq("id", user.id).maybeSingle();
     if (error) {
       console.error("Error checking username:", error);
       return false;
     }
-
     return !data;
   };
-
   const handleUsernameChange = (value: string) => {
     const lowercased = value.toLowerCase().replace(/[^a-z0-9_]/g, "");
-    setFormData({ ...formData, username: lowercased });
+    setFormData({
+      ...formData,
+      username: lowercased
+    });
     setUsernameError(validateUsername(lowercased));
   };
-
   const handleInterestToggle = (interest: string) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      interests: prev.interests.includes(interest)
-        ? prev.interests.filter((i) => i !== interest)
-        : [...prev.interests, interest],
+      interests: prev.interests.includes(interest) ? prev.interests.filter(i => i !== interest) : [...prev.interests, interest]
     }));
   };
-
   const handleNextStep = async () => {
     if (step === 1) {
       const validationError = validateUsername(formData.username);
@@ -85,68 +67,60 @@ const Onboarding = () => {
         setUsernameError(validationError);
         return;
       }
-
       setIsLoading(true);
       const isAvailable = await checkUsernameAvailability(formData.username);
       setIsLoading(false);
-
       if (!isAvailable) {
         setUsernameError("Username is already taken");
         return;
       }
-
       setStep(2);
     } else if (step === 2) {
       setStep(3);
     }
   };
-
   const handleComplete = async () => {
     if (!user) return;
-
     setIsLoading(true);
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        username: formData.username.toLowerCase(),
-        full_name: formData.fullName || null,
-        interests: formData.interests.length > 0 ? formData.interests : null,
-      })
-      .eq("id", user.id);
-
+    const {
+      error
+    } = await supabase.from("profiles").update({
+      username: formData.username.toLowerCase(),
+      full_name: formData.fullName || null,
+      interests: formData.interests.length > 0 ? formData.interests : null
+    }).eq("id", user.id);
     if (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile. Please try again.");
       setIsLoading(false);
       return;
     }
-
     await refreshProfile();
     toast.success("Welcome to Zentro!");
     navigate("/");
   };
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       {/* Progress bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-secondary z-20">
-        <motion.div
-          className="h-full bg-foreground"
-          initial={{ width: "33%" }}
-          animate={{ width: `${(step / 3) * 100}%` }}
-          transition={{ duration: 0.3 }}
-        />
+        <motion.div className="h-full bg-foreground" initial={{
+        width: "33%"
+      }} animate={{
+        width: `${step / 3 * 100}%`
+      }} transition={{
+        duration: 0.3
+      }} />
       </div>
 
       {/* Logo section */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="pt-16 pb-6 text-center relative z-10"
-      >
-        <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mx-auto mb-4">
-          <img src="/logo.png" alt="Zentro" className="w-10 h-10 object-contain" />
+      <motion.div initial={{
+      opacity: 0,
+      y: -20
+    }} animate={{
+      opacity: 1,
+      y: 0
+    }} className="pt-16 pb-6 text-center relative z-10">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-primary-foreground">
+          <img src="/logo.png" alt="Zentro" className="w-10 h-10 object-fill" />
         </div>
         <h1 className="font-brand text-2xl font-bold text-foreground mb-1">
           {step === 1 && "Choose your username"}
@@ -163,12 +137,13 @@ const Onboarding = () => {
       {/* Content */}
       <div className="flex-1 px-6 relative z-10">
         <div className="max-w-sm mx-auto">
-          {step === 1 && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-6"
-            >
+          {step === 1 && <motion.div initial={{
+          opacity: 0,
+          x: 20
+        }} animate={{
+          opacity: 1,
+          x: 0
+        }} className="space-y-6">
               <div>
                 <label className="text-sm font-medium text-foreground mb-2 block">
                   Username
@@ -177,108 +152,64 @@ const Onboarding = () => {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                     @
                   </span>
-                  <Input
-                    type="text"
-                    placeholder="yourname"
-                    value={formData.username}
-                    onChange={(e) => handleUsernameChange(e.target.value)}
-                    className="pl-9"
-                    maxLength={20}
-                  />
+                  <Input type="text" placeholder="yourname" value={formData.username} onChange={e => handleUsernameChange(e.target.value)} className="pl-9" maxLength={20} />
                 </div>
-                {usernameError && (
-                  <p className="text-destructive text-xs mt-2">{usernameError}</p>
-                )}
+                {usernameError && <p className="text-destructive text-xs mt-2">{usernameError}</p>}
                 <p className="text-muted-foreground text-xs mt-2">
                   Letters, numbers, and underscores only
                 </p>
               </div>
 
-              <Button
-                variant="hero"
-                className="w-full"
-                onClick={handleNextStep}
-                disabled={isLoading || !formData.username || !!usernameError}
-              >
-                {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
+              <Button variant="hero" className="w-full" onClick={handleNextStep} disabled={isLoading || !formData.username || !!usernameError}>
+                {isLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>
                     Continue
                     <ArrowRight className="w-5 h-5 ml-2" />
-                  </>
-                )}
+                  </>}
               </Button>
-            </motion.div>
-          )}
+            </motion.div>}
 
-          {step === 2 && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-6"
-            >
+          {step === 2 && <motion.div initial={{
+          opacity: 0,
+          x: 20
+        }} animate={{
+          opacity: 1,
+          x: 0
+        }} className="space-y-6">
               <div>
                 <label className="text-sm font-medium text-foreground mb-2 block">
                   Display Name
                 </label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="How should we call you?"
-                    value={formData.fullName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, fullName: e.target.value })
-                    }
-                    className="pl-12"
-                  />
+                  <Input type="text" placeholder="How should we call you?" value={formData.fullName} onChange={e => setFormData({
+                ...formData,
+                fullName: e.target.value
+              })} className="pl-12" />
                 </div>
               </div>
               <div className="flex gap-3">
-                <Button
-                  variant="secondary"
-                  className="flex-1"
-                  onClick={() => setStep(1)}
-                >
+                <Button variant="secondary" className="flex-1" onClick={() => setStep(1)}>
                   Back
                 </Button>
-                <Button
-                  variant="hero"
-                  className="flex-1"
-                  onClick={handleNextStep}
-                >
+                <Button variant="hero" className="flex-1" onClick={handleNextStep}>
                   Continue
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </div>
-            </motion.div>
-          )}
+            </motion.div>}
 
-          {step === 3 && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-6"
-            >
+          {step === 3 && <motion.div initial={{
+          opacity: 0,
+          x: 20
+        }} animate={{
+          opacity: 1,
+          x: 0
+        }} className="space-y-6">
               <div className="flex flex-wrap gap-2">
-                {interests.map((interest) => (
-                  <button
-                    key={interest}
-                    type="button"
-                    onClick={() => handleInterestToggle(interest)}
-                    className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
-                      formData.interests.includes(interest)
-                        ? "gradient-red text-white"
-                        : "bg-secondary text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {formData.interests.includes(interest) && (
-                      <Check className="w-4 h-4" />
-                    )}
+                {interests.map(interest => <button key={interest} type="button" onClick={() => handleInterestToggle(interest)} className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${formData.interests.includes(interest) ? "gradient-red text-white" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+                    {formData.interests.includes(interest) && <Check className="w-4 h-4" />}
                     {interest}
-                  </button>
-                ))}
+                  </button>)}
               </div>
 
               <p className="text-muted-foreground text-xs text-center">
@@ -286,48 +217,26 @@ const Onboarding = () => {
               </p>
 
               <div className="flex gap-3">
-                <Button
-                  variant="secondary"
-                  className="flex-1"
-                  onClick={() => setStep(2)}
-                >
+                <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>
                   Back
                 </Button>
-                <Button
-                  variant="hero"
-                  className="flex-1"
-                  onClick={handleComplete}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <>
+                <Button variant="hero" className="flex-1" onClick={handleComplete} disabled={isLoading}>
+                  {isLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>
                       Let's Go
                       <ArrowRight className="w-5 h-5 ml-2" />
-                    </>
-                  )}
+                    </>}
                 </Button>
               </div>
-            </motion.div>
-          )}
+            </motion.div>}
         </div>
       </div>
 
       {/* Skip option */}
-      {step > 1 && (
-        <div className="p-6 text-center relative z-10">
-          <button
-            onClick={handleComplete}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            disabled={isLoading}
-          >
+      {step > 1 && <div className="p-6 text-center relative z-10">
+          <button onClick={handleComplete} className="text-sm text-muted-foreground hover:text-foreground transition-colors" disabled={isLoading}>
             Skip for now
           </button>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
-
 export default Onboarding;
