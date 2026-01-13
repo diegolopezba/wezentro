@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight } from "lucide-react";
+import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +10,7 @@ const Settings = () => {
   const { signOut } = useAuth();
 
   const settingsItems = [
+    { icon: Ticket, label: "Tickets", path: "/settings/tickets" },
     { icon: Bookmark, label: "Saved", path: "/saved" },
     { icon: User, label: "Edit Profile", path: "/edit-profile" },
     { icon: Shield, label: "Privacy", path: "/settings/privacy" },

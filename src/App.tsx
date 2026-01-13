@@ -28,6 +28,8 @@ import EventDetail from "./pages/EventDetail";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import UserProfile from "./pages/UserProfile";
+import Tickets from "./pages/Tickets";
+import YouAreGoing from "./pages/YouAreGoing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -186,6 +188,22 @@ const App = () => {
                           element={
                             <ProtectedRoute requireProfile>
                               <UserProfile />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings/tickets"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Tickets />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/going/:id"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <YouAreGoing />
                             </ProtectedRoute>
                           }
                         />
