@@ -55,7 +55,7 @@ const YouAreGoing = () => {
     opacity: 1
   }} exit={{
     opacity: 0
-  }} className="fixed inset-0 z-50 flex flex-col items-center justify-center px-6 text-primary-foreground safe-top safe-bottom bg-destructive">
+  }} className="fixed inset-0 bg-primary z-50 flex flex-col items-center justify-center px-6 text-primary-foreground safe-top safe-bottom">
       {/* Content */}
       <motion.div initial={{
       opacity: 0,
@@ -72,17 +72,17 @@ const YouAreGoing = () => {
         </p>
 
         {/* Event Creator's Display Name */}
-        <h1 className="text-3xl font-bold mt-4 font-brand">
+        <h1 className="font-bold mt-4 font-brand text-white text-sm">
           {event.creator?.full_name || event.creator?.username || "Host"}
         </h1>
 
         {/* Event Title */}
-        <h2 className="text-xl font-semibold mt-2 opacity-90">
+        <h2 className="font-semibold mt-2 opacity-90 text-primary text-5xl">
           {event.title}
         </h2>
 
         {/* Event Owner's Display Name */}
-        <p className="text-base mt-2 opacity-80">
+        <p className="mt-2 opacity-80 text-primary text-2xl">
           Hosted by {event.creator?.full_name || event.creator?.username}
         </p>
 
