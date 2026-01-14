@@ -316,7 +316,14 @@ const EventDetail = () => {
           </div>
 
           {/* Description */}
-          {event.description}
+          {event.description && (
+            <div className="space-y-2">
+              <h2 className="font-brand text-lg font-semibold text-foreground">About</h2>
+              <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
+                {event.description}
+              </p>
+            </div>
+          )}
 
           {/* Guestlist attendees */}
           {event.has_guestlist && <div>
