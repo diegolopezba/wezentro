@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Settings, Image, Star, Heart, Loader2, Crown, Sparkles } from "lucide-react";
+import { Settings, Image, Star, Heart, Loader2, Crown, Sparkles, Plus } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -197,7 +197,20 @@ const Profile = () => {
       {/* Content based on active tab */}
       <div className="py-4">
         {activeTab === "photos" && <div className="masonry-grid">
-            {photos.length === 0 ? renderEmptyState("No photos yet. Add some from your profile settings!") : photos.map((photo, index) => <motion.div key={photo.id} initial={{
+            {photos.length === 0 ? (
+              <div className="col-span-2 flex flex-col items-center justify-center py-12 gap-4">
+                <p className="text-muted-foreground text-sm">No photos yet</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/edit-profile")}
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add photos to your profile
+                </Button>
+              </div>
+            ) : photos.map((photo, index) => <motion.div key={photo.id} initial={{
           opacity: 0,
           scale: 0.9
         }} animate={{
