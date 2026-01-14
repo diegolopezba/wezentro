@@ -299,7 +299,7 @@ export const EventDetailOverlay = () => {
                         <DollarSign className="w-5 h-5 text-accent" />
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground">{formattedPrice}</p>
+                        <p className="font-semibold text-foreground text-sm">{formattedPrice}</p>
                       </div>
                     </div>
                   </div>
