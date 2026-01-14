@@ -285,7 +285,7 @@ export const EventDetailOverlay = () => {
 
                   {/* Details */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-4 rounded-2xl py-[6px] bg-primary-foreground">
+                    <div className="flex items-center gap-3 p-4 rounded-2xl py-[6px] bg-primary-foreground px-px">
                       <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
                         <Calendar className="w-5 h-5 text-primary" />
                       </div>
@@ -304,7 +304,7 @@ export const EventDetailOverlay = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-4 rounded-2xl py-[6px] bg-primary-foreground">
+                  <div className="flex items-center gap-3 p-4 rounded-2xl py-[6px] bg-primary-foreground px-0">
                     <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
                       <MapPin className="w-5 h-5 text-primary" />
                     </div>
