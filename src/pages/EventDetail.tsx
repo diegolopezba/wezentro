@@ -271,10 +271,16 @@ const EventDetail = () => {
           </div>
 
           {/* Host */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={e => {
-          e.stopPropagation();
-          navigate(`/user/${event.creator_id}`);
-        }}>
+          <div 
+            className="flex items-center gap-3 cursor-pointer" 
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              if (event.creator_id) {
+                navigate(`/user/${event.creator_id}`);
+              }
+            }}
+          >
             <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-full object-cover" />
             <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
           </div>
