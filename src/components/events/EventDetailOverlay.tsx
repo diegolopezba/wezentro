@@ -227,66 +227,71 @@ export const EventDetailOverlay = () => {
                     {event.title && <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>}
                   </div>
 
+                  {/* Event action buttons */}
+                  <div className="flex items-center gap-1">
+                    {isOwner && <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="w-5 h-5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
+                            <Pencil className="w-4 h-4 mr-2" />
+                            Edit Event
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete Event
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>}
+                    <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
+                      <Send className="w-5 h-5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={handleLikeToggle} disabled={likeEvent.isPending || unlikeEvent.isPending}>
+                      <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={handleSaveToggle} disabled={saveEvent.isPending || unsaveEvent.isPending}>
+                      <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
+                    </Button>
+                    {event.has_guestlist && canInviteToGuestlist && <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
+                        <UserPlus className="w-5 h-5" />
+                      </Button>}
+                    {event.has_guestlist && (isOwner ? <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
+                          Manage
+                          {pendingCount > 0 && <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
+                              {pendingCount}
+                            </span>}
+                        </Button> : isOnGuestlist ? isPending ? <Button variant="ghost" size="sm" disabled>
+                            <Clock className="w-4 h-4 mr-1" /> Pending
+                          </Button> : <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                            {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Joined</>}
+                          </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
+                          {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Join</>}
+                        </Button>)}
+                  </div>
+
                   {/* Host */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
-                closeEvent();
-                navigate(`/user/${event.creator_id}`);
-              }}>
-                      <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-full object-cover" />
-                      <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
-                    </div>
-                    
-                    {/* Event action buttons */}
-                    <div className="flex items-center gap-1">
-                      {isOwner && <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="w-5 h-5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
-                              <Pencil className="w-4 h-4 mr-2" />
-                              Edit Event
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Delete Event
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>}
-                      <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
-                        <Send className="w-5 h-5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={handleLikeToggle} disabled={likeEvent.isPending || unlikeEvent.isPending}>
-                        <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={handleSaveToggle} disabled={saveEvent.isPending || unsaveEvent.isPending}>
-                        <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
-                      </Button>
-                      {event.has_guestlist && canInviteToGuestlist && <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
-                          <UserPlus className="w-5 h-5" />
-                        </Button>}
-                      {event.has_guestlist && (isOwner ? <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
-                            Manage
-                            {pendingCount > 0 && <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
-                                {pendingCount}
-                              </span>}
-                          </Button> : isOnGuestlist ? isPending ? <Button variant="ghost" size="sm" disabled>
-                              <Clock className="w-4 h-4 mr-1" /> Pending
-                            </Button> : <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
-                              {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Joined</>}
-                            </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
-                            {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Join</>}
-                          </Button>)}
-                    </div>
+                  <div 
+                    className="flex items-center gap-3 cursor-pointer" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (event.creator_id) {
+                        closeEvent();
+                        navigate(`/user/${event.creator_id}`);
+                      }
+                    }}
+                  >
+                    <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-full object-cover" />
+                    <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
                   </div>
 
                   {/* Details */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-4 rounded-2xl py-[6px] bg-primary-foreground px-px">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary-foreground">
+                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
+                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
                         <Calendar className="w-5 h-5 text-primary" />
                       </div>
                       <div>
@@ -294,31 +299,34 @@ export const EventDetailOverlay = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 p-4 rounded-2xl py-[6px] bg-primary-foreground">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary-foreground">
+                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
+                      <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
                         <DollarSign className="w-5 h-5 text-accent" />
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground text-sm">{formattedPrice}</p>
+                        <p className="font-semibold text-foreground">{formattedPrice}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-4 rounded-2xl py-[6px] bg-primary-foreground px-0">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary-foreground">
+                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
+                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
                       <MapPin className="w-5 h-5 text-primary" />
                     </div>
                     <div className="flex-1">
-                      
-                      <p className="font-semibold text-foreground text-xs">{event.location_name || "Location TBA"}</p>
+                      <p className="text-sm text-foreground">{event.location_name || "Location TBA"}</p>
                     </div>
                   </div>
 
                   {/* Description */}
-                  {event.description && <div>
-                      <h2 className="font-brand text-lg font-semibold text-foreground mb-3">About</h2>
-                      <p className="text-muted-foreground leading-relaxed">{event.description}</p>
-                    </div>}
+                  {event.description && (
+                    <div className="space-y-2">
+                      <h2 className="font-brand text-lg font-semibold text-foreground">About</h2>
+                      <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
+                        {event.description}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Guestlist attendees */}
                   {event.has_guestlist && <div>
