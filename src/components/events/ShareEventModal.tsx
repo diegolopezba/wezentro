@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMutualFollowers, useCreatePrivateChat, useSendMessage } from "@/hooks/useChats";
 import { useSearchUsers } from "@/hooks/useSearchUsers";
 import { useUserSubscription } from "@/hooks/useSubscription";
-import { Loader2, Search, Send } from "lucide-react";
+import { Loader2, Search, Send, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ShareEventModalProps {
@@ -78,6 +78,33 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
       toast.error("Failed to send some invitations");
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleNativeShare = async () => {
+    const shareUrl = `${window.location.origin}/event/${eventId}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Check out this event on Zentro!",
+          text: "I found this awesome event and thought you'd like it!",
+          url: shareUrl,
+        });
+      } catch (error) {
+        // User cancelled or share failed
+        if ((error as Error).name !== "AbortError") {
+          toast.error("Failed to share");
+        }
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Link copied to clipboard!");
+      } catch {
+        toast.error("Failed to copy link");
+      }
     }
   };
 
@@ -153,20 +180,30 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
             )}
           </ScrollArea>
 
-          {/* Send button */}
-          <Button
-            variant="hero"
-            className="w-full"
-            onClick={handleSend}
-            disabled={selectedUsers.length === 0 || isSending}
-          >
-            {isSending ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4 mr-2" />
-            )}
-            Send to {selectedUsers.length} {selectedUsers.length === 1 ? "person" : "people"}
-          </Button>
+          {/* Send button with native share */}
+          <div className="flex gap-2">
+            <Button
+              variant="hero"
+              className="flex-1"
+              onClick={handleSend}
+              disabled={selectedUsers.length === 0 || isSending}
+            >
+              {isSending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4 mr-2" />
+              )}
+              Send to {selectedUsers.length} {selectedUsers.length === 1 ? "person" : "people"}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full shrink-0"
+              onClick={handleNativeShare}
+            >
+              <Share2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
