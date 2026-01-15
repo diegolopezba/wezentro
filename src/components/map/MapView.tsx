@@ -16,7 +16,7 @@ interface MapViewProps {
 }
 
 const WORLD_VIEW = {
-  center: [0, 20] as [number, number],
+  center: [-80, 25] as [number, number], // Centered above Latin America/Caribbean
   zoom: 1.2,
   pitch: 0,
   bearing: 0,
