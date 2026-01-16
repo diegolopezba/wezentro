@@ -114,29 +114,33 @@ export const useNearbyEvents = (
       );
     }
 
-    // Apply date filter
-    if (filters.dateFilter !== "all") {
-      result = result.filter((event) => {
-        const eventDate = new Date(event.start_datetime);
-        
-        switch (filters.dateFilter) {
-          case "tonight":
-            return isTonight(eventDate);
-          case "this_weekend":
-            return isThisWeekend(eventDate);
-          case "custom":
-            if (filters.customDateRange) {
-              return (
-                eventDate >= filters.customDateRange.start &&
-                eventDate <= filters.customDateRange.end
-              );
-            }
-            return true;
-          default:
-            return true;
-        }
-      });
-    }
+    // Apply date filter - always filter out past events first
+    const now = new Date();
+    result = result.filter((event) => {
+      const eventDate = new Date(event.start_datetime);
+      // Always exclude past events
+      if (eventDate < now) return false;
+      
+      // Apply specific date filter if not "all"
+      if (filters.dateFilter === "all") return true;
+      
+      switch (filters.dateFilter) {
+        case "tonight":
+          return isTonight(eventDate);
+        case "this_weekend":
+          return isThisWeekend(eventDate);
+        case "custom":
+          if (filters.customDateRange) {
+            return (
+              eventDate >= filters.customDateRange.start &&
+              eventDate <= filters.customDateRange.end
+            );
+          }
+          return true;
+        default:
+          return true;
+      }
+    });
 
     // Apply category filter
     if (filters.categories.length > 0) {
