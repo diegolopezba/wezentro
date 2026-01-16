@@ -175,14 +175,8 @@ const App = () => {
                             </ProtectedRoute>
                           }
                         />
-                        <Route
-                          path="/event/:id"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <EventDetail />
-                            </ProtectedRoute>
-                          }
-                        />
+                        {/* Public event preview route */}
+                        <Route path="/event/:id" element={<EventDetail />} />
                         <Route
                           path="/user/:id"
                           element={

@@ -99,9 +99,10 @@ const EventDetail = () => {
   const isOnGuestlist = !!guestlistStatus;
   const isPending = guestlistStatus?.status === "pending";
   const isApproved = guestlistStatus?.status === "approved";
-  const isOwner = user?.id === event?.creator_id;
-  const canInviteToGuestlist = isOwner || isApproved;
+  const isOwner = user && user.id === event?.creator_id;
+  const canInviteToGuestlist = user && (isOwner || isApproved);
   const pendingCount = pendingRequests.length;
+  const isAuthenticated = !!user;
   const handleSaveToggle = async () => {
     if (!user) {
       toast.error("Please sign in to save events");
@@ -392,6 +393,21 @@ const EventDetail = () => {
 
           {/* Invitations Sent Section - Owner only */}
           {isOwner && event.has_guestlist && <InvitationsSentSection eventId={id!} />}
+
+          {/* Sign up prompt for unauthenticated users */}
+          {!isAuthenticated && (
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
+              <h3 className="font-brand text-lg font-semibold text-foreground mb-2">
+                Join Zentro to connect
+              </h3>
+              <p className="text-muted-foreground text-sm mb-4">
+                Sign up to join guestlists, save events, and connect with other attendees.
+              </p>
+              <Button variant="hero" className="w-full" onClick={() => navigate("/auth")}>
+                Sign Up / Log In
+              </Button>
+            </div>
+          )}
         </motion.div>
       </div>
 
