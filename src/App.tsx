@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { NotificationFeedbackProvider } from "@/components/NotificationFeedbackProvider";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { SplashScreen } from "@/components/SplashScreen";
+import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import Index from "./pages/Index";
 import Discover from "./pages/Discover";
 import Create from "./pages/Create";
@@ -45,6 +46,7 @@ const App = () => {
           <Toaster />
           <Sonner position="top-center" theme="dark" />
           <BrowserRouter>
+            <DeepLinkHandler />
             <AuthProvider>
               <OneSignalProvider>
                 <NotificationFeedbackProvider>
