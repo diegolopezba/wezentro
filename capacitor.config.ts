@@ -18,6 +18,12 @@ const config: CapacitorConfig = {
       style: 'DARK',
       backgroundColor: '#0A0A0B'
     }
+  },
+  // Deep linking configuration
+  // iOS: Universal Links will use the published domain
+  // Android: App Links will use the published domain
+  android: {
+    allowMixedContent: true
   }
 };
 
