@@ -19,6 +19,11 @@ export const ProtectedRoute = ({ children, requireProfile = false }: ProtectedRo
   }
 
   if (!user) {
+    // Check if user has seen the welcome intro
+    const hasSeenWelcome = localStorage.getItem("zentro_has_seen_welcome");
+    if (!hasSeenWelcome) {
+      return <Navigate to="/welcome" state={{ from: location }} replace />;
+    }
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
