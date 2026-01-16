@@ -12,6 +12,7 @@ import { NotificationFeedbackProvider } from "@/components/NotificationFeedbackP
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { SplashScreen } from "@/components/SplashScreen";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
+import { WalkthroughProvider } from "@/components/walkthrough/WalkthroughProvider";
 import Index from "./pages/Index";
 import Discover from "./pages/Discover";
 import Create from "./pages/Create";
@@ -51,162 +52,164 @@ const App = () => {
               <OneSignalProvider>
                 <NotificationFeedbackProvider>
                   <PushNotificationPrompt>
-                    <LocationProvider>
-                      <Routes>
-                        {/* Public routes */}
-                        <Route path="/auth" element={<Auth />} />
-                        
-                        {/* Protected routes */}
-                        <Route
-                          path="/onboarding"
-                          element={
-                            <ProtectedRoute>
-                              <Onboarding />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Index />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/discover"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Discover />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/create"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Create />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/chats"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Chats />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/chats/:id"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <ChatDetail />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/profile"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Profile />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/settings"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Settings />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/saved"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Saved />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/notifications"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Notifications />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/settings/notifications"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Notifications />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/settings/subscription"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Subscription />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/checkout-success"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <CheckoutSuccess />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/settings/privacy"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <PrivacySettings />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/edit-profile"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <EditProfile />
-                            </ProtectedRoute>
-                          }
-                        />
-                        {/* Public event preview route */}
-                        <Route path="/event/:id" element={<EventDetail />} />
-                        <Route
-                          path="/user/:id"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <UserProfile />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/settings/tickets"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Tickets />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/going/:id"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <YouAreGoing />
-                            </ProtectedRoute>
-                          }
-                        />
-                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </LocationProvider>
+                    <WalkthroughProvider>
+                      <LocationProvider>
+                        <Routes>
+                          {/* Public routes */}
+                          <Route path="/auth" element={<Auth />} />
+                          
+                          {/* Protected routes */}
+                          <Route
+                            path="/onboarding"
+                            element={
+                              <ProtectedRoute>
+                                <Onboarding />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Index />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/discover"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Discover />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/create"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Create />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/chats"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Chats />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/chats/:id"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <ChatDetail />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/profile"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Profile />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Settings />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/saved"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Saved />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/notifications"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Notifications />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings/notifications"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Notifications />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings/subscription"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Subscription />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/checkout-success"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <CheckoutSuccess />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings/privacy"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <PrivacySettings />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/edit-profile"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <EditProfile />
+                              </ProtectedRoute>
+                            }
+                          />
+                          {/* Public event preview route */}
+                          <Route path="/event/:id" element={<EventDetail />} />
+                          <Route
+                            path="/user/:id"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <UserProfile />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings/tickets"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Tickets />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/going/:id"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <YouAreGoing />
+                              </ProtectedRoute>
+                            }
+                          />
+                          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </LocationProvider>
+                    </WalkthroughProvider>
                   </PushNotificationPrompt>
                 </NotificationFeedbackProvider>
               </OneSignalProvider>
