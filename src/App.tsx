@@ -12,7 +12,6 @@ import { NotificationFeedbackProvider } from "@/components/NotificationFeedbackP
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { SplashScreen } from "@/components/SplashScreen";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
-import { WalkthroughProvider } from "@/components/walkthrough/WalkthroughProvider";
 import Index from "./pages/Index";
 import Discover from "./pages/Discover";
 import Create from "./pages/Create";
@@ -29,6 +28,7 @@ import EditProfile from "./pages/EditProfile";
 import EventDetail from "./pages/EventDetail";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
+import Welcome from "./pages/Welcome";
 import UserProfile from "./pages/UserProfile";
 import Tickets from "./pages/Tickets";
 import YouAreGoing from "./pages/YouAreGoing";
@@ -52,12 +52,12 @@ const App = () => {
               <OneSignalProvider>
                 <NotificationFeedbackProvider>
                   <PushNotificationPrompt>
-                    <WalkthroughProvider>
-                      <LocationProvider>
-                        <Routes>
-                          {/* Public routes */}
-                          <Route path="/auth" element={<Auth />} />
-                          
+                    <LocationProvider>
+                      <Routes>
+                        {/* Public routes */}
+                        <Route path="/welcome" element={<Welcome />} />
+                        <Route path="/auth" element={<Auth />} />
+                        
                           {/* Protected routes */}
                           <Route
                             path="/onboarding"
@@ -209,7 +209,6 @@ const App = () => {
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </LocationProvider>
-                    </WalkthroughProvider>
                   </PushNotificationPrompt>
                 </NotificationFeedbackProvider>
               </OneSignalProvider>
