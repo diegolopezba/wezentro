@@ -221,7 +221,7 @@ export const EventDetailOverlay = () => {
                 <div className="space-y-6">
                   {/* Category & title */}
                   <div>
-                    {event.category && <span className="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-primary text-primary-foreground mb-3">
+                    {event.category && <span className="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-primary mb-3 text-primary">
                         {event.category.replace("_", " ")}
                       </span>}
                     {event.title && <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>}
@@ -273,17 +273,14 @@ export const EventDetailOverlay = () => {
                   </div>
 
                   {/* Host */}
-                  <div 
-                    className="flex items-center gap-3 cursor-pointer" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      if (event.creator_id) {
-                        closeEvent();
-                        navigate(`/user/${event.creator_id}`);
-                      }
-                    }}
-                  >
+                  <div className="flex items-center gap-3 cursor-pointer" onClick={e => {
+              e.stopPropagation();
+              e.preventDefault();
+              if (event.creator_id) {
+                closeEvent();
+                navigate(`/user/${event.creator_id}`);
+              }
+            }}>
                     <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-full object-cover" />
                     <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
                   </div>
@@ -319,14 +316,12 @@ export const EventDetailOverlay = () => {
                   </div>
 
                   {/* Description */}
-                  {event.description && (
-                    <div className="space-y-2">
+                  {event.description && <div className="space-y-2">
                       <h2 className="font-brand text-lg font-semibold text-foreground">Acerca de</h2>
                       <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
                         {event.description}
                       </p>
-                    </div>
-                  )}
+                    </div>}
 
                   {/* Guestlist attendees */}
                   {event.has_guestlist && <div>
