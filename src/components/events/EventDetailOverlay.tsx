@@ -221,7 +221,7 @@ export const EventDetailOverlay = () => {
                 <div className="space-y-6">
                   {/* Category & title */}
                   <div>
-                    {event.category && <span className="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-primary mb-3 text-primary">
+                    {event.category && <span className="inline-block px-3 py-1 rounded-full text-xs gradient-primary mb-3 text-primary font-normal">
                         {event.category.replace("_", " ")}
                       </span>}
                     {event.title && <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>}
