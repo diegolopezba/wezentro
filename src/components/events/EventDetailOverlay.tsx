@@ -19,6 +19,8 @@ import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { isVideoUrl } from "@/lib/mediaUtils";
+import { extractColorsFromImage, extractColorsFromVideo, createGradientFromColors, ExtractedColors } from "@/lib/colorExtractor";
+
 export const EventDetailOverlay = () => {
   const navigate = useNavigate();
   const {
@@ -36,6 +38,7 @@ export const EventDetailOverlay = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+  const [extractedColors, setExtractedColors] = useState<ExtractedColors | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const {
     data: event,
@@ -128,6 +131,9 @@ export const EventDetailOverlay = () => {
     const img = e.currentTarget;
     setAspectRatio(img.naturalWidth / img.naturalHeight);
     setMediaLoaded(true);
+    // Extract colors from the image
+    const colors = extractColorsFromImage(img);
+    setExtractedColors(colors);
   };
   const handleVideoMetadata = () => {
     if (videoRef.current) {
@@ -137,6 +143,9 @@ export const EventDetailOverlay = () => {
       } = videoRef.current;
       setAspectRatio(videoWidth / videoHeight);
       setMediaLoaded(true);
+      // Extract colors from the video frame
+      const colors = extractColorsFromVideo(videoRef.current);
+      setExtractedColors(colors);
     }
   };
   const handleJoinGuestlist = async () => {
@@ -208,16 +217,28 @@ export const EventDetailOverlay = () => {
                 </div>
               </motion.div>
 
-              {/* Content */}
-              <motion.div className="relative -mt-16 px-4 pb-8" initial={{
-          opacity: 0,
-          y: 20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.15
-        }}>
+              {/* Content with glassmorphism effect */}
+              <motion.div 
+                className="relative -mt-16 px-4 pb-8 pt-6" 
+                style={{
+                  background: extractedColors 
+                    ? createGradientFromColors(extractedColors)
+                    : 'linear-gradient(to bottom, rgba(20, 20, 25, 0.85) 0%, rgba(15, 15, 20, 0.9) 50%, rgba(10, 10, 15, 0.95) 100%)',
+                  backdropFilter: 'blur(40px)',
+                  WebkitBackdropFilter: 'blur(40px)',
+                }}
+                initial={{
+                  opacity: 0,
+                  y: 20
+                }} 
+                animate={{
+                  opacity: 1,
+                  y: 0
+                }} 
+                transition={{
+                  delay: 0.15
+                }}
+              >
                 <div className="space-y-6">
                   {/* Category & title */}
                   <div>
