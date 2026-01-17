@@ -20,7 +20,6 @@ import { InvitationsSentSection } from "@/components/events/InvitationsSentSecti
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { trackEventView } from "@/lib/analyticsTracking";
-
 const EventDetail = () => {
   const {
     id
@@ -79,7 +78,6 @@ const EventDetail = () => {
       trackEventView(id, user.id);
     }
   }, [id, user?.id]);
-
   const {
     data: event,
     isLoading,
@@ -230,7 +228,7 @@ const EventDetail = () => {
       }} className="space-y-6">
           {/* Category & title */}
           <div>
-            {event.category && <span className="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-primary text-primary-foreground mb-3">
+            {event.category && <span className="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-primary mb-3 text-primary">
                 {event.category.replace("_", " ")}
               </span>}
             {event.title && <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>}
@@ -282,16 +280,13 @@ const EventDetail = () => {
           </div>
 
           {/* Host */}
-          <div 
-            className="flex items-center gap-3 cursor-pointer" 
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              if (event.creator_id) {
-                navigate(`/user/${event.creator_id}`);
-              }
-            }}
-          >
+          <div className="flex items-center gap-3 cursor-pointer" onClick={e => {
+          e.stopPropagation();
+          e.preventDefault();
+          if (event.creator_id) {
+            navigate(`/user/${event.creator_id}`);
+          }
+        }}>
             <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-full object-cover" />
             <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
           </div>
@@ -327,14 +322,12 @@ const EventDetail = () => {
           </div>
 
           {/* Description */}
-          {event.description && (
-            <div className="space-y-2">
+          {event.description && <div className="space-y-2">
               <h2 className="font-brand text-lg font-semibold text-foreground">About</h2>
               <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
                 {event.description}
               </p>
-            </div>
-          )}
+            </div>}
 
           {/* Guestlist attendees */}
           {event.has_guestlist && <div>
@@ -405,8 +398,7 @@ const EventDetail = () => {
           {isOwner && event.has_guestlist && <InvitationsSentSection eventId={id!} />}
 
           {/* Sign up prompt for unauthenticated users */}
-          {!isAuthenticated && (
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
+          {!isAuthenticated && <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
               <h3 className="font-brand text-lg font-semibold text-foreground mb-2">
                 Join Zentro to connect
               </h3>
@@ -416,8 +408,7 @@ const EventDetail = () => {
               <Button variant="hero" className="w-full" onClick={() => navigate("/auth")}>
                 Sign Up / Log In
               </Button>
-            </div>
-          )}
+            </div>}
         </motion.div>
       </div>
 
