@@ -8,8 +8,6 @@ import { Loader2, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createMiniEventMarkerElement, injectMiniMarkerStyles } from "./MiniEventMarker";
 
-// Zoom threshold for showing mini cards vs circle markers
-const MINI_CARD_ZOOM_THRESHOLD = 13;
 
 interface MapViewProps {
   events: Event[];
@@ -89,7 +87,7 @@ const MapView: React.FC<MapViewProps> = ({
   }, []);
 
   // Create custom mini event card markers
-  const createCustomMarkers = useCallback(() => {
+  const createCustomMarkers = useCallback((zoom: number) => {
     if (!map.current || !mapLoaded) return;
     
     clearCustomMarkers();
@@ -99,10 +97,9 @@ const MapView: React.FC<MapViewProps> = ({
     
     unclusteredEvents.forEach((event) => {
       const markerElement = createMiniEventMarkerElement({
-        title: event.title || "Evento",
         imageUrl: event.image_url || "/placeholder.svg",
-        startDatetime: event.start_datetime,
         isTonight: isEventTonight(event.start_datetime),
+        zoom,
       });
 
       markerElement.addEventListener("click", () => {
@@ -113,7 +110,7 @@ const MapView: React.FC<MapViewProps> = ({
 
       const marker = new mapboxgl.Marker({
         element: markerElement,
-        anchor: "bottom",
+        anchor: "center",
       })
         .setLngLat([event.longitude!, event.latitude!])
         .addTo(map.current!);
@@ -122,37 +119,21 @@ const MapView: React.FC<MapViewProps> = ({
     });
   }, [events, mapLoaded, clearCustomMarkers, onMarkerClick]);
 
-  // Toggle between circle layers and custom markers based on zoom
-  const updateMarkerVisibility = useCallback((zoom: number) => {
+  // Update markers when zoom changes (recreate with new sizes)
+  const updateMarkersForZoom = useCallback((zoom: number) => {
     if (!map.current || !mapLoaded) return;
 
-    const showMiniCards = zoom >= MINI_CARD_ZOOM_THRESHOLD;
-
-    // Toggle circle layer visibility
+    // Hide circle layers (we always use custom markers now)
     if (map.current.getLayer("unclustered-point")) {
-      map.current.setLayoutProperty(
-        "unclustered-point",
-        "visibility",
-        showMiniCards ? "none" : "visible"
-      );
+      map.current.setLayoutProperty("unclustered-point", "visibility", "none");
     }
     if (map.current.getLayer("unclustered-point-pulse")) {
-      map.current.setLayoutProperty(
-        "unclustered-point-pulse",
-        "visibility",
-        showMiniCards ? "none" : "visible"
-      );
+      map.current.setLayoutProperty("unclustered-point-pulse", "visibility", "none");
     }
 
-    // Toggle custom markers
-    if (showMiniCards) {
-      if (markersRef.current.length === 0) {
-        createCustomMarkers();
-      }
-    } else {
-      clearCustomMarkers();
-    }
-  }, [mapLoaded, createCustomMarkers, clearCustomMarkers]);
+    // Always show custom markers, update their size based on zoom
+    createCustomMarkers(zoom);
+  }, [mapLoaded, createCustomMarkers]);
 
   const clearAllTimeouts = () => {
     timeoutsRef.current.forEach((id) => window.clearTimeout(id));
@@ -488,16 +469,14 @@ const MapView: React.FC<MapViewProps> = ({
     const source = map.current.getSource("events") as mapboxgl.GeoJSONSource | undefined;
     if (source) source.setData(eventsGeoJSON);
     
-    // Recreate custom markers if we're zoomed in enough
-    if (currentZoom >= MINI_CARD_ZOOM_THRESHOLD) {
-      createCustomMarkers();
-    }
-  }, [eventsGeoJSON, mapLoaded, currentZoom, createCustomMarkers]);
+    // Recreate custom markers with current zoom
+    updateMarkersForZoom(currentZoom);
+  }, [eventsGeoJSON, mapLoaded, currentZoom, updateMarkersForZoom]);
 
-  // Update marker visibility based on zoom level
+  // Update markers when zoom level changes
   useEffect(() => {
-    updateMarkerVisibility(currentZoom);
-  }, [currentZoom, updateMarkerVisibility]);
+    updateMarkersForZoom(currentZoom);
+  }, [currentZoom, updateMarkersForZoom]);
 
   // Center map on selected event
   useEffect(() => {
