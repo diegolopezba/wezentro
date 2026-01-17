@@ -87,8 +87,8 @@ export const FilterSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
-        <SheetHeader className="pb-4">
+      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl flex flex-col">
+        <SheetHeader className="pb-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <SheetTitle className="font-brand text-xl">Filtros</SheetTitle>
             <Button
@@ -103,7 +103,7 @@ export const FilterSheet = ({
           </div>
         </SheetHeader>
 
-        <div className="space-y-6 overflow-y-auto pb-24">
+        <div className="flex-1 overflow-y-auto space-y-6 pb-24 overscroll-contain">
           {/* Date Filter */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-foreground">
