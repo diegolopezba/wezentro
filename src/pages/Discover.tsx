@@ -482,9 +482,9 @@ const Discover = () => {
         {/* Filter Sheet */}
         <FilterSheet
           open={isFilterOpen}
-          onClose={() => setIsFilterOpen(false)}
-          onApply={handleApplyFilters}
-          initialFilters={filters}
+          onOpenChange={setIsFilterOpen}
+          filters={filters}
+          onApplyFilters={handleApplyFilters}
         />
       </div>
     </AppLayout>

@@ -62,7 +62,7 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
 
   const handleSend = async () => {
     if (selectedUsers.length === 0) {
-      toast.error("Select at least one person to invite");
+      toast.error("Selecciona al menos una persona para invitar");
       return;
     }
 
@@ -72,14 +72,14 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
         userIds: selectedUsers,
       });
 
-      toast.success(`Invitation sent to ${selectedUsers.length} ${selectedUsers.length === 1 ? "person" : "people"}`);
+      toast.success(`Invitación enviada a ${selectedUsers.length} ${selectedUsers.length === 1 ? "persona" : "personas"}`);
       setSelectedUsers([]);
       onOpenChange(false);
     } catch (error: any) {
       if (error.message?.includes("duplicate")) {
-        toast.error("Some users were already invited");
+        toast.error("Algunos usuarios ya fueron invitados");
       } else {
-        toast.error("Failed to send invitations");
+        toast.error("Error al enviar invitaciones");
       }
     }
   };
@@ -92,7 +92,7 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
         <DialogHeader>
           <DialogTitle className="font-brand flex items-center gap-2">
             <Users className="w-5 h-5 text-primary" />
-            Invite to Guestlist
+            Invitar a la lista
           </DialogTitle>
         </DialogHeader>
 
@@ -101,7 +101,7 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder={isBusinessUser ? "Search users..." : "Search mutual followers..."}
+              placeholder={isBusinessUser ? "Buscar usuarios..." : "Buscar seguidores mutuos..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -118,18 +118,18 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
               <div className="flex flex-col items-center justify-center h-full text-center px-4">
                 <p className="text-muted-foreground text-sm">
                   {isBusinessUser 
-                    ? (searchQuery.length < 2 ? "Type to search for any user" : "No users found")
+                    ? (searchQuery.length < 2 ? "Escribe para buscar usuarios" : "No se encontraron usuarios")
                     : (searchQuery 
-                        ? "No matching followers found" 
+                        ? "No se encontraron seguidores" 
                         : availableFollowersCount === 0 
-                          ? "All your mutual followers are already on the guestlist!"
-                          : "No mutual followers yet"
+                          ? "¡Todos tus seguidores mutuos ya están en la lista!"
+                          : "Aún no tienes seguidores mutuos"
                       )
                   }
                 </p>
                 {!isBusinessUser && (
                   <p className="text-muted-foreground text-xs mt-1">
-                    You can only invite people who follow you back
+                    Solo puedes invitar a personas que te siguen de vuelta
                   </p>
                 )}
               </div>
@@ -179,7 +179,7 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
             ) : (
               <Users className="w-4 h-4 mr-2" />
             )}
-            Invite {selectedUsers.length} {selectedUsers.length === 1 ? "person" : "people"}
+            Invitar a {selectedUsers.length} {selectedUsers.length === 1 ? "persona" : "personas"}
           </Button>
         </div>
       </DialogContent>

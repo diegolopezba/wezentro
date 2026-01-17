@@ -43,13 +43,13 @@ export const NewChatModal = ({ open, onOpenChange }: NewChatModalProps) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-background border-border">
         <DialogHeader>
-          <DialogTitle className="text-foreground">New Message</DialogTitle>
+          <DialogTitle className="text-foreground">Nuevo mensaje</DialogTitle>
         </DialogHeader>
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search mutual followers..."
+            placeholder="Buscar seguidores mutuos..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 bg-muted/50 border-border"
@@ -59,13 +59,13 @@ export const NewChatModal = ({ open, onOpenChange }: NewChatModalProps) => {
         <div className="mt-2 max-h-[300px] overflow-y-auto space-y-1">
           {isLoading ? (
             <div className="py-8 text-center text-muted-foreground text-sm">
-              Loading...
+              Cargando...
             </div>
           ) : filteredFollowers.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground text-sm">
               {searchQuery
-                ? "No users found"
-                : "You can only message mutual followers"}
+                ? "No se encontraron usuarios"
+                : "Solo puedes enviar mensajes a seguidores mutuos"}
             </div>
           ) : (
             filteredFollowers.map((user, index) => (

@@ -38,9 +38,9 @@ export const GuestlistManagementSheet = ({
     setProcessingIds((prev) => new Set(prev).add(entryId));
     try {
       await approveEntry.mutateAsync({ entryId, eventId, userId });
-      toast.success("Request approved");
+      toast.success("Solicitud aprobada");
     } catch (error: any) {
-      toast.error(error.message || "Failed to approve");
+      toast.error(error.message || "Error al aprobar");
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -54,9 +54,9 @@ export const GuestlistManagementSheet = ({
     setProcessingIds((prev) => new Set(prev).add(entryId));
     try {
       await rejectEntry.mutateAsync({ entryId, eventId, userId });
-      toast.success("Request declined");
+      toast.success("Solicitud rechazada");
     } catch (error: any) {
-      toast.error(error.message || "Failed to decline");
+      toast.error(error.message || "Error al rechazar");
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -71,7 +71,7 @@ export const GuestlistManagementSheet = ({
       <SheetContent side="bottom" className="h-[70vh] rounded-t-3xl">
         <SheetHeader className="pb-4">
           <SheetTitle className="font-brand text-lg">
-            Pending Requests ({pendingRequests.length})
+            Solicitudes pendientes ({pendingRequests.length})
           </SheetTitle>
         </SheetHeader>
 
@@ -89,9 +89,9 @@ export const GuestlistManagementSheet = ({
               <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-4">
                 <Users className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h2 className="font-medium text-foreground mb-1">No pending requests</h2>
+              <h2 className="font-medium text-foreground mb-1">Sin solicitudes pendientes</h2>
               <p className="text-sm text-muted-foreground">
-                New requests will appear here
+                Las nuevas solicitudes aparecerán aquí
               </p>
             </motion.div>
           ) : (

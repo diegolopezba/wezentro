@@ -17,29 +17,29 @@ interface FilterSheetProps {
 }
 
 const DATE_OPTIONS = [
-  { value: "all", label: "All Dates" },
-  { value: "tonight", label: "Tonight" },
-  { value: "this_weekend", label: "This Weekend" },
+  { value: "all", label: "Todas las fechas" },
+  { value: "tonight", label: "Esta noche" },
+  { value: "this_weekend", label: "Este fin de semana" },
 ] as const;
 
 const CATEGORIES = [
   { value: "club", label: "Club", color: "from-purple-500 to-pink-500" },
   { value: "bar", label: "Bar", color: "from-amber-500 to-orange-500" },
-  { value: "concert", label: "Concert", color: "from-blue-500 to-cyan-500" },
+  { value: "concert", label: "Concierto", color: "from-blue-500 to-cyan-500" },
   { value: "festival", label: "Festival", color: "from-green-500 to-emerald-500" },
-  { value: "house_party", label: "House Party", color: "from-red-500 to-rose-500" },
+  { value: "house_party", label: "Fiesta en casa", color: "from-red-500 to-rose-500" },
   { value: "lounge", label: "Lounge", color: "from-indigo-500 to-violet-500" },
   { value: "rooftop", label: "Rooftop", color: "from-sky-500 to-blue-500" },
-  { value: "restaurant", label: "Restaurant", color: "from-rose-500 to-pink-500" },
-  { value: "coffee", label: "Coffee", color: "from-amber-600 to-yellow-500" },
+  { value: "restaurant", label: "Restaurante", color: "from-rose-500 to-pink-500" },
+  { value: "coffee", label: "Café", color: "from-amber-600 to-yellow-500" },
 ];
 
 const DISTANCE_OPTIONS = [
-  { value: null, label: "Any distance" },
-  { value: 1, label: "1 mile" },
-  { value: 5, label: "5 miles" },
-  { value: 10, label: "10 miles" },
-  { value: 25, label: "25 miles" },
+  { value: null, label: "Cualquier distancia" },
+  { value: 1, label: "1 km" },
+  { value: 5, label: "5 km" },
+  { value: 10, label: "10 km" },
+  { value: 25, label: "25 km" },
 ];
 
 export const FilterSheet = ({
@@ -90,7 +90,7 @@ export const FilterSheet = ({
       <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
         <SheetHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <SheetTitle className="font-brand text-xl">Filters</SheetTitle>
+            <SheetTitle className="font-brand text-xl">Filtros</SheetTitle>
             <Button
               variant="ghost"
               size="sm"
@@ -98,7 +98,7 @@ export const FilterSheet = ({
               className="text-muted-foreground"
             >
               <RotateCcw className="w-4 h-4 mr-1" />
-              Reset
+              Reiniciar
             </Button>
           </div>
         </SheetHeader>
@@ -108,7 +108,7 @@ export const FilterSheet = ({
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-foreground">
               <Calendar className="w-4 h-4 text-primary" />
-              <span className="font-medium">Date</span>
+              <span className="font-medium">Fecha</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {DATE_OPTIONS.map((option) => (
@@ -133,7 +133,7 @@ export const FilterSheet = ({
           {/* Category Filter */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-foreground">
-              <span className="font-medium">Category</span>
+              <span className="font-medium">Categoría</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((category) => (
@@ -158,7 +158,7 @@ export const FilterSheet = ({
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-foreground">
               <MapPin className="w-4 h-4 text-primary" />
-              <span className="font-medium">Distance</span>
+              <span className="font-medium">Distancia</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {DISTANCE_OPTIONS.map((option) => (
@@ -185,9 +185,9 @@ export const FilterSheet = ({
             <div className="flex items-center gap-3">
               <Users className="w-5 h-5 text-primary" />
               <div>
-                <Label className="font-medium">Has Guestlist</Label>
+                <Label className="font-medium">Con lista de invitados</Label>
                 <p className="text-xs text-muted-foreground">
-                  Only show events with guestlists
+                  Solo mostrar eventos con lista de invitados
                 </p>
               </div>
             </div>
@@ -208,9 +208,9 @@ export const FilterSheet = ({
               <div className="flex items-center gap-3">
                 <UserCheck className="w-5 h-5 text-primary" />
                 <div>
-                  <Label className="font-medium">Friends Going</Label>
+                  <Label className="font-medium">Amigos asistiendo</Label>
                   <p className="text-xs text-muted-foreground">
-                    Only show events friends are attending
+                    Solo mostrar eventos donde asisten amigos
                   </p>
                 </div>
               </div>
@@ -233,7 +233,7 @@ export const FilterSheet = ({
             className="w-full rounded-full h-12"
             onClick={handleApply}
           >
-            Apply Filters
+            Aplicar filtros
             {activeFilterCount > 0 && (
               <span className="ml-2 px-2 py-0.5 bg-primary-foreground/20 rounded-full text-xs">
                 {activeFilterCount}
