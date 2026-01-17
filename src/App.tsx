@@ -28,7 +28,6 @@ import EditProfile from "./pages/EditProfile";
 import EventDetail from "./pages/EventDetail";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
-import Welcome from "./pages/Welcome";
 import UserProfile from "./pages/UserProfile";
 import Tickets from "./pages/Tickets";
 import YouAreGoing from "./pages/YouAreGoing";
@@ -55,8 +54,8 @@ const App = () => {
                     <LocationProvider>
                       <Routes>
                         {/* Public routes */}
-                        <Route path="/welcome" element={<Welcome />} />
                         <Route path="/auth" element={<Auth />} />
+                        
                         
                           {/* Protected routes */}
                           <Route
