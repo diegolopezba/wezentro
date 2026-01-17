@@ -4,11 +4,11 @@ interface MiniEventMarkerProps {
   zoom: number;
 }
 
-// Calculate marker size based on zoom level
-const getMarkerSize = (zoom: number): number => {
-  // Scale from 24px at zoom 1 to 56px at zoom 18
-  const minSize = 24;
-  const maxSize = 56;
+// Calculate marker width based on zoom level
+const getMarkerWidth = (zoom: number): number => {
+  // Scale from 28px at zoom 1 to 64px at zoom 18
+  const minSize = 28;
+  const maxSize = 64;
   const minZoom = 1;
   const maxZoom = 18;
   
@@ -24,10 +24,11 @@ export const createMiniEventMarkerElement = ({
   const container = document.createElement("div");
   container.className = "mini-event-marker";
   
-  const size = getMarkerSize(zoom);
+  const width = getMarkerWidth(zoom);
   
+  // Create card with dynamic height based on image aspect ratio
   container.innerHTML = `
-    <div class="mini-event-card ${isTonight ? 'tonight' : ''}" style="width: ${size}px; height: ${size}px;">
+    <div class="mini-event-card ${isTonight ? 'tonight' : ''}" style="width: ${width}px;">
       <img src="${imageUrl || '/placeholder.svg'}" alt="Event" />
     </div>
   `;
@@ -51,12 +52,13 @@ export const injectMiniMarkerStyles = () => {
     
     .mini-event-card {
       position: relative;
-      border-radius: 8px;
+      border-radius: 6px;
       overflow: hidden;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
       border: 2px solid hsl(240 5% 25%);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
       background: hsl(240 5% 15%);
+      line-height: 0;
     }
     
     .mini-event-card:hover {
@@ -87,8 +89,7 @@ export const injectMiniMarkerStyles = () => {
     
     .mini-event-card img {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: auto;
       display: block;
     }
   `;
