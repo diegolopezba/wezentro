@@ -77,35 +77,16 @@ const YouAreGoing = () => {
         )}
       </div>
 
-      {/* Gradient Blur Layers - Smooth transition from clear to blurred */}
-      <div className="relative flex-1 flex flex-col justify-end">
-        {/* Layer 1: Subtle blur, extends highest */}
-        <div 
-          className="absolute bottom-0 left-0 right-0 h-[50%] 
-                     backdrop-blur-[2px] bg-gradient-to-t from-black/20 to-transparent
-                     pointer-events-none"
-        />
-        
-        {/* Layer 2: Medium blur */}
-        <div 
-          className="absolute bottom-0 left-0 right-0 h-[35%] 
-                     backdrop-blur-sm bg-gradient-to-t from-black/25 to-transparent
-                     pointer-events-none"
-        />
-        
-        {/* Layer 3: Stronger blur */}
-        <div 
-          className="absolute bottom-0 left-0 right-0 h-[25%] 
-                     backdrop-blur-md bg-gradient-to-t from-black/30 to-transparent
-                     pointer-events-none"
-        />
+      {/* Gradient overlay - same as EventDetail */}
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
 
-        {/* Content layer with full blur */}
+      {/* Content - Bottom Aligned */}
+      <div className="relative flex-1 flex flex-col justify-end">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="relative backdrop-blur-xl bg-black/40 px-6 pt-8 pb-6 safe-bottom"
+          className="px-6 pt-8 pb-6 safe-bottom"
         >
 
           <div className="text-center space-y-4">
