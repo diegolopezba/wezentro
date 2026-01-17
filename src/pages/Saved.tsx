@@ -20,14 +20,13 @@ const Saved = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="font-brand text-xl font-bold text-foreground">
-            Saved Events
+            Eventos Guardados
           </h1>
         </div>
       </header>
 
       <div className="px-4 py-4 space-y-4">
         {isLoading ? (
-          // Loading skeleton
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-48 w-full rounded-2xl" />
@@ -48,7 +47,7 @@ const Saved = () => {
               >
                 <EventCard
                   id={item.event.id}
-                  title={item.event.title || "Untitled Event"}
+                  title={item.event.title || "Evento sin título"}
                   date={item.event.start_datetime}
                   location={item.event.location_name || ""}
                   imageUrl={item.event.image_url || ""}
@@ -58,7 +57,6 @@ const Saved = () => {
             ))}
           </motion.div>
         ) : (
-          // Empty state
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -68,17 +66,17 @@ const Saved = () => {
               <Bookmark className="w-8 h-8 text-muted-foreground" />
             </div>
             <h2 className="font-brand text-lg font-semibold text-foreground mb-2">
-              No saved events
+              Sin eventos guardados
             </h2>
             <p className="text-muted-foreground text-center text-sm max-w-xs">
-              Save events you're interested in and they'll appear here
+              Guarda eventos que te interesen y aparecerán aquí
             </p>
             <Button
               variant="hero"
               className="mt-6"
               onClick={() => navigate("/")}
             >
-              Explore Events
+              Explorar Eventos
             </Button>
           </motion.div>
         )}
