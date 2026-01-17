@@ -32,12 +32,12 @@ import {
 const categories = [
   { id: "club", label: "Club", emoji: "🪩" },
   { id: "bar", label: "Bar", emoji: "🍸" },
-  { id: "concert", label: "Concert", emoji: "🎵" },
+  { id: "concert", label: "Concierto", emoji: "🎵" },
   { id: "festival", label: "Festival", emoji: "🎪" },
-  { id: "house_party", label: "House Party", emoji: "🏠" },
+  { id: "house_party", label: "Fiesta", emoji: "🏠" },
   { id: "rooftop", label: "Rooftop", emoji: "🌆" },
-  { id: "restaurant", label: "Restaurant", emoji: "🍽️" },
-  { id: "coffee", label: "Coffee", emoji: "☕" },
+  { id: "restaurant", label: "Restaurante", emoji: "🍽️" },
+  { id: "coffee", label: "Café", emoji: "☕" },
 ];
 
 const Create = () => {
@@ -95,7 +95,7 @@ const Create = () => {
       setMediaType('image');
       setVideoDuration(null);
     } else {
-      toast.error("Please upload an image or video file");
+      toast.error("Por favor sube una imagen o video");
       return;
     }
 
@@ -123,7 +123,7 @@ const Create = () => {
     // Get the user's session for authentication
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) {
-      toast.error("Not authenticated");
+      toast.error("No autenticado");
       return null;
     }
 
@@ -152,13 +152,13 @@ const Create = () => {
             .getPublicUrl(fileName);
           resolve(data.publicUrl);
         } else {
-          reject(new Error('Upload failed'));
+          reject(new Error('Error al subir'));
         }
       });
 
       xhr.addEventListener('error', () => {
         setIsUploading(false);
-        reject(new Error('Upload failed'));
+        reject(new Error('Error al subir'));
       });
 
       // Get the upload URL and use session token for auth
@@ -174,20 +174,20 @@ const Create = () => {
 
   const handleSubmit = async () => {
     if (!user) {
-      toast.error("Please sign in to create an event");
+      toast.error("Inicia sesión para crear un evento");
       navigate("/auth");
       return;
     }
 
     // Validation
     if (!formData.date || !formData.time) {
-      toast.error("Please select a date and time");
+      toast.error("Por favor selecciona fecha y hora");
       return;
     }
 
     // Check Zentro Business subscription for guestlist
     if (formData.hasGuestlist && !hasBusinessSubscription) {
-      toast.error("Zentro Business subscription required to enable guestlists");
+      toast.error("Se requiere suscripción Zentro Business para habilitar listas de invitados");
       return;
     }
 
@@ -235,7 +235,7 @@ const Create = () => {
           .insert({
             type: "event",
             event_id: data.id,
-            name: formData.title.trim() || "Event Chat",
+            name: formData.title.trim() || "Chat del Evento",
           })
           .select()
           .single();
@@ -248,11 +248,11 @@ const Create = () => {
         }
       }
 
-      toast.success("Event created successfully!");
+      toast.success("¡Evento creado exitosamente!");
       navigate(`/event/${data.id}`);
     } catch (error: any) {
       console.error("Error creating event:", error);
-      toast.error(error.message || "Failed to create event");
+      toast.error(error.message || "Error al crear evento");
     } finally {
       setIsSubmitting(false);
     }
@@ -264,7 +264,7 @@ const Create = () => {
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
         <div className="px-4 py-4">
           <h1 className="font-brand text-xl font-bold text-foreground">
-            Create Event
+            Crear Evento
           </h1>
         </div>
       </header>
@@ -288,7 +288,7 @@ const Create = () => {
                 ) : (
                   <img
                     src={mediaPreview}
-                    alt="Event cover"
+                    alt="Portada del evento"
                     className="w-full h-full object-cover"
                   />
                 )}
@@ -307,7 +307,7 @@ const Create = () => {
                         />
                       </div>
                       <p className="text-xs text-muted-foreground text-center mt-2">
-                        Uploading... {uploadProgress}%
+                        Subiendo... {uploadProgress}%
                       </p>
                     </div>
                   </div>
@@ -334,7 +334,7 @@ const Create = () => {
                   ) : (
                     <>
                       <ImageIcon className="w-3 h-3" />
-                      Change image
+                      Cambiar imagen
                     </>
                   )}
                 </div>
@@ -343,10 +343,10 @@ const Create = () => {
               <div className="relative h-48 rounded-2xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
                 <Upload className="w-10 h-10 text-muted-foreground mb-2" />
                 <span className="text-sm text-muted-foreground">
-                  Upload cover image or video
+                  Sube una imagen o video de portada
                 </span>
                 <span className="text-xs text-muted-foreground/60 mt-1">
-                  Max 15 seconds for videos
+                  Máx. 15 segundos para videos
                 </span>
               </div>
             )}
@@ -367,7 +367,7 @@ const Create = () => {
           transition={{ delay: 0.05 }}
         >
           <label className="text-sm font-medium text-foreground mb-3 block">
-            Event Category
+            Categoría del Evento
           </label>
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
@@ -399,10 +399,10 @@ const Create = () => {
         >
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
-              Event Title
+              Título del Evento
             </label>
             <Input
-              placeholder="Give your event a catchy name"
+              placeholder="Dale un nombre atractivo a tu evento"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
@@ -413,10 +413,10 @@ const Create = () => {
 
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
-              Description
+              Descripción
             </label>
             <textarea
-              placeholder="Tell people what your event is about..."
+              placeholder="Cuéntale a la gente de qué trata tu evento..."
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
@@ -429,7 +429,7 @@ const Create = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
-                Date *
+                Fecha *
               </label>
               <div className="relative">
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -446,7 +446,7 @@ const Create = () => {
             </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
-                Time *
+                Hora *
               </label>
               <Input
                 type="time"
@@ -466,13 +466,13 @@ const Create = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
-                Price
+                Precio
               </label>
               <div className="relative">
                 <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="number"
-                  placeholder="0 (Free)"
+                  placeholder="0 (Gratis)"
                   className="pl-10"
                   value={formData.price}
                   onChange={(e) =>
@@ -485,13 +485,13 @@ const Create = () => {
             </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
-                Capacity
+                Capacidad
               </label>
               <div className="relative">
                 <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="number"
-                  placeholder="Unlimited"
+                  placeholder="Ilimitada"
                   className="pl-10"
                   value={formData.capacity}
                   onChange={(e) =>
@@ -518,12 +518,12 @@ const Create = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground">
-                    Enable Guestlist
+                    Habilitar Lista de Invitados
                   </h3>
                   <p className="text-xs text-muted-foreground">
                     {hasBusinessSubscription
-                      ? "Create a guestlist for your event"
-                      : "Requires Zentro Business subscription"}
+                      ? "Crea una lista de invitados para tu evento"
+                      : "Requiere suscripción Zentro Business"}
                   </p>
                 </div>
               </div>
@@ -563,10 +563,10 @@ const Create = () => {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                {isUploading ? `Uploading... ${uploadProgress}%` : "Creating..."}
+                {isUploading ? `Subiendo... ${uploadProgress}%` : "Creando..."}
               </>
             ) : (
-              "Create Event"
+              "Crear Evento"
             )}
           </Button>
         </div>

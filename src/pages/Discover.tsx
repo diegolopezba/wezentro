@@ -14,6 +14,7 @@ import { useNearbyEvents, formatDistance, FilterOptions } from "@/hooks/useNearb
 import { useSearchUsers } from "@/hooks/useSearchUsers";
 import { UserSearchResultCard } from "@/components/search/UserSearchResultCard";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -118,7 +119,7 @@ const Discover = () => {
       hasAutoOpenedRef.current = true;
       setTimeout(() => {
         setIsNearbyOpen(true);
-        toast.success(`Found ${filteredEvents.length} events near you!`);
+        toast.success(`¡${filteredEvents.length} eventos cerca de ti!`);
       }, 500);
     }
   };
@@ -128,7 +129,7 @@ const Discover = () => {
     toast.error(error, {
       duration: 5000,
       action: {
-        label: "How to enable",
+        label: "Cómo activar",
         onClick: () => window.open("https://support.google.com/chrome/answer/142065", "_blank"),
       },
     });
@@ -202,9 +203,9 @@ const Discover = () => {
     id: event.id,
     title: event.title || "",
     imageUrl: event.image_url || "/placeholder.svg",
-    date: format(new Date(event.start_datetime), "EEE, MMM d • h:mm a"),
-    location: event.location_name || "Location TBA",
-    category: event.category || "Event",
+    date: format(new Date(event.start_datetime), "EEE, d MMM • HH:mm", { locale: es }),
+    location: event.location_name || "Ubicación por confirmar",
+    category: event.category || "Evento",
     attendees: 0,
     hasGuestlist: event.has_guestlist || false,
   });
@@ -228,7 +229,7 @@ const Discover = () => {
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
               <Input
-                placeholder="Search events, people..."
+                placeholder="Buscar eventos, personas..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
@@ -265,7 +266,7 @@ const Discover = () => {
                         )}
                       >
                         <MapPin className="w-4 h-4" />
-                        Events ({filteredEvents.length})
+                        Eventos ({filteredEvents.length})
                       </button>
                       <button
                         onClick={() => setSearchTab("people")}
@@ -277,7 +278,7 @@ const Discover = () => {
                         )}
                       >
                         <Users className="w-4 h-4" />
-                        People ({searchedUsers.length})
+                        Personas ({searchedUsers.length})
                       </button>
                     </div>
 
@@ -295,16 +296,16 @@ const Discover = () => {
                                 <div className="w-12 h-12 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
                                   <img
                                     src={event.image_url || "/placeholder.svg"}
-                                    alt={event.title || "Event"}
+                                    alt={event.title || "Evento"}
                                     className="w-full h-full object-cover"
                                   />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="font-medium text-foreground truncate">
-                                    {event.title || "Untitled Event"}
+                                    {event.title || "Evento sin título"}
                                   </p>
                                   <p className="text-sm text-muted-foreground truncate">
-                                    {event.location_name || "Location TBA"}
+                                    {event.location_name || "Ubicación por confirmar"}
                                   </p>
                                 </div>
                                 {event.distance !== null && (
@@ -315,19 +316,19 @@ const Discover = () => {
                               </button>
                             ))
                           ) : (
-                            <div className="py-8 text-center text-muted-foreground">No events found</div>
+                            <div className="py-8 text-center text-muted-foreground">No se encontraron eventos</div>
                           )}
                         </div>
                       ) : (
                         <div className="p-2">
                           {isLoadingUsers ? (
-                            <div className="py-8 text-center text-muted-foreground">Searching...</div>
+                            <div className="py-8 text-center text-muted-foreground">Buscando...</div>
                           ) : searchedUsers.length > 0 ? (
                             searchedUsers.map((user) => (
                               <UserSearchResultCard key={user.id} user={user} onClick={handleUserClick} />
                             ))
                           ) : (
-                            <div className="py-8 text-center text-muted-foreground">No people found</div>
+                            <div className="py-8 text-center text-muted-foreground">No se encontraron personas</div>
                           )}
                         </div>
                       )}
@@ -402,7 +403,7 @@ const Discover = () => {
                     {/* Counter and pagination dots */}
                     <div className="flex flex-col items-center gap-2">
                       <span className="text-xs text-foreground">
-                        {currentSlide + 1} of {selectedEvents.length} events
+                        {currentSlide + 1} de {selectedEvents.length} eventos
                       </span>
                       <div className="flex justify-center items-center gap-1.5">
                         {selectedEvents.map((_, index) => (
@@ -427,12 +428,63 @@ const Discover = () => {
         </AnimatePresence>
 
 
+        {/* Nearby Events Drawer */}
+        <Drawer open={isNearbyOpen} onOpenChange={setIsNearbyOpen}>
+          <DrawerTrigger asChild>
+            <Button
+              variant="secondary"
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 bg-card/90 backdrop-blur-md shadow-elevated"
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              {eventsWithLocation.length} eventos cerca
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent className="max-h-[70vh]">
+            <div className="p-4">
+              <h3 className="font-semibold text-foreground mb-4">
+                Eventos Cercanos ({eventsWithLocation.length})
+              </h3>
+              <div className="space-y-3 overflow-y-auto max-h-[50vh]">
+                {eventsWithLocation.map((event) => (
+                  <button
+                    key={event.id}
+                    onClick={() => handleMarkerClick([event])}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-colors text-left"
+                  >
+                    <div className="w-14 h-14 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
+                      <img
+                        src={event.image_url || "/placeholder.svg"}
+                        alt={event.title || "Evento"}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">{event.title || "Evento sin título"}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {event.location_name || "Ubicación por confirmar"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(event.start_datetime), "EEE, d MMM • HH:mm", { locale: es })}
+                      </p>
+                    </div>
+                    {event.distance !== null && (
+                      <span className="text-sm font-medium text-primary flex-shrink-0">
+                        {formatDistance(event.distance)}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+
         {/* Filter Sheet */}
         <FilterSheet
           open={isFilterOpen}
-          onOpenChange={setIsFilterOpen}
-          filters={filters}
-          onApplyFilters={handleApplyFilters}
+          onClose={() => setIsFilterOpen(false)}
+          onApply={handleApplyFilters}
+          initialFilters={filters}
         />
       </div>
     </AppLayout>

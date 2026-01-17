@@ -36,20 +36,20 @@ const PrivacySettings = () => {
   }[] = [
     {
       value: "everyone",
-      label: "Everyone",
-      description: "Anyone can message you",
+      label: "Todos",
+      description: "Cualquiera puede enviarte mensajes",
       icon: Users,
     },
     {
       value: "followers",
-      label: "Followers",
-      description: "Only people who follow you",
+      label: "Seguidores",
+      description: "Solo personas que te siguen",
       icon: UserCheck,
     },
     {
       value: "mutual",
-      label: "Mutual followers",
-      description: "Only people you both follow each other",
+      label: "Mutuos",
+      description: "Solo personas que ambos se siguen",
       icon: Heart,
     },
   ];
@@ -59,10 +59,10 @@ const PrivacySettings = () => {
       { allow_messages_from: value },
       {
         onSuccess: () => {
-          toast.success("Privacy settings updated");
+          toast.success("Configuración de privacidad actualizada");
         },
         onError: () => {
-          toast.error("Failed to update settings");
+          toast.error("Error al actualizar configuración");
         },
       }
     );
@@ -80,7 +80,7 @@ const PrivacySettings = () => {
 
   const sendTestNotification = async () => {
     if (!user?.id || !playerId) {
-      toast.error("Not subscribed to push notifications");
+      toast.error("No suscrito a notificaciones push");
       return;
     }
 
@@ -89,18 +89,18 @@ const PrivacySettings = () => {
       const { data, error } = await supabase.functions.invoke("send-push-notification", {
         body: {
           player_ids: [playerId],
-          title: "Test Notification",
-          body: "Push notifications are working!",
+          title: "Notificación de Prueba",
+          body: "¡Las notificaciones push están funcionando!",
         },
       });
 
       if (error) {
-        toast.error("Failed to send test notification");
+        toast.error("Error al enviar notificación de prueba");
       } else {
-        toast.success("Test notification sent!");
+        toast.success("¡Notificación de prueba enviada!");
       }
     } catch (error) {
-      toast.error("Failed to send test notification");
+      toast.error("Error al enviar notificación de prueba");
     } finally {
       setIsSendingTest(false);
     }
@@ -118,7 +118,7 @@ const PrivacySettings = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-bold text-foreground">Privacy</h1>
+          <h1 className="font-brand text-xl font-bold text-foreground">Privacidad</h1>
         </div>
       </header>
 
@@ -134,9 +134,9 @@ const PrivacySettings = () => {
           >
             {/* Section header */}
             <div className="mb-4">
-              <h2 className="font-semibold text-foreground">Messaging</h2>
+              <h2 className="font-semibold text-foreground">Mensajes</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Control who can start new conversations with you
+                Controla quién puede iniciar nuevas conversaciones contigo
               </p>
             </div>
 
@@ -204,9 +204,9 @@ const PrivacySettings = () => {
 
             {/* Notifications Section */}
             <div className="mt-8 mb-4">
-              <h2 className="font-semibold text-foreground">Notifications</h2>
+              <h2 className="font-semibold text-foreground">Notificaciones</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Manage push notification preferences
+                Administra las preferencias de notificaciones push
               </p>
             </div>
 
@@ -236,14 +236,14 @@ const PrivacySettings = () => {
                 </div>
                 <div>
                   <p className={`font-medium ${isSubscribed ? "text-primary" : "text-foreground"}`}>
-                    Push Notifications
+                    Notificaciones Push
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {isSubscribed
-                      ? "Enabled"
+                      ? "Activadas"
                       : isPushDisabled
-                      ? "Not available"
-                      : "Disabled"}
+                      ? "No disponible"
+                      : "Desactivadas"}
                   </p>
                 </div>
               </div>
@@ -278,7 +278,7 @@ const PrivacySettings = () => {
                   ) : (
                     <Send className="h-4 w-4 mr-2" />
                   )}
-                  Send Test Notification
+                  Enviar Notificación de Prueba
                 </Button>
               </motion.div>
             )}

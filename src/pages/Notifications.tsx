@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -72,11 +73,11 @@ const FollowNotificationItem = ({
       
       <div className="flex-1 min-w-0">
         <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-          <span className="font-semibold">@{followerProfile?.username || "someone"}</span>
-          {" started following you"}
+          <span className="font-semibold">@{followerProfile?.username || "alguien"}</span>
+          {" comenzó a seguirte"}
         </p>
         <p className="text-xs text-muted-foreground/70 mt-0.5">
-          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
         </p>
       </div>
       
@@ -144,11 +145,11 @@ const GuestlistRequestNotificationItem = ({
       
       <div className="flex-1 min-w-0">
         <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-          <span className="font-semibold">@{extractedUsername || "someone"}</span>
-          {" wants to join your event"}
+          <span className="font-semibold">@{extractedUsername || "alguien"}</span>
+          {" quiere unirse a tu evento"}
         </p>
         <p className="text-xs text-muted-foreground/70 mt-0.5">
-          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
         </p>
       </div>
       
@@ -206,13 +207,13 @@ const GuestlistStatusNotificationItem = ({
       <div className="flex-1 min-w-0">
         <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
           {isApproved ? (
-            <>You're on the guestlist for <span className="font-semibold">{event?.title || "an event"}</span>!</>
+            <>¡Estás en la lista de <span className="font-semibold">{event?.title || "un evento"}</span>!</>
           ) : (
-            <>Your request for <span className="font-semibold">{event?.title || "an event"}</span> was declined</>
+            <>Tu solicitud para <span className="font-semibold">{event?.title || "un evento"}</span> fue rechazada</>
           )}
         </p>
         <p className="text-xs text-muted-foreground/70 mt-0.5">
-          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
         </p>
       </div>
       
@@ -266,12 +267,12 @@ const GuestlistInvitationNotificationItem = ({
         invitationId: invitation.id, 
         status: "accepted" 
       });
-      toast.success("Invitation accepted!");
+      toast.success("¡Invitación aceptada!");
       if (!notification.is_read) onRead();
       // Navigate to the "You Are Going" page
       navigate(`/going/${notification.entity_id}`);
     } catch (error: any) {
-      toast.error(error.message || "Failed to accept");
+      toast.error(error.message || "Error al aceptar");
     } finally {
       setIsResponding(false);
     }
@@ -287,10 +288,10 @@ const GuestlistInvitationNotificationItem = ({
         invitationId: invitation.id, 
         status: "declined" 
       });
-      toast.success("Invitation declined");
+      toast.success("Invitación rechazada");
       if (!notification.is_read) onRead();
     } catch (error: any) {
-      toast.error(error.message || "Failed to decline");
+      toast.error(error.message || "Error al rechazar");
     } finally {
       setIsResponding(false);
     }
@@ -321,12 +322,12 @@ const GuestlistInvitationNotificationItem = ({
         
         <div className="flex-1 min-w-0">
           <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-            <span className="font-semibold">@{extractedUsername || "someone"}</span>
-            {" invited you to join "}
-            <span className="font-semibold">{event?.title || "an event"}</span>
+            <span className="font-semibold">@{extractedUsername || "alguien"}</span>
+            {" te invitó a "}
+            <span className="font-semibold">{event?.title || "un evento"}</span>
           </p>
           <p className="text-xs text-muted-foreground/70 mt-0.5">
-            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
           </p>
         </div>
         
@@ -359,7 +360,7 @@ const GuestlistInvitationNotificationItem = ({
             disabled={isResponding}
           >
             {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1.5" />}
-            Decline
+            Rechazar
           </Button>
           <Button
             size="sm"
@@ -368,7 +369,7 @@ const GuestlistInvitationNotificationItem = ({
             disabled={isResponding}
           >
             {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1.5" />}
-            Accept
+            Aceptar
           </Button>
         </div>
       )}
@@ -421,7 +422,7 @@ const NotificationItem = ({
               </p>
             )}
             <p className="text-xs text-muted-foreground/70 mt-1">
-              {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+              {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
             </p>
           </div>
           
@@ -505,7 +506,7 @@ const Notifications = () => {
               <ChevronLeft className="w-5 h-5" />
             </Button>
             <h1 className="font-brand text-xl font-bold text-foreground">
-              Notifications
+              Notificaciones
             </h1>
           </div>
           
@@ -520,7 +521,7 @@ const Notifications = () => {
               {markAllRead.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                "Mark all read"
+                "Marcar todo como leído"
               )}
             </Button>
           )}
@@ -541,9 +542,9 @@ const Notifications = () => {
             <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-4">
               <Bell className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h2 className="font-medium text-foreground mb-1">No notifications yet</h2>
+            <h2 className="font-medium text-foreground mb-1">Sin notificaciones aún</h2>
             <p className="text-sm text-muted-foreground">
-              When someone follows you or interacts with your events, you'll see it here
+              Cuando alguien te siga o interactúe con tus eventos, lo verás aquí
             </p>
           </motion.div>
         ) : (
