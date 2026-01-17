@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, Camera, Plus, X, Loader2 } from "lucide-react";
+import { ChevronLeft, Camera, Plus, X, Loader2, Info } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +18,13 @@ interface ProfilePhoto {
   display_order: number;
 }
 
+const GENDER_OPTIONS = [
+  { value: "male", label: "Masculino" },
+  { value: "female", label: "Femenino" },
+  { value: "non_binary", label: "No binario" },
+  { value: "prefer_not_to_say", label: "Prefiero no decir" },
+];
+
 const EditProfile = () => {
   const navigate = useNavigate();
   const { profile, user, refreshProfile } = useAuth();
@@ -25,21 +33,41 @@ const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     full_name: "",
     username: "",
     bio: "",
+    birth_day: "",
+    birth_month: "",
+    birth_year: "",
+    gender: "",
   });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
 
   useEffect(() => {
     if (profile) {
+      // Parse birth_date if it exists
+      let birthDay = "";
+      let birthMonth = "";
+      let birthYear = "";
+
+      if (profile.birth_date) {
+        const date = new Date(profile.birth_date);
+        birthDay = date.getDate().toString().padStart(2, "0");
+        birthMonth = (date.getMonth() + 1).toString().padStart(2, "0");
+        birthYear = date.getFullYear().toString();
+      }
+
       setFormData({
         full_name: profile.full_name || "",
         username: profile.username || "",
         bio: profile.bio || "",
+        birth_day: birthDay,
+        birth_month: birthMonth,
+        birth_year: birthYear,
+        gender: profile.gender || "",
       });
       setAvatarUrl(profile.avatar_url);
     }
@@ -93,6 +121,19 @@ const EditProfile = () => {
         }
       }
 
+      // Build birth_date if all parts are provided
+      let birthDate: string | null = null;
+      if (formData.birth_day && formData.birth_month && formData.birth_year) {
+        const year = parseInt(formData.birth_year);
+        const month = parseInt(formData.birth_month);
+        const day = parseInt(formData.birth_day);
+
+        // Validate date
+        if (year >= 1900 && year <= new Date().getFullYear() - 13 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          birthDate = `${formData.birth_year}-${formData.birth_month.padStart(2, "0")}-${formData.birth_day.padStart(2, "0")}`;
+        }
+      }
+
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -100,6 +141,8 @@ const EditProfile = () => {
           username: formData.username.trim(),
           bio: formData.bio.trim() || null,
           avatar_url: avatarUrl,
+          birth_date: birthDate,
+          gender: formData.gender || null,
         })
         .eq("id", user.id);
 
@@ -145,9 +188,9 @@ const EditProfile = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("event-images")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("event-images").getPublicUrl(fileName);
 
       setAvatarUrl(publicUrl);
       toast.success("¡Foto subida!");
@@ -182,24 +225,20 @@ const EditProfile = () => {
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/photos/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("event-images")
-        .upload(fileName, file);
+      const { error: uploadError } = await supabase.storage.from("event-images").upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("event-images")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("event-images").getPublicUrl(fileName);
 
       // Insert into profile_photos table
-      const { error: insertError } = await supabase
-        .from("profile_photos")
-        .insert({
-          user_id: user.id,
-          photo_url: publicUrl,
-          display_order: photos.length,
-        });
+      const { error: insertError } = await supabase.from("profile_photos").insert({
+        user_id: user.id,
+        photo_url: publicUrl,
+        display_order: photos.length,
+      });
 
       if (insertError) throw insertError;
 
@@ -218,10 +257,7 @@ const EditProfile = () => {
 
   const handleDeletePhoto = async (photoId: string) => {
     try {
-      const { error } = await supabase
-        .from("profile_photos")
-        .delete()
-        .eq("id", photoId);
+      const { error } = await supabase.from("profile_photos").delete().eq("id", photoId);
 
       if (error) throw error;
 
@@ -233,23 +269,15 @@ const EditProfile = () => {
     }
   };
 
+  // Generate year options (from current year - 13 to 1920)
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: currentYear - 13 - 1920 + 1 }, (_, i) => currentYear - 13 - i);
+
   return (
     <AppLayout>
       {/* Hidden file inputs */}
-      <input
-        ref={avatarInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleAvatarChange}
-      />
-      <input
-        ref={photoInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handlePhotoUpload}
-      />
+      <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+      <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
 
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
@@ -258,16 +286,9 @@ const EditProfile = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
               <ChevronLeft className="w-5 h-5" />
             </Button>
-            <h1 className="font-brand text-xl font-bold text-foreground">
-              Editar Perfil
-            </h1>
+            <h1 className="font-brand text-xl font-bold text-foreground">Editar Perfil</h1>
           </div>
-          <Button 
-            variant="default" 
-            size="sm" 
-            onClick={handleSave}
-            disabled={isLoading}
-          >
+          <Button variant="default" size="sm" onClick={handleSave} disabled={isLoading}>
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
           </Button>
         </div>
@@ -275,18 +296,14 @@ const EditProfile = () => {
 
       <div className="px-4 py-6 space-y-8">
         {/* Profile Picture */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
           <div className="relative">
             <img
               src={avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80"}
               alt="Perfil"
               className="w-28 h-28 rounded-full object-cover border-2 border-primary"
             />
-            <button 
+            <button
               onClick={handleAvatarClick}
               disabled={isUploading}
               className="absolute bottom-0 right-0 w-10 h-10 rounded-full gradient-primary flex items-center justify-center shadow-glow disabled:opacity-50"
@@ -298,26 +315,17 @@ const EditProfile = () => {
               )}
             </button>
           </div>
-          <p className="text-sm text-muted-foreground mt-3">
-            Toca para cambiar foto de perfil
-          </p>
+          <p className="text-sm text-muted-foreground mt-3">Toca para cambiar foto de perfil</p>
         </motion.div>
 
         {/* Form Fields */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="space-y-5"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre</Label>
             <Input
               id="name"
               value={formData.full_name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, full_name: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, full_name: e.target.value }))}
               placeholder="Tu nombre"
             />
           </div>
@@ -325,15 +333,11 @@ const EditProfile = () => {
           <div className="space-y-2">
             <Label htmlFor="username">Nombre de usuario *</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                @
-              </span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
               <Input
                 id="username"
                 value={formData.username}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, username: e.target.value }))
-                }
+                onChange={(e) => setFormData((prev) => ({ ...prev, username: e.target.value }))}
                 placeholder="usuario"
                 className="pl-8"
               />
@@ -345,35 +349,97 @@ const EditProfile = () => {
             <Textarea
               id="bio"
               value={formData.bio}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, bio: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
               placeholder="Cuéntanos sobre ti..."
               rows={3}
             />
           </div>
         </motion.div>
 
+        {/* Personal Information Section */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-5">
+          <div className="flex items-center gap-2">
+            <Label className="text-base font-semibold">Información Personal</Label>
+            <span className="text-xs text-muted-foreground">(opcional)</span>
+          </div>
+
+          {/* Date of Birth */}
+          <div className="space-y-2">
+            <Label>Fecha de nacimiento</Label>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                inputMode="numeric"
+                placeholder="DD"
+                maxLength={2}
+                value={formData.birth_day}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  setFormData((prev) => ({ ...prev, birth_day: value }));
+                }}
+                className="w-16 text-center"
+              />
+              <Input
+                type="text"
+                inputMode="numeric"
+                placeholder="MM"
+                maxLength={2}
+                value={formData.birth_month}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  setFormData((prev) => ({ ...prev, birth_month: value }));
+                }}
+                className="w-16 text-center"
+              />
+              <Input
+                type="text"
+                inputMode="numeric"
+                placeholder="AAAA"
+                maxLength={4}
+                value={formData.birth_year}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  setFormData((prev) => ({ ...prev, birth_year: value }));
+                }}
+                className="w-24 text-center"
+              />
+            </div>
+          </div>
+
+          {/* Gender */}
+          <div className="space-y-3">
+            <Label>Género</Label>
+            <RadioGroup
+              value={formData.gender}
+              onValueChange={(value) => setFormData((prev) => ({ ...prev, gender: value }))}
+              className="flex flex-col gap-2"
+            >
+              {GENDER_OPTIONS.map((option) => (
+                <div key={option.value} className="flex items-center space-x-3">
+                  <RadioGroupItem value={option.value} id={option.value} />
+                  <Label htmlFor={option.value} className="font-normal cursor-pointer">
+                    {option.label}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+
+          {/* Privacy Note */}
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
+            <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground">
+              Esta información solo se usa para estadísticas agregadas de eventos. Nunca se comparte individualmente.
+            </p>
+          </div>
+        </motion.div>
+
         {/* Photos Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="space-y-4"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-4">
           <div className="flex items-center justify-between">
             <Label>Fotos de Perfil</Label>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleAddPhotoClick}
-              disabled={isUploadingPhoto}
-            >
-              {isUploadingPhoto ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Plus className="w-4 h-4 mr-2" />
-              )}
+            <Button variant="outline" size="sm" onClick={handleAddPhotoClick} disabled={isUploadingPhoto}>
+              {isUploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
               Agregar Foto
             </Button>
           </div>
@@ -393,11 +459,7 @@ const EditProfile = () => {
                   className="masonry-item relative group"
                 >
                   <div className="rounded-2xl overflow-hidden">
-                    <img
-                      src={photo.photo_url}
-                      alt={`Foto ${index + 1}`}
-                      className="w-full h-auto object-cover"
-                    />
+                    <img src={photo.photo_url} alt={`Foto ${index + 1}`} className="w-full h-auto object-cover" />
                   </div>
                   <button
                     onClick={() => handleDeletePhoto(photo.id)}

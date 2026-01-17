@@ -11,6 +11,8 @@ interface Profile {
   city: string | null;
   interests: string[] | null;
   is_business: boolean;
+  birth_date: string | null;
+  gender: string | null;
 }
 
 interface AuthContextType {

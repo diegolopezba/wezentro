@@ -1,13 +1,30 @@
 import { motion } from "framer-motion";
-import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket } from "lucide-react";
+import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, BarChart3 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { data: subscription } = useUserSubscription();
+
+  const isBusiness = subscription?.plan_type === "business_premium";
+
+  const handleDashboardClick = () => {
+    if (isBusiness) {
+      navigate("/dashboard");
+    } else {
+      toast.info("Solo disponible para usuarios Zentro Business", {
+        action: {
+          label: "Ver planes",
+          onClick: () => navigate("/settings/subscription"),
+        },
+      });
+    }
+  };
 
   const settingsItems = [
     {
@@ -58,6 +75,23 @@ const Settings = () => {
       </header>
 
       <div className="px-4 py-2">
+        {/* Business Dashboard - Always visible, with upsell for non-business */}
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={handleDashboardClick}
+          className="w-full flex items-center gap-4 py-4 px-4 transition-colors mx-0 mb-2 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 hover:from-primary/15 hover:to-primary/10"
+        >
+          <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 text-left">
+            <span className="text-foreground font-semibold block">Business Dashboard</span>
+            <span className="text-xs text-muted-foreground">Analytics e insights</span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </motion.button>
+
         <div className="divide-y divide-background">
           {settingsItems.map((item, index) => {
             const Icon = item.icon;
@@ -66,7 +100,7 @@ const Settings = () => {
                 key={item.label}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: (index + 1) * 0.05 }}
                 onClick={() => navigate(item.path)}
                 className="w-full flex items-center gap-4 py-4 hover:bg-secondary/30 px-4 transition-colors mx-0"
               >
@@ -81,7 +115,7 @@ const Settings = () => {
         <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.4 }}
           onClick={handleSignOut}
           className="w-full flex items-center gap-4 py-4 mt-8 px-4 transition-colors mx-0 bg-primary-foreground"
         >
