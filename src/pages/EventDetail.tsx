@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark } from "lucide-react";
@@ -19,6 +19,8 @@ import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
+import { trackEventView } from "@/lib/analyticsTracking";
+
 const EventDetail = () => {
   const {
     id
@@ -70,6 +72,14 @@ const EventDetail = () => {
 
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
+
+  // Track event view for analytics
+  useEffect(() => {
+    if (id && user?.id) {
+      trackEventView(id, user.id);
+    }
+  }, [id, user?.id]);
+
   const {
     data: event,
     isLoading,

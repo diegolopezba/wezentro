@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Settings, Image, Star, Heart, Loader2, Crown, Sparkles, Plus } from "lucide-react";
+import { Settings, Image, Star, Heart, Loader2, Crown, Sparkles, Plus, BarChart3 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -152,6 +152,34 @@ const Profile = () => {
           {profile?.bio && <p className="text-sm text-foreground/80">{profile.bio}</p>}
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
         </motion.div>
+
+        {/* Business Dashboard link - show for business users */}
+        {isBusiness && <motion.div initial={{
+        opacity: 0,
+        y: 20
+      }} animate={{
+        opacity: 1,
+        y: 0
+      }} transition={{
+        delay: 0.15
+      }} className="mt-4">
+            <div 
+              className="p-4 rounded-2xl border bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 cursor-pointer hover:bg-primary/15 transition-colors"
+              onClick={() => navigate("/dashboard")}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-md">
+                    <BarChart3 className="text-primary w-[18px] h-[18px]" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Business Dashboard</h3>
+                    <p className="text-xs text-muted-foreground">View analytics and insights</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>}
 
         {/* Subscription badge - only show for free users */}
         {!isPremium && <motion.div initial={{
