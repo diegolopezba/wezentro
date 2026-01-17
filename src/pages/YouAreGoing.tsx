@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { X, QrCode, MapPin, Calendar } from "lucide-react";
+import { X, QrCode, MapPin, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
@@ -75,10 +75,11 @@ const YouAreGoing = () => {
         {/* Event Title */}
         <h2 className="font-semibold mt-2 opacity-90 text-white text-xl">{event.title}</h2>
 
-        {/* Event Owner's Display Name */}
-        <p className="mt-2 opacity-80 text-primary text-sm my-0">
-          Organizado por {event.creator?.full_name || event.creator?.username}
-        </p>
+        {/* Event Host Username */}
+        <div className="flex items-center gap-1.5 mt-4 opacity-70">
+          <User className="w-4 h-4 text-white" />
+          <p className="text-sm text-white">@{event.creator?.username}</p>
+        </div>
 
         {/* Location */}
         {event.location_name && (
