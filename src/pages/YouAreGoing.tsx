@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 const YouAreGoing = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { data: event, isLoading } = useEvent(id);
   const [showQR, setShowQR] = useState(false);
 
@@ -67,9 +67,9 @@ const YouAreGoing = () => {
           Vas a asistir
         </p>
 
-        {/* Event Creator's Display Name */}
+        {/* Guest's Display Name (current user) */}
         <h1 className="font-bold mt-4 font-brand text-primary text-5xl">
-          {event.creator?.full_name || event.creator?.username || "Anfitrión"}
+          {profile?.full_name || profile?.username || "Invitado"}
         </h1>
 
         {/* Event Title */}
