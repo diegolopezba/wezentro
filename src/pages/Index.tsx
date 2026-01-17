@@ -10,8 +10,10 @@ import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
 import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
+
 const Index = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
@@ -46,8 +48,8 @@ const Index = () => {
             id: event.id,
             title: event.title || undefined,
             imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
-            date: format(new Date(event.start_datetime), "EEE, MMM d • h:mm a"),
-            location: event.location_name || "Location TBA",
+            date: format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", { locale: es }),
+            location: event.location_name || "Ubicación por confirmar",
             category: event.category || "party",
             attendees: guestlistEntries.length,
             attendeeAvatars,
@@ -58,6 +60,7 @@ const Index = () => {
         }),
     [events, searchQuery],
   );
+
   return (
     <SelectedEventProvider>
       <AppLayout>
@@ -65,14 +68,8 @@ const Index = () => {
         <header className="sticky top-0 z-40 safe-top bg-background">
           <div className="flex items-center justify-between px-4 py-4">
             <motion.div
-              initial={{
-                opacity: 0,
-                x: -20,
-              }}
-              animate={{
-                opacity: 1,
-                x: 0,
-              }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
             >
               <h1 className="font-brand text-2xl text-foreground font-semibold">zentro</h1>
             </motion.div>
@@ -88,24 +85,15 @@ const Index = () => {
           {/* Search bar */}
           {showSearch && (
             <motion.div
-              initial={{
-                opacity: 0,
-                height: 0,
-              }}
-              animate={{
-                opacity: 1,
-                height: "auto",
-              }}
-              exit={{
-                opacity: 0,
-                height: 0,
-              }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
               className="px-4 pb-4"
             >
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search events, venues..."
+                  placeholder="Buscar eventos, lugares..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -118,35 +106,33 @@ const Index = () => {
           <div className="flex px-4 pb-3 gap-2">
             <button
               onClick={() => setActiveTab("for-you")}
-              className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${
+                activeTab === "for-you" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               {activeTab === "for-you" && (
                 <motion.div
                   layoutId="activeTab"
                   className="absolute inset-0 gradient-primary rounded-full"
-                  transition={{
-                    type: "spring",
-                    duration: 0.5,
-                  }}
+                  transition={{ type: "spring", duration: 0.5 }}
                 />
               )}
-              <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary" : ""}`}>For You</span>
+              <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary" : ""}`}>Para Ti</span>
             </button>
             <button
               onClick={() => setActiveTab("following")}
-              className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "following" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${
+                activeTab === "following" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               {activeTab === "following" && (
                 <motion.div
                   layoutId="activeTab"
                   className="absolute inset-0 gradient-primary rounded-full"
-                  transition={{
-                    type: "spring",
-                    duration: 0.5,
-                  }}
+                  transition={{ type: "spring", duration: 0.5 }}
                 />
               )}
-              <span className={`relative z-10 ${activeTab === "following" ? "text-primary" : ""}`}>Following</span>
+              <span className={`relative z-10 ${activeTab === "following" ? "text-primary" : ""}`}>Siguiendo</span>
             </button>
           </div>
         </header>
@@ -162,4 +148,5 @@ const Index = () => {
     </SelectedEventProvider>
   );
 };
+
 export default Index;

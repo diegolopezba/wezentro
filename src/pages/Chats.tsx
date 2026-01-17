@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Plus, MessageCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,9 +28,9 @@ const Chats = () => {
   const getChatDisplayName = (chat: ChatWithDetails) => {
     if (chat.type === "private") {
       const otherParticipant = chat.participants.find((p) => p.id !== user?.id);
-      return otherParticipant?.full_name || otherParticipant?.username || "Unknown";
+      return otherParticipant?.full_name || otherParticipant?.username || "Desconocido";
     }
-    return chat.name || chat.event?.title || "Group Chat";
+    return chat.name || chat.event?.title || "Chat Grupal";
   };
 
   const getOtherParticipantId = (chat: ChatWithDetails) => {
@@ -42,7 +43,7 @@ const Chats = () => {
 
   const formatTime = (dateString: string | null) => {
     if (!dateString) return "";
-    return formatDistanceToNow(new Date(dateString), { addSuffix: false });
+    return formatDistanceToNow(new Date(dateString), { addSuffix: false, locale: es });
   };
 
   return (
@@ -51,7 +52,7 @@ const Chats = () => {
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
         <div className="flex items-center justify-between px-4 py-4">
           <h1 className="font-brand text-xl font-bold text-foreground">
-            Messages
+            Mensajes
           </h1>
           <Button
             size="icon"
@@ -83,9 +84,9 @@ const Chats = () => {
             <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
               <MessageCircle className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="font-semibold text-foreground mb-2">No messages yet</h3>
+            <h3 className="font-semibold text-foreground mb-2">Sin mensajes aún</h3>
             <p className="text-sm text-muted-foreground max-w-[250px]">
-              Start a conversation with someone you both follow
+              Inicia una conversación con alguien que ambos se sigan
             </p>
             <Button
               onClick={() => setNewChatOpen(true)}
@@ -93,7 +94,7 @@ const Chats = () => {
               variant="outline"
             >
               <Plus className="w-4 h-4 mr-2" />
-              New Message
+              Nuevo Mensaje
             </Button>
           </div>
         ) : (
@@ -144,7 +145,7 @@ const Chats = () => {
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground truncate">
-                  {chat.lastMessage?.content || "No messages yet"}
+                  {chat.lastMessage?.content || "Sin mensajes aún"}
                 </p>
               </div>
 

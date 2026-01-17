@@ -14,20 +14,20 @@ interface OnboardingSlide {
 const slides: OnboardingSlide[] = [
   {
     icon: <MapPin className="w-16 h-16" />,
-    title: "Discover Events",
-    description: "Find amazing events happening around you. Explore the map to see what's nearby and never miss out on the action.",
+    title: "Descubre Eventos",
+    description: "Encuentra eventos increíbles cerca de ti. Explora el mapa para ver qué hay cerca y no te pierdas ninguna fiesta.",
     gradient: "from-violet-500 to-purple-600",
   },
   {
     icon: <Users className="w-16 h-16" />,
-    title: "Join Guestlists",
-    description: "Get on the list for exclusive events. Connect with friends and see who's going before you commit.",
+    title: "Únete a Listas",
+    description: "Entra a la lista de eventos exclusivos. Conecta con amigos y mira quién va antes de decidirte.",
     gradient: "from-pink-500 to-rose-600",
   },
   {
     icon: <Sparkles className="w-16 h-16" />,
-    title: "Create & Share",
-    description: "Host your own events and invite your community. Share moments and build connections that last.",
+    title: "Crea y Comparte",
+    description: "Organiza tus propios eventos e invita a tu comunidad. Comparte momentos y crea conexiones que duran.",
     gradient: "from-amber-500 to-orange-600",
   },
 ];
@@ -106,7 +106,7 @@ const Welcome = () => {
           onClick={handleSkip}
           className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          Skip
+          Omitir
         </button>
       </div>
 
@@ -181,12 +181,12 @@ const Welcome = () => {
         >
           {currentSlide === slides.length - 1 ? (
             <>
-              Get Started
+              Comenzar
               <ArrowRight className="w-5 h-5 ml-2" />
             </>
           ) : (
             <>
-              Continue
+              Continuar
               <ArrowRight className="w-5 h-5 ml-2" />
             </>
           )}
