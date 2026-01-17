@@ -73,18 +73,19 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
+      const subscriptionItem = subscription.items.data[0];
       
-      // Log the raw subscription object to debug date extraction
+      // In newer Stripe API versions, period dates are on subscription items
+      const periodEndRaw = subscriptionItem.current_period_end;
+      const periodStartRaw = subscriptionItem.current_period_start;
+      
+      // Log the raw data for debugging
       logStep("Raw subscription data", { 
         id: subscription.id,
-        current_period_end: subscription.current_period_end,
-        current_period_start: subscription.current_period_start,
-        typeof_end: typeof subscription.current_period_end,
+        item_period_end: periodEndRaw,
+        item_period_start: periodStartRaw,
+        typeof_end: typeof periodEndRaw,
       });
-      
-      // Access dates - they should be Unix timestamps (numbers)
-      const periodEndRaw = subscription.current_period_end;
-      const periodStartRaw = subscription.current_period_start;
       
       // Convert Unix timestamps to ISO strings
       let periodStartISO: string | null = null;
@@ -95,7 +96,7 @@ serve(async (req) => {
         periodStartISO = new Date(periodStartRaw * 1000).toISOString();
       }
       
-      const productId = subscription.items.data[0].price.product as string;
+      const productId = subscriptionItem.price.product as string;
       planType = PRODUCT_TO_PLAN[productId] || "user_premium";
       logStep("Active subscription found", { 
         subscriptionId: subscription.id, 
