@@ -123,14 +123,6 @@ const MapView: React.FC<MapViewProps> = ({
   const updateMarkersForZoom = useCallback((zoom: number) => {
     if (!map.current || !mapLoaded) return;
 
-    // Hide circle layers (we always use custom markers now)
-    if (map.current.getLayer("unclustered-point")) {
-      map.current.setLayoutProperty("unclustered-point", "visibility", "none");
-    }
-    if (map.current.getLayer("unclustered-point-pulse")) {
-      map.current.setLayoutProperty("unclustered-point-pulse", "visibility", "none");
-    }
-
     // Always show custom markers, update their size based on zoom
     createCustomMarkers(zoom);
   }, [mapLoaded, createCustomMarkers]);
@@ -302,78 +294,11 @@ const MapView: React.FC<MapViewProps> = ({
         bearing: WORLD_VIEW.bearing,
       });
 
-      // Add clustered source
+      // Add source without clustering (we handle all display with custom markers)
       map.current.addSource("events", {
         type: "geojson",
         data: eventsGeoJSON,
-        cluster: true,
-        clusterMaxZoom: 14,
-        clusterRadius: 50,
-      });
-
-      // Cluster circles layer
-      map.current.addLayer({
-        id: "clusters",
-        type: "circle",
-        source: "events",
-        filter: ["has", "point_count"],
-        paint: {
-          "circle-color": [
-            "step",
-            ["get", "point_count"],
-            "hsl(351, 100%, 45%)",
-            10,
-            "hsl(351, 100%, 40%)",
-            50,
-            "hsl(351, 100%, 35%)",
-          ],
-          "circle-radius": ["step", ["get", "point_count"], 20, 10, 25, 50, 35],
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "hsla(351, 100%, 60%, 0.5)",
-        },
-      });
-
-      // Cluster count labels
-      map.current.addLayer({
-        id: "cluster-count",
-        type: "symbol",
-        source: "events",
-        filter: ["has", "point_count"],
-        layout: {
-          "text-field": ["get", "point_count_abbreviated"],
-          "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-          "text-size": 14,
-        },
-        paint: {
-          "text-color": "#ffffff",
-        },
-      });
-
-      // Unclustered event points
-      map.current.addLayer({
-        id: "unclustered-point",
-        type: "circle",
-        source: "events",
-        filter: ["!", ["has", "point_count"]],
-        paint: {
-          "circle-color": ["case", ["get", "isTonight"], "hsl(351, 100%, 55%)", "hsl(351, 100%, 45%)"],
-          "circle-radius": 8,
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "hsla(351, 100%, 70%, 0.6)",
-        },
-      });
-
-      // Pulsing effect layer for tonight's events
-      map.current.addLayer({
-        id: "unclustered-point-pulse",
-        type: "circle",
-        source: "events",
-        filter: ["all", ["!", ["has", "point_count"]], ["get", "isTonight"]],
-        paint: {
-          "circle-color": "hsl(351, 100%, 45%)",
-          "circle-radius": 12,
-          "circle-opacity": 0.3,
-        },
+        cluster: false,
       });
 
       setMapLoaded(true);
@@ -385,60 +310,7 @@ const MapView: React.FC<MapViewProps> = ({
       }
     });
 
-    // Click on cluster to zoom
-    map.current.on("click", "clusters", (e) => {
-      if (!map.current) return;
-
-      const features = map.current.queryRenderedFeatures(e.point, { layers: ["clusters"] });
-      if (!features.length) return;
-
-      const clusterId = features[0].properties?.cluster_id;
-      const source = map.current.getSource("events") as mapboxgl.GeoJSONSource;
-
-      source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-        if (err || !map.current) return;
-        const geometry = features[0].geometry as GeoJSON.Point;
-        map.current.easeTo({
-          center: geometry.coordinates as [number, number],
-          zoom: zoom ?? 14,
-        });
-      });
-    });
-
-    // Click on individual event marker
-    map.current.on("click", "unclustered-point", (e) => {
-      if (!e.features?.length) return;
-      const clickedCoords = (e.features[0].geometry as GeoJSON.Point).coordinates;
-      const tolerance = 0.0001;
-
-      const eventsAtLocation = events.filter(
-        (ev) =>
-          ev.latitude &&
-          ev.longitude &&
-          Math.abs(ev.latitude - clickedCoords[1]) < tolerance &&
-          Math.abs(ev.longitude - clickedCoords[0]) < tolerance,
-      );
-
-      if (eventsAtLocation.length > 0 && onMarkerClick) {
-        onMarkerClick(eventsAtLocation);
-      }
-    });
-
-    // Cursor changes
-    map.current.on("mouseenter", "clusters", () => {
-      if (map.current) map.current.getCanvas().style.cursor = "pointer";
-    });
-    map.current.on("mouseleave", "clusters", () => {
-      if (map.current) map.current.getCanvas().style.cursor = "";
-    });
-    map.current.on("mouseenter", "unclustered-point", () => {
-      if (map.current) map.current.getCanvas().style.cursor = "pointer";
-    });
-    map.current.on("mouseleave", "unclustered-point", () => {
-      if (map.current) map.current.getCanvas().style.cursor = "";
-    });
-
-    // Zoom listener to toggle between circle markers and mini cards
+    // Zoom listener to update marker sizes
     map.current.on("zoom", () => {
       if (!map.current) return;
       const zoom = map.current.getZoom();
