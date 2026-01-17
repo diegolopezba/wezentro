@@ -75,20 +75,16 @@ const YouAreGoing = () => {
             className="w-full h-full object-cover"
           />
         )}
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/90" />
       </div>
 
-      {/* Content - Bottom Aligned */}
+      {/* Content - Bottom Aligned with Glassmorphism */}
       <div className="relative flex-1 flex flex-col justify-end">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="bg-black/40 backdrop-blur-xl rounded-t-3xl px-6 pt-8 pb-6 safe-bottom"
+          className="backdrop-blur-xl bg-black/30 px-6 pt-8 pb-6 safe-bottom"
         >
-          {/* Gradient fade at top of card */}
-          <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-black/40 rounded-t-3xl -translate-y-full" />
 
           <div className="text-center space-y-4">
             {/* User's Name - Big and prominent */}
