@@ -90,7 +90,7 @@ const YouAreGoing = () => {
       </div>
 
       {/* Gradient overlay - same as EventDetail */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-background via-background/20 to-transparent pointer-events-none" />
 
       {/* Content - Bottom Aligned */}
       <div className="relative h-full flex flex-col justify-end">
