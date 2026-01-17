@@ -80,8 +80,13 @@ serve(async (req) => {
             break;
           }
 
-          const productId = subscription.items.data[0].price.product as string;
+          const subscriptionItem = subscription.items.data[0];
+          const productId = subscriptionItem.price.product as string;
           const planType = PRODUCT_TO_PLAN[productId] || "user_premium";
+          
+          // Get period dates from subscription item (new API structure)
+          const periodStart = subscriptionItem.current_period_start;
+          const periodEnd = subscriptionItem.current_period_end;
 
           const { error: upsertError } = await supabaseClient
             .from("subscriptions")
@@ -91,8 +96,8 @@ serve(async (req) => {
               status: subscription.status,
               stripe_customer_id: customerId,
               stripe_subscription_id: subscription.id,
-              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
+              current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
             }, { onConflict: "user_id" });
 
           if (upsertError) {
@@ -127,8 +132,13 @@ serve(async (req) => {
           break;
         }
 
-        const productId = subscription.items.data[0].price.product as string;
+        const subscriptionItem = subscription.items.data[0];
+        const productId = subscriptionItem.price.product as string;
         const planType = PRODUCT_TO_PLAN[productId] || "user_premium";
+        
+        // Get period dates from subscription item (new API structure)
+        const periodStart = subscriptionItem.current_period_start;
+        const periodEnd = subscriptionItem.current_period_end;
 
         const { error: updateError } = await supabaseClient
           .from("subscriptions")
@@ -138,8 +148,8 @@ serve(async (req) => {
             status: subscription.status,
             stripe_customer_id: customerId,
             stripe_subscription_id: subscription.id,
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
+            current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
           }, { onConflict: "user_id" });
 
         if (updateError) {
