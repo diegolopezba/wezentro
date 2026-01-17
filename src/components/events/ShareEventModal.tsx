@@ -52,7 +52,7 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
 
   const handleSend = async () => {
     if (selectedUsers.length === 0) {
-      toast.error("Select at least one person to send to");
+      toast.error("Selecciona al menos una persona");
       return;
     }
 
@@ -64,18 +64,18 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
         const chatId = await createPrivateChat.mutateAsync(userId);
         await sendMessage.mutateAsync({
           chatId,
-          content: "Check out this event!",
+          content: "¡Mira este evento!",
           messageType: "event_invite",
           eventId,
         });
         successCount++;
       }
 
-      toast.success(`Event sent to ${successCount} ${successCount === 1 ? "person" : "people"}`);
+      toast.success(`Evento enviado a ${successCount} ${successCount === 1 ? "persona" : "personas"}`);
       setSelectedUsers([]);
       onOpenChange(false);
     } catch (error) {
-      toast.error("Failed to send some invitations");
+      toast.error("Error al enviar algunas invitaciones");
     } finally {
       setIsSending(false);
     }
@@ -87,23 +87,23 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Check out this event on Zentro!",
-          text: "I found this awesome event and thought you'd like it!",
+          title: "¡Mira este evento en Zentro!",
+          text: "Encontré este evento increíble y pensé que te gustaría!",
           url: shareUrl,
         });
       } catch (error) {
         // User cancelled or share failed
         if ((error as Error).name !== "AbortError") {
-          toast.error("Failed to share");
+          toast.error("Error al compartir");
         }
       }
     } else {
       // Fallback: copy to clipboard
       try {
         await navigator.clipboard.writeText(shareUrl);
-        toast.success("Link copied to clipboard!");
+        toast.success("¡Enlace copiado!");
       } catch {
-        toast.error("Failed to copy link");
+        toast.error("Error al copiar enlace");
       }
     }
   };
@@ -112,7 +112,7 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-brand">Send Event</DialogTitle>
+          <DialogTitle className="font-brand">Enviar evento</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -120,7 +120,7 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder={isBusinessUser ? "Search users..." : "Search mutual followers..."}
+              placeholder={isBusinessUser ? "Buscar usuarios..." : "Buscar seguidores mutuos..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -137,12 +137,12 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
               <div className="flex flex-col items-center justify-center h-full text-center px-4">
                 <p className="text-muted-foreground text-sm">
                   {isBusinessUser 
-                    ? (searchQuery.length < 2 ? "Type to search for any user" : "No users found")
-                    : (searchQuery ? "No matching followers found" : "No mutual followers yet")}
+                    ? (searchQuery.length < 2 ? "Escribe para buscar usuarios" : "No se encontraron usuarios")
+                    : (searchQuery ? "No se encontraron seguidores" : "Aún no tienes seguidores mutuos")}
                 </p>
                 {!isBusinessUser && (
                   <p className="text-muted-foreground text-xs mt-1">
-                    You can only send events to people who follow you back
+                    Solo puedes enviar eventos a personas que te siguen de vuelta
                   </p>
                 )}
               </div>
@@ -193,7 +193,7 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
               ) : (
                 <Send className="w-4 h-4 mr-2" />
               )}
-              Send to {selectedUsers.length} {selectedUsers.length === 1 ? "person" : "people"}
+              Enviar a {selectedUsers.length} {selectedUsers.length === 1 ? "persona" : "personas"}
             </Button>
             <Button
               variant="outline"

@@ -31,12 +31,12 @@ interface EditEventSheetProps {
 const CATEGORIES = [
   { value: "club", label: "Club" },
   { value: "bar", label: "Bar" },
-  { value: "concert", label: "Concert" },
+  { value: "concert", label: "Concierto" },
   { value: "festival", label: "Festival" },
-  { value: "house_party", label: "House Party" },
+  { value: "house_party", label: "Fiesta en casa" },
   { value: "rooftop", label: "Rooftop" },
-  { value: "restaurant", label: "Restaurant" },
-  { value: "coffee", label: "Coffee" },
+  { value: "restaurant", label: "Restaurante" },
+  { value: "coffee", label: "Café" },
 ];
 
 export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProps) {
@@ -83,10 +83,10 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           has_guestlist: formData.has_guestlist,
         },
       });
-      toast.success("Event updated successfully");
+      toast.success("Evento actualizado exitosamente");
       onOpenChange(false);
     } catch (error: any) {
-      toast.error(error.message || "Failed to update event");
+      toast.error(error.message || "Error al actualizar evento");
     }
   };
 
@@ -94,39 +94,39 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
         <SheetHeader className="mb-4">
-          <SheetTitle>Edit Event</SheetTitle>
+          <SheetTitle>Editar evento</SheetTitle>
         </SheetHeader>
 
         <div className="space-y-4 overflow-y-auto max-h-[calc(85vh-120px)] pb-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">Título</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Event title"
+              placeholder="Título del evento"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Descripción</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Event description"
+              placeholder="Descripción del evento"
               rows={3}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">Categoría</Label>
             <Select
               value={formData.category}
               onValueChange={(value) => setFormData({ ...formData, category: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder="Seleccionar categoría" />
               </SelectTrigger>
               <SelectContent>
                 {CATEGORIES.map((cat) => (
@@ -139,7 +139,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="datetime">Date & Time</Label>
+            <Label htmlFor="datetime">Fecha y hora</Label>
             <Input
               id="datetime"
               type="datetime-local"
@@ -149,17 +149,17 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
+            <Label htmlFor="location">Ubicación</Label>
             <Input
               id="location"
               value={formData.location_name}
               onChange={(e) => setFormData({ ...formData, location_name: e.target.value })}
-              placeholder="Event location"
+              placeholder="Ubicación del evento"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="price">Price ($)</Label>
+            <Label htmlFor="price">Precio (Bs)</Label>
             <Input
               id="price"
               type="number"
@@ -171,7 +171,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           </div>
 
           <div className="flex items-center justify-between py-2">
-            <Label htmlFor="guestlist">Enable Guestlist</Label>
+            <Label htmlFor="guestlist">Habilitar lista de invitados</Label>
             <Switch
               id="guestlist"
               checked={formData.has_guestlist}
@@ -181,14 +181,14 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
 
           {formData.has_guestlist && (
             <div className="space-y-2">
-              <Label htmlFor="capacity">Max Capacity (optional)</Label>
+              <Label htmlFor="capacity">Capacidad máxima (opcional)</Label>
               <Input
                 id="capacity"
                 type="number"
                 min="1"
                 value={formData.max_guestlist_capacity}
                 onChange={(e) => setFormData({ ...formData, max_guestlist_capacity: e.target.value })}
-                placeholder="Leave empty for unlimited"
+                placeholder="Dejar vacío para ilimitado"
               />
             </div>
           )}
@@ -203,7 +203,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
             {updateEvent.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
             ) : null}
-            Save Changes
+            Guardar cambios
           </Button>
         </div>
       </SheetContent>

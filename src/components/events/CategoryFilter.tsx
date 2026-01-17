@@ -2,15 +2,15 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const categories = [
-  { id: "all", label: "All", emoji: "✨" },
+  { id: "all", label: "Todos", emoji: "✨" },
   { id: "club", label: "Clubs", emoji: "🪩" },
-  { id: "bar", label: "Bars", emoji: "🍸" },
-  { id: "concert", label: "Concerts", emoji: "🎵" },
-  { id: "festival", label: "Festivals", emoji: "🎪" },
-  { id: "house_party", label: "House Parties", emoji: "🏠" },
+  { id: "bar", label: "Bares", emoji: "🍸" },
+  { id: "concert", label: "Conciertos", emoji: "🎵" },
+  { id: "festival", label: "Festivales", emoji: "🎪" },
+  { id: "house_party", label: "Fiestas", emoji: "🏠" },
   { id: "rooftop", label: "Rooftops", emoji: "🌆" },
-  { id: "restaurant", label: "Restaurants", emoji: "🍽️" },
-  { id: "coffee", label: "Coffee", emoji: "☕" },
+  { id: "restaurant", label: "Restaurantes", emoji: "🍽️" },
+  { id: "coffee", label: "Café", emoji: "☕" },
 ];
 
 interface CategoryFilterProps {

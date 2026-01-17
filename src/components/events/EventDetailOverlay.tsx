@@ -74,7 +74,7 @@ export const EventDetailOverlay = () => {
   const pendingCount = pendingRequests.length;
   const handleSaveToggle = async () => {
     if (!user) {
-      toast.error("Please sign in to save events");
+      toast.error("Inicia sesión para guardar eventos");
       closeEvent();
       navigate("/auth");
       return;
@@ -82,18 +82,18 @@ export const EventDetailOverlay = () => {
     try {
       if (isSaved) {
         await unsaveEvent.mutateAsync(selectedEventId!);
-        toast.success("Event removed from saved");
+        toast.success("Evento eliminado de guardados");
       } else {
         await saveEvent.mutateAsync(selectedEventId!);
-        toast.success("Event saved!");
+        toast.success("¡Evento guardado!");
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to save event");
+      toast.error(error.message || "Error al guardar evento");
     }
   };
   const handleLikeToggle = async () => {
     if (!user) {
-      toast.error("Please sign in to like events");
+      toast.error("Inicia sesión para dar me gusta");
       closeEvent();
       navigate("/auth");
       return;
@@ -105,7 +105,7 @@ export const EventDetailOverlay = () => {
         await likeEvent.mutateAsync(selectedEventId!);
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to like event");
+      toast.error(error.message || "Error al dar me gusta");
     }
   };
   const toggleMute = (e: React.MouseEvent) => {
@@ -141,28 +141,28 @@ export const EventDetailOverlay = () => {
   };
   const handleJoinGuestlist = async () => {
     if (!user) {
-      toast.error("Please sign in to join guestlists");
+      toast.error("Inicia sesión para unirte a listas");
       closeEvent();
       navigate("/auth");
       return;
     }
     if (!hasSubscription) {
-      toast.error("Premium subscription required to join guestlists");
+      toast.error("Se requiere suscripción premium para unirse a listas");
       return;
     }
     try {
       await joinGuestlist.mutateAsync(selectedEventId!);
-      toast.success("Guestlist request sent!");
+      toast.success("¡Solicitud enviada!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to join guestlist");
+      toast.error(error.message || "Error al unirse a la lista");
     }
   };
   const handleLeaveGuestlist = async () => {
     try {
       await leaveGuestlist.mutateAsync(selectedEventId!);
-      toast.success("Left the guestlist");
+      toast.success("Saliste de la lista");
     } catch (error: any) {
-      toast.error(error.message || "Failed to leave guestlist");
+      toast.error(error.message || "Error al salir de la lista");
     }
   };
   const formattedDate = event ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a") : "";
@@ -182,9 +182,9 @@ export const EventDetailOverlay = () => {
           {isLoading ? <div className="min-h-screen flex items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div> : error || !event ? <div className="min-h-screen flex flex-col items-center justify-center px-4">
-              <h1 className="font-brand text-xl font-bold text-foreground mb-2">Event not found</h1>
-              <p className="text-muted-foreground mb-4">This event may have been removed.</p>
-              <Button onClick={closeEvent}>Go Back</Button>
+              <h1 className="font-brand text-xl font-bold text-foreground mb-2">Evento no encontrado</h1>
+              <p className="text-muted-foreground mb-4">Este evento puede haber sido eliminado.</p>
+              <Button onClick={closeEvent}>Volver</Button>
             </div> : <>
               {/* Hero media */}
               <motion.div layoutId={`event-image-${selectedEventId}`} className="relative w-full" style={{
@@ -238,11 +238,11 @@ export const EventDetailOverlay = () => {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
                             <Pencil className="w-4 h-4 mr-2" />
-                            Edit Event
+                            Editar evento
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Delete Event
+                            Eliminar evento
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>}
@@ -259,16 +259,16 @@ export const EventDetailOverlay = () => {
                         <UserPlus className="w-5 h-5" />
                       </Button>}
                     {event.has_guestlist && (isOwner ? <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
-                          Manage
+                          Gestionar
                           {pendingCount > 0 && <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
                               {pendingCount}
                             </span>}
                         </Button> : isOnGuestlist ? isPending ? <Button variant="ghost" size="sm" disabled>
-                            <Clock className="w-4 h-4 mr-1" /> Pending
+                            <Clock className="w-4 h-4 mr-1" /> Pendiente
                           </Button> : <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
-                            {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Joined</>}
+                            {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
                           </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
-                          {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Join</>}
+                          {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
                         </Button>)}
                   </div>
 
@@ -314,14 +314,14 @@ export const EventDetailOverlay = () => {
                       <MapPin className="w-5 h-5 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-foreground">{event.location_name || "Location TBA"}</p>
+                      <p className="text-sm text-foreground">{event.location_name || "Ubicación por definir"}</p>
                     </div>
                   </div>
 
                   {/* Description */}
                   {event.description && (
                     <div className="space-y-2">
-                      <h2 className="font-brand text-lg font-semibold text-foreground">About</h2>
+                      <h2 className="font-brand text-lg font-semibold text-foreground">Acerca de</h2>
                       <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
                         {event.description}
                       </p>
@@ -332,9 +332,9 @@ export const EventDetailOverlay = () => {
                   {event.has_guestlist && <div>
                       <div className="flex items-center justify-between mb-4">
                         <h2 className="font-brand text-lg font-semibold text-foreground">
-                          Guestlist ({guestlist.length})
+                          Lista de invitados ({guestlist.length})
                         </h2>
-                        {guestlist.length > 0 && hasSubscription && <span className="text-sm text-primary cursor-pointer">View all</span>}
+                        {guestlist.length > 0 && hasSubscription && <span className="text-sm text-primary cursor-pointer">Ver todos</span>}
                       </div>
 
                       {guestlist.length > 0 ? hasSubscription ? <>
@@ -365,7 +365,7 @@ export const EventDetailOverlay = () => {
                                       @{entry.user?.username || "user"}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                      Joined {format(new Date(entry.joined_at), "MMM d")}
+                                      Se unió el {format(new Date(entry.joined_at), "d MMM")}
                                     </p>
                                   </div>
                                   <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => {
@@ -380,29 +380,29 @@ export const EventDetailOverlay = () => {
                                 {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover blur-[3px]" />)}
                               </div>
                               {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
-                                  +{guestlist.length - 5} more
+                                  +{guestlist.length - 5} más
                                 </span>}
                             </div>
 
                             <div className="p-4 rounded-2xl bg-secondary/50 border border-border/50">
                               <div className="flex items-center gap-2 mb-2">
                                 <Lock className="w-4 h-4 text-primary" />
-                                <span className="font-semibold text-foreground text-sm">Members Only</span>
+                                <span className="font-semibold text-foreground text-sm">Solo para miembros</span>
                               </div>
                               <p className="text-muted-foreground text-sm mb-4">
-                                Become a Zentro member to see who's on the guestlist
+                                Hazte miembro de Zentro para ver quién está en la lista
                               </p>
                               <Button variant="hero" size="sm" className="w-full" onClick={() => {
                     closeEvent();
                     navigate("/subscription");
                   }}>
-                                Unlock Premium
+                                Desbloquear Premium
                               </Button>
                             </div>
                           </> : <div className="text-center py-6 rounded-2xl bg-secondary/30">
                           <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                           <p className="text-muted-foreground text-sm">
-                            No one has joined yet. Be the first!
+                            Nadie se ha unido aún. ¡Sé el primero!
                           </p>
                         </div>}
                     </div>}

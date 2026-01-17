@@ -32,11 +32,11 @@ export function DeleteEventDialog({
   const handleDelete = async () => {
     try {
       await deleteEvent.mutateAsync(eventId);
-      toast.success("Event deleted successfully");
+      toast.success("Evento eliminado exitosamente");
       onOpenChange(false);
       navigate("/");
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete event");
+      toast.error(error.message || "Error al eliminar evento");
     }
   };
 
@@ -44,15 +44,15 @@ export function DeleteEventDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Event</AlertDialogTitle>
+          <AlertDialogTitle>Eliminar evento</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete{" "}
-            <span className="font-semibold">{eventTitle || "this event"}</span>?
-            This action cannot be undone.
+            ¿Estás seguro de que quieres eliminar{" "}
+            <span className="font-semibold">{eventTitle || "este evento"}</span>?
+            Esta acción no se puede deshacer.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             disabled={deleteEvent.isPending}
@@ -61,7 +61,7 @@ export function DeleteEventDialog({
             {deleteEvent.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
             ) : null}
-            Delete Event
+            Eliminar evento
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
