@@ -7,6 +7,7 @@ import { useUserSubscription, useSubscriptionPlans, getPlanDisplayName } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 
@@ -22,7 +23,7 @@ const Subscription = () => {
 
   const handleUpgrade = async (planId: string) => {
     if (planId === "free") {
-      toast.info("To downgrade, please manage your subscription below.");
+      toast.info("Para cambiar a plan gratuito, administra tu suscripción abajo.");
       return;
     }
 
@@ -38,8 +39,8 @@ const Subscription = () => {
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
-      toast.error("Failed to start checkout", {
-        description: "Please try again or contact support.",
+      toast.error("Error al iniciar el pago", {
+        description: "Por favor intenta de nuevo o contacta soporte.",
       });
     } finally {
       setLoadingPlan(null);
@@ -57,8 +58,8 @@ const Subscription = () => {
       }
     } catch (error) {
       console.error("Error creating portal session:", error);
-      toast.error("Failed to open subscription portal", {
-        description: "Please try again or contact support.",
+      toast.error("Error al abrir portal de suscripción", {
+        description: "Por favor intenta de nuevo o contacta soporte.",
       });
     } finally {
       setManagingSubscription(false);
@@ -69,7 +70,7 @@ const Subscription = () => {
     try {
       await supabase.functions.invoke("check-subscription");
       await refetch();
-      toast.success("Subscription status refreshed");
+      toast.success("Estado de suscripción actualizado");
     } catch (error) {
       console.error("Error refreshing subscription:", error);
     }
@@ -89,13 +90,13 @@ const Subscription = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Active</Badge>;
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Activo</Badge>;
       case "trialing":
-        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Trial</Badge>;
+        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Prueba</Badge>;
       case "canceled":
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Canceled</Badge>;
+        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Cancelado</Badge>;
       case "past_due":
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Past Due</Badge>;
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Pago pendiente</Badge>;
       default:
         return null;
     }
@@ -115,7 +116,7 @@ const Subscription = () => {
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-xl font-semibold">Subscription</h1>
+            <h1 className="text-xl font-semibold">Suscripción</h1>
           </div>
         </div>
 
@@ -127,14 +128,14 @@ const Subscription = () => {
             className="rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Current Plan</h2>
+              <h2 className="text-lg font-semibold">Plan Actual</h2>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleRefreshStatus}
                 className="text-xs"
               >
-                Refresh Status
+                Actualizar Estado
               </Button>
             </div>
             
@@ -158,7 +159,7 @@ const Subscription = () => {
                     </div>
                     {subscription?.current_period_end && isActive && (
                       <p className="text-sm text-muted-foreground">
-                        Renews on {format(new Date(subscription.current_period_end), "MMMM d, yyyy")}
+                        Se renueva el {format(new Date(subscription.current_period_end), "d 'de' MMMM, yyyy", { locale: es })}
                       </p>
                     )}
                   </div>
@@ -174,10 +175,10 @@ const Subscription = () => {
                     {managingSubscription ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Opening Portal...
+                        Abriendo Portal...
                       </>
                     ) : (
-                      "Manage Subscription"
+                      "Administrar Suscripción"
                     )}
                   </Button>
                 )}
@@ -187,7 +188,7 @@ const Subscription = () => {
 
           {/* Available Plans */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Available Plans</h2>
+            <h2 className="text-lg font-semibold">Planes Disponibles</h2>
             
             {plans.map((plan, index) => {
               const isCurrentPlan = currentPlanId === plan.id;
@@ -209,7 +210,7 @@ const Subscription = () => {
                   {plan.highlighted && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <Badge className="bg-primary text-primary-foreground">
-                        Most Popular
+                        Más Popular
                       </Badge>
                     </div>
                   )}
@@ -225,13 +226,13 @@ const Subscription = () => {
                         <h3 className="font-semibold text-lg">{plan.name}</h3>
                         <p className="text-muted-foreground">
                           {plan.price === 0 ? (
-                            "Free forever"
+                            "Gratis para siempre"
                           ) : (
                             <>
                               <span className="text-2xl font-bold text-foreground">
                                 ${plan.price.toFixed(2)}
                               </span>
-                              <span className="text-sm">/{plan.interval}</span>
+                              <span className="text-sm">/{plan.interval === "month" ? "mes" : "año"}</span>
                             </>
                           )}
                         </p>
@@ -240,7 +241,7 @@ const Subscription = () => {
 
                     {isCurrentPlan && (
                       <Badge variant="outline" className="border-primary text-primary">
-                        Current
+                        Actual
                       </Badge>
                     )}
                   </div>
@@ -268,12 +269,12 @@ const Subscription = () => {
                       {isLoadingThisPlan ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Loading...
+                          Cargando...
                         </>
                       ) : plan.price === 0 ? (
-                        "Downgrade to Free"
+                        "Cambiar a Gratis"
                       ) : (
-                        `Upgrade to ${plan.name}`
+                        `Mejorar a ${plan.name}`
                       )}
                     </Button>
                   )}
@@ -290,7 +291,7 @@ const Subscription = () => {
             className="rounded-2xl bg-card/30 border border-border/30 p-4 text-center"
           >
             <p className="text-sm text-muted-foreground">
-              Cancel anytime. No long-term commitments.
+              Cancela en cualquier momento. Sin compromisos a largo plazo.
             </p>
           </motion.div>
         </div>

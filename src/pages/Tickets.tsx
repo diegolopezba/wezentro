@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Ticket, Calendar } from "lucide-react";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -64,7 +65,7 @@ const Tickets = () => {
             <ChevronLeft className="w-5 h-5" />
           </Button>
           <h1 className="font-brand text-xl font-bold text-foreground">
-            Tickets
+            Entradas
           </h1>
         </div>
       </header>
@@ -83,7 +84,7 @@ const Tickets = () => {
               if (!event) return null;
               
               const eventDate = new Date(event.start_datetime);
-              const formattedDate = format(eventDate, "EEE, MMM d · h:mm a");
+              const formattedDate = format(eventDate, "EEE, d MMM · HH:mm", { locale: es });
               
               return (
                 <motion.button
@@ -137,15 +138,15 @@ const Tickets = () => {
             <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center mb-4">
               <Ticket className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">No tickets yet</h3>
+            <h3 className="text-lg font-semibold text-foreground">Sin entradas aún</h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-              When you're confirmed for events, your tickets will appear here
+              Cuando estés confirmado para eventos, tus entradas aparecerán aquí
             </p>
             <Button
               onClick={() => navigate("/")}
               className="mt-6 rounded-xl"
             >
-              Discover Events
+              Descubrir Eventos
             </Button>
           </motion.div>
         )}

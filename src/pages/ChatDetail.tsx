@@ -79,25 +79,25 @@ const ChatDetail = () => {
     
     if (!chatId) {
       console.error("No chatId available");
-      toast.error("Cannot send invite - no chat selected");
+      toast.error("No se puede enviar invitación - no hay chat seleccionado");
       return;
     }
     
     sendMessage.mutate(
       {
         chatId,
-        content: "Check out this event!",
+        content: "¡Mira este evento!",
         messageType: "event_invite",
         eventId,
       },
       {
         onSuccess: () => {
           console.log("Event invite sent successfully");
-          toast.success("Event invitation sent!");
+          toast.success("¡Invitación al evento enviada!");
         },
         onError: (error) => {
           console.error("Failed to send event invite:", error);
-          toast.error("Failed to send invitation");
+          toast.error("Error al enviar invitación");
         },
       }
     );
@@ -125,16 +125,16 @@ const ChatDetail = () => {
     
     if (chatDetails.event) {
       return {
-        name: chatDetails.event.title || "Event Chat",
+        name: chatDetails.event.title || "Chat del Evento",
         avatar: chatDetails.event.image_url,
-        subtitle: `${chatDetails.participants.length} members`,
+        subtitle: `${chatDetails.participants.length} miembros`,
       };
     }
     
     return {
-      name: chatDetails.name || "Group Chat",
+      name: chatDetails.name || "Chat Grupal",
       avatar: null,
-      subtitle: `${chatDetails.participants.length} members`,
+      subtitle: `${chatDetails.participants.length} miembros`,
     };
   };
 
@@ -151,9 +151,9 @@ const ChatDetail = () => {
   if (!chatDetails) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <p className="text-muted-foreground">Chat not found</p>
+        <p className="text-muted-foreground">Chat no encontrado</p>
         <Button variant="ghost" onClick={() => navigate("/chats")}>
-          Back to Messages
+          Volver a Mensajes
         </Button>
       </div>
     );
@@ -211,9 +211,9 @@ const ChatDetail = () => {
           </>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-16">
-            <p className="text-muted-foreground text-sm">No messages yet</p>
+            <p className="text-muted-foreground text-sm">Sin mensajes aún</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Send a message to start the conversation
+              Envía un mensaje para iniciar la conversación
             </p>
           </div>
         )}
@@ -232,7 +232,7 @@ const ChatDetail = () => {
             <Plus className="w-5 h-5" />
           </Button>
           <Input
-            placeholder="Type a message..."
+            placeholder="Escribe un mensaje..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}

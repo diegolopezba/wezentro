@@ -66,12 +66,12 @@ const EditProfile = () => {
 
   const handleSave = async () => {
     if (!user) {
-      toast.error("You must be logged in to update your profile");
+      toast.error("Debes iniciar sesión para actualizar tu perfil");
       return;
     }
 
     if (!formData.username.trim()) {
-      toast.error("Username is required");
+      toast.error("El nombre de usuario es requerido");
       return;
     }
 
@@ -87,7 +87,7 @@ const EditProfile = () => {
           .maybeSingle();
 
         if (existingUser) {
-          toast.error("Username is already taken");
+          toast.error("Ese nombre de usuario ya está en uso");
           setIsLoading(false);
           return;
         }
@@ -106,11 +106,11 @@ const EditProfile = () => {
       if (error) throw error;
 
       await refreshProfile();
-      toast.success("Profile updated successfully!");
+      toast.success("¡Perfil actualizado exitosamente!");
       navigate("/settings");
     } catch (error: any) {
       console.error("Error updating profile:", error);
-      toast.error(error.message || "Failed to update profile");
+      toast.error(error.message || "Error al actualizar perfil");
     } finally {
       setIsLoading(false);
     }
@@ -125,12 +125,12 @@ const EditProfile = () => {
     if (!file || !user) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
+      toast.error("Por favor selecciona un archivo de imagen");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be less than 5MB");
+      toast.error("La imagen debe ser menor a 5MB");
       return;
     }
 
@@ -150,10 +150,10 @@ const EditProfile = () => {
         .getPublicUrl(fileName);
 
       setAvatarUrl(publicUrl);
-      toast.success("Photo uploaded!");
+      toast.success("¡Foto subida!");
     } catch (error: any) {
       console.error("Error uploading avatar:", error);
-      toast.error("Failed to upload photo");
+      toast.error("Error al subir foto");
     } finally {
       setIsUploading(false);
     }
@@ -168,12 +168,12 @@ const EditProfile = () => {
     if (!file || !user) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
+      toast.error("Por favor selecciona un archivo de imagen");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be less than 5MB");
+      toast.error("La imagen debe ser menor a 5MB");
       return;
     }
 
@@ -204,10 +204,10 @@ const EditProfile = () => {
       if (insertError) throw insertError;
 
       await fetchPhotos();
-      toast.success("Photo added!");
+      toast.success("¡Foto agregada!");
     } catch (error: any) {
       console.error("Error uploading photo:", error);
-      toast.error("Failed to upload photo");
+      toast.error("Error al subir foto");
     } finally {
       setIsUploadingPhoto(false);
       if (photoInputRef.current) {
@@ -226,10 +226,10 @@ const EditProfile = () => {
       if (error) throw error;
 
       setPhotos(photos.filter((p) => p.id !== photoId));
-      toast.success("Photo removed");
+      toast.success("Foto eliminada");
     } catch (error: any) {
       console.error("Error deleting photo:", error);
-      toast.error("Failed to remove photo");
+      toast.error("Error al eliminar foto");
     }
   };
 
@@ -259,7 +259,7 @@ const EditProfile = () => {
               <ChevronLeft className="w-5 h-5" />
             </Button>
             <h1 className="font-brand text-xl font-bold text-foreground">
-              Edit Profile
+              Editar Perfil
             </h1>
           </div>
           <Button 
@@ -268,7 +268,7 @@ const EditProfile = () => {
             onClick={handleSave}
             disabled={isLoading}
           >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
           </Button>
         </div>
       </header>
@@ -283,7 +283,7 @@ const EditProfile = () => {
           <div className="relative">
             <img
               src={avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80"}
-              alt="Profile"
+              alt="Perfil"
               className="w-28 h-28 rounded-full object-cover border-2 border-primary"
             />
             <button 
@@ -299,7 +299,7 @@ const EditProfile = () => {
             </button>
           </div>
           <p className="text-sm text-muted-foreground mt-3">
-            Tap to change profile photo
+            Toca para cambiar foto de perfil
           </p>
         </motion.div>
 
@@ -311,19 +311,19 @@ const EditProfile = () => {
           className="space-y-5"
         >
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">Nombre</Label>
             <Input
               id="name"
               value={formData.full_name}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, full_name: e.target.value }))
               }
-              placeholder="Your name"
+              placeholder="Tu nombre"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="username">Username *</Label>
+            <Label htmlFor="username">Nombre de usuario *</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 @
@@ -334,21 +334,21 @@ const EditProfile = () => {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, username: e.target.value }))
                 }
-                placeholder="username"
+                placeholder="usuario"
                 className="pl-8"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
+            <Label htmlFor="bio">Biografía</Label>
             <Textarea
               id="bio"
               value={formData.bio}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, bio: e.target.value }))
               }
-              placeholder="Tell us about yourself..."
+              placeholder="Cuéntanos sobre ti..."
               rows={3}
             />
           </div>
@@ -362,7 +362,7 @@ const EditProfile = () => {
           className="space-y-4"
         >
           <div className="flex items-center justify-between">
-            <Label>Showcase Photos</Label>
+            <Label>Fotos de Perfil</Label>
             <Button
               variant="outline"
               size="sm"
@@ -374,13 +374,13 @@ const EditProfile = () => {
               ) : (
                 <Plus className="w-4 h-4 mr-2" />
               )}
-              Add Photo
+              Agregar Foto
             </Button>
           </div>
 
           {photos.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground text-sm">
-              No showcase photos yet. Add some to show on your profile!
+              Sin fotos aún. ¡Agrega algunas para mostrar en tu perfil!
             </div>
           ) : (
             <div className="masonry-grid">
@@ -395,7 +395,7 @@ const EditProfile = () => {
                   <div className="rounded-2xl overflow-hidden">
                     <img
                       src={photo.photo_url}
-                      alt={`Photo ${index + 1}`}
+                      alt={`Foto ${index + 1}`}
                       className="w-full h-auto object-cover"
                     />
                   </div>

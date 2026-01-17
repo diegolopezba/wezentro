@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Image, Star, Heart, Loader2, Crown } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -86,7 +87,7 @@ const UserProfile = () => {
   const handleMessage = () => {
     if (!id) return;
     if (!canMessageData?.canMessage) {
-      toast.error(canMessageData?.reason || "Cannot message this user");
+      toast.error(canMessageData?.reason || "No se puede enviar mensaje a este usuario");
       return;
     }
     createChatMutation.mutate(id, {
@@ -94,7 +95,7 @@ const UserProfile = () => {
         navigate(`/chats/${chatId}`);
       },
       onError: () => {
-        toast.error("Failed to start conversation");
+        toast.error("Error al iniciar conversación");
       },
     });
   };
@@ -110,22 +111,22 @@ const UserProfile = () => {
   if (!userProfile) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-        <h1 className="font-brand text-xl font-bold text-foreground mb-2">User not found</h1>
-        <Button onClick={() => navigate(-1)}>Go Back</Button>
+        <h1 className="font-brand text-xl font-bold text-foreground mb-2">Usuario no encontrado</h1>
+        <Button onClick={() => navigate(-1)}>Volver</Button>
       </div>
     );
   }
 
   const stats = [
-    { label: "Events", value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0) },
-    { label: "Followers", value: statsLoading ? "..." : formatCount(userStats?.followersCount || 0), onClick: () => setFollowSheetType("followers") },
-    { label: "Following", value: statsLoading ? "..." : formatCount(userStats?.followingCount || 0), onClick: () => setFollowSheetType("following") },
+    { label: "Eventos", value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0) },
+    { label: "Seguidores", value: statsLoading ? "..." : formatCount(userStats?.followersCount || 0), onClick: () => setFollowSheetType("followers") },
+    { label: "Siguiendo", value: statsLoading ? "..." : formatCount(userStats?.followingCount || 0), onClick: () => setFollowSheetType("following") },
   ];
 
   const tabs = [
-    { id: "photos", label: "Photos", icon: Image },
-    { id: "created", label: "Created", icon: Star },
-    { id: "joined", label: "Joined", icon: Heart }
+    { id: "photos", label: "Fotos", icon: Image },
+    { id: "created", label: "Creados", icon: Star },
+    { id: "joined", label: "Asistió", icon: Heart }
   ];
 
   const isFollowPending = followMutation.isPending || unfollowMutation.isPending;
@@ -136,8 +137,8 @@ const UserProfile = () => {
       id={event.id}
       title={event.title || undefined}
       imageUrl={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
-      date={format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")}
-      location={event.location_name || "Location TBA"}
+      date={format(new Date(event.start_datetime), "EEE, d MMM • HH:mm", { locale: es })}
+      location={event.location_name || "Ubicación por confirmar"}
       category={event.category || "party"}
       attendees={event.guestlist_entries?.[0]?.count || 0}
       ownerAvatar={event.creator?.avatar_url}
@@ -182,7 +183,7 @@ const UserProfile = () => {
           <div className="relative">
             <img
               src={userProfile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userProfile.username}`}
-              alt="Profile"
+              alt="Perfil"
               className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary"
             />
             {isPremium && (
@@ -250,12 +251,12 @@ const UserProfile = () => {
               ) : isFollowing ? (
                 <>
                   <UserMinus className="w-4 h-4 mr-2" />
-                  Unfollow
+                  Dejar de seguir
                 </>
               ) : (
                 <>
                   <UserPlus className="w-4 h-4 mr-2" />
-                  Follow
+                  Seguir
                 </>
               )}
             </Button>
@@ -273,7 +274,7 @@ const UserProfile = () => {
                     ) : (
                       <>
                         <MessageCircle className="w-4 h-4 mr-2" />
-                        Message
+                        Mensaje
                       </>
                     )}
                   </Button>
@@ -322,7 +323,7 @@ const UserProfile = () => {
         {activeTab === "photos" && (
           <div className="masonry-grid">
             {photos.length === 0 ? (
-              renderEmptyState("No photos yet")
+              renderEmptyState("Sin fotos aún")
             ) : (
               photos.map((photo, index) => (
                 <motion.div 
@@ -335,7 +336,7 @@ const UserProfile = () => {
                   <div className="rounded-2xl overflow-hidden">
                     <img 
                       src={photo.photo_url} 
-                      alt={`Photo ${index + 1}`} 
+                      alt={`Foto ${index + 1}`} 
                       className="w-full h-auto object-cover" 
                     />
                   </div>
@@ -350,7 +351,7 @@ const UserProfile = () => {
             {createdLoading ? (
               renderLoading()
             ) : !createdEvents || createdEvents.length === 0 ? (
-              renderEmptyState("No events created yet")
+              renderEmptyState("Sin eventos creados aún")
             ) : (
               createdEvents.map((event, index) => renderEventCard(event, index))
             )}
@@ -362,7 +363,7 @@ const UserProfile = () => {
             {joinedLoading ? (
               renderLoading()
             ) : !joinedEvents || joinedEvents.length === 0 ? (
-              renderEmptyState("No events joined yet")
+              renderEmptyState("Sin eventos asistidos aún")
             ) : (
               joinedEvents.map((event, index) => renderEventCard(event, index))
             )}
