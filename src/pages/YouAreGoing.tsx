@@ -93,7 +93,7 @@ const YouAreGoing = () => {
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
 
       {/* Content - Bottom Aligned */}
-      <div className="relative flex-1 flex flex-col justify-end">
+      <div className="relative h-full flex flex-col justify-end">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
