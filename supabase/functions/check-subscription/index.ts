@@ -74,11 +74,26 @@ serve(async (req) => {
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
       
-      // Safe date parsing with null checks
-      const periodEnd = subscription.current_period_end;
-      const periodStart = subscription.current_period_start;
-      subscriptionEnd = periodEnd ? new Date(periodEnd * 1000).toISOString() : null;
-      const periodStartISO = periodStart ? new Date(periodStart * 1000).toISOString() : null;
+      // Log the raw subscription object to debug date extraction
+      logStep("Raw subscription data", { 
+        id: subscription.id,
+        current_period_end: subscription.current_period_end,
+        current_period_start: subscription.current_period_start,
+        typeof_end: typeof subscription.current_period_end,
+      });
+      
+      // Access dates - they should be Unix timestamps (numbers)
+      const periodEndRaw = subscription.current_period_end;
+      const periodStartRaw = subscription.current_period_start;
+      
+      // Convert Unix timestamps to ISO strings
+      let periodStartISO: string | null = null;
+      if (typeof periodEndRaw === 'number' && periodEndRaw > 0) {
+        subscriptionEnd = new Date(periodEndRaw * 1000).toISOString();
+      }
+      if (typeof periodStartRaw === 'number' && periodStartRaw > 0) {
+        periodStartISO = new Date(periodStartRaw * 1000).toISOString();
+      }
       
       const productId = subscription.items.data[0].price.product as string;
       planType = PRODUCT_TO_PLAN[productId] || "user_premium";
@@ -86,7 +101,10 @@ serve(async (req) => {
         subscriptionId: subscription.id, 
         productId,
         planType,
-        endDate: subscriptionEnd 
+        periodEndRaw,
+        periodStartRaw,
+        endDate: subscriptionEnd,
+        startDate: periodStartISO
       });
 
       // Update subscription in database
