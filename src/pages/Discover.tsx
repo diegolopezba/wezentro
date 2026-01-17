@@ -428,56 +428,6 @@ const Discover = () => {
         </AnimatePresence>
 
 
-        {/* Nearby Events Drawer */}
-        <Drawer open={isNearbyOpen} onOpenChange={setIsNearbyOpen}>
-          <DrawerTrigger asChild>
-            <Button
-              variant="secondary"
-              className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 bg-card/90 backdrop-blur-md shadow-elevated"
-            >
-              <MapPin className="w-4 h-4 mr-2" />
-              {eventsWithLocation.length} eventos cerca
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent className="max-h-[70vh]">
-            <div className="p-4">
-              <h3 className="font-semibold text-foreground mb-4">
-                Eventos Cercanos ({eventsWithLocation.length})
-              </h3>
-              <div className="space-y-3 overflow-y-auto max-h-[50vh]">
-                {eventsWithLocation.map((event) => (
-                  <button
-                    key={event.id}
-                    onClick={() => handleMarkerClick([event])}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-colors text-left"
-                  >
-                    <div className="w-14 h-14 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
-                      <img
-                        src={event.image_url || "/placeholder.svg"}
-                        alt={event.title || "Evento"}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate">{event.title || "Evento sin título"}</p>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {event.location_name || "Ubicación por confirmar"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(event.start_datetime), "EEE, d MMM • HH:mm", { locale: es })}
-                      </p>
-                    </div>
-                    {event.distance !== null && (
-                      <span className="text-sm font-medium text-primary flex-shrink-0">
-                        {formatDistance(event.distance)}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </DrawerContent>
-        </Drawer>
 
         {/* Filter Sheet */}
         <FilterSheet
