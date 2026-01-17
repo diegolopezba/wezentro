@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { QrCode, MapPin, Calendar } from "lucide-react";
+import { QrCode, MapPin, Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
@@ -55,7 +55,7 @@ const YouAreGoing = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex flex-col"
+      className="fixed inset-0 z-50"
     >
       {/* Background Media */}
       <div className="absolute inset-0">
@@ -75,6 +75,18 @@ const YouAreGoing = () => {
             className="w-full h-full object-cover"
           />
         )}
+      </div>
+
+      {/* Close button - Top right */}
+      <div className="absolute top-0 right-0 safe-top z-20 p-4">
+        <Button
+          onClick={() => navigate(-1)}
+          variant="ghost"
+          size="icon"
+          className="bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 rounded-full"
+        >
+          <X className="w-5 h-5" />
+        </Button>
       </div>
 
       {/* Gradient overlay - same as EventDetail */}
@@ -120,15 +132,6 @@ const YouAreGoing = () => {
               >
                 <QrCode className="w-4 h-4 mr-2" />
                 Mostrar QR
-              </Button>
-
-              <Button
-                onClick={() => navigate(-1)}
-                variant="ghost"
-                className="w-full text-white/80 hover:text-white hover:bg-white/10 rounded-xl"
-                size="lg"
-              >
-                Cerrar
               </Button>
             </div>
           </div>
