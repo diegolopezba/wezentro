@@ -1,11 +1,15 @@
 // src/components/map/MapView.tsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Event } from "@/hooks/useEvents";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { Loader2, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createMiniEventMarkerElement, injectMiniMarkerStyles } from "./MiniEventMarker";
+
+// Zoom threshold for showing mini cards vs circle markers
+const MINI_CARD_ZOOM_THRESHOLD = 13;
 
 interface MapViewProps {
   events: Event[];
@@ -35,8 +39,10 @@ const MapView: React.FC<MapViewProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
 
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [currentZoom, setCurrentZoom] = useState(WORLD_VIEW.zoom);
 
   // IMPORTANT: refs avoid stale closures inside mapbox event handlers
   const hasAnimatedRef = useRef(false);
@@ -75,6 +81,78 @@ const MapView: React.FC<MapViewProps> = ({
       features,
     };
   }, [events]);
+
+  // Clear all custom markers
+  const clearCustomMarkers = useCallback(() => {
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current = [];
+  }, []);
+
+  // Create custom mini event card markers
+  const createCustomMarkers = useCallback(() => {
+    if (!map.current || !mapLoaded) return;
+    
+    clearCustomMarkers();
+    injectMiniMarkerStyles();
+
+    const unclusteredEvents = events.filter((event) => event.latitude && event.longitude);
+    
+    unclusteredEvents.forEach((event) => {
+      const markerElement = createMiniEventMarkerElement({
+        title: event.title || "Evento",
+        imageUrl: event.image_url || "/placeholder.svg",
+        startDatetime: event.start_datetime,
+        isTonight: isEventTonight(event.start_datetime),
+      });
+
+      markerElement.addEventListener("click", () => {
+        if (onMarkerClick) {
+          onMarkerClick([event]);
+        }
+      });
+
+      const marker = new mapboxgl.Marker({
+        element: markerElement,
+        anchor: "bottom",
+      })
+        .setLngLat([event.longitude!, event.latitude!])
+        .addTo(map.current!);
+
+      markersRef.current.push(marker);
+    });
+  }, [events, mapLoaded, clearCustomMarkers, onMarkerClick]);
+
+  // Toggle between circle layers and custom markers based on zoom
+  const updateMarkerVisibility = useCallback((zoom: number) => {
+    if (!map.current || !mapLoaded) return;
+
+    const showMiniCards = zoom >= MINI_CARD_ZOOM_THRESHOLD;
+
+    // Toggle circle layer visibility
+    if (map.current.getLayer("unclustered-point")) {
+      map.current.setLayoutProperty(
+        "unclustered-point",
+        "visibility",
+        showMiniCards ? "none" : "visible"
+      );
+    }
+    if (map.current.getLayer("unclustered-point-pulse")) {
+      map.current.setLayoutProperty(
+        "unclustered-point-pulse",
+        "visibility",
+        showMiniCards ? "none" : "visible"
+      );
+    }
+
+    // Toggle custom markers
+    if (showMiniCards) {
+      if (markersRef.current.length === 0) {
+        createCustomMarkers();
+      }
+    } else {
+      clearCustomMarkers();
+    }
+  }, [mapLoaded, createCustomMarkers, clearCustomMarkers]);
 
   const clearAllTimeouts = () => {
     timeoutsRef.current.forEach((id) => window.clearTimeout(id));
@@ -379,8 +457,16 @@ const MapView: React.FC<MapViewProps> = ({
       if (map.current) map.current.getCanvas().style.cursor = "";
     });
 
+    // Zoom listener to toggle between circle markers and mini cards
+    map.current.on("zoom", () => {
+      if (!map.current) return;
+      const zoom = map.current.getZoom();
+      setCurrentZoom(zoom);
+    });
+
     return () => {
       clearAllTimeouts();
+      clearCustomMarkers();
       geolocateControl.off("geolocate", handleGeoLocate);
       geolocateControl.off("error", handleGeoError);
 
@@ -401,7 +487,17 @@ const MapView: React.FC<MapViewProps> = ({
     if (!map.current || !mapLoaded) return;
     const source = map.current.getSource("events") as mapboxgl.GeoJSONSource | undefined;
     if (source) source.setData(eventsGeoJSON);
-  }, [eventsGeoJSON, mapLoaded]);
+    
+    // Recreate custom markers if we're zoomed in enough
+    if (currentZoom >= MINI_CARD_ZOOM_THRESHOLD) {
+      createCustomMarkers();
+    }
+  }, [eventsGeoJSON, mapLoaded, currentZoom, createCustomMarkers]);
+
+  // Update marker visibility based on zoom level
+  useEffect(() => {
+    updateMarkerVisibility(currentZoom);
+  }, [currentZoom, updateMarkerVisibility]);
 
   // Center map on selected event
   useEffect(() => {
