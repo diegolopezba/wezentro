@@ -10,76 +10,53 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-
 const Subscription = () => {
   const navigate = useNavigate();
-  const { data: subscription, isLoading, refetch } = useUserSubscription();
+  const {
+    data: subscription,
+    isLoading,
+    refetch
+  } = useUserSubscription();
   const plans = useSubscriptionPlans();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [managingSubscription, setManagingSubscription] = useState(false);
-
   const currentPlanId = subscription?.plan_type || "free";
   const isActive = subscription?.status === "active" || subscription?.status === "trialing";
-
   const handleUpgrade = async (planId: string) => {
-    console.log("[Subscription] handleUpgrade called with planId:", planId);
-    
     if (planId === "free") {
       toast.info("Para cambiar a plan gratuito, administra tu suscripción abajo.");
       return;
     }
-
     setLoadingPlan(planId);
-    const loadingToastId = toast.loading("Preparando checkout...");
-    
     try {
-      console.log("[Subscription] Invoking create-checkout-session...");
-      const { data, error } = await supabase.functions.invoke("create-checkout-session", {
-        body: { planId },
-      });
-
-      console.log("[Subscription] Response:", { data, error });
-      toast.dismiss(loadingToastId);
-
-      if (error) {
-        console.error("[Subscription] Function error:", error);
-        throw error;
-      }
-      
-      // Check for error in response body
-      if (data?.error) {
-        console.error("[Subscription] Response error:", data.error);
-        throw new Error(data.error);
-      }
-      
-      if (data?.url) {
-        console.log("[Subscription] Opening checkout URL:", data.url);
-        // Try to open in new tab, fallback to same window if blocked
-        const newWindow = window.open(data.url, "_blank");
-        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-          console.log("[Subscription] Popup blocked, redirecting in same window");
-          toast.info("Redirigiendo a Stripe...");
-          window.location.href = data.url;
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke("create-checkout-session", {
+        body: {
+          planId
         }
-      } else {
-        throw new Error("No checkout URL received");
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
       }
     } catch (error) {
-      toast.dismiss(loadingToastId);
       console.error("Error creating checkout session:", error);
       toast.error("Error al iniciar el pago", {
-        description: error instanceof Error ? error.message : "Por favor intenta de nuevo o contacta soporte.",
+        description: "Por favor intenta de nuevo o contacta soporte."
       });
     } finally {
       setLoadingPlan(null);
     }
   };
-
   const handleManageSubscription = async () => {
     setManagingSubscription(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-portal-session");
-
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke("create-portal-session");
       if (error) throw error;
       if (data?.url) {
         window.open(data.url, "_blank");
@@ -87,13 +64,12 @@ const Subscription = () => {
     } catch (error) {
       console.error("Error creating portal session:", error);
       toast.error("Error al abrir portal de suscripción", {
-        description: "Por favor intenta de nuevo o contacta soporte.",
+        description: "Por favor intenta de nuevo o contacta soporte."
       });
     } finally {
       setManagingSubscription(false);
     }
   };
-
   const handleRefreshStatus = async () => {
     try {
       await supabase.functions.invoke("check-subscription");
@@ -103,7 +79,6 @@ const Subscription = () => {
       console.error("Error refreshing subscription:", error);
     }
   };
-
   const getPlanIcon = (planId: string) => {
     switch (planId) {
       case "user_premium":
@@ -114,7 +89,6 @@ const Subscription = () => {
         return <Sparkles className="h-5 w-5" />;
     }
   };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
@@ -129,19 +103,12 @@ const Subscription = () => {
         return null;
     }
   };
-
-  return (
-    <AppLayout>
+  return <AppLayout>
       <div className="min-h-screen bg-background">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/50">
           <div className="flex items-center gap-4 p-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(-1)}
-              className="rounded-full"
-            >
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <h1 className="text-xl font-semibold">Suscripción</h1>
@@ -150,30 +117,24 @@ const Subscription = () => {
 
         <div className="p-4 space-y-6 max-w-2xl mx-auto">
           {/* Current Plan Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} className="rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Plan Actual</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleRefreshStatus}
-                className="text-xs"
-              >
+              <Button variant="ghost" size="sm" onClick={handleRefreshStatus} className="text-xs">
                 Actualizar Estado
               </Button>
             </div>
             
-            {isLoading ? (
-              <div className="animate-pulse space-y-3">
+            {isLoading ? <div className="animate-pulse space-y-3">
                 <div className="h-6 bg-muted rounded w-1/3" />
                 <div className="h-4 bg-muted rounded w-1/2" />
-              </div>
-            ) : (
-              <div className="space-y-3">
+              </div> : <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-primary/20 text-primary">
                     {getPlanIcon(currentPlanId)}
@@ -185,33 +146,21 @@ const Subscription = () => {
                       </span>
                       {subscription && getStatusBadge(subscription.status)}
                     </div>
-                    {subscription?.current_period_end && isActive && (
-                      <p className="text-sm text-muted-foreground">
-                        Se renueva el {format(new Date(subscription.current_period_end), "d 'de' MMMM, yyyy", { locale: es })}
-                      </p>
-                    )}
+                    {subscription?.current_period_end && isActive && <p className="text-sm text-muted-foreground">
+                        Se renueva el {format(new Date(subscription.current_period_end), "d 'de' MMMM, yyyy", {
+                    locale: es
+                  })}
+                      </p>}
                   </div>
                 </div>
 
-                {subscription && isActive && (
-                  <Button
-                    variant="outline"
-                    className="w-full mt-4"
-                    onClick={handleManageSubscription}
-                    disabled={managingSubscription}
-                  >
-                    {managingSubscription ? (
-                      <>
+                {subscription && isActive && <Button variant="outline" className="w-full mt-4" onClick={handleManageSubscription} disabled={managingSubscription}>
+                    {managingSubscription ? <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Abriendo Portal...
-                      </>
-                    ) : (
-                      "Administrar Suscripción"
-                    )}
-                  </Button>
-                )}
-              </div>
-            )}
+                      </> : "Administrar Suscripción"}
+                  </Button>}
+              </div>}
           </motion.div>
 
           {/* Available Plans */}
@@ -219,113 +168,80 @@ const Subscription = () => {
             <h2 className="text-lg font-semibold">Planes Disponibles</h2>
             
             {plans.map((plan, index) => {
-              const isCurrentPlan = currentPlanId === plan.id;
-              const isPremium = plan.id !== "free";
-              const isLoadingThisPlan = loadingPlan === plan.id;
-              
-              return (
-                <motion.div
-                  key={plan.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className={`relative rounded-2xl border p-6 transition-all ${
-                    plan.highlighted
-                      ? "bg-gradient-to-br from-primary/10 via-card/50 to-card/50 border-primary/30"
-                      : "bg-card/50 border-border/50"
-                  } ${isCurrentPlan ? "ring-2 ring-primary" : ""}`}
-                >
-                  {plan.highlighted && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+            const isCurrentPlan = currentPlanId === plan.id;
+            const isPremium = plan.id !== "free";
+            const isLoadingThisPlan = loadingPlan === plan.id;
+            return <motion.div key={plan.id} initial={{
+              opacity: 0,
+              y: 20
+            }} animate={{
+              opacity: 1,
+              y: 0
+            }} transition={{
+              delay: index * 0.1
+            }} className={`relative rounded-2xl border p-6 transition-all ${plan.highlighted ? "bg-gradient-to-br from-primary/10 via-card/50 to-card/50 border-primary/30" : "bg-card/50 border-border/50"} ${isCurrentPlan ? "ring-2 ring-primary" : ""}`}>
+                  {plan.highlighted && <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <Badge className="bg-primary text-primary-foreground">
                         Más Popular
                       </Badge>
-                    </div>
-                  )}
+                    </div>}
 
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-full ${
-                        isPremium ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
-                      }`}>
+                      <div className={`p-2 rounded-full ${isPremium ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
                         {getPlanIcon(plan.id)}
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg">{plan.name}</h3>
                         <p className="text-muted-foreground">
-                          {plan.price === 0 ? (
-                            "Gratis para siempre"
-                          ) : (
-                            <>
+                          {plan.price === 0 ? "Gratis para siempre" : <>
                               <span className="text-2xl font-bold text-foreground">
                                 ${plan.price.toFixed(2)}
                               </span>
                               <span className="text-sm">/{plan.interval === "month" ? "mes" : "año"}</span>
-                            </>
-                          )}
+                            </>}
                         </p>
                       </div>
                     </div>
 
-                    {isCurrentPlan && (
-                      <Badge variant="outline" className="border-primary text-primary">
+                    {isCurrentPlan && <Badge variant="outline" className="border-primary text-primary">
                         Actual
-                      </Badge>
-                    )}
+                      </Badge>}
                   </div>
 
                   <ul className="space-y-2 mb-6">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm">
+                    {plan.features.map((feature, i) => <li key={i} className="flex items-center gap-2 text-sm">
                         <Check className="h-4 w-4 text-primary flex-shrink-0" />
                         <span className="text-muted-foreground">{feature}</span>
-                      </li>
-                    ))}
+                      </li>)}
                   </ul>
 
-                  {!isCurrentPlan && (
-                    <Button
-                      className={`w-full ${
-                        plan.highlighted
-                          ? "bg-primary hover:bg-primary/90"
-                          : ""
-                      }`}
-                      variant={plan.highlighted ? "default" : "outline"}
-                      onClick={() => handleUpgrade(plan.id)}
-                      disabled={loadingPlan !== null}
-                    >
-                      {isLoadingThisPlan ? (
-                        <>
+                  {!isCurrentPlan && <Button className={`w-full ${plan.highlighted ? "bg-primary hover:bg-primary/90" : ""}`} variant={plan.highlighted ? "default" : "outline"} onClick={() => handleUpgrade(plan.id)} disabled={loadingPlan !== null}>
+                      {isLoadingThisPlan ? <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Cargando...
-                        </>
-                      ) : plan.price === 0 ? (
-                        "Cambiar a Gratis"
-                      ) : (
-                        `Mejorar a ${plan.name}`
-                      )}
-                    </Button>
-                  )}
-                </motion.div>
-              );
-            })}
+                        </> : plan.price === 0 ? "Cambiar a Gratis" : `Mejorar a ${plan.name}`}
+                    </Button>}
+                </motion.div>;
+          })}
           </div>
 
           {/* FAQ or Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="rounded-2xl bg-card/30 border border-border/30 p-4 text-center"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.4
+        }} className="rounded-2xl bg-card/30 border border-border/30 p-4 text-center text-primary-foreground">
             <p className="text-sm text-muted-foreground">
               Cancela en cualquier momento. Sin compromisos a largo plazo.
             </p>
           </motion.div>
         </div>
       </div>
-    </AppLayout>
-  );
+    </AppLayout>;
 };
-
 export default Subscription;
