@@ -32,6 +32,7 @@ import UserProfile from "./pages/UserProfile";
 import Tickets from "./pages/Tickets";
 import YouAreGoing from "./pages/YouAreGoing";
 import BusinessDashboard from "./pages/BusinessDashboard";
+import JoinedEvents from "./pages/JoinedEvents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -210,6 +211,14 @@ const App = () => {
                             element={
                               <ProtectedRoute requireProfile>
                                 <BusinessDashboard />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings/joined-events"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <JoinedEvents />
                               </ProtectedRoute>
                             }
                           />
