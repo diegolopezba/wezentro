@@ -21,12 +21,12 @@ import { toast } from "sonner";
 import { useUserSubscription } from "@/hooks/useSubscription";
 import { LocationPicker } from "@/components/map/LocationPicker";
 import { SubscriptionUpsellModal } from "@/components/subscription/SubscriptionUpsellModal";
-import { 
-  isVideoFile, 
-  isImageFile, 
-  validateVideoFile, 
+import {
+  isVideoFile,
+  isImageFile,
+  validateVideoFile,
   validateImageFile,
-  formatDuration 
+  formatDuration,
 } from "@/lib/mediaUtils";
 
 const categories = [
@@ -53,7 +53,7 @@ const Create = () => {
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
+  const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [location, setLocation] = useState({
     address: "",
@@ -72,6 +72,9 @@ const Create = () => {
     hasGuestlist: false,
   });
 
+  // Auto-detect if this is a post (no date/time) or an event
+  const isPost = !formData.date && !formData.time;
+
   const handleMediaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -83,7 +86,7 @@ const Create = () => {
         toast.error(validation.error);
         return;
       }
-      setMediaType('video');
+      setMediaType("video");
       setVideoDuration(validation.duration || null);
     } else if (isImageFile(file)) {
       // Validate image (5MB max)
@@ -92,7 +95,7 @@ const Create = () => {
         toast.error(validation.error);
         return;
       }
-      setMediaType('image');
+      setMediaType("image");
       setVideoDuration(null);
     } else {
       toast.error("Por favor sube una imagen o video");
@@ -121,7 +124,9 @@ const Create = () => {
     if (!user) return null;
 
     // Get the user's session for authentication
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session?.access_token) {
       toast.error("No autenticado");
       return null;
@@ -135,53 +140,51 @@ const Create = () => {
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      
+
       // Track upload progress
-      xhr.upload.addEventListener('progress', (event) => {
+      xhr.upload.addEventListener("progress", (event) => {
         if (event.lengthComputable) {
           const progress = Math.round((event.loaded / event.total) * 100);
           setUploadProgress(progress);
         }
       });
 
-      xhr.addEventListener('load', async () => {
+      xhr.addEventListener("load", async () => {
         setIsUploading(false);
         if (xhr.status >= 200 && xhr.status < 300) {
-          const { data } = supabase.storage
-            .from("event-images")
-            .getPublicUrl(fileName);
+          const { data } = supabase.storage.from("event-images").getPublicUrl(fileName);
           resolve(data.publicUrl);
         } else {
-          reject(new Error('Error al subir'));
+          reject(new Error("Error al subir"));
         }
       });
 
-      xhr.addEventListener('error', () => {
+      xhr.addEventListener("error", () => {
         setIsUploading(false);
-        reject(new Error('Error al subir'));
+        reject(new Error("Error al subir"));
       });
 
       // Get the upload URL and use session token for auth
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const uploadUrl = `${supabaseUrl}/storage/v1/object/event-images/${fileName}`;
 
-      xhr.open('POST', uploadUrl);
-      xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
-      xhr.setRequestHeader('x-upsert', 'true');
+      xhr.open("POST", uploadUrl);
+      xhr.setRequestHeader("Authorization", `Bearer ${session.access_token}`);
+      xhr.setRequestHeader("x-upsert", "true");
       xhr.send(file);
     });
   };
 
   const handleSubmit = async () => {
     if (!user) {
-      toast.error("Inicia sesión para crear un evento");
+      toast.error("Inicia sesión para crear");
       navigate("/auth");
       return;
     }
 
-    // Validation
-    if (!formData.date || !formData.time) {
-      toast.error("Por favor selecciona fecha y hora");
+    // Media is required
+    if (!mediaFile) {
+      toast.error("Por favor sube una imagen o video");
       return;
     }
 
@@ -196,13 +199,16 @@ const Create = () => {
     try {
       let imageUrl: string | null = null;
 
-      // Upload media if selected
+      // Upload media
       if (mediaFile) {
         imageUrl = await uploadMedia(mediaFile);
       }
 
-      // Combine date and time into a single datetime
-      const startDatetime = new Date(`${formData.date}T${formData.time}`);
+      // Build start_datetime only if date and time are provided
+      let startDatetime: string | null = null;
+      if (formData.date && formData.time) {
+        startDatetime = new Date(`${formData.date}T${formData.time}`).toISOString();
+      }
 
       const { data, error } = await supabase
         .from("events")
@@ -210,18 +216,17 @@ const Create = () => {
           title: formData.title.trim() || null,
           description: formData.description.trim() || null,
           category: formData.category || null,
-          start_datetime: startDatetime.toISOString(),
+          start_datetime: startDatetime,
           location_name: location.address.trim() || null,
           latitude: location.latitude,
           longitude: location.longitude,
           price: formData.price ? parseFloat(formData.price) : 0,
-          max_guestlist_capacity: formData.capacity
-            ? parseInt(formData.capacity)
-            : null,
+          max_guestlist_capacity: formData.capacity ? parseInt(formData.capacity) : null,
           has_guestlist: formData.hasGuestlist,
           image_url: imageUrl,
           creator_id: user.id,
           is_public: true,
+          is_post: isPost,
         })
         .select()
         .single();
@@ -248,11 +253,11 @@ const Create = () => {
         }
       }
 
-      toast.success("¡Evento creado exitosamente!");
+      toast.success(isPost ? "¡Publicación creada!" : "¡Evento creado exitosamente!");
       navigate(`/event/${data.id}`);
     } catch (error: any) {
-      console.error("Error creating event:", error);
-      toast.error(error.message || "Error al crear evento");
+      console.error("Error creating:", error);
+      toast.error(error.message || "Error al crear");
     } finally {
       setIsSubmitting(false);
     }
@@ -263,22 +268,17 @@ const Create = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
         <div className="px-4 py-4">
-          <h1 className="font-brand text-xl font-bold text-foreground">
-            Crear Evento
-          </h1>
+          <h1 className="font-brand text-xl font-bold text-foreground">Crear</h1>
         </div>
       </header>
 
       <div className="px-4 py-6 space-y-6 pb-24">
         {/* Media upload */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <label className="block">
             {mediaPreview ? (
               <div className="relative h-48 rounded-2xl overflow-hidden">
-                {mediaType === 'video' ? (
+                {mediaType === "video" ? (
                   <video
                     src={mediaPreview}
                     className="w-full h-full object-cover"
@@ -288,18 +288,18 @@ const Create = () => {
                 ) : (
                   <img
                     src={mediaPreview}
-                    alt="Portada del evento"
+                    alt="Portada"
                     className="w-full h-full object-cover"
                   />
                 )}
-                
+
                 {/* Upload progress overlay */}
                 {isUploading && (
                   <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
                     <div className="w-3/4">
                       <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                        <motion.div 
+                        <motion.div
                           className="h-full bg-primary rounded-full"
                           initial={{ width: 0 }}
                           animate={{ width: `${uploadProgress}%` }}
@@ -312,7 +312,7 @@ const Create = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {!isUploading && (
                   <button
                     type="button"
@@ -326,7 +326,7 @@ const Create = () => {
                   </button>
                 )}
                 <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm text-xs text-foreground flex items-center gap-2">
-                  {mediaType === 'video' ? (
+                  {mediaType === "video" ? (
                     <>
                       <Video className="w-3 h-3" />
                       {videoDuration && formatDuration(videoDuration)}
@@ -343,7 +343,7 @@ const Create = () => {
               <div className="relative h-48 rounded-2xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
                 <Upload className="w-10 h-10 text-muted-foreground mb-2" />
                 <span className="text-sm text-muted-foreground">
-                  Sube una imagen o video de portada
+                  Sube una imagen o video
                 </span>
                 <span className="text-xs text-muted-foreground/60 mt-1">
                   Máx. 15 segundos para videos
@@ -366,17 +366,13 @@ const Create = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
         >
-          <label className="text-sm font-medium text-foreground mb-3 block">
-            Categoría del Evento
-          </label>
+          <label className="text-sm font-medium text-foreground mb-3 block">Categoría</label>
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
               <button
                 key={category.id}
                 type="button"
-                onClick={() =>
-                  setFormData({ ...formData, category: category.id })
-                }
+                onClick={() => setFormData({ ...formData, category: category.id })}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
                   formData.category === category.id
                     ? "gradient-primary text-primary-foreground shadow-glow"
@@ -398,29 +394,21 @@ const Create = () => {
           className="space-y-4"
         >
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
-              Título del Evento
-            </label>
+            <label className="text-sm font-medium text-foreground mb-2 block">Título</label>
             <Input
-              placeholder="Dale un nombre atractivo a tu evento"
+              placeholder="Dale un nombre atractivo"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               maxLength={100}
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
-              Descripción
-            </label>
+            <label className="text-sm font-medium text-foreground mb-2 block">Descripción</label>
             <textarea
-              placeholder="Cuéntale a la gente de qué trata tu evento..."
+              placeholder="Cuéntale a la gente de qué trata..."
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               maxLength={2000}
               className="flex w-full rounded-xl border border-border bg-secondary/50 px-4 py-3 text-base text-foreground placeholder:text-muted-foreground transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary min-h-[120px] resize-none"
             />
@@ -429,7 +417,7 @@ const Create = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
-                Fecha *
+                Fecha <span className="text-muted-foreground text-xs">(opcional)</span>
               </label>
               <div className="relative">
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -437,37 +425,36 @@ const Create = () => {
                   type="date"
                   className="pl-10"
                   value={formData.date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, date: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   min={new Date().toISOString().split("T")[0]}
                 />
               </div>
             </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
-                Hora *
+                Hora <span className="text-muted-foreground text-xs">(opcional)</span>
               </label>
               <Input
                 type="time"
                 value={formData.time}
-                onChange={(e) =>
-                  setFormData({ ...formData, time: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
               />
             </div>
           </div>
 
-          <LocationPicker
-            value={location}
-            onChange={setLocation}
-          />
+          {/* Show hint about post vs event */}
+          {isPost && (
+            <p className="text-xs text-muted-foreground bg-secondary/50 p-3 rounded-lg">
+              💡 Sin fecha/hora, esto se publicará como un <strong>post</strong> en tu perfil y el
+              feed de descubrimiento.
+            </p>
+          )}
+
+          <LocationPicker value={location} onChange={setLocation} />
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">
-                Precio
-              </label>
+              <label className="text-sm font-medium text-foreground mb-2 block">Precio</label>
               <div className="relative">
                 <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -475,18 +462,14 @@ const Create = () => {
                   placeholder="0 (Gratis)"
                   className="pl-10"
                   value={formData.price}
-                  onChange={(e) =>
-                    setFormData({ ...formData, price: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   min="0"
                   step="0.01"
                 />
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">
-                Capacidad
-              </label>
+              <label className="text-sm font-medium text-foreground mb-2 block">Capacidad</label>
               <div className="relative">
                 <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -494,9 +477,7 @@ const Create = () => {
                   placeholder="Ilimitada"
                   className="pl-10"
                   value={formData.capacity}
-                  onChange={(e) =>
-                    setFormData({ ...formData, capacity: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                   min="1"
                 />
               </div>
@@ -504,53 +485,53 @@ const Create = () => {
           </div>
         </motion.div>
 
-        {/* Guestlist toggle - Premium feature */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-        >
-          <Card className="glass border-white/10 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                  <Users className="w-5 h-5 text-primary-foreground" />
+        {/* Guestlist toggle - Premium feature, only for events */}
+        {!isPost && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <Card className="glass border-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
+                    <Users className="w-5 h-5 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Habilitar Lista de Invitados</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {hasBusinessSubscription
+                        ? "Crea una lista de invitados para tu evento"
+                        : "Requiere suscripción Zentro Business"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">
-                    Habilitar Lista de Invitados
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {hasBusinessSubscription
-                      ? "Crea una lista de invitados para tu evento"
-                      : "Requiere suscripción Zentro Business"}
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!hasBusinessSubscription) {
+                      setShowUpsellModal(true);
+                      return;
+                    }
+                    setFormData({
+                      ...formData,
+                      hasGuestlist: !formData.hasGuestlist,
+                    });
+                  }}
+                  className={`relative w-12 h-7 rounded-full transition-colors ${
+                    formData.hasGuestlist ? "bg-primary" : "bg-secondary"
+                  }`}
+                >
+                  <motion.div
+                    animate={{ x: formData.hasGuestlist ? 22 : 2 }}
+                    className="absolute top-1 w-5 h-5 rounded-full bg-foreground"
+                  />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!hasBusinessSubscription) {
-                    setShowUpsellModal(true);
-                    return;
-                  }
-                  setFormData({
-                    ...formData,
-                    hasGuestlist: !formData.hasGuestlist,
-                  });
-                }}
-                className={`relative w-12 h-7 rounded-full transition-colors ${
-                  formData.hasGuestlist ? "bg-primary" : "bg-secondary"
-                }`}
-              >
-                <motion.div
-                  animate={{ x: formData.hasGuestlist ? 22 : 2 }}
-                  className="absolute top-1 w-5 h-5 rounded-full bg-foreground"
-                />
-              </button>
-            </div>
-          </Card>
-        </motion.div>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Create button */}
         <div className="pt-2">
@@ -565,6 +546,8 @@ const Create = () => {
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 {isUploading ? `Subiendo... ${uploadProgress}%` : "Creando..."}
               </>
+            ) : isPost ? (
+              "Publicar"
             ) : (
               "Crear Evento"
             )}

@@ -1,36 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Image, Star, Heart, Loader2, Crown } from "lucide-react";
+import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile, useIsFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useUserProfile";
 import { useUserStats } from "@/hooks/useUserStats";
-import { useUserCreatedEvents, useUserJoinedEvents } from "@/hooks/useEvents";
+import { useUserTimeline } from "@/hooks/useUserTimeline";
 import { useCanMessageUser } from "@/hooks/useUserSettings";
 import { useCreatePrivateChat } from "@/hooks/useChats";
 import { useUserSubscriptionById } from "@/hooks/useSubscription";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
-import { EventCard } from "@/components/events/EventCard";
-
-interface ProfilePhoto {
-  id: string;
-  photo_url: string;
-  display_order: number;
-}
+import { TimelineCard } from "@/components/events/TimelineCard";
 
 const UserProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<"photos" | "created" | "joined">("photos");
-  const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
   const [followSheetType, setFollowSheetType] = useState<"followers" | "following" | null>(null);
 
   // Redirect to own profile if viewing self
@@ -39,34 +28,14 @@ const UserProfile = () => {
   const { data: userProfile, isLoading: profileLoading } = useUserProfile(id);
   const { data: userStats, isLoading: statsLoading } = useUserStats(id);
   const { data: isFollowing, isLoading: followStatusLoading } = useIsFollowing(id);
-  const { data: createdEvents, isLoading: createdLoading } = useUserCreatedEvents(id);
-  const { data: joinedEvents, isLoading: joinedLoading } = useUserJoinedEvents(id);
+  const { data: timeline, isLoading: timelineLoading } = useUserTimeline(id);
   const { data: canMessageData, isLoading: canMessageLoading } = useCanMessageUser(id);
   const { data: userSubscription } = useUserSubscriptionById(id);
-  
+
   const isPremium = userSubscription?.plan_type && userSubscription.plan_type !== "free";
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
   const createChatMutation = useCreatePrivateChat();
-
-  useEffect(() => {
-    if (id) {
-      fetchPhotos();
-    }
-  }, [id]);
-
-  const fetchPhotos = async () => {
-    if (!id) return;
-    const { data, error } = await supabase
-      .from("profile_photos")
-      .select("*")
-      .eq("user_id", id)
-      .order("display_order", { ascending: true });
-
-    if (!error && data) {
-      setPhotos(data);
-    }
-  };
 
   const formatCount = (count: number) => {
     if (count >= 1000) {
@@ -118,45 +87,40 @@ const UserProfile = () => {
   }
 
   const stats = [
-    { label: "Eventos", value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0) },
-    { label: "Seguidores", value: statsLoading ? "..." : formatCount(userStats?.followersCount || 0), onClick: () => setFollowSheetType("followers") },
-    { label: "Siguiendo", value: statsLoading ? "..." : formatCount(userStats?.followingCount || 0), onClick: () => setFollowSheetType("following") },
-  ];
-
-  const tabs = [
-    { id: "photos", label: "Fotos", icon: Image },
-    { id: "created", label: "Creados", icon: Star },
-    { id: "joined", label: "Asistió", icon: Heart }
+    {
+      label: "Eventos",
+      value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0),
+    },
+    {
+      label: "Seguidores",
+      value: statsLoading ? "..." : formatCount(userStats?.followersCount || 0),
+      onClick: () => setFollowSheetType("followers"),
+    },
+    {
+      label: "Siguiendo",
+      value: statsLoading ? "..." : formatCount(userStats?.followingCount || 0),
+      onClick: () => setFollowSheetType("following"),
+    },
   ];
 
   const isFollowPending = followMutation.isPending || unfollowMutation.isPending;
 
-  const renderEventCard = (event: any, index: number) => (
-    <EventCard
-      key={event.id}
-      id={event.id}
-      title={event.title || undefined}
-      imageUrl={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
-      date={format(new Date(event.start_datetime), "EEE, d MMM • HH:mm", { locale: es })}
-      location={event.location_name || "Ubicación por confirmar"}
-      category={event.category || "party"}
-      attendees={event.guestlist_entries?.[0]?.count || 0}
-      ownerAvatar={event.creator?.avatar_url}
-      creatorId={event.creator_id}
+  const renderTimelineCard = (item: any, index: number) => (
+    <TimelineCard
+      key={item.id}
+      id={item.id}
+      title={item.title}
+      imageUrl={item.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
+      startDatetime={item.start_datetime}
+      location={item.location_name}
+      category={item.category}
+      attendees={item.guestlist_entries?.[0]?.count || 0}
+      isPost={item.is_post || false}
+      createdAt={item.created_at}
+      ownerAvatar={item.creator?.avatar_url}
+      creatorId={item.creator_id}
       index={index}
     />
-  );
-
-  const renderEmptyState = (message: string) => (
-    <div className="col-span-2 text-center py-8 text-muted-foreground text-sm">
-      {message}
-    </div>
-  );
-
-  const renderLoading = () => (
-    <div className="col-span-2 flex justify-center py-8">
-      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-    </div>
   );
 
   return (
@@ -167,9 +131,7 @@ const UserProfile = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-bold text-foreground">
-            @{userProfile.username}
-          </h1>
+          <h1 className="font-brand text-xl font-bold text-foreground">@{userProfile.username}</h1>
         </div>
       </header>
 
@@ -182,7 +144,10 @@ const UserProfile = () => {
         >
           <div className="relative">
             <img
-              src={userProfile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userProfile.username}`}
+              src={
+                userProfile.avatar_url ||
+                `https://api.dicebear.com/7.x/avataaars/svg?seed=${userProfile.username}`
+              }
               alt="Perfil"
               className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary"
             />
@@ -200,14 +165,14 @@ const UserProfile = () => {
             {/* Stats */}
             <div className="flex gap-6 mt-2">
               {stats.map((stat) => (
-                <div 
-                  key={stat.label} 
-                  className={`text-center ${stat.onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                <div
+                  key={stat.label}
+                  className={`text-center ${
+                    stat.onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""
+                  }`}
                   onClick={stat.onClick}
                 >
-                  <p className="font-brand text-lg font-bold text-foreground">
-                    {stat.value}
-                  </p>
+                  <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </div>
               ))}
@@ -222,11 +187,7 @@ const UserProfile = () => {
           transition={{ delay: 0.05 }}
           className="mt-4"
         >
-          {userProfile.bio && (
-            <p className="text-sm text-foreground/80">
-              {userProfile.bio}
-            </p>
-          )}
+          {userProfile.bio && <p className="text-sm text-foreground/80">{userProfile.bio}</p>}
           {userProfile.city && (
             <p className="text-xs text-muted-foreground mt-1">📍 {userProfile.city}</p>
           )}
@@ -240,8 +201,8 @@ const UserProfile = () => {
             transition={{ delay: 0.1 }}
             className="flex gap-3 mt-4"
           >
-            <Button 
-              variant={isFollowing ? "secondary" : "hero"} 
+            <Button
+              variant={isFollowing ? "secondary" : "hero"}
               className="flex-1"
               onClick={handleFollowToggle}
               disabled={followStatusLoading || isFollowPending}
@@ -290,85 +251,21 @@ const UserProfile = () => {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="sticky top-[44px] z-30 mt-4">
-        <div className="flex border-b border-border bg-background">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex-1 flex items-center justify-center gap-2 py-4 transition-colors relative ${
-                  isActive ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{tab.label}</span>
-                {isActive && (
-                  <motion.div
-                    layoutId="userProfileTabIndicator"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                  />
-                )}
-              </button>
-            );
-          })}
+      {/* Timeline Content */}
+      <div className="py-4 mt-4">
+        <div className="masonry-grid">
+          {timelineLoading ? (
+            <div className="col-span-2 flex justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : !timeline || timeline.length === 0 ? (
+            <div className="col-span-2 text-center py-8 text-muted-foreground text-sm">
+              Sin publicaciones aún
+            </div>
+          ) : (
+            timeline.map((item, index) => renderTimelineCard(item, index))
+          )}
         </div>
-      </div>
-
-      {/* Content based on active tab */}
-      <div className="py-4">
-        {activeTab === "photos" && (
-          <div className="masonry-grid">
-            {photos.length === 0 ? (
-              renderEmptyState("Sin fotos aún")
-            ) : (
-              photos.map((photo, index) => (
-                <motion.div 
-                  key={photo.id} 
-                  initial={{ opacity: 0, scale: 0.9 }} 
-                  animate={{ opacity: 1, scale: 1 }} 
-                  transition={{ delay: index * 0.05 }} 
-                  className="masonry-item"
-                >
-                  <div className="rounded-2xl overflow-hidden">
-                    <img 
-                      src={photo.photo_url} 
-                      alt={`Foto ${index + 1}`} 
-                      className="w-full h-auto object-cover" 
-                    />
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
-        )}
-        
-        {activeTab === "created" && (
-          <div className="masonry-grid">
-            {createdLoading ? (
-              renderLoading()
-            ) : !createdEvents || createdEvents.length === 0 ? (
-              renderEmptyState("Sin eventos creados aún")
-            ) : (
-              createdEvents.map((event, index) => renderEventCard(event, index))
-            )}
-          </div>
-        )}
-        
-        {activeTab === "joined" && (
-          <div className="masonry-grid">
-            {joinedLoading ? (
-              renderLoading()
-            ) : !joinedEvents || joinedEvents.length === 0 ? (
-              renderEmptyState("Sin eventos asistidos aún")
-            ) : (
-              joinedEvents.map((event, index) => renderEventCard(event, index))
-            )}
-          </div>
-        )}
       </div>
 
       {/* Followers/Following Sheet */}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, Camera, Plus, X, Loader2, Info } from "lucide-react";
+import { ChevronLeft, Camera, Loader2, Info } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-
-interface ProfilePhoto {
-  id: string;
-  photo_url: string;
-  display_order: number;
-}
 
 const GENDER_OPTIONS = [
   { value: "male", label: "Masculino" },
@@ -29,10 +23,8 @@ const EditProfile = () => {
   const navigate = useNavigate();
   const { profile, user, refreshProfile } = useAuth();
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const photoInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -44,7 +36,6 @@ const EditProfile = () => {
     gender: "",
   });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
 
   useEffect(() => {
     if (profile) {
@@ -72,25 +63,6 @@ const EditProfile = () => {
       setAvatarUrl(profile.avatar_url);
     }
   }, [profile]);
-
-  useEffect(() => {
-    if (user) {
-      fetchPhotos();
-    }
-  }, [user]);
-
-  const fetchPhotos = async () => {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from("profile_photos")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("display_order", { ascending: true });
-
-    if (!error && data) {
-      setPhotos(data);
-    }
-  };
 
   const handleSave = async () => {
     if (!user) {
@@ -129,7 +101,14 @@ const EditProfile = () => {
         const day = parseInt(formData.birth_day);
 
         // Validate date
-        if (year >= 1900 && year <= new Date().getFullYear() - 13 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        if (
+          year >= 1900 &&
+          year <= new Date().getFullYear() - 13 &&
+          month >= 1 &&
+          month <= 12 &&
+          day >= 1 &&
+          day <= 31
+        ) {
           birthDate = `${formData.birth_year}-${formData.birth_month.padStart(2, "0")}-${formData.birth_day.padStart(2, "0")}`;
         }
       }
@@ -202,82 +181,16 @@ const EditProfile = () => {
     }
   };
 
-  const handleAddPhotoClick = () => {
-    photoInputRef.current?.click();
-  };
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Por favor selecciona un archivo de imagen");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("La imagen debe ser menor a 5MB");
-      return;
-    }
-
-    setIsUploadingPhoto(true);
-    try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/photos/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage.from("event-images").upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("event-images").getPublicUrl(fileName);
-
-      // Insert into profile_photos table
-      const { error: insertError } = await supabase.from("profile_photos").insert({
-        user_id: user.id,
-        photo_url: publicUrl,
-        display_order: photos.length,
-      });
-
-      if (insertError) throw insertError;
-
-      await fetchPhotos();
-      toast.success("¡Foto agregada!");
-    } catch (error: any) {
-      console.error("Error uploading photo:", error);
-      toast.error("Error al subir foto");
-    } finally {
-      setIsUploadingPhoto(false);
-      if (photoInputRef.current) {
-        photoInputRef.current.value = "";
-      }
-    }
-  };
-
-  const handleDeletePhoto = async (photoId: string) => {
-    try {
-      const { error } = await supabase.from("profile_photos").delete().eq("id", photoId);
-
-      if (error) throw error;
-
-      setPhotos(photos.filter((p) => p.id !== photoId));
-      toast.success("Foto eliminada");
-    } catch (error: any) {
-      console.error("Error deleting photo:", error);
-      toast.error("Error al eliminar foto");
-    }
-  };
-
-  // Generate year options (from current year - 13 to 1920)
-  const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: currentYear - 13 - 1920 + 1 }, (_, i) => currentYear - 13 - i);
-
   return (
     <AppLayout>
-      {/* Hidden file inputs */}
-      <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-      <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+      {/* Hidden file input */}
+      <input
+        ref={avatarInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleAvatarChange}
+      />
 
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
@@ -296,7 +209,11 @@ const EditProfile = () => {
 
       <div className="px-4 py-6 space-y-8">
         {/* Profile Picture */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center"
+        >
           <div className="relative">
             <img
               src={avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80"}
@@ -319,7 +236,12 @@ const EditProfile = () => {
         </motion.div>
 
         {/* Form Fields */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="space-y-5">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="space-y-5"
+        >
           <div className="space-y-2">
             <Label htmlFor="name">Nombre</Label>
             <Input
@@ -357,7 +279,12 @@ const EditProfile = () => {
         </motion.div>
 
         {/* Personal Information Section */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-5">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="space-y-5"
+        >
           <div className="flex items-center gap-2">
             <Label className="text-base font-semibold">Información Personal</Label>
             <span className="text-xs text-muted-foreground">(opcional)</span>
@@ -429,48 +356,10 @@ const EditProfile = () => {
           <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
             <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground">
-              Esta información solo se usa para estadísticas agregadas de eventos. Nunca se comparte individualmente.
+              Esta información solo se usa para estadísticas agregadas de eventos. Nunca se comparte
+              individualmente.
             </p>
           </div>
-        </motion.div>
-
-        {/* Photos Section */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Fotos de Perfil</Label>
-            <Button variant="outline" size="sm" onClick={handleAddPhotoClick} disabled={isUploadingPhoto}>
-              {isUploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-              Agregar Foto
-            </Button>
-          </div>
-
-          {photos.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              Sin fotos aún. ¡Agrega algunas para mostrar en tu perfil!
-            </div>
-          ) : (
-            <div className="masonry-grid">
-              {photos.map((photo, index) => (
-                <motion.div
-                  key={photo.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="masonry-item relative group"
-                >
-                  <div className="rounded-2xl overflow-hidden">
-                    <img src={photo.photo_url} alt={`Foto ${index + 1}`} className="w-full h-auto object-cover" />
-                  </div>
-                  <button
-                    onClick={() => handleDeletePhoto(photo.id)}
-                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-4 h-4 text-foreground" />
-                  </button>
-                </motion.div>
-              ))}
-            </div>
-          )}
         </motion.div>
       </div>
     </AppLayout>

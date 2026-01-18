@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, BarChart3 } from "lucide-react";
+import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, BarChart3, Calendar } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,6 +31,11 @@ const Settings = () => {
       icon: Ticket,
       label: "Entradas",
       path: "/settings/tickets"
+    },
+    {
+      icon: Calendar,
+      label: "Eventos Asistidos",
+      path: "/settings/joined-events"
     },
     {
       icon: Bookmark,
