@@ -316,35 +316,39 @@ export const EventDetailOverlay = () => {
                     </p>
                   </div>
 
-                  {/* Details */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
-                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                        <Calendar className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground text-xs">{formattedDate}</p>
-                      </div>
-                    </div>
+                  {/* Details - Only show for events, not posts */}
+                  {!event.is_post && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
+                          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                            <Calendar className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground text-xs">{formattedDate}</p>
+                          </div>
+                        </div>
 
-                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
-                      <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
-                        <DollarSign className="w-5 h-5 text-accent" />
+                        <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
+                          <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+                            <DollarSign className="w-5 h-5 text-accent" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground">{formattedPrice}</p>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-foreground">{formattedPrice}</p>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
-                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-foreground">{event.location_name || "Ubicación por definir"}</p>
-                    </div>
-                  </div>
+                      <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
+                        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                          <MapPin className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-foreground">{event.location_name || "Ubicación por definir"}</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {/* Description */}
                   {event.description && <div className="space-y-2">
