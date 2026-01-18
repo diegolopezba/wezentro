@@ -273,16 +273,22 @@ export const EventDetailOverlay = () => {
                   </div>
 
                   {/* Host */}
-                  <div className="flex items-center gap-3 cursor-pointer" onClick={e => {
-              e.stopPropagation();
-              e.preventDefault();
-              if (event.creator_id) {
-                closeEvent();
-                navigate(`/user/${event.creator_id}`);
-              }
-            }}>
-                    <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-full object-cover" />
-                    <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
+                  <div 
+                    className="flex items-center gap-3 cursor-pointer" 
+                    onClick={() => {
+                      if (event.creator_id) {
+                        navigate(`/user/${event.creator_id}`);
+                      }
+                    }}
+                  >
+                    <img 
+                      src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} 
+                      alt="Host" 
+                      className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" 
+                    />
+                    <p className="font-semibold text-foreground hover:text-primary transition-colors">
+                      @{event.creator?.username || "unknown"}
+                    </p>
                   </div>
 
                   {/* Details */}
@@ -335,11 +341,7 @@ export const EventDetailOverlay = () => {
                       {guestlist.length > 0 ? hasSubscription ? <>
                             <div className="flex items-center gap-2 mb-4">
                               <div className="flex -space-x-3">
-                                {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={e => {
-                      e.stopPropagation();
-                      closeEvent();
-                      navigate(`/user/${entry.user_id}`);
-                    }} />)}
+                              {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={() => navigate(`/user/${entry.user_id}`)} />)}
                               </div>
                               {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
                                   +{guestlist.length - 5} more
@@ -348,14 +350,16 @@ export const EventDetailOverlay = () => {
 
                             <div className="space-y-3">
                               {guestlist.slice(0, 3).map((entry: any) => <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
-                                  <img src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.id}`} alt={entry.user?.username || "User"} className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => {
-                      closeEvent();
-                      navigate(`/user/${entry.user_id}`);
-                    }} />
-                                  <div className="flex-1 cursor-pointer" onClick={() => {
-                      closeEvent();
-                      navigate(`/user/${entry.user_id}`);
-                    }}>
+                                  <img 
+                                    src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.id}`} 
+                                    alt={entry.user?.username || "User"} 
+                                    className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" 
+                                    onClick={() => navigate(`/user/${entry.user_id}`)} 
+                                  />
+                                  <div 
+                                    className="flex-1 cursor-pointer" 
+                                    onClick={() => navigate(`/user/${entry.user_id}`)}
+                                  >
                                     <p className="font-medium text-foreground text-sm">
                                       @{entry.user?.username || "user"}
                                     </p>
@@ -363,10 +367,10 @@ export const EventDetailOverlay = () => {
                                       Se unió el {format(new Date(entry.joined_at), "d MMM")}
                                     </p>
                                   </div>
-                                  <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => {
-                      closeEvent();
-                      navigate(`/chats/${entry.user_id}`);
-                    }} />
+                                  <MessageCircle 
+                                    className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" 
+                                    onClick={() => navigate(`/chats/${entry.user_id}`)} 
+                                  />
                                 </div>)}
                             </div>
                           </> : <>
