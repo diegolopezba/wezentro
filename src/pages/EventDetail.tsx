@@ -185,9 +185,7 @@ const EventDetail = () => {
         <Button onClick={() => navigate("/")}>Go Home</Button>
       </div>;
   }
-  const formattedDate = event.start_datetime 
-    ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")
-    : null;
+  const formattedDate = event.start_datetime ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a") : null;
   const formattedPrice = event.price ? `$${event.price}` : "Free";
   const isVideo = isVideoUrl(event.image_url);
   const isPost = event.is_post || !event.start_datetime;
@@ -250,43 +248,26 @@ const EventDetail = () => {
               <Button variant="ghost" size="icon" onClick={handleSaveToggle} disabled={saveEvent.isPending || unsaveEvent.isPending}>
                 <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
               </Button>
-              {!isPost && event.has_guestlist && canInviteToGuestlist && (
-                <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
+              {!isPost && event.has_guestlist && canInviteToGuestlist && <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
                   <UserPlus className="w-5 h-5" />
-                </Button>
-              )}
+                </Button>}
             </div>
 
             {/* Right: Join/Manage, Edit dropdown */}
             <div className="flex items-center gap-1">
-              {!isPost && event.has_guestlist && (
-                isOwner ? (
-                  <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
+              {!isPost && event.has_guestlist && (isOwner ? <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
                     Manage
-                    {pendingCount > 0 && (
-                      <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
+                    {pendingCount > 0 && <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
                         {pendingCount}
-                      </span>
-                    )}
-                  </Button>
-                ) : isOnGuestlist ? (
-                  isPending ? (
-                    <Button variant="ghost" size="sm" disabled>
+                      </span>}
+                  </Button> : isOnGuestlist ? isPending ? <Button variant="ghost" size="sm" disabled>
                       <Clock className="w-4 h-4 mr-1" /> Pending
-                    </Button>
-                  ) : (
-                    <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                    </Button> : <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
                       {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Joined</>}
-                    </Button>
-                  )
-                ) : (
-                  <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
+                    </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
                     {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Join</>}
-                  </Button>
-                )
-              )}
-              {isOwner && (
-                <DropdownMenu>
+                  </Button>)}
+              {isOwner && <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
                       <MoreVertical className="w-5 h-5" />
@@ -302,33 +283,24 @@ const EventDetail = () => {
                       Delete Event
                     </DropdownMenuItem>
                   </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+                </DropdownMenu>}
             </div>
           </div>
 
           {/* Host */}
-          <div 
-            className="flex items-center gap-3 cursor-pointer" 
-            onClick={() => {
-              if (event.creator_id) {
-                navigate(`/user/${event.creator_id}`);
-              }
-            }}
-          >
-            <img 
-              src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} 
-              alt="Host" 
-              className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" 
-            />
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
+          if (event.creator_id) {
+            navigate(`/user/${event.creator_id}`);
+          }
+        }}>
+            <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" />
             <p className="font-semibold text-foreground hover:text-primary transition-colors">
               @{event.creator?.username || "unknown"}
             </p>
           </div>
 
           {/* Details - Only show for events, not posts */}
-          {!isPost && (
-            <div className="grid grid-cols-2 gap-4">
+          {!isPost && <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
                 <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
                   <Calendar className="w-5 h-5 text-primary" />
@@ -340,26 +312,23 @@ const EventDetail = () => {
 
               <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
                 <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-accent bg-primary" />
+                  <DollarSign className="w-5 h-5 bg-secondary text-primary" />
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">{formattedPrice}</p>
                 </div>
               </div>
-            </div>
-          )}
+            </div>}
 
           {/* Location - Only show if location exists */}
-          {event.location_name && (
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
+          {event.location_name && <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
               <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
                 <MapPin className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="text-sm text-foreground">{event.location_name}</p>
               </div>
-            </div>
-          )}
+            </div>}
 
           {/* Description */}
           {event.description && <div className="space-y-2">
