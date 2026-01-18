@@ -82,7 +82,7 @@ export const OneSignalProvider = ({ children }: Props) => {
       if (iosVersion < 16) {
         return {
           supported: false,
-          reason: "Push notifications require iOS 16.4 or later",
+          reason: "Las notificaciones push requieren iOS 16.4 o posterior",
           canRetry: false,
         };
       }
@@ -90,7 +90,7 @@ export const OneSignalProvider = ({ children }: Props) => {
       if (!isPWA()) {
         return {
           supported: false,
-          reason: "Add this app to your Home Screen first, then enable notifications",
+          reason: "Primero agrega esta app a tu pantalla de inicio, luego activa las notificaciones",
           canRetry: true,
         };
       }

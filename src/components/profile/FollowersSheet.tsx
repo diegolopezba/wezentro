@@ -46,12 +46,12 @@ const FollowButton = ({ targetUserId }: { targetUserId: string }) => {
       ) : isFollowing ? (
         <>
           <UserMinus className="w-3 h-3 mr-1" />
-          Unfollow
+          Dejar
         </>
       ) : (
         <>
           <UserPlus className="w-3 h-3 mr-1" />
-          Follow
+          Seguir
         </>
       )}
     </Button>
@@ -93,7 +93,7 @@ export const FollowersSheet = ({ userId, type, open, onOpenChange }: FollowersSh
 
   const users = type === "followers" ? followers : following;
   const isLoading = type === "followers" ? followersLoading : followingLoading;
-  const title = type === "followers" ? "Followers" : "Following";
+  const title = type === "followers" ? "Seguidores" : "Siguiendo";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -109,7 +109,7 @@ export const FollowersSheet = ({ userId, type, open, onOpenChange }: FollowersSh
             </div>
           ) : !users || users.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {type === "followers" ? "No followers yet" : "Not following anyone yet"}
+              {type === "followers" ? "Sin seguidores aún" : "No sigue a nadie aún"}
             </div>
           ) : (
             users.map((user) => (
