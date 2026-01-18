@@ -10,6 +10,8 @@ import { Loader2 } from "lucide-react";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useUserSubscription } from "@/hooks/useSubscription";
+import { SubscriptionUpsellModal } from "@/components/subscription/SubscriptionUpsellModal";
 
 interface EditEventSheetProps {
   event: {
@@ -41,6 +43,9 @@ const CATEGORIES = [
 
 export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProps) {
   const updateEvent = useUpdateEvent();
+  const { data: subscription } = useUserSubscription();
+  const hasBusinessSubscription = subscription?.plan_type === "business_premium";
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
   
   const [formData, setFormData] = useState({
     title: event.title || "",
@@ -171,11 +176,24 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           </div>
 
           <div className="flex items-center justify-between py-2">
-            <Label htmlFor="guestlist">Habilitar lista de invitados</Label>
+            <div className="flex flex-col">
+              <Label htmlFor="guestlist">Habilitar lista de invitados</Label>
+              {!hasBusinessSubscription && (
+                <span className="text-xs text-muted-foreground">
+                  Requiere suscripción Zentro Business
+                </span>
+              )}
+            </div>
             <Switch
               id="guestlist"
               checked={formData.has_guestlist}
-              onCheckedChange={(checked) => setFormData({ ...formData, has_guestlist: checked })}
+              onCheckedChange={(checked) => {
+                if (checked && !hasBusinessSubscription) {
+                  setShowUpsellModal(true);
+                  return;
+                }
+                setFormData({ ...formData, has_guestlist: checked });
+              }}
             />
           </div>
 
@@ -207,6 +225,12 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           </Button>
         </div>
       </SheetContent>
+
+      <SubscriptionUpsellModal
+        isOpen={showUpsellModal}
+        onClose={() => setShowUpsellModal(false)}
+        feature="listas de invitados"
+      />
     </Sheet>
   );
 }
