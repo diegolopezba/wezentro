@@ -113,25 +113,25 @@ const EventDetail = () => {
   const isAuthenticated = !!user;
   const handleSaveToggle = async () => {
     if (!user) {
-      toast.error("Please sign in to save events");
+      toast.error("Inicia sesión para guardar eventos");
       navigate("/auth");
       return;
     }
     try {
       if (isSaved) {
         await unsaveEvent.mutateAsync(id!);
-        toast.success("Event removed from saved");
+        toast.success("Evento eliminado de guardados");
       } else {
         await saveEvent.mutateAsync(id!);
-        toast.success("Event saved!");
+        toast.success("¡Evento guardado!");
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to save event");
+      toast.error(error.message || "Error al guardar evento");
     }
   };
   const handleLikeToggle = async () => {
     if (!user) {
-      toast.error("Please sign in to like events");
+      toast.error("Inicia sesión para dar like");
       navigate("/auth");
       return;
     }
@@ -142,32 +142,32 @@ const EventDetail = () => {
         await likeEvent.mutateAsync(id!);
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to like event");
+      toast.error(error.message || "Error al dar like");
     }
   };
   const handleJoinGuestlist = async () => {
     if (!user) {
-      toast.error("Please sign in to join guestlists");
+      toast.error("Inicia sesión para unirte a listas");
       navigate("/auth");
       return;
     }
     if (!hasSubscription) {
-      toast.error("Premium subscription required to join guestlists");
+      toast.error("Se requiere suscripción premium para unirse a listas");
       return;
     }
     try {
       await joinGuestlist.mutateAsync(id!);
-      toast.success("Guestlist request sent!");
+      toast.success("¡Solicitud enviada!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to join guestlist");
+      toast.error(error.message || "Error al unirse a la lista");
     }
   };
   const handleLeaveGuestlist = async () => {
     try {
       await leaveGuestlist.mutateAsync(id!);
-      toast.success("Left the guestlist");
+      toast.success("Has salido de la lista");
     } catch (error: any) {
-      toast.error(error.message || "Failed to leave guestlist");
+      toast.error(error.message || "Error al salir de la lista");
     }
   };
   const {
@@ -180,13 +180,13 @@ const EventDetail = () => {
   }
   if (error || !event) {
     return <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-        <h1 className="font-brand text-xl font-bold text-foreground mb-2">Event not found</h1>
-        <p className="text-muted-foreground mb-4">This event may have been removed or doesn't exist.</p>
-        <Button onClick={() => navigate("/")}>Go Home</Button>
+        <h1 className="font-brand text-xl font-bold text-foreground mb-2">Evento no encontrado</h1>
+        <p className="text-muted-foreground mb-4">Este evento puede haber sido eliminado o no existe.</p>
+        <Button onClick={() => navigate("/")}>Ir al Inicio</Button>
       </div>;
   }
   const formattedDate = event.start_datetime ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a") : null;
-  const formattedPrice = event.price ? `$${event.price}` : "Free";
+  const formattedPrice = event.price ? `$${event.price}` : "Gratis";
   const isVideo = isVideoUrl(event.image_url);
   const isPost = event.is_post || !event.start_datetime;
   return <div className="min-h-screen bg-background">
@@ -256,16 +256,16 @@ const EventDetail = () => {
             {/* Right: Join/Manage, Edit dropdown */}
             <div className="flex items-center gap-1">
               {!isPost && event.has_guestlist && (isOwner ? <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
-                    Manage
+                    Gestionar
                     {pendingCount > 0 && <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
                         {pendingCount}
                       </span>}
                   </Button> : isOnGuestlist ? isPending ? <Button variant="ghost" size="sm" disabled>
-                      <Clock className="w-4 h-4 mr-1" /> Pending
+                      <Clock className="w-4 h-4 mr-1" /> Pendiente
                     </Button> : <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
-                      {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Joined</>}
+                      {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
                     </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
-                    {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Join</>}
+                    {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
                   </Button>)}
               {isOwner && <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -276,11 +276,11 @@ const EventDetail = () => {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
                       <Pencil className="w-4 h-4 mr-2" />
-                      Edit Event
+                      Editar evento
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Delete Event
+                      Eliminar evento
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>}
@@ -332,7 +332,7 @@ const EventDetail = () => {
 
           {/* Description */}
           {event.description && <div className="space-y-2">
-              <h2 className="font-brand text-lg font-semibold text-foreground">About</h2>
+              <h2 className="font-brand text-lg font-semibold text-foreground">Acerca de</h2>
               <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
                 {event.description}
               </p>
@@ -342,9 +342,9 @@ const EventDetail = () => {
           {!isPost && event.has_guestlist && <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-brand text-lg font-semibold text-foreground">
-                  Guestlist ({guestlist.length})
+                  Lista de invitados ({guestlist.length})
                 </h2>
-                {guestlist.length > 0 && hasSubscription && <span className="text-sm text-primary cursor-pointer">View all</span>}
+                {guestlist.length > 0 && hasSubscription && <span className="text-sm text-primary cursor-pointer">Ver todos</span>}
               </div>
 
               {guestlist.length > 0 ? hasSubscription ? <>
@@ -357,7 +357,7 @@ const EventDetail = () => {
                 }} />)}
                       </div>
                       {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
-                          +{guestlist.length - 5} more
+                          +{guestlist.length - 5} más
                         </span>}
                     </div>
 
@@ -391,16 +391,16 @@ const EventDetail = () => {
                     <div className="p-4 rounded-2xl bg-secondary/50 border border-border/50">
                       <div className="flex items-center gap-2 mb-2">
                         <Lock className="w-4 h-4 text-primary" />
-                        <span className="font-semibold text-foreground text-sm">Members Only</span>
+                        <span className="font-semibold text-foreground text-sm">Solo para Miembros</span>
                       </div>
                       <p className="text-muted-foreground text-sm mb-4">
-                        Become a Zentro member to see who's on the guestlist
+                        Hazte miembro de Zentro para ver quién está en la lista
                       </p>
                       <Button variant="hero" size="sm" className="w-full" onClick={() => navigate("/subscription")}>
-                        Become a Member
+                        Hacerse Miembro
                       </Button>
                     </div>
-                  </> : <p className="text-muted-foreground text-sm">No one has joined yet. Be the first!</p>}
+                  </> : <p className="text-muted-foreground text-sm">Nadie se ha unido aún. ¡Sé el primero!</p>}
             </div>}
 
           {/* Invitations Sent Section - Owner only, for events with guestlist */}
@@ -409,13 +409,13 @@ const EventDetail = () => {
           {/* Sign up prompt for unauthenticated users */}
           {!isAuthenticated && <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
               <h3 className="font-brand text-lg font-semibold text-foreground mb-2">
-                Join Zentro to connect
+                Únete a Zentro
               </h3>
               <p className="text-muted-foreground text-sm mb-4">
-                Sign up to join guestlists, save events, and connect with other attendees.
+                Regístrate para unirte a listas, guardar eventos y conectar con otros asistentes.
               </p>
               <Button variant="hero" className="w-full" onClick={() => navigate("/auth")}>
-                Sign Up / Log In
+                Registrarse / Iniciar Sesión
               </Button>
             </div>}
         </motion.div>

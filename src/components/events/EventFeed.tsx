@@ -34,13 +34,13 @@ export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you
             <Users className="w-10 h-10 text-muted-foreground" />
           </div>
           <h3 className="font-brand text-lg font-semibold text-foreground mb-2">
-            No events from people you follow
+            Sin eventos de personas que sigues
           </h3>
           <p className="text-muted-foreground text-sm max-w-xs mb-4">
-            Follow creators to see their events here. Discover new people on the For You tab!
+            Sigue a creadores para ver sus eventos aquí. ¡Descubre nuevas personas en la pestaña Para Ti!
           </p>
           <Button variant="secondary" onClick={() => navigate("/discover")}>
-            Discover Events
+            Descubrir Eventos
           </Button>
         </div>
       );
@@ -52,10 +52,10 @@ export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you
           <span className="text-3xl">🌙</span>
         </div>
         <h3 className="font-brand text-lg font-semibold text-foreground mb-2">
-          No events found
+          No se encontraron eventos
         </h3>
         <p className="text-muted-foreground text-sm max-w-xs">
-          There are no events matching your criteria right now. Check back later!
+          No hay eventos que coincidan con tu búsqueda ahora mismo. ¡Vuelve más tarde!
         </p>
       </div>
     );

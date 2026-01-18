@@ -10,16 +10,16 @@ interface SubscriptionUpsellModalProps {
 }
 
 const businessFeatures = [
-  { icon: Users, label: "Create events with guestlists" },
-  { icon: QrCode, label: "QR code check-ins" },
-  { icon: BarChart3, label: "View event analytics" },
-  { icon: Sparkles, label: "Priority event visibility" },
+  { icon: Users, label: "Crear eventos con lista de invitados" },
+  { icon: QrCode, label: "Check-in con código QR" },
+  { icon: BarChart3, label: "Ver analíticas de eventos" },
+  { icon: Sparkles, label: "Visibilidad prioritaria de eventos" },
 ];
 
 export const SubscriptionUpsellModal = ({
   isOpen,
   onClose,
-  feature = "this feature",
+  feature = "esta función",
 }: SubscriptionUpsellModalProps) => {
   const navigate = useNavigate();
 
@@ -66,10 +66,10 @@ export const SubscriptionUpsellModal = ({
 
                 {/* Title */}
                 <h2 className="text-xl font-bold text-foreground text-center mb-2">
-                  Unlock Zentro Business
+                  Desbloquea Zentro Business
                 </h2>
                 <p className="text-muted-foreground text-center text-sm mb-6">
-                  Upgrade to access {feature} and powerful event management tools
+                  Mejora para acceder a {feature} y herramientas poderosas de gestión de eventos
                 </p>
 
                 {/* Features */}
@@ -95,10 +95,10 @@ export const SubscriptionUpsellModal = ({
                 <div className="text-center mb-6">
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="text-3xl font-bold text-foreground">$19.99</span>
-                    <span className="text-muted-foreground">/month</span>
+                    <span className="text-muted-foreground">/mes</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Cancel anytime
+                    Cancela cuando quieras
                   </p>
                 </div>
 
@@ -110,14 +110,14 @@ export const SubscriptionUpsellModal = ({
                     onClick={handleSubscribe}
                   >
                     <Crown className="w-4 h-4 mr-2" />
-                    Subscribe Now
+                    Suscribirse Ahora
                   </Button>
                   <Button
                     variant="ghost"
                     className="w-full text-muted-foreground"
                     onClick={onClose}
                   >
-                    Maybe Later
+                    Quizás Después
                   </Button>
                 </div>
               </div>

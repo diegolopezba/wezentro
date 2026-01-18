@@ -27,8 +27,8 @@ const CheckoutSuccess = () => {
     };
 
     verifySubscription();
-    toast.success("Welcome to Premium!", {
-      description: "Your subscription is now active.",
+    toast.success("¡Bienvenido a Premium!", {
+      description: "Tu suscripción ya está activa.",
     });
   }, [sessionId]);
 
@@ -49,22 +49,22 @@ const CheckoutSuccess = () => {
         </motion.div>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Payment Successful!</h1>
+          <h1 className="text-2xl font-bold">¡Pago Exitoso!</h1>
           <p className="text-muted-foreground">
-            Thank you for subscribing. Your premium features are now active.
+            Gracias por suscribirte. Tus funciones premium ya están activas.
           </p>
         </div>
 
         <div className="space-y-3">
           <Button onClick={() => navigate("/")} className="w-full">
-            Start Exploring
+            Comenzar a Explorar
           </Button>
           <Button
             variant="outline"
             onClick={() => navigate("/settings/subscription")}
             className="w-full"
           >
-            View Subscription
+            Ver Suscripción
           </Button>
         </div>
       </motion.div>
