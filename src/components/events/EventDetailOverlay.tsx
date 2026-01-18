@@ -240,43 +240,26 @@ export const EventDetailOverlay = () => {
                       <Button variant="ghost" size="icon" onClick={handleSaveToggle} disabled={saveEvent.isPending || unsaveEvent.isPending}>
                         <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
                       </Button>
-                      {event.has_guestlist && canInviteToGuestlist && (
-                        <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
+                      {event.has_guestlist && canInviteToGuestlist && <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
                           <UserPlus className="w-5 h-5" />
-                        </Button>
-                      )}
+                        </Button>}
                     </div>
 
                     {/* Right: Join/Manage, Edit dropdown */}
                     <div className="flex items-center gap-1">
-                      {event.has_guestlist && (
-                        isOwner ? (
-                          <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
+                      {event.has_guestlist && (isOwner ? <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
                             Gestionar
-                            {pendingCount > 0 && (
-                              <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
+                            {pendingCount > 0 && <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
                                 {pendingCount}
-                              </span>
-                            )}
-                          </Button>
-                        ) : isOnGuestlist ? (
-                          isPending ? (
-                            <Button variant="ghost" size="sm" disabled>
+                              </span>}
+                          </Button> : isOnGuestlist ? isPending ? <Button variant="ghost" size="sm" disabled>
                               <Clock className="w-4 h-4 mr-1" /> Pendiente
-                            </Button>
-                          ) : (
-                            <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                            </Button> : <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
                               {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
-                            </Button>
-                          )
-                        ) : (
-                          <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
+                            </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
                             {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
-                          </Button>
-                        )
-                      )}
-                      {isOwner && (
-                        <DropdownMenu>
+                          </Button>)}
+                      {isOwner && <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
                               <MoreVertical className="w-5 h-5" />
@@ -292,33 +275,24 @@ export const EventDetailOverlay = () => {
                               Eliminar evento
                             </DropdownMenuItem>
                           </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
+                        </DropdownMenu>}
                     </div>
                   </div>
 
                   {/* Host */}
-                  <div 
-                    className="flex items-center gap-3 cursor-pointer" 
-                    onClick={() => {
-                      if (event.creator_id) {
-                        navigate(`/user/${event.creator_id}`);
-                      }
-                    }}
-                  >
-                    <img 
-                      src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} 
-                      alt="Host" 
-                      className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" 
-                    />
+                  <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
+              if (event.creator_id) {
+                navigate(`/user/${event.creator_id}`);
+              }
+            }}>
+                    <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" />
                     <p className="font-semibold text-foreground hover:text-primary transition-colors">
                       @{event.creator?.username || "unknown"}
                     </p>
                   </div>
 
                   {/* Details - Only show for events, not posts */}
-                  {!event.is_post && (
-                    <>
+                  {!event.is_post && <>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
                           <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
@@ -331,7 +305,7 @@ export const EventDetailOverlay = () => {
 
                         <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
                           <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
-                            <DollarSign className="w-5 h-5 text-accent" />
+                            <DollarSign className="w-5 h-5 text-primary" />
                           </div>
                           <div>
                             <p className="font-semibold text-foreground">{formattedPrice}</p>
@@ -347,8 +321,7 @@ export const EventDetailOverlay = () => {
                           <p className="text-sm text-foreground">{event.location_name || "Ubicación por definir"}</p>
                         </div>
                       </div>
-                    </>
-                  )}
+                    </>}
 
                   {/* Description */}
                   {event.description && <div className="space-y-2">
@@ -379,16 +352,8 @@ export const EventDetailOverlay = () => {
 
                             <div className="space-y-3">
                               {guestlist.slice(0, 3).map((entry: any) => <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
-                                  <img 
-                                    src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.id}`} 
-                                    alt={entry.user?.username || "User"} 
-                                    className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" 
-                                    onClick={() => navigate(`/user/${entry.user_id}`)} 
-                                  />
-                                  <div 
-                                    className="flex-1 cursor-pointer" 
-                                    onClick={() => navigate(`/user/${entry.user_id}`)}
-                                  >
+                                  <img src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.id}`} alt={entry.user?.username || "User"} className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate(`/user/${entry.user_id}`)} />
+                                  <div className="flex-1 cursor-pointer" onClick={() => navigate(`/user/${entry.user_id}`)}>
                                     <p className="font-medium text-foreground text-sm">
                                       @{entry.user?.username || "user"}
                                     </p>
@@ -396,10 +361,7 @@ export const EventDetailOverlay = () => {
                                       Se unió el {format(new Date(entry.joined_at), "d MMM")}
                                     </p>
                                   </div>
-                                  <MessageCircle 
-                                    className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" 
-                                    onClick={() => navigate(`/chats/${entry.user_id}`)} 
-                                  />
+                                  <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
                                 </div>)}
                             </div>
                           </> : <>
