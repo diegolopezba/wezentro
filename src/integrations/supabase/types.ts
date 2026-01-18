@@ -210,6 +210,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_business_event: boolean | null
+          is_post: boolean | null
           is_public: boolean | null
           latitude: number | null
           location_name: string | null
@@ -217,7 +218,7 @@ export type Database = {
           max_guestlist_capacity: number | null
           price: number | null
           requires_premium: boolean | null
-          start_datetime: string
+          start_datetime: string | null
           title: string | null
         }
         Insert: {
@@ -231,6 +232,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_business_event?: boolean | null
+          is_post?: boolean | null
           is_public?: boolean | null
           latitude?: number | null
           location_name?: string | null
@@ -238,7 +240,7 @@ export type Database = {
           max_guestlist_capacity?: number | null
           price?: number | null
           requires_premium?: boolean | null
-          start_datetime: string
+          start_datetime?: string | null
           title?: string | null
         }
         Update: {
@@ -252,6 +254,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_business_event?: boolean | null
+          is_post?: boolean | null
           is_public?: boolean | null
           latitude?: number | null
           location_name?: string | null
@@ -259,7 +262,7 @@ export type Database = {
           max_guestlist_capacity?: number | null
           price?: number | null
           requires_premium?: boolean | null
-          start_datetime?: string
+          start_datetime?: string | null
           title?: string | null
         }
         Relationships: [

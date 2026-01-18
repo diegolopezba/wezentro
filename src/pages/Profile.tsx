@@ -1,36 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { Settings, Image, Star, Heart, Loader2, Crown, Sparkles, Plus, X } from "lucide-react";
+import { Settings, Loader2, Crown, Sparkles, X } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { useUserCreatedEvents, useUserJoinedEvents } from "@/hooks/useEvents";
+import { useUserTimeline } from "@/hooks/useUserTimeline";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useUserSubscription, getPlanDisplayName } from "@/hooks/useSubscription";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
-import { EventCard } from "@/components/events/EventCard";
-
-interface ProfilePhoto {
-  id: string;
-  photo_url: string;
-  display_order: number;
-}
+import { TimelineCard } from "@/components/events/TimelineCard";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { profile, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"photos" | "created" | "joined">("photos");
-  const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
   const [followSheetType, setFollowSheetType] = useState<"followers" | "following" | null>(null);
   const [showProfileBanner, setShowProfileBanner] = useState(true);
 
   const { data: userStats, isLoading: statsLoading } = useUserStats(user?.id);
-  const { data: createdEvents, isLoading: createdLoading } = useUserCreatedEvents(user?.id);
-  const { data: joinedEvents, isLoading: joinedLoading } = useUserJoinedEvents(user?.id);
+  const { data: timeline, isLoading: timelineLoading } = useUserTimeline(user?.id);
   const { data: subscription } = useUserSubscription();
 
   const currentPlan = subscription?.plan_type || "free";
@@ -49,69 +37,36 @@ const Profile = () => {
   const stats = [
     {
       label: "Eventos",
-      value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0)
+      value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0),
     },
     {
       label: "Seguidores",
       value: statsLoading ? "..." : formatCount(userStats?.followersCount || 0),
-      onClick: () => setFollowSheetType("followers")
+      onClick: () => setFollowSheetType("followers"),
     },
     {
       label: "Siguiendo",
       value: statsLoading ? "..." : formatCount(userStats?.followingCount || 0),
-      onClick: () => setFollowSheetType("following")
-    }
+      onClick: () => setFollowSheetType("following"),
+    },
   ];
 
-  const tabs = [
-    { id: "photos", label: "Fotos", icon: Image },
-    { id: "created", label: "Creados", icon: Star },
-    { id: "joined", label: "Asistidos", icon: Heart }
-  ];
-
-  useEffect(() => {
-    if (user) {
-      fetchPhotos();
-    }
-  }, [user]);
-
-  const fetchPhotos = async () => {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from("profile_photos")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("display_order", { ascending: true });
-
-    if (!error && data) {
-      setPhotos(data);
-    }
-  };
-
-  const renderEventCard = (event: any, index: number) => (
-    <EventCard
-      key={event.id}
-      id={event.id}
-      title={event.title || undefined}
-      imageUrl={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
-      date={format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", { locale: es })}
-      location={event.location_name || "Ubicación por confirmar"}
-      category={event.category || "party"}
-      attendees={event.guestlist_entries?.[0]?.count || 0}
-      ownerAvatar={event.creator?.avatar_url}
-      creatorId={event.creator_id}
+  const renderTimelineCard = (item: any, index: number) => (
+    <TimelineCard
+      key={item.id}
+      id={item.id}
+      title={item.title}
+      imageUrl={item.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
+      startDatetime={item.start_datetime}
+      location={item.location_name}
+      category={item.category}
+      attendees={item.guestlist_entries?.[0]?.count || 0}
+      isPost={item.is_post || false}
+      createdAt={item.created_at}
+      ownerAvatar={item.creator?.avatar_url}
+      creatorId={item.creator_id}
       index={index}
     />
-  );
-
-  const renderEmptyState = (message: string) => (
-    <div className="col-span-2 text-center py-8 text-muted-foreground text-sm">{message}</div>
-  );
-
-  const renderLoading = () => (
-    <div className="col-span-2 flex justify-center py-8">
-      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-    </div>
   );
 
   return (
@@ -119,7 +74,9 @@ const Profile = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top">
         <div className="flex items-center justify-between px-4 py-0 bg-background">
-          <h1 className="font-brand text-xl font-bold text-foreground">@{profile?.username || "cargando"}</h1>
+          <h1 className="font-brand text-xl font-bold text-foreground">
+            @{profile?.username || "cargando"}
+          </h1>
           <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
             <Settings className="w-5 h-5" />
           </Button>
@@ -135,7 +92,10 @@ const Profile = () => {
         >
           <div className="relative">
             <img
-              src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.username}`}
+              src={
+                profile?.avatar_url ||
+                `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.username}`
+              }
               alt="Perfil"
               className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary"
             />
@@ -147,13 +107,17 @@ const Profile = () => {
           </div>
 
           <div className="flex-1">
-            <p className="text-sm text-muted-foreground mb-2">{profile?.full_name || profile?.username}</p>
+            <p className="text-sm text-muted-foreground mb-2">
+              {profile?.full_name || profile?.username}
+            </p>
             {/* Stats */}
             <div className="flex gap-6 mt-2">
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className={`text-center ${stat.onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
+                  className={`text-center ${
+                    stat.onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""
+                  }`}
                   onClick={stat.onClick}
                 >
                   <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>
@@ -242,83 +206,24 @@ const Profile = () => {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="sticky top-[44px] z-30">
-        <div className="flex border-b border-border bg-background">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex-1 flex items-center justify-center gap-2 py-4 transition-colors relative ${
-                  isActive ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{tab.label}</span>
-                {isActive && (
-                  <motion.div
-                    layoutId="profileTabIndicator"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Content based on active tab */}
+      {/* Timeline Content */}
       <div className="py-4">
-        {activeTab === "photos" && (
-          <div className="masonry-grid">
-            {photos.length === 0 ? (
-              <div className="col-span-2 flex flex-col items-center justify-center py-12 gap-4">
-                <p className="text-muted-foreground text-sm">Sin fotos aún</p>
-                <Button variant="outline" size="sm" onClick={() => navigate("/edit-profile")} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Agregar fotos a tu perfil
-                </Button>
-              </div>
-            ) : (
-              photos.map((photo, index) => (
-                <motion.div
-                  key={photo.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="masonry-item"
-                >
-                  <div className="rounded-2xl overflow-hidden">
-                    <img src={photo.photo_url} alt={`Foto ${index + 1}`} className="w-full h-auto object-cover" />
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
-        )}
-
-        {activeTab === "created" && (
-          <div className="masonry-grid">
-            {createdLoading
-              ? renderLoading()
-              : !createdEvents || createdEvents.length === 0
-              ? renderEmptyState("Sin eventos creados aún")
-              : createdEvents.map((event, index) => renderEventCard(event, index))}
-          </div>
-        )}
-
-        {activeTab === "joined" && (
-          <div className="masonry-grid">
-            {joinedLoading
-              ? renderLoading()
-              : !joinedEvents || joinedEvents.length === 0
-              ? renderEmptyState("Sin eventos asistidos aún")
-              : joinedEvents.map((event, index) => renderEventCard(event, index))}
-          </div>
-        )}
+        <div className="masonry-grid">
+          {timelineLoading ? (
+            <div className="col-span-2 flex justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : !timeline || timeline.length === 0 ? (
+            <div className="col-span-2 flex flex-col items-center justify-center py-12 gap-4">
+              <p className="text-muted-foreground text-sm">Sin publicaciones aún</p>
+              <Button variant="outline" size="sm" onClick={() => navigate("/create")} className="gap-2">
+                Crear tu primera publicación
+              </Button>
+            </div>
+          ) : (
+            timeline.map((item, index) => renderTimelineCard(item, index))
+          )}
+        </div>
       </div>
 
       {/* Followers/Following Sheet */}
