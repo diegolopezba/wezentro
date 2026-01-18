@@ -47,9 +47,9 @@ export const SubscriptionUpsellModal = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", duration: 0.5 }}
-            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-md mx-auto"
+            className="fixed inset-4 z-50 max-w-md mx-auto flex items-center justify-center"
           >
-            <div className="relative bg-card border border-border rounded-3xl overflow-hidden shadow-elevated">
+            <div className="relative bg-card border border-border rounded-3xl overflow-hidden shadow-elevated max-h-[90vh] overflow-y-auto">
               {/* Close button */}
               <button
                 onClick={onClose}
