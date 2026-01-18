@@ -187,7 +187,7 @@ const Subscription = () => {
                     </div>}
 
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3 text-primary-foreground">
+                    <div className="flex items-center gap-3 text-primary">
                       <div className={`p-2 rounded-full ${isPremium ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
                         {getPlanIcon(plan.id)}
                       </div>
