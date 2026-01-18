@@ -22,25 +22,53 @@ const Subscription = () => {
   const isActive = subscription?.status === "active" || subscription?.status === "trialing";
 
   const handleUpgrade = async (planId: string) => {
+    console.log("[Subscription] handleUpgrade called with planId:", planId);
+    
     if (planId === "free") {
       toast.info("Para cambiar a plan gratuito, administra tu suscripción abajo.");
       return;
     }
 
     setLoadingPlan(planId);
+    const loadingToastId = toast.loading("Preparando checkout...");
+    
     try {
+      console.log("[Subscription] Invoking create-checkout-session...");
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
         body: { planId },
       });
 
-      if (error) throw error;
+      console.log("[Subscription] Response:", { data, error });
+      toast.dismiss(loadingToastId);
+
+      if (error) {
+        console.error("[Subscription] Function error:", error);
+        throw error;
+      }
+      
+      // Check for error in response body
+      if (data?.error) {
+        console.error("[Subscription] Response error:", data.error);
+        throw new Error(data.error);
+      }
+      
       if (data?.url) {
-        window.open(data.url, "_blank");
+        console.log("[Subscription] Opening checkout URL:", data.url);
+        // Try to open in new tab, fallback to same window if blocked
+        const newWindow = window.open(data.url, "_blank");
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+          console.log("[Subscription] Popup blocked, redirecting in same window");
+          toast.info("Redirigiendo a Stripe...");
+          window.location.href = data.url;
+        }
+      } else {
+        throw new Error("No checkout URL received");
       }
     } catch (error) {
+      toast.dismiss(loadingToastId);
       console.error("Error creating checkout session:", error);
       toast.error("Error al iniciar el pago", {
-        description: "Por favor intenta de nuevo o contacta soporte.",
+        description: error instanceof Error ? error.message : "Por favor intenta de nuevo o contacta soporte.",
       });
     } finally {
       setLoadingPlan(null);
