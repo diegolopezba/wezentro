@@ -34,7 +34,9 @@ const getPostRecencyScore = (createdAt: string): number => {
 
 // Event Timing Score (10% weight)
 // Slight boost for events happening soon
-const getEventTimingScore = (startDatetime: string): number => {
+const getEventTimingScore = (startDatetime: string | null): number => {
+  if (!startDatetime) return 50; // Neutral score for posts
+  
   const now = new Date();
   const start = new Date(startDatetime);
   const hoursUntil = (start.getTime() - now.getTime()) / (1000 * 60 * 60);
@@ -111,7 +113,7 @@ export const useFollowingEventsScored = () => {
     return followingIds.filter((id) => followerIds.includes(id));
   }, [followingIds, followerIds]);
 
-  // Fetch events from followed users
+  // Fetch events from followed users (including posts without dates)
   const {
     data: events,
     isLoading,
@@ -141,8 +143,7 @@ export const useFollowingEventsScored = () => {
         .in("creator_id", followingIds)
         .eq("is_public", true)
         .is("deleted_at", null)
-        .gte("start_datetime", new Date().toISOString())
-        .order("start_datetime", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as (EventWithCreator & { guestlist_entries?: any[] })[];
@@ -154,7 +155,15 @@ export const useFollowingEventsScored = () => {
   const scoredEvents = useMemo(() => {
     if (!events) return [];
 
-    return events
+    const now = new Date();
+
+    // Filter: include posts (no start_datetime) OR future events
+    const filteredEvents = events.filter(event => {
+      if (!event.start_datetime) return true; // Posts always show
+      return new Date(event.start_datetime) >= now; // Only future events
+    });
+
+    return filteredEvents
       .map((event) => ({
         ...event,
         _score: calculateFollowingEventScore(event, mutualFollowIds),

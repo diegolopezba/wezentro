@@ -91,12 +91,14 @@ const getRecencyScore = (createdAt: string): number => {
 };
 
 // Calculate timing score (5% weight) - events happening soon
-const getTimingScore = (startDatetime: string): number => {
+const getTimingScore = (startDatetime: string | null): number => {
+  if (!startDatetime) return 50; // Neutral score for posts
+  
   const now = new Date();
   const start = new Date(startDatetime);
   const hoursUntil = (start.getTime() - now.getTime()) / (1000 * 60 * 60);
 
-  if (hoursUntil < 0) return 0; // Past events (shouldn't happen due to filter)
+  if (hoursUntil < 0) return 0; // Past events
   if (hoursUntil <= 24) return 100; // Today
   if (hoursUntil <= 48) return 80; // Tomorrow
   if (hoursUntil <= 168) return 60; // This week
@@ -195,7 +197,7 @@ export const useForYouEvents = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch all public events (future only)
+  // Fetch all public events (including posts without dates)
   const {
     data: events,
     isLoading,
@@ -224,8 +226,7 @@ export const useForYouEvents = () => {
         )
         .eq("is_public", true)
         .is("deleted_at", null)
-        .gte("start_datetime", new Date().toISOString()) // Filter out past events
-        .order("start_datetime", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as (EventWithCreator & { guestlist_entries?: any[] })[];
@@ -236,12 +237,19 @@ export const useForYouEvents = () => {
   const scoredEvents = useMemo(() => {
     if (!events) return [];
 
+    const now = new Date();
     const userLat = location?.lat || null;
     const userLon = location?.lng || null;
     const userInterests = userProfile?.interests || null;
     const followingIds = following || null;
 
-    return events
+    // Filter: include posts (no start_datetime) OR future events
+    const filteredEvents = events.filter(event => {
+      if (!event.start_datetime) return true; // Posts always show
+      return new Date(event.start_datetime) >= now; // Only future events
+    });
+
+    return filteredEvents
       .map((event) => ({
         ...event,
         _score: calculateEventScore(event, userLat, userLon, userInterests, followingIds),
