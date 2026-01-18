@@ -185,9 +185,12 @@ const EventDetail = () => {
         <Button onClick={() => navigate("/")}>Go Home</Button>
       </div>;
   }
-  const formattedDate = format(new Date(event.start_datetime), "EEE, MMM d • h:mm a");
+  const formattedDate = event.start_datetime 
+    ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")
+    : null;
   const formattedPrice = event.price ? `$${event.price}` : "Free";
   const isVideo = isVideoUrl(event.image_url);
+  const isPost = event.is_post || !event.start_datetime;
   return <div className="min-h-screen bg-background">
       {/* Hero media */}
       <div className="relative w-full" style={{
@@ -262,10 +265,10 @@ const EventDetail = () => {
             <Button variant="ghost" size="icon" onClick={handleSaveToggle} disabled={saveEvent.isPending || unsaveEvent.isPending}>
               <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
             </Button>
-            {event.has_guestlist && canInviteToGuestlist && <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
+            {!isPost && event.has_guestlist && canInviteToGuestlist && <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
                 <UserPlus className="w-5 h-5" />
               </Button>}
-            {event.has_guestlist && (isOwner ? <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
+            {!isPost && event.has_guestlist && (isOwner ? <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
                   Manage
                   {pendingCount > 0 && <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
                       {pendingCount}
@@ -291,35 +294,40 @@ const EventDetail = () => {
             <p className="font-semibold text-foreground">@{event.creator?.username || "unknown"}</p>
           </div>
 
-          {/* Details */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Details - Only show for events, not posts */}
+          {!isPost && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
+                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground text-xs">{formattedDate}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
+                <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-accent bg-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">{formattedPrice}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Location - Only show if location exists */}
+          {event.location_name && (
             <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
               <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-primary" />
+                <MapPin className="w-5 h-5 text-primary" />
               </div>
-              <div>
-                <p className="font-semibold text-foreground text-xs">{formattedDate}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
-              <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-accent bg-primary" />
-              </div>
-              <div>
-                <p className="font-semibold text-foreground">{formattedPrice}</p>
+              <div className="flex-1">
+                <p className="text-sm text-foreground">{event.location_name}</p>
               </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-foreground">{event.location_name || "Location TBA"}</p>
-            </div>
-          </div>
+          )}
 
           {/* Description */}
           {event.description && <div className="space-y-2">
@@ -329,8 +337,8 @@ const EventDetail = () => {
               </p>
             </div>}
 
-          {/* Guestlist attendees */}
-          {event.has_guestlist && <div>
+          {/* Guestlist attendees - Only show for events, not posts */}
+          {!isPost && event.has_guestlist && <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-brand text-lg font-semibold text-foreground">
                   Guestlist ({guestlist.length})
@@ -394,8 +402,8 @@ const EventDetail = () => {
                   </> : <p className="text-muted-foreground text-sm">No one has joined yet. Be the first!</p>}
             </div>}
 
-          {/* Invitations Sent Section - Owner only */}
-          {isOwner && event.has_guestlist && <InvitationsSentSection eventId={id!} />}
+          {/* Invitations Sent Section - Owner only, for events with guestlist */}
+          {!isPost && isOwner && event.has_guestlist && <InvitationsSentSection eventId={id!} />}
 
           {/* Sign up prompt for unauthenticated users */}
           {!isAuthenticated && <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
