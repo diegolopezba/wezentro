@@ -6,7 +6,7 @@ export interface Event {
   title: string;
   description: string | null;
   image_url: string | null;
-  start_datetime: string;
+  start_datetime: string | null;
   end_datetime: string | null;
   location_name: string | null;
   latitude: number | null;
@@ -16,6 +16,7 @@ export interface Event {
   has_guestlist: boolean;
   max_guestlist_capacity: number | null;
   is_public: boolean;
+  is_post: boolean;
   creator_id: string;
   created_at: string;
   creator?: {
