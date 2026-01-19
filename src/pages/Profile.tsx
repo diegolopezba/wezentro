@@ -214,7 +214,7 @@ const Profile = () => {
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : !timeline || timeline.length === 0 ? (
-            <div className="col-span-2 flex flex-col items-center justify-center py-12 gap-4">
+            <div className="col-span-2 w-full flex flex-col items-center justify-center py-16 gap-4">
               <p className="text-muted-foreground text-sm">Sin publicaciones aún</p>
               <Button variant="outline" size="sm" onClick={() => navigate("/create")} className="gap-2">
                 Crear tu primera publicación
