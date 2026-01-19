@@ -245,3 +245,15 @@
 .mapboxgl-ctrl-top-right {
   display: none !important;
 }
+
+/* Food marker popup styling - remove Mapbox defaults */
+.food-marker-popup .mapboxgl-popup-content {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.food-marker-popup .mapboxgl-popup-tip {
+  display: none;
+}

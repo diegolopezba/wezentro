@@ -12,6 +12,7 @@ import { useEvents } from "@/hooks/useEvents";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { useNearbyEvents, formatDistance, FilterOptions } from "@/hooks/useNearbyEvents";
 import { useSearchUsers } from "@/hooks/useSearchUsers";
+import { useFoodLocations } from "@/hooks/useFoodLocations";
 import { UserSearchResultCard } from "@/components/search/UserSearchResultCard";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -21,12 +22,14 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 type EventWithDistance = ReturnType<typeof useNearbyEvents>[number];
 type SearchTab = "events" | "people";
 
 const Discover = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEvents, setSelectedEvents] = useState<EventWithDistance[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -50,6 +53,10 @@ const Discover = () => {
   const { data: events = [] } = useEvents();
   const { location: userLocation } = useUserLocation();
   const { data: searchedUsers = [], isLoading: isLoadingUsers } = useSearchUsers(searchQuery);
+  const { data: foodLocations = [] } = useFoodLocations();
+
+  // Determine if food filter is active
+  const showFoodMarkers = filters.categories.includes("food");
 
   // Fetch user's following list for friends going filter
   const { data: followingIds = [] } = useQuery({
@@ -210,17 +217,25 @@ const Discover = () => {
     hasGuestlist: event.has_guestlist || false,
   });
 
+  // Handle food marker click
+  const handleFoodMarkerClick = (location: typeof foodLocations[0]) => {
+    navigate(`/user/${location.id}`);
+  };
+
   return (
     <AppLayout>
       {/* Full screen map container */}
       <div className="relative h-[calc(100vh-80px)] bg-secondary">
         {/* Mapbox Map - pass original events for markers, filtered for visibility */}
         <MapView
-          events={filteredEvents}
+          events={showFoodMarkers ? [] : filteredEvents}
           onMarkerClick={handleMarkerClick}
           selectedEventId={selectedEvents[currentSlide]?.id}
           onGeolocationSuccess={handleGeolocationSuccess}
           onGeolocationError={handleGeolocationError}
+          foodLocations={foodLocations}
+          showFoodMarkers={showFoodMarkers}
+          onFoodMarkerClick={handleFoodMarkerClick}
         />
 
         {/* Floating search bar */}

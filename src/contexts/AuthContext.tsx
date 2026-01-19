@@ -13,6 +13,10 @@ interface Profile {
   is_business: boolean;
   birth_date: string | null;
   gender: string | null;
+  is_food_business: boolean | null;
+  business_latitude: number | null;
+  business_longitude: number | null;
+  business_address: string | null;
 }
 
 interface AuthContextType {
