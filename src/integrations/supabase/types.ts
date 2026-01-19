@@ -411,6 +411,79 @@ export type Database = {
           },
         ]
       }
+      menu_items: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_available: boolean | null
+          menu_id: string
+          name: string
+          price: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_available?: boolean | null
+          menu_id: string
+          name: string
+          price?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_available?: boolean | null
+          menu_id?: string
+          name?: string
+          price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_menu_id_fkey"
+            columns: ["menu_id"]
+            isOneToOne: false
+            referencedRelation: "menus"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menus: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menus_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           chat_id: string
@@ -547,6 +620,9 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           birth_date: string | null
+          business_address: string | null
+          business_latitude: number | null
+          business_longitude: number | null
           city: string | null
           created_at: string | null
           full_name: string | null
@@ -554,6 +630,7 @@ export type Database = {
           id: string
           interests: string[] | null
           is_business: boolean | null
+          is_food_business: boolean | null
           updated_at: string | null
           username: string
         }
@@ -561,6 +638,9 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           birth_date?: string | null
+          business_address?: string | null
+          business_latitude?: number | null
+          business_longitude?: number | null
           city?: string | null
           created_at?: string | null
           full_name?: string | null
@@ -568,6 +648,7 @@ export type Database = {
           id: string
           interests?: string[] | null
           is_business?: boolean | null
+          is_food_business?: boolean | null
           updated_at?: string | null
           username: string
         }
@@ -575,6 +656,9 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           birth_date?: string | null
+          business_address?: string | null
+          business_latitude?: number | null
+          business_longitude?: number | null
           city?: string | null
           created_at?: string | null
           full_name?: string | null
@@ -582,6 +666,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_business?: boolean | null
+          is_food_business?: boolean | null
           updated_at?: string | null
           username?: string
         }

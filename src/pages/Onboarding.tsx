@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-const interests = ["Discotecas", "Bares", "Conciertos", "Festivales", "Fiestas Privadas", "Rooftops", "Música en Vivo", "DJ Sets"];
+const interests = ["Discotecas", "Bares", "Conciertos", "Festivales", "Fiestas Privadas", "Rooftops", "Música en Vivo", "DJ Sets", "Restaurantes y Cafés"];
 
 const Onboarding = () => {
   const navigate = useNavigate();

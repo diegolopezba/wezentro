@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Loader2, Crown, Sparkles, X } from "lucide-react";
+import { Settings, Loader2, Crown, Sparkles, X, UtensilsCrossed } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +10,7 @@ import { useUserStats } from "@/hooks/useUserStats";
 import { useUserSubscription, getPlanDisplayName } from "@/hooks/useSubscription";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
+import { EditMenuSheet } from "@/components/menu/EditMenuSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 const Profile = () => {
@@ -17,6 +18,7 @@ const Profile = () => {
   const { profile, user } = useAuth();
   const [followSheetType, setFollowSheetType] = useState<"followers" | "following" | null>(null);
   const [showProfileBanner, setShowProfileBanner] = useState(true);
+  const [menuSheetOpen, setMenuSheetOpen] = useState(false);
 
   const { data: userStats, isLoading: statsLoading } = useUserStats(user?.id);
   const { data: timeline, isLoading: timelineLoading } = useUserTimeline(user?.id);
@@ -24,6 +26,7 @@ const Profile = () => {
 
   const currentPlan = subscription?.plan_type || "free";
   const isPremium = currentPlan !== "free";
+  const isFoodBusiness = currentPlan === "food_premium";
 
   // Check if profile is incomplete (missing birth_date or gender)
   const isProfileIncomplete = profile && (!profile.birth_date || !profile.gender);
@@ -98,8 +101,12 @@ const Profile = () => {
               className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary"
             />
             {isPremium && (
-              <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg border-2 border-background">
-                <Crown className="w-4 h-4 text-white" />
+              <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-amber-400 to-amber-600"}`}>
+                {isFoodBusiness ? (
+                  <UtensilsCrossed className="w-4 h-4 text-white" />
+                ) : (
+                  <Crown className="w-4 h-4 text-white" />
+                )}
               </div>
             )}
           </div>
@@ -135,6 +142,19 @@ const Profile = () => {
         >
           {profile?.bio && <p className="text-sm text-foreground/80">{profile.bio}</p>}
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
+          
+          {/* Edit Menu button for food subscribers */}
+          {isFoodBusiness && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMenuSheetOpen(true)}
+              className="mt-3 gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 hover:from-orange-500/20 hover:to-red-500/20"
+            >
+              <UtensilsCrossed className="w-4 h-4 text-orange-500" />
+              Editar Menú
+            </Button>
+          )}
         </motion.div>
 
         {/* Complete Profile Banner - show when birth_date or gender is missing */}
@@ -231,6 +251,13 @@ const Profile = () => {
           type={followSheetType || "followers"}
           open={!!followSheetType}
           onOpenChange={(open) => !open && setFollowSheetType(null)}
+        />
+      )}
+      {/* Edit Menu Sheet for food subscribers */}
+      {isFoodBusiness && (
+        <EditMenuSheet
+          open={menuSheetOpen}
+          onOpenChange={setMenuSheetOpen}
         />
       )}
     </AppLayout>

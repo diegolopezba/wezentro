@@ -100,9 +100,22 @@ export const useSubscriptionPlans = (): SubscriptionPlan[] => {
       highlighted: true,
     },
     {
+      id: "food_premium",
+      name: "Zentro Food",
+      price: 19.99,
+      interval: "month",
+      features: [
+        "Everything in Zentro Premium",
+        "Transform your profile into a restaurant/cafe",
+        "Create and display your menu",
+        "Food badge on your profile",
+        "Appear on the Food map filter",
+      ],
+    },
+    {
       id: "business_premium",
       name: "Zentro Business",
-      price: 19.99,
+      price: 29.99,
       interval: "month",
       features: [
         "Everything in Zentro Premium",
@@ -120,6 +133,8 @@ export const getPlanDisplayName = (planType: string | null | undefined): string 
   switch (planType) {
     case "user_premium":
       return "Zentro Premium";
+    case "food_premium":
+      return "Zentro Food";
     case "business_premium":
       return "Zentro Business";
     default:
