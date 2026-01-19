@@ -16,6 +16,7 @@ const logStep = (step: string, details?: unknown) => {
 const PRODUCT_TO_PLAN: Record<string, string> = {
   "prod_Td3jVaQwDP8Fdz": "user_premium",
   "prod_Td3kU1JBlekyrO": "business_premium",
+  "prod_Toxvk2koMWuN0w": "food_premium",
 };
 
 serve(async (req) => {
@@ -61,18 +62,28 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    const subscriptions = await stripe.subscriptions.list({
+    // Query for active subscriptions
+    const activeSubscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
       limit: 1,
     });
 
-    const hasActiveSub = subscriptions.data.length > 0;
+    // Also query for trialing subscriptions (from free trials)
+    const trialingSubscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "trialing",
+      limit: 1,
+    });
+
+    // Combine results, prioritizing active over trialing
+    const allSubscriptions = [...activeSubscriptions.data, ...trialingSubscriptions.data];
+    const hasActiveSub = allSubscriptions.length > 0;
     let planType: string | null = null;
     let subscriptionEnd: string | null = null;
 
     if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
+      const subscription = allSubscriptions[0];
       const subscriptionItem = subscription.items.data[0];
       
       // In newer Stripe API versions, period dates are on subscription items
