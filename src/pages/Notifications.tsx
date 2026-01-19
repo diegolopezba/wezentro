@@ -19,6 +19,7 @@ import { useEvent } from "@/hooks/useEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { useRespondToInvitation, useMyPendingInvitations } from "@/hooks/useGuestlistInvitations";
 import { toast } from "sonner";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
@@ -65,10 +66,8 @@ const FollowNotificationItem = ({
       onClick={onClick}
     >
       <Avatar className="w-10 h-10 shrink-0">
-        <AvatarImage src={followerProfile?.avatar_url || ""} />
-        <AvatarFallback>
-          {followerProfile?.username?.charAt(0).toUpperCase() || "?"}
-        </AvatarFallback>
+        <AvatarImage src={followerProfile?.avatar_url || DEFAULT_AVATAR} />
+        <AvatarFallback />
       </Avatar>
       
       <div className="flex-1 min-w-0">
@@ -137,10 +136,8 @@ const GuestlistRequestNotificationItem = ({
       onClick={onClick}
     >
       <Avatar className="w-10 h-10 shrink-0">
-        <AvatarImage src={requesterProfile?.avatar_url || ""} />
-        <AvatarFallback>
-          {extractedUsername?.charAt(0).toUpperCase() || "?"}
-        </AvatarFallback>
+        <AvatarImage src={requesterProfile?.avatar_url || DEFAULT_AVATAR} />
+        <AvatarFallback />
       </Avatar>
       
       <div className="flex-1 min-w-0">

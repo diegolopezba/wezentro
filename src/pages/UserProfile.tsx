@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { toast } from "sonner";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 const UserProfile = () => {
   const { id } = useParams();
@@ -144,10 +145,7 @@ const UserProfile = () => {
         >
           <div className="relative">
             <img
-              src={
-                userProfile.avatar_url ||
-                `https://api.dicebear.com/7.x/avataaars/svg?seed=${userProfile.username}`
-              }
+              src={userProfile.avatar_url || DEFAULT_AVATAR}
               alt="Perfil"
               className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary"
             />

@@ -10,6 +10,7 @@ import { useUserStats } from "@/hooks/useUserStats";
 import { useUserSubscription, getPlanDisplayName } from "@/hooks/useSubscription";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -92,10 +93,7 @@ const Profile = () => {
         >
           <div className="relative">
             <img
-              src={
-                profile?.avatar_url ||
-                `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.username}`
-              }
+              src={profile?.avatar_url || DEFAULT_AVATAR}
               alt="Perfil"
               className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary"
             />

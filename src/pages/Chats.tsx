@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserChats, ChatWithDetails } from "@/hooks/useChats";
 import { useAuth } from "@/contexts/AuthContext";
 import { NewChatModal } from "@/components/chat/NewChatModal";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 const Chats = () => {
   const navigate = useNavigate();
@@ -121,12 +122,10 @@ const Chats = () => {
               >
                 <Avatar className={`w-14 h-14 ${chat.type === "private" ? "cursor-pointer hover:scale-105 transition-transform" : ""}`}>
                   <AvatarImage
-                    src={getChatAvatar(chat) || undefined}
+                    src={getChatAvatar(chat) || DEFAULT_AVATAR}
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-primary/20 text-primary text-lg">
-                    {getChatDisplayName(chat)[0]?.toUpperCase()}
-                  </AvatarFallback>
+                  <AvatarFallback />
                 </Avatar>
                 {chat.type === "event" && (
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">

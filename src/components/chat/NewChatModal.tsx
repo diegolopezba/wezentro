@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useMutualFollowers, useCreatePrivateChat } from "@/hooks/useChats";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 interface NewChatModalProps {
   open: boolean;
@@ -79,10 +80,8 @@ export const NewChatModal = ({ open, onOpenChange }: NewChatModalProps) => {
                 className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors text-left disabled:opacity-50"
               >
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={user.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/20 text-primary">
-                    {user.username[0]?.toUpperCase()}
-                  </AvatarFallback>
+                  <AvatarImage src={user.avatar_url || DEFAULT_AVATAR} />
+                  <AvatarFallback />
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-foreground truncate">

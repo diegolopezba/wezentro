@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useEventInvitations } from "@/hooks/useGuestlistInvitations";
 import { useNavigate } from "react-router-dom";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 interface InvitationsSentSectionProps {
   eventId: string;
@@ -85,10 +86,8 @@ export function InvitationsSentSection({ eventId }: InvitationsSentSectionProps)
             onClick={() => navigate(`/user/${invitation.invited_user_id}`)}
           >
             <Avatar className="w-10 h-10">
-              <AvatarImage src={invitation.invited_user?.avatar_url || undefined} />
-              <AvatarFallback>
-                {invitation.invited_user?.username?.charAt(0).toUpperCase() || "?"}
-              </AvatarFallback>
+              <AvatarImage src={invitation.invited_user?.avatar_url || DEFAULT_AVATAR} />
+              <AvatarFallback />
             </Avatar>
             
             <div className="flex-1 min-w-0">
