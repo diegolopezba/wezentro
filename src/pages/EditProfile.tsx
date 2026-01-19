@@ -11,6 +11,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { BusinessLocationPicker } from "@/components/profile/BusinessLocationPicker";
+import { useUserSubscription } from "@/hooks/useSubscription";
 
 const GENDER_OPTIONS = [
   { value: "male", label: "Masculino" },
@@ -22,6 +24,7 @@ const GENDER_OPTIONS = [
 const EditProfile = () => {
   const navigate = useNavigate();
   const { profile, user, refreshProfile } = useAuth();
+  const { data: subscription } = useUserSubscription();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -36,6 +39,13 @@ const EditProfile = () => {
     gender: "",
   });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [businessLocation, setBusinessLocation] = useState<{
+    latitude: number | null;
+    longitude: number | null;
+    address: string | null;
+  }>({ latitude: null, longitude: null, address: null });
+
+  const isFoodSubscriber = subscription?.plan_type === "food_premium";
 
   useEffect(() => {
     if (profile) {
@@ -61,8 +71,17 @@ const EditProfile = () => {
         gender: profile.gender || "",
       });
       setAvatarUrl(profile.avatar_url);
+      setBusinessLocation({
+        latitude: profile.business_latitude || null,
+        longitude: profile.business_longitude || null,
+        address: profile.business_address || null,
+      });
     }
   }, [profile]);
+
+  const handleBusinessLocationChange = (lat: number | null, lng: number | null, address: string | null) => {
+    setBusinessLocation({ latitude: lat, longitude: lng, address });
+  };
 
   const handleSave = async () => {
     if (!user) {
@@ -361,6 +380,22 @@ const EditProfile = () => {
             </p>
           </div>
         </motion.div>
+
+        {/* Business Location Section - Only for Food Subscribers */}
+        {isFoodSubscriber && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <BusinessLocationPicker
+              latitude={businessLocation.latitude}
+              longitude={businessLocation.longitude}
+              address={businessLocation.address}
+              onLocationChange={handleBusinessLocationChange}
+            />
+          </motion.div>
+        )}
       </div>
     </AppLayout>
   );

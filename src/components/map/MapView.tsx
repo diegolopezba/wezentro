@@ -7,7 +7,9 @@ import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { Loader2, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createMiniEventMarkerElement, injectMiniMarkerStyles } from "./MiniEventMarker";
-
+import { FoodLocation } from "@/hooks/useFoodLocations";
+import { FoodMarker, FoodMarkerPopup } from "./FoodMarker";
+import { createRoot } from "react-dom/client";
 
 interface MapViewProps {
   events: Event[];
@@ -15,6 +17,9 @@ interface MapViewProps {
   selectedEventId?: string | null;
   onGeolocationSuccess?: () => void;
   onGeolocationError?: (error: string) => void;
+  foodLocations?: FoodLocation[];
+  showFoodMarkers?: boolean;
+  onFoodMarkerClick?: (location: FoodLocation) => void;
 }
 
 const WORLD_VIEW = {
@@ -33,11 +38,16 @@ const MapView: React.FC<MapViewProps> = ({
   selectedEventId,
   onGeolocationSuccess,
   onGeolocationError,
+  foodLocations = [],
+  showFoodMarkers = false,
+  onFoodMarkerClick,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const foodMarkersRef = useRef<mapboxgl.Marker[]>([]);
+  const popupRef = useRef<mapboxgl.Popup | null>(null);
 
   const [mapLoaded, setMapLoaded] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(WORLD_VIEW.zoom);
@@ -85,6 +95,71 @@ const MapView: React.FC<MapViewProps> = ({
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
   }, []);
+
+  // Clear food markers
+  const clearFoodMarkers = useCallback(() => {
+    foodMarkersRef.current.forEach((marker) => marker.remove());
+    foodMarkersRef.current = [];
+    popupRef.current?.remove();
+    popupRef.current = null;
+  }, []);
+
+  // Create food markers
+  const createFoodMarkers = useCallback(() => {
+    if (!map.current || !mapLoaded) return;
+    
+    clearFoodMarkers();
+
+    foodLocations.forEach((location) => {
+      if (!location.business_latitude || !location.business_longitude) return;
+
+      // Create marker element
+      const markerElement = document.createElement("div");
+      const root = createRoot(markerElement);
+      root.render(
+        <FoodMarker
+          location={location}
+          onClick={() => {
+            // Close any existing popup
+            popupRef.current?.remove();
+
+            // Create popup content
+            const popupContainer = document.createElement("div");
+            const popupRoot = createRoot(popupContainer);
+            popupRoot.render(
+              <FoodMarkerPopup
+                location={location}
+                onViewProfile={() => {
+                  popupRef.current?.remove();
+                  onFoodMarkerClick?.(location);
+                }}
+              />
+            );
+
+            // Create and show popup
+            popupRef.current = new mapboxgl.Popup({
+              closeButton: false,
+              closeOnClick: true,
+              offset: 25,
+              className: "food-marker-popup",
+            })
+              .setLngLat([location.business_longitude!, location.business_latitude!])
+              .setDOMContent(popupContainer)
+              .addTo(map.current!);
+          }}
+        />
+      );
+
+      const marker = new mapboxgl.Marker({
+        element: markerElement,
+        anchor: "center",
+      })
+        .setLngLat([location.business_longitude!, location.business_latitude!])
+        .addTo(map.current!);
+
+      foodMarkersRef.current.push(marker);
+    });
+  }, [foodLocations, mapLoaded, clearFoodMarkers, onFoodMarkerClick]);
 
   // Create custom mini event card markers
   const createCustomMarkers = useCallback((zoom: number) => {
@@ -320,6 +395,7 @@ const MapView: React.FC<MapViewProps> = ({
     return () => {
       clearAllTimeouts();
       clearCustomMarkers();
+      clearFoodMarkers();
       geolocateControl.off("geolocate", handleGeoLocate);
       geolocateControl.off("error", handleGeoError);
 
@@ -341,9 +417,31 @@ const MapView: React.FC<MapViewProps> = ({
     const source = map.current.getSource("events") as mapboxgl.GeoJSONSource | undefined;
     if (source) source.setData(eventsGeoJSON);
     
-    // Recreate custom markers with current zoom
-    updateMarkersForZoom(currentZoom);
-  }, [eventsGeoJSON, mapLoaded, currentZoom, updateMarkersForZoom]);
+    // Recreate custom markers with current zoom (only when not showing food markers)
+    if (!showFoodMarkers) {
+      updateMarkersForZoom(currentZoom);
+    }
+  }, [eventsGeoJSON, mapLoaded, currentZoom, updateMarkersForZoom, showFoodMarkers]);
+
+  // Show/hide markers based on mode
+  useEffect(() => {
+    if (!mapLoaded) return;
+
+    if (showFoodMarkers) {
+      clearCustomMarkers();
+      createFoodMarkers();
+    } else {
+      clearFoodMarkers();
+      updateMarkersForZoom(currentZoom);
+    }
+  }, [showFoodMarkers, mapLoaded, clearCustomMarkers, createFoodMarkers, clearFoodMarkers, updateMarkersForZoom, currentZoom]);
+
+  // Update food markers when locations change
+  useEffect(() => {
+    if (showFoodMarkers && mapLoaded) {
+      createFoodMarkers();
+    }
+  }, [foodLocations, showFoodMarkers, mapLoaded, createFoodMarkers]);
 
   // Update markers when zoom level changes
   useEffect(() => {
