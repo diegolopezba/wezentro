@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown } from "lucide-react";
+import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown, UtensilsCrossed } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { toast } from "sonner";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
+import { MenuSheet } from "@/components/menu/MenuSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 const UserProfile = () => {
@@ -22,6 +23,7 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [followSheetType, setFollowSheetType] = useState<"followers" | "following" | null>(null);
+  const [menuSheetOpen, setMenuSheetOpen] = useState(false);
 
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === id;
@@ -34,6 +36,7 @@ const UserProfile = () => {
   const { data: userSubscription } = useUserSubscriptionById(id);
 
   const isPremium = userSubscription?.plan_type && userSubscription.plan_type !== "free";
+  const isFoodBusiness = userSubscription?.plan_type === "food_premium";
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
   const createChatMutation = useCreatePrivateChat();
@@ -150,8 +153,12 @@ const UserProfile = () => {
               className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary"
             />
             {isPremium && (
-              <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg border-2 border-background">
-                <Crown className="w-4 h-4 text-white" />
+              <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-amber-400 to-amber-600"}`}>
+                {isFoodBusiness ? (
+                  <UtensilsCrossed className="w-4 h-4 text-white" />
+                ) : (
+                  <Crown className="w-4 h-4 text-white" />
+                )}
               </div>
             )}
           </div>
@@ -219,6 +226,19 @@ const UserProfile = () => {
                 </>
               )}
             </Button>
+            
+            {/* Menu button for food businesses */}
+            {isFoodBusiness && (
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => setMenuSheetOpen(true)}
+                className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30"
+              >
+                <UtensilsCrossed className="w-4 h-4 text-orange-500" />
+              </Button>
+            )}
+            
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex-1">
@@ -273,6 +293,15 @@ const UserProfile = () => {
           type={followSheetType || "followers"}
           open={!!followSheetType}
           onOpenChange={(open) => !open && setFollowSheetType(null)}
+        />
+      )}
+      {/* Menu Sheet for food businesses */}
+      {id && isFoodBusiness && (
+        <MenuSheet
+          open={menuSheetOpen}
+          onOpenChange={setMenuSheetOpen}
+          userId={id}
+          businessName={userProfile?.full_name || userProfile?.username}
         />
       )}
     </AppLayout>

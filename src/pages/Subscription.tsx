@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, Check, Crown, Sparkles, Star, Loader2 } from "lucide-react";
+import { ChevronLeft, Check, Crown, Sparkles, Star, Loader2, UtensilsCrossed } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -83,6 +83,8 @@ const Subscription = () => {
     switch (planId) {
       case "user_premium":
         return <Star className="h-5 w-5" />;
+      case "food_premium":
+        return <UtensilsCrossed className="h-5 w-5" />;
       case "business_premium":
         return <Crown className="h-5 w-5" />;
       default:

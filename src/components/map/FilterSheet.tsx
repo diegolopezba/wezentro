@@ -23,6 +23,7 @@ const DATE_OPTIONS = [
 ] as const;
 
 const CATEGORIES = [
+  { value: "food", label: "Comida", color: "from-orange-500 to-red-500" },
   { value: "club", label: "Club", color: "from-purple-500 to-pink-500" },
   { value: "bar", label: "Bar", color: "from-amber-500 to-orange-500" },
   { value: "concert", label: "Concierto", color: "from-blue-500 to-cyan-500" },
