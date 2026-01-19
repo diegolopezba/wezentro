@@ -16,6 +16,7 @@ import {
   useRejectGuestlistEntry,
 } from "@/hooks/useGuestlist";
 import { toast } from "sonner";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 interface GuestlistManagementSheetProps {
   eventId: string;
@@ -109,7 +110,7 @@ export const GuestlistManagementSheet = ({
                       className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50"
                     >
                       <img
-                        src={request.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${request.id}`}
+                        src={request.user?.avatar_url || DEFAULT_AVATAR}
                         alt={request.user?.username || "User"}
                         className="w-12 h-12 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform"
                         onClick={() => {

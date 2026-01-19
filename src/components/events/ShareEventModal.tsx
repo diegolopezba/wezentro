@@ -10,6 +10,7 @@ import { useSearchUsers } from "@/hooks/useSearchUsers";
 import { useUserSubscription } from "@/hooks/useSubscription";
 import { Loader2, Search, Send, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 interface ShareEventModalProps {
   eventId: string;
@@ -159,10 +160,8 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
                       onCheckedChange={() => toggleUser(user.id)}
                     />
                     <Avatar className="w-10 h-10">
-                      <AvatarImage src={user.avatar_url || undefined} />
-                      <AvatarFallback>
-                        {user.username.charAt(0).toUpperCase()}
-                      </AvatarFallback>
+                      <AvatarImage src={user.avatar_url || DEFAULT_AVATAR} />
+                      <AvatarFallback />
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground text-sm truncate">

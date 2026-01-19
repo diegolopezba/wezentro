@@ -20,6 +20,7 @@ import { InvitationsSentSection } from "@/components/events/InvitationsSentSecti
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { trackEventView } from "@/lib/analyticsTracking";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 const EventDetail = () => {
   const {
     id
@@ -293,7 +294,7 @@ const EventDetail = () => {
             navigate(`/user/${event.creator_id}`);
           }
         }}>
-            <img src={event.creator?.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"} alt="Host" className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" />
+            <img src={event.creator?.avatar_url || DEFAULT_AVATAR} alt="Host" className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" />
             <p className="font-semibold text-foreground hover:text-primary transition-colors">
               @{event.creator?.username || "unknown"}
             </p>
@@ -351,7 +352,7 @@ const EventDetail = () => {
                     {/* Avatars row - Premium users see real avatars */}
                     <div className="flex items-center gap-2 mb-4">
                       <div className="flex -space-x-3">
-                        {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={e => {
+                        {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={e => {
                   e.stopPropagation();
                   navigate(`/user/${entry.user_id}`);
                 }} />)}
@@ -364,7 +365,7 @@ const EventDetail = () => {
                     {/* Attendee list */}
                     <div className="space-y-3">
                       {guestlist.slice(0, 3).map((entry: any) => <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
-                          <img src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.id}`} alt={entry.user?.username || "User"} className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate(`/user/${entry.user_id}`)} />
+                          <img src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={entry.user?.username || "User"} className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate(`/user/${entry.user_id}`)} />
                           <div className="flex-1 cursor-pointer" onClick={() => navigate(`/user/${entry.user_id}`)}>
                             <p className="font-medium text-foreground text-sm">
                               @{entry.user?.username || "user"}
@@ -380,7 +381,7 @@ const EventDetail = () => {
                     {/* Non-premium: show blurred real avatars */}
                     <div className="flex items-center gap-2 mb-4">
                       <div className="flex -space-x-3">
-                        {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover blur-[3px]" />)}
+                        {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover blur-[3px]" />)}
                       </div>
                       {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
                           +{guestlist.length - 5} more

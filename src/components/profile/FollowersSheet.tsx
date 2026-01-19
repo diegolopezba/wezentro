@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { useUserFollowers, useUserFollowing, useIsFollowing, useFollowUser, useUnfollowUser, FollowUser } from "@/hooks/useUserProfile";
 import { useAuth } from "@/contexts/AuthContext";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 interface FollowersSheetProps {
   userId: string;
@@ -72,7 +73,7 @@ const UserItem = ({ user, onClose }: { user: FollowUser; onClose: () => void }) 
       }}
     >
       <img
-        src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`}
+        src={user.avatar_url || DEFAULT_AVATAR}
         alt={user.username}
         className="w-12 h-12 rounded-full object-cover bg-secondary"
       />
