@@ -39,7 +39,15 @@ const Subscription = () => {
       });
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, "_blank");
+        // On mobile/PWA, window.open is often blocked by popup blockers
+        // Use direct navigation as fallback for reliability
+        const newWindow = window.open(data.url, "_blank");
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+          // Popup was blocked, redirect in same window
+          window.location.href = data.url;
+        }
+      } else {
+        throw new Error("No checkout URL received");
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
@@ -59,7 +67,15 @@ const Subscription = () => {
       } = await supabase.functions.invoke("create-portal-session");
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, "_blank");
+        // On mobile/PWA, window.open is often blocked by popup blockers
+        // Use direct navigation as fallback for reliability
+        const newWindow = window.open(data.url, "_blank");
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+          // Popup was blocked, redirect in same window
+          window.location.href = data.url;
+        }
+      } else {
+        throw new Error("No portal URL received");
       }
     } catch (error) {
       console.error("Error creating portal session:", error);
