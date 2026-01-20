@@ -13,22 +13,32 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { BusinessLocationPicker } from "@/components/profile/BusinessLocationPicker";
 import { useUserSubscription } from "@/hooks/useSubscription";
-
-const GENDER_OPTIONS = [
-  { value: "male", label: "Masculino" },
-  { value: "female", label: "Femenino" },
-  { value: "non_binary", label: "No binario" },
-  { value: "prefer_not_to_say", label: "Prefiero no decir" },
-];
-
+const GENDER_OPTIONS = [{
+  value: "male",
+  label: "Masculino"
+}, {
+  value: "female",
+  label: "Femenino"
+}, {
+  value: "non_binary",
+  label: "No binario"
+}, {
+  value: "prefer_not_to_say",
+  label: "Prefiero no decir"
+}];
 const EditProfile = () => {
   const navigate = useNavigate();
-  const { profile, user, refreshProfile } = useAuth();
-  const { data: subscription } = useUserSubscription();
+  const {
+    profile,
+    user,
+    refreshProfile
+  } = useAuth();
+  const {
+    data: subscription
+  } = useUserSubscription();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-
   const [formData, setFormData] = useState({
     full_name: "",
     username: "",
@@ -36,31 +46,31 @@ const EditProfile = () => {
     birth_day: "",
     birth_month: "",
     birth_year: "",
-    gender: "",
+    gender: ""
   });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [businessLocation, setBusinessLocation] = useState<{
     latitude: number | null;
     longitude: number | null;
     address: string | null;
-  }>({ latitude: null, longitude: null, address: null });
-
+  }>({
+    latitude: null,
+    longitude: null,
+    address: null
+  });
   const isFoodSubscriber = subscription?.plan_type === "food_premium";
-
   useEffect(() => {
     if (profile) {
       // Parse birth_date if it exists
       let birthDay = "";
       let birthMonth = "";
       let birthYear = "";
-
       if (profile.birth_date) {
         const date = new Date(profile.birth_date);
         birthDay = date.getDate().toString().padStart(2, "0");
         birthMonth = (date.getMonth() + 1).toString().padStart(2, "0");
         birthYear = date.getFullYear().toString();
       }
-
       setFormData({
         full_name: profile.full_name || "",
         username: profile.username || "",
@@ -68,43 +78,39 @@ const EditProfile = () => {
         birth_day: birthDay,
         birth_month: birthMonth,
         birth_year: birthYear,
-        gender: profile.gender || "",
+        gender: profile.gender || ""
       });
       setAvatarUrl(profile.avatar_url);
       setBusinessLocation({
         latitude: profile.business_latitude || null,
         longitude: profile.business_longitude || null,
-        address: profile.business_address || null,
+        address: profile.business_address || null
       });
     }
   }, [profile]);
-
   const handleBusinessLocationChange = (lat: number | null, lng: number | null, address: string | null) => {
-    setBusinessLocation({ latitude: lat, longitude: lng, address });
+    setBusinessLocation({
+      latitude: lat,
+      longitude: lng,
+      address
+    });
   };
-
   const handleSave = async () => {
     if (!user) {
       toast.error("Debes iniciar sesión para actualizar tu perfil");
       return;
     }
-
     if (!formData.username.trim()) {
       toast.error("El nombre de usuario es requerido");
       return;
     }
-
     setIsLoading(true);
     try {
       // Check if username is taken (if changed)
       if (formData.username !== profile?.username) {
-        const { data: existingUser } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("username", formData.username.trim())
-          .neq("id", user.id)
-          .maybeSingle();
-
+        const {
+          data: existingUser
+        } = await supabase.from("profiles").select("id").eq("username", formData.username.trim()).neq("id", user.id).maybeSingle();
         if (existingUser) {
           toast.error("Ese nombre de usuario ya está en uso");
           setIsLoading(false);
@@ -120,32 +126,21 @@ const EditProfile = () => {
         const day = parseInt(formData.birth_day);
 
         // Validate date
-        if (
-          year >= 1900 &&
-          year <= new Date().getFullYear() - 13 &&
-          month >= 1 &&
-          month <= 12 &&
-          day >= 1 &&
-          day <= 31
-        ) {
+        if (year >= 1900 && year <= new Date().getFullYear() - 13 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
           birthDate = `${formData.birth_year}-${formData.birth_month.padStart(2, "0")}-${formData.birth_day.padStart(2, "0")}`;
         }
       }
-
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: formData.full_name.trim() || null,
-          username: formData.username.trim(),
-          bio: formData.bio.trim() || null,
-          avatar_url: avatarUrl,
-          birth_date: birthDate,
-          gender: formData.gender || null,
-        })
-        .eq("id", user.id);
-
+      const {
+        error
+      } = await supabase.from("profiles").update({
+        full_name: formData.full_name.trim() || null,
+        username: formData.username.trim(),
+        bio: formData.bio.trim() || null,
+        avatar_url: avatarUrl,
+        birth_date: birthDate,
+        gender: formData.gender || null
+      }).eq("id", user.id);
       if (error) throw error;
-
       await refreshProfile();
       toast.success("¡Perfil actualizado exitosamente!");
       navigate("/settings");
@@ -156,40 +151,35 @@ const EditProfile = () => {
       setIsLoading(false);
     }
   };
-
   const handleAvatarClick = () => {
     avatarInputRef.current?.click();
   };
-
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-
     if (!file.type.startsWith("image/")) {
       toast.error("Por favor selecciona un archivo de imagen");
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       toast.error("La imagen debe ser menor a 5MB");
       return;
     }
-
     setIsUploading(true);
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/avatar.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("event-images")
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
       const {
-        data: { publicUrl },
+        error: uploadError
+      } = await supabase.storage.from("event-images").upload(fileName, file, {
+        upsert: true
+      });
+      if (uploadError) throw uploadError;
+      const {
+        data: {
+          publicUrl
+        }
       } = supabase.storage.from("event-images").getPublicUrl(fileName);
-
       setAvatarUrl(publicUrl);
       toast.success("¡Foto subida!");
     } catch (error: any) {
@@ -199,17 +189,9 @@ const EditProfile = () => {
       setIsUploading(false);
     }
   };
-
-  return (
-    <AppLayout>
+  return <AppLayout>
       {/* Hidden file input */}
-      <input
-        ref={avatarInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleAvatarChange}
-      />
+      <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
 
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
@@ -228,82 +210,70 @@ const EditProfile = () => {
 
       <div className="px-4 py-6 space-y-8">
         {/* Profile Picture */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center"
-        >
+        <motion.div initial={{
+        opacity: 0,
+        y: 20
+      }} animate={{
+        opacity: 1,
+        y: 0
+      }} className="flex flex-col items-center">
           <div className="relative">
-            <img
-              src={avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80"}
-              alt="Perfil"
-              className="w-28 h-28 rounded-full object-cover border-2 border-primary"
-            />
-            <button
-              onClick={handleAvatarClick}
-              disabled={isUploading}
-              className="absolute bottom-0 right-0 w-10 h-10 rounded-full gradient-primary flex items-center justify-center shadow-glow disabled:opacity-50"
-            >
-              {isUploading ? (
-                <Loader2 className="w-5 h-5 text-primary-foreground animate-spin" />
-              ) : (
-                <Camera className="w-5 h-5 text-primary-foreground" />
-              )}
+            <img src={avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80"} alt="Perfil" className="w-28 h-28 rounded-full object-cover border-2 border-primary" />
+            <button onClick={handleAvatarClick} disabled={isUploading} className="absolute bottom-0 right-0 w-10 h-10 rounded-full gradient-primary flex items-center justify-center shadow-glow disabled:opacity-50 bg-primary text-destructive">
+              {isUploading ? <Loader2 className="w-5 h-5 text-primary-foreground animate-spin" /> : <Camera className="w-5 h-5 text-primary-foreground" />}
             </button>
           </div>
           <p className="text-sm text-muted-foreground mt-3">Toca para cambiar foto de perfil</p>
         </motion.div>
 
         {/* Form Fields */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="space-y-5"
-        >
+        <motion.div initial={{
+        opacity: 0,
+        y: 20
+      }} animate={{
+        opacity: 1,
+        y: 0
+      }} transition={{
+        delay: 0.05
+      }} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre</Label>
-            <Input
-              id="name"
-              value={formData.full_name}
-              onChange={(e) => setFormData((prev) => ({ ...prev, full_name: e.target.value }))}
-              placeholder="Tu nombre"
-            />
+            <Input id="name" value={formData.full_name} onChange={e => setFormData(prev => ({
+            ...prev,
+            full_name: e.target.value
+          }))} placeholder="Tu nombre" />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="username">Nombre de usuario *</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
-              <Input
-                id="username"
-                value={formData.username}
-                onChange={(e) => setFormData((prev) => ({ ...prev, username: e.target.value }))}
-                placeholder="usuario"
-                className="pl-8"
-              />
+              <Input id="username" value={formData.username} onChange={e => setFormData(prev => ({
+              ...prev,
+              username: e.target.value
+            }))} placeholder="usuario" className="pl-8" />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="bio">Biografía</Label>
-            <Textarea
-              id="bio"
-              value={formData.bio}
-              onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
-              placeholder="Cuéntanos sobre ti..."
-              rows={3}
-            />
+            <Textarea id="bio" value={formData.bio} onChange={e => setFormData(prev => ({
+            ...prev,
+            bio: e.target.value
+          }))} placeholder="Cuéntanos sobre ti..." rows={3} />
           </div>
         </motion.div>
 
         {/* Personal Information Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="space-y-5"
-        >
+        <motion.div initial={{
+        opacity: 0,
+        y: 20
+      }} animate={{
+        opacity: 1,
+        y: 0
+      }} transition={{
+        delay: 0.1
+      }} className="space-y-5">
           <div className="flex items-center gap-2">
             <Label className="text-base font-semibold">Información Personal</Label>
             <span className="text-xs text-muted-foreground">(opcional)</span>
@@ -313,61 +283,43 @@ const EditProfile = () => {
           <div className="space-y-2">
             <Label>Fecha de nacimiento</Label>
             <div className="flex gap-2">
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder="DD"
-                maxLength={2}
-                value={formData.birth_day}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
-                  setFormData((prev) => ({ ...prev, birth_day: value }));
-                }}
-                className="w-16 text-center"
-              />
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder="MM"
-                maxLength={2}
-                value={formData.birth_month}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
-                  setFormData((prev) => ({ ...prev, birth_month: value }));
-                }}
-                className="w-16 text-center"
-              />
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder="AAAA"
-                maxLength={4}
-                value={formData.birth_year}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
-                  setFormData((prev) => ({ ...prev, birth_year: value }));
-                }}
-                className="w-24 text-center"
-              />
+              <Input type="text" inputMode="numeric" placeholder="DD" maxLength={2} value={formData.birth_day} onChange={e => {
+              const value = e.target.value.replace(/\D/g, "");
+              setFormData(prev => ({
+                ...prev,
+                birth_day: value
+              }));
+            }} className="w-16 text-center" />
+              <Input type="text" inputMode="numeric" placeholder="MM" maxLength={2} value={formData.birth_month} onChange={e => {
+              const value = e.target.value.replace(/\D/g, "");
+              setFormData(prev => ({
+                ...prev,
+                birth_month: value
+              }));
+            }} className="w-16 text-center" />
+              <Input type="text" inputMode="numeric" placeholder="AAAA" maxLength={4} value={formData.birth_year} onChange={e => {
+              const value = e.target.value.replace(/\D/g, "");
+              setFormData(prev => ({
+                ...prev,
+                birth_year: value
+              }));
+            }} className="w-24 text-center" />
             </div>
           </div>
 
           {/* Gender */}
           <div className="space-y-3">
             <Label>Género</Label>
-            <RadioGroup
-              value={formData.gender}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, gender: value }))}
-              className="flex flex-col gap-2"
-            >
-              {GENDER_OPTIONS.map((option) => (
-                <div key={option.value} className="flex items-center space-x-3">
+            <RadioGroup value={formData.gender} onValueChange={value => setFormData(prev => ({
+            ...prev,
+            gender: value
+          }))} className="flex flex-col gap-2">
+              {GENDER_OPTIONS.map(option => <div key={option.value} className="flex items-center space-x-3">
                   <RadioGroupItem value={option.value} id={option.value} />
                   <Label htmlFor={option.value} className="font-normal cursor-pointer">
                     {option.label}
                   </Label>
-                </div>
-              ))}
+                </div>)}
             </RadioGroup>
           </div>
 
@@ -382,23 +334,18 @@ const EditProfile = () => {
         </motion.div>
 
         {/* Business Location Section - Only for Food Subscribers */}
-        {isFoodSubscriber && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-          >
-            <BusinessLocationPicker
-              latitude={businessLocation.latitude}
-              longitude={businessLocation.longitude}
-              address={businessLocation.address}
-              onLocationChange={handleBusinessLocationChange}
-            />
-          </motion.div>
-        )}
+        {isFoodSubscriber && <motion.div initial={{
+        opacity: 0,
+        y: 20
+      }} animate={{
+        opacity: 1,
+        y: 0
+      }} transition={{
+        delay: 0.15
+      }}>
+            <BusinessLocationPicker latitude={businessLocation.latitude} longitude={businessLocation.longitude} address={businessLocation.address} onLocationChange={handleBusinessLocationChange} />
+          </motion.div>}
       </div>
-    </AppLayout>
-  );
+    </AppLayout>;
 };
-
 export default EditProfile;
