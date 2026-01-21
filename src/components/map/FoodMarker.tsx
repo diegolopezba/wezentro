@@ -41,12 +41,15 @@ export const FoodMarkerPopup = ({
   onViewProfile: () => void;
 }) => {
   return (
-    <div className="bg-background rounded-xl p-3 shadow-xl border border-border min-w-[200px]">
+    <button
+      onClick={onViewProfile}
+      className="bg-background rounded-xl p-3 shadow-xl border border-border min-w-[200px] text-left hover:bg-secondary/50 transition-colors cursor-pointer"
+    >
       <div className="flex items-center gap-3">
         <img
           src={location.avatar_url || defaultAvatar}
           alt={location.full_name || location.username}
-          className="w-12 h-12 rounded-full object-cover border-2 border-orange-500"
+          className="w-12 h-12 rounded-full object-cover border-2 border-border"
           onError={(e) => {
             e.currentTarget.src = defaultAvatar;
           }}
@@ -68,13 +71,6 @@ export const FoodMarkerPopup = ({
           {location.bio}
         </p>
       )}
-      
-      <button
-        onClick={onViewProfile}
-        className="w-full mt-3 py-2 px-4 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-medium hover:opacity-90 transition-opacity"
-      >
-        Ver Perfil
-      </button>
-    </div>
+    </button>
   );
 };
