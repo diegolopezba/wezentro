@@ -175,7 +175,7 @@ const UserProfile = () => {
       }} transition={{
         delay: 0.1
       }} className="flex gap-3 mt-4">
-            <Button variant={isFollowing ? "secondary" : "hero"} className="flex-1" onClick={handleFollowToggle} disabled={followStatusLoading || isFollowPending}>
+            <Button variant={isFollowing ? "secondary" : "hero"} className="flex-1 min-w-0" onClick={handleFollowToggle} disabled={followStatusLoading || isFollowPending}>
               {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? <>
                   <UserMinus className="w-4 h-4 mr-2" />
                   Siguiendo
@@ -187,14 +187,12 @@ const UserProfile = () => {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex-1">
-                  <Button variant="secondary" className="w-full" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
-                    {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Mensaje
-                      </>}
-                  </Button>
-                </div>
+                <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
+                  {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Mensaje
+                    </>}
+                </Button>
               </TooltipTrigger>
               {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent>
                   <p>{canMessageData.reason}</p>
@@ -202,7 +200,7 @@ const UserProfile = () => {
             </Tooltip>
 
             {/* Menu button for food businesses */}
-            {isFoodBusiness && <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30 bg-primary">
+            {isFoodBusiness && <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30">
                 <UtensilsCrossed className="w-4 h-4 text-orange-500" />
               </Button>}
           </motion.div>}
