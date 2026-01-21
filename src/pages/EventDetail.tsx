@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
-import { useIsEventSaved, useSaveEvent, useUnsaveEvent } from "@/hooks/useSavedEvents";
-import { useIsEventLiked, useLikeEvent, useUnlikeEvent } from "@/hooks/useEventLikes";
-import { useHasReposted, useToggleRepost } from "@/hooks/useReposts";
+import { useIsEventSaved, useSaveEvent, useUnsaveEvent, useSaveCount } from "@/hooks/useSavedEvents";
+import { useIsEventLiked, useLikeEvent, useUnlikeEvent, useEventLikes } from "@/hooks/useEventLikes";
+import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useReposts";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -102,12 +102,15 @@ const EventDetail = () => {
   const {
     data: isLiked
   } = useIsEventLiked(id!);
+  const { data: likeCount = 0 } = useEventLikes(id!);
   const likeEvent = useLikeEvent();
   const unlikeEvent = useUnlikeEvent();
   const {
     data: hasReposted
   } = useHasReposted(id);
+  const { data: repostCount = 0 } = useRepostCount(id);
   const toggleRepost = useToggleRepost();
+  const { data: saveCount = 0 } = useSaveCount(id);
   const joinGuestlist = useJoinGuestlist();
   const leaveGuestlist = useLeaveGuestlist();
   const isOnGuestlist = !!guestlistStatus;
@@ -260,17 +263,20 @@ const EventDetail = () => {
           <div className="flex items-center justify-between">
             {/* Left: Like, Repost, Send, Save, Invite */}
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" onClick={handleLikeToggle} disabled={likeEvent.isPending || unlikeEvent.isPending}>
+              <Button variant="ghost" size="sm" onClick={handleLikeToggle} disabled={likeEvent.isPending || unlikeEvent.isPending} className="gap-1.5 px-2">
                 <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                {likeCount > 0 && <span className="text-xs text-muted-foreground">{likeCount}</span>}
               </Button>
-              <Button variant="ghost" size="icon" onClick={handleRepostToggle} disabled={toggleRepost.isPending}>
+              <Button variant="ghost" size="sm" onClick={handleRepostToggle} disabled={toggleRepost.isPending} className="gap-1.5 px-2">
                 <Repeat className={`w-5 h-5 ${hasReposted ? 'text-green-500' : ''}`} />
+                {repostCount > 0 && <span className="text-xs text-muted-foreground">{repostCount}</span>}
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
                 <Send className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={handleSaveToggle} disabled={saveEvent.isPending || unsaveEvent.isPending}>
+              <Button variant="ghost" size="sm" onClick={handleSaveToggle} disabled={saveEvent.isPending || unsaveEvent.isPending} className="gap-1.5 px-2">
                 <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
+                {saveCount > 0 && <span className="text-xs text-muted-foreground">{saveCount}</span>}
               </Button>
               {!isPost && event.has_guestlist && canInviteToGuestlist && <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
                   <UserPlus className="w-5 h-5" />
