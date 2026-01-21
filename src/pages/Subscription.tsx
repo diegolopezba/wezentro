@@ -234,7 +234,14 @@ const Subscription = () => {
                       </li>)}
                   </ul>
 
-                  {!isCurrentPlan && <Button className={`w-full ${plan.highlighted ? "bg-primary hover:bg-primary/90" : ""}`} variant={plan.highlighted ? "default" : "outline"} onClick={() => handleUpgrade(plan.id)} disabled={loadingPlan !== null}>
+                  {!isCurrentPlan && <Button 
+                    className={`w-full ${plan.id === "user_premium" 
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
+                      : "bg-white hover:bg-white/90 text-black"}`} 
+                    variant="default"
+                    onClick={() => handleUpgrade(plan.id)} 
+                    disabled={loadingPlan !== null}
+                  >
                       {isLoadingThisPlan ? <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Cargando...
