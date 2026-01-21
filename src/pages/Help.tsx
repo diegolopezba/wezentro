@@ -1,12 +1,50 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, MessageCircle, HelpCircle, Shield, CreditCard, Calendar, Users, ChevronRight, FileText } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Mail, MessageCircle, HelpCircle, Shield, CreditCard, Calendar, Users, ChevronRight, FileText, Trash2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 const Help = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-account");
+      
+      if (error) {
+        toast.error("Error al eliminar la cuenta");
+        return;
+      }
+      
+      toast.success("Cuenta eliminada correctamente");
+      await signOut();
+      navigate("/auth");
+    } catch (error) {
+      toast.error("Error al eliminar la cuenta");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const faqItems = [
     {
@@ -194,6 +232,63 @@ const Help = () => {
             </a>
           </div>
         </motion.section>
+
+        {/* Delete Account Section */}
+        {user && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-destructive" />
+              Eliminar Cuenta
+            </h2>
+            <div className="p-5 rounded-xl bg-destructive/5 border border-destructive/20">
+              <p className="text-muted-foreground text-sm mb-4">
+                Eliminar tu cuenta es una acción permanente. Se eliminarán todos tus datos, eventos, mensajes y contenido asociado. Esta acción no se puede deshacer.
+              </p>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Eliminando...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Eliminar mi cuenta
+                      </>
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta acción es permanente y no se puede deshacer. Se eliminarán todos tus datos, incluyendo tu perfil, eventos creados, mensajes y todo el contenido asociado a tu cuenta.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Sí, eliminar mi cuenta
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </motion.section>
+        )}
 
         {/* App Info */}
         <motion.section
