@@ -19,11 +19,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create client with user's token to get their ID
+    const { password } = await req.json();
+    
+    if (!password) {
+      return new Response(
+        JSON.stringify({ error: "Password required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+    // Create client with user's token to get their info
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -34,6 +43,19 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify password by attempting to sign in
+    const { error: signInError } = await userClient.auth.signInWithPassword({
+      email: user.email!,
+      password: password,
+    });
+
+    if (signInError) {
+      return new Response(
+        JSON.stringify({ error: "Invalid password" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

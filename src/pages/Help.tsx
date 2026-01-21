@@ -6,16 +6,16 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -23,26 +23,56 @@ const Help = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const handleDeleteAccount = async () => {
     if (!user) return;
     
+    if (!password.trim()) {
+      setPasswordError("Ingresa tu contraseña");
+      return;
+    }
+    
     setIsDeleting(true);
+    setPasswordError("");
+    
     try {
-      const { data, error } = await supabase.functions.invoke("delete-account");
+      const { data, error } = await supabase.functions.invoke("delete-account", {
+        body: { password },
+      });
       
       if (error) {
-        toast.error("Error al eliminar la cuenta");
+        setPasswordError("Error al eliminar la cuenta");
+        return;
+      }
+      
+      if (data?.error) {
+        if (data.error === "Invalid password") {
+          setPasswordError("Contraseña incorrecta");
+        } else {
+          setPasswordError(data.error);
+        }
         return;
       }
       
       toast.success("Cuenta eliminada correctamente");
+      setDeleteDialogOpen(false);
       await signOut();
       navigate("/auth");
     } catch (error) {
-      toast.error("Error al eliminar la cuenta");
+      setPasswordError("Error al eliminar la cuenta");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDeleteDialogOpen(open);
+    if (!open) {
+      setPassword("");
+      setPasswordError("");
     }
   };
 
@@ -248,44 +278,68 @@ const Help = () => {
               <p className="text-muted-foreground text-sm mb-4">
                 Eliminar tu cuenta es una acción permanente. Se eliminarán todos tus datos, eventos, mensajes y contenido asociado. Esta acción no se puede deshacer.
               </p>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
+              <Dialog open={deleteDialogOpen} onOpenChange={handleDialogOpenChange}>
+                <DialogTrigger asChild>
                   <Button
                     variant="destructive"
                     className="w-full"
                     disabled={isDeleting}
                   >
-                    {isDeleting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Eliminando...
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Eliminar mi cuenta
-                      </>
-                    )}
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Eliminar mi cuenta
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                    <AlertDialogDescription>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Eliminar cuenta</DialogTitle>
+                    <DialogDescription>
                       Esta acción es permanente y no se puede deshacer. Se eliminarán todos tus datos, incluyendo tu perfil, eventos creados, mensajes y todo el contenido asociado a tu cuenta.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteAccount}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="delete-password">Ingresa tu contraseña para confirmar</Label>
+                      <Input
+                        id="delete-password"
+                        type="password"
+                        placeholder="Tu contraseña"
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          setPasswordError("");
+                        }}
+                        disabled={isDeleting}
+                      />
+                      {passwordError && (
+                        <p className="text-sm text-destructive">{passwordError}</p>
+                      )}
+                    </div>
+                  </div>
+                  <DialogFooter className="gap-2 sm:gap-0">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleDialogOpenChange(false)}
+                      disabled={isDeleting}
                     >
-                      Sí, eliminar mi cuenta
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteAccount}
+                      disabled={isDeleting || !password.trim()}
+                    >
+                      {isDeleting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Eliminando...
+                        </>
+                      ) : (
+                        "Eliminar cuenta"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </motion.section>
         )}
