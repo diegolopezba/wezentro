@@ -219,18 +219,6 @@ const UserProfile = () => {
               )}
             </Button>
 
-            {/* Menu button for food businesses */}
-            {isFoodBusiness && (
-              <Button
-                variant="secondary"
-                size="icon"
-                onClick={() => setMenuSheetOpen(true)}
-                className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30"
-              >
-                <UtensilsCrossed className="w-4 h-4 text-orange-500" />
-              </Button>
-            )}
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex-1">
@@ -257,6 +245,18 @@ const UserProfile = () => {
                 </TooltipContent>
               )}
             </Tooltip>
+
+            {/* Menu button for food businesses */}
+            {isFoodBusiness && (
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => setMenuSheetOpen(true)}
+                className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30"
+              >
+                <UtensilsCrossed className="w-4 h-4 text-orange-500" />
+              </Button>
+            )}
           </motion.div>
         )}
       </div>
