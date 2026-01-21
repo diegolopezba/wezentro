@@ -141,11 +141,7 @@ const UserProfile = () => {
 
       {/* Profile info */}
       <div className="px-4 py-0 bg-background">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-start gap-4"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-start gap-4">
           <div className="relative">
             <img
               src={userProfile.avatar_url || DEFAULT_AVATAR}
@@ -153,7 +149,9 @@ const UserProfile = () => {
               className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary"
             />
             {isPremium && (
-              <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-amber-400 to-amber-600"}`}>
+              <div
+                className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-amber-400 to-amber-600"}`}
+              >
                 {isFoodBusiness ? (
                   <UtensilsCrossed className="w-4 h-4 text-white" />
                 ) : (
@@ -164,17 +162,13 @@ const UserProfile = () => {
           </div>
 
           <div className="flex-1">
-            <p className="text-sm text-muted-foreground mb-2">
-              {userProfile.full_name || userProfile.username}
-            </p>
+            <p className="text-sm text-muted-foreground mb-2">{userProfile.full_name || userProfile.username}</p>
             {/* Stats */}
             <div className="flex gap-6 mt-2">
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className={`text-center ${
-                    stat.onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""
-                  }`}
+                  className={`text-center ${stat.onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
                   onClick={stat.onClick}
                 >
                   <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>
@@ -193,9 +187,7 @@ const UserProfile = () => {
           className="mt-4"
         >
           {userProfile.bio && <p className="text-sm text-foreground/80">{userProfile.bio}</p>}
-          {userProfile.city && (
-            <p className="text-xs text-muted-foreground mt-1">📍 {userProfile.city}</p>
-          )}
+          {userProfile.city && <p className="text-xs text-muted-foreground mt-1">📍 {userProfile.city}</p>}
         </motion.div>
 
         {/* Action buttons - only show for other users */}
@@ -217,7 +209,7 @@ const UserProfile = () => {
               ) : isFollowing ? (
                 <>
                   <UserMinus className="w-4 h-4 mr-2" />
-                  Dejar de seguir
+                  Siguiendo
                 </>
               ) : (
                 <>
@@ -226,7 +218,7 @@ const UserProfile = () => {
                 </>
               )}
             </Button>
-            
+
             {/* Menu button for food businesses */}
             {isFoodBusiness && (
               <Button
@@ -238,7 +230,7 @@ const UserProfile = () => {
                 <UtensilsCrossed className="w-4 h-4 text-orange-500" />
               </Button>
             )}
-            
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex-1">
@@ -277,9 +269,7 @@ const UserProfile = () => {
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : !timeline || timeline.length === 0 ? (
-            <div className="col-span-2 text-center py-8 text-muted-foreground text-sm">
-              Sin publicaciones aún
-            </div>
+            <div className="col-span-2 text-center py-8 text-muted-foreground text-sm">Sin publicaciones aún</div>
           ) : (
             timeline.map((item, index) => renderTimelineCard(item, index))
           )}
