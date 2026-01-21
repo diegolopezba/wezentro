@@ -12,11 +12,8 @@ export const FoodMarker = ({ location, onClick }: FoodMarkerProps) => {
       onClick={onClick}
       className="group relative flex flex-col items-center focus:outline-none"
     >
-      {/* Glow effect */}
-      <div className="absolute inset-0 w-14 h-14 rounded-full bg-gradient-to-br from-orange-500/40 to-red-500/40 blur-md group-hover:blur-lg transition-all" />
-      
       {/* Avatar container */}
-      <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-orange-500 shadow-lg group-hover:scale-110 transition-transform">
+      <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-border shadow-lg group-hover:scale-110 transition-transform">
         <img
           src={location.avatar_url || defaultAvatar}
           alt={location.full_name || location.username}
