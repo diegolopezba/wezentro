@@ -113,6 +113,7 @@ export const useEventGuestlist = (eventId: string | undefined) => {
           )
         `)
         .eq("event_id", eventId)
+        .eq("status", "approved")
         .order("joined_at", { ascending: false });
 
       if (error) throw error;
