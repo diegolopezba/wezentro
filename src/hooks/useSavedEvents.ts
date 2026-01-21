@@ -2,6 +2,24 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+export function useSaveCount(eventId: string | undefined) {
+  return useQuery({
+    queryKey: ["save-count", eventId],
+    queryFn: async () => {
+      if (!eventId) return 0;
+
+      const { count, error } = await supabase
+        .from("saved_events")
+        .select("*", { count: "exact", head: true })
+        .eq("event_id", eventId);
+
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!eventId,
+  });
+}
+
 export function useSavedEvents() {
   const { user } = useAuth();
 
@@ -88,6 +106,7 @@ export function useSaveEvent() {
     onSuccess: (_, eventId) => {
       queryClient.invalidateQueries({ queryKey: ["saved-events"] });
       queryClient.invalidateQueries({ queryKey: ["is-event-saved", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["save-count", eventId] });
     },
   });
 }
@@ -111,6 +130,7 @@ export function useUnsaveEvent() {
     onSuccess: (_, eventId) => {
       queryClient.invalidateQueries({ queryKey: ["saved-events"] });
       queryClient.invalidateQueries({ queryKey: ["is-event-saved", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["save-count", eventId] });
     },
   });
 }
