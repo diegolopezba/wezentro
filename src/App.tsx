@@ -33,6 +33,7 @@ import Tickets from "./pages/Tickets";
 import YouAreGoing from "./pages/YouAreGoing";
 import BusinessDashboard from "./pages/BusinessDashboard";
 import JoinedEvents from "./pages/JoinedEvents";
+import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -219,6 +220,14 @@ const App = () => {
                             element={
                               <ProtectedRoute requireProfile>
                                 <JoinedEvents />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings/help"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Help />
                               </ProtectedRoute>
                             }
                           />
