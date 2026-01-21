@@ -15,7 +15,7 @@ const logStep = (step: string, details?: unknown) => {
 // Price IDs for each plan
 const PRICE_IDS = {
   user_premium: "price_1SfncJA2meaZKvFRcEA1Jsyu",
-  food_premium: "price_1SrJzyA2meaZKvFRscTWSS2c",
+  food_premium: "price_1Ss5E4A2meaZKvFRefWcJ9Zb",
   business_premium: "price_1SfndIA2meaZKvFRdZTDttRv",
 };
 
