@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, MessageCircle, HelpCircle, Shield, CreditCard, Calendar, Users, ChevronDown } from "lucide-react";
+import { ArrowLeft, Mail, MessageCircle, HelpCircle, Shield, CreditCard, Calendar, Users, ChevronRight, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -50,11 +50,19 @@ const Help = () => {
       icon: CreditCard,
       title: "Suscripciones",
       description: "Planes y pagos"
+    }
+  ];
+
+  const legalLinks = [
+    {
+      icon: FileText,
+      title: "Términos de Uso",
+      path: "/terms"
     },
     {
       icon: Shield,
-      title: "Privacidad",
-      description: "Configuración de cuenta"
+      title: "Política de Privacidad",
+      path: "/privacy-policy"
     }
   ];
 
@@ -128,6 +136,34 @@ const Help = () => {
               </AccordionItem>
             ))}
           </Accordion>
+        </motion.section>
+
+        {/* Legal Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            Privacidad y Términos
+          </h2>
+          <div className="space-y-2">
+            {legalLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <button
+                  key={link.path}
+                  onClick={() => navigate(link.path)}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-secondary/30 border border-border hover:bg-secondary/50 transition-colors text-left"
+                >
+                  <Icon className="w-5 h-5 text-muted-foreground" />
+                  <span className="flex-1 text-foreground font-medium text-sm">{link.title}</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </button>
+              );
+            })}
+          </div>
         </motion.section>
 
         {/* Contact Section */}
