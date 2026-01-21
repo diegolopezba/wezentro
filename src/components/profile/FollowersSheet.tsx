@@ -4,7 +4,14 @@ import { motion } from "framer-motion";
 import { Loader2, UserPlus, UserMinus } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useUserFollowers, useUserFollowing, useIsFollowing, useFollowUser, useUnfollowUser, FollowUser } from "@/hooks/useUserProfile";
+import {
+  useUserFollowers,
+  useUserFollowing,
+  useIsFollowing,
+  useFollowUser,
+  useUnfollowUser,
+  FollowUser,
+} from "@/hooks/useUserProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
@@ -47,7 +54,7 @@ const FollowButton = ({ targetUserId }: { targetUserId: string }) => {
       ) : isFollowing ? (
         <>
           <UserMinus className="w-3 h-3 mr-1" />
-          Dejar
+          Siguiendo
         </>
       ) : (
         <>
@@ -78,9 +85,7 @@ const UserItem = ({ user, onClose }: { user: FollowUser; onClose: () => void }) 
         className="w-12 h-12 rounded-full object-cover bg-secondary"
       />
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-foreground truncate">
-          {user.full_name || user.username}
-        </p>
+        <p className="font-medium text-foreground truncate">{user.full_name || user.username}</p>
         <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
       </div>
       <FollowButton targetUserId={user.id} />
@@ -113,9 +118,7 @@ export const FollowersSheet = ({ userId, type, open, onOpenChange }: FollowersSh
               {type === "followers" ? "Sin seguidores aún" : "No sigue a nadie aún"}
             </div>
           ) : (
-            users.map((user) => (
-              <UserItem key={user.id} user={user} onClose={() => onOpenChange(false)} />
-            ))
+            users.map((user) => <UserItem key={user.id} user={user} onClose={() => onOpenChange(false)} />)
           )}
         </div>
       </SheetContent>
