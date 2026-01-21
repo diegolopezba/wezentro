@@ -374,8 +374,20 @@ const Auth = () => {
 
       {/* Terms */}
       <div className="p-6 text-center text-xs text-muted-foreground relative z-10">
-        Al continuar, aceptas nuestros <button className="text-foreground hover:underline">Términos</button> y{" "}
-        <button className="text-foreground hover:underline">Política de Privacidad</button>
+        Al continuar, aceptas nuestros{" "}
+        <button 
+          className="text-foreground hover:underline"
+          onClick={() => navigate("/terms")}
+        >
+          Términos
+        </button>{" "}
+        y{" "}
+        <button 
+          className="text-foreground hover:underline"
+          onClick={() => navigate("/privacy-policy")}
+        >
+          Política de Privacidad
+        </button>
       </div>
     </div>
   );
