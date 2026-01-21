@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown, UtensilsCrossed } from "lucide-react";
+import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -115,11 +116,14 @@ const UserProfile = () => {
   return <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background">
-        <div className="flex items-center gap-3 px-4 py-0">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="font-brand text-xl font-bold text-foreground">@{userProfile.username}</h1>
+        <div className="flex items-center justify-between px-4 py-0">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="font-brand text-xl font-bold text-foreground">@{userProfile.username}</h1>
+          </div>
+          {id && <ShareProfileMenu userId={id} username={userProfile.username} />}
         </div>
       </header>
 

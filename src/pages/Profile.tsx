@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Loader2, Crown, Sparkles, X, UtensilsCrossed } from "lucide-react";
+import { Settings, Loader2, Crown, X, UtensilsCrossed } from "lucide-react";
+import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -64,9 +65,12 @@ const Profile = () => {
           <h1 className="font-brand text-xl font-bold text-foreground">
             @{profile?.username || "cargando"}
           </h1>
-          <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
-            <Settings className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center">
+            {user && <ShareProfileMenu userId={user.id} username={profile?.username || ""} />}
+            <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
+              <Settings className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
