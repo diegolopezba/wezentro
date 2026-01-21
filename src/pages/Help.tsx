@@ -1,0 +1,181 @@
+import { motion } from "framer-motion";
+import { ArrowLeft, Mail, MessageCircle, HelpCircle, Shield, CreditCard, Calendar, Users, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+
+const Help = () => {
+  const navigate = useNavigate();
+
+  const faqItems = [
+    {
+      question: "¿Cómo creo un evento?",
+      answer: "Toca el botón '+' en la barra de navegación inferior para acceder a la pantalla de creación. Completa los detalles del evento como título, descripción, fecha, ubicación y categoría. Puedes añadir una imagen y configurar opciones como guestlist."
+    },
+    {
+      question: "¿Qué es la guestlist?",
+      answer: "La guestlist te permite controlar quién asiste a tu evento. Los usuarios pueden solicitar unirse y tú puedes aprobar o rechazar sus solicitudes. También puedes establecer un límite de capacidad."
+    },
+    {
+      question: "¿Cómo sigo a otros usuarios?",
+      answer: "Visita el perfil de cualquier usuario y toca el botón 'Seguir'. Verás sus eventos y publicaciones en tu feed principal."
+    },
+    {
+      question: "¿Puedo editar o eliminar mis eventos?",
+      answer: "Sí, ve a tu perfil y toca el evento que deseas modificar. Encontrarás opciones para editar los detalles o eliminar el evento."
+    },
+    {
+      question: "¿Cómo funciona Zentro Business?",
+      answer: "Zentro Business es nuestra suscripción premium que te da acceso a analytics avanzados, herramientas de gestión de eventos profesionales y la capacidad de promocionar tu negocio de comida en el mapa."
+    },
+    {
+      question: "¿Cómo guardo eventos?",
+      answer: "Toca el icono de marcador en cualquier evento para guardarlo. Puedes ver todos tus eventos guardados en Configuración > Guardados."
+    }
+  ];
+
+  const helpTopics = [
+    {
+      icon: Calendar,
+      title: "Eventos",
+      description: "Crear, editar y gestionar eventos"
+    },
+    {
+      icon: Users,
+      title: "Comunidad",
+      description: "Seguir usuarios y conectar"
+    },
+    {
+      icon: CreditCard,
+      title: "Suscripciones",
+      description: "Planes y pagos"
+    },
+    {
+      icon: Shield,
+      title: "Privacidad",
+      description: "Configuración de cuenta"
+    }
+  ];
+
+  return (
+    <AppLayout hideNav>
+      {/* Header */}
+      <header className="sticky top-0 z-40 glass-strong safe-top">
+        <div className="flex items-center gap-3 px-4 py-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="font-brand text-xl font-bold text-foreground">Ayuda y Soporte</h1>
+        </div>
+      </header>
+
+      <div className="px-4 py-4 pb-8 space-y-6">
+        {/* Quick Help Topics */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h2 className="text-lg font-semibold text-foreground mb-3">Temas de Ayuda</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {helpTopics.map((topic, index) => {
+              const Icon = topic.icon;
+              return (
+                <motion.div
+                  key={topic.title}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="p-4 rounded-xl bg-secondary/30 border border-border hover:bg-secondary/50 transition-colors cursor-pointer"
+                >
+                  <Icon className="w-5 h-5 text-primary mb-2" />
+                  <h3 className="font-medium text-foreground text-sm">{topic.title}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">{topic.description}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.section>
+
+        {/* FAQ Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+            <HelpCircle className="w-5 h-5 text-primary" />
+            Preguntas Frecuentes
+          </h2>
+          <Accordion type="single" collapsible className="space-y-2">
+            {faqItems.map((item, index) => (
+              <AccordionItem
+                key={index}
+                value={`item-${index}`}
+                className="border border-border rounded-xl px-4 bg-secondary/20"
+              >
+                <AccordionTrigger className="text-left text-sm font-medium hover:no-underline py-4">
+                  {item.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm pb-4">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </motion.section>
+
+        {/* Contact Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+            <MessageCircle className="w-5 h-5 text-primary" />
+            Contacto
+          </h2>
+          <div className="p-5 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+            <p className="text-muted-foreground text-sm mb-4">
+              ¿No encontraste lo que buscabas? Escríbenos y te ayudaremos lo antes posible.
+            </p>
+            <a
+              href="mailto:zentro@gmail.com"
+              className="flex items-center gap-3 p-4 rounded-xl bg-background/50 border border-border hover:bg-background/80 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <Mail className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Email de Soporte</p>
+                <p className="text-sm text-primary">zentro@gmail.com</p>
+              </div>
+            </a>
+          </div>
+        </motion.section>
+
+        {/* App Info */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-center pt-4"
+        >
+          <p className="text-xs text-muted-foreground">
+            Zentro v1.0.0
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            © 2025 Zentro. Todos los derechos reservados.
+          </p>
+        </motion.section>
+      </div>
+    </AppLayout>
+  );
+};
+
+export default Help;
