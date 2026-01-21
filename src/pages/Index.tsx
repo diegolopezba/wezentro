@@ -56,6 +56,7 @@ const Index = () => {
             hasGuestlist: event.has_guestlist || false,
             ownerAvatar: event.creator?.avatar_url || undefined,
             creatorId: event.creator_id,
+            repostInfo: (event as any).repostInfo,
           };
         }),
     [events, searchQuery],
