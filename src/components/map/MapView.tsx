@@ -115,40 +115,42 @@ const MapView: React.FC<MapViewProps> = ({
 
       // Create marker element
       const markerElement = document.createElement("div");
+      markerElement.style.cursor = "pointer";
+      
       const root = createRoot(markerElement);
-      root.render(
-        <FoodMarker
-          location={location}
-          onClick={() => {
-            // Close any existing popup
-            popupRef.current?.remove();
+      root.render(<FoodMarker location={location} onClick={() => {}} />);
 
-            // Create popup content
-            const popupContainer = document.createElement("div");
-            const popupRoot = createRoot(popupContainer);
-            popupRoot.render(
-              <FoodMarkerPopup
-                location={location}
-                onViewProfile={() => {
-                  popupRef.current?.remove();
-                  onFoodMarkerClick?.(location);
-                }}
-              />
-            );
+      // Handle click on the marker element directly (more reliable than React onClick inside Mapbox)
+      markerElement.addEventListener("click", (e) => {
+        e.stopPropagation();
+        
+        // Close any existing popup
+        popupRef.current?.remove();
 
-            // Create and show popup
-            popupRef.current = new mapboxgl.Popup({
-              closeButton: false,
-              closeOnClick: true,
-              offset: 25,
-              className: "food-marker-popup",
-            })
-              .setLngLat([location.business_longitude!, location.business_latitude!])
-              .setDOMContent(popupContainer)
-              .addTo(map.current!);
-          }}
-        />
-      );
+        // Create popup content
+        const popupContainer = document.createElement("div");
+        const popupRoot = createRoot(popupContainer);
+        popupRoot.render(
+          <FoodMarkerPopup
+            location={location}
+            onViewProfile={() => {
+              popupRef.current?.remove();
+              onFoodMarkerClick?.(location);
+            }}
+          />
+        );
+
+        // Create and show popup
+        popupRef.current = new mapboxgl.Popup({
+          closeButton: false,
+          closeOnClick: true,
+          offset: 25,
+          className: "food-marker-popup",
+        })
+          .setLngLat([location.business_longitude!, location.business_latitude!])
+          .setDOMContent(popupContainer)
+          .addTo(map.current!);
+      });
 
       const marker = new mapboxgl.Marker({
         element: markerElement,
