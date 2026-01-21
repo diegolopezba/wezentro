@@ -102,7 +102,7 @@ export const useSubscriptionPlans = (): SubscriptionPlan[] => {
     {
       id: "food_premium",
       name: "Zentro Food",
-      price: 19.99,
+      price: 12.99,
       interval: "month",
       features: [
         "Todo lo de Zentro Premium",
