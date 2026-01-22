@@ -123,6 +123,36 @@ export type Database = {
           },
         ]
       }
+      event_collaborators: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          invited_by: string
+          responded_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          invited_by: string
+          responded_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          invited_by?: string
+          responded_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       event_interactions: {
         Row: {
           created_at: string | null
