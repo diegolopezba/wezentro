@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, LayoutGroup } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
@@ -18,6 +18,9 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+const [lastScrollY, setLastScrollY] = useState(0);
+const scrollContainerRef = useRef<HTMLDivElement>(null);
   const {
     data: forYouEvents = [],
     isLoading: forYouLoading
@@ -31,6 +34,26 @@ const Index = () => {
   } = useUnreadNotificationsCount();
   const events = activeTab === "for-you" ? forYouEvents : followingEvents;
   const isLoading = activeTab === "for-you" ? forYouLoading : followingLoading;
+  useEffect(() => {
+  const handleScroll = (e: Event) => {
+    const container = e.target as HTMLDivElement;
+    const currentScrollY = container.scrollTop;
+    
+    if (currentScrollY > lastScrollY && currentScrollY > 50) {
+      setHeaderVisible(false);
+    } else if (currentScrollY < lastScrollY) {
+      setHeaderVisible(true);
+    }
+    
+    setLastScrollY(currentScrollY);
+  };
+
+  const container = scrollContainerRef.current;
+  if (container) {
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }
+}, [lastScrollY]);
 
   // Transform events to EventCard format and filter
   const transformedEvents = useMemo(() => events.filter(event => {
@@ -60,7 +83,7 @@ const Index = () => {
     };
   }), [events, searchQuery]);
   return <SelectedEventProvider>
-      <AppLayout>
+      <AppLayout ref={scrollContainerRef}>
         {/* Header */}
         <header className="sticky top-0 z-40 safe-top bg-background">
           <div className="flex items-center justify-between px-4 py-4">
@@ -100,7 +123,21 @@ const Index = () => {
             </motion.div>}
 
           {/* Tabs */}
-          <div className="flex px-4 pb-3 gap-2">
+          <motion.div 
+            animate={{ 
+              y: headerVisible ? 0 : -100,
+              opacity: headerVisible ? 1 : 0
+            }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 300, 
+              damping: 30
+            }}
+            className="flex px-4 pb-3 gap-2"
+            style={{
+              pointerEvents: headerVisible ? "auto" : "none"
+            }}
+          >
             <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
               {activeTab === "for-you" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
               type: "spring",
@@ -115,7 +152,7 @@ const Index = () => {
             }} />}
               <span className={`relative z-10 ${activeTab === "following" ? "text-primary" : ""}`}>Siguiendo</span>
             </button>
-          </div>
+          </motion.div>
         </header>
 
         {/* Event feed */}
