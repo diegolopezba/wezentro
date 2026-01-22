@@ -8,12 +8,7 @@ import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircl
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  useNotifications, 
-  useMarkNotificationRead, 
-  useMarkAllNotificationsRead,
-  Notification 
-} from "@/hooks/useNotifications";
+import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, Notification } from "@/hooks/useNotifications";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useEvent } from "@/hooks/useEvents";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +16,6 @@ import { useRespondToInvitation, useMyPendingInvitations } from "@/hooks/useGues
 import { usePendingCollaborations, useRespondToCollaboration } from "@/hooks/useEventCollaborators";
 import { toast } from "sonner";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
-
 const getNotificationIcon = (type: string) => {
   switch (type) {
     case "event":
@@ -41,34 +35,30 @@ const getNotificationIcon = (type: string) => {
       return Bell;
   }
 };
-
 interface NotificationItemProps {
   notification: Notification;
   index: number;
   onRead: () => void;
   onClick: () => void;
 }
-
-const FollowNotificationItem = ({ 
-  notification, 
-  index, 
-  onRead, 
-  onClick 
+const FollowNotificationItem = ({
+  notification,
+  index,
+  onRead,
+  onClick
 }: NotificationItemProps) => {
-  const { data: followerProfile } = useUserProfile(notification.entity_id || undefined);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
-        notification.is_read 
-          ? "bg-secondary/30 hover:bg-secondary/50" 
-          : "bg-primary/10 hover:bg-primary/15"
-      }`}
-      onClick={onClick}
-    >
+  const {
+    data: followerProfile
+  } = useUserProfile(notification.entity_id || undefined);
+  return <motion.div initial={{
+    opacity: 0,
+    x: -20
+  }} animate={{
+    opacity: 1,
+    x: 0
+  }} transition={{
+    delay: index * 0.03
+  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "bg-secondary/30 hover:bg-secondary/50" : "bg-primary/10 hover:bg-primary/15"}`} onClick={onClick}>
       <Avatar className="w-10 h-10 shrink-0">
         <AvatarImage src={followerProfile?.avatar_url || DEFAULT_AVATAR} />
         <AvatarFallback />
@@ -80,65 +70,54 @@ const FollowNotificationItem = ({
           {" comenzó a seguirte"}
         </p>
         <p className="text-xs text-muted-foreground/70 mt-0.5">
-          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
+          {formatDistanceToNow(new Date(notification.created_at), {
+          addSuffix: true,
+          locale: es
+        })}
         </p>
       </div>
       
-      {!notification.is_read && (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRead();
-            }}
-          >
+      {!notification.is_read && <>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={e => {
+        e.stopPropagation();
+        onRead();
+      }}>
             <Check className="w-4 h-4" />
           </Button>
           <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-        </>
-      )}
-    </motion.div>
-  );
+        </>}
+    </motion.div>;
 };
-
-const GuestlistRequestNotificationItem = ({ 
-  notification, 
-  index, 
-  onRead, 
-  onClick 
+const GuestlistRequestNotificationItem = ({
+  notification,
+  index,
+  onRead,
+  onClick
 }: NotificationItemProps) => {
   // Extract username from body: "@username wants to join..."
   const extractedUsername = notification.body?.match(/@(\w+)/)?.[1];
-  
-  const { data: requesterProfile } = useQuery({
+  const {
+    data: requesterProfile
+  } = useQuery({
     queryKey: ["profile-by-username", extractedUsername],
     queryFn: async () => {
       if (!extractedUsername) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, username, avatar_url")
-        .eq("username", extractedUsername)
-        .maybeSingle();
+      const {
+        data
+      } = await supabase.from("profiles").select("id, username, avatar_url").eq("username", extractedUsername).maybeSingle();
       return data;
     },
-    enabled: !!extractedUsername,
+    enabled: !!extractedUsername
   });
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
-        notification.is_read 
-          ? "bg-secondary/30 hover:bg-secondary/50" 
-          : "bg-primary/10 hover:bg-primary/15"
-      }`}
-      onClick={onClick}
-    >
+  return <motion.div initial={{
+    opacity: 0,
+    x: -20
+  }} animate={{
+    opacity: 1,
+    x: 0
+  }} transition={{
+    delay: index * 0.03
+  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "bg-secondary/30 hover:bg-secondary/50" : "bg-primary/10 hover:bg-primary/15"}`} onClick={onClick}>
       <Avatar className="w-10 h-10 shrink-0">
         <AvatarImage src={requesterProfile?.avatar_url || DEFAULT_AVATAR} />
         <AvatarFallback />
@@ -150,123 +129,101 @@ const GuestlistRequestNotificationItem = ({
           {" quiere unirse a tu evento"}
         </p>
         <p className="text-xs text-muted-foreground/70 mt-0.5">
-          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
+          {formatDistanceToNow(new Date(notification.created_at), {
+          addSuffix: true,
+          locale: es
+        })}
         </p>
       </div>
       
-      {!notification.is_read && (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRead();
-            }}
-          >
+      {!notification.is_read && <>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={e => {
+        e.stopPropagation();
+        onRead();
+      }}>
             <Check className="w-4 h-4" />
           </Button>
           <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-        </>
-      )}
-    </motion.div>
-  );
+        </>}
+    </motion.div>;
 };
-
-const GuestlistStatusNotificationItem = ({ 
-  notification, 
-  index, 
-  onRead, 
-  onClick 
+const GuestlistStatusNotificationItem = ({
+  notification,
+  index,
+  onRead,
+  onClick
 }: NotificationItemProps) => {
-  const { data: event } = useEvent(notification.entity_id || undefined);
+  const {
+    data: event
+  } = useEvent(notification.entity_id || undefined);
   const isApproved = notification.type === "guestlist_approved";
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
-        notification.is_read 
-          ? "bg-secondary/30 hover:bg-secondary/50" 
-          : "bg-primary/10 hover:bg-primary/15"
-      }`}
-      onClick={onClick}
-    >
+  return <motion.div initial={{
+    opacity: 0,
+    x: -20
+  }} animate={{
+    opacity: 1,
+    x: 0
+  }} transition={{
+    delay: index * 0.03
+  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "bg-secondary/30 hover:bg-secondary/50" : "bg-primary/10 hover:bg-primary/15"}`} onClick={onClick}>
       <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
-        {event?.image_url ? (
-          <img src={event.image_url} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
+        {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
             <Calendar className="w-5 h-5 text-muted-foreground" />
-          </div>
-        )}
+          </div>}
       </div>
       
       <div className="flex-1 min-w-0">
         <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-          {isApproved ? (
-            <>¡Estás en la lista de <span className="font-semibold">{event?.title || "un evento"}</span>!</>
-          ) : (
-            <>Tu solicitud para <span className="font-semibold">{event?.title || "un evento"}</span> fue rechazada</>
-          )}
+          {isApproved ? <>¡Estás en la lista de <span className="font-semibold">{event?.title || "un evento"}</span>!</> : <>Tu solicitud para <span className="font-semibold">{event?.title || "un evento"}</span> fue rechazada</>}
         </p>
         <p className="text-xs text-muted-foreground/70 mt-0.5">
-          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
+          {formatDistanceToNow(new Date(notification.created_at), {
+          addSuffix: true,
+          locale: es
+        })}
         </p>
       </div>
       
-      {!notification.is_read && (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRead();
-            }}
-          >
+      {!notification.is_read && <>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={e => {
+        e.stopPropagation();
+        onRead();
+      }}>
             <Check className="w-4 h-4" />
           </Button>
           <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-        </>
-      )}
-    </motion.div>
-  );
+        </>}
+    </motion.div>;
 };
-
-const GuestlistInvitationNotificationItem = ({ 
-  notification, 
-  index, 
-  onRead, 
-  onClick 
+const GuestlistInvitationNotificationItem = ({
+  notification,
+  index,
+  onRead,
+  onClick
 }: NotificationItemProps) => {
   const navigate = useNavigate();
-  const { data: event } = useEvent(notification.entity_id || undefined);
-  const { data: pendingInvitations } = useMyPendingInvitations();
+  const {
+    data: event
+  } = useEvent(notification.entity_id || undefined);
+  const {
+    data: pendingInvitations
+  } = useMyPendingInvitations();
   const respondToInvitation = useRespondToInvitation();
   const [isResponding, setIsResponding] = useState(false);
-  
+
   // Extract username from body: "@username invited you..."
   const extractedUsername = notification.body?.match(/@(\w+)/)?.[1];
-  
-  // Find the invitation for this event
-  const invitation = pendingInvitations?.find(
-    (inv: any) => inv.event_id === notification.entity_id
-  );
 
+  // Find the invitation for this event
+  const invitation = pendingInvitations?.find((inv: any) => inv.event_id === notification.entity_id);
   const handleAccept = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!invitation) return;
-    
     setIsResponding(true);
     try {
-      await respondToInvitation.mutateAsync({ 
-        invitationId: invitation.id, 
-        status: "accepted" 
+      await respondToInvitation.mutateAsync({
+        invitationId: invitation.id,
+        status: "accepted"
       });
       toast.success("¡Invitación aceptada!");
       if (!notification.is_read) onRead();
@@ -278,16 +235,14 @@ const GuestlistInvitationNotificationItem = ({
       setIsResponding(false);
     }
   };
-
   const handleDecline = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!invitation) return;
-    
     setIsResponding(true);
     try {
-      await respondToInvitation.mutateAsync({ 
-        invitationId: invitation.id, 
-        status: "declined" 
+      await respondToInvitation.mutateAsync({
+        invitationId: invitation.id,
+        status: "declined"
       });
       toast.success("Invitación rechazada");
       if (!notification.is_read) onRead();
@@ -297,28 +252,20 @@ const GuestlistInvitationNotificationItem = ({
       setIsResponding(false);
     }
   };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
-        notification.is_read 
-          ? "bg-secondary/30 hover:bg-secondary/50" 
-          : "bg-primary/10 hover:bg-primary/15"
-      }`}
-      onClick={onClick}
-    >
+  return <motion.div initial={{
+    opacity: 0,
+    x: -20
+  }} animate={{
+    opacity: 1,
+    x: 0
+  }} transition={{
+    delay: index * 0.03
+  }} className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "bg-secondary/30 hover:bg-secondary/50" : "bg-primary/10 hover:bg-primary/15"}`} onClick={onClick}>
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
-          {event?.image_url ? (
-            <img src={event.image_url} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
+          {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
               <Users className="w-5 h-5 text-muted-foreground" />
-            </div>
-          )}
+            </div>}
         </div>
         
         <div className="flex-1 min-w-0">
@@ -328,85 +275,66 @@ const GuestlistInvitationNotificationItem = ({
             <span className="font-semibold">{event?.title || "un evento"}</span>
           </p>
           <p className="text-xs text-muted-foreground/70 mt-0.5">
-            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
+            {formatDistanceToNow(new Date(notification.created_at), {
+            addSuffix: true,
+            locale: es
+          })}
           </p>
         </div>
         
-        {!notification.is_read && !invitation && (
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRead();
-              }}
-            >
+        {!notification.is_read && !invitation && <>
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={e => {
+          e.stopPropagation();
+          onRead();
+        }}>
               <Check className="w-4 h-4" />
             </Button>
             <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-          </>
-        )}
+          </>}
       </div>
       
       {/* Accept/Decline buttons for pending invitations */}
-      {invitation && (
-        <div className="flex gap-2 ml-13">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
-            onClick={handleDecline}
-            disabled={isResponding}
-          >
+      {invitation && <div className="flex gap-2 ml-13">
+          <Button variant="outline" size="sm" className="flex-1 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10" onClick={handleDecline} disabled={isResponding}>
             {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1.5" />}
             Rechazar
           </Button>
-          <Button
-            size="sm"
-            className="flex-1 rounded-xl"
-            onClick={handleAccept}
-            disabled={isResponding}
-          >
+          <Button size="sm" className="flex-1 rounded-xl" onClick={handleAccept} disabled={isResponding}>
             {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1.5" />}
             Aceptar
           </Button>
-        </div>
-      )}
-    </motion.div>
-  );
+        </div>}
+    </motion.div>;
 };
-
-const CollaborationNotificationItem = ({ 
-  notification, 
-  index, 
-  onRead, 
-  onClick 
+const CollaborationNotificationItem = ({
+  notification,
+  index,
+  onRead,
+  onClick
 }: NotificationItemProps) => {
   const navigate = useNavigate();
-  const { data: event } = useEvent(notification.entity_id || undefined);
-  const { data: pendingCollaborations } = usePendingCollaborations();
+  const {
+    data: event
+  } = useEvent(notification.entity_id || undefined);
+  const {
+    data: pendingCollaborations
+  } = usePendingCollaborations();
   const respondToCollaboration = useRespondToCollaboration();
   const [isResponding, setIsResponding] = useState(false);
-  
+
   // Extract username from body: "@username invited you..."
   const extractedUsername = notification.body?.match(/@(\w+)/)?.[1];
-  
-  // Find the collaboration for this event
-  const collaboration = pendingCollaborations?.find(
-    (collab: any) => collab.event_id === notification.entity_id
-  );
 
+  // Find the collaboration for this event
+  const collaboration = pendingCollaborations?.find((collab: any) => collab.event_id === notification.entity_id);
   const handleAccept = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!collaboration) return;
-    
     setIsResponding(true);
     try {
-      await respondToCollaboration.mutateAsync({ 
-        collaborationId: collaboration.id, 
-        status: "accepted" 
+      await respondToCollaboration.mutateAsync({
+        collaborationId: collaboration.id,
+        status: "accepted"
       });
       toast.success("¡Colaboración aceptada!");
       if (!notification.is_read) onRead();
@@ -417,16 +345,14 @@ const CollaborationNotificationItem = ({
       setIsResponding(false);
     }
   };
-
   const handleDecline = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!collaboration) return;
-    
     setIsResponding(true);
     try {
-      await respondToCollaboration.mutateAsync({ 
-        collaborationId: collaboration.id, 
-        status: "declined" 
+      await respondToCollaboration.mutateAsync({
+        collaborationId: collaboration.id,
+        status: "declined"
       });
       toast.success("Colaboración rechazada");
       if (!notification.is_read) onRead();
@@ -436,28 +362,20 @@ const CollaborationNotificationItem = ({
       setIsResponding(false);
     }
   };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
-        notification.is_read 
-          ? "bg-secondary/30 hover:bg-secondary/50" 
-          : "bg-primary/10 hover:bg-primary/15"
-      }`}
-      onClick={onClick}
-    >
+  return <motion.div initial={{
+    opacity: 0,
+    x: -20
+  }} animate={{
+    opacity: 1,
+    x: 0
+  }} transition={{
+    delay: index * 0.03
+  }} className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "bg-secondary/30 hover:bg-secondary/50" : "bg-primary/10 hover:bg-primary/15"}`} onClick={onClick}>
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
-          {event?.image_url ? (
-            <img src={event.image_url} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
+          {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
               <UserPlus className="w-5 h-5 text-muted-foreground" />
-            </div>
-          )}
+            </div>}
         </div>
         
         <div className="flex-1 min-w-0">
@@ -467,136 +385,100 @@ const CollaborationNotificationItem = ({
             <span className="font-semibold">{event?.title || "una publicación"}</span>
           </p>
           <p className="text-xs text-muted-foreground/70 mt-0.5">
-            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
+            {formatDistanceToNow(new Date(notification.created_at), {
+            addSuffix: true,
+            locale: es
+          })}
           </p>
         </div>
         
-        {!notification.is_read && !collaboration && (
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRead();
-              }}
-            >
+        {!notification.is_read && !collaboration && <>
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={e => {
+          e.stopPropagation();
+          onRead();
+        }}>
               <Check className="w-4 h-4" />
             </Button>
             <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-          </>
-        )}
+          </>}
       </div>
       
       {/* Accept/Decline buttons for pending collaborations */}
-      {collaboration && (
-        <div className="flex gap-2 ml-13">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
-            onClick={handleDecline}
-            disabled={isResponding}
-          >
+      {collaboration && <div className="flex gap-2 ml-13">
+          <Button variant="outline" size="sm" className="flex-1 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10" onClick={handleDecline} disabled={isResponding}>
             {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1.5" />}
             Rechazar
           </Button>
-          <Button
-            size="sm"
-            className="flex-1 rounded-xl"
-            onClick={handleAccept}
-            disabled={isResponding}
-          >
+          <Button size="sm" className="flex-1 rounded-xl" onClick={handleAccept} disabled={isResponding}>
             {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1.5" />}
             Aceptar
           </Button>
-        </div>
-      )}
-    </motion.div>
-  );
+        </div>}
+    </motion.div>;
 };
-
 const NotificationItem = ({
-  notification, 
-  index, 
-  onRead, 
-  onClick 
-}: { 
-  notification: Notification; 
+  notification,
+  index,
+  onRead,
+  onClick
+}: {
+  notification: Notification;
   index: number;
   onRead: () => void;
   onClick: () => void;
 }) => {
   const Icon = getNotificationIcon(notification.type);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className={`flex items-start gap-4 p-4 rounded-2xl cursor-pointer transition-colors ${
-        notification.is_read 
-          ? "bg-secondary/30 hover:bg-secondary/50" 
-          : "bg-primary/10 hover:bg-primary/15"
-      }`}
-      onClick={onClick}
-    >
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-        notification.is_read ? "bg-secondary" : "bg-primary/20"
-      }`}>
+  return <motion.div initial={{
+    opacity: 0,
+    x: -20
+  }} animate={{
+    opacity: 1,
+    x: 0
+  }} transition={{
+    delay: index * 0.03
+  }} className={`flex items-start gap-4 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "bg-secondary/30 hover:bg-secondary/50" : "bg-primary/10 hover:bg-primary/15"}`} onClick={onClick}>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notification.is_read ? "bg-secondary" : "bg-primary/20"}`}>
         <Icon className={`w-5 h-5 ${notification.is_read ? "text-muted-foreground" : "text-primary"}`} />
       </div>
       
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <h3 className={`font-medium text-sm ${
-              notification.is_read ? "text-muted-foreground" : "text-foreground"
-            }`}>
+            <h3 className={`font-medium text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
               {notification.title}
             </h3>
-            {notification.body && (
-              <p className="text-sm text-muted-foreground mt-0.5 truncate">
+            {notification.body && <p className="text-sm text-muted-foreground mt-0.5 truncate">
                 {notification.body}
-              </p>
-            )}
+              </p>}
             <p className="text-xs text-muted-foreground/70 mt-1">
-              {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
+              {formatDistanceToNow(new Date(notification.created_at), {
+              addSuffix: true,
+              locale: es
+            })}
             </p>
           </div>
           
-          {!notification.is_read && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRead();
-              }}
-            >
+          {!notification.is_read && <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={e => {
+          e.stopPropagation();
+          onRead();
+        }}>
               <Check className="w-4 h-4" />
-            </Button>
-          )}
+            </Button>}
         </div>
       </div>
       
-      {!notification.is_read && (
-        <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-2" />
-      )}
-    </motion.div>
-  );
+      {!notification.is_read}
+    </motion.div>;
 };
-
 const Notifications = () => {
   const navigate = useNavigate();
-  const { data: notifications, isLoading } = useNotifications();
+  const {
+    data: notifications,
+    isLoading
+  } = useNotifications();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
-
   const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
-
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.is_read) {
       markRead.mutate(notification.id);
@@ -612,15 +494,13 @@ const Notifications = () => {
       navigate(`/event/${notification.entity_id}`);
     }
   };
-
   const renderNotification = (notification: Notification, index: number) => {
     const commonProps = {
       notification,
       index,
       onRead: () => markRead.mutate(notification.id),
-      onClick: () => handleNotificationClick(notification),
+      onClick: () => handleNotificationClick(notification)
     };
-
     switch (notification.type) {
       case "follow":
         return <FollowNotificationItem key={notification.id} {...commonProps} />;
@@ -637,9 +517,7 @@ const Notifications = () => {
         return <NotificationItem key={notification.id} {...commonProps} />;
     }
   };
-
-  return (
-    <AppLayout>
+  return <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background">
         <div className="flex items-center justify-between px-4 py-4">
@@ -652,35 +530,22 @@ const Notifications = () => {
             </h1>
           </div>
           
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => markAllRead.mutate()}
-              disabled={markAllRead.isPending}
-              className="text-primary"
-            >
-              {markAllRead.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                "Marcar todo como leído"
-              )}
-            </Button>
-          )}
+          {unreadCount > 0 && <Button variant="ghost" size="sm" onClick={() => markAllRead.mutate()} disabled={markAllRead.isPending} className="text-primary">
+              {markAllRead.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Marcar todo como leído"}
+            </Button>}
         </div>
       </header>
 
-      <div className="px-4 py-2 space-y-2">
-        {isLoading ? (
-          <div className="flex justify-center py-12">
+      <div className="space-y-2 py-0 px-0">
+        {isLoading ? <div className="flex justify-center py-12">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : !notifications || notifications.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-16 text-center"
-          >
+          </div> : !notifications || notifications.length === 0 ? <motion.div initial={{
+        opacity: 0,
+        y: 20
+      }} animate={{
+        opacity: 1,
+        y: 0
+      }} className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-4">
               <Bell className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -688,13 +553,8 @@ const Notifications = () => {
             <p className="text-sm text-muted-foreground">
               Cuando alguien te siga o interactúe con tus eventos, lo verás aquí
             </p>
-          </motion.div>
-        ) : (
-          notifications.map((notification, index) => renderNotification(notification, index))
-        )}
+          </motion.div> : notifications.map((notification, index) => renderNotification(notification, index))}
       </div>
-    </AppLayout>
-  );
+    </AppLayout>;
 };
-
 export default Notifications;
