@@ -208,12 +208,11 @@ export const useFollowingEventsScored = () => {
             full_name,
             avatar_url
           ),
-          guestlist_entries!inner(
+          guestlist_entries(
             user:profiles!guestlist_entries_user_id_fkey(
               id,
               avatar_url
-            ),
-            status
+            )
           )
         `)
         .in("creator_id", followingIds)
@@ -248,12 +247,11 @@ export const useFollowingEventsScored = () => {
             full_name,
             avatar_url
           ),
-          guestlist_entries!inner(
+          guestlist_entries(
             user:profiles!guestlist_entries_user_id_fkey(
               id,
               avatar_url
-            ),
-            status
+            )
           )
         `)
         .in("id", repostedEventIds)

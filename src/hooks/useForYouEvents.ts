@@ -216,12 +216,11 @@ export const useForYouEvents = () => {
             full_name,
             avatar_url
           ),
-          guestlist_entries!inner(
+          guestlist_entries(
             user:profiles!guestlist_entries_user_id_fkey(
               id,
               avatar_url
-            ),
-            status
+            )
           )
         `
         )
