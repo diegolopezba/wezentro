@@ -37,7 +37,8 @@ const Index = () => {
         })
         .map((event) => {
           const guestlistEntries = (event as any).guestlist_entries || [];
-          const attendeeAvatars = guestlistEntries
+          const approvedEntries = guestlistEntries.filter((entry: any) => entry.status === 'approved');
+          const attendeeAvatars = approvedEntries
             .map((entry: any) => entry.user)
             .filter(Boolean)
             .map((user: any) => ({
@@ -51,7 +52,7 @@ const Index = () => {
             date: format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", { locale: es }),
             location: event.location_name || "Ubicación por confirmar",
             category: event.category || "party",
-            attendees: guestlistEntries.length,
+            attendees: approvedEntries.length,
             attendeeAvatars,
             hasGuestlist: event.has_guestlist || false,
             ownerAvatar: event.creator?.avatar_url || undefined,
