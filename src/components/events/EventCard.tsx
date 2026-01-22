@@ -189,7 +189,7 @@ export const EventCard = ({
                           src={ownerAvatar}
                           alt="Owner"
                           className={cn(
-                            "w-5 h-5 rounded-full border-background object-cover border-0",
+                            "w-6 h-6 rounded-full border-background object-cover border-0",
                             creatorId && "cursor-pointer hover:scale-110 transition-transform z-10",
                           )}
                           onClick={(e) => {
@@ -210,14 +210,14 @@ export const EventCard = ({
                               key={attendee.id}
                               src={attendee.avatar_url}
                               alt="Attendee"
-                              className="w-5 h-5 rounded-full border-background object-cover border-0"
+                              className="w-6 h-6 rounded-full border-background object-cover border-0"
                             />
                           ) : (
                             <img
                               key={attendee.id}
                               src={DEFAULT_AVATAR}
                               alt="Attendee"
-                              className="w-5 h-5 rounded-full border-background object-cover border-0"
+                              className="w-6 h-6 rounded-full border-background object-cover border-0"
                             />
                           ),
                         )}
@@ -236,7 +236,7 @@ export const EventCard = ({
                             key={`placeholder-${i}`}
                             src={DEFAULT_AVATAR}
                             alt="Attendee"
-                            className="w-5 h-5 rounded-full border-background object-cover border-0"
+                            className="w-6 h-6 rounded-full border-background object-cover border-0"
                           />
                         ))}
                     </>
@@ -250,14 +250,14 @@ export const EventCard = ({
                             key={attendee.id}
                             src={attendee.avatar_url}
                             alt="Attendee"
-                            className="w-5 h-5 rounded-full border-2 border-background object-cover blur-[2px]"
+                            className="w-6 h-6 rounded-full border-2 border-background object-cover blur-[2px]"
                           />
                         ) : (
                           <img
                             key={attendee.id}
                             src={DEFAULT_AVATAR}
                             alt="Attendee"
-                            className="w-5 h-5 rounded-full border-2 border-background object-cover blur-[2px]"
+                            className="w-6 h-6 rounded-full border-2 border-background object-cover blur-[2px]"
                           />
                         ),
                       )
