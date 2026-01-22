@@ -1,22 +1,25 @@
-import { ReactNode } from "react";
+import { ReactNode, forwardRef } from "react";
 import { BottomNav } from "./BottomNav";
 
-interface AppLayoutProps {
+export interface AppLayoutProps {
   children: ReactNode;
   hideNav?: boolean;
 }
 
-export const AppLayout = ({ children, hideNav = false }: AppLayoutProps) => {
-  return (
-    <div className="min-h-screen bg-background">
-      
-      {/* Main content */}
-      <main className={hideNav ? "" : "pb-24"}>
-        {children}
-      </main>
-      
-      {/* Bottom navigation */}
-      {!hideNav && <BottomNav />}
-    </div>
-  );
-};
+export const AppLayout = forwardRef<HTMLDivElement, AppLayoutProps>(
+  ({ children, hideNav = false }, ref) => {
+    return (
+      <div ref={ref} className="min-h-screen bg-background overflow-auto">
+        {/* Main content */}
+        <main className={hideNav ? "" : "pb-24"}>
+          {children}
+        </main>
+        
+        {/* Bottom navigation */}
+        {!hideNav && <BottomNav />}
+      </div>
+    );
+  }
+);
+
+AppLayout.displayName = "AppLayout";
