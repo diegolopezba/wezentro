@@ -38,7 +38,7 @@ const categoryColors: Record<string, string> = {
   rooftop: "from-sky-500 to-blue-500",
   restaurant: "from-rose-500 to-pink-500",
   coffee: "from-amber-600 to-yellow-500",
-  default: "from-primary to-accent"
+  default: "from-primary to-accent",
 };
 export const EventCard = ({
   id,
@@ -53,13 +53,11 @@ export const EventCard = ({
   index = 0,
   ownerAvatar,
   creatorId,
-  repostInfo
+  repostInfo,
 }: EventCardProps) => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
-  const {
-    data: hasSubscription
-  } = useHasActiveSubscription();
+  const { data: hasSubscription } = useHasActiveSubscription();
 
   // Use expansion transition only on home page
   const isHomePage = routerLocation.pathname === "/";
@@ -99,23 +97,21 @@ export const EventCard = ({
   };
   const handleVideoMetadata = () => {
     if (videoRef.current) {
-      const {
-        videoWidth,
-        videoHeight
-      } = videoRef.current;
+      const { videoWidth, videoHeight } = videoRef.current;
       if (videoWidth && videoHeight) {
         setAspectRatio(videoWidth / videoHeight);
       }
     }
   };
   // Generate repost attribution text
-  const repostAttribution = repostInfo?.repostedBy && repostInfo.repostedBy.length > 0
-    ? repostInfo.repostedBy.length === 1
-      ? `@${repostInfo.repostedBy[0].username}`
-      : repostInfo.repostedBy.length === 2
-        ? `@${repostInfo.repostedBy[0].username} y @${repostInfo.repostedBy[1].username}`
-        : `@${repostInfo.repostedBy[0].username} y ${repostInfo.repostedBy.length - 1} más`
-    : null;
+  const repostAttribution =
+    repostInfo?.repostedBy && repostInfo.repostedBy.length > 0
+      ? repostInfo.repostedBy.length === 1
+        ? `@${repostInfo.repostedBy[0].username}`
+        : repostInfo.repostedBy.length === 2
+          ? `@${repostInfo.repostedBy[0].username} y @${repostInfo.repostedBy[1].username}`
+          : `@${repostInfo.repostedBy[0].username} y ${repostInfo.repostedBy.length - 1} más`
+      : null;
 
   return (
     <div className="masonry-item">
@@ -123,10 +119,10 @@ export const EventCard = ({
       {repostAttribution && (
         <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
           <Repeat className="w-3 h-3" />
-          <span className="truncate">Reposteado por {repostAttribution}</span>
+          <span className="truncate"> {repostAttribution}</span>
         </div>
       )}
-      
+
       <motion.div
         layoutId={`event-card-${id}`}
         initial={{ opacity: 0, y: 20 }}
@@ -134,7 +130,7 @@ export const EventCard = ({
         transition={{
           delay: index * 0.05,
           duration: 0.3,
-          layout: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
+          layout: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
         }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
@@ -146,10 +142,10 @@ export const EventCard = ({
           <div
             className="relative rounded-2xl overflow-hidden bg-secondary"
             style={{
-              width: '100%',
-              aspectRatio: aspectRatio ? `${aspectRatio}` : '3/4',
-              minHeight: '120px',
-              maxHeight: '350px'
+              width: "100%",
+              aspectRatio: aspectRatio ? `${aspectRatio}` : "3/4",
+              minHeight: "120px",
+              maxHeight: "350px",
             }}
           >
             {isVideo ? (
@@ -164,14 +160,9 @@ export const EventCard = ({
                 onLoadedMetadata={handleVideoMetadata}
               />
             ) : (
-              <img
-                src={imageUrl}
-                alt={title}
-                className="w-full h-full object-cover"
-                onLoad={handleImageLoad}
-              />
+              <img src={imageUrl} alt={title} className="w-full h-full object-cover" onLoad={handleImageLoad} />
             )}
-            
+
             {/* Sound toggle button - top right */}
             {isVideo && (
               <button
@@ -199,7 +190,7 @@ export const EventCard = ({
                           alt="Owner"
                           className={cn(
                             "w-5 h-5 rounded-full border-background object-cover border-0",
-                            creatorId && "cursor-pointer hover:scale-110 transition-transform z-10"
+                            creatorId && "cursor-pointer hover:scale-110 transition-transform z-10",
                           )}
                           onClick={(e) => {
                             if (creatorId) {
@@ -228,19 +219,17 @@ export const EventCard = ({
                               alt="Attendee"
                               className="w-5 h-5 rounded-full border-background object-cover border-0"
                             />
-                          )
+                          ),
                         )}
                       {/* Show placeholder circles if we don't have enough avatars */}
-                      {attendeeAvatars.filter((a) => a.id !== creatorId).length <
-                        (ownerAvatar ? 2 : 3) &&
+                      {attendeeAvatars.filter((a) => a.id !== creatorId).length < (ownerAvatar ? 2 : 3) &&
                         attendees > attendeeAvatars.filter((a) => a.id !== creatorId).length &&
                         [
                           ...Array(
                             Math.min(
-                              (ownerAvatar ? 2 : 3) -
-                                attendeeAvatars.filter((a) => a.id !== creatorId).length,
-                              attendees - attendeeAvatars.filter((a) => a.id !== creatorId).length
-                            )
+                              (ownerAvatar ? 2 : 3) - attendeeAvatars.filter((a) => a.id !== creatorId).length,
+                              attendees - attendeeAvatars.filter((a) => a.id !== creatorId).length,
+                            ),
                           ),
                         ].map((_, i) => (
                           <img
@@ -253,23 +242,25 @@ export const EventCard = ({
                     </>
                   ) : (
                     /* Non-premium: show blurred real avatars */
-                    attendeeAvatars.slice(0, 3).map((attendee) =>
-                      attendee.avatar_url ? (
-                        <img
-                          key={attendee.id}
-                          src={attendee.avatar_url}
-                          alt="Attendee"
-                          className="w-5 h-5 rounded-full border-2 border-background object-cover blur-[2px]"
-                        />
-                      ) : (
-                        <img
-                          key={attendee.id}
-                          src={DEFAULT_AVATAR}
-                          alt="Attendee"
-                          className="w-5 h-5 rounded-full border-2 border-background object-cover blur-[2px]"
-                        />
+                    attendeeAvatars
+                      .slice(0, 3)
+                      .map((attendee) =>
+                        attendee.avatar_url ? (
+                          <img
+                            key={attendee.id}
+                            src={attendee.avatar_url}
+                            alt="Attendee"
+                            className="w-5 h-5 rounded-full border-2 border-background object-cover blur-[2px]"
+                          />
+                        ) : (
+                          <img
+                            key={attendee.id}
+                            src={DEFAULT_AVATAR}
+                            alt="Attendee"
+                            className="w-5 h-5 rounded-full border-2 border-background object-cover blur-[2px]"
+                          />
+                        ),
                       )
-                    )
                   )}
                 </div>
                 <span className="text-[10px] font-medium text-foreground">{attendees}</span>
@@ -280,9 +271,7 @@ export const EventCard = ({
           {/* Content */}
           {title && (
             <div className="space-y-1 px-1">
-              <h3 className="font-brand font-semibold text-foreground line-clamp-2 text-xs">
-                {title}
-              </h3>
+              <h3 className="font-brand font-semibold text-foreground line-clamp-2 text-xs">{title}</h3>
             </div>
           )}
         </div>
