@@ -6,13 +6,13 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useSavedEvents } from "@/hooks/useSavedEvents";
 import { EventCard } from "@/components/events/EventCard";
 import { Skeleton } from "@/components/ui/skeleton";
-
 const Saved = () => {
   const navigate = useNavigate();
-  const { data: savedEvents, isLoading } = useSavedEvents();
-
-  return (
-    <AppLayout>
+  const {
+    data: savedEvents,
+    isLoading
+  } = useSavedEvents();
+  return <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong safe-top">
         <div className="flex items-center gap-3 px-4 py-4">
@@ -25,34 +25,32 @@ const Saved = () => {
         </div>
       </header>
 
-      <div className="px-4 py-4 space-y-4">
-        {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-48 w-full rounded-2xl" />
-            ))}
-          </div>
-        ) : savedEvents && savedEvents.length > 0 ? (
-          <div className="masonry-grid">
-            {savedEvents.map((item, index) => (
-              <EventCard
-                key={item.id}
-                id={item.event.id}
-                title={item.event.title || undefined}
-                date={item.event.start_datetime}
-                location={item.event.location_name || ""}
-                imageUrl={item.event.image_url || ""}
-                category={item.event.category || ""}
-                index={index}
-              />
-            ))}
-          </div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-16"
-          >
+      <div className="space-y-4 px-0 py-0">
+        {isLoading ? <div className="space-y-4">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 w-full rounded-2xl" />)}
+          </div> : savedEvents && savedEvents.length > 0 ? <motion.div initial={{
+        opacity: 0
+      }} animate={{
+        opacity: 1
+      }} className="space-y-4">
+            {savedEvents.map((item, index) => <motion.div key={item.id} initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: index * 0.05
+        }}>
+                <EventCard id={item.event.id} title={item.event.title || "Evento sin título"} date={item.event.start_datetime} location={item.event.location_name || ""} imageUrl={item.event.image_url || ""} category={item.event.category || ""} />
+              </motion.div>)}
+          </motion.div> : <motion.div initial={{
+        opacity: 0,
+        y: 20
+      }} animate={{
+        opacity: 1,
+        y: 0
+      }} className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center mb-4">
               <Bookmark className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -62,18 +60,11 @@ const Saved = () => {
             <p className="text-muted-foreground text-center text-sm max-w-xs">
               Guarda eventos que te interesen y aparecerán aquí
             </p>
-            <Button
-              variant="hero"
-              className="mt-6"
-              onClick={() => navigate("/")}
-            >
+            <Button variant="hero" className="mt-6" onClick={() => navigate("/")}>
               Explorar Eventos
             </Button>
-          </motion.div>
-        )}
+          </motion.div>}
       </div>
-    </AppLayout>
-  );
+    </AppLayout>;
 };
-
 export default Saved;
