@@ -33,29 +33,20 @@ const Saved = () => {
             ))}
           </div>
         ) : savedEvents && savedEvents.length > 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="space-y-4"
-          >
+          <div className="masonry-grid">
             {savedEvents.map((item, index) => (
-              <motion.div
+              <EventCard
                 key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <EventCard
-                  id={item.event.id}
-                  title={item.event.title || "Evento sin título"}
-                  date={item.event.start_datetime}
-                  location={item.event.location_name || ""}
-                  imageUrl={item.event.image_url || ""}
-                  category={item.event.category || ""}
-                />
-              </motion.div>
+                id={item.event.id}
+                title={item.event.title || undefined}
+                date={item.event.start_datetime}
+                location={item.event.location_name || ""}
+                imageUrl={item.event.image_url || ""}
+                category={item.event.category || ""}
+                index={index}
+              />
             ))}
-          </motion.div>
+          </div>
         ) : (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
