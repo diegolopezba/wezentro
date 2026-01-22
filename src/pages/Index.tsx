@@ -85,6 +85,7 @@ const scrollContainerRef = useRef<HTMLDivElement>(null);
   return <SelectedEventProvider>
       <AppLayout ref={scrollContainerRef}>
         {/* Header */}
+        {/* Fixed header with logo and notification */}
         <header className="sticky top-0 z-40 safe-top bg-background">
           <div className="flex items-center justify-between px-4 py-4">
             <motion.div initial={{
@@ -122,36 +123,41 @@ const scrollContainerRef = useRef<HTMLDivElement>(null);
               </div>
             </motion.div>}
 
-          {/* Tabs */}
+          {/* Tabs - hide on scroll down, show on scroll up */}
           <motion.div 
             animate={{ 
-              y: headerVisible ? 0 : -100,
-              opacity: headerVisible ? 1 : 0
+              height: headerVisible ? "auto" : 0,
+              opacity: headerVisible ? 1 : 0,
+              marginBottom: headerVisible ? 0 : 0
             }}
             transition={{ 
               type: "spring", 
               stiffness: 300, 
               damping: 30
             }}
-            className="flex px-4 pb-3 gap-2"
-            style={{
-              pointerEvents: headerVisible ? "auto" : "none"
-            }}
+            className="overflow-hidden"
           >
-            <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-              {activeTab === "for-you" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
-              type: "spring",
-              duration: 0.5
-            }} />}
-              <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary" : ""}`}>Para Ti</span>
-            </button>
-            <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "following" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-              {activeTab === "following" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
-              type: "spring",
-              duration: 0.5
-            }} />}
-              <span className={`relative z-10 ${activeTab === "following" ? "text-primary" : ""}`}>Siguiendo</span>
-            </button>
+            <div 
+              className="flex px-4 pb-3 gap-2"
+              style={{
+                pointerEvents: headerVisible ? "auto" : "none"
+              }}
+            >
+              <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                {activeTab === "for-you" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
+                type: "spring",
+                duration: 0.5
+              }} />}
+                <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary" : ""}`}>Para Ti</span>
+              </button>
+              <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "following" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                {activeTab === "following" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
+                type: "spring",
+                duration: 0.5
+              }} />}
+                <span className={`relative z-10 ${activeTab === "following" ? "text-primary" : ""}`}>Siguiendo</span>
+              </button>
+            </div>
           </motion.div>
         </header>
 
