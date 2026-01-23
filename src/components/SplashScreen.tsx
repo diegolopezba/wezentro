@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SplashScreenProps {
@@ -6,9 +6,9 @@ interface SplashScreenProps {
   minDisplayTime?: number;
 }
 
-export const SplashScreen = ({
+export const SplashScreen = memo(({
   onComplete,
-  minDisplayTime = 1200
+  minDisplayTime = 800 // Reduced from 1200ms for faster perceived load
 }: SplashScreenProps) => {
   const [isVisible, setIsVisible] = useState(true);
 
@@ -31,7 +31,7 @@ export const SplashScreen = ({
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+          transition={{ duration: 0.2, ease: "easeOut" }} // Faster exit animation
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-background"
           style={{ background: "hsl(240 6% 4%)" }}
         >
@@ -39,7 +39,7 @@ export const SplashScreen = ({
             alt="Loading..."
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            transition={{ duration: 0.15, ease: "easeOut" }} // Faster entrance
             className="w-48 h-48 object-fill"
             src="/lovable-uploads/11ff2e19-f4c9-4c50-8921-c329037d49ac.png"
           />
@@ -47,4 +47,4 @@ export const SplashScreen = ({
       )}
     </AnimatePresence>
   );
-};
+});

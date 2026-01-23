@@ -197,7 +197,7 @@ export const useForYouEvents = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch all public events (including posts without dates)
+  // Fetch public events with pagination (limit for faster initial load)
   const {
     data: events,
     isLoading,
@@ -226,11 +226,13 @@ export const useForYouEvents = () => {
         )
         .eq("is_public", true)
         .is("deleted_at", null)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(50); // Limit initial fetch for faster loading
 
       if (error) throw error;
       return data as (EventWithCreator & { guestlist_entries?: any[] })[];
     },
+    staleTime: 1000 * 60 * 2, // 2 minutes stale time for feed freshness
   });
 
   // Score and sort events

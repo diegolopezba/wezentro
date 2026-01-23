@@ -41,7 +41,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Optimized QueryClient with caching
+// Optimized QueryClient with aggressive caching
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -49,6 +49,8 @@ const queryClient = new QueryClient({
       gcTime: 1000 * 60 * 30, // 30 minutes - cache persists
       retry: 1,
       refetchOnWindowFocus: false,
+      refetchOnMount: false, // Don't refetch on component mount if data exists
+      refetchOnReconnect: false, // Don't refetch on reconnect
     },
   },
 });
