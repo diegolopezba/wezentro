@@ -1,5 +1,5 @@
 // src/components/map/MapView.tsx
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback, memo } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Event } from "@/hooks/useEvents";
@@ -44,6 +44,7 @@ const MapView: React.FC<MapViewProps> = ({
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const mapInitializedRef = useRef(false);
   const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const foodMarkersRef = useRef<mapboxgl.Marker[]>([]);
@@ -289,27 +290,26 @@ const MapView: React.FC<MapViewProps> = ({
 
   // Initialize map
   useEffect(() => {
-    console.log('[MapView] Init effect - token:', !!mapboxToken, 'container:', !!mapContainer.current, 'map:', !!map.current);
+    // Prevent double initialization
+    if (mapInitializedRef.current || map.current) return;
+    if (!mapboxToken) return;
     
-    if (!mapContainer.current || map.current || !mapboxToken) {
-      console.log('[MapView] Skipping init - missing requirements');
-      return;
-    }
+    // Small delay to ensure DOM container is ready after lazy load
+    const initTimer = setTimeout(() => {
+      if (!mapContainer.current || map.current || mapInitializedRef.current) return;
+      
+      mapInitializedRef.current = true;
+      mapboxgl.accessToken = mapboxToken;
 
-    console.log('[MapView] Creating map instance...');
-    mapboxgl.accessToken = mapboxToken;
-
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
-      center: WORLD_VIEW.center,
-      zoom: WORLD_VIEW.zoom,
-      pitch: WORLD_VIEW.pitch,
-      bearing: WORLD_VIEW.bearing,
-      projection: { name: "globe" } as any,
-    });
-    
-    console.log('[MapView] Map instance created');
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: "mapbox://styles/mapbox/dark-v11",
+        center: WORLD_VIEW.center,
+        zoom: WORLD_VIEW.zoom,
+        pitch: WORLD_VIEW.pitch,
+        bearing: WORLD_VIEW.bearing,
+        projection: { name: "globe" } as any,
+      });
 
     map.current.addControl(
       new mapboxgl.NavigationControl({
@@ -402,16 +402,22 @@ const MapView: React.FC<MapViewProps> = ({
       setCurrentZoom(zoom);
     });
 
+    }, 50); // Small delay for DOM stability
+
     return () => {
+      clearTimeout(initTimer);
       clearAllTimeouts();
       clearCustomMarkers();
       clearFoodMarkers();
-      geolocateControl.off("geolocate", handleGeoLocate);
-      geolocateControl.off("error", handleGeoError);
+
+      if (geolocateControlRef.current) {
+        // Note: we can't easily remove specific listeners, so we just cleanup refs
+        geolocateControlRef.current = null;
+      }
 
       map.current?.remove();
       map.current = null;
-      geolocateControlRef.current = null;
+      mapInitializedRef.current = false;
 
       // reset runtime-only flags (sessionStorage remains)
       hasAnimatedRef.current = false;
@@ -472,21 +478,19 @@ const MapView: React.FC<MapViewProps> = ({
     }
   }, [selectedEventId, events, mapLoaded]);
 
-  // Loading state
-  if (tokenLoading) {
-    console.log('[MapView] Rendering loading state');
+  // Loading state - only show if we don't have a token yet
+  if (tokenLoading && !mapboxToken) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a2e]">
+      <div className="absolute inset-0 flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   // Error state
-  if (tokenError) {
-    console.log('[MapView] Rendering error state:', tokenError);
+  if (tokenError && !mapboxToken) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a2e]">
+      <div className="absolute inset-0 flex items-center justify-center bg-background">
         <div className="text-center text-muted-foreground">
           <p>Failed to load map</p>
           <p className="text-sm">{tokenError}</p>
@@ -494,8 +498,6 @@ const MapView: React.FC<MapViewProps> = ({
       </div>
     );
   }
-
-  console.log('[MapView] Rendering map container, token:', !!mapboxToken);
 
   return (
     <div className="absolute inset-0">
@@ -525,4 +527,4 @@ function isEventTonight(startDatetime: string): boolean {
   );
 }
 
-export default MapView;
+export default memo(MapView);
