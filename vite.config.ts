@@ -10,6 +10,29 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-query': ['@tanstack/react-query'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-ui': ['framer-motion', 'sonner', 'vaul'],
+          'vendor-map': ['mapbox-gl'],
+          'vendor-charts': ['recharts'],
+          'vendor-radix': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-avatar',
+          ],
+        },
+      },
+    },
+    minify: 'esbuild',
+    target: 'esnext',
+  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
