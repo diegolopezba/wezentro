@@ -289,8 +289,14 @@ const MapView: React.FC<MapViewProps> = ({
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainer.current || map.current || !mapboxToken) return;
+    console.log('[MapView] Init effect - token:', !!mapboxToken, 'container:', !!mapContainer.current, 'map:', !!map.current);
+    
+    if (!mapContainer.current || map.current || !mapboxToken) {
+      console.log('[MapView] Skipping init - missing requirements');
+      return;
+    }
 
+    console.log('[MapView] Creating map instance...');
     mapboxgl.accessToken = mapboxToken;
 
     map.current = new mapboxgl.Map({
@@ -302,6 +308,8 @@ const MapView: React.FC<MapViewProps> = ({
       bearing: WORLD_VIEW.bearing,
       projection: { name: "globe" } as any,
     });
+    
+    console.log('[MapView] Map instance created');
 
     map.current.addControl(
       new mapboxgl.NavigationControl({
@@ -466,8 +474,9 @@ const MapView: React.FC<MapViewProps> = ({
 
   // Loading state
   if (tokenLoading) {
+    console.log('[MapView] Rendering loading state');
     return (
-      <div className="absolute inset-0 flex items-center justify-center bg-secondary">
+      <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a2e]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -475,8 +484,9 @@ const MapView: React.FC<MapViewProps> = ({
 
   // Error state
   if (tokenError) {
+    console.log('[MapView] Rendering error state:', tokenError);
     return (
-      <div className="absolute inset-0 flex items-center justify-center bg-secondary">
+      <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a2e]">
         <div className="text-center text-muted-foreground">
           <p>Failed to load map</p>
           <p className="text-sm">{tokenError}</p>
@@ -484,6 +494,8 @@ const MapView: React.FC<MapViewProps> = ({
       </div>
     );
   }
+
+  console.log('[MapView] Rendering map container, token:', !!mapboxToken);
 
   return (
     <div className="absolute inset-0">
