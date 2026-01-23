@@ -195,8 +195,16 @@ export const useUserChats = () => {
         };
       });
 
+      // Filter out private chats with no messages (empty chats)
+      const filteredChats = chatsWithDetails.filter((chat) => {
+        // Always show event chats (guestlist chats)
+        if (chat.type === "event") return true;
+        // For private chats, only show if there's at least one message
+        return chat.lastMessage !== null;
+      });
+
       // Sort by last message time
-      return chatsWithDetails.sort((a, b) => {
+      return filteredChats.sort((a, b) => {
         const aTime = a.lastMessage?.created_at || a.created_at || "";
         const bTime = b.lastMessage?.created_at || b.created_at || "";
         return new Date(bTime).getTime() - new Date(aTime).getTime();
