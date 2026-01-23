@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, MapPin, X, Users } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -120,6 +120,28 @@ const Discover = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Handle geolocation success - auto-open nearby drawer once
+  const handleGeolocationSuccess = () => {
+    if (!hasAutoOpenedRef.current && filteredEvents.length > 0) {
+      hasAutoOpenedRef.current = true;
+      setTimeout(() => {
+        setIsNearbyOpen(true);
+        toast.success(`¡${filteredEvents.length} eventos cerca de ti!`);
+      }, 500);
+    }
+  };
+
+  // Handle geolocation error
+  const handleGeolocationError = (error: string) => {
+    toast.error(error, {
+      duration: 5000,
+      action: {
+        label: "Cómo activar",
+        onClick: () => window.open("https://support.google.com/chrome/answer/142065", "_blank"),
+      },
+    });
+  };
+
   // Combine search query with filters
   const activeFilters = useMemo(
     () => ({
@@ -132,28 +154,6 @@ const Discover = () => {
   // Get filtered and sorted events with distance
   const filteredEvents = useNearbyEvents(events, userLocation, activeFilters, friendsData);
 
-  // Handle geolocation success - auto-open nearby drawer once
-  const handleGeolocationSuccess = useCallback(() => {
-    if (!hasAutoOpenedRef.current && filteredEvents.length > 0) {
-      hasAutoOpenedRef.current = true;
-      setTimeout(() => {
-        setIsNearbyOpen(true);
-        toast.success(`¡${filteredEvents.length} eventos cerca de ti!`);
-      }, 500);
-    }
-  }, [filteredEvents.length]);
-
-  // Handle geolocation error
-  const handleGeolocationError = useCallback((error: string) => {
-    toast.error(error, {
-      duration: 5000,
-      action: {
-        label: "Cómo activar",
-        onClick: () => window.open("https://support.google.com/chrome/answer/142065", "_blank"),
-      },
-    });
-  }, []);
-
   // Track carousel slide changes
   useEffect(() => {
     if (!carouselApi) return;
@@ -163,19 +163,19 @@ const Discover = () => {
     });
   }, [carouselApi]);
 
-  const handleMarkerClick = useCallback((events: EventWithDistance[]) => {
+  const handleMarkerClick = (events: EventWithDistance[]) => {
     // Map to events with distance info from filtered events
     const eventsWithDistance = events.map((e) => filteredEvents.find((fe) => fe.id === e.id) || e);
     setSelectedEvents(eventsWithDistance);
     setCurrentSlide(0);
     setIsNearbyOpen(false);
     setIsSearchFocused(false);
-  }, [filteredEvents]);
+  };
 
-  const handleCloseEventCard = useCallback(() => {
+  const handleCloseEventCard = () => {
     setSelectedEvents([]);
     setCurrentSlide(0);
-  }, []);
+  };
 
   const handleApplyFilters = (newFilters: FilterOptions) => {
     setFilters(newFilters);
@@ -218,22 +218,17 @@ const Discover = () => {
   });
 
   // Handle food marker click
-  const handleFoodMarkerClick = useCallback((location: typeof foodLocations[0]) => {
+  const handleFoodMarkerClick = (location: typeof foodLocations[0]) => {
     navigate(`/user/${location.id}`);
-  }, [navigate]);
-
-  // Memoize events for MapView to prevent unnecessary re-renders
-  const eventsForMap = useMemo(() => {
-    return showFoodMarkers ? [] : filteredEvents;
-  }, [showFoodMarkers, filteredEvents]);
+  };
 
   return (
-    <AppLayout hideNav={false}>
-      {/* Full screen map container - use fixed height to ensure map renders */}
-      <div className="relative w-full" style={{ height: 'calc(100vh - 80px)', minHeight: '400px' }}>
-        {/* Mapbox Map - pass memoized events for stability */}
+    <AppLayout>
+      {/* Full screen map container */}
+      <div className="relative h-[calc(100vh-80px)] bg-secondary">
+        {/* Mapbox Map - pass original events for markers, filtered for visibility */}
         <MapView
-          events={eventsForMap}
+          events={showFoodMarkers ? [] : filteredEvents}
           onMarkerClick={handleMarkerClick}
           selectedEventId={selectedEvents[currentSlide]?.id}
           onGeolocationSuccess={handleGeolocationSuccess}
