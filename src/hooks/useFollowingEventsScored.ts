@@ -218,12 +218,14 @@ export const useFollowingEventsScored = () => {
         .in("creator_id", followingIds)
         .eq("is_public", true)
         .is("deleted_at", null)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(50); // Limit for faster loading
 
       if (error) throw error;
       return data as (EventWithCreator & { guestlist_entries?: any[] })[];
     },
     enabled: !!followingIds && followingIds.length > 0,
+    staleTime: 1000 * 60 * 2, // 2 minutes
   });
 
   // Fetch reposted events (may include events from non-followed creators)
