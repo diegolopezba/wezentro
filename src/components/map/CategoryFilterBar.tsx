@@ -24,8 +24,8 @@ export const CategoryFilterBar = ({
   onToggleCategory,
 }: CategoryFilterBarProps) => {
   return (
-    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-      {CATEGORIES.map((category) => {
+    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 pl-4 pr-4">
+      {CATEGORIES.map((category, index) => {
         const isSelected = selectedCategories.includes(category.value);
 
         return (
