@@ -248,8 +248,8 @@ const Discover = () => {
         />
 
         {/* Floating search bar */}
-        <div className="absolute top-0 left-0 right-0 z-40 safe-top px-4 py-4">
-          <div className="flex gap-2 py-[26px]" ref={searchContainerRef}>
+        <div className="absolute top-0 left-0 right-0 z-40 safe-top py-4">
+          <div className="flex gap-2 py-[26px] px-4" ref={searchContainerRef}>
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
               <Input
@@ -377,10 +377,12 @@ const Discover = () => {
           </div>
 
           {/* Category Filter Bar */}
-          <CategoryFilterBar
-            selectedCategories={filters.categories}
-            onToggleCategory={handleToggleCategory}
-          />
+          <div className="mt-1">
+            <CategoryFilterBar
+              selectedCategories={filters.categories}
+              onToggleCategory={handleToggleCategory}
+            />
+          </div>
         </div>
 
 
