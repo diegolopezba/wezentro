@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { X, Calendar, MapPin, Users, RotateCcw, UserCheck } from "lucide-react";
+import { Calendar, MapPin, Users, RotateCcw, UserCheck } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import { FilterOptions } from "@/hooks/useNearbyEvents";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -22,19 +20,6 @@ const DATE_OPTIONS = [
   { value: "this_weekend", label: "Este fin de semana" },
 ] as const;
 
-const CATEGORIES = [
-  { value: "food", label: "Comida", color: "from-orange-500 to-red-500" },
-  { value: "club", label: "Club", color: "from-purple-500 to-pink-500" },
-  { value: "bar", label: "Bar", color: "from-amber-500 to-orange-500" },
-  { value: "concert", label: "Concierto", color: "from-blue-500 to-cyan-500" },
-  { value: "festival", label: "Festival", color: "from-green-500 to-emerald-500" },
-  { value: "house_party", label: "Fiesta en casa", color: "from-red-500 to-rose-500" },
-  { value: "lounge", label: "Lounge", color: "from-indigo-500 to-violet-500" },
-  { value: "rooftop", label: "Rooftop", color: "from-sky-500 to-blue-500" },
-  { value: "restaurant", label: "Restaurante", color: "from-rose-500 to-pink-500" },
-  { value: "coffee", label: "Café", color: "from-amber-600 to-yellow-500" },
-];
-
 const DISTANCE_OPTIONS = [
   { value: null, label: "Cualquier distancia" },
   { value: 1, label: "1 km" },
@@ -49,6 +34,7 @@ export const FilterSheet = ({
   filters,
   onApplyFilters,
 }: FilterSheetProps) => {
+  const { user } = useAuth();
   const [localFilters, setLocalFilters] = useState<FilterOptions>(filters);
 
   const handleReset = () => {
@@ -68,27 +54,15 @@ export const FilterSheet = ({
     onOpenChange(false);
   };
 
-  const toggleCategory = (category: string) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter((c) => c !== category)
-        : [...prev.categories, category],
-    }));
-  };
-
-  const { user } = useAuth();
-
   const activeFilterCount = 
     (localFilters.dateFilter !== "all" ? 1 : 0) +
-    localFilters.categories.length +
     (localFilters.maxDistance !== null ? 1 : 0) +
     (localFilters.hasGuestlistOnly ? 1 : 0) +
     (localFilters.friendsGoingOnly ? 1 : 0);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl flex flex-col">
+      <SheetContent side="bottom" className="h-[70vh] rounded-t-3xl flex flex-col">
         <SheetHeader className="pb-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <SheetTitle className="font-brand text-xl">Filtros</SheetTitle>
@@ -126,30 +100,6 @@ export const FilterSheet = ({
                   className="rounded-full"
                 >
                   {option.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Category Filter */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-foreground">
-              <span className="font-medium">Categoría</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((category) => (
-                <Button
-                  key={category.value}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => toggleCategory(category.value)}
-                  className={cn(
-                    "rounded-full transition-all",
-                    localFilters.categories.includes(category.value) &&
-                      `bg-gradient-to-r ${category.color} text-white border-transparent`
-                  )}
-                >
-                  {category.label}
                 </Button>
               ))}
             </div>

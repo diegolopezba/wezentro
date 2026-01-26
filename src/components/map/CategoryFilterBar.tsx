@@ -1,0 +1,50 @@
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+const CATEGORIES = [
+  { value: "food", label: "Comida", emoji: "🍕" },
+  { value: "club", label: "Club", emoji: "🪩" },
+  { value: "bar", label: "Bar", emoji: "🍸" },
+  { value: "concert", label: "Concierto", emoji: "🎵" },
+  { value: "festival", label: "Festival", emoji: "🎪" },
+  { value: "house_party", label: "Fiesta", emoji: "🏠" },
+  { value: "lounge", label: "Lounge", emoji: "🛋️" },
+  { value: "rooftop", label: "Rooftop", emoji: "🌆" },
+  { value: "restaurant", label: "Restaurante", emoji: "🍽️" },
+  { value: "coffee", label: "Café", emoji: "☕" },
+];
+
+interface CategoryFilterBarProps {
+  selectedCategories: string[];
+  onToggleCategory: (category: string) => void;
+}
+
+export const CategoryFilterBar = ({
+  selectedCategories,
+  onToggleCategory,
+}: CategoryFilterBarProps) => {
+  return (
+    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+      {CATEGORIES.map((category) => {
+        const isSelected = selectedCategories.includes(category.value);
+
+        return (
+          <motion.button
+            key={category.value}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onToggleCategory(category.value)}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-full whitespace-nowrap transition-all duration-200 text-sm",
+              isSelected
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "bg-card/90 backdrop-blur-md text-foreground border border-border/50"
+            )}
+          >
+            <span>{category.emoji}</span>
+            <span className="font-medium">{category.label}</span>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+};

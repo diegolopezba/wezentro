@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { EventCard } from "@/components/events/EventCard";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { FilterSheet } from "@/components/map/FilterSheet";
+import { CategoryFilterBar } from "@/components/map/CategoryFilterBar";
 import MapView from "@/components/map/MapView";
 import { useEvents } from "@/hooks/useEvents";
 import { useUserLocation } from "@/hooks/useUserLocation";
@@ -181,6 +182,15 @@ const Discover = () => {
     setFilters(newFilters);
   };
 
+  const handleToggleCategory = (category: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(category)
+        ? prev.categories.filter((c) => c !== category)
+        : [...prev.categories, category],
+    }));
+  };
+
   const handleClearSearch = () => {
     setSearchQuery("");
     setIsSearchFocused(false);
@@ -194,10 +204,9 @@ const Discover = () => {
   // Filter events with coordinates for the map
   const eventsWithLocation = filteredEvents.filter((e) => e.latitude && e.longitude);
 
-  // Count active filters (excluding search)
+  // Count active filters (excluding search and categories which are now visible)
   const activeFilterCount =
     (filters.dateFilter !== "all" ? 1 : 0) +
-    filters.categories.length +
     (filters.maxDistance !== null ? 1 : 0) +
     (filters.hasGuestlistOnly ? 1 : 0) +
     (filters.friendsGoingOnly ? 1 : 0);
@@ -366,6 +375,12 @@ const Discover = () => {
               )}
             </Button>
           </div>
+
+          {/* Category Filter Bar */}
+          <CategoryFilterBar
+            selectedCategories={filters.categories}
+            onToggleCategory={handleToggleCategory}
+          />
         </div>
 
 
