@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useProcessReferral } from "@/hooks/useReferrals";
 
 const interests = ["Discotecas", "Bares", "Conciertos", "Festivales", "Fiestas Privadas", "Rooftops", "Música en Vivo", "DJ Sets", "Restaurantes y Cafés"];
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
+  const processReferral = useProcessReferral();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [usernameError, setUsernameError] = useState("");
@@ -105,6 +107,14 @@ const Onboarding = () => {
       setIsLoading(false);
       return;
     }
+    
+    // Process referral if exists
+    const referralCode = localStorage.getItem("zentro_referral_code");
+    if (referralCode) {
+      await processReferral.mutateAsync(referralCode);
+      localStorage.removeItem("zentro_referral_code");
+    }
+    
     await refreshProfile();
     toast.success("¡Bienvenido a Zentro!");
     navigate("/");
