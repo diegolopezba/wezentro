@@ -249,7 +249,7 @@ const Discover = () => {
 
         {/* Floating search bar */}
         <div className="absolute top-0 left-0 right-0 z-40 safe-top py-4">
-          <div className="flex gap-2 py-[26px] px-4" ref={searchContainerRef}>
+          <div className="flex gap-2 pt-[26px] pb-2 px-4" ref={searchContainerRef}>
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
               <Input
