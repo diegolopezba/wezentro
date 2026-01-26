@@ -17,7 +17,7 @@ import {
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 const REFERRAL_GOAL = 5;
-const BASE_URL = "https://wezentro.lovable.app";
+const BASE_URL = "https://zentro.today";
 
 const Referrals = () => {
   const navigate = useNavigate();
