@@ -35,6 +35,15 @@ const Auth = () => {
     password: ""
   });
 
+  // Capture referral code from URL and store in localStorage
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const refCode = params.get("ref");
+    if (refCode) {
+      localStorage.setItem("zentro_referral_code", refCode);
+    }
+  }, [location.search]);
+
   // Redirect if already logged in
   useEffect(() => {
     if (user && !authLoading) {

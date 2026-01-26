@@ -36,6 +36,7 @@ import JoinedEvents from "./pages/JoinedEvents";
 import Help from "./pages/Help";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
+import Referrals from "./pages/Referrals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -230,6 +231,14 @@ const App = () => {
                             element={
                               <ProtectedRoute requireProfile>
                                 <Help />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings/referrals"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Referrals />
                               </ProtectedRoute>
                             }
                           />

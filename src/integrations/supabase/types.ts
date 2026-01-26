@@ -661,6 +661,7 @@ export type Database = {
           interests: string[] | null
           is_business: boolean | null
           is_food_business: boolean | null
+          referral_code: string | null
           updated_at: string | null
           username: string
         }
@@ -679,6 +680,7 @@ export type Database = {
           interests?: string[] | null
           is_business?: boolean | null
           is_food_business?: boolean | null
+          referral_code?: string | null
           updated_at?: string | null
           username: string
         }
@@ -697,6 +699,7 @@ export type Database = {
           interests?: string[] | null
           is_business?: boolean | null
           is_food_business?: boolean | null
+          referral_code?: string | null
           updated_at?: string | null
           username?: string
         }
@@ -731,6 +734,83 @@ export type Database = {
           {
             foreignKeyName: "push_subscriptions_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_rewards: {
+        Row: {
+          created_at: string
+          id: string
+          redeemed_at: string | null
+          reward_type: string
+          stripe_coupon_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          redeemed_at?: string | null
+          reward_type?: string
+          stripe_coupon_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          redeemed_at?: string | null
+          reward_type?: string
+          stripe_coupon_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_user_id: string
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_user_id: string
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_user_id?: string
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -903,6 +983,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: { _user_id: string }; Returns: string }
       get_mutual_followers: {
         Args: { _user_id: string }
         Returns: {
@@ -915,6 +996,14 @@ export type Database = {
       get_or_create_private_chat: {
         Args: { _other_user_id: string; _user_id: string }
         Returns: string
+      }
+      get_referral_stats: {
+        Args: { _user_id: string }
+        Returns: {
+          referral_code: string
+          referral_count: number
+          reward_claimed: boolean
+        }[]
       }
       get_subscription_plan: { Args: { _user_id: string }; Returns: string }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
