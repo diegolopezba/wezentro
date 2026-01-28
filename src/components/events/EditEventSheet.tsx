@@ -146,12 +146,12 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
-        <SheetHeader className="mb-4">
+      <SheetContent side="bottom" className="h-[85dvh] max-h-[85dvh] rounded-t-3xl flex flex-col">
+        <SheetHeader className="shrink-0 mb-4">
           <SheetTitle>Editar evento</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-4 overflow-y-auto max-h-[calc(85vh-120px)] pb-4">
+        <div className="flex-1 overflow-y-auto space-y-4 pb-4 -mx-6 px-6">
           <div className="space-y-2">
             <Label htmlFor="title">Título</Label>
             <Input
@@ -315,7 +315,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           )}
         </div>
 
-        <div className="pt-4 border-t">
+        <div className="shrink-0 pt-4 border-t safe-bottom">
           <Button
             className="w-full"
             onClick={handleSave}
