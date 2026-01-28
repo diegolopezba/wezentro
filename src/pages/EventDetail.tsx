@@ -325,8 +325,8 @@ const EventDetail = () => {
                       <Clock className="w-4 h-4 mr-1" /> Pendiente
                     </Button> : <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
                       {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
-                    </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
-                    {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
+                    </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
+                    {(joinGuestlist.isPending || joinGuestlistWithPayment.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
                   </Button>)}
               {isOwner && <DropdownMenu>
                   <DropdownMenuTrigger asChild>

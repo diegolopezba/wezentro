@@ -5,7 +5,7 @@ import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Lo
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
-import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
+import { useIsOnGuestlist, useJoinGuestlist, useJoinGuestlistWithPayment, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests, usePendingPayments } from "@/hooks/useGuestlist";
 import { useIsEventSaved, useSaveEvent, useUnsaveEvent, useSaveCount } from "@/hooks/useSavedEvents";
 import { useIsEventLiked, useLikeEvent, useUnlikeEvent, useEventLikes } from "@/hooks/useEventLikes";
 import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useReposts";
@@ -19,6 +19,8 @@ import { ShareGuestlistModal } from "@/components/events/ShareGuestlistModal";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
+import { PremiumGateModal } from "@/components/events/PremiumGateModal";
+import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 export const EventDetailOverlay = () => {
@@ -35,6 +37,8 @@ export const EventDetailOverlay = () => {
   const [showGuestlistInviteModal, setShowGuestlistInviteModal] = useState(false);
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
@@ -54,9 +58,13 @@ export const EventDetailOverlay = () => {
     data: pendingRequests = []
   } = usePendingGuestlistRequests(selectedEventId || undefined);
   const {
+    data: pendingPayments = []
+  } = usePendingPayments(selectedEventId || undefined);
+  const {
     data: guestlist = []
   } = useEventGuestlist(selectedEventId || undefined);
   const joinGuestlist = useJoinGuestlist();
+  const joinGuestlistWithPayment = useJoinGuestlistWithPayment();
   const leaveGuestlist = useLeaveGuestlist();
   const {
     data: isSaved
@@ -80,7 +88,10 @@ export const EventDetailOverlay = () => {
   const isApproved = guestlistStatus?.status === "approved";
   const isOwner = user?.id === event?.creator_id;
   const canInviteToGuestlist = isOwner || isApproved;
-  const pendingCount = pendingRequests.length;
+  const pendingCount = pendingRequests.length + pendingPayments.length;
+  
+  // Check if event has QR payment enabled
+  const hasPaymentQr = !!(event?.payment_qr_url && (event?.price || 0) > 0);
   const handleSaveToggle = async () => {
     if (!user) {
       toast.error("Inicia sesión para guardar eventos");
@@ -171,15 +182,34 @@ export const EventDetailOverlay = () => {
       navigate("/auth");
       return;
     }
+    
+    // Check premium subscription first
     if (!hasSubscription) {
-      toast.error("Se requiere suscripción premium para unirse a listas");
+      setShowPremiumGate(true);
       return;
     }
+    
+    // Check if this is a paid event with QR payment
+    if (hasPaymentQr) {
+      setShowPaymentModal(true);
+      return;
+    }
+    
+    // Normal free event join
     try {
       await joinGuestlist.mutateAsync(selectedEventId!);
       toast.success("¡Solicitud enviada!");
     } catch (error: any) {
       toast.error(error.message || "Error al unirse a la lista");
+    }
+  };
+  
+  const handlePaymentSubmitted = async () => {
+    try {
+      await joinGuestlistWithPayment.mutateAsync(selectedEventId!);
+    } catch (error: any) {
+      toast.error(error.message || "Error al registrar pago");
+      throw error;
     }
   };
   const handleLeaveGuestlist = async () => {
@@ -287,8 +317,8 @@ export const EventDetailOverlay = () => {
                               <Clock className="w-4 h-4 mr-1" /> Pendiente
                             </Button> : <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
                               {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
-                            </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending}>
-                            {joinGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
+                            </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
+                            {(joinGuestlist.isPending || joinGuestlistWithPayment.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
                           </Button>)}
                       {isOwner && <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -447,6 +477,21 @@ export const EventDetailOverlay = () => {
               closeEvent();
             }
           }} eventId={selectedEventId!} eventTitle={event.title} />
+                  <PremiumGateModal 
+                    open={showPremiumGate} 
+                    onOpenChange={setShowPremiumGate}
+                  />
+                  {hasPaymentQr && (
+                    <PaymentQRModal
+                      open={showPaymentModal}
+                      onOpenChange={setShowPaymentModal}
+                      eventTitle={event.title || "Evento"}
+                      price={event.price || 0}
+                      paymentQrUrl={event.payment_qr_url!}
+                      onPaymentSubmitted={handlePaymentSubmitted}
+                      isSubmitting={joinGuestlistWithPayment.isPending}
+                    />
+                  )}
                 </>}
             </>}
         </motion.div>}
