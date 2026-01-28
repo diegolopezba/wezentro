@@ -47,11 +47,11 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { planId } = await req.json();
+    const { planId, returnTo } = await req.json();
     if (!planId || !PRICE_IDS[planId as keyof typeof PRICE_IDS]) {
       throw new Error("Invalid plan ID");
     }
-    logStep("Plan ID received", { planId });
+    logStep("Plan ID received", { planId, returnTo });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -64,6 +64,11 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
+    
+    // Build success URL with optional return path
+    const successUrl = returnTo 
+      ? `${origin}/checkout-success?session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`
+      : `${origin}/checkout-success?session_id={CHECKOUT_SESSION_ID}`;
     
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -78,7 +83,7 @@ serve(async (req) => {
       subscription_data: {
         trial_period_days: 30,
       },
-      success_url: `${origin}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl,
       cancel_url: `${origin}/settings/subscription`,
       metadata: {
         user_id: user.id,

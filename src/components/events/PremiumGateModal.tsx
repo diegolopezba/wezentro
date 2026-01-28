@@ -1,19 +1,49 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Ticket, MessageCircle, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Crown, Ticket, MessageCircle, Users, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useState } from "react";
 
 interface PremiumGateModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  eventId?: string; // Optional: to return to this event after subscription
 }
 
-export function PremiumGateModal({ open, onOpenChange }: PremiumGateModalProps) {
-  const navigate = useNavigate();
+export function PremiumGateModal({ open, onOpenChange, eventId }: PremiumGateModalProps) {
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleActivateTrial = () => {
-    onOpenChange(false);
-    navigate("/subscription");
+  const handleActivateTrial = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout-session", {
+        body: {
+          planId: "user_premium",
+          returnTo: eventId ? `/event/${eventId}?showPayment=true` : undefined,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // On mobile/PWA, window.open is often blocked
+        const newWindow = window.open(data.url, "_blank");
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
+          window.location.href = data.url;
+        }
+        onOpenChange(false);
+      } else {
+        throw new Error("No checkout URL received");
+      }
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      toast.error("Error al iniciar el pago", {
+        description: "Por favor intenta de nuevo.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -63,13 +93,22 @@ export function PremiumGateModal({ open, onOpenChange }: PremiumGateModalProps) 
             variant="hero"
             className="w-full"
             onClick={handleActivateTrial}
+            disabled={isLoading}
           >
-            Activar Prueba Gratis
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Cargando...
+              </>
+            ) : (
+              "Activar Prueba Gratis"
+            )}
           </Button>
           <Button
             variant="ghost"
             className="w-full"
             onClick={() => onOpenChange(false)}
+            disabled={isLoading}
           >
             Cancelar
           </Button>
