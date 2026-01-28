@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, Users, UserCheck, UsersRound, BarChart3, TrendingUp, Repeat } from "lucide-react";
@@ -13,10 +14,16 @@ import {
 } from "@/hooks/useBusinessAnalytics";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { EventsPerformanceTable } from "@/components/dashboard/EventsPerformanceTable";
-import { GuestlistFunnel } from "@/components/dashboard/GuestlistFunnel";
-import { StatusPieChart } from "@/components/dashboard/StatusPieChart";
-import { EngagementChart } from "@/components/dashboard/EngagementChart";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+
+// Lazy load heavy chart components
+const GuestlistFunnel = lazy(() => import("@/components/dashboard/GuestlistFunnel").then(m => ({ default: m.GuestlistFunnel })));
+const StatusPieChart = lazy(() => import("@/components/dashboard/StatusPieChart").then(m => ({ default: m.StatusPieChart })));
+const EngagementChart = lazy(() => import("@/components/dashboard/EngagementChart").then(m => ({ default: m.EngagementChart })));
+
+const ChartSkeleton = () => (
+  <div className="h-64 bg-secondary/50 rounded-xl animate-pulse" />
+);
 
 const BusinessDashboard = () => {
   const navigate = useNavigate();
@@ -159,36 +166,42 @@ const BusinessDashboard = () => {
           </div>
         </section>
 
-        {/* Engagement Chart */}
+        {/* Engagement Chart - Lazy loaded */}
         <section>
           <h2 className="font-brand text-lg font-semibold text-foreground mb-3">
             Event Comparison
           </h2>
           <div className="rounded-2xl bg-card border border-border p-4">
-            <EngagementChart
-              events={eventPerformance || []}
-              isLoading={eventsLoading}
-            />
+            <Suspense fallback={<ChartSkeleton />}>
+              <EngagementChart
+                events={eventPerformance || []}
+                isLoading={eventsLoading}
+              />
+            </Suspense>
           </div>
         </section>
 
-        {/* Guestlist Analytics */}
+        {/* Guestlist Analytics - Lazy loaded */}
         <section>
           <h2 className="font-brand text-lg font-semibold text-foreground mb-3">
             Guestlist Funnel
           </h2>
           <div className="rounded-2xl bg-card border border-border p-4">
-            <GuestlistFunnel data={funnelData} isLoading={funnelLoading} />
+            <Suspense fallback={<ChartSkeleton />}>
+              <GuestlistFunnel data={funnelData} isLoading={funnelLoading} />
+            </Suspense>
           </div>
         </section>
 
-        {/* Status Breakdown */}
+        {/* Status Breakdown - Lazy loaded */}
         <section>
           <h2 className="font-brand text-lg font-semibold text-foreground mb-3">
             Request Status Breakdown
           </h2>
           <div className="rounded-2xl bg-card border border-border p-4">
-            <StatusPieChart data={statusBreakdown} isLoading={statusLoading} />
+            <Suspense fallback={<ChartSkeleton />}>
+              <StatusPieChart data={statusBreakdown} isLoading={statusLoading} />
+            </Suspense>
           </div>
         </section>
       </div>

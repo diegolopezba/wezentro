@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,41 +12,54 @@ import { NotificationFeedbackProvider } from "@/components/NotificationFeedbackP
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { SplashScreen } from "@/components/SplashScreen";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
-import Index from "./pages/Index";
-import Discover from "./pages/Discover";
-import Create from "./pages/Create";
-import Chats from "./pages/Chats";
-import ChatDetail from "./pages/ChatDetail";
-import Profile from "./pages/Profile";
-import Settings from "./pages/Settings";
-import Saved from "./pages/Saved";
-import Notifications from "./pages/Notifications";
-import Subscription from "./pages/Subscription";
-import CheckoutSuccess from "./pages/CheckoutSuccess";
-import PrivacySettings from "./pages/PrivacySettings";
-import EditProfile from "./pages/EditProfile";
-import EventDetail from "./pages/EventDetail";
-import Auth from "./pages/Auth";
-import Onboarding from "./pages/Onboarding";
-import UserProfile from "./pages/UserProfile";
-import Tickets from "./pages/Tickets";
-import YouAreGoing from "./pages/YouAreGoing";
-import BusinessDashboard from "./pages/BusinessDashboard";
-import JoinedEvents from "./pages/JoinedEvents";
-import Help from "./pages/Help";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfUse from "./pages/TermsOfUse";
-import Referrals from "./pages/Referrals";
-import NotFound from "./pages/NotFound";
+import { PageLoader } from "@/components/PageLoader";
 
-const queryClient = new QueryClient();
+// Lazy load all pages for code splitting
+const Index = lazy(() => import("./pages/Index"));
+const Discover = lazy(() => import("./pages/Discover"));
+const Create = lazy(() => import("./pages/Create"));
+const Chats = lazy(() => import("./pages/Chats"));
+const ChatDetail = lazy(() => import("./pages/ChatDetail"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Saved = lazy(() => import("./pages/Saved"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Subscription = lazy(() => import("./pages/Subscription"));
+const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
+const PrivacySettings = lazy(() => import("./pages/PrivacySettings"));
+const EditProfile = lazy(() => import("./pages/EditProfile"));
+const EventDetail = lazy(() => import("./pages/EventDetail"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
+const Tickets = lazy(() => import("./pages/Tickets"));
+const YouAreGoing = lazy(() => import("./pages/YouAreGoing"));
+const BusinessDashboard = lazy(() => import("./pages/BusinessDashboard"));
+const JoinedEvents = lazy(() => import("./pages/JoinedEvents"));
+const Help = lazy(() => import("./pages/Help"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
+const Referrals = lazy(() => import("./pages/Referrals"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Configure QueryClient with caching to eliminate refetching on navigation
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
 
   return (
     <>
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} minDisplayTime={1200} />}
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
@@ -60,200 +73,272 @@ const App = () => {
                     <LocationProvider>
                       <Routes>
                         {/* Public routes */}
-                        <Route path="/auth" element={<Auth />} />
-                        
-                        
-                          {/* Protected routes */}
-                          <Route
-                            path="/onboarding"
-                            element={
-                              <ProtectedRoute>
+                        <Route
+                          path="/auth"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <Auth />
+                            </Suspense>
+                          }
+                        />
+
+                        {/* Protected routes - each wrapped individually in Suspense */}
+                        <Route
+                          path="/onboarding"
+                          element={
+                            <ProtectedRoute>
+                              <Suspense fallback={<PageLoader />}>
                                 <Onboarding />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Index />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/discover"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/discover"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Discover />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/create"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/create"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Create />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/chats"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/chats"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Chats />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/chats/:id"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/chats/:id"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <ChatDetail />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/profile"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/profile"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Profile />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/settings"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Settings />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/saved"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/saved"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Saved />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/notifications"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/notifications"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Notifications />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/settings/notifications"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings/notifications"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Notifications />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/settings/subscription"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings/subscription"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Subscription />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/checkout-success"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/checkout-success"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <CheckoutSuccess />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/settings/privacy"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings/privacy"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <PrivacySettings />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/edit-profile"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/edit-profile"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <EditProfile />
-                              </ProtectedRoute>
-                            }
-                          />
-                          {/* Public event preview route */}
-                          <Route path="/event/:id" element={<EventDetail />} />
-                          <Route
-                            path="/user/:id"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        {/* Public event preview route */}
+                        <Route
+                          path="/event/:id"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <EventDetail />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="/user/:id"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <UserProfile />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/settings/tickets"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings/tickets"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Tickets />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/going/:id"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/going/:id"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <YouAreGoing />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/dashboard"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/dashboard"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <BusinessDashboard />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/settings/joined-events"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings/joined-events"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <JoinedEvents />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/settings/help"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings/help"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Help />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/settings/referrals"
-                            element={
-                              <ProtectedRoute requireProfile>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings/referrals"
+                          element={
+                            <ProtectedRoute requireProfile>
+                              <Suspense fallback={<PageLoader />}>
                                 <Referrals />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/privacy-policy"
-                            element={<PrivacyPolicy />}
-                          />
-                          <Route
-                            path="/terms"
-                            element={<TermsOfUse />}
-                          />
-                          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </LocationProvider>
+                              </Suspense>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/privacy-policy"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <PrivacyPolicy />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="/terms"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <TermsOfUse />
+                            </Suspense>
+                          }
+                        />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route
+                          path="*"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <NotFound />
+                            </Suspense>
+                          }
+                        />
+                      </Routes>
+                    </LocationProvider>
                   </PushNotificationPrompt>
                 </NotificationFeedbackProvider>
               </OneSignalProvider>

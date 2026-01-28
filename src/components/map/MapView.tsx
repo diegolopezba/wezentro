@@ -6,7 +6,7 @@ import { Event } from "@/hooks/useEvents";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { Loader2, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createMiniEventMarkerElement, injectMiniMarkerStyles } from "./MiniEventMarker";
+import { createDotMarkerElement, injectDotMarkerStyles } from "./MiniEventMarker";
 import { FoodLocation } from "@/hooks/useFoodLocations";
 import { FoodMarker, FoodMarkerPopup } from "./FoodMarker";
 import { createRoot } from "react-dom/client";
@@ -163,18 +163,17 @@ const MapView: React.FC<MapViewProps> = ({
     });
   }, [foodLocations, mapLoaded, clearFoodMarkers, onFoodMarkerClick]);
 
-  // Create custom mini event card markers
+  // Create custom red dot markers (lightweight, no images)
   const createCustomMarkers = useCallback((zoom: number) => {
     if (!map.current || !mapLoaded) return;
     
     clearCustomMarkers();
-    injectMiniMarkerStyles();
+    injectDotMarkerStyles();
 
     const unclusteredEvents = events.filter((event) => event.latitude && event.longitude);
     
     unclusteredEvents.forEach((event) => {
-      const markerElement = createMiniEventMarkerElement({
-        imageUrl: event.image_url || "/placeholder.svg",
+      const markerElement = createDotMarkerElement({
         isTonight: isEventTonight(event.start_datetime),
         zoom,
       });
