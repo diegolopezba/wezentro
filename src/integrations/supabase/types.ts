@@ -237,6 +237,7 @@ export type Database = {
           description: string | null
           end_datetime: string | null
           has_guestlist: boolean | null
+          has_guestlist_chat: boolean | null
           id: string
           image_url: string | null
           is_business_event: boolean | null
@@ -260,6 +261,7 @@ export type Database = {
           description?: string | null
           end_datetime?: string | null
           has_guestlist?: boolean | null
+          has_guestlist_chat?: boolean | null
           id?: string
           image_url?: string | null
           is_business_event?: boolean | null
@@ -283,6 +285,7 @@ export type Database = {
           description?: string | null
           end_datetime?: string | null
           has_guestlist?: boolean | null
+          has_guestlist_chat?: boolean | null
           id?: string
           image_url?: string | null
           is_business_event?: boolean | null
