@@ -27,12 +27,16 @@ const Tickets = () => {
           event_id,
           qr_code_token,
           joined_at,
+          status,
+          payment_status,
           event:events(
             id,
             title,
             image_url,
             start_datetime,
             location_name,
+            price,
+            payment_qr_url,
             creator:profiles!events_creator_id_fkey(
               id,
               username,
@@ -41,7 +45,7 @@ const Tickets = () => {
           )
         `)
         .eq("user_id", user.id)
-        .eq("status", "approved")
+        .in("status", ["approved", "pending"])
         .order("joined_at", { ascending: false });
 
       if (error) throw error;
@@ -55,6 +59,45 @@ const Tickets = () => {
     },
     enabled: !!user,
   });
+
+  const getPaymentStatusBadge = (paymentStatus: string | null, status: string) => {
+    if (paymentStatus === "pending") {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning">
+          Pago Pendiente
+        </span>
+      );
+    }
+    if (paymentStatus === "confirmed" && status === "pending") {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+          Pago Confirmado
+        </span>
+      );
+    }
+    if (paymentStatus === "rejected") {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive">
+          Pago Rechazado
+        </span>
+      );
+    }
+    if (status === "approved") {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+          Confirmado
+        </span>
+      );
+    }
+    if (status === "pending") {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground">
+          Pendiente
+        </span>
+      );
+    }
+    return null;
+  };
 
   return (
     <AppLayout>
@@ -86,14 +129,18 @@ const Tickets = () => {
               const eventDate = new Date(event.start_datetime);
               const formattedDate = format(eventDate, "EEE, d MMM · HH:mm", { locale: es });
               
-              return (
+                  // Only navigate to entry page if status is approved and payment is confirmed (or no payment needed)
+                  const canViewEntry = ticket.status === "approved" && 
+                    (ticket.payment_status === "none" || ticket.payment_status === "confirmed" || !ticket.payment_status);
+                  
+                  return (
                 <motion.button
                   key={ticket.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  onClick={() => navigate(`/going/${event.id}`)}
-                  className="w-full flex items-center gap-4 p-4 bg-secondary/30 hover:bg-secondary/50 rounded-2xl transition-colors"
+                  onClick={() => canViewEntry ? navigate(`/going/${event.id}`) : null}
+                  className={`w-full flex items-center gap-4 p-4 bg-secondary/30 hover:bg-secondary/50 rounded-2xl transition-colors ${!canViewEntry ? 'opacity-80' : ''}`}
                 >
                   {/* Event Image */}
                   <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-secondary">
@@ -112,15 +159,20 @@ const Tickets = () => {
 
                   {/* Event Info */}
                   <div className="flex-1 min-w-0 text-left">
-                    <h3 className="font-semibold text-foreground truncate">
-                      {event.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-0.5">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <h3 className="font-semibold text-foreground truncate">
+                        {event.title}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
                       {event.creator?.full_name || event.creator?.username}
                     </p>
-                    <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground/70">
-                      <Calendar className="w-3 h-3" />
-                      <span>{formattedDate}</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground/70">
+                        <Calendar className="w-3 h-3" />
+                        <span>{formattedDate}</span>
+                      </div>
+                      {getPaymentStatusBadge(ticket.payment_status, ticket.status)}
                     </div>
                   </div>
 

@@ -13,6 +13,7 @@ interface UpdateEventData {
   price?: number;
   max_guestlist_capacity?: number | null;
   has_guestlist?: boolean;
+  payment_qr_url?: string | null;
 }
 
 export function useUpdateEvent() {

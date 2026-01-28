@@ -5,7 +5,7 @@ import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Lo
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
-import { useIsOnGuestlist, useJoinGuestlist, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests } from "@/hooks/useGuestlist";
+import { useIsOnGuestlist, useJoinGuestlist, useJoinGuestlistWithPayment, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests, usePendingPayments } from "@/hooks/useGuestlist";
 import { useIsEventSaved, useSaveEvent, useUnsaveEvent, useSaveCount } from "@/hooks/useSavedEvents";
 import { useIsEventLiked, useLikeEvent, useUnlikeEvent, useEventLikes } from "@/hooks/useEventLikes";
 import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useReposts";
@@ -18,6 +18,8 @@ import { ShareGuestlistModal } from "@/components/events/ShareGuestlistModal";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
+import { PremiumGateModal } from "@/components/events/PremiumGateModal";
+import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { trackEventView } from "@/lib/analyticsTracking";
@@ -35,6 +37,8 @@ const EventDetail = () => {
   const [showGuestlistInviteModal, setShowGuestlistInviteModal] = useState(false);
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(true);
@@ -95,6 +99,9 @@ const EventDetail = () => {
     data: pendingRequests = []
   } = usePendingGuestlistRequests(id);
   const {
+    data: pendingPayments = []
+  } = usePendingPayments(id);
+  const {
     data: isSaved
   } = useIsEventSaved(id);
   const saveEvent = useSaveEvent();
@@ -112,14 +119,19 @@ const EventDetail = () => {
   const toggleRepost = useToggleRepost();
   const { data: saveCount = 0 } = useSaveCount(id);
   const joinGuestlist = useJoinGuestlist();
+  const joinGuestlistWithPayment = useJoinGuestlistWithPayment();
   const leaveGuestlist = useLeaveGuestlist();
   const isOnGuestlist = !!guestlistStatus;
   const isPending = guestlistStatus?.status === "pending";
   const isApproved = guestlistStatus?.status === "approved";
   const isOwner = user && user.id === event?.creator_id;
   const canInviteToGuestlist = user && (isOwner || isApproved);
-  const pendingCount = pendingRequests.length;
+  // Count pending requests AND pending payments for the badge
+  const pendingCount = pendingRequests.length + pendingPayments.length;
   const isAuthenticated = !!user;
+  
+  // Check if event has QR payment enabled
+  const hasPaymentQr = !!(event?.payment_qr_url && (event?.price || 0) > 0);
   const handleSaveToggle = async () => {
     if (!user) {
       toast.error("Inicia sesión para guardar eventos");
@@ -175,15 +187,34 @@ const EventDetail = () => {
       navigate("/auth");
       return;
     }
+    
+    // Check premium subscription first
     if (!hasSubscription) {
-      toast.error("Se requiere suscripción premium para unirse a listas");
+      setShowPremiumGate(true);
       return;
     }
+    
+    // Check if this is a paid event with QR payment
+    if (hasPaymentQr) {
+      setShowPaymentModal(true);
+      return;
+    }
+    
+    // Normal free event join
     try {
       await joinGuestlist.mutateAsync(id!);
       toast.success("¡Solicitud enviada!");
     } catch (error: any) {
       toast.error(error.message || "Error al unirse a la lista");
+    }
+  };
+  
+  const handlePaymentSubmitted = async () => {
+    try {
+      await joinGuestlistWithPayment.mutateAsync(id!);
+    } catch (error: any) {
+      toast.error(error.message || "Error al registrar pago");
+      throw error;
     }
   };
   const handleLeaveGuestlist = async () => {
@@ -453,7 +484,7 @@ const EventDetail = () => {
 
 
       {/* Guestlist Management Sheet */}
-      {isOwner && event.has_guestlist && <GuestlistManagementSheet eventId={id!} open={showManagement} onOpenChange={setShowManagement} />}
+      {isOwner && event.has_guestlist && <GuestlistManagementSheet eventId={id!} eventHasPaymentQr={hasPaymentQr} open={showManagement} onOpenChange={setShowManagement} />}
 
       {/* Share Event Modal */}
       <ShareEventModal eventId={id!} open={showShareModal} onOpenChange={setShowShareModal} />
@@ -466,6 +497,22 @@ const EventDetail = () => {
 
       {/* Delete Event Dialog - Owner only */}
       {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} />}
+      
+      {/* Premium Gate Modal */}
+      <PremiumGateModal open={showPremiumGate} onOpenChange={setShowPremiumGate} />
+      
+      {/* Payment QR Modal */}
+      {hasPaymentQr && (
+        <PaymentQRModal
+          open={showPaymentModal}
+          onOpenChange={setShowPaymentModal}
+          eventTitle={event.title || "Evento"}
+          price={event.price || 0}
+          paymentQrUrl={event.payment_qr_url!}
+          onPaymentSubmitted={handlePaymentSubmitted}
+          isSubmitting={joinGuestlistWithPayment.isPending}
+        />
+      )}
     </div>;
 };
 export default EventDetail;

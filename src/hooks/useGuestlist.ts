@@ -13,7 +13,7 @@ export const useIsOnGuestlist = (eventId: string | undefined) => {
 
       const { data, error } = await supabase
         .from("guestlist_entries")
-        .select("id, status")
+        .select("id, status, payment_status")
         .eq("event_id", eventId)
         .eq("user_id", user.id)
         .maybeSingle();
@@ -109,6 +109,73 @@ export const useJoinGuestlist = () => {
   });
 };
 
+// Join guestlist with pending payment status (for paid events with QR)
+export const useJoinGuestlistWithPayment = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (eventId: string) => {
+      if (!user) throw new Error("Must be logged in");
+
+      // Get user's profile and event details for notifications
+      const [{ data: userProfile }, { data: event }] = await Promise.all([
+        supabase.from("profiles").select("username").eq("id", user.id).single(),
+        supabase.from("events").select("creator_id, title, price").eq("id", eventId).single(),
+      ]);
+
+      // Insert guestlist entry with payment_status = 'pending'
+      const { data: entry, error: entryError } = await supabase
+        .from("guestlist_entries")
+        .insert({
+          event_id: eventId,
+          user_id: user.id,
+          status: "pending",
+          payment_status: "pending",
+        })
+        .select()
+        .single();
+
+      if (entryError) throw entryError;
+
+      // Find the event's group chat and add user as participant
+      const { data: chat } = await supabase
+        .from("chats")
+        .select("id")
+        .eq("event_id", eventId)
+        .eq("type", "event")
+        .maybeSingle();
+
+      if (chat) {
+        await supabase.from("chat_participants").insert({
+          chat_id: chat.id,
+          user_id: user.id,
+        });
+      }
+
+      // Notify event creator about payment registration
+      if (event && event.creator_id !== user.id) {
+        sendPushNotification({
+          userIds: [event.creator_id],
+          title: "Nuevo pago registrado",
+          body: `@${userProfile?.username || "Alguien"} registró un pago para ${event.title || "tu evento"}`,
+          data: { type: "payment_pending", eventId },
+          url: `/events/${eventId}`,
+        });
+      }
+
+      return entry;
+    },
+    onSuccess: (_, eventId) => {
+      queryClient.invalidateQueries({ queryKey: ["guestlist-status", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["event-guestlist", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["pending-payments", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["user-chats"] });
+      queryClient.invalidateQueries({ queryKey: ["user-tickets"] });
+    },
+  });
+};
+
 export const useLeaveGuestlist = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -181,6 +248,7 @@ export const usePendingGuestlistRequests = (eventId: string | undefined) => {
           id,
           user_id,
           status,
+          payment_status,
           joined_at,
           user:profiles!guestlist_entries_user_id_fkey(
             id,
@@ -191,6 +259,39 @@ export const usePendingGuestlistRequests = (eventId: string | undefined) => {
         `)
         .eq("event_id", eventId)
         .eq("status", "pending")
+        .order("joined_at", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!eventId,
+  });
+};
+
+// Get pending payment requests for an event
+export const usePendingPayments = (eventId: string | undefined) => {
+  return useQuery({
+    queryKey: ["pending-payments", eventId],
+    queryFn: async () => {
+      if (!eventId) return [];
+
+      const { data, error } = await supabase
+        .from("guestlist_entries")
+        .select(`
+          id,
+          user_id,
+          status,
+          payment_status,
+          joined_at,
+          user:profiles!guestlist_entries_user_id_fkey(
+            id,
+            username,
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq("event_id", eventId)
+        .eq("payment_status", "pending")
         .order("joined_at", { ascending: true });
 
       if (error) throw error;
@@ -267,6 +368,87 @@ export const useRejectGuestlistEntry = () => {
       if (error) throw error;
     },
     onSuccess: (_, { eventId }) => {
+      queryClient.invalidateQueries({ queryKey: ["pending-guestlist", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["pending-payments", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["event-guestlist", eventId] });
+    },
+  });
+};
+
+// Confirm payment for a guestlist entry
+export const useConfirmPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ entryId, eventId, userId }: { entryId: string; eventId: string; userId: string }) => {
+      // Get event details for notification
+      const { data: event } = await supabase
+        .from("events")
+        .select("title")
+        .eq("id", eventId)
+        .single();
+
+      // Update payment_status to confirmed
+      const { error } = await supabase
+        .from("guestlist_entries")
+        .update({ 
+          payment_status: "confirmed",
+          payment_confirmed_at: new Date().toISOString(),
+        })
+        .eq("id", entryId);
+
+      if (error) throw error;
+
+      // Send push notification to the user
+      sendPushNotification({
+        userIds: [userId],
+        title: "¡Pago confirmado!",
+        body: `Tu entrada para ${event?.title || "el evento"} está lista`,
+        data: { type: "payment_confirmed", eventId },
+        url: `/going/${eventId}`,
+      });
+    },
+    onSuccess: (_, { eventId }) => {
+      queryClient.invalidateQueries({ queryKey: ["pending-payments", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["pending-guestlist", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["event-guestlist", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["user-tickets"] });
+    },
+  });
+};
+
+// Reject payment for a guestlist entry
+export const useRejectPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ entryId, eventId, userId }: { entryId: string; eventId: string; userId: string }) => {
+      // Get event details for notification
+      const { data: event } = await supabase
+        .from("events")
+        .select("title")
+        .eq("id", eventId)
+        .single();
+
+      // Update payment_status to rejected
+      const { error } = await supabase
+        .from("guestlist_entries")
+        .update({ payment_status: "rejected" })
+        .eq("id", entryId);
+
+      if (error) throw error;
+
+      // Send push notification to the user
+      sendPushNotification({
+        userIds: [userId],
+        title: "Pago rechazado",
+        body: `Tu pago para ${event?.title || "el evento"} fue rechazado. Contacta al organizador.`,
+        data: { type: "payment_rejected", eventId },
+        url: `/events/${eventId}`,
+      });
+    },
+    onSuccess: (_, { eventId }) => {
+      queryClient.invalidateQueries({ queryKey: ["pending-payments", eventId] });
       queryClient.invalidateQueries({ queryKey: ["pending-guestlist", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event-guestlist", eventId] });
     },

@@ -19,23 +19,28 @@ const YouAreGoing = () => {
   const { data: event, isLoading } = useEvent(id);
   const [showQR, setShowQR] = useState(false);
 
-  // Get the user's QR code token from guestlist_entries
+  // Get the user's guestlist entry with payment status
   const { data: guestlistEntry } = useQuery({
     queryKey: ["guestlist-entry", id, user?.id],
     queryFn: async () => {
       if (!id || !user) return null;
       const { data, error } = await supabase
         .from("guestlist_entries")
-        .select("qr_code_token")
+        .select("qr_code_token, status, payment_status")
         .eq("event_id", id)
         .eq("user_id", user.id)
-        .eq("status", "approved")
         .maybeSingle();
       if (error) throw error;
       return data;
     },
     enabled: !!id && !!user,
   });
+
+  // Check if user can view QR (must be approved and payment confirmed if payment was required)
+  const canViewQr = guestlistEntry?.status === "approved" && 
+    (guestlistEntry?.payment_status === "none" || 
+     guestlistEntry?.payment_status === "confirmed" || 
+     !guestlistEntry?.payment_status);
 
   if (isLoading || !event) {
     return (
@@ -125,14 +130,30 @@ const YouAreGoing = () => {
 
             {/* Buttons */}
             <div className="flex flex-col gap-3 pt-4">
-              <Button
-                onClick={() => setShowQR(true)}
-                className="w-full bg-white text-black hover:bg-white/90 rounded-xl font-semibold"
-                size="lg"
-              >
-                <QrCode className="w-4 h-4 mr-2" />
-                Mostrar QR
-              </Button>
+              {canViewQr ? (
+                <Button
+                  onClick={() => setShowQR(true)}
+                  className="w-full bg-white text-black hover:bg-white/90 rounded-xl font-semibold"
+                  size="lg"
+                >
+                  <QrCode className="w-4 h-4 mr-2" />
+                  Mostrar QR
+                </Button>
+              ) : guestlistEntry?.payment_status === "pending" ? (
+                <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm">
+                  <p className="text-white/80 text-sm text-center">
+                    Tu pago está siendo verificado por el organizador. 
+                    Una vez confirmado, podrás ver tu QR de entrada.
+                  </p>
+                </div>
+              ) : guestlistEntry?.status === "pending" ? (
+                <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm">
+                  <p className="text-white/80 text-sm text-center">
+                    Tu solicitud está pendiente de aprobación. 
+                    Una vez aprobada, podrás ver tu QR de entrada.
+                  </p>
+                </div>
+              ) : null}
             </div>
           </div>
         </motion.div>
