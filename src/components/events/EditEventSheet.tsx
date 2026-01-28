@@ -319,7 +319,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           <Button
             className="w-full"
             onClick={handleSave}
-            disabled={updateEvent.isPending || !formData.title}
+            disabled={updateEvent.isPending}
           >
             {updateEvent.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
