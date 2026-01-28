@@ -233,8 +233,8 @@ const Discover = () => {
 
   return (
     <AppLayout>
-      {/* Full screen map container */}
-      <div className="relative h-[calc(100vh-80px)] bg-secondary">
+      {/* Full screen map container - use fixed height on mobile for PWA compatibility */}
+      <div className="relative bg-secondary" style={{ height: 'calc(100dvh - 80px)', minHeight: '400px' }}>
         {/* Mapbox Map - pass original events for markers, filtered for visibility */}
         <MapView
           events={showFoodMarkers ? [] : filteredEvents}
