@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, X, Bookmark, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,6 +25,7 @@ import { isVideoUrl } from "@/lib/mediaUtils";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 export const EventDetailOverlay = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     user
   } = useAuth();
@@ -92,6 +93,18 @@ export const EventDetailOverlay = () => {
   
   // Check if event has QR payment enabled
   const hasPaymentQr = !!(event?.payment_qr_url && (event?.price || 0) > 0);
+
+  // Check for showPayment query param (returned from checkout success)
+  useEffect(() => {
+    const shouldShowPayment = searchParams.get("showPayment") === "true";
+    if (shouldShowPayment && hasPaymentQr && hasSubscription && !isOnGuestlist) {
+      setShowPaymentModal(true);
+      // Remove the query param after showing the modal
+      searchParams.delete("showPayment");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, hasPaymentQr, hasSubscription, isOnGuestlist, setSearchParams]);
+
   const handleSaveToggle = async () => {
     if (!user) {
       toast.error("Inicia sesión para guardar eventos");
@@ -480,6 +493,7 @@ export const EventDetailOverlay = () => {
                   <PremiumGateModal 
                     open={showPremiumGate} 
                     onOpenChange={setShowPremiumGate}
+                    eventId={selectedEventId || undefined}
                   />
                   {hasPaymentQr && (
                     <PaymentQRModal
