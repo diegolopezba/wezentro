@@ -10,6 +10,19 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-query": ["@tanstack/react-query"],
+          "vendor-ui": ["framer-motion", "@radix-ui/react-dialog", "@radix-ui/react-popover", "@radix-ui/react-select"],
+          "vendor-map": ["mapbox-gl"],
+          "vendor-charts": ["recharts"],
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
