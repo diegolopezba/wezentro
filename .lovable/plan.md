@@ -1,188 +1,248 @@
 
-# Referral Program Implementation Plan
+
+# QR Payment Ticket System Implementation Plan
 
 ## Overview
-Create a referral system where users can invite others via unique referral links. When 5 users sign up through a referrer's link, they earn 1 free month of Zentro Premium subscription. Each user can only redeem this reward once.
+Enable event organizers to optionally sell tickets through Zentro using QR code payments. The payment flow only activates when BOTH a price is set AND a payment QR is uploaded. Otherwise, price is displayed as information only.
+
+---
+
+## Payment Flow Logic
+
+| Scenario | Price | QR Uploaded | Behavior |
+|----------|-------|-------------|----------|
+| Free event | 0 | No | Normal guestlist join |
+| Display price only | > 0 | No | Show price, normal join |
+| QR payment enabled | > 0 | Yes | Full QR payment flow |
 
 ---
 
 ## Database Changes
 
-### New Table: `referrals`
-Tracks all referral relationships and codes.
-
+### Modify `events` table
 | Column | Type | Description |
 |--------|------|-------------|
-| id | uuid | Primary key |
-| referrer_id | uuid | User who shared the link (FK to profiles) |
-| referred_user_id | uuid | User who signed up (FK to profiles) |
-| referral_code | text | The code used for signup |
-| created_at | timestamptz | When referral was recorded |
-| status | text | 'pending' or 'completed' |
+| payment_qr_url | text | URL of payment QR image (nullable) |
 
-### New Table: `referral_rewards`
-Tracks reward redemption status.
-
+### Modify `guestlist_entries` table
 | Column | Type | Description |
 |--------|------|-------------|
-| id | uuid | Primary key |
-| user_id | uuid | Referrer who earned reward (FK to profiles, UNIQUE) |
-| reward_type | text | 'free_month' |
-| redeemed_at | timestamptz | When reward was claimed |
-| stripe_coupon_id | text | Applied Stripe coupon ID |
-| created_at | timestamptz | When reward was earned |
+| payment_status | text | 'none', 'pending', 'confirmed', 'rejected' (default: 'none') |
+| payment_confirmed_at | timestamptz | When organizer confirmed payment |
 
-### Profile Extension
-Add `referral_code` column to `profiles` table:
-- Unique short code per user (e.g., "ZENTRO_abc123")
-- Generated on first access to referral page
+---
+
+## User Flows
+
+### Organizer Flow (Zentro Business Only)
+```text
+Create/Edit Event (must have Zentro Business)
+    ↓
+Enable Guestlist
+    ↓
+Set Price (optional, for display or payment)
+    ↓
+Want in-app payments? → Upload Payment QR
+    ↓
+Event Published
+    ↓
+If QR uploaded → Manage payments in Guestlist tab
+```
+
+### Attendee Flow - No QR (Price Display Only)
+```text
+User clicks "Unirse" on event with price but no QR
+    ↓
+Not Premium? → Premium Gate Modal → Subscription
+    ↓
+Is Premium? → Normal guestlist join (status: pending)
+    ↓
+Organizer approves → User on guestlist
+```
+
+### Attendee Flow - With QR Payment
+```text
+User clicks "Unirse" on event with price AND QR
+    ↓
+Not Premium? → Premium Gate Modal
+   "Para unirte a listas y comprar entradas,
+    necesitas Zentro Premium. ¡El primer mes es gratis!"
+    ↓
+Is Premium? → Payment QR Modal
+   Step 1: Show blurred QR + price + "Ver QR de Pago"
+    ↓
+   Step 2: Unblur QR + instructions
+   "Captura pantalla y paga desde tu banco"
+    ↓
+User clicks "Ya Pagué"
+   → Create guestlist entry (status: pending, payment_status: pending)
+   → Show confirmation: "Tu entrada aparecerá en Entradas"
+    ↓
+Organizer confirms payment → payment_status: confirmed
+    ↓
+Organizer approves guestlist → status: approved
+    ↓
+User can view entry QR at gate
+```
 
 ---
 
 ## Implementation Phases
 
-### Phase 1: Database Setup
-1. Create `referrals` table with RLS policies
-2. Create `referral_rewards` table with RLS policies
-3. Add `referral_code` column to `profiles`
-4. Create database function to generate unique referral codes
-5. Create trigger to track successful referrals
+### Phase 1: Database Migration
+- Add `payment_qr_url` to `events` table (nullable)
+- Add `payment_status` to `guestlist_entries` (default: 'none')
+- Add `payment_confirmed_at` to `guestlist_entries`
 
-### Phase 2: Auth Flow Integration
-1. Update Auth.tsx to capture `?ref=CODE` query parameter
-2. Store referral code in localStorage before signup
-3. After successful signup, record referral in database
-4. Update Onboarding.tsx to process stored referral
+### Phase 2: Organizer QR Upload (Business Only)
 
-### Phase 3: Backend Edge Functions
+**Files to modify:**
+- `src/pages/Create.tsx` - Add optional QR upload section when price > 0
+- `src/components/events/EditEventSheet.tsx` - Add QR upload/remove section
+- `src/hooks/useEventMutations.ts` - Include payment_qr_url in update
 
-**New: `process-referral` function**
-- Called after new user completes onboarding
-- Validates referral code exists
-- Creates referral record
-- Checks if referrer now has 5+ referrals
-- If yes and not yet rewarded, triggers reward
+**UI Behavior:**
+- QR upload section appears only when price > 0 AND user has Zentro Business
+- Label: "QR de Pago (opcional)" with helper text explaining it enables in-app payments
+- If no QR: price shown as display only, normal join flow
 
-**New: `apply-referral-reward` function**
-- Creates a Stripe coupon for 1 free month
-- Applies to referrer's next billing cycle
-- Marks reward as redeemed in database
-- Sends notification to referrer
+### Phase 3: Premium Gate Modal
 
-**New: `generate-referral-code` function**
-- Generates unique short code for user
-- Updates profile with code
-- Returns shareable link
+**Create:** `src/components/events/PremiumGateModal.tsx`
+- Spanish copy explaining Zentro Premium benefits
+- Highlights free trial
+- Buttons: "Activar Prueba Gratis" / "Cancelar"
 
-### Phase 4: Frontend - Referral Page
+### Phase 4: Payment QR Modal
 
-**New Page: `/settings/referrals` (Referrals.tsx)**
+**Create:** `src/components/events/PaymentQRModal.tsx`
+- Two-step flow: blurred → unblurred
+- Shows event name and price
+- Instructions for bank payment
+- "Ya Pagué" button to submit
 
-UI Components:
-1. **Share Section**
-   - User's unique referral link with copy button
-   - Native share button (Web Share API)
-   - Visual: Personalized referral card
+### Phase 5: Join Flow Integration
 
-2. **Progress Tracker**
-   - Shows X/5 referrals completed
-   - Progress bar with milestone markers
-   - List of referred usernames (partial for privacy)
-
-3. **Reward Status**
-   - If < 5: "Invite 5 friends to earn 1 free month!"
-   - If = 5 and not redeemed: "Claim your free month!" button
-   - If redeemed: "Reward claimed! Keep inviting to help friends discover Zentro"
-
-### Phase 5: Settings Integration
-1. Add "Invitar Amigos" option to Settings.tsx
-2. Add referral badge/indicator on Profile page
-3. Add notification when referral signs up
-4. Add notification when reward is earned
-
----
-
-## Technical Details
-
-### Referral Link Format
-```
-https://wezentro.lovable.app/auth?ref=ZENTRO_abc123
-```
-
-### Referral Code Generation
+**Modify:** `src/pages/EventDetail.tsx`
 ```typescript
-// 8 character alphanumeric + prefix
-const code = `ZENTRO_${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+const handleJoinGuestlist = () => {
+  if (!hasSubscription) {
+    setShowPremiumGate(true);
+    return;
+  }
+  
+  // Only trigger payment flow if BOTH price > 0 AND QR exists
+  if (event.price > 0 && event.payment_qr_url) {
+    setShowPaymentModal(true);
+    return;
+  }
+  
+  // Normal join (free or display-only price)
+  joinGuestlist();
+};
 ```
 
-### Stripe Free Month Implementation
-- Create a 100% off coupon valid for 1 month
-- Apply via Stripe API to customer's subscription
-- Only works if user has active subscription
+**Modify:** `src/hooks/useGuestlist.ts`
+- Add payment_status handling to join mutation
+- Add `useConfirmPayment` and `useRejectPayment` mutations
 
-### RLS Policies
-- Users can only read their own referral data
-- Users can see count of their successful referrals
-- Referral creation only via backend (service role)
+### Phase 6: Organizer Payment Management
 
----
+**Modify:** `src/components/events/GuestlistManagementSheet.tsx`
+- Add "Pagos Pendientes" section (only shows if event has payment_qr_url)
+- Filter users where payment_status = 'pending'
+- "Confirmar Pago" / "Rechazar" buttons
+- Success notification on confirmation
 
-## Files to Create/Modify
+### Phase 7: Tickets Page Updates
 
-| File | Action |
-|------|--------|
-| `src/pages/Referrals.tsx` | **Create** - Referral program page |
-| `src/hooks/useReferrals.ts` | **Create** - Hook for referral data |
-| `src/pages/Settings.tsx` | **Modify** - Add referrals menu item |
-| `src/pages/Auth.tsx` | **Modify** - Capture ref query param |
-| `src/pages/Onboarding.tsx` | **Modify** - Process referral after signup |
-| `src/App.tsx` | **Modify** - Add /settings/referrals route |
-| `supabase/functions/process-referral/index.ts` | **Create** - Backend referral processing |
-| `supabase/functions/apply-referral-reward/index.ts` | **Create** - Apply Stripe reward |
-| Database migration | **Create** - Tables and functions |
+**Modify:** `src/pages/Tickets.tsx`
+- Show payment status badge:
+  - "Pago Pendiente" (yellow) - waiting for organizer
+  - "Pago Confirmado" (green) - can show entry QR
+  - "Pago Rechazado" (red) - payment declined
+- Gate entry QR until payment_status = 'confirmed'
+
+**Modify:** `src/pages/YouAreGoing.tsx`
+- Same payment status logic
 
 ---
 
-## User Flow
+## Files Summary
 
-```text
-+------------------+     +------------------+     +------------------+
-|   User A shares  | --> |   User B clicks  | --> |   User B signs   |
-|   referral link  |     |   link with ?ref |     |   up on Zentro   |
-+------------------+     +------------------+     +------------------+
-                                                          |
-                                                          v
-                         +------------------+     +------------------+
-                         |   User A gets    | <-- |   Referral is    |
-                         |   notification   |     |   recorded in DB |
-                         +------------------+     +------------------+
-                                  |
-                                  v
-                         +------------------+
-                         |   After 5 refs,  |
-                         |   User A claims  |
-                         |   free month     |
-                         +------------------+
+| File | Action | Description |
+|------|--------|-------------|
+| Database migration | Create | Add payment fields |
+| `PremiumGateModal.tsx` | Create | Premium explainer modal |
+| `PaymentQRModal.tsx` | Create | QR payment flow modal |
+| `Create.tsx` | Modify | Optional QR upload for Business |
+| `EditEventSheet.tsx` | Modify | QR management for Business |
+| `EventDetail.tsx` | Modify | Integrate payment flow |
+| `useGuestlist.ts` | Modify | Payment mutations |
+| `useEventMutations.ts` | Modify | Include payment_qr_url |
+| `GuestlistManagementSheet.tsx` | Modify | Payment confirmation UI |
+| `Tickets.tsx` | Modify | Payment status display |
+| `YouAreGoing.tsx` | Modify | Gate QR on payment |
+
+---
+
+## UI Copy (Spanish)
+
+**Premium Gate Modal:**
+```
+Title: "Únete a la Lista y Compra Entradas"
+Body: "Para unirte a listas de eventos y comprar entradas, 
+       necesitas ser suscriptor de Zentro Premium."
+Highlight: "🎉 ¡Tu primer mes es GRATIS!"
+CTA: "Activar Prueba Gratis"
+Secondary: "Cancelar"
+```
+
+**Payment QR Modal - Step 1 (Blurred):**
+```
+Title: "{Event Name}"
+Subtitle: "Precio: Bs {price}"
+Body: "Para confirmar tu lugar, realiza el pago escaneando el QR"
+Button: "Ver QR de Pago"
+```
+
+**Payment QR Modal - Step 2 (Unblurred):**
+```
+Instructions:
+"1. Captura pantalla del QR
+ 2. Abre tu app de banco
+ 3. Escanea y paga Bs {price}"
+Button: "Ya Pagué"
+```
+
+**After Payment Submitted:**
+```
+Title: "¡Pago Registrado!"
+Body: "El organizador confirmará tu pago. 
+       Esto puede tomar unos minutos o un par de horas."
+Info: "Tu entrada aparecerá en la sección 'Entradas' de tu perfil."
+Button: "Ver Entradas"
 ```
 
 ---
 
-## Edge Cases Handled
+## Edge Cases
 
-1. **Self-referral prevention**: Check referrer_id != referred_user_id
-2. **Duplicate referrals**: Unique constraint on referred_user_id
-3. **Invalid codes**: Validate code exists before recording
-4. **Already redeemed**: Check referral_rewards before allowing claim
-5. **No subscription**: Reward only applies to future subscription
-6. **Code collision**: UUID-based generation prevents collisions
+1. **Price = 0**: Skip payment flow, normal join
+2. **Price > 0, no QR**: Show price as info, normal join (no payment tracking)
+3. **Price > 0, has QR**: Full payment flow with confirmation
+4. **User closes modal before "Ya Pagué"**: No entry created, can retry
+5. **Organizer removes QR after users have pending payments**: Existing pending payments remain, can still be confirmed
+6. **Non-Business user tries to add QR**: QR upload section not shown (gated by subscription check)
 
 ---
 
 ## Notifications
 
-New notification type: `referral_signup`
-- "¡@username se unió usando tu enlace! (X/5 para tu mes gratis)"
+**To User:**
+- "¡Pago confirmado! Tu entrada para {event} está lista"
+- "Tu pago para {event} fue rechazado. Contacta al organizador."
 
-New notification type: `referral_reward_earned`
-- "¡Felicidades! Has ganado 1 mes gratis de Zentro Premium"
+**To Organizer:**
+- "@username registró un pago para {event}" (shown in pending payments list)
 
