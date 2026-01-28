@@ -290,10 +290,23 @@ const MapView: React.FC<MapViewProps> = ({
   useEffect(() => {
     if (!mapContainer.current || map.current || !mapboxToken) return;
 
+    // Ensure container has dimensions before initializing
+    const container = mapContainer.current;
+    const rect = container.getBoundingClientRect();
+    
+    // If container has no dimensions, wait for next frame
+    if (rect.width === 0 || rect.height === 0) {
+      const frameId = requestAnimationFrame(() => {
+        // Force a re-render by setting a state or just re-triggering
+        setMapLoaded(false);
+      });
+      return () => cancelAnimationFrame(frameId);
+    }
+
     mapboxgl.accessToken = mapboxToken;
 
     map.current = new mapboxgl.Map({
-      container: mapContainer.current,
+      container: container,
       style: "mapbox://styles/mapbox/dark-v11",
       center: WORLD_VIEW.center,
       zoom: WORLD_VIEW.zoom,
@@ -485,8 +498,12 @@ const MapView: React.FC<MapViewProps> = ({
   }
 
   return (
-    <div className="absolute inset-0">
-      <div ref={mapContainer} className="absolute inset-0" />
+    <div className="absolute inset-0 w-full h-full" style={{ minHeight: '100%', minWidth: '100%' }}>
+      <div 
+        ref={mapContainer} 
+        className="absolute inset-0 w-full h-full" 
+        style={{ minHeight: '300px', minWidth: '100%' }}
+      />
 
       {/* Refresh Location Button */}
       <Button
