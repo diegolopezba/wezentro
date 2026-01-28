@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Upload, X, QrCode } from "lucide-react";
+import { Loader2, Upload, X, QrCode, MessageCircle } from "lucide-react";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -26,6 +26,7 @@ interface EditEventSheetProps {
     price?: number | null;
     max_guestlist_capacity?: number | null;
     has_guestlist?: boolean | null;
+    has_guestlist_chat?: boolean | null;
     payment_qr_url?: string | null;
   };
   open: boolean;
@@ -60,6 +61,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
     price: event.price?.toString() || "0",
     max_guestlist_capacity: event.max_guestlist_capacity?.toString() || "",
     has_guestlist: event.has_guestlist || false,
+    has_guestlist_chat: event.has_guestlist_chat ?? true,
     payment_qr_url: event.payment_qr_url || "",
   });
 
@@ -74,6 +76,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
         price: event.price?.toString() || "0",
         max_guestlist_capacity: event.max_guestlist_capacity?.toString() || "",
         has_guestlist: event.has_guestlist || false,
+        has_guestlist_chat: event.has_guestlist_chat ?? true,
         payment_qr_url: event.payment_qr_url || "",
       });
     }
@@ -132,6 +135,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           price: parseFloat(formData.price) || 0,
           max_guestlist_capacity: formData.max_guestlist_capacity ? parseInt(formData.max_guestlist_capacity) : null,
           has_guestlist: formData.has_guestlist,
+          has_guestlist_chat: formData.has_guestlist ? formData.has_guestlist_chat : null,
           payment_qr_url: formData.payment_qr_url || null,
         },
       });
@@ -247,17 +251,39 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           </div>
 
           {formData.has_guestlist && (
-            <div className="space-y-2">
-              <Label htmlFor="capacity">Capacidad máxima (opcional)</Label>
-              <Input
-                id="capacity"
-                type="number"
-                min="1"
-                value={formData.max_guestlist_capacity}
-                onChange={(e) => setFormData({ ...formData, max_guestlist_capacity: e.target.value })}
-                placeholder="Dejar vacío para ilimitado"
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="capacity">Capacidad máxima (opcional)</Label>
+                <Input
+                  id="capacity"
+                  type="number"
+                  min="1"
+                  value={formData.max_guestlist_capacity}
+                  onChange={(e) => setFormData({ ...formData, max_guestlist_capacity: e.target.value })}
+                  placeholder="Dejar vacío para ilimitado"
+                />
+              </div>
+
+              {/* Group chat toggle */}
+              <div className="flex items-center justify-between py-2">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex flex-col">
+                    <Label htmlFor="guestlist-chat">Chat grupal</Label>
+                    <span className="text-xs text-muted-foreground">
+                      Crear un chat con todos los invitados
+                    </span>
+                  </div>
+                </div>
+                <Switch
+                  id="guestlist-chat"
+                  checked={formData.has_guestlist_chat}
+                  onCheckedChange={(checked) => {
+                    setFormData({ ...formData, has_guestlist_chat: checked });
+                  }}
+                />
+              </div>
+            </>
           )}
 
           {/* Payment QR Section - Only for Business users with price > 0 and guestlist enabled */}
