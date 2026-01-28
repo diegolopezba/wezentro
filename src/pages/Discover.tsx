@@ -276,7 +276,7 @@ const Discover = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 right-0 mt-2 bg-card/95 backdrop-blur-md rounded-xl border border-border/50 shadow-elevated overflow-hidden max-h-[60vh]"
+                    className="absolute top-full left-0 right-0 mt-2 bg-card/95 backdrop-blur-md rounded-xl border border-border/50 shadow-elevated overflow-hidden max-h-[60vh] z-50"
                   >
                     {/* Tabs */}
                     <div className="flex border-b border-border/50">
