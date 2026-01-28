@@ -19,6 +19,7 @@ export interface Event {
   is_post: boolean;
   creator_id: string;
   created_at: string;
+  payment_qr_url: string | null;
   creator?: {
     id: string;
     username: string;

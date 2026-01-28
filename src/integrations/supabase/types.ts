@@ -246,6 +246,7 @@ export type Database = {
           location_name: string | null
           longitude: number | null
           max_guestlist_capacity: number | null
+          payment_qr_url: string | null
           price: number | null
           requires_premium: boolean | null
           start_datetime: string | null
@@ -268,6 +269,7 @@ export type Database = {
           location_name?: string | null
           longitude?: number | null
           max_guestlist_capacity?: number | null
+          payment_qr_url?: string | null
           price?: number | null
           requires_premium?: boolean | null
           start_datetime?: string | null
@@ -290,6 +292,7 @@ export type Database = {
           location_name?: string | null
           longitude?: number | null
           max_guestlist_capacity?: number | null
+          payment_qr_url?: string | null
           price?: number | null
           requires_premium?: boolean | null
           start_datetime?: string | null
@@ -348,6 +351,8 @@ export type Database = {
           event_id: string
           id: string
           joined_at: string | null
+          payment_confirmed_at: string | null
+          payment_status: string | null
           qr_code_token: string | null
           status: string | null
           user_id: string
@@ -358,6 +363,8 @@ export type Database = {
           event_id: string
           id?: string
           joined_at?: string | null
+          payment_confirmed_at?: string | null
+          payment_status?: string | null
           qr_code_token?: string | null
           status?: string | null
           user_id: string
@@ -368,6 +375,8 @@ export type Database = {
           event_id?: string
           id?: string
           joined_at?: string | null
+          payment_confirmed_at?: string | null
+          payment_status?: string | null
           qr_code_token?: string | null
           status?: string | null
           user_id?: string

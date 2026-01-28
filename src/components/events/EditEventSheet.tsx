@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,12 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, X, QrCode } from "lucide-react";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useUserSubscription } from "@/hooks/useSubscription";
 import { SubscriptionUpsellModal } from "@/components/subscription/SubscriptionUpsellModal";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EditEventSheetProps {
   event: {
@@ -25,6 +26,7 @@ interface EditEventSheetProps {
     price?: number | null;
     max_guestlist_capacity?: number | null;
     has_guestlist?: boolean | null;
+    payment_qr_url?: string | null;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -46,6 +48,8 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
   const { data: subscription } = useUserSubscription();
   const hasBusinessSubscription = subscription?.plan_type === "business_premium";
   const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [isUploadingQr, setIsUploadingQr] = useState(false);
+  const qrInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     title: event.title || "",
@@ -56,6 +60,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
     price: event.price?.toString() || "0",
     max_guestlist_capacity: event.max_guestlist_capacity?.toString() || "",
     has_guestlist: event.has_guestlist || false,
+    payment_qr_url: event.payment_qr_url || "",
   });
 
   useEffect(() => {
@@ -69,9 +74,50 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
         price: event.price?.toString() || "0",
         max_guestlist_capacity: event.max_guestlist_capacity?.toString() || "",
         has_guestlist: event.has_guestlist || false,
+        payment_qr_url: event.payment_qr_url || "",
       });
     }
   }, [open, event]);
+
+  const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor sube una imagen");
+      return;
+    }
+
+    setIsUploadingQr(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("No autenticado");
+        return;
+      }
+
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${session.user.id}/payment-qr-${event.id}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("event-images")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("event-images").getPublicUrl(fileName);
+      setFormData({ ...formData, payment_qr_url: data.publicUrl });
+      toast.success("QR de pago subido");
+    } catch (error: any) {
+      toast.error(error.message || "Error al subir QR");
+    } finally {
+      setIsUploadingQr(false);
+    }
+  };
+
+  const removePaymentQr = () => {
+    setFormData({ ...formData, payment_qr_url: "" });
+  };
 
   const handleSave = async () => {
     try {
@@ -86,6 +132,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           price: parseFloat(formData.price) || 0,
           max_guestlist_capacity: formData.max_guestlist_capacity ? parseInt(formData.max_guestlist_capacity) : null,
           has_guestlist: formData.has_guestlist,
+          payment_qr_url: formData.payment_qr_url || null,
         },
       });
       toast.success("Evento actualizado exitosamente");
@@ -94,6 +141,8 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
       toast.error(error.message || "Error al actualizar evento");
     }
   };
+
+  const showPaymentQrSection = hasBusinessSubscription && formData.has_guestlist && parseFloat(formData.price) > 0;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -208,6 +257,60 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
                 onChange={(e) => setFormData({ ...formData, max_guestlist_capacity: e.target.value })}
                 placeholder="Dejar vacío para ilimitado"
               />
+            </div>
+          )}
+
+          {/* Payment QR Section - Only for Business users with price > 0 and guestlist enabled */}
+          {showPaymentQrSection && (
+            <div className="space-y-2 p-4 rounded-xl bg-secondary/50 border border-border">
+              <div className="flex items-center gap-2 mb-2">
+                <QrCode className="w-4 h-4 text-primary" />
+                <Label>QR de Pago (opcional)</Label>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Sube un QR de pago para habilitar la compra de entradas dentro de la app
+              </p>
+              
+              {formData.payment_qr_url ? (
+                <div className="relative w-32 h-32 mx-auto">
+                  <img
+                    src={formData.payment_qr_url}
+                    alt="QR de pago"
+                    className="w-full h-full object-contain rounded-xl bg-white p-2"
+                  />
+                  <button
+                    type="button"
+                    onClick={removePaymentQr}
+                    className="absolute -top-2 -right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    ref={qrInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleQrUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full border-dashed"
+                    onClick={() => qrInputRef.current?.click()}
+                    disabled={isUploadingQr}
+                  >
+                    {isUploadingQr ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : (
+                      <Upload className="w-4 h-4 mr-2" />
+                    )}
+                    Subir QR de Pago
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
