@@ -127,7 +127,6 @@ const Discover = () => {
       hasAutoOpenedRef.current = true;
       setTimeout(() => {
         setIsNearbyOpen(true);
-        toast.success(`¡${filteredEvents.length} eventos cerca de ti!`);
       }, 500);
     }
   };
