@@ -1,186 +1,202 @@
 
-# Performance Optimization Implementation
+# Guest Browsing Mode Implementation Plan
 
 ## Overview
-Comprehensive optimizations to significantly reduce load times and improve navigation smoothness, with all map markers using red dots (brand color) as requested.
+Transform the app to allow new users to explore events, discover the map, and view profiles without requiring signup first - similar to Dice.fm's approach. Users will only be prompted to sign up when they attempt to perform actions like joining a guestlist, saving events, or messaging.
 
 ---
 
-## Changes Summary
+## What Guests CAN Do (Browse-Only)
+- View the homepage event feed ("Para Ti" tab)
+- Explore the map on Discover page
+- View event details (already works!)
+- View user profiles and their events
+- Search for events and people
 
-### 1. Create PageLoader Component
-**New file: `src/components/PageLoader.tsx`**
+## What Triggers Login Prompt
+- Like, save, or repost an event
+- Join a guestlist / buy tickets
+- Follow a user
+- Send a message
+- View own profile
+- Create an event
+- Access chats
+- View saved events / notifications
 
-Simple loading spinner with correct dark background to prevent white flash during lazy loading:
-```typescript
-import { Loader2 } from "lucide-react";
+---
 
-export const PageLoader = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center">
-    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-  </div>
-);
+## Technical Implementation
+
+### Phase 1: Route Architecture Changes
+
+**1.1 Create `GuestAllowedRoute` Component**
+A new wrapper that allows both guests and authenticated users, but tracks navigation for post-login redirect:
+
+```text
+src/components/auth/GuestAllowedRoute.tsx
+
+┌──────────────────────────────────────────┐
+│  GuestAllowedRoute                       │
+│  ├─ Always renders children              │
+│  ├─ Does NOT redirect to /auth           │
+│  └─ Stores intended destination for      │
+│     post-login navigation                │
+└──────────────────────────────────────────┘
 ```
 
+**1.2 Update Route Configuration (App.tsx)**
+
+| Route | Current | New |
+|-------|---------|-----|
+| `/` (Home) | ProtectedRoute | GuestAllowedRoute |
+| `/discover` | ProtectedRoute | GuestAllowedRoute |
+| `/user/:id` | ProtectedRoute | GuestAllowedRoute |
+| `/event/:id` | Public (already) | Keep as-is |
+| `/create` | ProtectedRoute | Keep ProtectedRoute |
+| `/chats` | ProtectedRoute | Keep ProtectedRoute |
+| `/profile` | ProtectedRoute | Keep ProtectedRoute |
+
 ---
 
-### 2. Rewrite App.tsx with Lazy Loading + Query Caching
+### Phase 2: Auth Prompt Modal
 
-**Key changes:**
-- Configure QueryClient with 5-minute staleTime (eliminates refetching on navigation)
-- Convert all 26 page imports to `React.lazy()`
-- Wrap each page individually in Suspense with PageLoader fallback
-- Reduce splash screen from 2000ms to 1200ms
+**2.1 Create `AuthPromptModal` Component**
+A friendly modal that appears when guests try to perform protected actions:
 
-**Critical implementation detail (prevents black screen):**
-- Each route wraps only the page component in Suspense, NOT the entire Routes container
-- ProtectedRoute stays outside Suspense to handle auth loading state properly
-- AppLayout is inside each page, so it loads with the page content
-
-```typescript
-import { Suspense, lazy, useState } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { PageLoader } from "@/components/PageLoader";
-
-// Lazy load all pages
-const Index = lazy(() => import("./pages/Index"));
-const Discover = lazy(() => import("./pages/Discover"));
-// ... all 26 pages
-
-// Configure query caching
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5,    // 5 minutes
-      gcTime: 1000 * 60 * 30,      // 30 minutes
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-});
-
-// Routes with individual Suspense boundaries
-<Route path="/" element={
-  <ProtectedRoute requireProfile>
-    <Suspense fallback={<PageLoader />}>
-      <Index />
-    </Suspense>
-  </ProtectedRoute>
-} />
+```text
+┌─────────────────────────────────────────┐
+│    ✨ Únete a Zentro                    │
+│                                         │
+│    [Event image/context preview]        │
+│                                         │
+│    Para [action description] necesitas  │
+│    crear una cuenta                     │
+│                                         │
+│    [Crear Cuenta] (primary)             │
+│    [Ya tengo cuenta] (secondary)        │
+│                                         │
+│    Cerrar                               │
+└─────────────────────────────────────────┘
 ```
 
----
-
-### 3. Convert Map Markers to Red Dots
-
-**Modify: `src/components/map/MiniEventMarker.tsx`**
-
-Replace image-based card markers with lightweight red dot markers:
-- All dots are red (brand color `hsl(351, 100%, 50%)`)
-- Size scales from 8px to 14px based on zoom
-- Tonight events get pulsing glow animation
-- Hover state scales up to 1.3x
+**2.2 Create `useAuthPrompt` Hook**
+Centralized hook for triggering auth prompts with context:
 
 ```typescript
-export const createDotMarkerElement = ({ isTonight }, zoom) => {
-  const size = getMarkerSize(zoom); // 8-14px based on zoom
-  
-  return `
-    <div class="event-dot ${isTonight ? 'tonight' : ''}" 
-         style="width: ${size}px; height: ${size}px;"></div>
-  `;
+const { promptAuth } = useAuthPrompt();
+
+// Usage in components:
+const handleLike = () => {
+  if (!user) {
+    promptAuth({
+      action: "dar like a este evento",
+      returnTo: location.pathname
+    });
+    return;
+  }
+  // ... proceed with like
 };
-
-// CSS for dots
-.event-dot {
-  background-color: hsl(351, 100%, 50%);
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(230, 0, 35, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.event-dot.tonight {
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-```
-
-**Modify: `src/components/map/MapView.tsx`**
-- Update `createCustomMarkers` to use dot markers instead of image cards
-- Remove imageUrl from marker creation (not needed for dots)
-
----
-
-### 4. Vite Build Optimization
-
-**Modify: `vite.config.ts`**
-
-Add manual chunks for vendor splitting:
-```typescript
-build: {
-  rollupOptions: {
-    output: {
-      manualChunks: {
-        "vendor-react": ["react", "react-dom", "react-router-dom"],
-        "vendor-query": ["@tanstack/react-query"],
-        "vendor-ui": ["framer-motion", "@radix-ui/react-dialog", "@radix-ui/react-popover", "@radix-ui/react-select"],
-        "vendor-map": ["mapbox-gl"],
-        "vendor-charts": ["recharts"],
-      },
-    },
-  },
-},
 ```
 
 ---
 
-### 5. Lazy Load Dashboard Charts
+### Phase 3: Component Updates
 
-**Modify: `src/pages/BusinessDashboard.tsx`**
+**3.1 Index.tsx (Homepage)**
+- Remove dependency on `requireProfile` for display
+- Hooks already handle `!user` gracefully (useForYouEvents works without auth)
+- Hide "Following" tab for guests (requires auth)
+- Notification bell triggers auth prompt for guests
 
-Lazy load heavy Recharts components:
-```typescript
-const EngagementChart = lazy(() => import("@/components/dashboard/EngagementChart"));
-const StatusPieChart = lazy(() => import("@/components/dashboard/StatusPieChart"));
-const GuestlistFunnel = lazy(() => import("@/components/dashboard/GuestlistFunnel"));
+**3.2 Discover.tsx (Map)**
+- Already fetches public events
+- Search users shows results but profile click works
+- Filter "friends going" disabled for guests
 
-// In JSX with skeleton fallback
-<Suspense fallback={<div className="h-64 bg-secondary/50 rounded-xl animate-pulse" />}>
-  <EngagementChart events={eventPerformance || []} isLoading={eventsLoading} />
-</Suspense>
+**3.3 UserProfile.tsx**
+- Follow button triggers auth prompt for guests
+- Message button triggers auth prompt for guests
+- Profile viewing works without auth
+
+**3.4 EventDetail.tsx (Already handles this well)**
+- Like/Save/Repost buttons already check `if (!user)` and redirect
+- Update to use modal instead of hard redirect
+
+---
+
+### Phase 4: Bottom Navigation for Guests
+
+Update `BottomNav.tsx` to show appropriate behavior:
+
+| Tab | Guest Behavior |
+|-----|----------------|
+| Home | Works normally |
+| Discover | Works normally |
+| Create | Shows AuthPromptModal |
+| Chats | Shows AuthPromptModal |
+| Profile | Shows AuthPromptModal |
+
+---
+
+### Phase 5: Hook Updates for Guest Safety
+
+Update these hooks to return safe defaults for guests:
+
+```text
+useForYouEvents.ts     → Already works (returns public events)
+useFollowingEventsScored.ts → Return empty for guests
+useSearchUsers.ts      → Works (public data)
+useIsEventLiked.ts     → Return false for guests
+useIsEventSaved.ts     → Return false for guests
+useIsFollowing.ts      → Return false for guests
 ```
 
 ---
 
-## Files Summary
+## File Changes Summary
 
-| File | Action | Description |
-|------|--------|-------------|
-| `src/components/PageLoader.tsx` | Create | Loading spinner component |
-| `src/App.tsx` | Modify | Lazy imports, query caching, reduced splash |
-| `src/components/map/MiniEventMarker.tsx` | Modify | Red dot markers instead of image cards |
-| `src/components/map/MapView.tsx` | Modify | Update marker creation for dots |
-| `vite.config.ts` | Modify | Add manualChunks for vendor splitting |
-| `src/pages/BusinessDashboard.tsx` | Modify | Lazy load chart components |
+### New Files (3)
+1. `src/components/auth/GuestAllowedRoute.tsx` - Route wrapper for guest-accessible pages
+2. `src/components/auth/AuthPromptModal.tsx` - Friendly login/signup modal
+3. `src/hooks/useAuthPrompt.tsx` - Context and hook for auth prompts
 
----
-
-## Expected Results
-
-| Metric | Before | After |
-|--------|--------|-------|
-| Initial bundle | ~800KB | ~250KB |
-| Time to Interactive | 4-5s | 1.5-2s |
-| Page navigation | Refetch + spinner | Instant (cached) |
-| Map marker load | 50+ images | 0 images |
-| Map zoom/pan | Janky | Smooth 60fps |
-| Splash screen | 2.0s | 1.2s |
+### Modified Files (8)
+1. `src/App.tsx` - Update route wrappers
+2. `src/pages/Index.tsx` - Handle guest mode (hide Following tab)
+3. `src/pages/Discover.tsx` - Handle guest mode
+4. `src/pages/UserProfile.tsx` - Auth prompts for actions
+5. `src/pages/EventDetail.tsx` - Use modal instead of redirect
+6. `src/components/layout/BottomNav.tsx` - Protected tab behavior
+7. `src/components/events/EventCard.tsx` - Guest-safe interactions
+8. `src/contexts/AuthContext.tsx` - Add returnTo state management
 
 ---
 
-## Safeguards Against Previous Issues
+## User Flow Examples
 
-1. **No black screen**: Each route has its own Suspense boundary (not the entire Routes tree)
-2. **Navbar always visible**: AppLayout is inside each page, loads with content
-3. **Map always loads**: MapView stays synchronous, only marker logic changes
-4. **Auth state preserved**: ProtectedRoute handles auth loading before Suspense
-5. **Dark background**: PageLoader uses `bg-background` to match app theme
+**Flow 1: New User Opens App**
+```
+1. Splash screen → Homepage (sees events)
+2. Scrolls feed, taps event → Event detail (views)
+3. Taps "Unirse" → AuthPromptModal appears
+4. Signs up → Redirected back to event detail
+5. Taps "Unirse" again → Joins successfully
+```
+
+**Flow 2: Guest Explores Map**
+```
+1. Opens Discover → Map loads with events
+2. Taps marker → Event card appears
+3. Taps event → Event detail
+4. Taps heart (like) → AuthPromptModal
+5. "Ya tengo cuenta" → Login → Returns to event
+```
+
+---
+
+## Benefits
+- Lower barrier to entry for new users
+- Users can evaluate the app before committing
+- Native app store expectation (most apps allow browsing)
+- Increases conversion by showing value first
+- Matches Dice.fm, Eventbrite, Meetup patterns
