@@ -10,7 +10,6 @@ export interface FoodLocation {
   business_latitude: number;
   business_longitude: number;
   business_address: string | null;
-  business_type: "restaurant" | "cafe" | null;
 }
 
 export const useFoodLocations = () => {
@@ -20,7 +19,7 @@ export const useFoodLocations = () => {
       // Get profiles that have is_food_business = true and have location set
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, full_name, avatar_url, bio, business_latitude, business_longitude, business_address, business_type")
+        .select("id, username, full_name, avatar_url, bio, business_latitude, business_longitude, business_address")
         .eq("is_food_business", true)
         .not("business_latitude", "is", null)
         .not("business_longitude", "is", null);
@@ -49,7 +48,6 @@ export const useFoodLocations = () => {
             business_latitude: profile.business_latitude!,
             business_longitude: profile.business_longitude!,
             business_address: profile.business_address,
-            business_type: (profile as any).business_type as "restaurant" | "cafe" | null,
           });
         }
       }

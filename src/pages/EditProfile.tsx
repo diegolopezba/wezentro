@@ -46,8 +46,7 @@ const EditProfile = () => {
     birth_day: "",
     birth_month: "",
     birth_year: "",
-    gender: "",
-    business_type: "" as "" | "restaurant" | "cafe"
+    gender: ""
   });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [businessLocation, setBusinessLocation] = useState<{
@@ -79,8 +78,7 @@ const EditProfile = () => {
         birth_day: birthDay,
         birth_month: birthMonth,
         birth_year: birthYear,
-        gender: profile.gender || "",
-        business_type: profile.business_type || ""
+        gender: profile.gender || ""
       });
       setAvatarUrl(profile.avatar_url);
       setBusinessLocation({
@@ -140,8 +138,7 @@ const EditProfile = () => {
         bio: formData.bio.trim() || null,
         avatar_url: avatarUrl,
         birth_date: birthDate,
-        gender: formData.gender || null,
-        business_type: isFoodSubscriber && formData.business_type ? formData.business_type : null
+        gender: formData.gender || null
       }).eq("id", user.id);
       if (error) throw error;
       await refreshProfile();
@@ -345,32 +342,7 @@ const EditProfile = () => {
         y: 0
       }} transition={{
         delay: 0.15
-      }} className="space-y-5">
-            {/* Business Type Selector */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Label className="text-base font-semibold">Tipo de negocio</Label>
-                <span className="text-xs text-muted-foreground">(requerido para aparecer en el mapa)</span>
-              </div>
-              <RadioGroup value={formData.business_type} onValueChange={value => setFormData(prev => ({
-                ...prev,
-                business_type: value as "restaurant" | "cafe"
-              }))} className="flex gap-4">
-                <div className="flex items-center space-x-3">
-                  <RadioGroupItem value="restaurant" id="restaurant" />
-                  <Label htmlFor="restaurant" className="font-normal cursor-pointer flex items-center gap-2">
-                    <span>🍽️</span> Restaurante
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <RadioGroupItem value="cafe" id="cafe" />
-                  <Label htmlFor="cafe" className="font-normal cursor-pointer flex items-center gap-2">
-                    <span>☕</span> Café
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-
+      }}>
             <BusinessLocationPicker latitude={businessLocation.latitude} longitude={businessLocation.longitude} address={businessLocation.address} onLocationChange={handleBusinessLocationChange} />
           </motion.div>}
       </div>

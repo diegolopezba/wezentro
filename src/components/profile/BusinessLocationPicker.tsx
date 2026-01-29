@@ -96,7 +96,7 @@ export const BusinessLocationPicker = ({
         <div>
           <Label className="text-foreground font-medium">Ubicación de tu negocio</Label>
           <p className="text-xs text-muted-foreground">
-            Aparecerás en el mapa cuando busquen tu tipo de negocio
+            Aparecerás en el mapa cuando busquen "Comida"
           </p>
         </div>
       </div>

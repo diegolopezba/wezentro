@@ -56,26 +56,8 @@ const Discover = () => {
   const { data: searchedUsers = [], isLoading: isLoadingUsers } = useSearchUsers(searchQuery);
   const { data: foodLocations = [] } = useFoodLocations();
 
-  // Determine if restaurant/cafe filter is active (shows food business markers)
-  const showRestaurantMarkers = filters.categories.includes("restaurant");
-  const showCafeMarkers = filters.categories.includes("cafe");
-  const showFoodMarkers = showRestaurantMarkers || showCafeMarkers;
-  
-  // Map filter categories to event categories (cafe filter → coffee category)
-  const mappedCategories = useMemo(() => {
-    return filters.categories.map(cat => cat === "cafe" ? "coffee" : cat);
-  }, [filters.categories]);
-  
-  // Filter food locations by business type
-  const filteredFoodLocations = useMemo(() => {
-    if (!showFoodMarkers) return [];
-    return foodLocations.filter(loc => {
-      if (showRestaurantMarkers && showCafeMarkers) return true; // Both selected, show all
-      if (showRestaurantMarkers) return loc.business_type === "restaurant";
-      if (showCafeMarkers) return loc.business_type === "cafe";
-      return false;
-    });
-  }, [foodLocations, showRestaurantMarkers, showCafeMarkers, showFoodMarkers]);
+  // Determine if food filter is active
+  const showFoodMarkers = filters.categories.includes("food");
 
   // Fetch user's following list for friends going filter
   const { data: followingIds = [] } = useQuery({
@@ -160,14 +142,13 @@ const Discover = () => {
     });
   };
 
-  // Combine search query with filters, using mapped categories for events
+  // Combine search query with filters
   const activeFilters = useMemo(
     () => ({
       ...filters,
       searchQuery,
-      categories: mappedCategories,
     }),
-    [filters, searchQuery, mappedCategories],
+    [filters, searchQuery],
   );
 
   // Get filtered and sorted events with distance
@@ -260,7 +241,7 @@ const Discover = () => {
           selectedEventId={selectedEvents[currentSlide]?.id}
           onGeolocationSuccess={handleGeolocationSuccess}
           onGeolocationError={handleGeolocationError}
-          foodLocations={filteredFoodLocations}
+          foodLocations={foodLocations}
           showFoodMarkers={showFoodMarkers}
           onFoodMarkerClick={handleFoodMarkerClick}
         />

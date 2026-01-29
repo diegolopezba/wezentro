@@ -106,10 +106,10 @@ export const useSubscriptionPlans = (): SubscriptionPlan[] => {
       interval: "month",
       features: [
         "Todo lo de Zentro Premium",
-        "Transforma tu perfil en restaurante o café",
+        "Transforma tu perfil en restaurante/café",
         "Crea y muestra tu menú",
         "Insignia de comida en tu perfil",
-        "Aparece en el filtro de Restaurante/Café del mapa",
+        "Aparece en el filtro de Comida del mapa",
       ],
     },
     {
