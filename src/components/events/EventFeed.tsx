@@ -2,6 +2,7 @@ import { EventCard, EventCardProps } from "./EventCard";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { EventFeedSkeleton } from "@/components/skeletons";
 
 interface EventFeedProps {
   events: EventCardProps[];
@@ -13,17 +14,7 @@ export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you
   const navigate = useNavigate();
 
   if (isLoading) {
-    return (
-      <div className="masonry-grid">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="masonry-item rounded-2xl bg-card animate-pulse"
-            style={{ height: `${200 + (i % 3) * 50}px` }}
-          />
-        ))}
-      </div>
-    );
+    return <EventFeedSkeleton count={6} />;
   }
 
   if (events.length === 0) {
