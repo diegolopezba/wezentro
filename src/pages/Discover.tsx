@@ -61,6 +61,11 @@ const Discover = () => {
   const showCafeMarkers = filters.categories.includes("cafe");
   const showFoodMarkers = showRestaurantMarkers || showCafeMarkers;
   
+  // Map filter categories to event categories (cafe filter → coffee category)
+  const mappedCategories = useMemo(() => {
+    return filters.categories.map(cat => cat === "cafe" ? "coffee" : cat);
+  }, [filters.categories]);
+  
   // Filter food locations by business type
   const filteredFoodLocations = useMemo(() => {
     if (!showFoodMarkers) return [];
@@ -155,13 +160,14 @@ const Discover = () => {
     });
   };
 
-  // Combine search query with filters
+  // Combine search query with filters, using mapped categories for events
   const activeFilters = useMemo(
     () => ({
       ...filters,
       searchQuery,
+      categories: mappedCategories,
     }),
-    [filters, searchQuery],
+    [filters, searchQuery, mappedCategories],
   );
 
   // Get filtered and sorted events with distance
