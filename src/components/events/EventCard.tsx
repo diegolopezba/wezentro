@@ -1,14 +1,13 @@
 import { motion } from "framer-motion";
 import { Volume2, VolumeX, Repeat } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState, useRef, useContext } from "react";
 import { cn } from "@/lib/utils";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { useHasActiveSubscription } from "@/hooks/useGuestlist";
-import { useSelectedEvent } from "@/contexts/SelectedEventContext";
+import { SelectedEventContext } from "@/contexts/SelectedEventContext";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { RepostInfo } from "@/hooks/useFollowingEventsScored";
-
 export interface AttendeeAvatar {
   id: string;
   avatar_url: string | null;
@@ -61,15 +60,10 @@ export const EventCard = ({
 
   // Use expansion transition only on home page
   const isHomePage = routerLocation.pathname === "/";
-  let selectedEventContext: {
-    openEvent: (id: string) => void;
-  } | null = null;
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    selectedEventContext = useSelectedEvent();
-  } catch {
-    // Context not available, will use navigation
-  }
+  
+  // Safe hook call - returns null if context is not available
+  const selectedEventContext = useContext(SelectedEventContext);
+  
   const handleCardClick = () => {
     if (isHomePage && selectedEventContext) {
       selectedEventContext.openEvent(id);
