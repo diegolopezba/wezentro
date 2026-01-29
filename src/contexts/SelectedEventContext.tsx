@@ -6,7 +6,7 @@ interface SelectedEventContextType {
   closeEvent: () => void;
 }
 
-const SelectedEventContext = createContext<SelectedEventContextType | null>(null);
+export const SelectedEventContext = createContext<SelectedEventContextType | null>(null);
 
 export const useSelectedEvent = () => {
   const context = useContext(SelectedEventContext);
