@@ -94,8 +94,8 @@ const App = () => {
           <Toaster />
           <Sonner position="top-center" theme="dark" />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <DeepLinkHandler />
             <AuthProvider>
+              <DeepLinkHandler />
               <OneSignalProvider>
                 <NotificationFeedbackProvider>
                   <PushNotificationPrompt>
