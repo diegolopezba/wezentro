@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,13 +14,21 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { PageLoader } from "@/components/PageLoader";
 
-// Lazy load all pages for code splitting
-const Index = lazy(() => import("./pages/Index"));
-const Discover = lazy(() => import("./pages/Discover"));
-const Create = lazy(() => import("./pages/Create"));
-const Chats = lazy(() => import("./pages/Chats"));
+// Core navigation pages - preloaded for instant navigation (native app feel)
+const indexImport = () => import("./pages/Index");
+const discoverImport = () => import("./pages/Discover");
+const createImport = () => import("./pages/Create");
+const chatsImport = () => import("./pages/Chats");
+const profileImport = () => import("./pages/Profile");
+
+const Index = lazy(indexImport);
+const Discover = lazy(discoverImport);
+const Create = lazy(createImport);
+const Chats = lazy(chatsImport);
+const Profile = lazy(profileImport);
+
+// Secondary pages - lazy loaded on demand
 const ChatDetail = lazy(() => import("./pages/ChatDetail"));
-const Profile = lazy(() => import("./pages/Profile"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Saved = lazy(() => import("./pages/Saved"));
 const Notifications = lazy(() => import("./pages/Notifications"));
@@ -42,6 +50,15 @@ const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
 const Referrals = lazy(() => import("./pages/Referrals"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
+// Preload core routes after initial render for instant navigation
+const preloadCoreRoutes = () => {
+  indexImport();
+  discoverImport();
+  createImport();
+  chatsImport();
+  profileImport();
+};
+
 // Configure QueryClient with caching to eliminate refetching on navigation
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +73,16 @@ const queryClient = new QueryClient({
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
+
+  // Preload core routes immediately after mount for native-like navigation
+  useEffect(() => {
+    // Use requestIdleCallback for non-blocking preload, fallback to setTimeout
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(preloadCoreRoutes);
+    } else {
+      setTimeout(preloadCoreRoutes, 100);
+    }
+  }, []);
 
   return (
     <>
