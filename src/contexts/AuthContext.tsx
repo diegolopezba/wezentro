@@ -17,6 +17,7 @@ interface Profile {
   business_latitude: number | null;
   business_longitude: number | null;
   business_address: string | null;
+  business_type: "restaurant" | "cafe" | null;
 }
 
 interface AuthContextType {

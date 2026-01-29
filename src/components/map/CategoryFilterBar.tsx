@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
-  { value: "food", label: "Comida", emoji: "🍕" },
+  { value: "restaurant", label: "Restaurante", emoji: "🍽️" },
+  { value: "cafe", label: "Café", emoji: "☕" },
   { value: "club", label: "Club", emoji: "🪩" },
   { value: "bar", label: "Bar", emoji: "🍸" },
   { value: "concert", label: "Concierto", emoji: "🎵" },
@@ -10,8 +11,6 @@ const CATEGORIES = [
   { value: "house_party", label: "Fiesta", emoji: "🏠" },
   { value: "lounge", label: "Lounge", emoji: "🛋️" },
   { value: "rooftop", label: "Rooftop", emoji: "🌆" },
-  { value: "restaurant", label: "Restaurante", emoji: "🍽️" },
-  { value: "coffee", label: "Café", emoji: "☕" },
 ];
 
 interface CategoryFilterBarProps {
