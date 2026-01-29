@@ -56,8 +56,21 @@ const Discover = () => {
   const { data: searchedUsers = [], isLoading: isLoadingUsers } = useSearchUsers(searchQuery);
   const { data: foodLocations = [] } = useFoodLocations();
 
-  // Determine if food filter is active
-  const showFoodMarkers = filters.categories.includes("food");
+  // Determine if restaurant/cafe filter is active (shows food business markers)
+  const showRestaurantMarkers = filters.categories.includes("restaurant");
+  const showCafeMarkers = filters.categories.includes("cafe");
+  const showFoodMarkers = showRestaurantMarkers || showCafeMarkers;
+  
+  // Filter food locations by business type
+  const filteredFoodLocations = useMemo(() => {
+    if (!showFoodMarkers) return [];
+    return foodLocations.filter(loc => {
+      if (showRestaurantMarkers && showCafeMarkers) return true; // Both selected, show all
+      if (showRestaurantMarkers) return loc.business_type === "restaurant";
+      if (showCafeMarkers) return loc.business_type === "cafe";
+      return false;
+    });
+  }, [foodLocations, showRestaurantMarkers, showCafeMarkers, showFoodMarkers]);
 
   // Fetch user's following list for friends going filter
   const { data: followingIds = [] } = useQuery({
@@ -241,7 +254,7 @@ const Discover = () => {
           selectedEventId={selectedEvents[currentSlide]?.id}
           onGeolocationSuccess={handleGeolocationSuccess}
           onGeolocationError={handleGeolocationError}
-          foodLocations={foodLocations}
+          foodLocations={filteredFoodLocations}
           showFoodMarkers={showFoodMarkers}
           onFoodMarkerClick={handleFoodMarkerClick}
         />
