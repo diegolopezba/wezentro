@@ -530,9 +530,7 @@ const Notifications = () => {
             </h1>
           </div>
           
-          {unreadCount > 0 && <Button variant="ghost" size="sm" onClick={() => markAllRead.mutate()} disabled={markAllRead.isPending} className="text-primary">
-              {markAllRead.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Marcar todo como leído"}
-            </Button>}
+          {unreadCount > 0}
         </div>
       </header>
 
