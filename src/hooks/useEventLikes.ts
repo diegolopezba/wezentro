@@ -24,6 +24,7 @@ export function useIsEventLiked(eventId: string) {
   return useQuery({
     queryKey: ["event-liked", eventId, user?.id],
     queryFn: async () => {
+      // Return false for guests - safe default
       if (!user) return false;
 
       const { data, error } = await supabase
@@ -36,7 +37,8 @@ export function useIsEventLiked(eventId: string) {
       if (error) throw error;
       return !!data;
     },
-    enabled: !!eventId && !!user,
+    // Enable for guests too - will return false
+    enabled: !!eventId,
   });
 }
 

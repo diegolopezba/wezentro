@@ -6,6 +6,7 @@ import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { useUserProfile, useIsFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useUserProfile";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useUserTimeline } from "@/hooks/useUserTimeline";
@@ -18,6 +19,7 @@ import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
+
 const UserProfile = () => {
   const {
     id
@@ -26,6 +28,8 @@ const UserProfile = () => {
   const {
     user: currentUser
   } = useAuth();
+  const { promptAuth } = useAuthPrompt();
+  const isGuest = !currentUser;
   const [followSheetType, setFollowSheetType] = useState<"followers" | "following" | null>(null);
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
 
@@ -67,6 +71,13 @@ const UserProfile = () => {
   };
   const handleFollowToggle = () => {
     if (!id) return;
+    
+    // Prompt guests to sign up
+    if (isGuest) {
+      promptAuth({ action: "seguir a este usuario" });
+      return;
+    }
+    
     if (isFollowing) {
       unfollowMutation.mutate(id);
     } else {
@@ -75,6 +86,13 @@ const UserProfile = () => {
   };
   const handleMessage = () => {
     if (!id) return;
+    
+    // Prompt guests to sign up
+    if (isGuest) {
+      promptAuth({ action: "enviar un mensaje" });
+      return;
+    }
+    
     if (!canMessageData?.canMessage) {
       toast.error(canMessageData?.reason || "No se puede enviar mensaje a este usuario");
       return;

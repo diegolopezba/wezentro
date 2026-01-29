@@ -99,6 +99,7 @@ export const useIsFollowing = (targetUserId: string | undefined) => {
   return useQuery({
     queryKey: ["is-following", user?.id, targetUserId],
     queryFn: async () => {
+      // Return false for guests - safe default
       if (!user?.id || !targetUserId) return false;
 
       const { data, error } = await supabase
@@ -111,7 +112,8 @@ export const useIsFollowing = (targetUserId: string | undefined) => {
       if (error) throw error;
       return !!data;
     },
-    enabled: !!user?.id && !!targetUserId && user.id !== targetUserId,
+    // Enable for guests too - will return false
+    enabled: !!targetUserId,
   });
 };
 

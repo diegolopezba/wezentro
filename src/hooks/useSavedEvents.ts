@@ -67,6 +67,7 @@ export function useIsEventSaved(eventId: string | undefined) {
   return useQuery({
     queryKey: ["is-event-saved", eventId, user?.id],
     queryFn: async () => {
+      // Return false for guests - safe default
       if (!user || !eventId) return false;
 
       const { data, error } = await supabase
@@ -79,7 +80,8 @@ export function useIsEventSaved(eventId: string | undefined) {
       if (error) throw error;
       return !!data;
     },
-    enabled: !!user && !!eventId,
+    // Enable for guests too - will return false
+    enabled: !!eventId,
   });
 }
 
