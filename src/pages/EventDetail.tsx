@@ -10,6 +10,7 @@ import { useIsEventSaved, useSaveEvent, useUnsaveEvent, useSaveCount } from "@/h
 import { useIsEventLiked, useLikeEvent, useUnlikeEvent, useEventLikes } from "@/hooks/useEventLikes";
 import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useReposts";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
@@ -24,6 +25,7 @@ import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { trackEventView } from "@/lib/analyticsTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
+
 const EventDetail = () => {
   const {
     id
@@ -32,6 +34,8 @@ const EventDetail = () => {
   const {
     user
   } = useAuth();
+  const { promptAuth } = useAuthPrompt();
+  const isGuest = !user;
   const [showManagement, setShowManagement] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showGuestlistInviteModal, setShowGuestlistInviteModal] = useState(false);
@@ -133,9 +137,8 @@ const EventDetail = () => {
   // Check if event has QR payment enabled
   const hasPaymentQr = !!(event?.payment_qr_url && (event?.price || 0) > 0);
   const handleSaveToggle = async () => {
-    if (!user) {
-      toast.error("Inicia sesión para guardar eventos");
-      navigate("/auth");
+    if (isGuest) {
+      promptAuth({ action: "guardar este evento" });
       return;
     }
     try {
@@ -151,9 +154,8 @@ const EventDetail = () => {
     }
   };
   const handleLikeToggle = async () => {
-    if (!user) {
-      toast.error("Inicia sesión para dar like");
-      navigate("/auth");
+    if (isGuest) {
+      promptAuth({ action: "dar like a este evento" });
       return;
     }
     try {
@@ -167,9 +169,8 @@ const EventDetail = () => {
     }
   };
   const handleRepostToggle = async () => {
-    if (!user) {
-      toast.error("Inicia sesión para repostear");
-      navigate("/auth");
+    if (isGuest) {
+      promptAuth({ action: "repostear este evento" });
       return;
     }
     try {
@@ -182,9 +183,8 @@ const EventDetail = () => {
     }
   };
   const handleJoinGuestlist = async () => {
-    if (!user) {
-      toast.error("Inicia sesión para unirte a listas");
-      navigate("/auth");
+    if (isGuest) {
+      promptAuth({ action: "unirte a esta lista" });
       return;
     }
     

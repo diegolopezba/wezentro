@@ -9,6 +9,7 @@ export const useHasReposted = (eventId: string | undefined) => {
   return useQuery({
     queryKey: ["has-reposted", eventId, user?.id],
     queryFn: async () => {
+      // Return false for guests - safe default
       if (!user?.id || !eventId) return false;
 
       const { data, error } = await supabase
@@ -21,7 +22,8 @@ export const useHasReposted = (eventId: string | undefined) => {
       if (error) throw error;
       return !!data;
     },
-    enabled: !!user?.id && !!eventId,
+    // Enable for guests too - will return false
+    enabled: !!eventId,
   });
 };
 

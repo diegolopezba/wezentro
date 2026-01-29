@@ -11,9 +11,17 @@ import { z } from "zod";
 const emailSchema = z.string().email("Por favor ingresa un correo válido");
 const passwordSchema = z.string().min(6, "La contraseña debe tener al menos 6 caracteres");
 
+interface LocationState {
+  from?: { pathname: string };
+  mode?: "signin" | "signup";
+  returnTo?: string;
+}
+
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const locationState = location.state as LocationState | null;
+  
   const {
     user,
     signIn,
@@ -22,7 +30,13 @@ const Auth = () => {
     resetPassword,
     isLoading: authLoading
   } = useAuth();
-  const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
+  
+  // Initialize mode from navigation state (from AuthPromptModal)
+  const [mode, setMode] = useState<"login" | "signup" | "reset">(() => {
+    if (locationState?.mode === "signup") return "signup";
+    if (locationState?.mode === "signin") return "login";
+    return "login";
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -44,19 +58,20 @@ const Auth = () => {
     }
   }, [location.search]);
 
+  // Determine where to redirect after auth
+  const getRedirectPath = () => {
+    // Priority: returnTo from modal > from state > default
+    if (locationState?.returnTo) return locationState.returnTo;
+    if (locationState?.from?.pathname) return locationState.from.pathname;
+    return "/";
+  };
+
   // Redirect if already logged in
   useEffect(() => {
     if (user && !authLoading) {
-      const from = (location.state as {
-        from?: {
-          pathname: string;
-        };
-      })?.from?.pathname || "/";
-      navigate(from, {
-        replace: true
-      });
+      navigate(getRedirectPath(), { replace: true });
     }
-  }, [user, authLoading, navigate, location]);
+  }, [user, authLoading, navigate, locationState]);
 
   const validateForm = () => {
     const newErrors: {

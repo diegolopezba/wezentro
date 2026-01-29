@@ -8,12 +8,14 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { OneSignalProvider } from "@/contexts/OneSignalContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { GuestAllowedRoute } from "@/components/auth/GuestAllowedRoute";
 import { NotificationFeedbackProvider } from "@/components/NotificationFeedbackProvider";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { SplashScreen } from "@/components/SplashScreen";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { PageLoader } from "@/components/PageLoader";
-
+import { AuthPromptProvider } from "@/hooks/useAuthPrompt";
+import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
 // Core navigation pages - preloaded for instant navigation (native app feel)
 const indexImport = () => import("./pages/Index");
 const discoverImport = () => import("./pages/Discover");
@@ -98,48 +100,52 @@ const App = () => {
                 <NotificationFeedbackProvider>
                   <PushNotificationPrompt>
                     <LocationProvider>
-                      <Routes>
-                        {/* Public routes */}
-                        <Route
-                          path="/auth"
-                          element={
-                            <Suspense fallback={<PageLoader />}>
-                              <Auth />
-                            </Suspense>
-                          }
-                        />
+                      <AuthPromptProvider>
+                        <AuthPromptModal />
+                        <Routes>
+                          {/* Public routes */}
+                          <Route
+                            path="/auth"
+                            element={
+                              <Suspense fallback={<PageLoader />}>
+                                <Auth />
+                              </Suspense>
+                            }
+                          />
 
-                        {/* Protected routes - each wrapped individually in Suspense */}
-                        <Route
-                          path="/onboarding"
-                          element={
-                            <ProtectedRoute>
-                              <Suspense fallback={<PageLoader />}>
-                                <Onboarding />
-                              </Suspense>
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Suspense fallback={<PageLoader />}>
-                                <Index />
-                              </Suspense>
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/discover"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Suspense fallback={<PageLoader />}>
-                                <Discover />
-                              </Suspense>
-                            </ProtectedRoute>
-                          }
-                        />
+                          {/* Protected routes - each wrapped individually in Suspense */}
+                          <Route
+                            path="/onboarding"
+                            element={
+                              <ProtectedRoute>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Onboarding />
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
+                          />
+                          
+                          {/* Guest-allowed routes - accessible without login */}
+                          <Route
+                            path="/"
+                            element={
+                              <GuestAllowedRoute>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Index />
+                                </Suspense>
+                              </GuestAllowedRoute>
+                            }
+                          />
+                          <Route
+                            path="/discover"
+                            element={
+                              <GuestAllowedRoute>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Discover />
+                                </Suspense>
+                              </GuestAllowedRoute>
+                            }
+                          />
                         <Route
                           path="/create"
                           element={
@@ -269,16 +275,16 @@ const App = () => {
                             </Suspense>
                           }
                         />
-                        <Route
-                          path="/user/:id"
-                          element={
-                            <ProtectedRoute requireProfile>
-                              <Suspense fallback={<PageLoader />}>
-                                <UserProfile />
-                              </Suspense>
-                            </ProtectedRoute>
-                          }
-                        />
+                          <Route
+                            path="/user/:id"
+                            element={
+                              <GuestAllowedRoute>
+                                <Suspense fallback={<PageLoader />}>
+                                  <UserProfile />
+                                </Suspense>
+                              </GuestAllowedRoute>
+                            }
+                          />
                         <Route
                           path="/settings/tickets"
                           element={
@@ -365,6 +371,7 @@ const App = () => {
                           }
                         />
                       </Routes>
+                      </AuthPromptProvider>
                     </LocationProvider>
                   </PushNotificationPrompt>
                 </NotificationFeedbackProvider>

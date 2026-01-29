@@ -13,14 +13,21 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
 import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { promptAuth } = useAuthPrompt();
+  const isGuest = !user;
+  
   const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
-const [lastScrollY, setLastScrollY] = useState(0);
-const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
   const {
     data: forYouEvents = [],
     isLoading: forYouLoading
@@ -32,6 +39,15 @@ const scrollContainerRef = useRef<HTMLDivElement>(null);
   const {
     data: unreadCount = 0
   } = useUnreadNotificationsCount();
+  
+  // Handle notification bell click for guests
+  const handleNotificationClick = () => {
+    if (isGuest) {
+      promptAuth({ action: "ver tus notificaciones" });
+      return;
+    }
+    navigate("/notifications");
+  };
   const events = activeTab === "for-you" ? forYouEvents : followingEvents;
   const isLoading = activeTab === "for-you" ? forYouLoading : followingLoading;
   useEffect(() => {
@@ -99,9 +115,9 @@ const scrollContainerRef = useRef<HTMLDivElement>(null);
             </motion.div>
 
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="relative" onClick={() => navigate("/notifications")}>
+              <Button variant="ghost" size="icon" className="relative" onClick={handleNotificationClick}>
                 <Bell className="w-5 h-5" />
-                {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />}
+                {!isGuest && unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />}
               </Button>
             </div>
           </div>
@@ -150,13 +166,16 @@ const scrollContainerRef = useRef<HTMLDivElement>(null);
               }} />}
                 <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary" : ""}`}>Para Ti</span>
               </button>
-              <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "following" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                {activeTab === "following" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
-                type: "spring",
-                duration: 0.5
-              }} />}
-                <span className={`relative z-10 ${activeTab === "following" ? "text-primary" : ""}`}>Siguiendo</span>
-              </button>
+              {/* Hide Following tab for guests - requires auth */}
+              {!isGuest && (
+                <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "following" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                  {activeTab === "following" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
+                  type: "spring",
+                  duration: 0.5
+                }} />}
+                  <span className={`relative z-10 ${activeTab === "following" ? "text-primary" : ""}`}>Siguiendo</span>
+                </button>
+              )}
             </div>
           </motion.div>
         </header>
