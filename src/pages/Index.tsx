@@ -1,9 +1,10 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, LayoutGroup } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventFeed } from "@/components/events/EventFeed";
+import { PullToRefresh } from "@/components/PullToRefresh";
 import { useForYouEvents } from "@/hooks/useForYouEvents";
 import { useFollowingEventsScored } from "@/hooks/useFollowingEventsScored";
 import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
@@ -30,11 +31,13 @@ const Index = () => {
   
   const {
     data: forYouEvents = [],
-    isLoading: forYouLoading
+    isLoading: forYouLoading,
+    refetch: refetchForYou
   } = useForYouEvents();
   const {
     data: followingEvents = [],
-    isLoading: followingLoading
+    isLoading: followingLoading,
+    refetch: refetchFollowing
   } = useFollowingEventsScored();
   const {
     data: unreadCount = 0
@@ -50,6 +53,15 @@ const Index = () => {
   };
   const events = activeTab === "for-you" ? forYouEvents : followingEvents;
   const isLoading = activeTab === "for-you" ? forYouLoading : followingLoading;
+
+  // Pull-to-refresh handler
+  const handleRefresh = useCallback(async () => {
+    if (activeTab === "for-you") {
+      await refetchForYou();
+    } else {
+      await refetchFollowing();
+    }
+  }, [activeTab, refetchForYou, refetchFollowing]);
   useEffect(() => {
   const handleScroll = (e: Event) => {
     const container = e.target as HTMLDivElement;
@@ -180,10 +192,12 @@ const Index = () => {
           </motion.div>
         </header>
 
-        {/* Event feed */}
-        <LayoutGroup>
-          <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
-        </LayoutGroup>
+        {/* Event feed with pull-to-refresh */}
+        <PullToRefresh onRefresh={handleRefresh} className="flex-1">
+          <LayoutGroup>
+            <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
+          </LayoutGroup>
+        </PullToRefresh>
       </AppLayout>
 
       {/* Overlay for expansion transition */}

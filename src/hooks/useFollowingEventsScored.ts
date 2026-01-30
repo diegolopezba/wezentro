@@ -193,6 +193,7 @@ export const useFollowingEventsScored = () => {
     data: directEvents,
     isLoading: directLoading,
     error: directError,
+    refetch: refetchDirect,
   } = useQuery({
     queryKey: ["following-events-direct", followingIds],
     queryFn: async () => {
@@ -324,5 +325,6 @@ export const useFollowingEventsScored = () => {
     data: scoredEvents,
     isLoading: directLoading || !followingIds,
     error: directError,
+    refetch: refetchDirect,
   };
 };

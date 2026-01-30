@@ -247,6 +247,7 @@ export const useForYouEvents = () => {
     data: events,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["for-you-events"],
     queryFn: async () => {
@@ -316,5 +317,6 @@ export const useForYouEvents = () => {
     data: scoredEvents,
     isLoading,
     error,
+    refetch,
   };
 };
