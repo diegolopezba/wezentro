@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 
 export function useSaveCount(eventId: string | undefined) {
   return useQuery({
@@ -103,6 +104,10 @@ export function useSaveEvent() {
         .single();
 
       if (error) throw error;
+
+      // Track preference signal (fire-and-forget)
+      trackPreferenceSignal(user.id, eventId, "save");
+
       return data;
     },
     onSuccess: (_, eventId) => {

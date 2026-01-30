@@ -951,6 +951,95 @@ export type Database = {
           },
         ]
       }
+      user_category_preferences: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          interaction_count: number | null
+          last_interaction: string | null
+          score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          score?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_category_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_creator_preferences: {
+        Row: {
+          created_at: string
+          creator_id: string
+          id: string
+          interaction_count: number | null
+          last_interaction: string | null
+          score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          score?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_creator_preferences_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_creator_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string

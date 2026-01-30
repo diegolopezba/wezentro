@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocationContext } from "@/contexts/LocationContext";
+import { useUserPreferences } from "./useUserPreferences";
 import { EventWithCreator } from "./useEvents";
 
 // Haversine formula to calculate distance between two coordinates
@@ -124,13 +125,47 @@ const getFriendsGoingScore = (
   return 10;
 };
 
+// Calculate learned preference score (15% weight) - based on user's past behavior
+const getLearnedPreferenceScore = (
+  eventCategory: string | null,
+  eventCreatorId: string,
+  userCategoryPrefs: Record<string, number>,
+  userCreatorPrefs: Record<string, number>
+): number => {
+  // If no preferences learned yet, return neutral
+  if (Object.keys(userCategoryPrefs).length === 0 && Object.keys(userCreatorPrefs).length === 0) {
+    return 50;
+  }
+
+  let score = 50; // Neutral baseline
+  
+  // Category affinity (weighted 60%)
+  if (eventCategory) {
+    const normalizedCategory = eventCategory.toLowerCase();
+    const categoryScore = userCategoryPrefs[normalizedCategory] || userCategoryPrefs[eventCategory];
+    if (categoryScore) {
+      score += (categoryScore / 100) * 30; // Max +30 from category
+    }
+  }
+  
+  // Creator affinity (weighted 40%)
+  const creatorScore = userCreatorPrefs[eventCreatorId];
+  if (creatorScore) {
+    score += (creatorScore / 100) * 20; // Max +20 from creator
+  }
+  
+  return Math.min(100, score);
+};
+
 // Calculate final score with weighted components
 const calculateEventScore = (
   event: EventWithCreator & { guestlist_entries?: { user: { id: string; avatar_url: string | null } }[] },
   userLat: number | null,
   userLon: number | null,
   userInterests: string[] | null,
-  followingIds: string[] | null
+  followingIds: string[] | null,
+  userCategoryPrefs: Record<string, number>,
+  userCreatorPrefs: Record<string, number>
 ): number => {
   const attendeeCount = event.guestlist_entries?.length || 0;
 
@@ -145,15 +180,22 @@ const calculateEventScore = (
   const recencyScore = getRecencyScore(event.created_at);
   const timingScore = getTimingScore(event.start_datetime);
   const friendsGoingScore = getFriendsGoingScore(event.guestlist_entries, followingIds);
+  const learnedPreferenceScore = getLearnedPreferenceScore(
+    event.category,
+    event.creator_id,
+    userCategoryPrefs,
+    userCreatorPrefs
+  );
 
-  // Weighted formula (adjusted for friends going factor)
+  // Weighted formula with learned preferences (15% new)
   return (
-    proximityScore * 0.25 +      // 25% - nearby events
-    popularityScore * 0.20 +     // 20% - popular events
-    interestScore * 0.20 +       // 20% - matches interests
-    friendsGoingScore * 0.20 +   // 20% - friends attending
-    recencyScore * 0.10 +        // 10% - recently created
-    timingScore * 0.05           // 5% - happening soon
+    proximityScore * 0.20 +           // 20% - nearby events (was 25%)
+    popularityScore * 0.15 +          // 15% - popular events (was 20%)
+    interestScore * 0.15 +            // 15% - matches explicit interests (was 20%)
+    learnedPreferenceScore * 0.15 +   // 15% - learned preferences (NEW)
+    friendsGoingScore * 0.20 +        // 20% - friends attending
+    recencyScore * 0.10 +             // 10% - recently created
+    timingScore * 0.05                // 5% - happening soon
   );
 };
 
@@ -161,6 +203,9 @@ export const useForYouEvents = () => {
   const { user } = useAuth();
   const { location } = useLocationContext();
   const userId = user?.id;
+
+  // Fetch user's learned preferences
+  const { data: learnedPrefs } = useUserPreferences(userId);
 
   // Fetch user's interests from profile
   const { data: userProfile } = useQuery({
@@ -242,6 +287,8 @@ export const useForYouEvents = () => {
     const userLon = location?.lng || null;
     const userInterests = userProfile?.interests || null;
     const followingIds = following || null;
+    const categoryPrefs = learnedPrefs?.categories || {};
+    const creatorPrefs = learnedPrefs?.creators || {};
 
     // Filter: include posts (no start_datetime) OR future events
     const filteredEvents = events.filter(event => {
@@ -252,10 +299,18 @@ export const useForYouEvents = () => {
     return filteredEvents
       .map((event) => ({
         ...event,
-        _score: calculateEventScore(event, userLat, userLon, userInterests, followingIds),
+        _score: calculateEventScore(
+          event,
+          userLat,
+          userLon,
+          userInterests,
+          followingIds,
+          categoryPrefs,
+          creatorPrefs
+        ),
       }))
       .sort((a, b) => b._score - a._score);
-  }, [events, location, userProfile?.interests, following]);
+  }, [events, location, userProfile?.interests, following, learnedPrefs]);
 
   return {
     data: scoredEvents,

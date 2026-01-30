@@ -24,6 +24,7 @@ import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { trackEventView } from "@/lib/analyticsTracking";
+import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 const EventDetail = () => {
@@ -86,6 +87,8 @@ const EventDetail = () => {
   useEffect(() => {
     if (id && user?.id) {
       trackEventView(id, user.id);
+      // Track click signal for preference learning
+      trackPreferenceSignal(user.id, id, "click");
     }
   }, [id, user?.id]);
   const {
