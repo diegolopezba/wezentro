@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 
 export const useHasReposted = (eventId: string | undefined) => {
   const { user } = useAuth();
@@ -76,6 +77,9 @@ export const useToggleRepost = () => {
         });
 
         if (error) throw error;
+
+        // Track preference signal for new reposts (fire-and-forget)
+        trackPreferenceSignal(user.id, eventId, "repost");
       }
     },
     onSuccess: (_, { eventId, isReposted }) => {

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendPushNotification } from "@/lib/pushNotifications";
+import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 
 export const useIsOnGuestlist = (eventId: string | undefined) => {
   const { user } = useAuth();
@@ -99,6 +100,9 @@ export const useJoinGuestlist = () => {
         }
       }
 
+      // Track preference signal for guestlist join (fire-and-forget)
+      trackPreferenceSignal(user.id, eventId, "join");
+
       return entry;
     },
     onSuccess: (_, eventId) => {
@@ -160,9 +164,12 @@ export const useJoinGuestlistWithPayment = () => {
           title: "Nuevo pago registrado",
           body: `@${userProfile?.username || "Alguien"} registró un pago para ${event.title || "tu evento"}`,
           data: { type: "payment_pending", eventId },
-          url: `/events/${eventId}`,
+        url: `/events/${eventId}`,
         });
       }
+
+      // Track preference signal for paid guestlist join (fire-and-forget)
+      trackPreferenceSignal(user.id, eventId, "join");
 
       return entry;
     },
