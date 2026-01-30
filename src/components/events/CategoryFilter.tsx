@@ -11,6 +11,7 @@ const categories = [
   { id: "rooftop", label: "Rooftops", emoji: "🌆" },
   { id: "restaurant", label: "Restaurantes", emoji: "🍽️" },
   { id: "coffee", label: "Café", emoji: "☕" },
+  { id: "fitness", label: "Fitness", emoji: "🏋️" },
 ];
 
 interface CategoryFilterProps {
