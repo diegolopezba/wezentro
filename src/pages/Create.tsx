@@ -44,6 +44,7 @@ const categories = [
   { id: "rooftop", label: "Rooftop", emoji: "🌆" },
   { id: "restaurant", label: "Restaurante", emoji: "🍽️" },
   { id: "coffee", label: "Café", emoji: "☕" },
+  { id: "fitness", label: "Fitness", emoji: "🏋️" },
 ];
 
 const Create = () => {

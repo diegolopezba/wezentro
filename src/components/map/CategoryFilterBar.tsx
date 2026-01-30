@@ -12,6 +12,7 @@ const CATEGORIES = [
   { value: "rooftop", label: "Rooftop", emoji: "🌆" },
   { value: "restaurant", label: "Restaurante", emoji: "🍽️" },
   { value: "coffee", label: "Café", emoji: "☕" },
+  { value: "fitness", label: "Fitness", emoji: "🏋️" },
 ];
 
 interface CategoryFilterBarProps {

@@ -42,6 +42,7 @@ const CATEGORIES = [
   { value: "rooftop", label: "Rooftop" },
   { value: "restaurant", label: "Restaurante" },
   { value: "coffee", label: "Café" },
+  { value: "fitness", label: "Fitness" },
 ];
 
 export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProps) {
