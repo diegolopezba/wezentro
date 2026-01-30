@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 
 interface LongPressOptions {
   threshold?: number;
@@ -27,10 +27,12 @@ export const useLongPress = ({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
+  const wasCancelledRef = useRef(false);
 
   const start = useCallback(
     (e: React.TouchEvent | React.MouseEvent, clientX: number, clientY: number) => {
       isLongPressRef.current = false;
+      wasCancelledRef.current = false;
       startPosRef.current = { x: clientX, y: clientY };
 
       timerRef.current = setTimeout(() => {
@@ -42,13 +44,21 @@ export const useLongPress = ({
   );
 
   const clear = useCallback(
-    (shouldTriggerPress = true) => {
+    (shouldTriggerPress = true, wasCancelled = false) => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
 
-      if (shouldTriggerPress && !isLongPressRef.current && onPress) {
+      if (wasCancelled) {
+        wasCancelledRef.current = true;
+      }
+
+      // Only trigger press if:
+      // 1. shouldTriggerPress is true
+      // 2. It wasn't a long press
+      // 3. The gesture wasn't cancelled (e.g., by scrolling)
+      if (shouldTriggerPress && !isLongPressRef.current && !wasCancelledRef.current && onPress) {
         onPress();
       }
     },
@@ -83,9 +93,9 @@ export const useLongPress = ({
       const deltaX = Math.abs(touch.clientX - startPosRef.current.x);
       const deltaY = Math.abs(touch.clientY - startPosRef.current.y);
 
-      // Cancel long press if user moves finger too much
+      // Cancel long press if user moves finger too much (scrolling)
       if (deltaX > moveThreshold || deltaY > moveThreshold) {
-        clear(false);
+        clear(false, true); // Mark as cancelled
       }
     },
     [clear]
@@ -110,7 +120,7 @@ export const useLongPress = ({
   );
 
   const onMouseLeave = useCallback(() => {
-    clear(false);
+    clear(false, true); // Mark as cancelled when mouse leaves
   }, [clear]);
 
   return {
