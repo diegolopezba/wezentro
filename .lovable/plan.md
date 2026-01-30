@@ -1,202 +1,246 @@
 
-# Guest Browsing Mode Implementation Plan
+# User Preference Learning System
 
 ## Overview
-Transform the app to allow new users to explore events, discover the map, and view profiles without requiring signup first - similar to Dice.fm's approach. Users will only be prompted to sign up when they attempt to perform actions like joining a guestlist, saving events, or messaging.
+Build a system that learns what users like based on their behavior, then uses those learned preferences to personalize the "Para Ti" feed. This works silently in the background - no user action required.
 
 ---
 
-## What Guests CAN Do (Browse-Only)
-- View the homepage event feed ("Para Ti" tab)
-- Explore the map on Discover page
-- View event details (already works!)
-- View user profiles and their events
-- Search for events and people
+## Data Signals We'll Collect
 
-## What Triggers Login Prompt
-- Like, save, or repost an event
-- Join a guestlist / buy tickets
-- Follow a user
-- Send a message
-- View own profile
-- Create an event
-- Access chats
-- View saved events / notifications
+### Engagement Actions (Weighted by Intent Strength)
+
+| Action | Weight | Reasoning |
+|--------|--------|-----------|
+| Join guestlist | 100 | Strongest signal - real commitment |
+| Save event | 80 | High intent to attend |
+| Like event | 60 | Clear positive signal |
+| Repost | 70 | Willing to share publicly |
+| View (3+ seconds) | 20 | Mild interest |
+| Click into detail | 30 | Curiosity |
+
+### What We Learn From Each Action
+- **Category preference**: "This user likes `club` events"
+- **Creator affinity**: "This user engages with @djmike's events"
+- **Time preference**: "This user likes events on weekends"
+- **Location preference**: "This user prefers downtown events"
 
 ---
 
 ## Technical Implementation
 
-### Phase 1: Route Architecture Changes
+### Phase 1: Database Schema
 
-**1.1 Create `GuestAllowedRoute` Component**
-A new wrapper that allows both guests and authenticated users, but tracks navigation for post-login redirect:
+**New Table: `user_category_preferences`**
+Stores learned category scores per user:
 
 ```text
-src/components/auth/GuestAllowedRoute.tsx
-
-┌──────────────────────────────────────────┐
-│  GuestAllowedRoute                       │
-│  ├─ Always renders children              │
-│  ├─ Does NOT redirect to /auth           │
-│  └─ Stores intended destination for      │
-│     post-login navigation                │
-└──────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│ user_category_preferences                           │
+├─────────────────────────────────────────────────────┤
+│ id           UUID PRIMARY KEY                       │
+│ user_id      UUID REFERENCES profiles(id)           │
+│ category     TEXT NOT NULL                          │
+│ score        DECIMAL DEFAULT 0                      │
+│ interaction_count INTEGER DEFAULT 0                 │
+│ last_interaction TIMESTAMP                          │
+│ created_at   TIMESTAMP                              │
+│ updated_at   TIMESTAMP                              │
+│ UNIQUE(user_id, category)                           │
+└─────────────────────────────────────────────────────┘
 ```
 
-**1.2 Update Route Configuration (App.tsx)**
+**New Table: `user_creator_preferences`**
+Stores creator affinity (who does the user engage with):
 
-| Route | Current | New |
-|-------|---------|-----|
-| `/` (Home) | ProtectedRoute | GuestAllowedRoute |
-| `/discover` | ProtectedRoute | GuestAllowedRoute |
-| `/user/:id` | ProtectedRoute | GuestAllowedRoute |
-| `/event/:id` | Public (already) | Keep as-is |
-| `/create` | ProtectedRoute | Keep ProtectedRoute |
-| `/chats` | ProtectedRoute | Keep ProtectedRoute |
-| `/profile` | ProtectedRoute | Keep ProtectedRoute |
+```text
+┌─────────────────────────────────────────────────────┐
+│ user_creator_preferences                            │
+├─────────────────────────────────────────────────────┤
+│ id           UUID PRIMARY KEY                       │
+│ user_id      UUID REFERENCES profiles(id)           │
+│ creator_id   UUID REFERENCES profiles(id)           │
+│ score        DECIMAL DEFAULT 0                      │
+│ interaction_count INTEGER DEFAULT 0                 │
+│ last_interaction TIMESTAMP                          │
+│ UNIQUE(user_id, creator_id)                         │
+└─────────────────────────────────────────────────────┘
+```
+
+**Expand `event_interactions` types**
+Add new interaction types: `like`, `save`, `join`, `repost`, `click`
 
 ---
 
-### Phase 2: Auth Prompt Modal
+### Phase 2: Tracking Infrastructure
 
-**2.1 Create `AuthPromptModal` Component**
-A friendly modal that appears when guests try to perform protected actions:
-
-```text
-┌─────────────────────────────────────────┐
-│    ✨ Únete a Zentro                    │
-│                                         │
-│    [Event image/context preview]        │
-│                                         │
-│    Para [action description] necesitas  │
-│    crear una cuenta                     │
-│                                         │
-│    [Crear Cuenta] (primary)             │
-│    [Ya tengo cuenta] (secondary)        │
-│                                         │
-│    Cerrar                               │
-└─────────────────────────────────────────┘
-```
-
-**2.2 Create `useAuthPrompt` Hook**
-Centralized hook for triggering auth prompts with context:
+**Create `src/lib/preferenceTracking.ts`**
+Centralized module to track all preference-relevant actions:
 
 ```typescript
-const { promptAuth } = useAuthPrompt();
+// Signal weights for learning
+const SIGNAL_WEIGHTS = {
+  join: 100,
+  save: 80,
+  repost: 70,
+  like: 60,
+  click: 30,
+  view: 20,
+};
 
-// Usage in components:
-const handleLike = () => {
-  if (!user) {
-    promptAuth({
-      action: "dar like a este evento",
-      returnTo: location.pathname
-    });
-    return;
+// Track and update preferences
+export const trackPreferenceSignal = async (
+  userId: string,
+  eventId: string,
+  signalType: keyof typeof SIGNAL_WEIGHTS
+) => {
+  // 1. Record in event_interactions
+  // 2. Get event category and creator
+  // 3. Update user_category_preferences (upsert)
+  // 4. Update user_creator_preferences (upsert)
+};
+```
+
+**Integration Points**
+Update existing hooks to call `trackPreferenceSignal`:
+
+| Hook | Action to Track |
+|------|-----------------|
+| `useLikeEvent` | `like` |
+| `useSaveEvent` | `save` |
+| `useJoinGuestlist` | `join` |
+| `useRepost` | `repost` |
+| `EventDetail.tsx` | `click` (on mount) |
+
+---
+
+### Phase 3: Algorithm Enhancement
+
+**Update `useForYouEvents.ts`**
+
+Add new scoring factor: **Learned Preferences (15%)**
+
+Current weights will be adjusted:
+- Proximity: 25% → 20%
+- Popularity: 20% → 15%
+- Explicit Interests: 20% → 15%
+- **Learned Preferences: 0% → 15%** (NEW)
+- Friends Going: 20% → 20%
+- Recency: 10% → 10%
+- Timing: 5% → 5%
+
+**New scoring function:**
+```typescript
+const getLearnedPreferenceScore = (
+  eventCategory: string | null,
+  eventCreatorId: string,
+  userCategoryPrefs: Record<string, number>,
+  userCreatorPrefs: Record<string, number>
+): number => {
+  let score = 50; // Neutral baseline
+  
+  // Category affinity (0-100 normalized)
+  if (eventCategory && userCategoryPrefs[eventCategory]) {
+    score += userCategoryPrefs[eventCategory] * 0.6;
   }
-  // ... proceed with like
+  
+  // Creator affinity
+  if (userCreatorPrefs[eventCreatorId]) {
+    score += userCreatorPrefs[eventCreatorId] * 0.4;
+  }
+  
+  return Math.min(100, score);
 };
 ```
 
 ---
 
-### Phase 3: Component Updates
+### Phase 4: Fetch Learned Preferences
 
-**3.1 Index.tsx (Homepage)**
-- Remove dependency on `requireProfile` for display
-- Hooks already handle `!user` gracefully (useForYouEvents works without auth)
-- Hide "Following" tab for guests (requires auth)
-- Notification bell triggers auth prompt for guests
+**New hook: `useUserPreferences.ts`**
+Fetches user's learned preferences for the algorithm:
 
-**3.2 Discover.tsx (Map)**
-- Already fetches public events
-- Search users shows results but profile click works
-- Filter "friends going" disabled for guests
-
-**3.3 UserProfile.tsx**
-- Follow button triggers auth prompt for guests
-- Message button triggers auth prompt for guests
-- Profile viewing works without auth
-
-**3.4 EventDetail.tsx (Already handles this well)**
-- Like/Save/Repost buttons already check `if (!user)` and redirect
-- Update to use modal instead of hard redirect
-
----
-
-### Phase 4: Bottom Navigation for Guests
-
-Update `BottomNav.tsx` to show appropriate behavior:
-
-| Tab | Guest Behavior |
-|-----|----------------|
-| Home | Works normally |
-| Discover | Works normally |
-| Create | Shows AuthPromptModal |
-| Chats | Shows AuthPromptModal |
-| Profile | Shows AuthPromptModal |
-
----
-
-### Phase 5: Hook Updates for Guest Safety
-
-Update these hooks to return safe defaults for guests:
-
-```text
-useForYouEvents.ts     → Already works (returns public events)
-useFollowingEventsScored.ts → Return empty for guests
-useSearchUsers.ts      → Works (public data)
-useIsEventLiked.ts     → Return false for guests
-useIsEventSaved.ts     → Return false for guests
-useIsFollowing.ts      → Return false for guests
+```typescript
+export const useUserPreferences = (userId: string | undefined) => {
+  return useQuery({
+    queryKey: ["user-preferences", userId],
+    queryFn: async () => {
+      // Fetch category preferences
+      const { data: categories } = await supabase
+        .from("user_category_preferences")
+        .select("category, score")
+        .eq("user_id", userId);
+      
+      // Fetch creator preferences  
+      const { data: creators } = await supabase
+        .from("user_creator_preferences")
+        .select("creator_id, score")
+        .eq("user_id", userId);
+      
+      return {
+        categories: Object.fromEntries(categories.map(c => [c.category, c.score])),
+        creators: Object.fromEntries(creators.map(c => [c.creator_id, c.score]))
+      };
+    },
+    enabled: !!userId,
+  });
+};
 ```
+
+---
+
+## Score Decay (Freshness)
+
+To prevent stale preferences, implement time decay:
+- Recent interactions (last 7 days): 100% weight
+- 7-30 days: 70% weight
+- 30-90 days: 40% weight
+- 90+ days: 20% weight
+
+This is calculated when fetching preferences, not stored.
 
 ---
 
 ## File Changes Summary
 
 ### New Files (3)
-1. `src/components/auth/GuestAllowedRoute.tsx` - Route wrapper for guest-accessible pages
-2. `src/components/auth/AuthPromptModal.tsx` - Friendly login/signup modal
-3. `src/hooks/useAuthPrompt.tsx` - Context and hook for auth prompts
+1. `src/lib/preferenceTracking.ts` - Core tracking logic
+2. `src/hooks/useUserPreferences.ts` - Fetch learned preferences
+3. Database migration for new tables
 
-### Modified Files (8)
-1. `src/App.tsx` - Update route wrappers
-2. `src/pages/Index.tsx` - Handle guest mode (hide Following tab)
-3. `src/pages/Discover.tsx` - Handle guest mode
-4. `src/pages/UserProfile.tsx` - Auth prompts for actions
-5. `src/pages/EventDetail.tsx` - Use modal instead of redirect
-6. `src/components/layout/BottomNav.tsx` - Protected tab behavior
-7. `src/components/events/EventCard.tsx` - Guest-safe interactions
-8. `src/contexts/AuthContext.tsx` - Add returnTo state management
+### Modified Files (6)
+1. `src/hooks/useEventLikes.ts` - Add preference tracking
+2. `src/hooks/useSavedEvents.ts` - Add preference tracking
+3. `src/hooks/useGuestlist.ts` - Add preference tracking
+4. `src/hooks/useReposts.ts` - Add preference tracking
+5. `src/pages/EventDetail.tsx` - Track click signal
+6. `src/hooks/useForYouEvents.ts` - Integrate learned preferences
 
 ---
 
-## User Flow Examples
+## Example User Journey
 
-**Flow 1: New User Opens App**
-```
-1. Splash screen → Homepage (sees events)
-2. Scrolls feed, taps event → Event detail (views)
-3. Taps "Unirse" → AuthPromptModal appears
-4. Signs up → Redirected back to event detail
-5. Taps "Unirse" again → Joins successfully
-```
+```text
+Day 1: Maria opens app, sees generic feed
+       → Views 3 club events, likes 1
 
-**Flow 2: Guest Explores Map**
-```
-1. Opens Discover → Map loads with events
-2. Taps marker → Event card appears
-3. Taps event → Event detail
-4. Taps heart (like) → AuthPromptModal
-5. "Ya tengo cuenta" → Login → Returns to event
+Day 2: Maria saves a house_party event
+       → Preferences: club (score: 80), house_party (score: 80)
+
+Day 3: Feed now shows more club/house_party events
+       Maria joins guestlist for @djmike's event
+       → Creator preference: @djmike (score: 100)
+
+Day 7: Maria's feed prioritizes:
+       1. Club events by @djmike (perfect match)
+       2. House party events nearby
+       3. Club events by others she follows
 ```
 
 ---
 
-## Benefits
-- Lower barrier to entry for new users
-- Users can evaluate the app before committing
-- Native app store expectation (most apps allow browsing)
-- Increases conversion by showing value first
-- Matches Dice.fm, Eventbrite, Meetup patterns
+## Privacy Considerations
+- Preferences are stored per-user, not shared
+- No personally identifiable data exposed
+- User can clear preferences (future feature)
+- Preferences only used for their own feed personalization
