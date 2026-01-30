@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { Capacitor } from "@capacitor/core";
 
 declare global {
   interface Window {
@@ -12,6 +13,8 @@ declare global {
 const ONESIGNAL_APP_ID = "5b6aae46-50f4-4a83-b3cf-bf62ec1138f1";
 
 // Platform detection helpers
+const isNative = () => Capacitor.isNativePlatform();
+
 const isPWA = () => {
   return window.matchMedia('(display-mode: standalone)').matches || 
          (window.navigator as any).standalone === true;
@@ -54,6 +57,9 @@ interface Props {
   children: ReactNode;
 }
 
+// Store native OneSignal instance
+let nativeOneSignal: any = null;
+
 export const OneSignalProvider = ({ children }: Props) => {
   const { user } = useAuth();
   const [isReady, setIsReady] = useState(false);
@@ -62,10 +68,9 @@ export const OneSignalProvider = ({ children }: Props) => {
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [platformSupport, setPlatformSupport] = useState<PlatformSupport>({ supported: true });
 
-  // Check platform support
-  const checkPlatformSupport = useCallback((): PlatformSupport => {
-    console.log("[OneSignal] Checking platform support...");
-    console.log("[OneSignal] iOS:", isIOS(), "PWA:", isPWA());
+  // Check platform support for web
+  const checkWebPlatformSupport = useCallback((): PlatformSupport => {
+    console.log("[OneSignal] Checking web platform support...");
     
     if (!('Notification' in window)) {
       return {
@@ -107,87 +112,139 @@ export const OneSignalProvider = ({ children }: Props) => {
     return { supported: true };
   }, []);
 
-  // Initialize OneSignal SDK
-  useEffect(() => {
-    const initOneSignal = async () => {
-      if (typeof window === "undefined") return;
+  // Initialize Native OneSignal (Capacitor)
+  const initNativeOneSignal = useCallback(async () => {
+    console.log("[OneSignal] Initializing native SDK...");
+    
+    try {
+      // Dynamic import for native OneSignal
+      const OneSignalModule = await import('onesignal-cordova-plugin');
+      nativeOneSignal = OneSignalModule.default;
       
-      console.log("[OneSignal] Starting initialization...");
+      // Initialize with app ID
+      nativeOneSignal.initialize(ONESIGNAL_APP_ID);
       
-      // Check platform first
-      const support = checkPlatformSupport();
-      setPlatformSupport(support);
+      console.log("[OneSignal] Native SDK initialized");
       
-      if (!support.supported && !support.canRetry) {
-        console.log("[OneSignal] Platform not supported:", support.reason);
-        setIsLoading(false);
-        return;
-      }
+      // Check current subscription status
+      const hasPermission = await nativeOneSignal.Notifications.getPermissionAsync();
+      const subscriptionId = await nativeOneSignal.User.pushSubscription.getIdAsync();
+      const optedIn = await nativeOneSignal.User.pushSubscription.getOptedInAsync();
+      
+      console.log("[OneSignal] Native status - Permission:", hasPermission, "ID:", subscriptionId, "OptedIn:", optedIn);
+      
+      setIsReady(true);
+      setIsSubscribed(hasPermission && !!subscriptionId && optedIn);
+      setPlayerId(subscriptionId || null);
+      setPlatformSupport({ supported: true });
+      setIsLoading(false);
+      
+      // Listen for subscription changes
+      nativeOneSignal.User.pushSubscription.addEventListener('change', (event: any) => {
+        console.log("[OneSignal] Subscription changed:", event);
+        setIsSubscribed(event.current.optedIn);
+        setPlayerId(event.current.id || null);
+      });
+      
+    } catch (error) {
+      console.error("[OneSignal] Native init error:", error);
+      setPlatformSupport({ 
+        supported: false, 
+        reason: "Failed to initialize push notifications",
+        canRetry: true 
+      });
+      setIsLoading(false);
+    }
+  }, []);
 
-      // Wait for service worker to be ready
-      if ('serviceWorker' in navigator) {
-        try {
-          await navigator.serviceWorker.ready;
-          console.log("[OneSignal] Service worker ready");
-        } catch (e) {
-          console.log("[OneSignal] Service worker not ready yet");
-        }
-      }
+  // Initialize Web OneSignal SDK
+  const initWebOneSignal = useCallback(async () => {
+    console.log("[OneSignal] Initializing web SDK...");
+    
+    // Check platform first
+    const support = checkWebPlatformSupport();
+    setPlatformSupport(support);
+    
+    if (!support.supported && !support.canRetry) {
+      console.log("[OneSignal] Web platform not supported:", support.reason);
+      setIsLoading(false);
+      return;
+    }
 
-      if (!window.OneSignal) {
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        
-        const script = document.createElement("script");
-        script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
-        script.defer = true;
-        document.head.appendChild(script);
-        
-        console.log("[OneSignal] SDK script added");
-
-        window.OneSignalDeferred.push(async (OneSignal: any) => {
-          try {
-            console.log("[OneSignal] Calling init()...");
-            
-            await OneSignal.init({
-              appId: ONESIGNAL_APP_ID,
-              allowLocalhostAsSecureOrigin: true,
-            });
-            
-            console.log("[OneSignal] Initialized successfully");
-            setIsReady(true);
-            await checkSubscriptionStatus(OneSignal);
-          } catch (error) {
-            console.error("[OneSignal] Init error:", error);
-            setIsLoading(false);
-          }
-        });
-      } else {
-        console.log("[OneSignal] Already loaded");
-        setIsReady(true);
-        await checkSubscriptionStatus(window.OneSignal);
-      }
-    };
-
-    const checkSubscriptionStatus = async (OneSignal: any) => {
+    // Wait for service worker to be ready
+    if ('serviceWorker' in navigator) {
       try {
-        console.log("[OneSignal] Checking subscription status...");
-        
-        const permission = await OneSignal.Notifications.permission;
-        const id = await OneSignal.User.PushSubscription.id;
-        const optedIn = await OneSignal.User.PushSubscription.optedIn;
-        
-        console.log("[OneSignal] Status - Permission:", permission, "ID:", id, "OptedIn:", optedIn);
-        
-        setIsSubscribed(permission && !!id && optedIn);
-        setPlayerId(id || null);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("[OneSignal] Status check error:", error);
-        setIsLoading(false);
+        await navigator.serviceWorker.ready;
+        console.log("[OneSignal] Service worker ready");
+      } catch (e) {
+        console.log("[OneSignal] Service worker not ready yet");
       }
-    };
+    }
 
-    initOneSignal();
+    if (!window.OneSignal) {
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      
+      const script = document.createElement("script");
+      script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
+      script.defer = true;
+      document.head.appendChild(script);
+      
+      console.log("[OneSignal] Web SDK script added");
+
+      window.OneSignalDeferred.push(async (OneSignal: any) => {
+        try {
+          console.log("[OneSignal] Calling web init()...");
+          
+          await OneSignal.init({
+            appId: ONESIGNAL_APP_ID,
+            allowLocalhostAsSecureOrigin: true,
+          });
+          
+          console.log("[OneSignal] Web initialized successfully");
+          setIsReady(true);
+          await checkWebSubscriptionStatus(OneSignal);
+        } catch (error) {
+          console.error("[OneSignal] Web init error:", error);
+          setIsLoading(false);
+        }
+      });
+    } else {
+      console.log("[OneSignal] Web SDK already loaded");
+      setIsReady(true);
+      await checkWebSubscriptionStatus(window.OneSignal);
+    }
+  }, [checkWebPlatformSupport]);
+
+  const checkWebSubscriptionStatus = async (OneSignal: any) => {
+    try {
+      console.log("[OneSignal] Checking web subscription status...");
+      
+      const permission = await OneSignal.Notifications.permission;
+      const id = await OneSignal.User.PushSubscription.id;
+      const optedIn = await OneSignal.User.PushSubscription.optedIn;
+      
+      console.log("[OneSignal] Web status - Permission:", permission, "ID:", id, "OptedIn:", optedIn);
+      
+      setIsSubscribed(permission && !!id && optedIn);
+      setPlayerId(id || null);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("[OneSignal] Web status check error:", error);
+      setIsLoading(false);
+    }
+  };
+
+  // Main initialization effect
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    
+    console.log("[OneSignal] Starting initialization, isNative:", isNative());
+    
+    if (isNative()) {
+      initNativeOneSignal();
+    } else {
+      initWebOneSignal();
+    }
     
     // Safety timeout
     const timeout = setTimeout(() => {
@@ -198,7 +255,7 @@ export const OneSignalProvider = ({ children }: Props) => {
     }, 15000);
     
     return () => clearTimeout(timeout);
-  }, [checkPlatformSupport]);
+  }, [initNativeOneSignal, initWebOneSignal, isLoading]);
 
   // Sync player ID with database
   useEffect(() => {
@@ -214,10 +271,14 @@ export const OneSignalProvider = ({ children }: Props) => {
           .single();
 
         if (!existing) {
+          const deviceType = isNative() 
+            ? (Capacitor.getPlatform() === 'ios' ? 'ios' : 'android')
+            : (/mobile|android|iphone|ipad/i.test(navigator.userAgent) ? "mobile" : "web");
+          
           const { error } = await supabase.from("push_subscriptions").insert({
             user_id: user.id,
             onesignal_player_id: playerId,
-            device_type: /mobile|android|iphone|ipad/i.test(navigator.userAgent) ? "mobile" : "web",
+            device_type: deviceType,
           });
 
           if (error && error.code !== "23505") {
@@ -232,67 +293,122 @@ export const OneSignalProvider = ({ children }: Props) => {
     syncPlayerId();
   }, [user?.id, playerId]);
 
+  // Subscribe - handles both native and web
   const subscribe = useCallback(async (): Promise<boolean> => {
     if (!platformSupport.supported) {
       console.log("[OneSignal] Cannot subscribe - platform not supported");
       return false;
     }
 
-    if (!window.OneSignal || !isReady) {
-      console.log("[OneSignal] Cannot subscribe - SDK not ready");
-      return false;
-    }
-
     try {
       setIsLoading(true);
-      console.log("[OneSignal] Starting subscription...");
+      console.log("[OneSignal] Starting subscription, isNative:", isNative());
       
-      await window.OneSignal.User.PushSubscription.optIn();
-      console.log("[OneSignal] optIn completed");
-      
-      // Poll for subscription ID
-      for (let i = 0; i < 30; i++) {
-        const id = await window.OneSignal.User.PushSubscription.id;
-        const permission = await window.OneSignal.Notifications.permission;
-        const optedIn = await window.OneSignal.User.PushSubscription.optedIn;
+      if (isNative() && nativeOneSignal) {
+        // Native subscription - request permission first
+        const granted = await nativeOneSignal.Notifications.requestPermission(true);
+        console.log("[OneSignal] Native permission result:", granted);
         
-        console.log(`[OneSignal] Poll ${i + 1}: permission=${permission}, id=${id}, optedIn=${optedIn}`);
-        
-        if (permission && id && optedIn) {
-          setIsSubscribed(true);
-          setPlayerId(id);
-          
-          if (user?.id) {
-            await supabase.from("push_subscriptions").upsert({
-              user_id: user.id,
-              onesignal_player_id: id,
-              device_type: /mobile|android|iphone|ipad/i.test(navigator.userAgent) ? "mobile" : "web",
-            }, {
-              onConflict: "user_id,onesignal_player_id",
-            });
-          }
-          
-          setIsLoading(false);
-          return true;
-        }
-        
-        if (Notification.permission === 'denied') {
-          console.log("[OneSignal] Permission denied by user");
+        if (!granted) {
           setPlatformSupport({
             supported: false,
-            reason: "Notifications are blocked. Enable them in your device settings.",
+            reason: "Permiso de notificaciones denegado. Habilítalo en configuración.",
             canRetry: false,
           });
           setIsLoading(false);
           return false;
         }
         
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Opt in (synchronous in native)
+        nativeOneSignal.User.pushSubscription.optIn();
+        
+        // Poll for subscription ID (native may take a moment)
+        for (let i = 0; i < 30; i++) {
+          const id = await nativeOneSignal.User.pushSubscription.getIdAsync();
+          const optedIn = await nativeOneSignal.User.pushSubscription.getOptedInAsync();
+          
+          console.log(`[OneSignal] Native poll ${i + 1}: ID=${id}, OptedIn=${optedIn}`);
+          
+          if (id && optedIn) {
+            setIsSubscribed(true);
+            setPlayerId(id);
+            
+            if (user?.id) {
+              await supabase.from("push_subscriptions").upsert({
+                user_id: user.id,
+                onesignal_player_id: id,
+                device_type: Capacitor.getPlatform() === 'ios' ? 'ios' : 'android',
+              }, {
+                onConflict: "user_id,onesignal_player_id",
+              });
+            }
+            
+            setIsLoading(false);
+            return true;
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        console.log("[OneSignal] Native subscription timed out");
+        setIsLoading(false);
+        return false;
+        
+      } else {
+        // Web subscription
+        if (!window.OneSignal || !isReady) {
+          console.log("[OneSignal] Cannot subscribe - web SDK not ready");
+          setIsLoading(false);
+          return false;
+        }
+        
+        await window.OneSignal.User.PushSubscription.optIn();
+        console.log("[OneSignal] Web optIn completed");
+        
+        // Poll for subscription ID
+        for (let i = 0; i < 30; i++) {
+          const id = await window.OneSignal.User.PushSubscription.id;
+          const permission = await window.OneSignal.Notifications.permission;
+          const optedIn = await window.OneSignal.User.PushSubscription.optedIn;
+          
+          console.log(`[OneSignal] Web poll ${i + 1}: permission=${permission}, id=${id}, optedIn=${optedIn}`);
+          
+          if (permission && id && optedIn) {
+            setIsSubscribed(true);
+            setPlayerId(id);
+            
+            if (user?.id) {
+              await supabase.from("push_subscriptions").upsert({
+                user_id: user.id,
+                onesignal_player_id: id,
+                device_type: /mobile|android|iphone|ipad/i.test(navigator.userAgent) ? "mobile" : "web",
+              }, {
+                onConflict: "user_id,onesignal_player_id",
+              });
+            }
+            
+            setIsLoading(false);
+            return true;
+          }
+          
+          if (Notification.permission === 'denied') {
+            console.log("[OneSignal] Web permission denied by user");
+            setPlatformSupport({
+              supported: false,
+              reason: "Notifications are blocked. Enable them in your device settings.",
+              canRetry: false,
+            });
+            setIsLoading(false);
+            return false;
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        console.log("[OneSignal] Web subscription timed out");
+        setIsLoading(false);
+        return false;
       }
-      
-      console.log("[OneSignal] Subscription timed out");
-      setIsLoading(false);
-      return false;
     } catch (error) {
       console.error("[OneSignal] Subscribe error:", error);
       setIsLoading(false);
@@ -300,14 +416,22 @@ export const OneSignalProvider = ({ children }: Props) => {
     }
   }, [user?.id, platformSupport.supported, isReady]);
 
+  // Unsubscribe - handles both native and web
   const unsubscribe = useCallback(async (): Promise<boolean> => {
-    if (!window.OneSignal) return false;
-
     try {
       setIsLoading(true);
-      console.log("[OneSignal] Unsubscribing...");
+      console.log("[OneSignal] Unsubscribing, isNative:", isNative());
       
-      await window.OneSignal.User.PushSubscription.optOut();
+      if (isNative() && nativeOneSignal) {
+        nativeOneSignal.User.pushSubscription.optOut();
+      } else {
+        if (!window.OneSignal) {
+          setIsLoading(false);
+          return false;
+        }
+        
+        await window.OneSignal.User.PushSubscription.optOut();
+      }
       
       if (user?.id && playerId) {
         await supabase
