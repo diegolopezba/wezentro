@@ -88,7 +88,7 @@ export const useSubscriptionPlans = (): SubscriptionPlan[] => {
     {
       id: "user_premium",
       name: "Zentro Premium",
-      price: 4.20,
+      price: 3.99,
       interval: "month",
       features: [
         "Todo lo del plan Gratis",
