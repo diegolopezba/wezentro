@@ -25,26 +25,10 @@ const Saved = () => {
         </div>
       </header>
 
-      <div className="px-2 py-2">
-        {isLoading ? (
-          <EventFeedSkeleton count={6} />
-        ) : savedEvents && savedEvents.length > 0 ? (
-          <div className="masonry-grid">
-            {savedEvents.map((item, index) => (
-              <EventCard
-                key={item.id}
-                id={item.event.id}
-                title={item.event.title || undefined}
-                date={item.event.start_datetime}
-                location={item.event.location_name || ""}
-                imageUrl={item.event.image_url || ""}
-                category={item.event.category || ""}
-                index={index}
-              />
-            ))}
-          </div>
-        ) : (
-          <motion.div initial={{
+      <div className="py-2 px-0">
+        {isLoading ? <EventFeedSkeleton count={6} /> : savedEvents && savedEvents.length > 0 ? <div className="masonry-grid">
+            {savedEvents.map((item, index) => <EventCard key={item.id} id={item.event.id} title={item.event.title || undefined} date={item.event.start_datetime} location={item.event.location_name || ""} imageUrl={item.event.image_url || ""} category={item.event.category || ""} index={index} />)}
+          </div> : <motion.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
@@ -63,8 +47,7 @@ const Saved = () => {
             <Button variant="hero" className="mt-6" onClick={() => navigate("/")}>
               Explorar Eventos
             </Button>
-          </motion.div>
-        )}
+          </motion.div>}
       </div>
     </AppLayout>;
 };
