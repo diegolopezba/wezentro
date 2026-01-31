@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSavedEvents } from "@/hooks/useSavedEvents";
 import { EventCard } from "@/components/events/EventCard";
-import { Skeleton } from "@/components/ui/skeleton";
+import { EventFeedSkeleton } from "@/components/skeletons";
 const Saved = () => {
   const navigate = useNavigate();
   const {
@@ -25,26 +25,26 @@ const Saved = () => {
         </div>
       </header>
 
-      <div className="space-y-4 px-0 py-0">
-        {isLoading ? <div className="space-y-4">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 w-full rounded-2xl" />)}
-          </div> : savedEvents && savedEvents.length > 0 ? <motion.div initial={{
-        opacity: 0
-      }} animate={{
-        opacity: 1
-      }} className="space-y-4">
-            {savedEvents.map((item, index) => <motion.div key={item.id} initial={{
-          opacity: 0,
-          y: 20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: index * 0.05
-        }}>
-                <EventCard id={item.event.id} title={item.event.title || "Evento sin título"} date={item.event.start_datetime} location={item.event.location_name || ""} imageUrl={item.event.image_url || ""} category={item.event.category || ""} />
-              </motion.div>)}
-          </motion.div> : <motion.div initial={{
+      <div className="px-2 py-2">
+        {isLoading ? (
+          <EventFeedSkeleton count={6} />
+        ) : savedEvents && savedEvents.length > 0 ? (
+          <div className="masonry-grid">
+            {savedEvents.map((item, index) => (
+              <EventCard
+                key={item.id}
+                id={item.event.id}
+                title={item.event.title || undefined}
+                date={item.event.start_datetime}
+                location={item.event.location_name || ""}
+                imageUrl={item.event.image_url || ""}
+                category={item.event.category || ""}
+                index={index}
+              />
+            ))}
+          </div>
+        ) : (
+          <motion.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
@@ -63,7 +63,8 @@ const Saved = () => {
             <Button variant="hero" className="mt-6" onClick={() => navigate("/")}>
               Explorar Eventos
             </Button>
-          </motion.div>}
+          </motion.div>
+        )}
       </div>
     </AppLayout>;
 };
