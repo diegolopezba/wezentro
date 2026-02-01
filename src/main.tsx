@@ -5,8 +5,5 @@ import "./index.css";
 // Initialize production logger (suppresses console.log in production)
 import "./lib/logger";
 
-createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// Note: StrictMode is disabled because keepalive-for-react requires it for page caching
+createRoot(document.getElementById("root")!).render(<App />);
