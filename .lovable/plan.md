@@ -1,39 +1,95 @@
 
-# Update Saved Events Page to Masonry Layout
+# Keep-Alive Page Caching Implementation
 
 ## Overview
-Change the Saved Events page from a vertical stack layout to a masonry (staggered) grid layout to match the visual style used throughout the rest of the app.
+Implement true keep-alive functionality using `keepalive-for-react` to cache the 4 core navigation pages. This preserves scroll position, component state, and eliminates loading flickers when users navigate back - achieving the Instagram/Pinterest experience.
 
-## Current State
-- Events are displayed in a single column vertical stack using `space-y-4`
-- Loading skeleton shows full-width rectangles
-- Individual motion wrappers around each card
+## Technical Approach
 
-## Changes Required
+### Library Choice: `keepalive-for-react`
+- Modern library designed for React Router v6+
+- Small bundle impact (~5-8KB gzipped)
+- Built-in memory management with `max` limit
+- Works with existing lazy loading and Suspense
 
-### 1. Update Event Grid Container
-Replace the vertical stack layout with the masonry grid:
-- Change `className="space-y-4"` to `className="masonry-grid"` on the events container
-- Remove individual `motion.div` wrappers since EventCard handles its own animations
+### Architecture Change
 
-### 2. Update Loading Skeleton
-Replace the full-width skeleton rectangles with the `EventFeedSkeleton` component which already uses the masonry layout.
-
-### 3. Pass Index Prop
-Ensure the `index` prop is passed to each EventCard for proper staggered animation timing.
-
----
-
-## Technical Details
-
-**File to modify:** `src/pages/Saved.tsx`
-
-**Key changes:**
 ```text
-1. Import EventFeedSkeleton from "@/components/skeletons"
-2. Replace loading skeleton with <EventFeedSkeleton count={6} />
-3. Change events container from space-y-4 to masonry-grid
-4. Remove motion.div wrappers, pass index to EventCard
+Current Flow:
+User navigates away → Component unmounts → User returns → Component remounts → Data refetches → Loading shown
+
+New Flow:
+User navigates away → Component hidden (cached) → User returns → Component shown instantly
 ```
 
-The masonry-grid CSS class is already defined in `index.css` and creates a 2-column grid on mobile, 3 columns on tablet, and 4 columns on desktop.
+## Implementation Steps
+
+### 1. Install Dependency
+Add `keepalive-for-react` package to the project.
+
+### 2. Create KeepAlive Layout Wrapper
+Create a new layout component that wraps routes with the KeepAlive provider:
+
+**File:** `src/components/layout/KeepAliveLayout.tsx`
+- Uses `useLocation` and `useOutlet` from react-router-dom
+- Configures KeepAlive with `max={4}` for memory control (one per cached page)
+- Caches pages based on pathname
+
+### 3. Update App.tsx Routing Structure
+Restructure routes to use the KeepAlive layout for the 4 core navigation pages only:
+
+**Cached pages (keep-alive enabled):**
+- `/` (Index/Home)
+- `/discover`
+- `/chats`
+- `/profile`
+
+**Not cached (normal behavior):**
+- `/saved` - Will remount normally
+- `/auth` - Should clear on navigation
+- `/create` - Fresh form state each time
+- `/event/:id` - Dynamic content
+- `/user/:id` - Dynamic content
+- All other pages
+
+### 4. Route Structure Change
+
+```text
+<Routes>
+  {/* Keep-alive enabled routes */}
+  <Route element={<KeepAliveLayout />}>
+    <Route path="/" element={<Index />} />
+    <Route path="/discover" element={<Discover />} />
+    <Route path="/chats" element={<Chats />} />
+    <Route path="/profile" element={<Profile />} />
+  </Route>
+  
+  {/* Normal routes (no caching) */}
+  <Route path="/saved" element={<Saved />} />
+  <Route path="/create" element={<Create />} />
+  {/* ... other routes ... */}
+</Routes>
+```
+
+## Files to Create/Modify
+
+| File | Change |
+|------|--------|
+| `package.json` | Add `keepalive-for-react` dependency |
+| `src/components/layout/KeepAliveLayout.tsx` | **New file** - KeepAlive wrapper component |
+| `src/App.tsx` | Restructure routes to wrap only the 4 core pages with KeepAlive |
+
+## Expected Results
+
+| Scenario | Before | After |
+|----------|--------|-------|
+| Return to homepage from event detail | Loading skeleton, scroll at top | Instant, scroll preserved |
+| Switch between bottom nav tabs | Brief flicker | Seamless transition |
+| Memory usage | N/A | Controlled (max 4 pages cached) |
+| Saved page behavior | N/A | Normal (remounts each time) |
+
+## Risk Mitigation
+
+- **Memory**: Limited to 4 cached pages (exactly the core nav pages)
+- **Stale data**: React Query background refetch keeps data fresh
+- **Animations**: May need minor Framer Motion adjustments if conflicts arise
