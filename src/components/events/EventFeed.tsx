@@ -3,7 +3,7 @@ import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { EventFeedSkeleton } from "@/components/skeletons";
-
+import { CoachMark } from "@/components/walkthrough/CoachMark";
 interface EventFeedProps {
   events: EventCardProps[];
   isLoading?: boolean;
@@ -55,7 +55,13 @@ export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you
   return (
     <div className="masonry-grid">
       {events.map((event, index) => (
-        <EventCard key={event.id} {...event} index={index} />
+        index === 0 ? (
+          <CoachMark key={event.id} stepId="general-2">
+            <EventCard {...event} index={index} />
+          </CoachMark>
+        ) : (
+          <EventCard key={event.id} {...event} index={index} />
+        )
       ))}
     </div>
   );
