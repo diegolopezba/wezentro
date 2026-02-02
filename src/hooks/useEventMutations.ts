@@ -52,7 +52,29 @@ export function useDeleteEvent() {
       if (error) throw error;
     },
     onSuccess: () => {
+      // Invalidate all event-related caches for instant UI updates
       queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["user-timeline"] });
+      queryClient.invalidateQueries({ queryKey: ["user-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["for-you-events"] });
+      queryClient.invalidateQueries({ queryKey: ["nearby-events"] });
+      queryClient.invalidateQueries({ queryKey: ["following-events"] });
     },
   });
+}
+
+export function useCreateEvent() {
+  const queryClient = useQueryClient();
+
+  return {
+    invalidateAfterCreate: () => {
+      // Invalidate all relevant caches after creating new content
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["user-timeline"] });
+      queryClient.invalidateQueries({ queryKey: ["user-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["for-you-events"] });
+      queryClient.invalidateQueries({ queryKey: ["nearby-events"] });
+      queryClient.invalidateQueries({ queryKey: ["following-events"] });
+    },
+  };
 }
