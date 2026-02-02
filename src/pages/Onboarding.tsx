@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useProcessReferral } from "@/hooks/useReferrals";
-import { markUserAsNew } from "@/hooks/useWalkthroughTrigger";
 
 const interests = ["Discotecas", "Bares", "Conciertos", "Festivales", "Fiestas Privadas", "Rooftops", "Música en Vivo", "DJ Sets", "Restaurantes y Cafés"];
 
@@ -117,10 +116,6 @@ const Onboarding = () => {
     }
     
     await refreshProfile();
-    
-    // Mark user as new to trigger walkthrough
-    markUserAsNew();
-    
     toast.success("¡Bienvenido a Zentro!");
     navigate("/");
   };

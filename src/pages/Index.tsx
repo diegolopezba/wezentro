@@ -16,16 +16,11 @@ import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
 import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
-import { CoachMark } from "@/components/walkthrough/CoachMark";
-import { useWalkthroughTrigger } from "@/hooks/useWalkthroughTrigger";
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
   const isGuest = !user;
-  
-  // Trigger walkthrough for new users
-  useWalkthroughTrigger();
   
   const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
   const [searchQuery, setSearchQuery] = useState("");
@@ -176,15 +171,13 @@ const Index = () => {
                 pointerEvents: headerVisible ? "auto" : "none"
               }}
             >
-              <CoachMark stepId="general-1">
-                <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                  {activeTab === "for-you" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
-                  type: "spring",
-                  duration: 0.5
-                }} />}
-                  <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary" : ""}`}>Para Ti</span>
-                </button>
-              </CoachMark>
+              <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                {activeTab === "for-you" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
+                type: "spring",
+                duration: 0.5
+              }} />}
+                <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary" : ""}`}>Para Ti</span>
+              </button>
               {/* Hide Following tab for guests - requires auth */}
               {!isGuest && (
                 <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "following" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
@@ -200,13 +193,11 @@ const Index = () => {
         </header>
 
         {/* Event feed with pull-to-refresh */}
-        <CoachMark stepId="general-3">
-          <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-            <LayoutGroup>
-              <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
-            </LayoutGroup>
-          </PullToRefresh>
-        </CoachMark>
+        <PullToRefresh onRefresh={handleRefresh} className="flex-1">
+          <LayoutGroup>
+            <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
+          </LayoutGroup>
+        </PullToRefresh>
       </AppLayout>
 
       {/* Overlay for expansion transition */}

@@ -26,8 +26,6 @@ import { isVideoUrl } from "@/lib/mediaUtils";
 import { trackEventView } from "@/lib/analyticsTracking";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
-import { CoachMark } from "@/components/walkthrough/CoachMark";
-import { useWalkthroughSafe } from "@/contexts/WalkthroughContext";
 
 const EventDetail = () => {
   const {
@@ -321,51 +319,35 @@ const EventDetail = () => {
 
             {/* Right: Join/Manage, Edit dropdown */}
             <div className="flex items-center gap-1">
-              {!isPost && event.has_guestlist && (isOwner ? (
-                <CoachMark stepId="business-4">
-                  <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
+              {!isPost && event.has_guestlist && (isOwner ? <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
                     Gestionar
                     {pendingCount > 0 && <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
                         {pendingCount}
                       </span>}
-                  </Button>
-                </CoachMark>
-              ) : isOnGuestlist ? isPending ? (
-                <Button variant="ghost" size="sm" disabled>
-                  <Clock className="w-4 h-4 mr-1" /> Pendiente
-                </Button>
-              ) : (
-                <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
-                  {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
-                </Button>
-              ) : (
-                <CoachMark stepId="general-3">
-                  <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
+                  </Button> : isOnGuestlist ? isPending ? <Button variant="ghost" size="sm" disabled>
+                      <Clock className="w-4 h-4 mr-1" /> Pendiente
+                    </Button> : <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                      {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
+                    </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
                     {(joinGuestlist.isPending || joinGuestlistWithPayment.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
-                  </Button>
-                </CoachMark>
-              ))}
-              {isOwner && (
-                <CoachMark stepId="business-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="w-5 h-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
-                        <Pencil className="w-4 h-4 mr-2" />
-                        Editar evento
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Eliminar evento
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CoachMark>
-              )}
+                  </Button>)}
+              {isOwner && <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="w-5 h-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Editar evento
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Eliminar evento
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>}
             </div>
           </div>
 

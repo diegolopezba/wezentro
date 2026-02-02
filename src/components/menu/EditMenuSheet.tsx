@@ -33,8 +33,6 @@ import {
   useReorderMenuItems,
   MenuItem,
 } from "@/hooks/useMenu";
-import { CoachMark } from "@/components/walkthrough/CoachMark";
-import { useWalkthroughSafe } from "@/contexts/WalkthroughContext";
 
 interface EditMenuSheetProps {
   open: boolean;
@@ -243,16 +241,14 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
                 <SheetTitle>Editar Menú</SheetTitle>
               </div>
               {menu && (
-                <CoachMark stepId="food-2">
-                  <Button
-                    size="sm"
-                    onClick={() => handleOpenItemDialog()}
-                    className="gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Agregar
-                  </Button>
-                </CoachMark>
+                <Button
+                  size="sm"
+                  onClick={() => handleOpenItemDialog()}
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Agregar
+                </Button>
               )}
             </div>
           </SheetHeader>

@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OneSignalProvider } from "@/contexts/OneSignalContext";
 import { LocationProvider } from "@/contexts/LocationContext";
-import { WalkthroughProvider } from "@/contexts/WalkthroughContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { GuestAllowedRoute } from "@/components/auth/GuestAllowedRoute";
 import { NotificationFeedbackProvider } from "@/components/NotificationFeedbackProvider";
@@ -18,7 +17,6 @@ import { PageLoader } from "@/components/PageLoader";
 import { AuthPromptProvider } from "@/hooks/useAuthPrompt";
 import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
 import { KeepAliveLayout } from "@/components/layout/KeepAliveLayout";
-import { WalkthroughOverlay } from "@/components/walkthrough/WalkthroughOverlay";
 
 // Core navigation pages - preloaded for instant navigation (native app feel)
 const indexImport = () => import("./pages/Index");
@@ -104,12 +102,10 @@ const App = () => {
                 <NotificationFeedbackProvider>
                   <PushNotificationPrompt>
                     <LocationProvider>
-                      <WalkthroughProvider>
-                        <WalkthroughOverlay />
-                        <AuthPromptProvider>
-                          <AuthPromptModal />
-                          <Routes>
-                            {/* Public routes */}
+                      <AuthPromptProvider>
+                        <AuthPromptModal />
+                        <Routes>
+                          {/* Public routes */}
                           <Route
                             path="/auth"
                             element={
@@ -373,8 +369,7 @@ const App = () => {
                             }
                           />
                         </Routes>
-                        </AuthPromptProvider>
-                      </WalkthroughProvider>
+                      </AuthPromptProvider>
                     </LocationProvider>
                   </PushNotificationPrompt>
                 </NotificationFeedbackProvider>
