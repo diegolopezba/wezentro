@@ -328,7 +328,8 @@ const Create = () => {
       // Invalidate caches for instant UI updates
       invalidateAfterCreate();
       
-      navigate(`/event/${data.id}`);
+      // Navigate with state to indicate coming from create flow
+      navigate(`/event/${data.id}`, { state: { fromCreate: true }, replace: true });
     } catch (error: any) {
       console.error("Error creating:", error);
       toast.error(error.message || "Error al crear");
