@@ -200,11 +200,13 @@ const Index = () => {
         </header>
 
         {/* Event feed with pull-to-refresh */}
-        <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-          <LayoutGroup>
-            <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
-          </LayoutGroup>
-        </PullToRefresh>
+        <CoachMark stepId="general-3">
+          <PullToRefresh onRefresh={handleRefresh} className="flex-1">
+            <LayoutGroup>
+              <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
+            </LayoutGroup>
+          </PullToRefresh>
+        </CoachMark>
       </AppLayout>
 
       {/* Overlay for expansion transition */}
