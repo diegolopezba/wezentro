@@ -8,6 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -22,6 +29,8 @@ import {
   ChevronDown,
   Loader2,
   Pencil,
+  FolderPlus,
+  Folder,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -31,7 +40,12 @@ import {
   useUpdateMenuItem,
   useDeleteMenuItem,
   useReorderMenuItems,
+  useCreateMenuCategory,
+  useUpdateMenuCategory,
+  useDeleteMenuCategory,
+  useReorderMenuCategories,
   MenuItem,
+  MenuCategory,
 } from "@/hooks/useMenu";
 
 interface EditMenuSheetProps {
@@ -43,6 +57,11 @@ interface ItemFormData {
   name: string;
   description: string;
   price: string;
+  categoryId: string;
+}
+
+interface CategoryFormData {
+  name: string;
 }
 
 const MenuItemRow = ({
@@ -96,7 +115,7 @@ const MenuItemRow = ({
           <h4 className="font-medium text-foreground truncate">{item.name}</h4>
           {item.price !== null && (
             <span className="text-sm text-muted-foreground">
-              ${item.price.toFixed(2)}
+              Bs. {item.price.toFixed(2)}
             </span>
           )}
         </div>
@@ -122,6 +141,59 @@ const MenuItemRow = ({
   );
 };
 
+const CategoryRow = ({
+  category,
+  onEdit,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
+}: {
+  category: MenuCategory;
+  onEdit: () => void;
+  onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
+}) => {
+  return (
+    <div className="flex items-center gap-3 py-2 px-3 bg-secondary/30 rounded-lg mb-2">
+      <div className="flex flex-col gap-0.5">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-5 w-5"
+          onClick={onMoveUp}
+          disabled={isFirst}
+        >
+          <ChevronUp className="w-3 h-3" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-5 w-5"
+          onClick={onMoveDown}
+          disabled={isLast}
+        >
+          <ChevronDown className="w-3 h-3" />
+        </Button>
+      </div>
+
+      <Folder className="w-4 h-4 text-primary" />
+      <span className="flex-1 font-medium text-sm">{category.name}</span>
+
+      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit}>
+        <Pencil className="w-3 h-3" />
+      </Button>
+      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onDelete}>
+        <Trash2 className="w-3 h-3 text-destructive" />
+      </Button>
+    </div>
+  );
+};
+
 export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
   const { data: menu, isLoading } = useMyMenu();
   const createMenuMutation = useCreateMenu();
@@ -129,14 +201,25 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
   const updateItemMutation = useUpdateMenuItem();
   const deleteItemMutation = useDeleteMenuItem();
   const reorderMutation = useReorderMenuItems();
+  const createCategoryMutation = useCreateMenuCategory();
+  const updateCategoryMutation = useUpdateMenuCategory();
+  const deleteCategoryMutation = useDeleteMenuCategory();
+  const reorderCategoriesMutation = useReorderMenuCategories();
 
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null);
   const [itemForm, setItemForm] = useState<ItemFormData>({
     name: "",
     description: "",
     price: "",
+    categoryId: "",
   });
+  const [categoryForm, setCategoryForm] = useState<CategoryFormData>({
+    name: "",
+  });
+  const [activeTab, setActiveTab] = useState<"items" | "categories">("items");
 
   const handleCreateMenu = async () => {
     try {
@@ -154,12 +237,24 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
         name: item.name,
         description: item.description || "",
         price: item.price?.toString() || "",
+        categoryId: item.category_id || "",
       });
     } else {
       setEditingItem(null);
-      setItemForm({ name: "", description: "", price: "" });
+      setItemForm({ name: "", description: "", price: "", categoryId: "" });
     }
     setIsItemDialogOpen(true);
+  };
+
+  const handleOpenCategoryDialog = (category?: MenuCategory) => {
+    if (category) {
+      setEditingCategory(category);
+      setCategoryForm({ name: category.name });
+    } else {
+      setEditingCategory(null);
+      setCategoryForm({ name: "" });
+    }
+    setIsCategoryDialogOpen(true);
   };
 
   const handleSaveItem = async () => {
@@ -177,6 +272,7 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
           name: itemForm.name.trim(),
           description: itemForm.description.trim() || null,
           price: price ?? null,
+          category_id: itemForm.categoryId || null,
         });
         toast.success("Item actualizado");
       } else {
@@ -186,12 +282,40 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
           name: itemForm.name.trim(),
           description: itemForm.description.trim() || undefined,
           price,
+          categoryId: itemForm.categoryId || undefined,
         });
         toast.success("Item agregado");
       }
       setIsItemDialogOpen(false);
     } catch {
       toast.error("Error al guardar item");
+    }
+  };
+
+  const handleSaveCategory = async () => {
+    if (!categoryForm.name.trim()) {
+      toast.error("El nombre es requerido");
+      return;
+    }
+
+    try {
+      if (editingCategory) {
+        await updateCategoryMutation.mutateAsync({
+          id: editingCategory.id,
+          name: categoryForm.name.trim(),
+        });
+        toast.success("Categoría actualizada");
+      } else {
+        if (!menu) return;
+        await createCategoryMutation.mutateAsync({
+          menuId: menu.id,
+          name: categoryForm.name.trim(),
+        });
+        toast.success("Categoría agregada");
+      }
+      setIsCategoryDialogOpen(false);
+    } catch {
+      toast.error("Error al guardar categoría");
     }
   };
 
@@ -204,6 +328,15 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
     }
   };
 
+  const handleDeleteCategory = async (id: string) => {
+    try {
+      await deleteCategoryMutation.mutateAsync(id);
+      toast.success("Categoría eliminada");
+    } catch {
+      toast.error("Error al eliminar categoría");
+    }
+  };
+
   const handleMoveItem = async (index: number, direction: "up" | "down") => {
     if (!menu) return;
 
@@ -212,10 +345,8 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
 
     if (newIndex < 0 || newIndex >= items.length) return;
 
-    // Swap items
     [items[index], items[newIndex]] = [items[newIndex], items[index]];
 
-    // Update display_order for all items
     const updates = items.map((item, i) => ({
       id: item.id,
       display_order: i,
@@ -225,6 +356,28 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
       await reorderMutation.mutateAsync(updates);
     } catch {
       toast.error("Error al reordenar items");
+    }
+  };
+
+  const handleMoveCategory = async (index: number, direction: "up" | "down") => {
+    if (!menu) return;
+
+    const categories = [...(menu.categories || [])];
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+
+    if (newIndex < 0 || newIndex >= categories.length) return;
+
+    [categories[index], categories[newIndex]] = [categories[newIndex], categories[index]];
+
+    const updates = categories.map((cat, i) => ({
+      id: cat.id,
+      display_order: i,
+    }));
+
+    try {
+      await reorderCategoriesMutation.mutateAsync(updates);
+    } catch {
+      toast.error("Error al reordenar categorías");
     }
   };
 
@@ -241,19 +394,52 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
                 <SheetTitle>Editar Menú</SheetTitle>
               </div>
               {menu && (
-                <Button
-                  size="sm"
-                  onClick={() => handleOpenItemDialog()}
-                  className="gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Agregar
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleOpenCategoryDialog()}
+                    className="gap-1"
+                  >
+                    <FolderPlus className="w-4 h-4" />
+                    Categoría
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleOpenItemDialog()}
+                    className="gap-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Item
+                  </Button>
+                </div>
               )}
             </div>
           </SheetHeader>
 
-          <ScrollArea className="h-[calc(85vh-120px)]">
+          {/* Tabs */}
+          {menu && (
+            <div className="flex gap-2 mb-4">
+              <Button
+                size="sm"
+                variant={activeTab === "items" ? "default" : "outline"}
+                onClick={() => setActiveTab("items")}
+                className="flex-1"
+              >
+                Items ({menu.items.length})
+              </Button>
+              <Button
+                size="sm"
+                variant={activeTab === "categories" ? "default" : "outline"}
+                onClick={() => setActiveTab("categories")}
+                className="flex-1"
+              >
+                Categorías ({menu.categories?.length || 0})
+              </Button>
+            </div>
+          )}
+
+          <ScrollArea className="h-[calc(85vh-180px)]">
             {isLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
@@ -286,7 +472,37 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
                   Crear Menú
                 </Button>
               </div>
-            ) : menu.items.length === 0 ? (
+            ) : activeTab === "categories" ? (
+              // Categories Tab
+              menu.categories?.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Folder className="w-12 h-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-4">
+                    Sin categorías aún
+                  </p>
+                  <Button onClick={() => handleOpenCategoryDialog()} className="gap-2">
+                    <FolderPlus className="w-4 h-4" />
+                    Agregar categoría
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  {menu.categories?.map((category, index) => (
+                    <CategoryRow
+                      key={category.id}
+                      category={category}
+                      onEdit={() => handleOpenCategoryDialog(category)}
+                      onDelete={() => handleDeleteCategory(category.id)}
+                      onMoveUp={() => handleMoveCategory(index, "up")}
+                      onMoveDown={() => handleMoveCategory(index, "down")}
+                      isFirst={index === 0}
+                      isLast={index === (menu.categories?.length || 1) - 1}
+                    />
+                  ))}
+                </div>
+              )
+            ) : // Items Tab
+            menu.items.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <UtensilsCrossed className="w-12 h-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground mb-4">
@@ -353,10 +569,10 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="item-price">Precio</Label>
+              <Label htmlFor="item-price">Precio (Bs.)</Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  $
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                  Bs.
                 </span>
                 <Input
                   id="item-price"
@@ -368,10 +584,34 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
                     setItemForm((prev) => ({ ...prev, price: e.target.value }))
                   }
                   placeholder="0.00"
-                  className="pl-8"
+                  className="pl-10"
                 />
               </div>
             </div>
+
+            {menu && menu.categories && menu.categories.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="item-category">Categoría</Label>
+                <Select
+                  value={itemForm.categoryId}
+                  onValueChange={(value) =>
+                    setItemForm((prev) => ({ ...prev, categoryId: value === "none" ? "" : value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sin categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin categoría</SelectItem>
+                    {menu.categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
@@ -386,6 +626,46 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
               )}
               {editingItem ? "Guardar" : "Agregar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add/Edit Category Dialog */}
+      <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingCategory ? "Editar Categoría" : "Agregar Categoría"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="category-name">Nombre *</Label>
+              <Input
+                id="category-name"
+                value={categoryForm.name}
+                onChange={(e) =>
+                  setCategoryForm({ name: e.target.value })
+                }
+                placeholder="Ej: Bebidas, Entradas, Platos principales..."
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveCategory}
+              disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+            >
+              {(createCategoryMutation.isPending || updateCategoryMutation.isPending) && (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              )}
+              {editingCategory ? "Guardar" : "Agregar"}
             </Button>
           </DialogFooter>
         </DialogContent>

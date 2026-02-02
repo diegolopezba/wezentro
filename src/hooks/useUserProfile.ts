@@ -12,6 +12,9 @@ export interface UserProfile {
   city: string | null;
   is_business: boolean;
   interests: string[] | null;
+  business_address: string | null;
+  business_hours: string | null;
+  business_phone: string | null;
 }
 
 export interface FollowUser {

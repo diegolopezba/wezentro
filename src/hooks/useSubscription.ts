@@ -101,14 +101,14 @@ export const useSubscriptionPlans = (): SubscriptionPlan[] => {
     },
     {
       id: "food_premium",
-      name: "Zentro Food",
+      name: "Zentro Places",
       price: 12.99,
       interval: "month",
       features: [
         "Todo lo de Zentro Premium",
         "Transforma tu perfil en restaurante/café",
         "Crea y muestra tu menú",
-        "Insignia de comida en tu perfil",
+        "Insignia especial en tu perfil",
         "Aparece en el filtro de Comida del mapa",
       ],
     },
@@ -134,7 +134,7 @@ export const getPlanDisplayName = (planType: string | null | undefined): string 
     case "user_premium":
       return "Zentro Premium";
     case "food_premium":
-      return "Zentro Food";
+      return "Zentro Places";
     case "business_premium":
       return "Zentro Business";
     default:
