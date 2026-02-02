@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat } from "lucide-react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
@@ -32,6 +32,8 @@ const EventDetail = () => {
     id
   } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromCreate = (location.state as { fromCreate?: boolean })?.fromCreate;
   const {
     user
   } = useAuth();
@@ -261,13 +263,15 @@ const EventDetail = () => {
         <div className="absolute top-0 left-0 right-0 safe-top z-20">
           <div className="flex items-center justify-between px-4 py-4">
             <Button variant="glass" size="icon" onClick={() => {
-            if (window.history.length > 1) {
+            if (fromCreate) {
+              navigate("/", { replace: true });
+            } else if (window.history.length > 1) {
               navigate(-1);
             } else {
               navigate("/");
             }
           }}>
-              <ArrowLeft className="w-5 h-5" />
+              {fromCreate ? <X className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
             </Button>
             {isVideo && <button onClick={toggleMute} className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors">
                 {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
