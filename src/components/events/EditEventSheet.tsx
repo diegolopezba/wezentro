@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { useUserSubscription } from "@/hooks/useSubscription";
 import { SubscriptionUpsellModal } from "@/components/subscription/SubscriptionUpsellModal";
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage, blobToFile } from "@/lib/mediaCompression";
 
 interface EditEventSheetProps {
   event: {
@@ -51,6 +52,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
   const hasBusinessSubscription = subscription?.plan_type === "business_premium";
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [isUploadingQr, setIsUploadingQr] = useState(false);
+  const [isCompressingQr, setIsCompressingQr] = useState(false);
   const qrInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
@@ -92,6 +94,19 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
       return;
     }
 
+    setIsCompressingQr(true);
+    let fileToUpload = file;
+    
+    try {
+      // Compress QR image (smaller size for QR codes)
+      const result = await compressImage(file, 800, 0.9);
+      fileToUpload = blobToFile(result.blob, file.name);
+    } catch (error) {
+      console.error("Compression failed, using original:", error);
+    } finally {
+      setIsCompressingQr(false);
+    }
+
     setIsUploadingQr(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -100,17 +115,17 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
         return;
       }
 
-      const fileExt = file.name.split(".").pop();
+      const fileExt = fileToUpload.name.split(".").pop();
       const fileName = `${session.user.id}/payment-qr-${event.id}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("event-images")
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, fileToUpload, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from("event-images").getPublicUrl(fileName);
-      setFormData({ ...formData, payment_qr_url: data.publicUrl });
+      setFormData({ ...formData, payment_qr_url: `${data.publicUrl}?t=${Date.now()}` });
       toast.success("QR de pago subido");
     } catch (error: any) {
       toast.error(error.message || "Error al subir QR");
@@ -327,14 +342,14 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
                     variant="outline"
                     className="w-full border-dashed"
                     onClick={() => qrInputRef.current?.click()}
-                    disabled={isUploadingQr}
+                    disabled={isUploadingQr || isCompressingQr}
                   >
-                    {isUploadingQr ? (
+                    {(isUploadingQr || isCompressingQr) ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     ) : (
                       <Upload className="w-4 h-4 mr-2" />
                     )}
-                    Subir QR de Pago
+                    {isCompressingQr ? "Optimizando..." : "Subir QR de Pago"}
                   </Button>
                 </div>
               )}

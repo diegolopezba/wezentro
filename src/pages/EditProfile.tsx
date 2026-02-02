@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { BusinessLocationPicker } from "@/components/profile/BusinessLocationPicker";
 import { useUserSubscription } from "@/hooks/useSubscription";
+import { compressImage, blobToFile } from "@/lib/mediaCompression";
 const GENDER_OPTIONS = [{
   value: "male",
   label: "Masculino"
@@ -39,6 +40,7 @@ const EditProfile = () => {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     username: "",
@@ -161,17 +163,31 @@ const EditProfile = () => {
       toast.error("Por favor selecciona un archivo de imagen");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("La imagen debe ser menor a 5MB");
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("La imagen debe ser menor a 10MB");
       return;
     }
+    
+    setIsCompressing(true);
+    let fileToUpload = file;
+    
+    try {
+      // Compress image before upload
+      const result = await compressImage(file, 512, 0.85); // Smaller max size for avatars
+      fileToUpload = blobToFile(result.blob, file.name);
+    } catch (error) {
+      console.error("Compression failed, using original:", error);
+    } finally {
+      setIsCompressing(false);
+    }
+    
     setIsUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
+      const fileExt = fileToUpload.name.split(".").pop();
       const fileName = `${user.id}/avatar.${fileExt}`;
       const {
         error: uploadError
-      } = await supabase.storage.from("event-images").upload(fileName, file, {
+      } = await supabase.storage.from("event-images").upload(fileName, fileToUpload, {
         upsert: true
       });
       if (uploadError) throw uploadError;
@@ -180,7 +196,8 @@ const EditProfile = () => {
           publicUrl
         }
       } = supabase.storage.from("event-images").getPublicUrl(fileName);
-      setAvatarUrl(publicUrl);
+      // Add cache buster to force refresh
+      setAvatarUrl(`${publicUrl}?t=${Date.now()}`);
       toast.success("¡Foto subida!");
     } catch (error: any) {
       console.error("Error uploading avatar:", error);
@@ -219,8 +236,8 @@ const EditProfile = () => {
       }} className="flex flex-col items-center">
           <div className="relative">
             <img src={avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80"} alt="Perfil" className="w-28 h-28 rounded-full object-cover border-2 border-primary" />
-            <button onClick={handleAvatarClick} disabled={isUploading} className="absolute bottom-0 right-0 w-10 h-10 rounded-full gradient-primary flex items-center justify-center shadow-glow disabled:opacity-50 bg-primary text-destructive">
-              {isUploading ? <Loader2 className="w-5 h-5 text-primary-foreground animate-spin" /> : <Camera className="w-5 h-5 text-primary-foreground" />}
+            <button onClick={handleAvatarClick} disabled={isUploading || isCompressing} className="absolute bottom-0 right-0 w-10 h-10 rounded-full gradient-primary flex items-center justify-center shadow-glow disabled:opacity-50 bg-primary text-destructive">
+              {(isUploading || isCompressing) ? <Loader2 className="w-5 h-5 text-primary-foreground animate-spin" /> : <Camera className="w-5 h-5 text-primary-foreground" />}
             </button>
           </div>
           <p className="text-sm text-muted-foreground mt-3">Toca para cambiar foto de perfil</p>
