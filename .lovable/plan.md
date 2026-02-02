@@ -1,95 +1,109 @@
 
-# Keep-Alive Page Caching Implementation
+# Client-Side Media Compression for Native App
 
 ## Overview
-Implement true keep-alive functionality using `keepalive-for-react` to cache the 4 core navigation pages. This preserves scroll position, component state, and eliminates loading flickers when users navigate back - achieving the Instagram/Pinterest experience.
+Implement client-side video and image compression that works reliably in both browser and Capacitor WebView environments. This will reduce storage costs by ~70-80% while maintaining good quality.
 
-## Technical Approach
+## Native App Considerations
 
-### Library Choice: `keepalive-for-react`
-- Modern library designed for React Router v6+
-- Small bundle impact (~5-8KB gzipped)
-- Built-in memory management with `max` limit
-- Works with existing lazy loading and Suspense
+### Why NOT FFmpeg.wasm for Capacitor
+- FFmpeg.wasm requires SharedArrayBuffer which has limited support in mobile WebViews
+- Large bundle size (~25MB) impacts app startup
+- Inconsistent performance on iOS WebKit
+- Memory-intensive, can crash on lower-end devices
 
-### Architecture Change
+### Recommended Approach: Canvas + MediaRecorder API
+For a native app, we'll use browser-native APIs that work reliably in Capacitor:
 
-```text
-Current Flow:
-User navigates away → Component unmounts → User returns → Component remounts → Data refetches → Loading shown
+| Media Type | Solution | Compatibility |
+|------------|----------|---------------|
+| **Images** | Canvas API + toBlob() | Works everywhere |
+| **Videos** | Resolution cap + bitrate hint | Browser-native, no extra deps |
 
-New Flow:
-User navigates away → Component hidden (cached) → User returns → Component shown instantly
-```
+## Technical Implementation
 
-## Implementation Steps
-
-### 1. Install Dependency
-Add `keepalive-for-react` package to the project.
-
-### 2. Create KeepAlive Layout Wrapper
-Create a new layout component that wraps routes with the KeepAlive provider:
-
-**File:** `src/components/layout/KeepAliveLayout.tsx`
-- Uses `useLocation` and `useOutlet` from react-router-dom
-- Configures KeepAlive with `max={4}` for memory control (one per cached page)
-- Caches pages based on pathname
-
-### 3. Update App.tsx Routing Structure
-Restructure routes to use the KeepAlive layout for the 4 core navigation pages only:
-
-**Cached pages (keep-alive enabled):**
-- `/` (Index/Home)
-- `/discover`
-- `/chats`
-- `/profile`
-
-**Not cached (normal behavior):**
-- `/saved` - Will remount normally
-- `/auth` - Should clear on navigation
-- `/create` - Fresh form state each time
-- `/event/:id` - Dynamic content
-- `/user/:id` - Dynamic content
-- All other pages
-
-### 4. Route Structure Change
+### Image Compression Strategy
+Using Canvas API (zero dependencies, works in all WebViews):
+- Resize to max 1920px on longest edge
+- Convert to WebP format (80% quality) with JPEG fallback
+- Target: ~100-300KB per image (down from 2-5MB)
 
 ```text
-<Routes>
-  {/* Keep-alive enabled routes */}
-  <Route element={<KeepAliveLayout />}>
-    <Route path="/" element={<Index />} />
-    <Route path="/discover" element={<Discover />} />
-    <Route path="/chats" element={<Chats />} />
-    <Route path="/profile" element={<Profile />} />
-  </Route>
-  
-  {/* Normal routes (no caching) */}
-  <Route path="/saved" element={<Saved />} />
-  <Route path="/create" element={<Create />} />
-  {/* ... other routes ... */}
-</Routes>
+Original: 4000x3000 @ 4.5MB PNG
+   ↓ Canvas resize + WebP
+Compressed: 1920x1440 @ 150KB WebP
 ```
+
+### Video Optimization Strategy
+Since true re-encoding requires native code, we'll optimize what we can control:
+1. **Resolution cap**: Accept only up to 720p (users can pre-crop)
+2. **Duration limit**: Already 15 seconds (good)
+3. **Size validation**: Lower max from 50MB to 20MB
+4. **Format guidance**: Prefer MP4/H.264 which is already compressed
+
+For future enhancement: A native Capacitor plugin could do proper transcoding.
 
 ## Files to Create/Modify
 
 | File | Change |
 |------|--------|
-| `package.json` | Add `keepalive-for-react` dependency |
-| `src/components/layout/KeepAliveLayout.tsx` | **New file** - KeepAlive wrapper component |
-| `src/App.tsx` | Restructure routes to wrap only the 4 core pages with KeepAlive |
+| `src/lib/mediaCompression.ts` | **New** - Image compression using Canvas API |
+| `src/lib/mediaUtils.ts` | Add video resolution validation |
+| `src/pages/Create.tsx` | Integrate compression before upload |
+| `src/pages/EditProfile.tsx` | Compress avatar before upload |
+| `src/components/events/EditEventSheet.tsx` | Compress payment QR before upload |
+
+## Implementation Details
+
+### 1. Create mediaCompression.ts
+New utility file with:
+- `compressImage(file, maxWidth, quality)` - Canvas-based resize + WebP conversion
+- `getImageDimensions(file)` - Read image size
+- Returns compressed Blob ready for upload
+
+### 2. Update mediaUtils.ts
+Add:
+- `getVideoDimensions(file)` - Check video resolution
+- Update `validateVideoFile()` to warn if resolution > 720p
+- Lower video size limit to 20MB
+
+### 3. Update Create.tsx
+In `handleMediaChange`:
+```text
+1. User selects file
+2. If image → compress with compressImage()
+3. If video → validate resolution, warn if too large
+4. Show compression progress indicator
+5. Upload compressed file
+```
+
+### 4. Update EditProfile.tsx and EditEventSheet.tsx
+Same pattern - compress images before upload.
 
 ## Expected Results
 
-| Scenario | Before | After |
-|----------|--------|-------|
-| Return to homepage from event detail | Loading skeleton, scroll at top | Instant, scroll preserved |
-| Switch between bottom nav tabs | Brief flicker | Seamless transition |
-| Memory usage | N/A | Controlled (max 4 pages cached) |
-| Saved page behavior | N/A | Normal (remounts each time) |
+| Scenario | Before | After | Savings |
+|----------|--------|-------|---------|
+| Profile photo (4MB JPEG) | 4MB | ~150KB | 96% |
+| Event image (3MB PNG) | 3MB | ~200KB | 93% |
+| Event video (50MB) | 50MB | 20MB max | 60% |
+| **Per user (20 uploads)** | ~100MB avg | ~10MB avg | **90%** |
 
-## Risk Mitigation
+### Storage Cost Impact
+For 1,000 users with 20 uploads each:
+- **Before**: ~100GB (uncompressed)
+- **After**: ~10GB (compressed)
+- **Monthly savings**: ~$1.50-2.00/month on storage alone
 
-- **Memory**: Limited to 4 cached pages (exactly the core nav pages)
-- **Stale data**: React Query background refetch keeps data fresh
-- **Animations**: May need minor Framer Motion adjustments if conflicts arise
+## UX Considerations
+
+1. **Progress feedback**: Show "Compressing..." state during processing
+2. **Quality preview**: Compressed preview shown before upload
+3. **Transparent**: Users don't need to understand compression
+4. **Fast**: Canvas compression takes <1 second for most images
+
+## Future Native Enhancement
+For even better video compression, a future option would be to:
+- Use `@nicephoton/capacitor-video-compressor` Capacitor plugin
+- This would enable true H.264/H.265 re-encoding on device
+- Can be added later without changing the current architecture
