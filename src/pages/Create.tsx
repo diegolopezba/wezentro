@@ -26,6 +26,7 @@ import { SubscriptionUpsellModal } from "@/components/subscription/SubscriptionU
 import { CollaboratorPickerModal } from "@/components/events/CollaboratorPickerModal";
 import { MutualFollower } from "@/hooks/useChats";
 import { useInviteCollaborator } from "@/hooks/useEventCollaborators";
+import { useCreateEvent } from "@/hooks/useEventMutations";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import {
   isVideoFile,
@@ -55,6 +56,7 @@ const Create = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasBusinessSubscription = subscription?.plan_type === "business_premium";
   const inviteCollaborator = useInviteCollaborator();
+  const { invalidateAfterCreate } = useCreateEvent();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -322,6 +324,10 @@ const Create = () => {
           ? `¡${isPost ? "Publicación creada" : "Evento creado"}! Invitación enviada a @${selectedCollaborator.username}` 
           : isPost ? "¡Publicación creada!" : "¡Evento creado exitosamente!"
       );
+      
+      // Invalidate caches for instant UI updates
+      invalidateAfterCreate();
+      
       navigate(`/event/${data.id}`);
     } catch (error: any) {
       console.error("Error creating:", error);
