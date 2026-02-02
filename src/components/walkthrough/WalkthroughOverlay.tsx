@@ -1,10 +1,24 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import { useWalkthroughSafe } from "@/contexts/WalkthroughContext";
 
 export const WalkthroughOverlay = () => {
   const walkthrough = useWalkthroughSafe();
+  const location = useLocation();
 
-  if (!walkthrough || !walkthrough.isActive) {
+  if (!walkthrough || !walkthrough.isActive || !walkthrough.currentStepData) {
+    return null;
+  }
+
+  // Only show overlay if current step is on the current page
+  const stepPage = walkthrough.currentStepData.page;
+  const currentPath = location.pathname;
+  const isOnCurrentPage = 
+    currentPath === stepPage || 
+    currentPath.startsWith(stepPage + "/") ||
+    (stepPage === "/event" && currentPath.startsWith("/event/"));
+
+  if (!isOnCurrentPage) {
     return null;
   }
 
