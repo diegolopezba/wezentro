@@ -13,6 +13,8 @@ import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
 import { EditMenuSheet } from "@/components/menu/EditMenuSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
+import { CoachMark } from "@/components/walkthrough/CoachMark";
+import { useWalkthroughTrigger } from "@/hooks/useWalkthroughTrigger";
 const Profile = () => {
   const navigate = useNavigate();
   const {
@@ -36,6 +38,9 @@ const Profile = () => {
   const currentPlan = subscription?.plan_type || "free";
   const isPremium = currentPlan !== "free";
   const isFoodBusiness = currentPlan === "food_premium";
+
+  // Trigger food walkthrough for new food subscribers
+  useWalkthroughTrigger();
 
   // Check if profile is incomplete (missing birth_date or gender)
   const isProfileIncomplete = profile && (!profile.birth_date || !profile.gender);
@@ -118,10 +123,14 @@ const Profile = () => {
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
           
           {/* Edit Menu button for food subscribers */}
-          {isFoodBusiness && <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="mt-3 gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 hover:from-orange-500/20 hover:to-red-500/20">
-              <UtensilsCrossed className="w-4 h-4 text-orange-500" />
-              Editar Menú
-            </Button>}
+          {isFoodBusiness && (
+            <CoachMark stepId="food-1">
+              <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="mt-3 gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 hover:from-orange-500/20 hover:to-red-500/20">
+                <UtensilsCrossed className="w-4 h-4 text-orange-500" />
+                Editar Menú
+              </Button>
+            </CoachMark>
+          )}
         </motion.div>
 
         {/* Complete Profile Banner - show when birth_date or gender is missing */}

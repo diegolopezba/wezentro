@@ -5,6 +5,7 @@ import { CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useWalkthroughSafe } from "@/contexts/WalkthroughContext";
 
 const CheckoutSuccess = () => {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ const CheckoutSuccess = () => {
   const sessionId = searchParams.get("session_id");
   const returnTo = searchParams.get("returnTo");
   const [isVerifying, setIsVerifying] = useState(true);
+  const walkthrough = useWalkthroughSafe();
 
   useEffect(() => {
     const verifySubscription = async () => {
@@ -108,7 +110,11 @@ const CheckoutSuccess = () => {
           </Button>
           <Button
             variant="outline"
-            onClick={() => navigate("/settings/subscription")}
+            onClick={() => {
+              // Navigate to relevant page for tier walkthrough
+              // The walkthrough trigger hook will detect the plan change
+              navigate("/profile");
+            }}
             className="w-full"
           >
             Ver Suscripción

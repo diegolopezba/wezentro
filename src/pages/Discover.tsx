@@ -24,6 +24,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { CoachMark } from "@/components/walkthrough/CoachMark";
+import { useWalkthroughSafe } from "@/contexts/WalkthroughContext";
 
 type EventWithDistance = ReturnType<typeof useNearbyEvents>[number];
 type SearchTab = "events" | "people";
@@ -235,16 +237,20 @@ const Discover = () => {
       {/* Full screen map container - use fixed height on mobile for PWA compatibility */}
       <div className="relative bg-secondary" style={{ height: 'calc(100dvh - 80px)', minHeight: '400px' }}>
         {/* Mapbox Map - pass original events for markers, filtered for visibility */}
-        <MapView
-          events={showFoodMarkers ? [] : filteredEvents}
-          onMarkerClick={handleMarkerClick}
-          selectedEventId={selectedEvents[currentSlide]?.id}
-          onGeolocationSuccess={handleGeolocationSuccess}
-          onGeolocationError={handleGeolocationError}
-          foodLocations={foodLocations}
-          showFoodMarkers={showFoodMarkers}
-          onFoodMarkerClick={handleFoodMarkerClick}
-        />
+        <CoachMark stepId="general-4">
+          <div className="w-full h-full">
+            <MapView
+              events={showFoodMarkers ? [] : filteredEvents}
+              onMarkerClick={handleMarkerClick}
+              selectedEventId={selectedEvents[currentSlide]?.id}
+              onGeolocationSuccess={handleGeolocationSuccess}
+              onGeolocationError={handleGeolocationError}
+              foodLocations={foodLocations}
+              showFoodMarkers={showFoodMarkers}
+              onFoodMarkerClick={handleFoodMarkerClick}
+            />
+          </div>
+        </CoachMark>
 
         {/* Floating search bar */}
         <div className="absolute top-0 left-0 right-0 z-40 safe-top py-4">
@@ -377,10 +383,12 @@ const Discover = () => {
 
           {/* Category Filter Bar */}
           <div className="mt-1">
-            <CategoryFilterBar
-              selectedCategories={filters.categories}
-              onToggleCategory={handleToggleCategory}
-            />
+            <CoachMark stepId="general-5">
+              <CategoryFilterBar
+                selectedCategories={filters.categories}
+                onToggleCategory={handleToggleCategory}
+              />
+            </CoachMark>
           </div>
         </div>
 

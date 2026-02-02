@@ -16,11 +16,16 @@ import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
 import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
+import { CoachMark } from "@/components/walkthrough/CoachMark";
+import { useWalkthroughTrigger } from "@/hooks/useWalkthroughTrigger";
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
   const isGuest = !user;
+  
+  // Trigger walkthrough for new users
+  useWalkthroughTrigger();
   
   const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
   const [searchQuery, setSearchQuery] = useState("");
@@ -171,13 +176,15 @@ const Index = () => {
                 pointerEvents: headerVisible ? "auto" : "none"
               }}
             >
-              <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                {activeTab === "for-you" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
-                type: "spring",
-                duration: 0.5
-              }} />}
-                <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary" : ""}`}>Para Ti</span>
-              </button>
+              <CoachMark stepId="general-1">
+                <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                  {activeTab === "for-you" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
+                  type: "spring",
+                  duration: 0.5
+                }} />}
+                  <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary" : ""}`}>Para Ti</span>
+                </button>
+              </CoachMark>
               {/* Hide Following tab for guests - requires auth */}
               {!isGuest && (
                 <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "following" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
