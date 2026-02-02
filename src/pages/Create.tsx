@@ -34,6 +34,7 @@ import {
   validateImageFile,
   formatDuration,
 } from "@/lib/mediaUtils";
+import { compressImage, blobToFile, formatBytes } from "@/lib/mediaCompression";
 
 const categories = [
   { id: "club", label: "Club", emoji: "🪩" },
@@ -57,6 +58,7 @@ const Create = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [showCollaboratorPicker, setShowCollaboratorPicker] = useState(false);
@@ -91,34 +93,71 @@ const Create = () => {
     if (!file) return;
 
     if (isVideoFile(file)) {
-      // Validate video (15s max, 50MB max)
-      const validation = await validateVideoFile(file, 15, 50);
+      // Validate video (15s max, 20MB max - lowered for storage optimization)
+      const validation = await validateVideoFile(file, 15, 20);
       if (!validation.valid) {
         toast.error(validation.error);
         return;
+      }
+      // Show warning for high-res videos
+      if (validation.warning) {
+        toast.info(validation.warning);
       }
       setMediaType("video");
       setVideoDuration(validation.duration || null);
+      setMediaFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMediaPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     } else if (isImageFile(file)) {
-      // Validate image (5MB max)
-      const validation = validateImageFile(file, 5);
+      // Validate image (5MB max before compression)
+      const validation = validateImageFile(file, 10); // Allow larger files since we'll compress
       if (!validation.valid) {
         toast.error(validation.error);
         return;
       }
-      setMediaType("image");
-      setVideoDuration(null);
+      
+      // Compress image
+      setIsCompressing(true);
+      try {
+        const result = await compressImage(file, 1920, 0.8);
+        const compressedFile = blobToFile(result.blob, file.name);
+        
+        setMediaType("image");
+        setVideoDuration(null);
+        setMediaFile(compressedFile);
+        
+        // Create preview from compressed file
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setMediaPreview(reader.result as string);
+        };
+        reader.readAsDataURL(compressedFile);
+        
+        // Show compression result if significant
+        if (result.compressionRatio > 20) {
+          toast.success(`Imagen optimizada (${result.compressionRatio}% más pequeña)`);
+        }
+      } catch (error) {
+        console.error("Compression failed, using original:", error);
+        // Fallback to original file
+        setMediaType("image");
+        setVideoDuration(null);
+        setMediaFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setMediaPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } finally {
+        setIsCompressing(false);
+      }
     } else {
       toast.error("Por favor sube una imagen o video");
       return;
     }
-
-    setMediaFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setMediaPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
   };
 
   const removeMedia = () => {
@@ -322,27 +361,35 @@ const Create = () => {
                   />
                 )}
 
-                {/* Upload progress overlay */}
-                {isUploading && (
+                {/* Upload/Compression progress overlay */}
+                {(isUploading || isCompressing) && (
                   <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
                     <div className="w-3/4">
-                      <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                        <motion.div
-                          className="h-full bg-primary rounded-full"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${uploadProgress}%` }}
-                          transition={{ duration: 0.2 }}
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground text-center mt-2">
-                        Subiendo... {uploadProgress}%
-                      </p>
+                      {isCompressing ? (
+                        <p className="text-xs text-muted-foreground text-center">
+                          Optimizando imagen...
+                        </p>
+                      ) : (
+                        <>
+                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                            <motion.div
+                              className="h-full bg-primary rounded-full"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${uploadProgress}%` }}
+                              transition={{ duration: 0.2 }}
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground text-center mt-2">
+                            Subiendo... {uploadProgress}%
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {!isUploading && (
+                {!isUploading && !isCompressing && (
                   <button
                     type="button"
                     onClick={(e) => {
@@ -370,13 +417,24 @@ const Create = () => {
               </div>
             ) : (
               <div className="relative h-48 rounded-2xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
-                <Upload className="w-10 h-10 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground">
-                  Sube una imagen o video
-                </span>
-                <span className="text-xs text-muted-foreground/60 mt-1">
-                  Máx. 15 segundos para videos
-                </span>
+                {isCompressing ? (
+                  <>
+                    <Loader2 className="w-10 h-10 text-primary mb-2 animate-spin" />
+                    <span className="text-sm text-muted-foreground">
+                      Optimizando imagen...
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-10 h-10 text-muted-foreground mb-2" />
+                    <span className="text-sm text-muted-foreground">
+                      Sube una imagen o video
+                    </span>
+                    <span className="text-xs text-muted-foreground/60 mt-1">
+                      Máx. 15 segundos para videos
+                    </span>
+                  </>
+                )}
               </div>
             )}
             <input

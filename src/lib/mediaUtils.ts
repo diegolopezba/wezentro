@@ -5,6 +5,10 @@
 const VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'quicktime'];
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
+// Video constraints for native app optimization
+const MAX_VIDEO_SIZE_MB = 20; // Lowered from 50MB
+const MAX_VIDEO_RESOLUTION = 720; // 720p max
+
 /**
  * Check if a URL points to a video file
  */
@@ -60,35 +64,78 @@ export const getVideoDuration = (file: File): Promise<number> => {
 };
 
 /**
+ * Get video dimensions (width and height)
+ */
+export const getVideoDimensions = (file: File): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(video.src);
+      resolve({ width: video.videoWidth, height: video.videoHeight });
+    };
+    
+    video.onerror = () => {
+      URL.revokeObjectURL(video.src);
+      reject(new Error('Failed to load video metadata'));
+    };
+    
+    video.src = URL.createObjectURL(file);
+  });
+};
+
+export interface VideoValidationResult {
+  valid: boolean;
+  error?: string;
+  warning?: string;
+  duration?: number;
+  dimensions?: { width: number; height: number };
+}
+
+/**
  * Validate a video file for upload
  * @param file - The video file to validate
  * @param maxDurationSeconds - Maximum allowed duration in seconds (default: 15)
- * @param maxSizeMB - Maximum allowed file size in MB (default: 50)
+ * @param maxSizeMB - Maximum allowed file size in MB (default: 20)
  */
 export const validateVideoFile = async (
   file: File,
   maxDurationSeconds: number = 15,
-  maxSizeMB: number = 50
-): Promise<{ valid: boolean; error?: string; duration?: number }> => {
+  maxSizeMB: number = MAX_VIDEO_SIZE_MB
+): Promise<VideoValidationResult> => {
   // Check file size
   const sizeMB = file.size / (1024 * 1024);
   if (sizeMB > maxSizeMB) {
-    return { valid: false, error: `Video must be less than ${maxSizeMB}MB` };
+    return { valid: false, error: `El video debe ser menor a ${maxSizeMB}MB (el tuyo es ${sizeMB.toFixed(1)}MB)` };
   }
   
-  // Check duration
+  // Check duration and dimensions
   try {
-    const duration = await getVideoDuration(file);
+    const [duration, dimensions] = await Promise.all([
+      getVideoDuration(file),
+      getVideoDimensions(file),
+    ]);
+
     if (duration > maxDurationSeconds) {
       return { 
         valid: false, 
-        error: `Video must be ${maxDurationSeconds} seconds or less (yours is ${Math.ceil(duration)}s)`,
-        duration 
+        error: `El video debe ser de ${maxDurationSeconds} segundos o menos (el tuyo es ${Math.ceil(duration)}s)`,
+        duration,
+        dimensions,
       };
     }
-    return { valid: true, duration };
+
+    // Check resolution - warn but don't block
+    const maxDimension = Math.max(dimensions.width, dimensions.height);
+    let warning: string | undefined;
+    if (maxDimension > MAX_VIDEO_RESOLUTION) {
+      warning = `Videos en alta resolución (${dimensions.width}x${dimensions.height}) pueden tardar más en subir`;
+    }
+
+    return { valid: true, duration, dimensions, warning };
   } catch (error) {
-    return { valid: false, error: 'Failed to read video file' };
+    return { valid: false, error: 'No se pudo leer el archivo de video' };
   }
 };
 
@@ -103,7 +150,7 @@ export const validateImageFile = (
 ): { valid: boolean; error?: string } => {
   const sizeMB = file.size / (1024 * 1024);
   if (sizeMB > maxSizeMB) {
-    return { valid: false, error: `Image must be less than ${maxSizeMB}MB` };
+    return { valid: false, error: `La imagen debe ser menor a ${maxSizeMB}MB` };
   }
   return { valid: true };
 };
