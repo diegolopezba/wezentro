@@ -15,6 +15,8 @@ import {
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { EventsPerformanceTable } from "@/components/dashboard/EventsPerformanceTable";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { CoachMark } from "@/components/walkthrough/CoachMark";
+import { useWalkthroughTrigger } from "@/hooks/useWalkthroughTrigger";
 
 // Lazy load heavy chart components
 const GuestlistFunnel = lazy(() => import("@/components/dashboard/GuestlistFunnel").then(m => ({ default: m.GuestlistFunnel })));
@@ -31,6 +33,9 @@ const BusinessDashboard = () => {
   const { data: subscription, isLoading: subLoading } = useUserSubscription();
   
   useSwipeBack();
+
+  // Trigger business walkthrough for new business subscribers
+  useWalkthroughTrigger();
 
   const isBusiness = subscription?.plan_type === "business_premium";
 
@@ -98,10 +103,12 @@ const BusinessDashboard = () => {
       <div className="px-4 space-y-6 mt-4">
         {/* Overview Stats */}
         <section>
-          <h2 className="font-brand text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            Overview
-          </h2>
+          <CoachMark stepId="business-1">
+            <h2 className="font-brand text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Overview
+            </h2>
+          </CoachMark>
           <div className="grid grid-cols-2 gap-3">
             <StatsCard
               title="Total Events"
@@ -155,9 +162,11 @@ const BusinessDashboard = () => {
 
         {/* Event Performance */}
         <section>
-          <h2 className="font-brand text-lg font-semibold text-foreground mb-3">
-            Event Performance
-          </h2>
+          <CoachMark stepId="business-2">
+            <h2 className="font-brand text-lg font-semibold text-foreground mb-3">
+              Event Performance
+            </h2>
+          </CoachMark>
           <div className="rounded-2xl bg-card border border-border p-4">
             <EventsPerformanceTable
               events={eventPerformance || []}
