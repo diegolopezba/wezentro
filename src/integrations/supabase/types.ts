@@ -453,8 +453,41 @@ export type Database = {
           },
         ]
       }
+      menu_categories: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          id: string
+          menu_id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          menu_id: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          menu_id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_categories_menu_id_fkey"
+            columns: ["menu_id"]
+            isOneToOne: false
+            referencedRelation: "menus"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
+          category_id: string | null
           created_at: string | null
           description: string | null
           display_order: number | null
@@ -465,6 +498,7 @@ export type Database = {
           price: number | null
         }
         Insert: {
+          category_id?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -475,6 +509,7 @@ export type Database = {
           price?: number | null
         }
         Update: {
+          category_id?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -485,6 +520,13 @@ export type Database = {
           price?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "menu_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "menu_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "menu_items_menu_id_fkey"
             columns: ["menu_id"]
@@ -663,8 +705,10 @@ export type Database = {
           bio: string | null
           birth_date: string | null
           business_address: string | null
+          business_hours: string | null
           business_latitude: number | null
           business_longitude: number | null
+          business_phone: string | null
           business_type: string | null
           city: string | null
           created_at: string | null
@@ -683,8 +727,10 @@ export type Database = {
           bio?: string | null
           birth_date?: string | null
           business_address?: string | null
+          business_hours?: string | null
           business_latitude?: number | null
           business_longitude?: number | null
+          business_phone?: string | null
           business_type?: string | null
           city?: string | null
           created_at?: string | null
@@ -703,8 +749,10 @@ export type Database = {
           bio?: string | null
           birth_date?: string | null
           business_address?: string | null
+          business_hours?: string | null
           business_latitude?: number | null
           business_longitude?: number | null
+          business_phone?: string | null
           business_type?: string | null
           city?: string | null
           created_at?: string | null

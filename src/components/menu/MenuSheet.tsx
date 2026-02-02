@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UtensilsCrossed } from "lucide-react";
-import { useUserMenu, MenuItem } from "@/hooks/useMenu";
+import { useUserMenu, MenuItem, MenuCategory } from "@/hooks/useMenu";
 
 interface MenuSheetProps {
   open: boolean;
@@ -31,9 +31,34 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => {
       </div>
       {item.price !== null && (
         <span className="text-foreground font-semibold whitespace-nowrap">
-          ${item.price.toFixed(2)}
+          Bs. {item.price.toFixed(2)}
         </span>
       )}
+    </div>
+  );
+};
+
+const CategorySection = ({
+  category,
+  items,
+}: {
+  category: MenuCategory | null;
+  items: MenuItem[];
+}) => {
+  if (items.length === 0) return null;
+
+  return (
+    <div className="mb-6">
+      {category && (
+        <h3 className="text-sm font-semibold text-primary uppercase tracking-wide mb-2 px-1">
+          {category.name}
+        </h3>
+      )}
+      <div className="divide-y divide-border">
+        {items.map((item) => (
+          <MenuItemCard key={item.id} item={item} />
+        ))}
+      </div>
     </div>
   );
 };
@@ -45,6 +70,30 @@ export const MenuSheet = ({
   businessName,
 }: MenuSheetProps) => {
   const { data: menu, isLoading } = useUserMenu(userId);
+
+  // Group items by category
+  const getGroupedItems = (): {
+    uncategorized: MenuItem[];
+    categorized: { category: MenuCategory; items: MenuItem[] }[];
+  } => {
+    if (!menu) return { uncategorized: [], categorized: [] };
+
+    const availableItems = menu.items.filter((item) => item.is_available);
+    const categories = menu.categories || [];
+
+    // Items without category
+    const uncategorized = availableItems.filter((item) => !item.category_id);
+
+    // Items grouped by category
+    const categorized = categories.map((cat) => ({
+      category: cat,
+      items: availableItems.filter((item) => item.category_id === cat.id),
+    }));
+
+    return { uncategorized, categorized };
+  };
+
+  const { uncategorized, categorized } = getGroupedItems();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -86,12 +135,22 @@ export const MenuSheet = ({
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-border">
-              {menu.items
-                .filter((item) => item.is_available)
-                .map((item) => (
-                  <MenuItemCard key={item.id} item={item} />
-                ))}
+            <div>
+              {/* Categorized items */}
+              {categorized.map(({ category, items }) => (
+                <CategorySection
+                  key={category.id}
+                  category={category}
+                  items={items}
+                />
+              ))}
+              {/* Uncategorized items */}
+              {uncategorized.length > 0 && (
+                <CategorySection
+                  category={null}
+                  items={uncategorized}
+                />
+              )}
             </div>
           )}
         </ScrollArea>

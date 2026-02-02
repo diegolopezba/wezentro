@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown, UtensilsCrossed, Info } from "lucide-react";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
 import { MenuSheet } from "@/components/menu/MenuSheet";
+import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 const UserProfile = () => {
@@ -32,6 +33,7 @@ const UserProfile = () => {
   const isGuest = !currentUser;
   const [followSheetType, setFollowSheetType] = useState<"followers" | "following" | null>(null);
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
+  const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
 
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === id;
@@ -60,6 +62,7 @@ const UserProfile = () => {
   } = useUserSubscriptionById(id);
   const isPremium = userSubscription?.plan_type && userSubscription.plan_type !== "free";
   const isFoodBusiness = userSubscription?.plan_type === "food_premium";
+  const hasBusinessInfo = userProfile?.business_address || userProfile?.business_hours || userProfile?.business_phone;
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
   const createChatMutation = useCreatePrivateChat();
@@ -141,7 +144,14 @@ const UserProfile = () => {
             </Button>
             <h1 className="font-brand text-xl font-bold text-foreground">@{userProfile.username}</h1>
           </div>
-          {id && <ShareProfileMenu userId={id} username={userProfile.username} />}
+          <div className="flex items-center">
+            {hasBusinessInfo && (
+              <Button variant="ghost" size="icon" onClick={() => setBusinessInfoOpen(true)}>
+                <Info className="w-5 h-5" />
+              </Button>
+            )}
+            {id && <ShareProfileMenu userId={id} username={userProfile.username} />}
+          </div>
         </div>
       </header>
 
@@ -241,6 +251,17 @@ const UserProfile = () => {
       {id && <FollowersSheet userId={id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={open => !open && setFollowSheetType(null)} />}
       {/* Menu Sheet for food businesses */}
       {id && isFoodBusiness && <MenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} userId={id} businessName={userProfile?.full_name || userProfile?.username} />}
+      {/* Business Info Sheet */}
+      {userProfile && (
+        <BusinessInfoSheet
+          open={businessInfoOpen}
+          onOpenChange={setBusinessInfoOpen}
+          businessName={userProfile.full_name || userProfile.username}
+          address={userProfile.business_address}
+          hours={userProfile.business_hours}
+          phone={userProfile.business_phone}
+        />
+      )}
     </AppLayout>;
 };
 export default UserProfile;
