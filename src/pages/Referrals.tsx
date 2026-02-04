@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Copy, Share2, Gift, Users, Check, Crown } from "lucide-react";
+import { ArrowLeft, Copy, Share2, Gift, Users, Check, Crown, Clock, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserSubscription } from "@/hooks/useSubscription";
 import { 
   useReferralStats, 
   useReferredUsers, 
@@ -16,12 +16,14 @@ import {
 } from "@/hooks/useReferrals";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
-const REFERRAL_GOAL = 5;
 const BASE_URL = "https://zentro.today";
 
 const Referrals = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: subscription } = useUserSubscription();
+  const isPlacesPremium = subscription?.plan_type === "food_premium";
+  const isBusinessPremium = subscription?.plan_type === "business_premium";
   const { data: stats, isLoading: statsLoading } = useReferralStats();
   const { data: referredUsers, isLoading: usersLoading } = useReferredUsers();
   const generateCode = useGenerateReferralCode();
@@ -29,9 +31,11 @@ const Referrals = () => {
 
   const referralCode = stats?.referral_code;
   const referralCount = stats?.referral_count || 0;
-  const rewardClaimed = stats?.reward_claimed || false;
-  const progress = Math.min((referralCount / REFERRAL_GOAL) * 100, 100);
-  const canClaimReward = referralCount >= REFERRAL_GOAL && !rewardClaimed;
+  const pendingRewards = stats?.pending_rewards || 0;
+  const isBusinessAccount = isPlacesPremium || isBusinessPremium;
+
+  // Count paid referrals
+  const paidReferrals = referredUsers?.filter(r => r.payment_completed).length || 0;
 
   // Generate code if user doesn't have one
   useEffect(() => {
@@ -106,51 +110,63 @@ const Referrals = () => {
           </div>
           
           <div className="space-y-4">
-            <div>
-              <h2 className="text-xl font-bold text-foreground">
-                ¡Gana 1 mes gratis!
-              </h2>
-              <p className="text-muted-foreground text-sm mt-1">
-                Invita a 5 amigos y obtén un mes de Zentro Premium gratis
-              </p>
-            </div>
+            {isBusinessAccount ? (
+              <>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">
+                    ¡Gana meses gratis!
+                  </h2>
+                  <p className="text-muted-foreground text-sm mt-1">
+                    Por cada cuenta de negocio que se suscriba con tu enlace, recibes 1 mes gratis
+                  </p>
+                </div>
 
-            {/* Progress */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Progreso</span>
-                <span className="font-semibold text-foreground">
-                  {referralCount}/{REFERRAL_GOAL} referidos
-                </span>
-              </div>
-              <Progress value={progress} className="h-3" />
-            </div>
+                {/* Stats for business accounts */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-background/50 rounded-xl p-3 text-center">
+                    <p className="text-2xl font-bold text-foreground">{referralCount}</p>
+                    <p className="text-xs text-muted-foreground">Total referidos</p>
+                  </div>
+                  <div className="bg-background/50 rounded-xl p-3 text-center">
+                    <p className="text-2xl font-bold text-primary">{pendingRewards}</p>
+                    <p className="text-xs text-muted-foreground">Meses por reclamar</p>
+                  </div>
+                </div>
 
-            {/* Status */}
-            {rewardClaimed ? (
-              <div className="flex items-center gap-2 text-sm text-primary">
-                <Check className="w-4 h-4" />
-                <span>¡Ya reclamaste tu mes gratis!</span>
-              </div>
-            ) : canClaimReward ? (
-              <Button
-                onClick={handleClaimReward}
-                disabled={claimReward.isPending}
-                className="w-full gradient-red text-white"
-              >
-                {claimReward.isPending ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Crown className="w-4 h-4 mr-2" />
-                    Reclamar mi mes gratis
-                  </>
+                {/* Claim button */}
+                {pendingRewards > 0 && (
+                  <Button
+                    onClick={handleClaimReward}
+                    disabled={claimReward.isPending}
+                    className="w-full gradient-red text-white"
+                  >
+                    {claimReward.isPending ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Crown className="w-4 h-4 mr-2" />
+                        Reclamar 1 mes gratis
+                      </>
+                    )}
+                  </Button>
                 )}
-              </Button>
+              </>
             ) : (
-              <p className="text-xs text-muted-foreground">
-                Te faltan {REFERRAL_GOAL - referralCount} referidos para obtener tu recompensa
-              </p>
+              <>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">
+                    Invita amigos a Zentro
+                  </h2>
+                  <p className="text-muted-foreground text-sm mt-1">
+                    Comparte tu enlace y ayuda a que más personas descubran Zentro
+                  </p>
+                </div>
+
+                <div className="bg-background/50 rounded-xl p-4 text-center">
+                  <p className="text-3xl font-bold text-foreground">{referralCount}</p>
+                  <p className="text-sm text-muted-foreground">amigos invitados</p>
+                </div>
+              </>
             )}
           </div>
         </motion.div>
@@ -233,7 +249,21 @@ const Referrals = () => {
                       Se unió el {new Date(referredUser.created_at).toLocaleDateString("es-ES")}
                     </p>
                   </div>
-                  <Check className="w-5 h-5 text-primary shrink-0" />
+                  {isBusinessAccount ? (
+                    referredUser.payment_completed ? (
+                      <div className="flex items-center gap-1 text-primary">
+                        <CreditCard className="w-4 h-4" />
+                        <span className="text-xs">Pagó</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Clock className="w-4 h-4" />
+                        <span className="text-xs">Pendiente</span>
+                      </div>
+                    )
+                  ) : (
+                    <Check className="w-5 h-5 text-primary shrink-0" />
+                  )}
                 </motion.div>
               ))}
             </div>
@@ -254,20 +284,37 @@ const Referrals = () => {
           className="bg-secondary/30 rounded-xl p-4 space-y-2"
         >
           <h4 className="font-medium text-foreground text-sm">¿Cómo funciona?</h4>
-          <ul className="text-xs text-muted-foreground space-y-1.5">
-            <li className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs shrink-0">1</span>
-              Comparte tu enlace único con amigos
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs shrink-0">2</span>
-              Cuando se registren usando tu enlace, contará como referido
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs shrink-0">3</span>
-              Al llegar a 5 referidos, podrás reclamar 1 mes gratis de Premium
-            </li>
-          </ul>
+          {isBusinessAccount ? (
+            <ul className="text-xs text-muted-foreground space-y-1.5">
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs shrink-0">1</span>
+                Comparte tu enlace con otros negocios
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs shrink-0">2</span>
+                Cuando se suscriban a Zentro Places o Business, contará como referido
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs shrink-0">3</span>
+                Por cada referido que pague su primera suscripción, recibes 1 mes gratis
+              </li>
+            </ul>
+          ) : (
+            <ul className="text-xs text-muted-foreground space-y-1.5">
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs shrink-0">1</span>
+                Comparte tu enlace único con amigos
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs shrink-0">2</span>
+                Cuando se registren usando tu enlace, contará como referido
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs shrink-0">3</span>
+                Ayuda a que más personas descubran los mejores eventos cerca de ellos
+              </li>
+            </ul>
+          )}
         </motion.div>
       </div>
     </AppLayout>

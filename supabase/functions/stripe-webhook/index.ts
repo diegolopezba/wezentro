@@ -16,8 +16,11 @@ const logStep = (step: string, details?: unknown) => {
 const PRODUCT_TO_PLAN: Record<string, string> = {
   "prod_Td3jVaQwDP8Fdz": "user_premium",
   "prod_Td3kU1JBlekyrO": "business_premium",
-  "prod_Toxvk2koMWuN0w": "food_premium",
+  "prod_Toxvk2koMWuN0w": "places_premium",
 };
+
+// Business/Places plans that qualify for referral rewards
+const BUSINESS_PLANS = ["business_premium", "places_premium"];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -107,6 +110,157 @@ serve(async (req) => {
             logStep("Subscription created/updated in database", { userId: user.id, planType });
           }
         }
+        break;
+      }
+
+      case "invoice.paid": {
+        const invoice = event.data.object as Stripe.Invoice;
+        logStep("Invoice paid", { 
+          invoiceId: invoice.id,
+          billingReason: invoice.billing_reason,
+          subscriptionId: invoice.subscription
+        });
+
+        // Only process subscription invoices (not one-time payments)
+        if (!invoice.subscription) {
+          logStep("Not a subscription invoice, skipping referral check");
+          break;
+        }
+
+        // Get the subscription to check the plan type
+        const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        const subscriptionItem = subscription.items.data[0];
+        const productId = subscriptionItem.price.product as string;
+        const planType = PRODUCT_TO_PLAN[productId] || "user_premium";
+
+        logStep("Checking if eligible for referral reward", { planType, billingReason: invoice.billing_reason });
+
+        // Only business/places plans qualify for referral rewards
+        if (!BUSINESS_PLANS.includes(planType)) {
+          logStep("Not a business/places plan, skipping referral reward");
+          break;
+        }
+
+        // Check if this is a real payment (not trial, not $0)
+        // billing_reason: subscription_create (first invoice), subscription_cycle (renewal)
+        // We want the first PAID invoice after trial
+        const isPaidInvoice = (invoice.amount_paid || 0) > 0;
+        
+        if (!isPaidInvoice) {
+          logStep("Invoice amount is 0, likely trial period - skipping referral reward");
+          break;
+        }
+
+        // Get customer email
+        const customerId = invoice.customer as string;
+        const customer = await stripe.customers.retrieve(customerId);
+        
+        if (customer.deleted) {
+          logStep("Customer was deleted, skipping");
+          break;
+        }
+
+        // Find user by email
+        const { data: users } = await supabaseClient.auth.admin.listUsers();
+        const user = users?.users.find(u => u.email === customer.email);
+        
+        if (!user) {
+          logStep("User not found for email", { email: customer.email });
+          break;
+        }
+
+        // Check if this user was referred and payment hasn't been processed yet
+        const { data: referral, error: referralError } = await supabaseClient
+          .from("referrals")
+          .select("id, referrer_id, payment_completed")
+          .eq("referred_user_id", user.id)
+          .maybeSingle();
+
+        if (referralError) {
+          logStep("Error checking referral", { error: referralError.message });
+          break;
+        }
+
+        if (!referral) {
+          logStep("User was not referred, no reward to give");
+          break;
+        }
+
+        if (referral.payment_completed) {
+          logStep("Referral payment already processed, skipping");
+          break;
+        }
+
+        logStep("Processing referral reward for first payment", { 
+          referralId: referral.id, 
+          referrerId: referral.referrer_id,
+          userId: user.id 
+        });
+
+        // Mark referral as payment completed and update plan type
+        const { error: updateRefError } = await supabaseClient
+          .from("referrals")
+          .update({ 
+            payment_completed: true,
+            referred_plan_type: planType
+          })
+          .eq("id", referral.id);
+
+        if (updateRefError) {
+          logStep("Error updating referral", { error: updateRefError.message });
+          break;
+        }
+
+        // Check if referrer also has a business/places subscription
+        const { data: referrerSub } = await supabaseClient
+          .from("subscriptions")
+          .select("plan_type")
+          .eq("user_id", referral.referrer_id)
+          .in("status", ["active", "trialing"])
+          .maybeSingle();
+
+        if (!referrerSub || !BUSINESS_PLANS.includes(referrerSub.plan_type)) {
+          logStep("Referrer doesn't have business/places subscription, no reward", { 
+            referrerId: referral.referrer_id,
+            referrerPlan: referrerSub?.plan_type 
+          });
+          break;
+        }
+
+        // Create reward for the referrer
+        const { error: rewardError } = await supabaseClient
+          .from("referral_rewards")
+          .insert({
+            user_id: referral.referrer_id,
+            reward_type: "free_month",
+            referral_id: referral.id
+          });
+
+        if (rewardError) {
+          logStep("Error creating referral reward", { error: rewardError.message });
+          break;
+        }
+
+        logStep("Referral reward created successfully", { referrerId: referral.referrer_id });
+
+        // Send notification to referrer
+        const { data: referredProfile } = await supabaseClient
+          .from("profiles")
+          .select("username")
+          .eq("id", user.id)
+          .single();
+
+        await supabaseClient
+          .from("notifications")
+          .insert({
+            user_id: referral.referrer_id,
+            type: "referral_reward_earned",
+            title: "¡Ganaste un mes gratis!",
+            body: `@${referredProfile?.username || "Un usuario"} pagó su primera suscripción. ¡Reclama tu mes gratis!`,
+            entity_type: "reward",
+            entity_id: referral.referrer_id
+          });
+
         break;
       }
 

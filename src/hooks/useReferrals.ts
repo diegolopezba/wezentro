@@ -7,6 +7,7 @@ interface ReferralStats {
   referral_count: number;
   reward_claimed: boolean;
   referral_code: string | null;
+  pending_rewards: number;
 }
 
 interface ReferredUser {
@@ -14,6 +15,7 @@ interface ReferredUser {
   username: string;
   avatar_url: string | null;
   created_at: string;
+  payment_completed: boolean;
 }
 
 export function useReferralStats() {
@@ -35,6 +37,7 @@ export function useReferralStats() {
         referral_count: 0,
         reward_claimed: false,
         referral_code: null,
+        pending_rewards: 0,
       };
 
       return stats as ReferralStats;
@@ -57,6 +60,7 @@ export function useReferredUsers() {
           id,
           created_at,
           referred_user_id,
+          payment_completed,
           profiles!referrals_referred_user_id_fkey (
             username,
             avatar_url
@@ -72,6 +76,7 @@ export function useReferredUsers() {
         username: (referral.profiles as { username: string; avatar_url: string | null })?.username || "usuario",
         avatar_url: (referral.profiles as { username: string; avatar_url: string | null })?.avatar_url,
         created_at: referral.created_at,
+        payment_completed: referral.payment_completed || false,
       }));
     },
     enabled: !!user,
