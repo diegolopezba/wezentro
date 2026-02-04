@@ -227,6 +227,20 @@ serve(async (req) => {
           break;
         }
 
+        // Check if referrer has already reached the 5 reward cap
+        const { count: totalRewardsCount } = await supabaseClient
+          .from("referral_rewards")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", referral.referrer_id);
+
+        if ((totalRewardsCount || 0) >= 5) {
+          logStep("Referrer has reached max 5 rewards cap, no additional reward", { 
+            referrerId: referral.referrer_id,
+            totalRewards: totalRewardsCount 
+          });
+          break;
+        }
+
         // Create reward for the referrer
         const { error: rewardError } = await supabaseClient
           .from("referral_rewards")
