@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const TermsOfUse = () => {
   const navigate = useNavigate();
-  const lastUpdated = "21 de enero de 2025";
+  const lastUpdated = "4 de febrero de 2026";
 
   return (
     <AppLayout hideNav>
@@ -150,14 +150,31 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">8. Compras dentro de la Aplicación</h2>
+            <h2 className="text-lg font-semibold text-foreground">8. Programa de Referidos</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Zentro ofrece un programa de referidos para usuarios con suscripciones Business o Zentro Places. Al participar:
+            </p>
+            <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
+              <li>Puede compartir su código de referido con otros usuarios</li>
+              <li>Recibirá un mes gratis por cada usuario referido que complete su primer pago de suscripción Business o Zentro Places</li>
+              <li>El máximo de meses gratuitos acumulables es de 5</li>
+              <li>Las recompensas no son transferibles ni canjeables por dinero</li>
+              <li>Nos reservamos el derecho de modificar o cancelar el programa en cualquier momento</li>
+            </ul>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              El abuso del programa de referidos, incluyendo la creación de cuentas falsas o prácticas fraudulentas, resultará en la pérdida de recompensas y posible terminación de la cuenta.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground">9. Compras dentro de la Aplicación</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Algunas funciones pueden requerir compras dentro de la aplicación. Todas las compras son finales y no reembolsables, excepto cuando lo requiera la ley aplicable o las políticas de la tienda de aplicaciones correspondiente (Apple App Store o Google Play Store).
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">9. Propiedad Intelectual</h2>
+            <h2 className="text-lg font-semibold text-foreground">10. Propiedad Intelectual</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               El Servicio y su contenido original (excluyendo el Contenido del Usuario), características y funcionalidad son propiedad de Zentro y están protegidos por derechos de autor, marcas registradas y otras leyes de propiedad intelectual.
             </p>
@@ -167,17 +184,17 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">10. Terminación</h2>
+            <h2 className="text-lg font-semibold text-foreground">11. Terminación</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Podemos terminar o suspender su acceso al Servicio de inmediato, sin previo aviso, por cualquier motivo, incluyendo, pero no limitado a, violaciones de estos Términos.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Usted puede eliminar su cuenta en cualquier momento contactándonos en zentro@gmail.com. Tras la terminación, su derecho a usar el Servicio cesará inmediatamente.
+              Usted puede eliminar su cuenta en cualquier momento desde la sección de Ayuda y Soporte dentro de la aplicación, o contactándonos en zentro@gmail.com. La eliminación requiere verificación de contraseña para su seguridad. Tras la terminación, su derecho a usar el Servicio cesará inmediatamente y todos sus datos serán eliminados permanentemente.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">11. Limitación de Responsabilidad</h2>
+            <h2 className="text-lg font-semibold text-foreground">12. Limitación de Responsabilidad</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               EN LA MÁXIMA MEDIDA PERMITIDA POR LA LEY, ZENTRO NO SERÁ RESPONSABLE POR DAÑOS INDIRECTOS, INCIDENTALES, ESPECIALES, CONSECUENTES O PUNITIVOS, INCLUYENDO PÉRDIDA DE DATOS, BENEFICIOS O INGRESOS, QUE RESULTEN DEL USO O LA IMPOSIBILIDAD DE USAR EL SERVICIO.
             </p>
@@ -187,42 +204,42 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">12. Indemnización</h2>
+            <h2 className="text-lg font-semibold text-foreground">13. Indemnización</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Usted acepta defender, indemnizar y mantener indemne a Zentro y sus afiliados de cualquier reclamación, daño, obligación, pérdida, responsabilidad, costo o deuda que surja de su uso del Servicio o violación de estos Términos.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">13. Disputas</h2>
+            <h2 className="text-lg font-semibold text-foreground">14. Disputas</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Cualquier disputa relacionada con estos Términos se resolverá mediante arbitraje vinculante, excepto cuando la ley lo prohíba. Usted renuncia al derecho de participar en demandas colectivas.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">14. Modificaciones</h2>
+            <h2 className="text-lg font-semibold text-foreground">15. Modificaciones</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Nos reservamos el derecho de modificar estos Términos en cualquier momento. Le notificaremos sobre cambios significativos mediante un aviso en la aplicación o por correo electrónico. El uso continuado del Servicio después de los cambios constituye su aceptación de los nuevos términos.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">15. Ley Aplicable</h2>
+            <h2 className="text-lg font-semibold text-foreground">16. Ley Aplicable</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Estos Términos se regirán e interpretarán de acuerdo con las leyes aplicables, sin tener en cuenta las disposiciones sobre conflictos de leyes.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">16. Divisibilidad</h2>
+            <h2 className="text-lg font-semibold text-foreground">17. Divisibilidad</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Si alguna disposición de estos Términos se considera inválida o inaplicable, las disposiciones restantes continuarán en pleno vigor y efecto.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">17. Contacto</h2>
+            <h2 className="text-lg font-semibold text-foreground">18. Contacto</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Si tiene preguntas sobre estos Términos de Uso, contáctenos en:
             </p>
