@@ -808,6 +808,7 @@ export type Database = {
           created_at: string
           id: string
           redeemed_at: string | null
+          referral_id: string | null
           reward_type: string
           stripe_coupon_id: string | null
           user_id: string
@@ -816,6 +817,7 @@ export type Database = {
           created_at?: string
           id?: string
           redeemed_at?: string | null
+          referral_id?: string | null
           reward_type?: string
           stripe_coupon_id?: string | null
           user_id: string
@@ -824,15 +826,23 @@ export type Database = {
           created_at?: string
           id?: string
           redeemed_at?: string | null
+          referral_id?: string | null
           reward_type?: string
           stripe_coupon_id?: string | null
           user_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "referral_rewards_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "referral_rewards_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -842,7 +852,9 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          payment_completed: boolean | null
           referral_code: string
+          referred_plan_type: string | null
           referred_user_id: string
           referrer_id: string
           status: string
@@ -850,7 +862,9 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          payment_completed?: boolean | null
           referral_code: string
+          referred_plan_type?: string | null
           referred_user_id: string
           referrer_id: string
           status?: string
@@ -858,7 +872,9 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          payment_completed?: boolean | null
           referral_code?: string
+          referred_plan_type?: string | null
           referred_user_id?: string
           referrer_id?: string
           status?: string
@@ -1152,6 +1168,7 @@ export type Database = {
       get_referral_stats: {
         Args: { _user_id: string }
         Returns: {
+          pending_rewards: number
           referral_code: string
           referral_count: number
           reward_claimed: boolean

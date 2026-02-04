@@ -39,22 +39,31 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if user has an unclaimed reward
-    const { data: reward, error: rewardError } = await supabaseClient
+    // Check if user has unclaimed rewards (can have multiple now)
+    const { data: rewards, error: rewardError } = await supabaseClient
       .from("referral_rewards")
       .select("*")
       .eq("user_id", user.id)
       .is("redeemed_at", null)
-      .single();
+      .limit(1);
 
-    if (rewardError || !reward) {
-      logStep("No unclaimed reward found", { userId: user.id });
-      return new Response(JSON.stringify({ success: false, message: "No reward available to claim" }), {
+    if (rewardError) {
+      logStep("Error fetching rewards", { error: rewardError.message });
+      throw rewardError;
+    }
+
+    if (!rewards || rewards.length === 0) {
+      logStep("No unclaimed rewards found", { userId: user.id });
+      return new Response(JSON.stringify({ 
+        success: false, 
+        message: "No tienes recompensas disponibles para reclamar" 
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
 
+    const reward = rewards[0];
     logStep("Found unclaimed reward", { rewardId: reward.id });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
@@ -125,6 +134,13 @@ serve(async (req) => {
 
     logStep("Reward marked as redeemed", { rewardId: reward.id });
 
+    // Check remaining rewards
+    const { count: remainingCount } = await supabaseClient
+      .from("referral_rewards")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .is("redeemed_at", null);
+
     // Send notification
     await supabaseClient
       .from("notifications")
@@ -132,7 +148,8 @@ serve(async (req) => {
         user_id: user.id,
         type: "referral_reward_redeemed",
         title: "¡Mes gratis activado!",
-        body: "Tu próximo mes de Zentro Premium es gratis gracias a tus referidos.",
+        body: "Tu próximo mes es gratis gracias a tu referido." + 
+          ((remainingCount || 0) > 0 ? ` Tienes ${remainingCount} más disponible(s).` : ""),
         entity_type: "reward",
         entity_id: user.id
       });
