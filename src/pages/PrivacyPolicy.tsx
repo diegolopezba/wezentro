@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
-  const lastUpdated = "21 de enero de 2025";
+  const lastUpdated = "4 de febrero de 2026";
 
   return (
     <AppLayout hideNav>
@@ -185,11 +185,12 @@ const PrivacyPolicy = () => {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-foreground">10. Eliminación de Cuenta</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Puede solicitar la eliminación de su cuenta y datos personales en cualquier momento contactándonos en zentro@gmail.com. Tras la solicitud:
+              Puede eliminar su cuenta y datos personales en cualquier momento desde la sección de Ayuda y Soporte dentro de la aplicación. La eliminación requiere verificación de su contraseña para garantizar su seguridad. También puede contactarnos en zentro@gmail.com. Tras la eliminación:
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li>Sus datos personales serán eliminados dentro de 30 días</li>
-              <li>El contenido que haya compartido públicamente puede permanecer visible de forma anónima</li>
+              <li>Sus datos personales serán eliminados de forma inmediata</li>
+              <li>Se eliminarán todos sus eventos, mensajes, fotos y contenido asociado</li>
+              <li>Esta acción es permanente e irreversible</li>
               <li>Algunos datos pueden retenerse para cumplir con obligaciones legales</li>
             </ul>
           </section>
