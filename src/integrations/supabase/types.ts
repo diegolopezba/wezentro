@@ -1148,9 +1148,98 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      guestlist_entries_public: {
+        Row: {
+          attended: boolean | null
+          checked_in_at: string | null
+          event_id: string | null
+          id: string | null
+          joined_at: string | null
+          payment_confirmed_at: string | null
+          payment_status: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attended?: boolean | null
+          checked_in_at?: string | null
+          event_id?: string | null
+          id?: string | null
+          joined_at?: string | null
+          payment_confirmed_at?: string | null
+          payment_status?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attended?: boolean | null
+          checked_in_at?: string | null
+          event_id?: string | null
+          id?: string | null
+          joined_at?: string | null
+          payment_confirmed_at?: string | null
+          payment_status?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guestlist_entries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guestlist_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions_public: {
+        Row: {
+          created_at: string | null
+          current_period_end: string | null
+          id: string | null
+          plan_type: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_period_end?: string | null
+          id?: string | null
+          plan_type?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_period_end?: string | null
+          id?: string | null
+          plan_type?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      can_view_full_guestlist_entry: {
+        Args: { _entry_user_id: string; _event_id: string; _user_id: string }
+        Returns: boolean
+      }
       generate_referral_code: { Args: { _user_id: string }; Returns: string }
       get_mutual_followers: {
         Args: { _user_id: string }

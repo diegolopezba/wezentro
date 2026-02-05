@@ -54,8 +54,9 @@ export const useUserSubscriptionById = (userId: string | undefined) => {
     queryFn: async () => {
       if (!userId) return null;
 
+      // Use public view for other users (hides Stripe billing IDs)
       const { data, error } = await supabase
-        .from("subscriptions")
+        .from("subscriptions_public")
         .select("*")
         .eq("user_id", userId)
         .in("status", ["active", "trialing"])
@@ -64,7 +65,14 @@ export const useUserSubscriptionById = (userId: string | undefined) => {
         .maybeSingle();
 
       if (error) throw error;
-      return data as Subscription | null;
+      // Map to Subscription type (without sensitive fields)
+      return data ? {
+        ...data,
+        provider: null,
+        stripe_customer_id: null,
+        stripe_subscription_id: null,
+        current_period_start: null,
+      } as Subscription : null;
     },
     enabled: !!userId,
   });
