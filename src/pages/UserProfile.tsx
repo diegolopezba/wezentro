@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown, UtensilsCrossed, Info } from "lucide-react";
+import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
+import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 const UserProfile = () => {
@@ -34,6 +35,7 @@ const UserProfile = () => {
   const [followSheetType, setFollowSheetType] = useState<"followers" | "following" | null>(null);
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
+  const [reservationSheetOpen, setReservationSheetOpen] = useState(false);
 
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === id;
@@ -144,7 +146,18 @@ const UserProfile = () => {
             </Button>
             <h1 className="font-brand text-xl font-bold text-foreground">@{userProfile.username}</h1>
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center gap-1">
+            {/* Message icon in header for food businesses */}
+            {isFoodBusiness && !isOwnProfile && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
+                    {createChatMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <MessageCircle className="w-5 h-5" />}
+                  </Button>
+                </TooltipTrigger>
+                {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent><p>{canMessageData.reason}</p></TooltipContent>}
+              </Tooltip>
+            )}
             {hasBusinessInfo && (
               <Button variant="ghost" size="icon" onClick={() => setBusinessInfoOpen(true)}>
                 <Info className="w-5 h-5" />
@@ -217,19 +230,36 @@ const UserProfile = () => {
                 </>}
             </Button>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
-                  {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Mensaje
-                    </>}
-                </Button>
-              </TooltipTrigger>
-              {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent>
-                  <p>{canMessageData.reason}</p>
-                </TooltipContent>}
-            </Tooltip>
+            {/* For food businesses: show Reservar button instead of Message */}
+            {isFoodBusiness ? (
+              <Button
+                className="flex-1 min-w-0 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                onClick={() => {
+                  if (isGuest) {
+                    promptAuth({ action: "hacer una reserva" });
+                    return;
+                  }
+                  setReservationSheetOpen(true);
+                }}
+              >
+                <CalendarCheck className="w-4 h-4 mr-2" />
+                Reservar
+              </Button>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
+                    {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Mensaje
+                      </>}
+                  </Button>
+                </TooltipTrigger>
+                {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent>
+                    <p>{canMessageData.reason}</p>
+                  </TooltipContent>}
+              </Tooltip>
+            )}
 
             {/* Menu button for food businesses */}
             {isFoodBusiness && <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30">
@@ -260,6 +290,16 @@ const UserProfile = () => {
           address={userProfile.business_address}
           hours={userProfile.business_hours}
           phone={userProfile.business_phone}
+        />
+      )}
+      {/* Reservation Sheet for food businesses */}
+      {id && isFoodBusiness && (
+        <ReservationSheet
+          open={reservationSheetOpen}
+          onOpenChange={setReservationSheetOpen}
+          businessId={id}
+          businessName={userProfile?.full_name || userProfile?.username || ""}
+          businessHours={userProfile?.business_hours}
         />
       )}
     </AppLayout>;
