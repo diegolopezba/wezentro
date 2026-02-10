@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Loader2, Crown, X, UtensilsCrossed, Info } from "lucide-react";
+import { Settings, Loader2, Crown, X, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
 import { EditMenuSheet } from "@/components/menu/EditMenuSheet";
 import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
+import { ReservationsManagementSheet } from "@/components/reservations/ReservationsManagementSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 const Profile = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const Profile = () => {
   const [showProfileBanner, setShowProfileBanner] = useState(true);
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
+  const [reservationsSheetOpen, setReservationsSheetOpen] = useState(false);
   const {
     data: userStats,
     isLoading: statsLoading
@@ -129,10 +131,18 @@ const Profile = () => {
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
           
           {/* Edit Menu button for food subscribers */}
-          {isFoodBusiness && <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="mt-3 gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 hover:from-orange-500/20 hover:to-red-500/20">
-              <UtensilsCrossed className="w-4 h-4 text-orange-500" />
-              Editar Menú
-            </Button>}
+          {isFoodBusiness && (
+            <div className="flex gap-2 mt-3">
+              <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 hover:from-orange-500/20 hover:to-red-500/20">
+                <UtensilsCrossed className="w-4 h-4 text-orange-500" />
+                Editar Menú
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 hover:from-orange-500/20 hover:to-red-500/20">
+                <CalendarCheck className="w-4 h-4 text-orange-500" />
+                Reservas
+              </Button>
+            </div>
+          )}
         </motion.div>
 
         {/* Complete Profile Banner - show when birth_date or gender is missing */}
@@ -214,6 +224,8 @@ const Profile = () => {
       {user && <FollowersSheet userId={user.id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={open => !open && setFollowSheetType(null)} />}
       {/* Edit Menu Sheet for food subscribers */}
       {isFoodBusiness && <EditMenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} />}
+      {/* Reservations Management Sheet for food subscribers */}
+      {isFoodBusiness && user && <ReservationsManagementSheet open={reservationsSheetOpen} onOpenChange={setReservationsSheetOpen} businessId={user.id} />}
       {/* Business Info Sheet */}
       <BusinessInfoSheet
         open={businessInfoOpen}

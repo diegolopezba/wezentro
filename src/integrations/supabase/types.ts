@@ -719,6 +719,7 @@ export type Database = {
           is_business: boolean | null
           is_food_business: boolean | null
           referral_code: string | null
+          reservation_capacity: number | null
           updated_at: string | null
           username: string
         }
@@ -741,6 +742,7 @@ export type Database = {
           is_business?: boolean | null
           is_food_business?: boolean | null
           referral_code?: string | null
+          reservation_capacity?: number | null
           updated_at?: string | null
           username: string
         }
@@ -763,6 +765,7 @@ export type Database = {
           is_business?: boolean | null
           is_food_business?: boolean | null
           referral_code?: string | null
+          reservation_capacity?: number | null
           updated_at?: string | null
           username?: string
         }
@@ -925,6 +928,63 @@ export type Database = {
           },
           {
             foreignKeyName: "reposts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservations: {
+        Row: {
+          business_id: string
+          cancelled_by: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          party_size: number
+          reservation_date: string
+          reservation_time: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          cancelled_by?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          party_size?: number
+          reservation_date: string
+          reservation_time: string
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          cancelled_by?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          party_size?: number
+          reservation_date?: string
+          reservation_time?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

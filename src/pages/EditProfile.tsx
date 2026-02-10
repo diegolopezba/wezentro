@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, Camera, Loader2, Info, MapPin, Clock, Phone } from "lucide-react";
+import { ChevronLeft, Camera, Loader2, Info, MapPin, Clock, Phone, Users } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,7 @@ const EditProfile = () => {
     hours: "",
     phone: "",
   });
+  const [reservationCapacity, setReservationCapacity] = useState<string>("");
 
   const isFoodSubscriber = subscription?.plan_type === "food_premium";
   const isBusinessSubscriber = subscription?.plan_type === "business_premium";
@@ -88,6 +89,9 @@ const EditProfile = () => {
         hours: profile.business_hours || "",
         phone: profile.business_phone || "",
       });
+      setReservationCapacity(
+        (profile as any).reservation_capacity != null ? String((profile as any).reservation_capacity) : ""
+      );
     }
   }, [profile]);
 
@@ -162,6 +166,10 @@ const EditProfile = () => {
         updateData.business_address = businessLocation.address;
         updateData.business_hours = businessInfo.hours.trim() || null;
         updateData.business_phone = businessInfo.phone.trim() || null;
+        if (isFoodSubscriber) {
+          const cap = parseInt(reservationCapacity);
+          updateData.reservation_capacity = isNaN(cap) || cap <= 0 ? null : cap;
+        }
       }
 
       const { error } = await supabase
@@ -478,6 +486,27 @@ const EditProfile = () => {
                 placeholder="+591 70000000"
               />
             </div>
+
+            {/* Reservation Capacity - only for food businesses */}
+            {isFoodSubscriber && (
+              <div className="space-y-2">
+                <Label htmlFor="reservation-capacity" className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-muted-foreground" />
+                  Capacidad de reservas (personas por horario)
+                </Label>
+                <Input
+                  id="reservation-capacity"
+                  type="number"
+                  min={1}
+                  value={reservationCapacity}
+                  onChange={(e) => setReservationCapacity(e.target.value)}
+                  placeholder="Ej: 50"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Número máximo de personas que pueden reservar en un mismo horario.
+                </p>
+              </div>
+            )}
 
             <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
               <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
