@@ -6,10 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Users, CalendarDays, Clock, StickyNote } from "lucide-react";
+import { Loader2, Users, CalendarDays, Clock, StickyNote, UserPlus, X } from "lucide-react";
 import { useCreateReservation, useAvailableCapacity } from "@/hooks/useReservations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
+import { useSearchUsers, SearchUser } from "@/hooks/useSearchUsers";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -42,11 +44,14 @@ export const ReservationSheet = ({
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [partySize, setPartySize] = useState(2);
   const [notes, setNotes] = useState("");
+  const [guestSearch, setGuestSearch] = useState("");
+  const [taggedGuests, setTaggedGuests] = useState<SearchUser[]>([]);
 
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined;
   const timeStr = selectedTime ? `${selectedTime}:00` : undefined;
 
   const { data: capacityData } = useAvailableCapacity(businessId, dateStr, timeStr);
+  const { data: searchResults } = useSearchUsers(guestSearch);
   const createMutation = useCreateReservation();
 
   const handleSubmit = () => {
@@ -67,6 +72,7 @@ export const ReservationSheet = ({
         reservation_time: `${selectedTime}:00`,
         party_size: partySize,
         notes: notes.trim() || undefined,
+        tagged_user_ids: taggedGuests.map((g) => g.id),
       },
       {
         onSuccess: () => {
@@ -75,6 +81,8 @@ export const ReservationSheet = ({
           setSelectedTime("");
           setPartySize(2);
           setNotes("");
+          setTaggedGuests([]);
+          setGuestSearch("");
         },
       }
     );
@@ -180,6 +188,70 @@ export const ReservationSheet = ({
                   ? "Sin disponibilidad para este horario"
                   : `${capacityData.available} lugares disponibles`}
               </p>
+            )}
+          </div>
+
+          {/* Invitados (Guest Tagging) */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-medium">
+              <UserPlus className="w-4 h-4 text-orange-500" />
+              Invitados (opcional)
+            </Label>
+            {taggedGuests.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {taggedGuests.map((guest) => (
+                  <div
+                    key={guest.id}
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-secondary text-sm"
+                  >
+                    <img
+                      src={guest.avatar_url || DEFAULT_AVATAR}
+                      alt=""
+                      className="w-5 h-5 rounded-full object-cover"
+                    />
+                    <span className="text-foreground">@{guest.username}</span>
+                    <button
+                      type="button"
+                      onClick={() => setTaggedGuests((prev) => prev.filter((g) => g.id !== guest.id))}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <Input
+              placeholder="Buscar usuario..."
+              value={guestSearch}
+              onChange={(e) => setGuestSearch(e.target.value)}
+            />
+            {guestSearch.length >= 2 && searchResults && searchResults.length > 0 && (
+              <div className="border rounded-lg max-h-32 overflow-y-auto divide-y">
+                {searchResults
+                  .filter((u) => u.id !== user?.id && !taggedGuests.some((g) => g.id === u.id))
+                  .map((u) => (
+                    <button
+                      key={u.id}
+                      type="button"
+                      className="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-secondary/50"
+                      onClick={() => {
+                        setTaggedGuests((prev) => [...prev, u]);
+                        setGuestSearch("");
+                      }}
+                    >
+                      <img
+                        src={u.avatar_url || DEFAULT_AVATAR}
+                        alt=""
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{u.full_name || u.username}</p>
+                        <p className="text-xs text-muted-foreground">@{u.username}</p>
+                      </div>
+                    </button>
+                  ))}
+              </div>
             )}
           </div>
 
