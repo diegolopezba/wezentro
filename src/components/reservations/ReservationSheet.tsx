@@ -101,7 +101,7 @@ export const ReservationSheet = ({
           </DrawerTitle>
         </DrawerHeader>
 
-        <div className="px-4 pb-6 space-y-5 overflow-y-auto">
+        <div className="px-4 pb-2 space-y-5 overflow-y-auto flex-1">
           {/* Date Picker */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-sm font-medium">
@@ -268,8 +268,10 @@ export const ReservationSheet = ({
               rows={2}
             />
           </div>
+        </div>
 
-          {/* Submit */}
+        {/* Submit - fixed outside scroll area */}
+        <div className="px-4 pb-6 pt-3 border-t">
           <Button
             onClick={handleSubmit}
             disabled={!isFormValid || createMutation.isPending || (capacityData?.available !== null && capacityData?.available !== undefined && partySize > capacityData.available)}
