@@ -32,6 +32,7 @@ interface CreateReservationParams {
   reservation_time: string;
   party_size: number;
   notes?: string;
+  tagged_user_ids?: string[];
 }
 
 export const useCreateReservation = () => {
@@ -56,6 +57,16 @@ export const useCreateReservation = () => {
         .single();
 
       if (error) throw error;
+
+      // Insert tagged guests
+      if (params.tagged_user_ids && params.tagged_user_ids.length > 0) {
+        const guestRows = params.tagged_user_ids.map((uid) => ({
+          reservation_id: data.id,
+          user_id: uid,
+        }));
+        await supabase.from("reservation_guests").insert(guestRows);
+      }
+
       return data;
     },
     onSuccess: (_, variables) => {
@@ -149,6 +160,22 @@ export const useCancelReservation = () => {
     onError: () => {
       toast.error("Error al cancelar la reserva");
     },
+  });
+};
+
+export const useReservationGuests = (reservationId: string | undefined) => {
+  return useQuery({
+    queryKey: ["reservation-guests", reservationId],
+    queryFn: async () => {
+      if (!reservationId) return [];
+      const { data, error } = await supabase
+        .from("reservation_guests")
+        .select("user_id, user:profiles!reservation_guests_user_id_fkey(id, username, full_name, avatar_url)")
+        .eq("reservation_id", reservationId);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!reservationId,
   });
 };
 

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Loader2, Users, CalendarDays, Clock, MessageCircle, X, StickyNote } from "lucide-react";
-import { useBusinessReservations, useCancelReservation } from "@/hooks/useReservations";
+import { useBusinessReservations, useCancelReservation, useReservationGuests } from "@/hooks/useReservations";
 import { useCreatePrivateChat } from "@/hooks/useChats";
 import { useNavigate } from "react-router-dom";
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
@@ -175,6 +175,8 @@ export const ReservationsManagementSheet = ({
                       )}
                     </div>
 
+                    <ReservationGuestAvatars reservationId={reservation.id} />
+
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
@@ -229,5 +231,26 @@ export const ReservationsManagementSheet = ({
         </div>
       </DrawerContent>
     </Drawer>
+  );
+};
+
+const ReservationGuestAvatars = ({ reservationId }: { reservationId: string }) => {
+  const { data: guests } = useReservationGuests(reservationId);
+  if (!guests || guests.length === 0) return null;
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-xs text-muted-foreground">Invitados:</span>
+      <div className="flex -space-x-1.5">
+        {guests.map((g) => (
+          <img
+            key={g.user_id}
+            src={(g.user as any)?.avatar_url || DEFAULT_AVATAR}
+            alt={(g.user as any)?.username || ""}
+            title={`@${(g.user as any)?.username}`}
+            className="w-5 h-5 rounded-full border border-background object-cover"
+          />
+        ))}
+      </div>
+    </div>
   );
 };

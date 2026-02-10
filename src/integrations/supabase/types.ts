@@ -935,6 +935,42 @@ export type Database = {
           },
         ]
       }
+      reservation_guests: {
+        Row: {
+          created_at: string | null
+          id: string
+          reservation_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          reservation_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          reservation_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_guests_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_guests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reservations: {
         Row: {
           business_id: string
