@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, BarChart3, Calendar, Gift } from "lucide-react";
+import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, BarChart3, Calendar, Gift, UtensilsCrossed } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,6 +31,11 @@ const Settings = () => {
       icon: Gift,
       label: "Invitar Amigos",
       path: "/settings/referrals"
+    },
+    {
+      icon: UtensilsCrossed,
+      label: "Mis Reservas",
+      path: "/settings/reservations"
     },
     {
       icon: Ticket,
