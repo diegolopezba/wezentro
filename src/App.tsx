@@ -52,6 +52,7 @@ const Help = lazy(() => import("./pages/Help"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
 const Referrals = lazy(() => import("./pages/Referrals"));
+const MyReservations = lazy(() => import("./pages/MyReservations"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Preload core routes after initial render for instant navigation
@@ -339,6 +340,16 @@ const App = () => {
                               <ProtectedRoute requireProfile>
                                 <Suspense fallback={<PageLoader />}>
                                   <Referrals />
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings/reservations"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Suspense fallback={<PageLoader />}>
+                                  <MyReservations />
                                 </Suspense>
                               </ProtectedRoute>
                             }
