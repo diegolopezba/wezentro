@@ -113,10 +113,16 @@ const ReservationCard = ({
   const cancelMutation = useCancelReservation();
 
   return (
-    <div className="p-3 rounded-xl border bg-card space-y-2">
+    <div
+      className="p-3 rounded-xl border bg-card space-y-2 cursor-pointer"
+      onClick={() => navigate(`/reservation/${reservation.id}`)}
+    >
       <div className="flex items-center justify-between">
         <button
-          onClick={() => reservation.business && navigate(`/user/${reservation.business.id}`)}
+          onClick={(e) => {
+            e.stopPropagation();
+            reservation.business && navigate(`/user/${reservation.business.id}`);
+          }}
           className="flex items-center gap-2"
         >
           <img
