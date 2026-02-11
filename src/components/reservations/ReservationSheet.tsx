@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ export const ReservationSheet = ({
   businessHours,
 }: ReservationSheetProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { promptAuth } = useAuthPrompt();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -75,7 +77,7 @@ export const ReservationSheet = ({
         tagged_user_ids: taggedGuests.map((g) => g.id),
       },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
           onOpenChange(false);
           setSelectedDate(undefined);
           setSelectedTime("");
@@ -83,6 +85,7 @@ export const ReservationSheet = ({
           setNotes("");
           setTaggedGuests([]);
           setGuestSearch("");
+          navigate(`/reservation/${data.id}`);
         },
       }
     );

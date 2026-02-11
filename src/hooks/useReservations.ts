@@ -179,6 +179,36 @@ export const useReservationGuests = (reservationId: string | undefined) => {
   });
 };
 
+export const useReservationDetail = (reservationId: string | undefined) => {
+  return useQuery({
+    queryKey: ["reservation-detail", reservationId],
+    queryFn: async () => {
+      if (!reservationId) return null;
+
+      const { data: reservation, error } = await supabase
+        .from("reservations")
+        .select("*, business:profiles!reservations_business_id_fkey(id, username, full_name, avatar_url, business_address)")
+        .eq("id", reservationId)
+        .single();
+
+      if (error) throw error;
+
+      const { data: guests, error: guestsError } = await supabase
+        .from("reservation_guests")
+        .select("user_id, user:profiles!reservation_guests_user_id_fkey(id, username, full_name, avatar_url)")
+        .eq("reservation_id", reservationId);
+
+      if (guestsError) throw guestsError;
+
+      return {
+        reservation: reservation as any,
+        guests: guests as any[],
+      };
+    },
+    enabled: !!reservationId,
+  });
+};
+
 export const useAvailableCapacity = (
   businessId: string | undefined,
   date: string | undefined,

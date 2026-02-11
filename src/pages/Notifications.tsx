@@ -486,8 +486,14 @@ const Notifications = () => {
 
     // Navigate based on notification type and entity type
     if (notification.type === "guestlist_approved" && notification.entity_id) {
-      // Navigate to the "You Are Going" page for approved guestlist
       navigate(`/going/${notification.entity_id}`);
+    } else if (
+      (notification.type === "new_reservation" ||
+        notification.type === "reservation_tagged" ||
+        notification.type === "reservation_cancelled") &&
+      notification.entity_id
+    ) {
+      navigate(`/reservation/${notification.entity_id}`);
     } else if ((notification.entity_type === "profile" || notification.entity_type === "user") && notification.entity_id) {
       navigate(`/user/${notification.entity_id}`);
     } else if (notification.entity_type === "event" && notification.entity_id) {
