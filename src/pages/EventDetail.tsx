@@ -26,7 +26,7 @@ import { isVideoUrl } from "@/lib/mediaUtils";
 import { trackEventView } from "@/lib/analyticsTracking";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
-import { useEventTags } from "@/hooks/useEventTags";
+import { useEventTags, useRemoveTag } from "@/hooks/useEventTags";
 
 const EventDetail = () => {
   const {
@@ -100,6 +100,7 @@ const EventDetail = () => {
     error
   } = useEvent(id);
   const { data: eventTags } = useEventTags(id);
+  const removeTag = useRemoveTag();
   const {
     data: guestlistStatus
   } = useIsOnGuestlist(id);
@@ -389,6 +390,20 @@ const EventDetail = () => {
                   </span>
                   {tag.status === "pending" && (
                     <span className="text-[10px] text-muted-foreground">(pendiente)</span>
+                  )}
+                  {(tag.tagged_user_id === user?.id || isOwner) && (
+                    <button
+                      className="ml-0.5 p-0.5 rounded-full hover:bg-destructive/20 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeTag.mutate(tag.id, {
+                          onSuccess: () => toast.success("Etiqueta eliminada"),
+                          onError: () => toast.error("Error al eliminar etiqueta"),
+                        });
+                      }}
+                    >
+                      <X className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                    </button>
                   )}
                 </div>
               ))}
