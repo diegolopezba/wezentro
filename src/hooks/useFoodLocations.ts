@@ -26,33 +26,17 @@ export const useFoodLocations = () => {
 
       if (profilesError) throw profilesError;
 
-      // Verify each profile has an active food_premium subscription
-      const validLocations: FoodLocation[] = [];
-
-      for (const profile of profiles || []) {
-        const { data: subscription } = await supabase
-          .from("subscriptions")
-          .select("id")
-          .eq("user_id", profile.id)
-          .eq("plan_type", "food_premium")
-          .in("status", ["active", "trialing"])
-          .maybeSingle();
-
-        if (subscription) {
-          validLocations.push({
-            id: profile.id,
-            username: profile.username,
-            full_name: profile.full_name,
-            avatar_url: profile.avatar_url,
-            bio: profile.bio,
-            business_latitude: profile.business_latitude!,
-            business_longitude: profile.business_longitude!,
-            business_address: profile.business_address,
-          });
-        }
-      }
-
-      return validLocations;
+      // No subscription check needed - food businesses are free now
+      return (profiles || []).map((profile) => ({
+        id: profile.id,
+        username: profile.username,
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url,
+        bio: profile.bio,
+        business_latitude: profile.business_latitude!,
+        business_longitude: profile.business_longitude!,
+        business_address: profile.business_address,
+      })) as FoodLocation[];
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });

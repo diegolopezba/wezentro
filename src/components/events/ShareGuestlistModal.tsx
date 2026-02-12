@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMutualFollowers } from "@/hooks/useChats";
 import { useEventGuestlist } from "@/hooks/useEvents";
 import { useSearchUsers } from "@/hooks/useSearchUsers";
-import { useUserSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/contexts/AuthContext";
 import { useSendGuestlistInvitations, useEventInvitations } from "@/hooks/useGuestlistInvitations";
 import { Loader2, Search, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -24,8 +24,8 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-  const { data: subscription } = useUserSubscription();
-  const isBusinessUser = subscription?.plan_type === 'business_premium';
+  const { profile } = useAuth();
+  const isBusinessUser = profile?.is_business === true;
 
   const { data: mutualFollowers = [], isLoading: loadingFollowers } = useMutualFollowers();
   const { data: searchResults = [], isLoading: loadingSearch } = useSearchUsers(

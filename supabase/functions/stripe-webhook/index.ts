@@ -15,14 +15,8 @@ const logStep = (step: string, details?: unknown) => {
 // Map Stripe product IDs to plan types
 const PRODUCT_TO_PLAN: Record<string, string> = {
   "prod_Td3jVaQwDP8Fdz": "user_premium",
-  "prod_TtYt9Jw1TmrMds": "user_premium",      // new product
-  "prod_Td3kU1JBlekyrO": "business_premium",
-  "prod_Toxvk2koMWuN0w": "food_premium",        // fix: was "places_premium"
-  "prod_TpkjEVW1gDfv9h": "food_premium",        // new product
+  "prod_TtYt9Jw1TmrMds": "user_premium",
 };
-
-// Business/Places plans that qualify for referral rewards
-const BUSINESS_PLANS = ["business_premium", "food_premium"];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -137,11 +131,8 @@ serve(async (req) => {
 
         logStep("Checking if eligible for referral reward", { planType, billingReason: invoice.billing_reason });
 
-        // Only business/places plans qualify for referral rewards
-        if (!BUSINESS_PLANS.includes(planType)) {
-          logStep("Not a business/places plan, skipping referral reward");
-          break;
-        }
+        // All premium plans qualify for referral rewards now
+        // (business features are free, only user_premium is paid)
 
         // Check if this is a real payment (not trial, not $0)
         // billing_reason: subscription_create (first invoice), subscription_cycle (renewal)
@@ -213,7 +204,7 @@ serve(async (req) => {
           break;
         }
 
-        // Check if referrer also has a business/places subscription
+        // Check if referrer also has an active subscription
         const { data: referrerSub } = await supabaseClient
           .from("subscriptions")
           .select("plan_type")
@@ -221,10 +212,9 @@ serve(async (req) => {
           .in("status", ["active", "trialing"])
           .maybeSingle();
 
-        if (!referrerSub || !BUSINESS_PLANS.includes(referrerSub.plan_type)) {
-          logStep("Referrer doesn't have business/places subscription, no reward", { 
-            referrerId: referral.referrer_id,
-            referrerPlan: referrerSub?.plan_type 
+        if (!referrerSub) {
+          logStep("Referrer doesn't have active subscription, no reward", { 
+            referrerId: referral.referrer_id
           });
           break;
         }

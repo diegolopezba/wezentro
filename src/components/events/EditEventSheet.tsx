@@ -10,8 +10,7 @@ import { Loader2, Upload, X, QrCode, MessageCircle } from "lucide-react";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { useUserSubscription } from "@/hooks/useSubscription";
-import { SubscriptionUpsellModal } from "@/components/subscription/SubscriptionUpsellModal";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage, blobToFile } from "@/lib/mediaCompression";
 
@@ -48,9 +47,8 @@ const CATEGORIES = [
 
 export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProps) {
   const updateEvent = useUpdateEvent();
-  const { data: subscription } = useUserSubscription();
-  const hasBusinessSubscription = subscription?.plan_type === "business_premium";
-  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const { profile } = useAuth();
+  const isBusiness = profile?.is_business === true;
   const [isUploadingQr, setIsUploadingQr] = useState(false);
   const [isCompressingQr, setIsCompressingQr] = useState(false);
   const qrInputRef = useRef<HTMLInputElement>(null);
@@ -162,7 +160,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
     }
   };
 
-  const showPaymentQrSection = hasBusinessSubscription && formData.has_guestlist && parseFloat(formData.price) > 0;
+  const showPaymentQrSection = isBusiness && formData.has_guestlist && parseFloat(formData.price) > 0;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -247,9 +245,9 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           <div className="flex items-center justify-between py-2">
             <div className="flex flex-col">
               <Label htmlFor="guestlist">Habilitar lista de invitados</Label>
-              {!hasBusinessSubscription && (
+              {!isBusiness && (
                 <span className="text-xs text-muted-foreground">
-                  Requiere suscripción Zentro Business
+                  Requiere cuenta Business (gratis en Configuración)
                 </span>
               )}
             </div>
@@ -257,8 +255,8 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
               id="guestlist"
               checked={formData.has_guestlist}
               onCheckedChange={(checked) => {
-                if (checked && !hasBusinessSubscription) {
-                  setShowUpsellModal(true);
+                if (checked && !isBusiness) {
+                  toast.info("Activa tu cuenta Business en Configuración para usar guestlists");
                   return;
                 }
                 setFormData({ ...formData, has_guestlist: checked });
@@ -371,11 +369,6 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
         </div>
       </SheetContent>
 
-      <SubscriptionUpsellModal
-        isOpen={showUpsellModal}
-        onClose={() => setShowUpsellModal(false)}
-        feature="listas de invitados"
-      />
     </Sheet>
   );
 }

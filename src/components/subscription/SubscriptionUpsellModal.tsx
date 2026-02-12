@@ -13,7 +13,7 @@ const businessFeatures = [
   { icon: Users, label: "Crear eventos con lista de invitados" },
   { icon: QrCode, label: "Check-in con código QR" },
   { icon: BarChart3, label: "Ver analíticas de eventos" },
-  { icon: Sparkles, label: "Visibilidad prioritaria de eventos" },
+  { icon: Sparkles, label: "Gestiona menú y reservas" },
 ];
 
 export const SubscriptionUpsellModal = ({
@@ -25,7 +25,7 @@ export const SubscriptionUpsellModal = ({
 
   const handleSubscribe = () => {
     onClose();
-    navigate("/subscription");
+    navigate("/settings");
   };
 
   return (
@@ -66,10 +66,10 @@ export const SubscriptionUpsellModal = ({
 
                 {/* Title */}
                 <h2 className="text-xl font-bold text-foreground text-center mb-2">
-                  Desbloquea Zentro Business
+                  Activa tu Cuenta Business
                 </h2>
                 <p className="text-muted-foreground text-center text-sm mb-6">
-                  Mejora para acceder a {feature} y herramientas poderosas de gestión de eventos
+                  Cambia a cuenta Business gratis para acceder a {feature} y herramientas poderosas de gestión
                 </p>
 
                 {/* Features */}
@@ -94,11 +94,10 @@ export const SubscriptionUpsellModal = ({
                 {/* Price */}
                 <div className="text-center mb-6">
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-3xl font-bold text-foreground">$19.99</span>
-                    <span className="text-muted-foreground">/mes</span>
+                    <span className="text-3xl font-bold text-foreground">Gratis</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Cancela cuando quieras
+                    Sin costo, actívalo en Configuración
                   </p>
                 </div>
 
@@ -110,7 +109,7 @@ export const SubscriptionUpsellModal = ({
                     onClick={handleSubscribe}
                   >
                     <Crown className="w-4 h-4 mr-2" />
-                    Suscribirse Ahora
+                    Activar Cuenta Business
                   </Button>
                   <Button
                     variant="ghost"

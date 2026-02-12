@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, Users, UserCheck, UsersRound, BarChart3, TrendingUp, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUserSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useOverviewStats,
@@ -27,12 +26,12 @@ const ChartSkeleton = () => (
 
 const BusinessDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: subscription, isLoading: subLoading } = useUserSubscription();
+  const { user, profile } = useAuth();
   
   useSwipeBack();
 
-  const isBusiness = subscription?.plan_type === "business_premium";
+  const isBusiness = profile?.is_business === true;
+  const subLoading = !profile;
 
   // Fetch analytics data
   const { data: overviewStats, isLoading: statsLoading } = useOverviewStats();
@@ -64,18 +63,18 @@ const BusinessDashboard = () => {
               <BarChart3 className="w-10 h-10 text-white" />
             </div>
             <h2 className="font-brand text-2xl font-bold text-foreground mb-2">
-              Unlock Business Analytics
+              Business Dashboard
             </h2>
             <p className="text-muted-foreground mb-6">
-              Upgrade to Zentro Business to access detailed analytics, event performance metrics, and audience insights.
+              Activa tu cuenta Business en Configuración para acceder a analíticas, métricas de eventos e insights de audiencia — es gratis.
             </p>
             <Button
               variant="premium"
               size="lg"
               className="w-full"
-              onClick={() => navigate("/settings/subscription")}
+              onClick={() => navigate("/settings")}
             >
-              Upgrade to Business
+              Ir a Configuración
             </Button>
           </motion.div>
         </div>

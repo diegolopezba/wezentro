@@ -88,15 +88,16 @@ export const useSubscriptionPlans = (): SubscriptionPlan[] => {
       features: [
         "Explora todos los eventos",
         "Sigue a otros usuarios",
-        "Crea eventos (sin lista de invitados)",
+        "Crea eventos y publicaciones",
         "Recibe invitaciones a eventos",
         "Mensajería privada",
+        "Cambia a cuenta Business gratis",
       ],
     },
     {
       id: "user_premium",
       name: "Zentro Premium",
-      price: 3.99,
+      price: 1.99,
       interval: "month",
       features: [
         "Todo lo del plan Gratis",
@@ -107,33 +108,6 @@ export const useSubscriptionPlans = (): SubscriptionPlan[] => {
       ],
       highlighted: true,
     },
-    {
-      id: "food_premium",
-      name: "Zentro Places",
-      price: 12.99,
-      interval: "month",
-      features: [
-        "Todo lo de Zentro Premium",
-        "Transforma tu perfil en restaurante/café",
-        "Crea y muestra tu menú",
-        "Insignia especial en tu perfil",
-        "Aparece en el filtro de Comida del mapa",
-      ],
-    },
-    {
-      id: "business_premium",
-      name: "Zentro Business",
-      price: 29.99,
-      interval: "month",
-      features: [
-        "Todo lo de Zentro Premium",
-        "Crea eventos con lista de invitados",
-        "Establece límites de capacidad",
-        "Ve analíticas de tus eventos",
-        "Escanea códigos QR para check-ins",
-        "Promociona eventos a más usuarios",
-      ],
-    },
   ];
 };
 
@@ -141,10 +115,6 @@ export const getPlanDisplayName = (planType: string | null | undefined): string 
   switch (planType) {
     case "user_premium":
       return "Zentro Premium";
-    case "food_premium":
-      return "Zentro Places";
-    case "business_premium":
-      return "Zentro Business";
     default:
       return "Free";
   }

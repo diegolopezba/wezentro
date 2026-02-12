@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMutualFollowers, useCreatePrivateChat, useSendMessage } from "@/hooks/useChats";
 import { useSearchUsers } from "@/hooks/useSearchUsers";
-import { useUserSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Search, Send, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
@@ -23,8 +23,8 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [isSending, setIsSending] = useState(false);
 
-  const { data: subscription } = useUserSubscription();
-  const isBusinessUser = subscription?.plan_type === 'business_premium';
+  const { profile } = useAuth();
+  const isBusinessUser = profile?.is_business === true;
 
   const { data: mutualFollowers = [], isLoading: loadingFollowers } = useMutualFollowers();
   const { data: searchResults = [], isLoading: loadingSearch } = useSearchUsers(
