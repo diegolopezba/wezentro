@@ -1,0 +1,2 @@
+ALTER TABLE public.notifications DROP CONSTRAINT notifications_type_check;
+ALTER TABLE public.notifications ADD CONSTRAINT notifications_type_check CHECK (type = ANY (ARRAY['follow'::text, 'guestlist_request'::text, 'guestlist_approved'::text, 'guestlist_rejected'::text, 'guestlist_invitation'::text, 'repost'::text, 'collaboration_request'::text, 'collaboration_accepted'::text, 'referral_signup'::text, 'new_reservation'::text, 'reservation_cancelled'::text, 'reservation_tagged'::text, 'post_tag'::text]));
