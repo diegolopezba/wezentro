@@ -173,8 +173,19 @@ export const useTrackSponsoredImpression = () => {
       const { error } = await supabase.rpc("increment_sponsored_impressions" as any, {
         _post_id: sponsoredPostId,
       });
-      // Silently fail — this is non-critical analytics
       if (error) console.warn("Failed to track impression:", error);
+    },
+  });
+};
+
+// Track click
+export const useTrackSponsoredClick = () => {
+  return useMutation({
+    mutationFn: async (sponsoredPostId: string) => {
+      const { error } = await supabase.rpc("increment_sponsored_clicks" as any, {
+        _post_id: sponsoredPostId,
+      });
+      if (error) console.warn("Failed to track click:", error);
     },
   });
 };

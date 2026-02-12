@@ -8,7 +8,7 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { useForYouEvents } from "@/hooks/useForYouEvents";
 import { useFollowingEventsScored } from "@/hooks/useFollowingEventsScored";
 import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
-import { useActiveSponsoredPosts } from "@/hooks/useSponsoredPosts";
+import { useActiveSponsoredPosts, useTrackSponsoredImpression } from "@/hooks/useSponsoredPosts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -45,6 +45,7 @@ const Index = () => {
   } = useUnreadNotificationsCount();
   
   const { data: sponsoredPosts = [] } = useActiveSponsoredPosts();
+  const trackImpression = useTrackSponsoredImpression();
   
   // Handle notification bell click for guests
   const handleNotificationClick = () => {
@@ -142,6 +143,7 @@ const Index = () => {
           ownerAvatar: sp.creator?.avatar_url || undefined,
           creatorId: sp.creator_id,
           isSponsored: true,
+          sponsoredPostId: sp.sponsoredPostId,
           repostInfo: undefined,
         };
       });
