@@ -88,7 +88,12 @@ const Index = () => {
 
   // Transform events to EventCard format and filter
   const transformedEvents = useMemo(() => {
+    // Collect sponsored event IDs to exclude from organic results
+    const sponsoredEventIds = new Set(sponsoredPosts.map(sp => sp.id));
+
     const organic = events.filter(event => {
+      // Skip events that are already being shown as sponsored
+      if (activeTab === "for-you" && sponsoredEventIds.has(event.id)) return false;
       const matchesSearch = event.title?.toLowerCase().includes(searchQuery.toLowerCase()) || (event.location_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
       return searchQuery === "" || matchesSearch;
     }).map(event => {
