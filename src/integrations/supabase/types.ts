@@ -1116,6 +1116,66 @@ export type Database = {
           },
         ]
       }
+      sponsored_posts: {
+        Row: {
+          business_user_id: string
+          clicks: number
+          created_at: string
+          daily_budget: number | null
+          end_date: string | null
+          event_id: string
+          id: string
+          impressions: number
+          spent: number
+          start_date: string | null
+          status: string
+          total_budget: number | null
+        }
+        Insert: {
+          business_user_id: string
+          clicks?: number
+          created_at?: string
+          daily_budget?: number | null
+          end_date?: string | null
+          event_id: string
+          id?: string
+          impressions?: number
+          spent?: number
+          start_date?: string | null
+          status?: string
+          total_budget?: number | null
+        }
+        Update: {
+          business_user_id?: string
+          clicks?: number
+          created_at?: string
+          daily_budget?: number | null
+          end_date?: string | null
+          event_id?: string
+          id?: string
+          impressions?: number
+          spent?: number
+          start_date?: string | null
+          status?: string
+          total_budget?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsored_posts_business_user_id_fkey"
+            columns: ["business_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsored_posts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           created_at: string | null

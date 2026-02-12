@@ -21,9 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useUserSubscription } from "@/hooks/useSubscription";
 import { LocationPicker } from "@/components/map/LocationPicker";
-import { SubscriptionUpsellModal } from "@/components/subscription/SubscriptionUpsellModal";
 import { CollaboratorPickerModal } from "@/components/events/CollaboratorPickerModal";
 import { TagPickerModal } from "@/components/events/TagPickerModal";
 import { MutualFollower } from "@/hooks/useChats";
@@ -55,10 +53,9 @@ const categories = [
 
 const Create = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: subscription } = useUserSubscription();
+  const { user, profile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const hasBusinessSubscription = subscription?.plan_type === "business_premium";
+  const isBusiness = profile?.is_business === true;
   const inviteCollaborator = useInviteCollaborator();
   const tagUser = useTagUser();
   const { invalidateAfterCreate } = useCreateEvent();
@@ -67,7 +64,6 @@ const Create = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [showCollaboratorPicker, setShowCollaboratorPicker] = useState(false);
   const [showTagPicker, setShowTagPicker] = useState(false);
   const [selectedCollaborator, setSelectedCollaborator] = useState<MutualFollower | null>(null);
@@ -247,9 +243,9 @@ const Create = () => {
       return;
     }
 
-    // Check Zentro Business subscription for guestlist
-    if (formData.hasGuestlist && !hasBusinessSubscription) {
-      toast.error("Se requiere suscripción Zentro Business para habilitar listas de invitados");
+    // Check business account for guestlist
+    if (formData.hasGuestlist && !isBusiness) {
+      toast.error("Cambia a cuenta Business en Configuración para habilitar listas de invitados");
       return;
     }
 
@@ -742,17 +738,19 @@ const Create = () => {
                   <div>
                     <h3 className="font-semibold text-foreground">Habilitar Lista de Invitados</h3>
                     <p className="text-xs text-muted-foreground">
-                      {hasBusinessSubscription
+                      {isBusiness
                         ? "Crea una lista de invitados para tu evento"
-                        : "Requiere suscripción Zentro Business"}
+                        : "Requiere cuenta Business (gratis en Configuración)"}
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
-                    if (!hasBusinessSubscription) {
-                      setShowUpsellModal(true);
+                    if (!isBusiness) {
+                      toast.info("Activa tu cuenta Business en Configuración para usar guestlists", {
+                        action: { label: "Ir", onClick: () => navigate("/settings") },
+                      });
                       return;
                     }
                     setFormData({
@@ -838,13 +836,6 @@ const Create = () => {
           </Button>
         </div>
       </div>
-
-      {/* Subscription upsell modal */}
-      <SubscriptionUpsellModal
-        isOpen={showUpsellModal}
-        onClose={() => setShowUpsellModal(false)}
-        feature="guestlists"
-      />
 
       {/* Collaborator picker modal */}
       <CollaboratorPickerModal

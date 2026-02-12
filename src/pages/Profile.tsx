@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserTimeline } from "@/hooks/useUserTimeline";
 import { useUserStats } from "@/hooks/useUserStats";
-import { useUserSubscription, getPlanDisplayName } from "@/hooks/useSubscription";
+import { useUserSubscription } from "@/hooks/useSubscription";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
 import { EditMenuSheet } from "@/components/menu/EditMenuSheet";
@@ -37,10 +37,9 @@ const Profile = () => {
   const {
     data: subscription
   } = useUserSubscription();
-  const currentPlan = subscription?.plan_type || "free";
-  const isPremium = currentPlan !== "free";
-  const isFoodBusiness = currentPlan === "food_premium";
-  const isBusinessAccount = currentPlan === "business_premium" || currentPlan === "food_premium";
+  const isPremium = subscription?.plan_type === "user_premium";
+  const isBusiness = profile?.is_business === true;
+  const isFoodBusiness = profile?.is_food_business === true;
 
   // Check if user has business info to show
   const hasBusinessInfo = profile?.business_address || profile?.business_hours || profile?.business_phone;
@@ -98,7 +97,7 @@ const Profile = () => {
       }} className="flex items-start gap-4">
           <div className="relative">
             <img src={profile?.avatar_url || DEFAULT_AVATAR} alt="Perfil" className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary" />
-            {isPremium && <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-amber-400 to-amber-600"}`}>
+            {(isPremium || isBusiness) && <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : isPremium ? "bg-gradient-to-br from-amber-400 to-amber-600" : "bg-gradient-to-br from-blue-500 to-indigo-500"}`}>
                 {isFoodBusiness ? <UtensilsCrossed className="w-4 h-4 text-white" /> : <Crown className="w-4 h-4 text-white" />}
               </div>}
           </div>
@@ -130,8 +129,8 @@ const Profile = () => {
           {profile?.bio && <p className="text-sm text-foreground/80">{profile.bio}</p>}
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
           
-          {/* Edit Menu button for food subscribers */}
-          {isFoodBusiness && (
+          {/* Edit Menu button for food businesses */}
+          {isBusiness && isFoodBusiness && (
             <div className="flex gap-2 mt-3">
               <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 hover:from-orange-500/20 hover:to-red-500/20">
                 <UtensilsCrossed className="w-4 h-4 text-orange-500" />
@@ -177,7 +176,7 @@ const Profile = () => {
             </motion.div>}
         </AnimatePresence>
 
-        {/* Subscription badge - only show for free users */}
+        {/* Subscription badge - only show for non-premium users */}
         {!isPremium && <motion.div initial={{
         opacity: 0,
         y: 20
@@ -194,8 +193,8 @@ const Profile = () => {
                     <Crown className="text-white w-[18px] h-[18px]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">{getPlanDisplayName(currentPlan)}</h3>
-                    <p className="text-xs text-muted-foreground">Suscribete para unirte a guestlists</p>
+                    <h3 className="font-semibold text-foreground">Free</h3>
+                    <p className="text-xs text-muted-foreground">Suscríbete para unirte a guestlists</p>
                   </div>
                 </div>
                 <Button variant="premium" size="sm" onClick={() => navigate("/settings/subscription")}>
@@ -222,10 +221,10 @@ const Profile = () => {
 
       {/* Followers/Following Sheet */}
       {user && <FollowersSheet userId={user.id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={open => !open && setFollowSheetType(null)} />}
-      {/* Edit Menu Sheet for food subscribers */}
-      {isFoodBusiness && <EditMenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} />}
-      {/* Reservations Management Sheet for food subscribers */}
-      {isFoodBusiness && user && <ReservationsManagementSheet open={reservationsSheetOpen} onOpenChange={setReservationsSheetOpen} businessId={user.id} />}
+      {/* Edit Menu Sheet for food businesses */}
+      {isBusiness && isFoodBusiness && <EditMenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} />}
+      {/* Reservations Management Sheet for food businesses */}
+      {isBusiness && isFoodBusiness && user && <ReservationsManagementSheet open={reservationsSheetOpen} onOpenChange={setReservationsSheetOpen} businessId={user.id} />}
       {/* Business Info Sheet */}
       <BusinessInfoSheet
         open={businessInfoOpen}

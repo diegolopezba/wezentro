@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { BusinessLocationPicker } from "@/components/profile/BusinessLocationPicker";
-import { useUserSubscription } from "@/hooks/useSubscription";
 import { compressImage, blobToFile } from "@/lib/mediaCompression";
 
 const GENDER_OPTIONS = [
@@ -25,7 +24,6 @@ const GENDER_OPTIONS = [
 const EditProfile = () => {
   const navigate = useNavigate();
   const { profile, user, refreshProfile } = useAuth();
-  const { data: subscription } = useUserSubscription();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -55,9 +53,8 @@ const EditProfile = () => {
   });
   const [reservationCapacity, setReservationCapacity] = useState<string>("");
 
-  const isFoodSubscriber = subscription?.plan_type === "food_premium";
-  const isBusinessSubscriber = subscription?.plan_type === "business_premium";
-  const isPlacesOrBusiness = isFoodSubscriber || isBusinessSubscriber;
+  const isBusiness = profile?.is_business === true;
+  const isFoodBusiness = profile?.is_food_business === true;
 
   useEffect(() => {
     if (profile) {
@@ -159,14 +156,14 @@ const EditProfile = () => {
         gender: formData.gender || null,
       };
 
-      // Add business fields if subscriber
-      if (isPlacesOrBusiness) {
+      // Add business fields if business account
+      if (isBusiness) {
         updateData.business_latitude = businessLocation.latitude;
         updateData.business_longitude = businessLocation.longitude;
         updateData.business_address = businessLocation.address;
         updateData.business_hours = businessInfo.hours.trim() || null;
         updateData.business_phone = businessInfo.phone.trim() || null;
-        if (isFoodSubscriber) {
+        if (isFoodBusiness) {
           const cap = parseInt(reservationCapacity);
           updateData.reservation_capacity = isNaN(cap) || cap <= 0 ? null : cap;
         }
@@ -431,8 +428,8 @@ const EditProfile = () => {
           </div>
         </motion.div>
 
-        {/* Business Information Section - For Places and Business Subscribers */}
-        {isPlacesOrBusiness && (
+        {/* Business Information Section - For Business Accounts */}
+        {isBusiness && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -443,8 +440,8 @@ const EditProfile = () => {
               <Label className="text-base font-semibold">Información del Negocio</Label>
             </div>
 
-            {/* Location Picker - Only for Food/Places subscribers */}
-            {isFoodSubscriber && (
+            {/* Location Picker - Only for Food businesses */}
+            {isFoodBusiness && (
               <BusinessLocationPicker
                 latitude={businessLocation.latitude}
                 longitude={businessLocation.longitude}
@@ -488,7 +485,7 @@ const EditProfile = () => {
             </div>
 
             {/* Reservation Capacity - only for food businesses */}
-            {isFoodSubscriber && (
+            {isFoodBusiness && (
               <div className="space-y-2">
                 <Label htmlFor="reservation-capacity" className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-muted-foreground" />

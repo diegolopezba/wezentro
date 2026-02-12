@@ -62,8 +62,9 @@ const UserProfile = () => {
   const {
     data: userSubscription
   } = useUserSubscriptionById(id);
-  const isPremium = userSubscription?.plan_type && userSubscription.plan_type !== "free";
-  const isFoodBusiness = userSubscription?.plan_type === "food_premium";
+  const isPremium = userSubscription?.plan_type === "user_premium";
+  const isFoodBusiness = userProfile?.is_food_business === true;
+  const isBusiness = userProfile?.is_business === true;
   const hasBusinessInfo = userProfile?.business_address || userProfile?.business_hours || userProfile?.business_phone;
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
@@ -148,7 +149,7 @@ const UserProfile = () => {
           </div>
           <div className="flex items-center gap-1">
             {/* Message icon in header for food businesses */}
-            {isFoodBusiness && !isOwnProfile && (
+            {isBusiness && isFoodBusiness && !isOwnProfile && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
@@ -179,7 +180,7 @@ const UserProfile = () => {
       }} className="flex items-start gap-4">
           <div className="relative">
             <img src={userProfile.avatar_url || DEFAULT_AVATAR} alt="Perfil" className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary" />
-            {isPremium && <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-amber-400 to-amber-600"}`}>
+            {(isPremium || isBusiness) && <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : isPremium ? "bg-gradient-to-br from-amber-400 to-amber-600" : "bg-gradient-to-br from-blue-500 to-indigo-500"}`}>
                 {isFoodBusiness ? <UtensilsCrossed className="w-4 h-4 text-white" /> : <Crown className="w-4 h-4 text-white" />}
               </div>}
           </div>
@@ -231,7 +232,7 @@ const UserProfile = () => {
             </Button>
 
             {/* For food businesses: show Reservar button instead of Message */}
-            {isFoodBusiness ? (
+            {isBusiness && isFoodBusiness ? (
               <Button
                 className="flex-1 min-w-0 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
                 onClick={() => {
@@ -262,7 +263,7 @@ const UserProfile = () => {
             )}
 
             {/* Menu button for food businesses */}
-            {isFoodBusiness && <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30">
+            {isBusiness && isFoodBusiness && <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30">
                 <UtensilsCrossed className="w-4 h-4 text-orange-500" />
               </Button>}
           </motion.div>}
@@ -280,7 +281,7 @@ const UserProfile = () => {
       {/* Followers/Following Sheet */}
       {id && <FollowersSheet userId={id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={open => !open && setFollowSheetType(null)} />}
       {/* Menu Sheet for food businesses */}
-      {id && isFoodBusiness && <MenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} userId={id} businessName={userProfile?.full_name || userProfile?.username} />}
+      {id && isBusiness && isFoodBusiness && <MenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} userId={id} businessName={userProfile?.full_name || userProfile?.username} />}
       {/* Business Info Sheet */}
       {userProfile && (
         <BusinessInfoSheet
@@ -293,7 +294,7 @@ const UserProfile = () => {
         />
       )}
       {/* Reservation Sheet for food businesses */}
-      {id && isFoodBusiness && (
+      {id && isBusiness && isFoodBusiness && (
         <ReservationSheet
           open={reservationSheetOpen}
           onOpenChange={setReservationSheetOpen}

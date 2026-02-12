@@ -1,28 +1,48 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, BarChart3, Calendar, Gift, UtensilsCrossed } from "lucide-react";
+import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, BarChart3, Calendar, Gift, UtensilsCrossed, Briefcase } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const { data: subscription } = useUserSubscription();
+  const { signOut, profile, user, refreshProfile } = useAuth();
+  const [togglingBusiness, setTogglingBusiness] = useState(false);
 
-  const isBusiness = subscription?.plan_type === "business_premium";
+  const isBusiness = profile?.is_business === true;
 
   const handleDashboardClick = () => {
     if (isBusiness) {
       navigate("/dashboard");
     } else {
-      toast.info("Solo disponible para usuarios Zentro Business", {
+      toast.info("Activa tu cuenta Business para acceder al dashboard", {
         action: {
-          label: "Ver planes",
-          onClick: () => navigate("/settings/subscription"),
+          label: "Activar",
+          onClick: () => handleToggleBusiness(true),
         },
       });
+    }
+  };
+
+  const handleToggleBusiness = async (value: boolean) => {
+    if (!user) return;
+    setTogglingBusiness(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ is_business: value })
+        .eq("id", user.id);
+      if (error) throw error;
+      await refreshProfile();
+      toast.success(value ? "¡Cuenta Business activada!" : "Cuenta Business desactivada");
+    } catch (error: any) {
+      toast.error(error.message || "Error al cambiar tipo de cuenta");
+    } finally {
+      setTogglingBusiness(false);
     }
   };
 
@@ -90,7 +110,27 @@ const Settings = () => {
       </header>
 
       <div className="px-4 py-2">
-        {/* Business Dashboard - Always visible, with upsell for non-business */}
+        {/* Business Account Toggle */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full flex items-center gap-4 py-4 px-4 mb-2 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/5 border border-blue-500/20"
+        >
+          <div className="w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center">
+            <Briefcase className="w-5 h-5 text-blue-500" />
+          </div>
+          <div className="flex-1">
+            <span className="text-foreground font-semibold block">Cuenta Business</span>
+            <span className="text-xs text-muted-foreground">Guestlists, dashboard, menú y reservas — gratis</span>
+          </div>
+          <Switch
+            checked={isBusiness}
+            onCheckedChange={handleToggleBusiness}
+            disabled={togglingBusiness}
+          />
+        </motion.div>
+
+        {/* Business Dashboard - Only visible for business accounts */}
         <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
