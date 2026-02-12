@@ -65,6 +65,8 @@ const UserProfile = () => {
   const isPremium = userSubscription?.plan_type === "user_premium";
   const isFoodBusiness = userProfile?.is_food_business === true;
   const isBusiness = userProfile?.is_business === true;
+  const menuEnabled = (userProfile as any)?.menu_enabled !== false;
+  const reservationsEnabled = (userProfile as any)?.reservations_enabled !== false;
   const hasBusinessInfo = userProfile?.business_address || userProfile?.business_hours || userProfile?.business_phone;
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
@@ -232,7 +234,7 @@ const UserProfile = () => {
             </Button>
 
             {/* For food businesses: show Reservar button instead of Message */}
-            {isBusiness && isFoodBusiness ? (
+            {isBusiness && isFoodBusiness && reservationsEnabled ? (
               <Button
                 className="flex-1 min-w-0 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
                 onClick={() => {
@@ -263,7 +265,7 @@ const UserProfile = () => {
             )}
 
             {/* Menu button for food businesses */}
-            {isBusiness && isFoodBusiness && <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30">
+            {isBusiness && isFoodBusiness && menuEnabled && <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30">
                 <UtensilsCrossed className="w-4 h-4 text-orange-500" />
               </Button>}
           </motion.div>}
@@ -281,7 +283,7 @@ const UserProfile = () => {
       {/* Followers/Following Sheet */}
       {id && <FollowersSheet userId={id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={open => !open && setFollowSheetType(null)} />}
       {/* Menu Sheet for food businesses */}
-      {id && isBusiness && isFoodBusiness && <MenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} userId={id} businessName={userProfile?.full_name || userProfile?.username} />}
+      {id && isBusiness && isFoodBusiness && menuEnabled && <MenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} userId={id} businessName={userProfile?.full_name || userProfile?.username} />}
       {/* Business Info Sheet */}
       {userProfile && (
         <BusinessInfoSheet
@@ -294,7 +296,7 @@ const UserProfile = () => {
         />
       )}
       {/* Reservation Sheet for food businesses */}
-      {id && isBusiness && isFoodBusiness && (
+      {id && isBusiness && isFoodBusiness && reservationsEnabled && (
         <ReservationSheet
           open={reservationSheetOpen}
           onOpenChange={setReservationSheetOpen}

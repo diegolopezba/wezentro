@@ -770,8 +770,10 @@ export type Database = {
           interests: string[] | null
           is_business: boolean | null
           is_food_business: boolean | null
+          menu_enabled: boolean | null
           referral_code: string | null
           reservation_capacity: number | null
+          reservations_enabled: boolean | null
           updated_at: string | null
           username: string
         }
@@ -793,8 +795,10 @@ export type Database = {
           interests?: string[] | null
           is_business?: boolean | null
           is_food_business?: boolean | null
+          menu_enabled?: boolean | null
           referral_code?: string | null
           reservation_capacity?: number | null
+          reservations_enabled?: boolean | null
           updated_at?: string | null
           username: string
         }
@@ -816,8 +820,10 @@ export type Database = {
           interests?: string[] | null
           is_business?: boolean | null
           is_food_business?: boolean | null
+          menu_enabled?: boolean | null
           referral_code?: string | null
           reservation_capacity?: number | null
+          reservations_enabled?: boolean | null
           updated_at?: string | null
           username?: string
         }
