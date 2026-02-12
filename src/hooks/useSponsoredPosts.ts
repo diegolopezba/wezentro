@@ -178,7 +178,7 @@ export const useTrackSponsoredImpression = () => {
   });
 };
 
-// Track click
+// Track click on sponsored post
 export const useTrackSponsoredClick = () => {
   return useMutation({
     mutationFn: async (sponsoredPostId: string) => {
