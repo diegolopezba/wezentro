@@ -15,12 +15,14 @@ const logStep = (step: string, details?: unknown) => {
 // Map Stripe product IDs to plan types
 const PRODUCT_TO_PLAN: Record<string, string> = {
   "prod_Td3jVaQwDP8Fdz": "user_premium",
+  "prod_TtYt9Jw1TmrMds": "user_premium",      // new product
   "prod_Td3kU1JBlekyrO": "business_premium",
-  "prod_Toxvk2koMWuN0w": "places_premium",
+  "prod_Toxvk2koMWuN0w": "food_premium",        // fix: was "places_premium"
+  "prod_TpkjEVW1gDfv9h": "food_premium",        // new product
 };
 
 // Business/Places plans that qualify for referral rewards
-const BUSINESS_PLANS = ["business_premium", "places_premium"];
+const BUSINESS_PLANS = ["business_premium", "food_premium"];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {

@@ -15,8 +15,10 @@ const logStep = (step: string, details?: unknown) => {
 // Map Stripe product IDs to plan types
 const PRODUCT_TO_PLAN: Record<string, string> = {
   "prod_Td3jVaQwDP8Fdz": "user_premium",
+  "prod_TtYt9Jw1TmrMds": "user_premium",      // new product
   "prod_Td3kU1JBlekyrO": "business_premium",
   "prod_Toxvk2koMWuN0w": "food_premium",
+  "prod_TpkjEVW1gDfv9h": "food_premium",        // new product
 };
 
 serve(async (req) => {
