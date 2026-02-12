@@ -1,145 +1,130 @@
 
 
-## Post Tagging Feature
+# Phase 1: Database + Subscription Restructuring
 
-This feature lets any user tag another account when creating a post/event. The tagged user gets a notification and can accept or decline whether the post appears on their profile timeline.
-
-### How It Differs from Collaborations
-- **Collaborations**: Both users are co-authors; the collaborator must accept before the post shows anywhere as a joint creation.
-- **Tagging**: The post is published immediately by the creator. The tagged user simply chooses whether it also appears on their own profile timeline. The tag is visible on the post regardless of acceptance.
-
-### User Flow
-
-1. **Creating a post** -- User A sees a new "Tag Account" button (similar to the existing "Add Collaborator" button). Tapping it opens a picker to search and select a user to tag.
-2. **Notification** -- User B receives a notification: "@userA te etiquetó en una publicación."
-3. **Accept/Decline** -- From the notification (or the post itself), User B can accept (post appears on their timeline) or decline (it does not).
-4. **Profile timeline** -- User B's profile shows both their own posts AND accepted tagged posts.
-5. **Post detail** -- The tagged user is shown on the EventDetail page (e.g., a small avatar/chip below the creator info).
+## Overview
+Remove Zentro Places ($12.99) and Zentro Business ($29.99) paid tiers. Make all business features free (controlled by existing `profiles.is_business` flag). Keep only Zentro Premium at $1.99/month. Create `sponsored_posts` table for future ad revenue.
 
 ---
 
-### Technical Plan
+## Step 1: Database Migration
 
-#### 1. New Database Table: `event_tags`
+Create `sponsored_posts` table with the following columns:
+- `id` (uuid, PK)
+- `event_id` (uuid, FK to events)
+- `business_user_id` (uuid, references profiles)
+- `status` (text: draft/active/paused/completed, default 'draft')
+- `daily_budget` (numeric, nullable)
+- `total_budget` (numeric, nullable)
+- `spent` (numeric, default 0)
+- `start_date` (timestamptz, nullable)
+- `end_date` (timestamptz, nullable)
+- `impressions` (integer, default 0)
+- `clicks` (integer, default 0)
+- `created_at` (timestamptz, default now())
 
-```sql
-CREATE TABLE public.event_tags (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-  tagged_user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  tagged_by UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  status TEXT NOT NULL DEFAULT 'pending', -- pending, accepted, declined
-  created_at TIMESTAMPTZ DEFAULT now(),
-  responded_at TIMESTAMPTZ,
-  UNIQUE(event_id, tagged_user_id)
-);
+RLS policies:
+- Business owners can CRUD their own rows
+- All authenticated users can SELECT active sponsored posts (for feed display)
 
--- RLS policies
-ALTER TABLE public.event_tags ENABLE ROW LEVEL SECURITY;
+---
 
--- Anyone can read tags (public posts)
-CREATE POLICY "Anyone can read tags" ON public.event_tags
-  FOR SELECT USING (true);
+## Step 2: Simplify Subscription Plans
 
--- Creator of the event can insert tags
-CREATE POLICY "Event creator can tag" ON public.event_tags
-  FOR INSERT WITH CHECK (
-    auth.uid() = tagged_by
-    AND EXISTS (SELECT 1 FROM events WHERE id = event_id AND creator_id = auth.uid())
-  );
+**File: `src/hooks/useSubscription.ts`**
+- Remove `food_premium` and `business_premium` from `useSubscriptionPlans()` -- keep only "Gratis" and "Zentro Premium" ($1.99)
+- Update `getPlanDisplayName()` to remove old plan names
+- Remove `food_premium` and `business_premium` cases
 
--- Tagged user can update status (accept/decline)
-CREATE POLICY "Tagged user can respond" ON public.event_tags
-  FOR UPDATE USING (auth.uid() = tagged_user_id)
-  WITH CHECK (auth.uid() = tagged_user_id);
+**File: `src/pages/Subscription.tsx`**
+- Will automatically simplify since it reads from `useSubscriptionPlans()`
+- Remove `UtensilsCrossed` and `Crown` icon logic for removed plans
 
--- Creator can remove tags
-CREATE POLICY "Creator can remove tags" ON public.event_tags
-  FOR DELETE USING (
-    auth.uid() = tagged_by
-    OR auth.uid() = tagged_user_id
-  );
-```
+---
 
-#### 2. Database Trigger for Notifications
+## Step 3: Update Edge Functions
 
-A trigger on `event_tags` INSERT that creates a notification for the tagged user:
+**`supabase/functions/create-checkout-session/index.ts`**
+- Remove `food_premium` and `business_premium` from `PRICE_IDS`
+- Keep only `user_premium` with the existing price ID
+- Remove trial period (or keep -- your choice)
 
-```sql
-CREATE OR REPLACE FUNCTION public.handle_event_tag()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
-AS $$
-DECLARE
-  tagger_username TEXT;
-  event_title TEXT;
-BEGIN
-  SELECT username INTO tagger_username FROM profiles WHERE id = NEW.tagged_by;
-  SELECT title INTO event_title FROM events WHERE id = NEW.event_id;
+**`supabase/functions/check-subscription/index.ts`**
+- Remove `food_premium` and `business_premium` product mappings from `PRODUCT_TO_PLAN`
+- Keep only user_premium product IDs
 
-  INSERT INTO notifications (user_id, type, title, body, entity_type, entity_id)
-  VALUES (
-    NEW.tagged_user_id,
-    'post_tag',
-    'Te etiquetaron',
-    '@' || tagger_username || ' te etiquetó en ' || COALESCE(event_title, 'una publicación'),
-    'event',
-    NEW.event_id
-  );
-  RETURN NEW;
-END;
-$$;
+**`supabase/functions/stripe-webhook/index.ts`**
+- Same cleanup of `PRODUCT_TO_PLAN` mapping
+- Remove `BUSINESS_PLANS` constant (no longer needed for referral rewards distinction)
 
-CREATE TRIGGER on_event_tag_created
-  AFTER INSERT ON public.event_tags
-  FOR EACH ROW EXECUTE FUNCTION public.handle_event_tag();
-```
+---
 
-#### 3. New Hook: `src/hooks/useEventTags.ts`
+## Step 4: Replace Subscription Gates with `is_business` Flag (~12 files)
 
-- `useEventTags(eventId)` -- fetch tags for a post
-- `useTagUser()` -- mutation to tag a user on a post
-- `useRespondToTag()` -- mutation to accept/decline a tag
-- `useRemoveTag()` -- mutation to remove a tag
-- `usePendingTags()` -- fetch pending tags for the current user (for notifications)
+All checks like `subscription?.plan_type === "business_premium"` become `profile?.is_business === true`.
 
-#### 4. Update Create Page (`src/pages/Create.tsx`)
+| File | Current Check | New Check |
+|------|--------------|-----------|
+| `src/pages/Create.tsx` | `hasBusinessSubscription` | `profile?.is_business` |
+| `src/pages/Profile.tsx` | `isFoodBusiness`, `isBusinessAccount` | `profile?.is_business` |
+| `src/pages/EditProfile.tsx` | `isFoodSubscriber`, `isBusinessSubscriber` | `profile?.is_business` |
+| `src/pages/Settings.tsx` | `subscription?.plan_type === "business_premium"` | `profile?.is_business` |
+| `src/pages/BusinessDashboard.tsx` | `subscription?.plan_type === "business_premium"` | `profile?.is_business` |
+| `src/pages/UserProfile.tsx` | subscription-based badge | `is_business` flag from profile |
+| `src/components/events/EditEventSheet.tsx` | `hasBusinessSubscription` | `profile?.is_business` (via auth context) |
+| `src/components/events/ShareEventModal.tsx` | `subscription?.plan_type === 'business_premium'` | `profile?.is_business` |
+| `src/components/events/ShareGuestlistModal.tsx` | same | same |
+| `src/components/subscription/SubscriptionUpsellModal.tsx` | Shows "subscribe to Business" | Repurpose to "Switch to Business Account (free)" |
+| `src/hooks/useFoodLocations.ts` | Checks `food_premium` subscription | Check `is_food_business` flag on profile |
 
-- Add a "Tag Account" button alongside the existing "Collaborator" button
-- Reuse the `CollaboratorPickerModal` pattern (or a new `TagPickerModal`) to search users
-- After event creation, insert into `event_tags` table
-- Allow tagging any user (not restricted to mutual followers)
+---
 
-#### 5. Update User Timeline (`src/hooks/useUserTimeline.ts`)
+## Step 5: Add Business Toggle in Settings
 
-Modify the query to also return posts where the user has been tagged AND accepted:
+**File: `src/pages/Settings.tsx`**
+- Add a "Cuenta Business" section with a Switch component
+- When toggled ON: updates `profiles.is_business = true` and optionally `is_food_business`
+- Brief explanation text: "Accede a guestlists, dashboard, menú y reservas -- gratis"
+- No subscription needed
 
-```typescript
-// Fetch user's own posts + accepted tagged posts
-const [ownPosts, taggedPosts] = await Promise.all([
-  supabase.from("events").select("*, creator:profiles!..., guestlist_entries(count)")
-    .eq("creator_id", userId).is("deleted_at", null),
-  supabase.from("event_tags").select("event:events(*, creator:profiles!..., guestlist_entries(count))")
-    .eq("tagged_user_id", userId).eq("status", "accepted")
-]);
-// Merge, deduplicate, sort by created_at desc
-```
+---
 
-#### 6. Update Notifications Page (`src/pages/Notifications.tsx`)
+## Step 6: Update Profile Badges
 
-- Add a new `PostTagNotificationItem` component (similar to `CollaborationNotificationItem`)
-- Shows the tagger's avatar, post image, and accept/decline buttons
-- Accepting adds the post to User B's timeline; declining hides the buttons
+**File: `src/pages/Profile.tsx`**
+- Premium badge (crown) shown for `user_premium` subscribers
+- Business badge (briefcase icon) shown for `is_business` accounts
+- Food business badge (utensils) shown for `is_food_business` accounts
+- These are independent -- a user can be both Premium AND Business
 
-#### 7. Update EventDetail Page (`src/pages/EventDetail.tsx`)
+---
 
-- Show tagged users as small avatar chips below the creator info
-- If the current user is the creator, allow removing tags
-- If the current user is the tagged user with a pending tag, show accept/decline inline
+## Technical Details
 
-#### 8. Notification Type Registration
+### Files to modify (in order):
+1. Database migration (sponsored_posts table)
+2. `src/hooks/useSubscription.ts` (simplify plans)
+3. `supabase/functions/create-checkout-session/index.ts`
+4. `supabase/functions/check-subscription/index.ts`
+5. `supabase/functions/stripe-webhook/index.ts`
+6. `src/pages/Settings.tsx` (add business toggle)
+7. `src/pages/Create.tsx` (replace subscription check)
+8. `src/pages/Profile.tsx` (replace subscription checks)
+9. `src/pages/EditProfile.tsx` (replace subscription checks)
+10. `src/pages/BusinessDashboard.tsx` (replace subscription check)
+11. `src/pages/UserProfile.tsx` (update badge logic)
+12. `src/components/events/EditEventSheet.tsx` (replace subscription check)
+13. `src/components/events/ShareEventModal.tsx` (replace check)
+14. `src/components/events/ShareGuestlistModal.tsx` (replace check)
+15. `src/components/subscription/SubscriptionUpsellModal.tsx` (repurpose)
+16. `src/hooks/useFoodLocations.ts` (check profile flag instead of subscription)
+17. `src/pages/Subscription.tsx` (simplified UI)
 
-Add `'post_tag'` to the notification type handling in:
-- `src/hooks/useNotifications.ts` (if type filtering exists)
-- `src/pages/Notifications.tsx` (switch statement in `renderNotification`)
-- Icon mapping: use a `Tag` or `AtSign` icon from lucide-react
+### What stays the same:
+- Zentro Premium subscription flow (Stripe checkout, webhooks)
+- Premium gate for joining guestlists (`PremiumGateModal`)
+- All existing database tables (events, guestlists, menus, reservations)
+- `profiles.is_business` and `profiles.is_food_business` flags already exist
+
+### Sponsored posts feed integration will be a separate follow-up phase after this restructuring is complete.
 
