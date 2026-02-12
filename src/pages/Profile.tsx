@@ -176,8 +176,8 @@ const Profile = () => {
             </motion.div>}
         </AnimatePresence>
 
-        {/* Subscription badge - only show for non-premium users */}
-        {!isPremium && <motion.div initial={{
+        {/* Subscription badge - only show for non-premium, non-business users */}
+        {!isPremium && !isBusiness && <motion.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
