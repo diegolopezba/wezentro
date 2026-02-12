@@ -1,47 +1,51 @@
 
-## Reservation Confirmation Page
 
-Create a new page at `/reservation/:id` that shows a confirmation screen similar to the "You Are Going" (`/going/:id`) page, but tailored for reservations.
+## Bug: Zentro Places upgrade saved as Zentro Premium
 
-### What it shows
-- Full-screen layout with the business's avatar/photo as background (or a gradient fallback)
-- The user's name prominently displayed
-- Business name and location
-- Reservation date and time
-- Party size
-- Tagged guests with their avatars and usernames
-- "Ver Menu" button that opens the existing MenuSheet for that business
-- Notes (if any)
-- Close button to go back
+### Root Cause
 
-### Access points (3 entry points)
-1. **After creating a reservation** -- the ReservationSheet's `onSuccess` callback navigates to `/reservation/{new_id}` instead of just closing
-2. **From "Mis Reservas" page** -- tapping a ReservationCard navigates to `/reservation/{id}`
-3. **From notifications** -- tapping a `reservation_tagged` or `new_reservation` notification navigates to `/reservation/{entity_id}`
+The `create-checkout-session` function uses **newer** Stripe price IDs that belong to **newer** product IDs, but the `stripe-webhook` and `check-subscription` functions still only map the **old** product IDs. When the webhook can't find the product in its mapping, it falls back to `"user_premium"` -- which is why your Pasta Basta account shows as Zentro Premium instead of Zentro Places.
 
-### Technical Details
+Here's the mismatch:
 
-**New file: `src/pages/ReservationConfirmation.tsx`**
-- Route param: `:id` (reservation ID)
-- Fetches reservation data with business profile joined
-- Fetches tagged guests via `reservation_guests` table with profile joins
-- Uses the existing `MenuSheet` component for the menu button
-- Layout mirrors `YouAreGoing.tsx`: full-screen, gradient overlay, bottom-aligned content with framer-motion animations
-- Displays tagged guests as a row of avatars (tappable to navigate to their profiles)
+| Plan | Price ID (checkout) | Actual Product | Webhook/Check mapping |
+|------|---|---|---|
+| user_premium | `price_1SvllRA2meaZKvFR6VtGyv2N` | `prod_TtYt9Jw1TmrMds` (new) | Only knows `prod_Td3jVaQwDP8Fdz` (old) |
+| food_premium | `price_1Ss5E4A2meaZKvFRefWcJ9Zb` | `prod_TpkjEVW1gDfv9h` (new) | Only knows `prod_Toxvk2koMWuN0w` (old) |
+| business_premium | `price_1SfndIA2meaZKvFRdZTDttRv` | `prod_Td3kU1JBlekyrO` | Correct |
 
-**Modified: `src/App.tsx`**
-- Add route: `/reservation/:id` as a ProtectedRoute with lazy-loaded `ReservationConfirmation`
+### Fix
 
-**Modified: `src/components/reservations/ReservationSheet.tsx`**
-- In `onSuccess`, navigate to `/reservation/${data.id}` using the returned reservation ID from `createMutation`
-- Pass `useNavigate` and use it in the success callback
+Update the `PRODUCT_TO_PLAN` mapping in **two** edge functions to include both old and new product IDs:
 
-**Modified: `src/pages/MyReservations.tsx`**
-- Make each `ReservationCard` clickable (whole card) to navigate to `/reservation/{id}`
+**1. `supabase/functions/stripe-webhook/index.ts`** (line 16-20)
 
-**Modified: `src/pages/Notifications.tsx`**
-- Add handling for `new_reservation` and `reservation_tagged` notification types in `handleNotificationClick` -- navigate to `/reservation/{entity_id}`
-- Add a notification item renderer for reservation types (using business avatar, similar to existing patterns)
+Update the mapping to:
+```typescript
+const PRODUCT_TO_PLAN: Record<string, string> = {
+  "prod_Td3jVaQwDP8Fdz": "user_premium",
+  "prod_TtYt9Jw1TmrMds": "user_premium",      // new product
+  "prod_Td3kU1JBlekyrO": "business_premium",
+  "prod_Toxvk2koMWuN0w": "food_premium",        // fix: was "places_premium"
+  "prod_TpkjEVW1gDfv9h": "food_premium",        // new product
+};
+```
 
-**Modified: `src/hooks/useReservations.ts`**
-- Add a new hook `useReservationDetail(id)` that fetches a single reservation with business profile and tagged guests in one query
+Note: the old food product was also mapped to `"places_premium"` instead of `"food_premium"` -- that's a second bug that would have caused the same issue.
+
+**2. `supabase/functions/check-subscription/index.ts`** (line 16-19)
+
+Update the mapping to:
+```typescript
+const PRODUCT_TO_PLAN: Record<string, string> = {
+  "prod_Td3jVaQwDP8Fdz": "user_premium",
+  "prod_TtYt9Jw1TmrMds": "user_premium",      // new product
+  "prod_Td3kU1JBlekyrO": "business_premium",
+  "prod_Toxvk2koMWuN0w": "food_premium",
+  "prod_TpkjEVW1gDfv9h": "food_premium",        // new product
+};
+```
+
+**3. Fix "Pasta Basta" account**
+
+After deploying, hit "Actualizar Estado" on the Subscription page (or re-login) -- the `check-subscription` function will re-read the Stripe subscription with the corrected mapping and update the database to `food_premium`.
