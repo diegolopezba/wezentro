@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, UserPlus } from "lucide-react";
+import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, UserPlus, AtSign } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +16,7 @@ import { useRespondToInvitation, useMyPendingInvitations } from "@/hooks/useGues
 import { usePendingCollaborations, useRespondToCollaboration } from "@/hooks/useEventCollaborators";
 import { toast } from "sonner";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
+import { PostTagNotificationItem } from "@/components/notifications/PostTagNotificationItem";
 const getNotificationIcon = (type: string) => {
   switch (type) {
     case "event":
@@ -31,6 +32,8 @@ const getNotificationIcon = (type: string) => {
       return XCircle;
     case "collaboration_request":
       return UserPlus;
+    case "post_tag":
+      return AtSign;
     default:
       return Bell;
   }
@@ -494,6 +497,8 @@ const Notifications = () => {
       notification.entity_id
     ) {
       navigate(`/reservation/${notification.entity_id}`);
+    } else if (notification.type === "post_tag" && notification.entity_id) {
+      navigate(`/event/${notification.entity_id}`);
     } else if ((notification.entity_type === "profile" || notification.entity_type === "user") && notification.entity_id) {
       navigate(`/user/${notification.entity_id}`);
     } else if (notification.entity_type === "event" && notification.entity_id) {
@@ -519,6 +524,8 @@ const Notifications = () => {
         return <GuestlistInvitationNotificationItem key={notification.id} {...commonProps} />;
       case "collaboration_request":
         return <CollaborationNotificationItem key={notification.id} {...commonProps} />;
+      case "post_tag":
+        return <PostTagNotificationItem key={notification.id} {...commonProps} />;
       default:
         return <NotificationItem key={notification.id} {...commonProps} />;
     }

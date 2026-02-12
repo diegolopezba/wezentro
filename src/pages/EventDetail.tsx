@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat } from "lucide-react";
+import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
@@ -26,6 +26,7 @@ import { isVideoUrl } from "@/lib/mediaUtils";
 import { trackEventView } from "@/lib/analyticsTracking";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
+import { useEventTags } from "@/hooks/useEventTags";
 
 const EventDetail = () => {
   const {
@@ -98,6 +99,7 @@ const EventDetail = () => {
     isLoading,
     error
   } = useEvent(id);
+  const { data: eventTags } = useEventTags(id);
   const {
     data: guestlistStatus
   } = useIsOnGuestlist(id);
@@ -366,6 +368,32 @@ const EventDetail = () => {
               @{event.creator?.username || "unknown"}
             </p>
           </div>
+
+          {/* Tagged users */}
+          {eventTags && eventTags.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <AtSign className="w-4 h-4 text-muted-foreground shrink-0" />
+              {eventTags.map((tag) => (
+                <div
+                  key={tag.id}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/50 cursor-pointer hover:bg-secondary transition-colors"
+                  onClick={() => navigate(`/user/${tag.tagged_user_id}`)}
+                >
+                  <img
+                    src={tag.tagged_user?.avatar_url || DEFAULT_AVATAR}
+                    alt={tag.tagged_user?.username || ""}
+                    className="w-5 h-5 rounded-full object-cover"
+                  />
+                  <span className="text-xs font-medium text-foreground">
+                    @{tag.tagged_user?.username || "user"}
+                  </span>
+                  {tag.status === "pending" && (
+                    <span className="text-[10px] text-muted-foreground">(pendiente)</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Details - Only show for events, not posts */}
           {!isPost && <div className="grid grid-cols-2 gap-4">

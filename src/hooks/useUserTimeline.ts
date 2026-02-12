@@ -34,24 +34,52 @@ export const useUserTimeline = (userId: string | undefined) => {
     queryFn: async () => {
       if (!userId) throw new Error("User ID required");
 
-      const { data, error } = await supabase
-        .from("events")
-        .select(`
-          *,
-          creator:profiles!events_creator_id_fkey(
-            id,
-            username,
-            full_name,
-            avatar_url
-          ),
-          guestlist_entries(count)
-        `)
-        .eq("creator_id", userId)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false });
+      const selectFields = `
+        *,
+        creator:profiles!events_creator_id_fkey(
+          id,
+          username,
+          full_name,
+          avatar_url
+        ),
+        guestlist_entries(count)
+      `;
 
-      if (error) throw error;
-      return data as TimelineItem[];
+      // Fetch own posts and accepted tagged posts in parallel
+      const [ownResult, taggedResult] = await Promise.all([
+        supabase
+          .from("events")
+          .select(selectFields)
+          .eq("creator_id", userId)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("event_tags")
+          .select(`event:events(${selectFields})`)
+          .eq("tagged_user_id", userId)
+          .eq("status", "accepted"),
+      ]);
+
+      if (ownResult.error) throw ownResult.error;
+      if (taggedResult.error) throw taggedResult.error;
+
+      const ownPosts = (ownResult.data || []) as TimelineItem[];
+      const taggedPosts = ((taggedResult.data || [])
+        .map((t: any) => t.event)
+        .filter((e: any) => e && !e.deleted_at)) as TimelineItem[];
+
+      // Merge and deduplicate by id, sort by created_at desc
+      const seen = new Set<string>();
+      const merged: TimelineItem[] = [];
+      for (const post of [...ownPosts, ...taggedPosts]) {
+        if (!seen.has(post.id)) {
+          seen.add(post.id);
+          merged.push(post);
+        }
+      }
+      merged.sort((a, b) => new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime());
+
+      return merged;
     },
     enabled: !!userId,
   });

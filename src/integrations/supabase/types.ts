@@ -228,6 +228,58 @@ export type Database = {
           },
         ]
       }
+      event_tags: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          responded_at: string | null
+          status: string
+          tagged_by: string
+          tagged_user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          responded_at?: string | null
+          status?: string
+          tagged_by: string
+          tagged_user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          responded_at?: string | null
+          status?: string
+          tagged_by?: string
+          tagged_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_tags_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_tags_tagged_by_fkey"
+            columns: ["tagged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_tags_tagged_user_id_fkey"
+            columns: ["tagged_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           category: string | null
