@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Volume2, VolumeX, Repeat } from "lucide-react";
+import { Volume2, VolumeX, Repeat, Megaphone } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useContext } from "react";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ export interface EventCardProps {
   ownerAvatar?: string;
   creatorId?: string;
   repostInfo?: RepostInfo;
+  isSponsored?: boolean;
 }
 const categoryColors: Record<string, string> = {
   club: "from-purple-500 to-pink-500",
@@ -53,6 +54,7 @@ export const EventCard = ({
   ownerAvatar,
   creatorId,
   repostInfo,
+  isSponsored = false,
 }: EventCardProps) => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
@@ -109,8 +111,15 @@ export const EventCard = ({
 
   return (
     <div className="masonry-item">
+      {/* Sponsored badge */}
+      {isSponsored && (
+        <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
+          <Megaphone className="w-3 h-3" />
+          <span>Patrocinado</span>
+        </div>
+      )}
       {/* Repost attribution */}
-      {repostAttribution && (
+      {!isSponsored && repostAttribution && (
         <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
           <Repeat className="w-3 h-3" />
           <span className="truncate"> {repostAttribution}</span>

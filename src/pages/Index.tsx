@@ -8,6 +8,7 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { useForYouEvents } from "@/hooks/useForYouEvents";
 import { useFollowingEventsScored } from "@/hooks/useFollowingEventsScored";
 import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
+import { useActiveSponsoredPosts } from "@/hooks/useSponsoredPosts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -42,6 +43,8 @@ const Index = () => {
   const {
     data: unreadCount = 0
   } = useUnreadNotificationsCount();
+  
+  const { data: sponsoredPosts = [] } = useActiveSponsoredPosts();
   
   // Handle notification bell click for guests
   const handleNotificationClick = () => {
@@ -84,32 +87,73 @@ const Index = () => {
 }, [lastScrollY]);
 
   // Transform events to EventCard format and filter
-  const transformedEvents = useMemo(() => events.filter(event => {
-    const matchesSearch = event.title?.toLowerCase().includes(searchQuery.toLowerCase()) || (event.location_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
-    return searchQuery === "" || matchesSearch;
-  }).map(event => {
-    const guestlistEntries = (event as any).guestlist_entries || [];
-    const attendeeAvatars = guestlistEntries.map((entry: any) => entry.user).filter(Boolean).map((user: any) => ({
-      id: user.id,
-      avatar_url: user.avatar_url
-    }));
-    return {
-      id: event.id,
-      title: event.title || undefined,
-      imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
-      date: format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", {
-        locale: es
-      }),
-      location: event.location_name || "Ubicación por confirmar",
-      category: event.category || "party",
-      attendees: guestlistEntries.length,
-      attendeeAvatars,
-      hasGuestlist: event.has_guestlist || false,
-      ownerAvatar: event.creator?.avatar_url || undefined,
-      creatorId: event.creator_id,
-      repostInfo: (event as any).repostInfo
-    };
-  }), [events, searchQuery]);
+  const transformedEvents = useMemo(() => {
+    const organic = events.filter(event => {
+      const matchesSearch = event.title?.toLowerCase().includes(searchQuery.toLowerCase()) || (event.location_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      return searchQuery === "" || matchesSearch;
+    }).map(event => {
+      const guestlistEntries = (event as any).guestlist_entries || [];
+      const attendeeAvatars = guestlistEntries.map((entry: any) => entry.user).filter(Boolean).map((user: any) => ({
+        id: user.id,
+        avatar_url: user.avatar_url
+      }));
+      return {
+        id: event.id,
+        title: event.title || undefined,
+        imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
+        date: format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", {
+          locale: es
+        }),
+        location: event.location_name || "Ubicación por confirmar",
+        category: event.category || "party",
+        attendees: guestlistEntries.length,
+        attendeeAvatars,
+        hasGuestlist: event.has_guestlist || false,
+        ownerAvatar: event.creator?.avatar_url || undefined,
+        creatorId: event.creator_id,
+        repostInfo: (event as any).repostInfo,
+        isSponsored: false,
+      };
+    });
+
+    // Inject sponsored posts only in "for-you" tab, every 7-9 posts
+    if (activeTab === "for-you" && sponsoredPosts.length > 0 && searchQuery === "") {
+      const sponsoredCards = sponsoredPosts.map(sp => {
+        const guestlistEntries = sp.guestlist_entries || [];
+        const attendeeAvatars = guestlistEntries.map((entry: any) => entry.user).filter(Boolean).map((user: any) => ({
+          id: user.id,
+          avatar_url: user.avatar_url,
+        }));
+        return {
+          id: sp.id,
+          title: sp.title || undefined,
+          imageUrl: sp.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
+          date: sp.start_datetime ? format(new Date(sp.start_datetime), "EEE, d MMM • h:mm a", { locale: es }) : "",
+          location: sp.location_name || "Ubicación por confirmar",
+          category: sp.category || "party",
+          attendees: guestlistEntries.length,
+          attendeeAvatars,
+          hasGuestlist: sp.has_guestlist || false,
+          ownerAvatar: sp.creator?.avatar_url || undefined,
+          creatorId: sp.creator_id,
+          isSponsored: true,
+          repostInfo: undefined,
+        };
+      });
+
+      // Interleave: insert one sponsored card every 7-9 organic cards
+      const result = [...organic];
+      let sponsoredIndex = 0;
+      const interval = 8; // every 8 posts
+      for (let i = interval; i <= result.length && sponsoredIndex < sponsoredCards.length; i += interval + 1) {
+        result.splice(i, 0, sponsoredCards[sponsoredIndex]);
+        sponsoredIndex++;
+      }
+      return result;
+    }
+
+    return organic;
+  }, [events, searchQuery, activeTab, sponsoredPosts]);
   return <SelectedEventProvider>
       <AppLayout ref={scrollContainerRef}>
         {/* Header */}
