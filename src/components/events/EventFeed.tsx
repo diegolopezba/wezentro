@@ -1,8 +1,10 @@
+import { useEffect, useRef } from "react";
 import { EventCard, EventCardProps } from "./EventCard";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { EventFeedSkeleton } from "@/components/skeletons";
+import { useTrackSponsoredImpression } from "@/hooks/useSponsoredPosts";
 
 interface EventFeedProps {
   events: EventCardProps[];
@@ -12,6 +14,19 @@ interface EventFeedProps {
 
 export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you" }: EventFeedProps) => {
   const navigate = useNavigate();
+  const trackImpression = useTrackSponsoredImpression();
+  const trackedIds = useRef<Set<string>>(new Set());
+
+  // Track impressions for sponsored posts when they appear in the feed
+  useEffect(() => {
+    const sponsoredEvents = events.filter(e => e.isSponsored && e.sponsoredPostId);
+    sponsoredEvents.forEach(e => {
+      if (e.sponsoredPostId && !trackedIds.current.has(e.sponsoredPostId)) {
+        trackedIds.current.add(e.sponsoredPostId);
+        trackImpression.mutate(e.sponsoredPostId);
+      }
+    });
+  }, [events]);
 
   if (isLoading) {
     return <EventFeedSkeleton count={6} />;

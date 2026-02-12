@@ -1480,6 +1480,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_sponsored_clicks: {
+        Args: { _post_id: string }
+        Returns: undefined
+      }
+      increment_sponsored_impressions: {
+        Args: { _post_id: string }
+        Returns: undefined
+      }
       is_chat_participant: {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean

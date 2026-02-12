@@ -8,6 +8,7 @@ import { useHasActiveSubscription } from "@/hooks/useGuestlist";
 import { SelectedEventContext } from "@/contexts/SelectedEventContext";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { RepostInfo } from "@/hooks/useFollowingEventsScored";
+import { useTrackSponsoredClick } from "@/hooks/useSponsoredPosts";
 export interface AttendeeAvatar {
   id: string;
   avatar_url: string | null;
@@ -28,6 +29,7 @@ export interface EventCardProps {
   creatorId?: string;
   repostInfo?: RepostInfo;
   isSponsored?: boolean;
+  sponsoredPostId?: string;
 }
 const categoryColors: Record<string, string> = {
   club: "from-purple-500 to-pink-500",
@@ -54,11 +56,13 @@ export const EventCard = ({
   ownerAvatar,
   creatorId,
   repostInfo,
-  isSponsored = false
+  isSponsored = false,
+  sponsoredPostId
 }: EventCardProps) => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
   const { data: hasSubscription } = useHasActiveSubscription();
+  const trackClick = useTrackSponsoredClick();
 
   // Use expansion transition only on home page
   const isHomePage = routerLocation.pathname === "/";
@@ -67,6 +71,10 @@ export const EventCard = ({
   const selectedEventContext = useContext(SelectedEventContext);
 
   const handleCardClick = () => {
+    // Track sponsored click
+    if (isSponsored && sponsoredPostId) {
+      trackClick.mutate(sponsoredPostId);
+    }
     if (isHomePage && selectedEventContext) {
       selectedEventContext.openEvent(id);
     } else {
