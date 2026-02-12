@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, Users, UserCheck, UsersRound, BarChart3, TrendingUp, Repeat } from "lucide-react";
+import { PromocionesSection } from "@/components/dashboard/PromocionesSection";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -95,6 +96,9 @@ const BusinessDashboard = () => {
       </header>
 
       <div className="px-4 space-y-6 mt-4">
+        {/* Promociones - Sponsored Posts */}
+        <PromocionesSection />
+
         {/* Overview Stats */}
         <section>
           <h2 className="font-brand text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
