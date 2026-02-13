@@ -122,8 +122,8 @@ const Index = () => {
       };
     });
 
-    // Inject sponsored posts only in "for-you" tab, every 7-9 posts
-    if (activeTab === "for-you" && sponsoredPosts.length > 0 && searchQuery === "") {
+    // Inject sponsored posts in both tabs, every 7-9 posts
+    if (sponsoredPosts.length > 0 && searchQuery === "") {
       const sponsoredCards = sponsoredPosts.map(sp => {
         const guestlistEntries = sp.guestlist_entries || [];
         const attendeeAvatars = guestlistEntries.map((entry: any) => entry.user).filter(Boolean).map((user: any) => ({
