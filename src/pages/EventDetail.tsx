@@ -146,6 +146,8 @@ const EventDetail = () => {
   
   // Check if event has QR payment enabled
   const hasPaymentQr = !!(event?.payment_qr_url && (event?.price || 0) > 0);
+  // When event has both a price and guestlist, tickets take priority — guestlist becomes invite-only
+  const isInviteOnlyGuestlist = !!(event?.price && event.price > 0 && event?.has_guestlist);
   const handleSaveToggle = async () => {
     if (isGuest) {
       promptAuth({ action: "guardar este evento" });
@@ -498,7 +500,7 @@ const EventDetail = () => {
                         Hacerse Miembro
                       </Button>
                     </div>
-                  </> : <p className="text-muted-foreground text-sm">Nadie se ha unido aún. ¡Sé el primero!</p>}
+                  </> : <p className="text-muted-foreground text-sm">{isInviteOnlyGuestlist ? "Solo por invitación del organizador" : "Nadie se ha unido aún. ¡Sé el primero!"}</p>}
             </div>}
 
           {/* Invitations Sent Section - Owner only, for events with guestlist */}
@@ -587,7 +589,7 @@ const EventDetail = () => {
               )
             ) : (
               <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
-                {(joinGuestlist.isPending || joinGuestlistWithPayment.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
+                {(joinGuestlist.isPending || joinGuestlistWithPayment.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : (hasPaymentQr || isInviteOnlyGuestlist) ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
               </Button>
             )}
           </div>
