@@ -2,12 +2,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Signal weights for learning user preferences
 export const SIGNAL_WEIGHTS = {
-  join: 100,   // Strongest signal - real commitment
-  save: 80,    // High intent to attend
-  repost: 70,  // Willing to share publicly
-  like: 60,    // Clear positive signal
-  click: 30,   // Curiosity
-  view: 20,    // Mild interest
+  join: 100,        // Strongest signal - real commitment
+  save: 80,         // High intent to attend
+  repost: 70,       // Willing to share publicly
+  like: 60,         // Clear positive signal
+  click: 30,        // Curiosity
+  view: 20,         // Mild interest
+  scroll_past: -10, // Implicit negative: saw card <1s and scrolled away
   not_interested: -100, // Strong negative signal
 } as const;
 
