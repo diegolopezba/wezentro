@@ -282,7 +282,7 @@ export const EventDetailOverlay = () => {
               </motion.div>
 
               {/* Content */}
-              <motion.div className="relative -mt-16 px-4 pb-8" initial={{
+              <motion.div className="relative -mt-16 px-4 pb-28" initial={{
           opacity: 0,
           y: 20
         }} animate={{
@@ -324,20 +324,8 @@ export const EventDetailOverlay = () => {
                         </Button>}
                     </div>
 
-                    {/* Right: Join/Manage, Edit dropdown */}
+                    {/* Right: Edit dropdown */}
                     <div className="flex items-center gap-1">
-                      {event.has_guestlist && (isOwner ? <Button variant="hero" size="sm" onClick={() => setShowManagement(true)}>
-                            Gestionar
-                            {pendingCount > 0 && <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
-                                {pendingCount}
-                              </span>}
-                          </Button> : isOnGuestlist ? isPending ? <Button variant="ghost" size="sm" disabled>
-                              <Clock className="w-4 h-4 mr-1" /> Pendiente
-                            </Button> : <Button variant="ghost" size="sm" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
-                              {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
-                            </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
-                            {(joinGuestlist.isPending || joinGuestlistWithPayment.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
-                          </Button>)}
                       <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -532,6 +520,40 @@ export const EventDetailOverlay = () => {
                       open={showInviteFriendsSheet}
                       onOpenChange={setShowInviteFriendsSheet}
                     />
+                  )}
+                  {/* Floating CTA Bar */}
+                  {event.has_guestlist && (
+                    <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="font-brand text-lg font-semibold text-foreground">
+                          {formattedPrice}
+                        </span>
+                        {isOwner ? (
+                          <Button variant="hero" size="default" onClick={() => setShowManagement(true)}>
+                            Gestionar
+                            {pendingCount > 0 && (
+                              <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
+                                {pendingCount}
+                              </span>
+                            )}
+                          </Button>
+                        ) : isOnGuestlist ? (
+                          isPending ? (
+                            <Button variant="ghost" size="default" disabled>
+                              <Clock className="w-4 h-4 mr-1" /> Pendiente
+                            </Button>
+                          ) : (
+                            <Button variant="ghost" size="default" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                              {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
+                            </Button>
+                          )
+                        ) : (
+                          <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
+                            {(joinGuestlist.isPending || joinGuestlistWithPayment.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </>}
             </>}
