@@ -374,23 +374,12 @@ export const EventDetailOverlay = () => {
 
                   {/* Details - Only show for events, not posts */}
                   {!event.is_post && <>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary">
-                            <Calendar className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-foreground text-xs">{formattedDate}</p>
-                          </div>
+                      <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary">
+                          <Calendar className="w-5 h-5 text-primary" />
                         </div>
-
-                        <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px]">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary">
-                            <DollarSign className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-foreground">{formattedPrice}</p>
-                          </div>
+                        <div>
+                          <p className="font-semibold text-foreground text-xs">{formattedDate}</p>
                         </div>
                       </div>
 
