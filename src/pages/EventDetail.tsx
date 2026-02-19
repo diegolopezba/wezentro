@@ -417,24 +417,16 @@ const EventDetail = () => {
           )}
 
           {/* Details - Only show for events, not posts */}
-          {!isPost && <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px] px-[16px]">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary">
-                  <Calendar className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold text-foreground text-xs">{formattedDate}</p>
-                </div>
+          {!isPost && <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <p className="text-sm text-foreground">{formattedDate}</p>
               </div>}
 
           {/* Location - Only show if location exists */}
-          {event.location_name && <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 py-[6px] px-[16px]">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary">
-                <MapPin className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1">
+          {event.location_name && <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-muted-foreground" />
                 <p className="text-sm text-foreground">{event.location_name}</p>
-              </div>
-            </div>}
+              </div>}
 
           {/* Description */}
           {event.description && <div className="space-y-2">
