@@ -107,6 +107,10 @@ const YouAreGoing = () => {
         >
 
           <div className="text-center space-y-4">
+            {/* Guestlist badge - shown when user was invited (no ticket purchase) */}
+            {guestlistEntry && (guestlistEntry.payment_status === "none" || !guestlistEntry.payment_status) && (
+              <p className="text-sm text-white/70 font-medium tracking-wide uppercase">En Guestlist</p>
+            )}
             {/* User's Name - Big and prominent */}
             <h1 className="text-4xl font-bold font-brand text-white">
               {profile?.full_name || profile?.username || "Invitado"}
