@@ -17,8 +17,6 @@ import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
 import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
-import { trackPreferenceSignal } from "@/lib/preferenceTracking";
-import { toast } from "sonner";
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -31,7 +29,7 @@ const Index = () => {
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  
   
   const {
     data: forYouEvents = [],
@@ -70,13 +68,6 @@ const Index = () => {
     }
   }, [activeTab, refetchForYou, refetchFollowing]);
 
-  const handleNotInterested = useCallback((eventId: string) => {
-    setDismissedIds(prev => new Set(prev).add(eventId));
-    if (user?.id) {
-      trackPreferenceSignal(user.id, eventId, "not_interested");
-    }
-    toast("Se mostrará menos contenido como este", { duration: 2000 });
-  }, [user?.id]);
   useEffect(() => {
   const handleScroll = (e: Event) => {
     const container = e.target as HTMLDivElement;
@@ -257,7 +248,7 @@ const Index = () => {
         {/* Event feed with pull-to-refresh */}
         <PullToRefresh onRefresh={handleRefresh} className="flex-1">
           <LayoutGroup>
-            <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} onNotInterested={user ? handleNotInterested : undefined} />
+            <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
           </LayoutGroup>
         </PullToRefresh>
       </AppLayout>
