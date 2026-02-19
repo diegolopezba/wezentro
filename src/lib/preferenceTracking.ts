@@ -8,6 +8,7 @@ export const SIGNAL_WEIGHTS = {
   like: 60,    // Clear positive signal
   click: 30,   // Curiosity
   view: 20,    // Mild interest
+  not_interested: -100, // Strong negative signal
 } as const;
 
 export type SignalType = keyof typeof SIGNAL_WEIGHTS;
@@ -46,14 +47,17 @@ export const trackPreferenceSignal = async (
     const weight = SIGNAL_WEIGHTS[signalType];
     const now = new Date().toISOString();
 
+    // For negative signals, use absolute value for the math but penalize
+    const isNegative = weight < 0;
+
     // 3. Update category preference if event has a category
     if (event.category) {
-      await upsertCategoryPreference(userId, event.category, weight, now);
+      await upsertCategoryPreference(userId, event.category, weight, now, isNegative);
     }
 
     // 4. Update creator preference (don't track self-interactions)
     if (event.creator_id && event.creator_id !== userId) {
-      await upsertCreatorPreference(userId, event.creator_id, weight, now);
+      await upsertCreatorPreference(userId, event.creator_id, weight, now, isNegative);
     }
   } catch (error) {
     // Don't throw - this is a background operation
@@ -68,7 +72,8 @@ const upsertCategoryPreference = async (
   userId: string,
   category: string,
   weight: number,
-  timestamp: string
+  timestamp: string,
+  isNegative: boolean = false
 ) => {
   // First, try to get existing record
   const { data: existing } = await supabase
@@ -79,26 +84,26 @@ const upsertCategoryPreference = async (
     .maybeSingle();
 
   if (existing) {
-    // Update with incremental average
     const newCount = (existing.interaction_count || 0) + 1;
     const currentScore = Number(existing.score) || 0;
-    // Weighted moving average: newer interactions have more weight
-    const newScore = (currentScore * 0.7) + (weight * 0.3);
+    // For negative signals, aggressively reduce score
+    const newScore = isNegative
+      ? Math.max(0, currentScore - 30) // Hard penalty
+      : (currentScore * 0.7) + (weight * 0.3);
 
     await supabase
       .from("user_category_preferences")
       .update({
-        score: Math.min(100, newScore),
+        score: Math.min(100, Math.max(0, newScore)),
         interaction_count: newCount,
         last_interaction: timestamp,
       })
       .eq("id", existing.id);
   } else {
-    // Insert new record
     await supabase.from("user_category_preferences").insert({
       user_id: userId,
       category,
-      score: weight,
+      score: isNegative ? 0 : weight,
       interaction_count: 1,
       last_interaction: timestamp,
     });
@@ -112,7 +117,8 @@ const upsertCreatorPreference = async (
   userId: string,
   creatorId: string,
   weight: number,
-  timestamp: string
+  timestamp: string,
+  isNegative: boolean = false
 ) => {
   // First, try to get existing record
   const { data: existing } = await supabase
@@ -123,26 +129,25 @@ const upsertCreatorPreference = async (
     .maybeSingle();
 
   if (existing) {
-    // Update with incremental average
     const newCount = (existing.interaction_count || 0) + 1;
     const currentScore = Number(existing.score) || 0;
-    // Weighted moving average: newer interactions have more weight
-    const newScore = (currentScore * 0.7) + (weight * 0.3);
+    const newScore = isNegative
+      ? Math.max(0, currentScore - 30)
+      : (currentScore * 0.7) + (weight * 0.3);
 
     await supabase
       .from("user_creator_preferences")
       .update({
-        score: Math.min(100, newScore),
+        score: Math.min(100, Math.max(0, newScore)),
         interaction_count: newCount,
         last_interaction: timestamp,
       })
       .eq("id", existing.id);
   } else {
-    // Insert new record
     await supabase.from("user_creator_preferences").insert({
       user_id: userId,
       creator_id: creatorId,
-      score: weight,
+      score: isNegative ? 0 : weight,
       interaction_count: 1,
       last_interaction: timestamp,
     });

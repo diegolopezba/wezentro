@@ -10,9 +10,10 @@ interface EventFeedProps {
   events: EventCardProps[];
   isLoading?: boolean;
   emptyStateType?: "for-you" | "following";
+  onNotInterested?: (eventId: string) => void;
 }
 
-export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you" }: EventFeedProps) => {
+export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you", onNotInterested }: EventFeedProps) => {
   const navigate = useNavigate();
   const trackImpression = useTrackSponsoredImpression();
   const trackedIds = useRef<Set<string>>(new Set());
@@ -70,7 +71,7 @@ export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you
   return (
     <div className="masonry-grid">
       {events.map((event, index) => (
-        <EventCard key={event.id} {...event} index={index} />
+        <EventCard key={event.id} {...event} index={index} onNotInterested={onNotInterested} />
       ))}
     </div>
   );
