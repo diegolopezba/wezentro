@@ -1,10 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { EventCard, EventCardProps } from "./EventCard";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { EventFeedSkeleton } from "@/components/skeletons";
 import { useTrackSponsoredImpression } from "@/hooks/useSponsoredPosts";
+import { useAuth } from "@/contexts/AuthContext";
+import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 
 interface EventFeedProps {
   events: EventCardProps[];
@@ -12,10 +14,68 @@ interface EventFeedProps {
   emptyStateType?: "for-you" | "following";
 }
 
+/**
+ * Dwell-time tracker: uses IntersectionObserver to detect when a card
+ * enters the viewport. If the card is visible for < 1 s and then leaves,
+ * we fire a "scroll_past" signal (mild negative).
+ */
+const useDwellTimeTracker = (userId: string | undefined) => {
+  const entryTimestamps = useRef<Map<string, number>>(new Map());
+  const trackedScrollPasts = useRef<Set<string>>(new Set());
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const eventId = (entry.target as HTMLElement).dataset.eventId;
+          if (!eventId) continue;
+
+          if (entry.isIntersecting) {
+            entryTimestamps.current.set(eventId, Date.now());
+          } else {
+            const enterTime = entryTimestamps.current.get(eventId);
+            if (enterTime) {
+              const dwellMs = Date.now() - enterTime;
+              entryTimestamps.current.delete(eventId);
+
+              // If visible < 1s → scroll_past (fire once per event)
+              if (dwellMs < 1000 && !trackedScrollPasts.current.has(eventId)) {
+                trackedScrollPasts.current.add(eventId);
+                trackPreferenceSignal(userId, eventId, "scroll_past");
+              }
+            }
+          }
+        }
+      },
+      { threshold: 0.5 } // Card must be 50% visible
+    );
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
+  }, [userId]);
+
+  const observeRef = useCallback(
+    (node: HTMLElement | null) => {
+      if (node && observerRef.current) {
+        observerRef.current.observe(node);
+      }
+    },
+    []
+  );
+
+  return observeRef;
+};
+
 export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you" }: EventFeedProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const trackImpression = useTrackSponsoredImpression();
   const trackedIds = useRef<Set<string>>(new Set());
+  const observeCard = useDwellTimeTracker(user?.id);
 
   // Track impressions for sponsored posts when they appear in the feed
   useEffect(() => {
@@ -70,7 +130,9 @@ export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you
   return (
     <div className="masonry-grid">
       {events.map((event, index) => (
-        <EventCard key={event.id} {...event} index={index} />
+        <div key={event.id} ref={observeCard} data-event-id={event.id}>
+          <EventCard {...event} index={index} />
+        </div>
       ))}
     </div>
   );

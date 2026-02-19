@@ -5,199 +5,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocationContext } from "@/contexts/LocationContext";
 import { useUserPreferences } from "./useUserPreferences";
 import { EventWithCreator } from "./useEvents";
-
-// Haversine formula to calculate distance between two coordinates
-const calculateDistance = (
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number => {
-  const R = 3959; // Earth's radius in miles
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
-
-// Calculate proximity score (30% weight)
-const getProximityScore = (
-  eventLat: number | null,
-  eventLon: number | null,
-  userLat: number | null,
-  userLon: number | null
-): number => {
-  if (!eventLat || !eventLon || !userLat || !userLon) return 50; // Neutral score
-
-  const distance = calculateDistance(userLat, userLon, eventLat, eventLon);
-
-  if (distance <= 1) return 100;
-  if (distance <= 5) return 80;
-  if (distance <= 10) return 60;
-  if (distance <= 25) return 40;
-  if (distance <= 50) return 20;
-  return 10;
-};
-
-// Calculate popularity score (25% weight)
-const getPopularityScore = (attendeeCount: number): number => {
-  if (attendeeCount >= 50) return 100;
-  if (attendeeCount >= 25) return 80;
-  if (attendeeCount >= 10) return 60;
-  if (attendeeCount >= 5) return 40;
-  if (attendeeCount >= 1) return 20;
-  return 10;
-};
-
-// Calculate interest match score (25% weight)
-const getInterestScore = (
-  eventCategory: string | null,
-  userInterests: string[] | null
-): number => {
-  if (!userInterests || userInterests.length === 0) return 50; // Neutral score
-  if (!eventCategory) return 20;
-
-  const normalizedCategory = eventCategory.toLowerCase();
-  const normalizedInterests = userInterests.map((i) => i.toLowerCase());
-
-  if (normalizedInterests.includes(normalizedCategory)) return 100;
-
-  // Check for partial matches
-  const hasPartialMatch = normalizedInterests.some(
-    (interest) =>
-      normalizedCategory.includes(interest) || interest.includes(normalizedCategory)
-  );
-  if (hasPartialMatch) return 70;
-
-  return 20;
-};
-
-// Calculate recency score (15% weight)
-const getRecencyScore = (createdAt: string): number => {
-  const now = new Date();
-  const created = new Date(createdAt);
-  const hoursAgo = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
-
-  if (hoursAgo <= 24) return 100;
-  if (hoursAgo <= 72) return 80; // 3 days
-  if (hoursAgo <= 168) return 60; // 1 week
-  if (hoursAgo <= 336) return 40; // 2 weeks
-  return 20;
-};
-
-// Calculate timing score (5% weight) - events happening soon
-const getTimingScore = (startDatetime: string | null): number => {
-  if (!startDatetime) return 50; // Neutral score for posts
-  
-  const now = new Date();
-  const start = new Date(startDatetime);
-  const hoursUntil = (start.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-  if (hoursUntil < 0) return 0; // Past events
-  if (hoursUntil <= 24) return 100; // Today
-  if (hoursUntil <= 48) return 80; // Tomorrow
-  if (hoursUntil <= 168) return 60; // This week
-  if (hoursUntil <= 720) return 40; // This month
-  return 20;
-};
-
-// Calculate friends going score (20% weight) - events with friends attending
-const getFriendsGoingScore = (
-  guestlistEntries: { user: { id: string } }[] | undefined,
-  followingIds: string[] | null
-): number => {
-  if (!followingIds || followingIds.length === 0) return 50; // Neutral if not logged in or no following
-  if (!guestlistEntries || guestlistEntries.length === 0) return 10;
-
-  const guestUserIds = guestlistEntries.map((entry) => entry.user?.id).filter(Boolean);
-  const friendsGoing = guestUserIds.filter((id) => followingIds.includes(id)).length;
-
-  if (friendsGoing >= 5) return 100;
-  if (friendsGoing >= 3) return 80;
-  if (friendsGoing >= 2) return 60;
-  if (friendsGoing >= 1) return 40;
-  return 10;
-};
-
-// Calculate learned preference score (15% weight) - based on user's past behavior
-const getLearnedPreferenceScore = (
-  eventCategory: string | null,
-  eventCreatorId: string,
-  userCategoryPrefs: Record<string, number>,
-  userCreatorPrefs: Record<string, number>
-): number => {
-  // If no preferences learned yet, return neutral
-  if (Object.keys(userCategoryPrefs).length === 0 && Object.keys(userCreatorPrefs).length === 0) {
-    return 50;
-  }
-
-  let score = 50; // Neutral baseline
-  
-  // Category affinity (weighted 60%)
-  if (eventCategory) {
-    const normalizedCategory = eventCategory.toLowerCase();
-    const categoryScore = userCategoryPrefs[normalizedCategory] || userCategoryPrefs[eventCategory];
-    if (categoryScore) {
-      score += (categoryScore / 100) * 30; // Max +30 from category
-    }
-  }
-  
-  // Creator affinity (weighted 40%)
-  const creatorScore = userCreatorPrefs[eventCreatorId];
-  if (creatorScore) {
-    score += (creatorScore / 100) * 20; // Max +20 from creator
-  }
-  
-  return Math.min(100, score);
-};
-
-// Calculate final score with weighted components
-const calculateEventScore = (
-  event: EventWithCreator & { guestlist_entries?: { user: { id: string; avatar_url: string | null } }[] },
-  userLat: number | null,
-  userLon: number | null,
-  userInterests: string[] | null,
-  followingIds: string[] | null,
-  userCategoryPrefs: Record<string, number>,
-  userCreatorPrefs: Record<string, number>
-): number => {
-  const attendeeCount = event.guestlist_entries?.length || 0;
-
-  const proximityScore = getProximityScore(
-    event.latitude,
-    event.longitude,
-    userLat,
-    userLon
-  );
-  const popularityScore = getPopularityScore(attendeeCount);
-  const interestScore = getInterestScore(event.category, userInterests);
-  const recencyScore = getRecencyScore(event.created_at);
-  const timingScore = getTimingScore(event.start_datetime);
-  const friendsGoingScore = getFriendsGoingScore(event.guestlist_entries, followingIds);
-  const learnedPreferenceScore = getLearnedPreferenceScore(
-    event.category,
-    event.creator_id,
-    userCategoryPrefs,
-    userCreatorPrefs
-  );
-
-  // Weighted formula with learned preferences (15% new)
-  return (
-    proximityScore * 0.20 +           // 20% - nearby events (was 25%)
-    popularityScore * 0.15 +          // 15% - popular events (was 20%)
-    interestScore * 0.15 +            // 15% - matches explicit interests (was 20%)
-    learnedPreferenceScore * 0.15 +   // 15% - learned preferences (NEW)
-    friendsGoingScore * 0.20 +        // 20% - friends attending
-    recencyScore * 0.10 +             // 10% - recently created
-    timingScore * 0.05                // 5% - happening soon
-  );
-};
+import {
+  calculateEventScore,
+  injectExploration,
+  ScoringContext,
+} from "@/lib/feedScoring";
 
 export const useForYouEvents = () => {
   const { user } = useAuth();
@@ -212,13 +24,11 @@ export const useForYouEvents = () => {
     queryKey: ["user-interests", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-
       const { data, error } = await supabase
         .from("profiles")
         .select("interests")
         .eq("id", user.id)
         .maybeSingle();
-
       if (error) throw error;
       return data;
     },
@@ -230,19 +40,42 @@ export const useForYouEvents = () => {
     queryKey: ["user-following-ids", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-
       const { data, error } = await supabase
         .from("follows")
         .select("following_id")
         .eq("follower_id", user.id);
-
       if (error) throw error;
       return data.map((f) => f.following_id);
     },
     enabled: !!user?.id,
   });
 
-  // Fetch all public events (including posts without dates)
+  // NEW: Fetch trending velocity (interaction counts in last 24h)
+  const { data: trendingData } = useQuery({
+    queryKey: ["trending-counts"],
+    queryFn: async () => {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from("event_interactions")
+        .select("event_id")
+        .gte("created_at", twentyFourHoursAgo);
+
+      if (error) {
+        console.error("Error fetching trending data:", error);
+        return {};
+      }
+
+      // Count interactions per event
+      const counts: Record<string, number> = {};
+      for (const row of data || []) {
+        counts[row.event_id] = (counts[row.event_id] || 0) + 1;
+      }
+      return counts;
+    },
+    staleTime: 5 * 60 * 1000, // Cache 5 min
+  });
+
+  // Fetch all public events
   const {
     data: events,
     isLoading,
@@ -257,15 +90,11 @@ export const useForYouEvents = () => {
           `
           *,
           creator:profiles!events_creator_id_fkey(
-            id,
-            username,
-            full_name,
-            avatar_url
+            id, username, full_name, avatar_url
           ),
           guestlist_entries(
             user:profiles!guestlist_entries_user_id_fkey(
-              id,
-              avatar_url
+              id, avatar_url
             )
           )
         `
@@ -279,39 +108,40 @@ export const useForYouEvents = () => {
     },
   });
 
-  // Score and sort events
+  // Score, sort, and inject exploration
   const scoredEvents = useMemo(() => {
     if (!events) return [];
 
     const now = new Date();
-    const userLat = location?.lat || null;
-    const userLon = location?.lng || null;
-    const userInterests = userProfile?.interests || null;
-    const followingIds = following || null;
     const categoryPrefs = learnedPrefs?.categories || {};
     const creatorPrefs = learnedPrefs?.creators || {};
 
-    // Filter: include posts (no start_datetime) OR future events
-    const filteredEvents = events.filter(event => {
-      if (!event.start_datetime) return true; // Posts always show
-      return new Date(event.start_datetime) >= now; // Only future events
+    const ctx: ScoringContext = {
+      userLat: location?.lat || null,
+      userLon: location?.lng || null,
+      userInterests: userProfile?.interests || null,
+      followingIds: following || null,
+      categoryPrefs,
+      creatorPrefs,
+      trendingCounts: trendingData || {},
+    };
+
+    // Filter: posts always show, events must be in the future
+    const filtered = events.filter((e) => {
+      if (!e.start_datetime) return true;
+      return new Date(e.start_datetime) >= now;
     });
 
-    return filteredEvents
+    const scored = filtered
       .map((event) => ({
         ...event,
-        _score: calculateEventScore(
-          event,
-          userLat,
-          userLon,
-          userInterests,
-          followingIds,
-          categoryPrefs,
-          creatorPrefs
-        ),
+        _score: calculateEventScore(event, ctx),
       }))
       .sort((a, b) => b._score - a._score);
-  }, [events, location, userProfile?.interests, following, learnedPrefs]);
+
+    // Inject 15% exploration content to prevent echo chambers
+    return injectExploration(scored, categoryPrefs);
+  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingData]);
 
   return {
     data: scoredEvents,
