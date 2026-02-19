@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -79,20 +79,95 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
     onOpenChange(false);
   };
 
+  // Confetti particles
+  const confettiRef = useRef<HTMLDivElement>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setShowConfetti(true);
+      const timer = setTimeout(() => setShowConfetti(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+
+  const confettiColors = [
+    "hsl(var(--primary))",
+    "hsl(var(--accent))",
+    "#f59e0b",
+    "#ec4899",
+    "#8b5cf6",
+    "#10b981",
+    "#f97316",
+  ];
+
+  const confettiParticles = Array.from({ length: 30 }, (_, i) => {
+    const color = confettiColors[i % confettiColors.length];
+    const left = Math.random() * 100;
+    const delay = Math.random() * 0.5;
+    const duration = 1.2 + Math.random() * 0.8;
+    const rotation = Math.random() * 360;
+    const xDrift = (Math.random() - 0.5) * 120;
+    const size = 4 + Math.random() * 4;
+    const isCircle = Math.random() > 0.5;
+
+    return (
+      <span
+        key={i}
+        className="absolute pointer-events-none"
+        style={{
+          left: `${left}%`,
+          top: "-8px",
+          width: `${size}px`,
+          height: isCircle ? `${size}px` : `${size * 2.5}px`,
+          borderRadius: isCircle ? "50%" : "2px",
+          backgroundColor: color,
+          opacity: showConfetti ? 1 : 0,
+          transform: `rotate(${rotation}deg)`,
+          animation: showConfetti
+            ? `confetti-fall ${duration}s ease-out ${delay}s forwards`
+            : "none",
+          // @ts-ignore
+          "--x-drift": `${xDrift}px`,
+        } as React.CSSProperties}
+      />
+    );
+  });
+
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[85vh]">
-        <DrawerHeader className="text-center pb-2">
-          <div className="flex justify-center mb-2">
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-              <PartyPopper className="w-7 h-7 text-primary" />
+    <>
+      <style>{`
+        @keyframes confetti-fall {
+          0% {
+            opacity: 1;
+            transform: translateY(0) translateX(0) rotate(0deg) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(350px) translateX(var(--x-drift, 0px)) rotate(720deg) scale(0.5);
+          }
+        }
+      `}</style>
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className="max-h-[85vh] overflow-hidden">
+          {/* Confetti container */}
+          {showConfetti && (
+            <div ref={confettiRef} className="absolute inset-x-0 top-0 h-full pointer-events-none z-10 overflow-hidden">
+              {confettiParticles}
             </div>
-          </div>
-          <DrawerTitle className="font-brand text-xl">¡Estás dentro!</DrawerTitle>
-          <DrawerDescription>
-            Invita amigos a <span className="font-medium text-foreground">{eventTitle}</span>
-          </DrawerDescription>
-        </DrawerHeader>
+          )}
+
+          <DrawerHeader className="text-center pb-2 relative z-20">
+            <div className="flex justify-center mb-2">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center animate-scale-in">
+                <PartyPopper className="w-7 h-7 text-primary" />
+              </div>
+            </div>
+            <DrawerTitle className="font-brand text-xl">¡Estás dentro!</DrawerTitle>
+            <DrawerDescription>
+              Invita amigos a <span className="font-medium text-foreground">{eventTitle}</span>
+            </DrawerDescription>
+          </DrawerHeader>
 
         <div className="px-4 space-y-3">
           {/* Search */}
@@ -156,7 +231,7 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
           </ScrollArea>
         </div>
 
-        <DrawerFooter className="flex-row gap-3">
+        <DrawerFooter className="flex-row gap-3 relative z-20">
           <Button variant="ghost" className="flex-1" onClick={handleClose}>
             Ahora no
           </Button>
@@ -176,5 +251,6 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
+    </>
   );
 }
