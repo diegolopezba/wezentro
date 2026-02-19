@@ -21,6 +21,7 @@ import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { PremiumGateModal } from "@/components/events/PremiumGateModal";
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
+import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { trackEventView } from "@/lib/analyticsTracking";
@@ -47,6 +48,7 @@ const EventDetail = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPremiumGate, setShowPremiumGate] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showInviteFriendsSheet, setShowInviteFriendsSheet] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(true);
@@ -212,6 +214,7 @@ const EventDetail = () => {
     try {
       await joinGuestlist.mutateAsync(id!);
       toast.success("¡Solicitud enviada!");
+      setShowInviteFriendsSheet(true);
     } catch (error: any) {
       toast.error(error.message || "Error al unirse a la lista");
     }
@@ -220,6 +223,7 @@ const EventDetail = () => {
   const handlePaymentSubmitted = async () => {
     try {
       await joinGuestlistWithPayment.mutateAsync(id!);
+      setShowInviteFriendsSheet(true);
     } catch (error: any) {
       toast.error(error.message || "Error al registrar pago");
       throw error;
@@ -575,6 +579,15 @@ const EventDetail = () => {
           paymentQrUrl={event.payment_qr_url!}
           onPaymentSubmitted={handlePaymentSubmitted}
           isSubmitting={joinGuestlistWithPayment.isPending}
+        />
+      )}
+
+      {event.has_guestlist && (
+        <InviteFriendsSheet
+          eventId={id!}
+          eventTitle={event.title || "Evento"}
+          open={showInviteFriendsSheet}
+          onOpenChange={setShowInviteFriendsSheet}
         />
       )}
     </div>;

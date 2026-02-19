@@ -22,6 +22,7 @@ import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { PremiumGateModal } from "@/components/events/PremiumGateModal";
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
+import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 export const EventDetailOverlay = () => {
@@ -41,6 +42,7 @@ export const EventDetailOverlay = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPremiumGate, setShowPremiumGate] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showInviteFriendsSheet, setShowInviteFriendsSheet] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
@@ -213,6 +215,7 @@ export const EventDetailOverlay = () => {
     try {
       await joinGuestlist.mutateAsync(selectedEventId!);
       toast.success("¡Solicitud enviada!");
+      setShowInviteFriendsSheet(true);
     } catch (error: any) {
       toast.error(error.message || "Error al unirse a la lista");
     }
@@ -221,6 +224,7 @@ export const EventDetailOverlay = () => {
   const handlePaymentSubmitted = async () => {
     try {
       await joinGuestlistWithPayment.mutateAsync(selectedEventId!);
+      setShowInviteFriendsSheet(true);
     } catch (error: any) {
       toast.error(error.message || "Error al registrar pago");
       throw error;
@@ -519,6 +523,14 @@ export const EventDetailOverlay = () => {
                       paymentQrUrl={event.payment_qr_url!}
                       onPaymentSubmitted={handlePaymentSubmitted}
                       isSubmitting={joinGuestlistWithPayment.isPending}
+                    />
+                  )}
+                  {event.has_guestlist && (
+                    <InviteFriendsSheet
+                      eventId={selectedEventId!}
+                      eventTitle={event.title || "Evento"}
+                      open={showInviteFriendsSheet}
+                      onOpenChange={setShowInviteFriendsSheet}
                     />
                   )}
                 </>}
