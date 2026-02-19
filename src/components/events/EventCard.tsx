@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Volume2, VolumeX, Repeat, X } from "lucide-react";
+import { Volume2, VolumeX, Repeat } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useContext } from "react";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,6 @@ export interface EventCardProps {
   repostInfo?: RepostInfo;
   isSponsored?: boolean;
   sponsoredPostId?: string;
-  onNotInterested?: (eventId: string) => void;
 }
 const categoryColors: Record<string, string> = {
   club: "from-purple-500 to-pink-500",
@@ -58,14 +57,12 @@ export const EventCard = ({
   creatorId,
   repostInfo,
   isSponsored = false,
-  sponsoredPostId,
-  onNotInterested
+  sponsoredPostId
 }: EventCardProps) => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
   const { data: hasSubscription } = useHasActiveSubscription();
   const trackClick = useTrackSponsoredClick();
-  const [dismissed, setDismissed] = useState(false);
 
   // Use expansion transition only on home page
   const isHomePage = routerLocation.pathname === "/";
@@ -119,14 +116,6 @@ export const EventCard = ({
   `@${repostInfo.repostedBy[0].username} y @${repostInfo.repostedBy[1].username}` :
   `@${repostInfo.repostedBy[0].username} y ${repostInfo.repostedBy.length - 1} más` :
   null;
-
-  const handleNotInterested = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setDismissed(true);
-    onNotInterested?.(id);
-  };
-
-  if (dismissed) return null;
 
   return (
     <div className="masonry-item">
@@ -189,28 +178,12 @@ export const EventCard = ({
             {isVideo &&
             <button
               onClick={toggleMute}
-              className={cn(
-                "absolute top-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors z-10",
-                onNotInterested ? "right-10" : "right-2"
-              )}>
-
+              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors z-10">
                 {isMuted ?
               <VolumeX className="w-3.5 h-3.5 text-white" /> :
-
               <Volume2 className="w-3.5 h-3.5 text-white" />
               }
               </button>
-            }
-
-            {/* Not Interested button - top right */}
-            {onNotInterested &&
-            <button
-              onClick={handleNotInterested}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors z-10"
-              aria-label="No me interesa"
-            >
-              <X className="w-3.5 h-3.5 text-white" />
-            </button>
             }
 
             {/* Attendees overlay - top left */}

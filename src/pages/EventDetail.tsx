@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign } from "lucide-react";
+import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
@@ -338,23 +338,37 @@ const EventDetail = () => {
                     </Button> : <Button variant="hero" size="sm" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
                     {(joinGuestlist.isPending || joinGuestlistWithPayment.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
                   </Button>)}
-              {isOwner && <DropdownMenu>
+              <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
                       <MoreVertical className="w-5 h-5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
-                      <Pencil className="w-4 h-4 mr-2" />
-                      Editar evento
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Eliminar evento
-                    </DropdownMenuItem>
+                    {isOwner && (
+                      <>
+                        <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
+                          <Pencil className="w-4 h-4 mr-2" />
+                          Editar evento
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Eliminar evento
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    {!isOwner && user && (
+                      <DropdownMenuItem onClick={() => {
+                        trackPreferenceSignal(user.id, id!, "not_interested");
+                        toast("Se mostrará menos contenido como este", { duration: 2000 });
+                        navigate(-1);
+                      }}>
+                        <EyeOff className="w-4 h-4 mr-2" />
+                        No me interesa
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
-                </DropdownMenu>}
+                </DropdownMenu>
             </div>
           </div>
 
