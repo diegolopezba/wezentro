@@ -1,55 +1,42 @@
 
-# Guestlist Virality Loop -- Option A
+# Floating CTA Bar for Event Details
 
-## What It Does
-After a user successfully joins a guestlist (free join or paid/QR payment), a bottom sheet (Drawer) slides up on the same event detail page prompting them to invite friends. The sheet shows a celebratory message and a list of mutual followers they can quickly invite.
+## What Changes
 
-## User Flow
+Move the "Unirse" / "Comprar" / "Gestionar" button out of the inline action row and into a floating bottom bar, similar to dice.fm. The bar will show:
+- **Left side**: Event price (e.g., "$15.000") or "Gratis"
+- **Right side**: The CTA button (Unirse / Comprar / Gestionar / Pendiente / Unido)
+
+The inline action row will keep only the social buttons (Like, Repost, Share, Save, Invite) plus the three-dot menu.
+
+## Visual Layout
 
 ```text
-User taps "Unirse" (or completes QR payment)
-        |
-        v
-  Join succeeds
-        |
-        v
-  Bottom sheet slides up:
-  +-----------------------------+
-  | "Estas dentro!"              |
-  | Invite friends to go with you|
-  |                             |
-  | [Search bar]                |
-  | [ ] @friend1                |
-  | [ ] @friend2                |
-  | [ ] @friend3                |
-  |                             |
-  | [Invitar (2)]    [Ahora no] |
-  +-----------------------------+
++------------------------------------------+
+|  $15.000                      [ Unirse ] |
++------------------------------------------+
 ```
+
+- Glass/blur background, fixed to bottom, with safe-area padding
+- Only shown for events with a guestlist (not for posts)
+- Content area gets extra bottom padding to avoid overlap
+
+## Files Modified
+
+1. **src/pages/EventDetail.tsx**
+   - Remove the join/manage button from the inline action row (lines ~332-344)
+   - Add a fixed floating bar at the bottom with price + CTA
+   - Add extra bottom padding to the content area (`pb-28` instead of `pb-8`)
+
+2. **src/components/events/EventDetailOverlay.tsx**
+   - Identical changes: remove join/manage from inline row (lines ~328-340)
+   - Add the same floating bottom bar
+   - Add extra bottom padding
 
 ## Technical Details
 
-### 1. New Component: `src/components/events/InviteFriendsSheet.tsx`
-- Uses the existing `Drawer` (vaul) component for a native bottom sheet feel
-- Props: `eventId`, `eventTitle`, `open`, `onOpenChange`
-- Reuses `useMutualFollowers` from `useChats` for the friend list
-- Reuses `useSearchUsers` for business users who can search all users
-- Reuses `useSendGuestlistInvitations` hook for sending invites
-- Reuses `useEventInvitations` to exclude already-invited users
-- Reuses `useEventGuestlist` to exclude users already on the guestlist
-- Shows a celebratory header with confetti-style icon and event title
-- Displays mutual followers with checkboxes (same pattern as `ShareGuestlistModal`)
-- "Invitar" button to send and "Ahora no" / swipe-down to dismiss
-- Business users get a search bar to find any user; regular users filter mutual followers
-
-### 2. Modify `src/components/events/EventDetailOverlay.tsx`
-- Add `showInviteFriendsSheet` state (boolean, default false)
-- After `joinGuestlist.mutateAsync` succeeds (line ~214-215): replace the toast with `setShowInviteFriendsSheet(true)`
-- After `joinGuestlistWithPayment.mutateAsync` succeeds (line ~223): also set `setShowInviteFriendsSheet(true)`
-- Render `<InviteFriendsSheet>` at the end of the component JSX
-
-### 3. Modify `src/pages/EventDetail.tsx`
-- Same changes as above: add state, trigger after join, render the sheet
-
-### 4. No Database Changes
-The existing `guestlist_invitations` table and `useSendGuestlistInvitations` hook handle everything. No new tables, migrations, or RLS policies needed.
+- The floating bar uses `fixed bottom-0 left-0 right-0` with `glass-strong` styling and `safe-bottom` padding
+- For the overlay, it uses `absolute` positioning within the overlay container instead of `fixed`
+- The bar is conditionally rendered only when `event.has_guestlist` is true and the event is not a post
+- All existing button states (owner/pending/approved/not joined) and loading states are preserved exactly as-is
+- The three-dot dropdown menu stays in the inline row
