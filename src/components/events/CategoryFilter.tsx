@@ -3,15 +3,15 @@ import { cn } from "@/lib/utils";
 
 const categories = [
   { id: "all", label: "Todos", emoji: "✨" },
-  { id: "club", label: "Clubs", emoji: "🪩" },
+  { id: "party", label: "Fiestas", emoji: "🪩" },
   { id: "bar", label: "Bares", emoji: "🍸" },
   { id: "concert", label: "Conciertos", emoji: "🎵" },
   { id: "festival", label: "Festivales", emoji: "🎪" },
-  { id: "house_party", label: "Fiestas", emoji: "🏠" },
   { id: "rooftop", label: "Rooftops", emoji: "🌆" },
   { id: "restaurant", label: "Restaurantes", emoji: "🍽️" },
   { id: "coffee", label: "Café", emoji: "☕" },
   { id: "fitness", label: "Fitness", emoji: "🏋️" },
+  { id: "culture", label: "Cultura", emoji: "🎨" },
 ];
 
 interface CategoryFilterProps {

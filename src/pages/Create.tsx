@@ -40,15 +40,15 @@ import {
 import { compressImage, blobToFile, formatBytes } from "@/lib/mediaCompression";
 
 const categories = [
-  { id: "club", label: "Club", emoji: "🪩" },
+  { id: "party", label: "Fiesta", emoji: "🪩" },
   { id: "bar", label: "Bar", emoji: "🍸" },
   { id: "concert", label: "Concierto", emoji: "🎵" },
   { id: "festival", label: "Festival", emoji: "🎪" },
-  { id: "house_party", label: "Fiesta", emoji: "🏠" },
   { id: "rooftop", label: "Rooftop", emoji: "🌆" },
   { id: "restaurant", label: "Restaurante", emoji: "🍽️" },
   { id: "coffee", label: "Café", emoji: "☕" },
   { id: "fitness", label: "Fitness", emoji: "🏋️" },
+  { id: "culture", label: "Cultura", emoji: "🎨" },
 ];
 
 const Create = () => {

@@ -34,15 +34,15 @@ interface EditEventSheetProps {
 }
 
 const CATEGORIES = [
-  { value: "club", label: "Club" },
+  { value: "party", label: "Fiesta" },
   { value: "bar", label: "Bar" },
   { value: "concert", label: "Concierto" },
   { value: "festival", label: "Festival" },
-  { value: "house_party", label: "Fiesta en casa" },
   { value: "rooftop", label: "Rooftop" },
   { value: "restaurant", label: "Restaurante" },
   { value: "coffee", label: "Café" },
   { value: "fitness", label: "Fitness" },
+  { value: "culture", label: "Cultura" },
 ];
 
 export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProps) {
