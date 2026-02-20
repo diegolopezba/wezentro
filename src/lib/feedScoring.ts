@@ -146,10 +146,10 @@ export const getTrendingScore = (recentCount: number): number => {
  * Night     (21-6):  nightlife, party, bar, club, fiesta, DJ
  */
 const TIME_CATEGORY_MAP: Record<string, string[]> = {
-  morning:   ["brunch", "fitness", "wellness", "networking", "yoga", "café", "cafe", "desayuno"],
+  morning:   ["brunch", "fitness", "wellness", "networking", "yoga", "café", "cafe", "desayuno", "culture"],
   afternoon: ["shopping", "culture", "food", "sports", "arte", "museo", "deporte", "comida"],
-  evening:   ["dinner", "drinks", "music", "concerts", "cena", "concierto", "música", "happy hour"],
-  night:     ["nightlife", "party", "bar", "club", "fiesta", "dj", "noche", "antro", "rave"],
+  evening:   ["dinner", "drinks", "music", "concerts", "cena", "concierto", "música", "happy hour", "culture"],
+  night:     ["nightlife", "party", "bar", "fiesta", "dj", "noche", "antro", "rave"],
 };
 
 const getTimePeriod = (hour: number): string => {

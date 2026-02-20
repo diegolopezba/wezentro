@@ -32,14 +32,15 @@ export interface EventCardProps {
   sponsoredPostId?: string;
 }
 const categoryColors: Record<string, string> = {
-  club: "from-purple-500 to-pink-500",
+  party: "from-purple-500 to-pink-500",
   bar: "from-amber-500 to-orange-500",
   concert: "from-blue-500 to-cyan-500",
   festival: "from-green-500 to-emerald-500",
-  house_party: "from-red-500 to-rose-500",
   rooftop: "from-sky-500 to-blue-500",
   restaurant: "from-rose-500 to-pink-500",
   coffee: "from-amber-600 to-yellow-500",
+  fitness: "from-green-600 to-lime-500",
+  culture: "from-violet-500 to-indigo-500",
   default: "from-primary to-accent"
 };
 export const EventCard = ({
