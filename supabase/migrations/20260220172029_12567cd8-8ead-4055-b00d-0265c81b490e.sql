@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_business_type_check;
