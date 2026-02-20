@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
-  { value: "food", label: "Comida", emoji: "🍕" },
   { value: "party", label: "Fiesta", emoji: "🪩" },
   { value: "bar", label: "Bar", emoji: "🍸" },
   { value: "concert", label: "Concierto", emoji: "🎵" },
