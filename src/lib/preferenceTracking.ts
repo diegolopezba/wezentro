@@ -34,10 +34,10 @@ export const trackPreferenceSignal = async (
       type: signalType,
     });
 
-    // 2. Get event details (category and creator)
+    // 2. Get event details (category, creator, and tags)
     const { data: event, error: eventError } = await supabase
       .from("events")
-      .select("category, creator_id")
+      .select("category, creator_id, description_tags")
       .eq("id", eventId)
       .single();
 
@@ -65,6 +65,14 @@ export const trackPreferenceSignal = async (
     // 5. Update day-of-week preference for the current day
     if (event.category && !isNegative) {
       await upsertDayPreference(userId, event.category, weight, now);
+    }
+
+    // 6. Update tag preferences from description_tags
+    const tags = (event as any).description_tags as string[] | null;
+    if (tags?.length && !isNegative) {
+      for (const tag of tags) {
+        await upsertTagPreference(userId, tag, weight, now);
+      }
     }
   } catch (error) {
     // Don't throw - this is a background operation
@@ -198,6 +206,46 @@ const upsertDayPreference = async (
       user_id: userId,
       day_of_week: dayOfWeek,
       category,
+      score: weight,
+      interaction_count: 1,
+      last_interaction: timestamp,
+    });
+  }
+};
+
+/**
+ * Upsert a tag preference score using incremental averaging
+ */
+const upsertTagPreference = async (
+  userId: string,
+  tag: string,
+  weight: number,
+  timestamp: string
+) => {
+  const { data: existing } = await supabase
+    .from("user_tag_preferences")
+    .select("id, score, interaction_count")
+    .eq("user_id", userId)
+    .eq("tag", tag)
+    .maybeSingle();
+
+  if (existing) {
+    const newCount = (existing.interaction_count || 0) + 1;
+    const currentScore = Number(existing.score) || 0;
+    const newScore = (currentScore * 0.7) + (weight * 0.3);
+
+    await supabase
+      .from("user_tag_preferences")
+      .update({
+        score: Math.min(100, Math.max(0, newScore)),
+        interaction_count: newCount,
+        last_interaction: timestamp,
+      })
+      .eq("id", existing.id);
+  } else {
+    await supabase.from("user_tag_preferences").insert({
+      user_id: userId,
+      tag,
       score: weight,
       interaction_count: 1,
       last_interaction: timestamp,

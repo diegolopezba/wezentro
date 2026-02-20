@@ -1,17 +1,18 @@
 /**
  * Feed Scoring Engine for the "Para Ti" algorithm.
  *
- * Weights (v3 — with Creator Loyalty + Day-of-Week):
- *   Friends Going    15%
- *   Proximity        13%
+ * Weights (v4 — with Description Tags):
+ *   Friends Going    14%
+ *   Proximity        12%
  *   Trending         10%
- *   Learned Prefs    10%
- *   Interest Match   10%
- *   Creator Loyalty   8%  ← NEW
- *   Recency           8%
+ *   Learned Prefs     9%
+ *   Interest Match    9%
+ *   Description Tags  8%  ← NEW
+ *   Creator Loyalty   8%
+ *   Recency           7%
  *   Popularity        7%
- *   Time-of-Day       6%
- *   Day-of-Week       5%  ← NEW
+ *   Time-of-Day       5%
+ *   Day-of-Week       5%
  *   Timing (upcoming) 3%
  *   Dwell feeds into Learned Prefs implicitly
  *   Diversity bonus applied as post-processing (15-20% exploration slots)
@@ -198,6 +199,35 @@ export const getDayOfWeekScore = (
   return 30; // unknown category for this day
 };
 
+// ───────── NEW: Description Tag Match ─────────
+/**
+ * Score based on how well an event's description tags match user's tag preferences.
+ */
+export const getDescriptionTagScore = (
+  eventTags: string[] | null,
+  tagPrefs: Record<string, number>
+): number => {
+  if (!eventTags?.length || !Object.keys(tagPrefs).length) return 50;
+  
+  let totalScore = 0;
+  let matchCount = 0;
+  
+  for (const tag of eventTags) {
+    const prefScore = tagPrefs[tag];
+    if (prefScore != null) {
+      totalScore += prefScore;
+      matchCount++;
+    }
+  }
+  
+  if (matchCount === 0) return 30; // no overlap
+  
+  // Average score of matched tags, boosted by number of matches
+  const avgScore = totalScore / matchCount;
+  const matchBonus = Math.min(20, matchCount * 5); // up to +20 for 4+ matches
+  return Math.min(100, avgScore + matchBonus);
+};
+
 // ───────── composite score ─────────
 
 export interface ScoringContext {
@@ -210,6 +240,7 @@ export interface ScoringContext {
   trendingCounts: Record<string, number>;
   creatorAttendance: Record<string, number>;
   dayOfWeekPrefs: Record<string, number>;
+  tagPrefs: Record<string, number>;
 }
 
 export interface ScoredEvent {
@@ -226,6 +257,7 @@ export const calculateEventScore = (
     creator_id: string;
     created_at: string;
     start_datetime: string | null;
+    description_tags?: string[] | null;
     guestlist_entries?: { user: { id: string } }[];
   },
   ctx: ScoringContext
@@ -242,17 +274,19 @@ export const calculateEventScore = (
   const timing          = getTimingScore(event.start_datetime);
   const creatorLoyalty  = getCreatorLoyaltyScore(event.creator_id, ctx.creatorAttendance);
   const dayOfWeek       = getDayOfWeekScore(event.category, ctx.dayOfWeekPrefs);
+  const descTags        = getDescriptionTagScore(event.description_tags || null, ctx.tagPrefs);
 
   return (
-    friends        * 0.15 +
-    proximity      * 0.13 +
+    friends        * 0.14 +
+    proximity      * 0.12 +
     trending       * 0.10 +
-    learned        * 0.10 +
-    interest       * 0.10 +
+    learned        * 0.09 +
+    interest       * 0.09 +
+    descTags       * 0.08 +
     creatorLoyalty * 0.08 +
-    recency        * 0.08 +
+    recency        * 0.07 +
     getPopularityScore(attendees) * 0.07 +
-    timeOfDay      * 0.06 +
+    timeOfDay      * 0.05 +
     dayOfWeek      * 0.05 +
     timing         * 0.03
   );
