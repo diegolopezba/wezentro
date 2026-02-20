@@ -1,9 +1,13 @@
 import { Suspense, lazy } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Users, UserCheck, UsersRound, BarChart3, TrendingUp, Repeat } from "lucide-react";
+import { ArrowLeft, Calendar, Users, UserCheck, UsersRound, BarChart3, TrendingUp, Repeat, Heart, Eye, CalendarCheck } from "lucide-react";
 import { PromocionesSection } from "@/components/dashboard/PromocionesSection";
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import { ReservationsSummary } from "@/components/dashboard/ReservationsSummary";
+import { AudienceInsights } from "@/components/dashboard/AudienceInsights";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useOverviewStats,
@@ -16,7 +20,6 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { EventsPerformanceTable } from "@/components/dashboard/EventsPerformanceTable";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 
-// Lazy load heavy chart components
 const GuestlistFunnel = lazy(() => import("@/components/dashboard/GuestlistFunnel").then(m => ({ default: m.GuestlistFunnel })));
 const StatusPieChart = lazy(() => import("@/components/dashboard/StatusPieChart").then(m => ({ default: m.StatusPieChart })));
 const EngagementChart = lazy(() => import("@/components/dashboard/EngagementChart").then(m => ({ default: m.EngagementChart })));
@@ -34,14 +37,12 @@ const BusinessDashboard = () => {
   const isBusiness = profile?.is_business === true;
   const subLoading = !profile;
 
-  // Fetch analytics data
   const { data: overviewStats, isLoading: statsLoading } = useOverviewStats();
   const { data: eventPerformance, isLoading: eventsLoading } = useEventPerformance();
   const { data: funnelData, isLoading: funnelLoading } = useGuestlistFunnel();
   const { data: statusBreakdown, isLoading: statusLoading } = useGuestlistStatusBreakdown();
   const { data: repeatData, isLoading: repeatLoading } = useRepeatAttendees();
 
-  // Show upsell for non-business users
   if (!subLoading && !isBusiness) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
@@ -53,7 +54,6 @@ const BusinessDashboard = () => {
             <h1 className="font-brand text-xl font-bold text-foreground">Business Dashboard</h1>
           </div>
         </header>
-
         <div className="flex-1 flex items-center justify-center p-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -63,18 +63,11 @@ const BusinessDashboard = () => {
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
               <BarChart3 className="w-10 h-10 text-white" />
             </div>
-            <h2 className="font-brand text-2xl font-bold text-foreground mb-2">
-              Business Dashboard
-            </h2>
+            <h2 className="font-brand text-2xl font-bold text-foreground mb-2">Business Dashboard</h2>
             <p className="text-muted-foreground mb-6">
               Activa tu cuenta Business en Configuración para acceder a analíticas, métricas de eventos e insights de audiencia — es gratis.
             </p>
-            <Button
-              variant="premium"
-              size="lg"
-              className="w-full"
-              onClick={() => navigate("/settings")}
-            >
+            <Button variant="premium" size="lg" className="w-full" onClick={() => navigate("/settings")}>
               Ir a Configuración
             </Button>
           </motion.div>
@@ -85,50 +78,68 @@ const BusinessDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      {/* Header */}
+      {/* Header with business type badge */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="flex items-center gap-3 px-4 py-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="font-brand text-xl font-bold text-foreground">Business Dashboard</h1>
+          {profile?.business_type && (
+            <Badge variant="secondary" className="text-xs font-normal">
+              {profile.business_type}
+            </Badge>
+          )}
         </div>
       </header>
 
       <div className="px-4 space-y-6 mt-4">
-        {/* Promociones - Sponsored Posts */}
-        <PromocionesSection />
+        {/* Quick Actions */}
+        <QuickActions />
 
-        {/* Overview Stats */}
+        {/* Overview Stats - Expanded Grid */}
         <section>
           <h2 className="font-brand text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-primary" />
             Overview
           </h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <StatsCard
-              title="Total Events"
+              title="Eventos"
               value={statsLoading ? "..." : overviewStats?.totalEvents || 0}
               icon={Calendar}
               delay={0}
             />
             <StatsCard
-              title="Guestlist Signups"
+              title="Guestlist"
               value={statsLoading ? "..." : overviewStats?.totalGuestlistSignups || 0}
               icon={Users}
+              delay={0.05}
+            />
+            <StatsCard
+              title="Check-ins"
+              value={statsLoading ? "..." : overviewStats?.totalCheckIns || 0}
+              icon={UserCheck}
               delay={0.1}
             />
             <StatsCard
-              title="Total Check-ins"
-              value={statsLoading ? "..." : overviewStats?.totalCheckIns || 0}
-              icon={UserCheck}
+              title="Seguidores"
+              value={statsLoading ? "..." : overviewStats?.totalFollowers || 0}
+              icon={UsersRound}
+              delay={0.15}
+              trend={overviewStats?.followerTrend || undefined}
+            />
+            <StatsCard
+              title="Reservas"
+              value={statsLoading ? "..." : overviewStats?.totalReservations || 0}
+              icon={CalendarCheck}
               delay={0.2}
             />
             <StatsCard
-              title="Followers"
-              value={statsLoading ? "..." : overviewStats?.totalFollowers || 0}
-              icon={UsersRound}
-              delay={0.3}
+              title="Likes"
+              value={statsLoading ? "..." : overviewStats?.totalLikes || 0}
+              icon={Heart}
+              delay={0.25}
             />
           </div>
         </section>
@@ -156,39 +167,50 @@ const BusinessDashboard = () => {
           </motion.section>
         )}
 
+        {/* Reservations Summary */}
+        {profile?.reservations_enabled && (
+          <section>
+            <h2 className="font-brand text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+              <CalendarCheck className="w-5 h-5 text-primary" />
+              Próximas Reservas
+            </h2>
+            <ReservationsSummary />
+          </section>
+        )}
+
+        {/* Promociones */}
+        <PromocionesSection />
+
         {/* Event Performance */}
         <section>
-          <h2 className="font-brand text-lg font-semibold text-foreground mb-3">
-            Event Performance
-          </h2>
+          <h2 className="font-brand text-lg font-semibold text-foreground mb-3">Event Performance</h2>
           <div className="rounded-2xl bg-card border border-border p-4">
-            <EventsPerformanceTable
-              events={eventPerformance || []}
-              isLoading={eventsLoading}
-            />
+            <EventsPerformanceTable events={eventPerformance || []} isLoading={eventsLoading} />
           </div>
         </section>
 
-        {/* Engagement Chart - Lazy loaded */}
+        {/* Event Comparison */}
         <section>
-          <h2 className="font-brand text-lg font-semibold text-foreground mb-3">
-            Event Comparison
-          </h2>
+          <h2 className="font-brand text-lg font-semibold text-foreground mb-3">Event Comparison</h2>
           <div className="rounded-2xl bg-card border border-border p-4">
             <Suspense fallback={<ChartSkeleton />}>
-              <EngagementChart
-                events={eventPerformance || []}
-                isLoading={eventsLoading}
-              />
+              <EngagementChart events={eventPerformance || []} isLoading={eventsLoading} />
             </Suspense>
           </div>
         </section>
 
-        {/* Guestlist Analytics - Lazy loaded */}
+        {/* Audience Insights */}
         <section>
-          <h2 className="font-brand text-lg font-semibold text-foreground mb-3">
-            Guestlist Funnel
+          <h2 className="font-brand text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+            <UsersRound className="w-5 h-5 text-primary" />
+            Audience Insights
           </h2>
+          <AudienceInsights />
+        </section>
+
+        {/* Guestlist Funnel */}
+        <section>
+          <h2 className="font-brand text-lg font-semibold text-foreground mb-3">Guestlist Funnel</h2>
           <div className="rounded-2xl bg-card border border-border p-4">
             <Suspense fallback={<ChartSkeleton />}>
               <GuestlistFunnel data={funnelData} isLoading={funnelLoading} />
@@ -196,11 +218,9 @@ const BusinessDashboard = () => {
           </div>
         </section>
 
-        {/* Status Breakdown - Lazy loaded */}
+        {/* Status Breakdown */}
         <section>
-          <h2 className="font-brand text-lg font-semibold text-foreground mb-3">
-            Request Status Breakdown
-          </h2>
+          <h2 className="font-brand text-lg font-semibold text-foreground mb-3">Request Status Breakdown</h2>
           <div className="rounded-2xl bg-card border border-border p-4">
             <Suspense fallback={<ChartSkeleton />}>
               <StatusPieChart data={statusBreakdown} isLoading={statusLoading} />

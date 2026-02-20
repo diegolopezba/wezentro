@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Megaphone, Plus, Play, Pause, Eye, MousePointerClick, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SponsoredSummaryBar } from "@/components/dashboard/SponsoredSummaryBar";
 import {
   Dialog,
   DialogContent,
@@ -103,7 +104,12 @@ export const PromocionesSection = () => {
             <div key={i} className="h-24 bg-secondary/50 rounded-xl animate-pulse" />
           ))}
         </div>
-      ) : sponsoredPosts.length === 0 ? (
+      ) : (
+        <>
+          {sponsoredPosts.length > 0 && (
+            <SponsoredSummaryBar sponsoredPosts={sponsoredPosts} />
+          )}
+          {sponsoredPosts.length === 0 ? (
         <div className="rounded-2xl bg-card border border-border p-6 text-center">
           <Megaphone className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">
@@ -173,6 +179,8 @@ export const PromocionesSection = () => {
             );
           })}
         </div>
+      )}
+        </>
       )}
 
       {/* Create dialog */}

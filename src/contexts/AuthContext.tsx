@@ -19,6 +19,9 @@ interface Profile {
   business_address: string | null;
   business_hours: string | null;
   business_phone: string | null;
+  business_type: string | null;
+  reservations_enabled: boolean | null;
+  menu_enabled: boolean | null;
 }
 
 interface AuthContextType {
