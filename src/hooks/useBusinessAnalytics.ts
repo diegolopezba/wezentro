@@ -19,6 +19,10 @@ export interface OverviewStats {
   totalGuestlistSignups: number;
   totalCheckIns: number;
   totalFollowers: number;
+  totalReservations: number;
+  totalLikes: number;
+  totalViews: number;
+  followerTrend: { value: number; isPositive: boolean } | null;
 }
 
 export interface GuestlistFunnelData {
@@ -63,34 +67,83 @@ export const useOverviewStats = () => {
       // Get total guestlist signups across all events
       let totalGuestlistSignups = 0;
       let totalCheckIns = 0;
+      let totalLikes = 0;
+      let totalViews = 0;
 
       if (eventIds.length > 0) {
-        const { count: signups } = await supabase
-          .from("guestlist_entries")
-          .select("*", { count: "exact", head: true })
-          .in("event_id", eventIds);
+        const [signupsRes, checkInsRes, likesRes, viewsRes] = await Promise.all([
+          supabase
+            .from("guestlist_entries")
+            .select("*", { count: "exact", head: true })
+            .in("event_id", eventIds),
+          supabase
+            .from("guestlist_entries")
+            .select("*", { count: "exact", head: true })
+            .in("event_id", eventIds)
+            .not("checked_in_at", "is", null),
+          supabase
+            .from("event_likes")
+            .select("*", { count: "exact", head: true })
+            .in("event_id", eventIds),
+          supabase
+            .from("event_interactions")
+            .select("*", { count: "exact", head: true })
+            .in("event_id", eventIds)
+            .eq("type", "view"),
+        ]);
 
-        const { count: checkIns } = await supabase
-          .from("guestlist_entries")
-          .select("*", { count: "exact", head: true })
-          .in("event_id", eventIds)
-          .not("checked_in_at", "is", null);
-
-        totalGuestlistSignups = signups || 0;
-        totalCheckIns = checkIns || 0;
+        totalGuestlistSignups = signupsRes.count || 0;
+        totalCheckIns = checkInsRes.count || 0;
+        totalLikes = likesRes.count || 0;
+        totalViews = viewsRes.count || 0;
       }
 
-      // Get total followers
-      const { count: totalFollowers } = await supabase
-        .from("follows")
-        .select("*", { count: "exact", head: true })
-        .eq("following_id", user.id);
+      // Get total followers + trend
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
+      const [followersRes, recentFollowersRes, prevFollowersRes, reservationsRes] = await Promise.all([
+        supabase
+          .from("follows")
+          .select("*", { count: "exact", head: true })
+          .eq("following_id", user.id),
+        supabase
+          .from("follows")
+          .select("*", { count: "exact", head: true })
+          .eq("following_id", user.id)
+          .gte("created_at", sevenDaysAgo),
+        supabase
+          .from("follows")
+          .select("*", { count: "exact", head: true })
+          .eq("following_id", user.id)
+          .gte("created_at", fourteenDaysAgo)
+          .lt("created_at", sevenDaysAgo),
+        supabase
+          .from("reservations")
+          .select("*", { count: "exact", head: true })
+          .eq("business_id", user.id),
+      ]);
+
+      const recentCount = recentFollowersRes.count || 0;
+      const prevCount = prevFollowersRes.count || 0;
+      let followerTrend: { value: number; isPositive: boolean } | null = null;
+      if (prevCount > 0) {
+        const change = Math.round(((recentCount - prevCount) / prevCount) * 100);
+        followerTrend = { value: Math.abs(change), isPositive: change >= 0 };
+      } else if (recentCount > 0) {
+        followerTrend = { value: 100, isPositive: true };
+      }
 
       return {
         totalEvents: totalEvents || 0,
         totalGuestlistSignups,
         totalCheckIns,
-        totalFollowers: totalFollowers || 0,
+        totalFollowers: followersRes.count || 0,
+        totalReservations: reservationsRes.count || 0,
+        totalLikes,
+        totalViews,
+        followerTrend,
       };
     },
     enabled: !!user?.id,
