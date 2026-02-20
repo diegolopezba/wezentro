@@ -1,91 +1,69 @@
 
+# Business Dashboard Enhancement
 
-# Algorithm Enhancements: Dwell Time, Repeat Creator Loyalty, Day-of-Week Patterns
+## What changes
 
-## Overview
+The current dashboard focuses heavily on guestlist metrics but misses several data sources that are already in the database. Here's what we'll add and improve:
 
-Three new signals to make the "Para Ti" feed smarter:
+### 1. New Overview Stats (expand the 2x2 grid to include more)
+- **Total Reservations** -- pulled from the `reservations` table where `business_id = user.id`
+- **Total Likes** -- sum of likes across all events (already fetched in event performance but not shown in overview)
+- **Total Views** -- sum of event_interactions views across all events
 
-1. **Enhanced Dwell Time Tracking** -- Currently only tracks negative signals (scroll past < 1s). We'll add positive dwell time signals when users linger on a card for 3+ seconds, feeding that as implicit interest into preferences.
+### 2. New "Reservations Summary" Section
+For businesses with reservations enabled, show:
+- Upcoming reservations count (future dates, status = confirmed)
+- Total guests expected (sum of party_size for upcoming)
+- A small list of the next 3-5 upcoming reservations with date, time, party size
 
-2. **Repeat Creator Loyalty** -- Boost events from creators where the user has attended 2+ previous events. Users who repeatedly attend a creator's events are likely fans.
+### 3. New "Audience Insights" Section
+- **Top Followers** -- show the 5 most recent followers with avatars (helps businesses know who's engaging)
+- **Follower Growth** -- show new followers in the last 7 days vs previous 7 days as a trend percentage on the Followers stats card
 
-3. **Day-of-Week Patterns** -- Learn which categories users engage with on specific days (e.g., parties on Fridays, brunch on Sundays) and boost matching content.
+### 4. Sponsored Posts Performance Summary
+Currently the Promociones section shows individual cards. We'll add a quick aggregate row at the top:
+- Total impressions, total clicks, total spent, and an overall CTR (click-through rate) across all sponsored posts
 
----
+### 5. "Quick Actions" Row
+A horizontal row of shortcut buttons at the top of the dashboard:
+- Create Event, Manage Reservations, Edit Menu, View Profile -- so business owners can quickly jump to key actions
 
-## Feature 1: Enhanced Dwell Time
-
-**Current state:** `EventFeed.tsx` already has an `IntersectionObserver` tracking `scroll_past` (< 1s). We enhance it to also fire a `dwell` signal when a card is visible for 3+ seconds.
-
-**Changes:**
-- `src/lib/preferenceTracking.ts` -- Add `dwell` signal type with weight 15 (mild positive, between `view` and `click`)
-- `src/components/events/EventFeed.tsx` -- Extend the existing `useDwellTimeTracker` hook to fire a `dwell` signal when a card stays visible for 3+ seconds (fire once per event per session)
-
-## Feature 2: Repeat Creator Loyalty
-
-**Database:** Create a new table `user_creator_attendance` or query existing `guestlist_entries` joined with `events` to count past attendance per creator. Since `guestlist_entries` + `events` already has this data, we'll query it directly -- no new table needed.
-
-**Changes:**
-- `src/hooks/useForYouEvents.ts` -- Add a query to fetch the user's attendance count per creator (from `guestlist_entries` joined with `events`)
-- `src/lib/feedScoring.ts` -- Add `getCreatorLoyaltyScore()` function: 3+ events = 100, 2 events = 70, 1 event = 40, 0 = 0. Add it as a new 8% weight factor (re-balance existing weights slightly)
-- `ScoringContext` -- Add `creatorAttendance: Record<string, number>` field
-
-## Feature 3: Day-of-Week Patterns
-
-**Database:** Create a new table `user_day_preferences` to store learned category affinities per day of week.
-
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid | PK |
-| user_id | uuid | FK |
-| day_of_week | int | 0=Sunday through 6=Saturday |
-| category | text | |
-| score | numeric | 0-100 |
-| interaction_count | int | |
-| last_interaction | timestamptz | |
-
-RLS: Users can read/insert/update their own rows only.
-
-**Changes:**
-- `src/lib/preferenceTracking.ts` -- After tracking category preference, also update `user_day_preferences` for the current day of week
-- `src/hooks/useForYouEvents.ts` -- Fetch today's day-of-week preferences
-- `src/lib/feedScoring.ts` -- Add `getDayOfWeekScore()`: if the event's category has a high score for today's day, boost it. Add as ~5% weight (re-balance)
-
----
-
-## Weight Rebalance
-
-Current weights sum to 100%. After adding Creator Loyalty (8%) and Day-of-Week (5%), we reduce existing weights slightly:
-
-| Signal | Current | New |
-|--------|---------|-----|
-| Friends Going | 18% | 15% |
-| Proximity | 15% | 13% |
-| Trending | 12% | 10% |
-| Learned Prefs | 12% | 10% |
-| Interest Match | 12% | 10% |
-| Recency | 10% | 8% |
-| Time-of-Day | 8% | 6% |
-| Popularity | 8% | 7% |
-| Timing | 5% | 3% |
-| **Creator Loyalty** | -- | **8%** |
-| **Day-of-Week** | -- | **5%** |
-| **Dwell (via Learned Prefs)** | -- | *(implicit)* |
-
-Dwell time feeds into the existing Learned Preferences score indirectly (it updates category/creator preference tables), so it doesn't need its own weight.
+### 6. Business Type Badge in Header
+Show the selected business type (e.g., "Bar", "Restaurante") as a subtle badge next to the dashboard title
 
 ---
 
 ## Technical Details
 
-### Files to create:
-- Database migration for `user_day_preferences` table with RLS
+### New hooks / data fetching
+- Add `useReservationStats()` to `useBusinessAnalytics.ts` -- queries `reservations` table for counts and upcoming list
+- Add `useRecentFollowers()` to `useBusinessAnalytics.ts` -- queries `follows` joined with `profiles` for the 5 most recent followers
+- Expand `useOverviewStats` to also return `totalLikes`, `totalViews`, and `totalReservations`
+- Add follower trend calculation (last 7d vs previous 7d)
 
-### Files to modify:
-- `src/lib/preferenceTracking.ts` -- Add `dwell` signal, day-of-week preference upsert
-- `src/components/events/EventFeed.tsx` -- Extend dwell time observer for positive signals
-- `src/hooks/useForYouEvents.ts` -- Add creator attendance + day-of-week preference queries
-- `src/lib/feedScoring.ts` -- Add `getCreatorLoyaltyScore`, `getDayOfWeekScore`, rebalance weights, update `ScoringContext`
-- `src/hooks/useUserPreferences.ts` -- Optionally extend to include day preferences
+### New components
+- `src/components/dashboard/QuickActions.tsx` -- horizontal scrollable row of action buttons
+- `src/components/dashboard/ReservationsSummary.tsx` -- upcoming reservations mini-list
+- `src/components/dashboard/AudienceInsights.tsx` -- recent followers with avatars + follower trend
+- `src/components/dashboard/SponsoredSummaryBar.tsx` -- aggregate impressions/clicks/CTR bar
 
+### Modified files
+- `src/hooks/useBusinessAnalytics.ts` -- expand overview stats, add reservation stats, add recent followers hooks
+- `src/pages/BusinessDashboard.tsx` -- integrate all new sections, add business type badge in header, reorder sections for better flow
+- `src/components/dashboard/PromocionesSection.tsx` -- add aggregate stats bar at the top when sponsored posts exist
+
+### Section Order (top to bottom)
+1. Business type badge in header
+2. Quick Actions row
+3. Overview Stats (expanded grid: Events, Guestlist Signups, Check-ins, Followers, Reservations, Views)
+4. Repeat Attendees card (existing)
+5. Reservations Summary (new, only if reservations enabled)
+6. Promociones with aggregate bar (existing, enhanced)
+7. Event Performance table (existing)
+8. Event Comparison chart (existing)
+9. Audience Insights (new)
+10. Guestlist Funnel (existing)
+11. Status Breakdown pie chart (existing)
+
+### No database changes needed
+All data already exists in the current schema. We're just querying existing tables more effectively.
