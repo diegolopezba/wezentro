@@ -103,14 +103,16 @@ export const useNearbyEvents = (
       return { ...event, distance };
     });
 
-    // Apply search filter
-    if (filters.searchQuery.trim()) {
+    // Apply search filter (includes description)
+    const hasSearchQuery = filters.searchQuery.trim().length > 0;
+    if (hasSearchQuery) {
       const query = filters.searchQuery.toLowerCase();
       result = result.filter(
         (event) =>
           event.title?.toLowerCase().includes(query) ||
           event.location_name?.toLowerCase().includes(query) ||
-          event.category?.toLowerCase().includes(query)
+          event.category?.toLowerCase().includes(query) ||
+          event.description?.toLowerCase().includes(query)
       );
     }
 
@@ -149,8 +151,9 @@ export const useNearbyEvents = (
       );
     }
 
-    // Apply distance filter
-    if (filters.maxDistance !== null) {
+    // Apply distance filter — skip when user has an active search query
+    // so they can discover events in other cities
+    if (filters.maxDistance !== null && !hasSearchQuery) {
       result = result.filter(
         (event) => event.distance !== null && event.distance <= filters.maxDistance!
       );
@@ -169,14 +172,30 @@ export const useNearbyEvents = (
       });
     }
 
-    // Sort by distance if user location is available
+    // Sort: when searching, rank nearby matches first, then farther ones
     if (userLocation) {
-      result.sort((a, b) => {
-        if (a.distance === null && b.distance === null) return 0;
-        if (a.distance === null) return 1;
-        if (b.distance === null) return -1;
-        return a.distance - b.distance;
-      });
+      if (hasSearchQuery) {
+        const radius = filters.maxDistance ?? 30; // default 30 mi boundary
+        result.sort((a, b) => {
+          const aInRadius = a.distance !== null && a.distance <= radius;
+          const bInRadius = b.distance !== null && b.distance <= radius;
+          // Nearby results first
+          if (aInRadius && !bInRadius) return -1;
+          if (!aInRadius && bInRadius) return 1;
+          // Within same tier, sort by distance
+          if (a.distance === null && b.distance === null) return 0;
+          if (a.distance === null) return 1;
+          if (b.distance === null) return -1;
+          return a.distance - b.distance;
+        });
+      } else {
+        result.sort((a, b) => {
+          if (a.distance === null && b.distance === null) return 0;
+          if (a.distance === null) return 1;
+          if (b.distance === null) return -1;
+          return a.distance - b.distance;
+        });
+      }
     }
 
     return result;
