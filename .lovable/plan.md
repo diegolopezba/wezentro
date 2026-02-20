@@ -1,69 +1,160 @@
 
-# Business Dashboard Enhancement
 
-## What changes
+# Instagram/TikTok-Level Analytics Redesign
 
-The current dashboard focuses heavily on guestlist metrics but misses several data sources that are already in the database. Here's what we'll add and improve:
+## Overview
 
-### 1. New Overview Stats (expand the 2x2 grid to include more)
-- **Total Reservations** -- pulled from the `reservations` table where `business_id = user.id`
-- **Total Likes** -- sum of likes across all events (already fetched in event performance but not shown in overview)
-- **Total Views** -- sum of event_interactions views across all events
+Restructure the Business Dashboard into a tabbed analytics system inspired by Instagram Insights and TikTok Analytics, with context-aware sections that only appear when relevant to the business type (e.g., Reservations only for businesses that have it enabled).
 
-### 2. New "Reservations Summary" Section
-For businesses with reservations enabled, show:
-- Upcoming reservations count (future dates, status = confirmed)
-- Total guests expected (sum of party_size for upcoming)
-- A small list of the next 3-5 upcoming reservations with date, time, party size
+## New Dashboard Structure
 
-### 3. New "Audience Insights" Section
-- **Top Followers** -- show the 5 most recent followers with avatars (helps businesses know who's engaging)
-- **Follower Growth** -- show new followers in the last 7 days vs previous 7 days as a trend percentage on the Followers stats card
+The dashboard will be reorganized into **4 main tabs**:
 
-### 4. Sponsored Posts Performance Summary
-Currently the Promociones section shows individual cards. We'll add a quick aggregate row at the top:
-- Total impressions, total clicks, total spent, and an overall CTR (click-through rate) across all sponsored posts
+1. **Overview** -- high-level summary (accounts reached, interactions, followers)
+2. **Content** -- per-event performance with reach, engagement rate, shares
+3. **Audience** -- demographics (age, gender, city), peak activity, follower growth chart
+4. **Actions** -- profile visits, reservations, guestlist conversions, competitive benchmark
 
-### 5. "Quick Actions" Row
-A horizontal row of shortcut buttons at the top of the dashboard:
-- Create Event, Manage Reservations, Edit Menu, View Profile -- so business owners can quickly jump to key actions
+## Database Changes
 
-### 6. Business Type Badge in Header
-Show the selected business type (e.g., "Bar", "Restaurante") as a subtle badge next to the dashboard title
+A new `profile_visits` table to track when users visit a business profile:
 
----
+```text
+profile_visits
+  - id (uuid, PK)
+  - profile_id (uuid) -- the business being visited
+  - visitor_id (uuid, nullable) -- logged-in visitor
+  - created_at (timestamptz)
+```
+
+RLS: Business owners can SELECT their own visits. Authenticated users can INSERT.
+
+## Tab 1: Overview (Default View)
+
+Time-period selector: **Last 7 days | Last 30 days | All time**
+
+Metrics with week-over-week trends (percentage change):
+- **Accounts Reached** -- unique users who viewed any of your events (from `event_interactions` type=view, count distinct user_id)
+- **Total Interactions** -- sum of all event_interactions (views + clicks + shares + joins + dwells)
+- **Engagement Rate** -- (interactions / views) * 100
+- **Profile Visits** -- from new `profile_visits` table
+- **Followers** -- total + trend
+- **Content Published** -- events created in period
+
+Below the stats grid, a **mini line chart** showing daily accounts reached over the selected period.
+
+## Tab 2: Content
+
+Per-event cards (most recent first) showing:
+- Thumbnail + title + date
+- **Reach** (unique viewers)
+- **Impressions** (total views including repeats)  
+- **Engagement Rate** (likes + guestlist joins + shares) / reach
+- **Likes**, **Shares**, **Guestlist Joins**, **Check-ins**
+
+Tap an event card to expand detailed per-event breakdown.
+
+Keeps existing **Event Comparison** bar chart but adds reach as a bar.
+
+## Tab 3: Audience
+
+### Demographics (from profiles of users who interacted with your events)
+- **Age Distribution** -- horizontal bar chart bucketed (18-24, 25-34, 35-44, 45+)
+- **Gender Split** -- pie/donut chart (male, female, other, not specified)
+- **Top Cities** -- list of cities (from profiles.city of interactors)
+
+### Follower Activity
+- **Follower Growth Chart** -- line chart showing cumulative followers over the last 30 days
+- **Recent Followers** -- existing list with avatars (keep current component)
+
+### Audience Overlap (if enough data)
+- **Repeat Attendees** -- existing metric, shown here
+
+## Tab 4: Actions and Conversions
+
+### Conversion Funnel (enhanced)
+- Views -> Likes -> Guestlist Requests -> Approved -> Checked In (with drop-off percentages)
+
+### Profile Actions
+- Profile visits over period
+- "Reservar" button taps (trackable via new interaction type)
+- Menu views (trackable via new interaction type)
+
+### Reservations Module (ONLY if `profile.reservations_enabled`)
+- Upcoming reservations summary
+- Reservation trend (this week vs last week)
+- Average party size
+- Cancellation rate
+
+### Competitive Benchmark
+Compare your performance against the **average of other businesses of the same `business_type`** in the platform:
+- Your avg reach per event vs platform avg
+- Your avg engagement rate vs platform avg
+- Your follower growth rate vs platform avg
+- Your avg guestlist fill rate vs platform avg
+
+This uses aggregated anonymous data -- no individual business is exposed. Queries will compute averages across businesses with the same `business_type`.
+
+### Sponsored Performance (ONLY if business has sponsored posts)
+- Existing Promociones section with aggregate summary bar
+
+## Conditional Sections Logic
+
+| Section | Condition |
+|---------|-----------|
+| Reservations module | `profile.reservations_enabled === true` |
+| Guestlist Funnel | business has at least 1 event with `has_guestlist = true` |
+| Sponsored Performance | business has at least 1 sponsored post |
+| Menu analytics | `profile.menu_enabled === true` |
+| Competitive Benchmark | `profile.business_type` is set |
+| Demographics | at least 10 interactions exist |
 
 ## Technical Details
 
-### New hooks / data fetching
-- Add `useReservationStats()` to `useBusinessAnalytics.ts` -- queries `reservations` table for counts and upcoming list
-- Add `useRecentFollowers()` to `useBusinessAnalytics.ts` -- queries `follows` joined with `profiles` for the 5 most recent followers
-- Expand `useOverviewStats` to also return `totalLikes`, `totalViews`, and `totalReservations`
-- Add follower trend calculation (last 7d vs previous 7d)
+### New/Modified Files
 
-### New components
-- `src/components/dashboard/QuickActions.tsx` -- horizontal scrollable row of action buttons
-- `src/components/dashboard/ReservationsSummary.tsx` -- upcoming reservations mini-list
-- `src/components/dashboard/AudienceInsights.tsx` -- recent followers with avatars + follower trend
-- `src/components/dashboard/SponsoredSummaryBar.tsx` -- aggregate impressions/clicks/CTR bar
+**Database migration:**
+- Create `profile_visits` table with RLS
+- Add `profile_view` and `menu_view` and `reserve_tap` to tracked interaction types in `analyticsTracking.ts`
 
-### Modified files
-- `src/hooks/useBusinessAnalytics.ts` -- expand overview stats, add reservation stats, add recent followers hooks
-- `src/pages/BusinessDashboard.tsx` -- integrate all new sections, add business type badge in header, reorder sections for better flow
-- `src/components/dashboard/PromocionesSection.tsx` -- add aggregate stats bar at the top when sponsored posts exist
+**New tracking (analyticsTracking.ts):**
+- `trackProfileVisit(profileId, visitorId)` -- called from `UserProfile.tsx`
+- `trackMenuView(eventOrProfileId, userId)` -- called from `MenuSheet.tsx`
+- `trackReserveTap(businessId, userId)` -- called from `ReservationSheet.tsx`
 
-### Section Order (top to bottom)
-1. Business type badge in header
-2. Quick Actions row
-3. Overview Stats (expanded grid: Events, Guestlist Signups, Check-ins, Followers, Reservations, Views)
-4. Repeat Attendees card (existing)
-5. Reservations Summary (new, only if reservations enabled)
-6. Promociones with aggregate bar (existing, enhanced)
-7. Event Performance table (existing)
-8. Event Comparison chart (existing)
-9. Audience Insights (new)
-10. Guestlist Funnel (existing)
-11. Status Breakdown pie chart (existing)
+**New hooks (useBusinessAnalytics.ts):**
+- `useAccountsReached(period)` -- unique viewers across all events in period
+- `useInteractionSummary(period)` -- total interactions breakdown by type
+- `useAudienceDemographics()` -- age/gender/city from profiles of interactors
+- `useFollowerGrowthChart(days)` -- daily follower count for line chart
+- `useProfileVisits(period)` -- count from profile_visits
+- `useCompetitiveBenchmark()` -- averages for same business_type
+- `useReservationTrends()` -- reservation analytics over time
+- Refactor existing hooks to accept a `period` parameter (7d/30d/all)
 
-### No database changes needed
-All data already exists in the current schema. We're just querying existing tables more effectively.
+**New components:**
+- `src/components/dashboard/AnalyticsTabs.tsx` -- tab navigation (Overview, Content, Audience, Actions)
+- `src/components/dashboard/OverviewTab.tsx` -- accounts reached, interactions, engagement rate, mini chart
+- `src/components/dashboard/ContentTab.tsx` -- per-event cards with expanded metrics
+- `src/components/dashboard/AudienceTab.tsx` -- demographics charts, follower growth, recent followers
+- `src/components/dashboard/ActionsTab.tsx` -- conversion funnel, profile actions, reservations, benchmark
+- `src/components/dashboard/CompetitiveBenchmark.tsx` -- comparison cards vs platform average
+- `src/components/dashboard/DemographicsCharts.tsx` -- age bars, gender donut, city list
+- `src/components/dashboard/FollowerGrowthChart.tsx` -- line chart using recharts
+- `src/components/dashboard/PeriodSelector.tsx` -- 7d / 30d / All time toggle
+
+**Modified files:**
+- `src/pages/BusinessDashboard.tsx` -- replace flat layout with tabbed structure
+- `src/pages/UserProfile.tsx` -- add `trackProfileVisit()` call
+- `src/components/menu/MenuSheet.tsx` -- add `trackMenuView()` call
+- `src/components/reservations/ReservationSheet.tsx` -- add `trackReserveTap()` call
+- `src/lib/analyticsTracking.ts` -- add new tracking functions
+
+### Implementation Order
+1. Database migration (profile_visits table)
+2. New tracking functions + integrate into existing pages
+3. New analytics hooks with period support
+4. Tab components (Overview first, then Content, Audience, Actions)
+5. Competitive benchmark (last, as it needs aggregated data)
+6. Integrate everything into BusinessDashboard.tsx
+
