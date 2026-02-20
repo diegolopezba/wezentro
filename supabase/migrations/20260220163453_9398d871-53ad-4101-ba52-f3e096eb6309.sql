@@ -1,0 +1,2 @@
+ALTER TABLE public.event_interactions DROP CONSTRAINT event_interactions_type_check;
+ALTER TABLE public.event_interactions ADD CONSTRAINT event_interactions_type_check CHECK (type = ANY (ARRAY['view','join','checkin','share','scroll_past','save','like','repost','click','not_interested','dwell']));
