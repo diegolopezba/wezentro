@@ -38,6 +38,7 @@ import {
   formatDuration,
 } from "@/lib/mediaUtils";
 import { compressImage, blobToFile, formatBytes } from "@/lib/mediaCompression";
+import { extractDescriptionTags } from "@/lib/descriptionTagExtractor";
 
 const categories = [
   { id: "party", label: "Fiesta", emoji: "🪩" },
@@ -265,6 +266,13 @@ const Create = () => {
         startDatetime = new Date(`${formData.date}T${formData.time}`).toISOString();
       }
 
+      // Extract description tags for recommendation engine
+      const descriptionTags = extractDescriptionTags(
+        formData.description.trim(),
+        formData.title.trim(),
+        formData.category
+      );
+
       const { data, error } = await supabase
         .from("events")
         .insert({
@@ -283,6 +291,7 @@ const Create = () => {
           creator_id: user.id,
           is_public: true,
           is_post: isPost,
+          description_tags: descriptionTags.length > 0 ? descriptionTags : null,
         })
         .select()
         .single();

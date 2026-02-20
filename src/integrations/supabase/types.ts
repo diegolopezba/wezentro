@@ -287,6 +287,7 @@ export type Database = {
           creator_id: string
           deleted_at: string | null
           description: string | null
+          description_tags: string[] | null
           end_datetime: string | null
           has_guestlist: boolean | null
           has_guestlist_chat: boolean | null
@@ -311,6 +312,7 @@ export type Database = {
           creator_id: string
           deleted_at?: string | null
           description?: string | null
+          description_tags?: string[] | null
           end_datetime?: string | null
           has_guestlist?: boolean | null
           has_guestlist_chat?: boolean | null
@@ -335,6 +337,7 @@ export type Database = {
           creator_id?: string
           deleted_at?: string | null
           description?: string | null
+          description_tags?: string[] | null
           end_datetime?: string | null
           has_guestlist?: boolean | null
           has_guestlist_chat?: boolean | null
@@ -1425,6 +1428,36 @@ export type Database = {
           created_at?: string | null
           id?: string
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_tag_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          interaction_count: number | null
+          last_interaction: string | null
+          score: number | null
+          tag: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          score?: number | null
+          tag: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          score?: number | null
+          tag?: string
           user_id?: string
         }
         Relationships: []

@@ -130,6 +130,31 @@ export const useForYouEvents = () => {
     staleTime: 10 * 60 * 1000,
   });
 
+  // NEW: Fetch user's tag preferences
+  const { data: tagPrefs } = useQuery({
+    queryKey: ["user-tag-prefs", userId],
+    queryFn: async () => {
+      if (!userId) return {};
+      const { data, error } = await supabase
+        .from("user_tag_preferences")
+        .select("tag, score")
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Error fetching tag prefs:", error);
+        return {};
+      }
+
+      const prefs: Record<string, number> = {};
+      for (const row of data || []) {
+        prefs[row.tag] = Number(row.score) || 0;
+      }
+      return prefs;
+    },
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+  });
+
   // Fetch all public events
   const {
     data: events,
@@ -181,6 +206,7 @@ export const useForYouEvents = () => {
       trendingCounts: trendingData || {},
       creatorAttendance: creatorAttendance || {},
       dayOfWeekPrefs: dayOfWeekPrefs || {},
+      tagPrefs: tagPrefs || {},
     };
 
     // Filter: posts always show, events must be in the future
@@ -198,7 +224,7 @@ export const useForYouEvents = () => {
 
     // Inject 15% exploration content to prevent echo chambers
     return injectExploration(scored, categoryPrefs);
-  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingData, creatorAttendance, dayOfWeekPrefs]);
+  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingData, creatorAttendance, dayOfWeekPrefs, tagPrefs]);
 
   return {
     data: scoredEvents,
