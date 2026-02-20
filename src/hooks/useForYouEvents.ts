@@ -50,7 +50,7 @@ export const useForYouEvents = () => {
     enabled: !!user?.id,
   });
 
-  // NEW: Fetch trending velocity (interaction counts in last 24h)
+  // Fetch trending velocity (interaction counts in last 24h)
   const { data: trendingData } = useQuery({
     queryKey: ["trending-counts"],
     queryFn: async () => {
@@ -65,14 +65,69 @@ export const useForYouEvents = () => {
         return {};
       }
 
-      // Count interactions per event
       const counts: Record<string, number> = {};
       for (const row of data || []) {
         counts[row.event_id] = (counts[row.event_id] || 0) + 1;
       }
       return counts;
     },
-    staleTime: 5 * 60 * 1000, // Cache 5 min
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // NEW: Fetch creator attendance counts (how many events user attended per creator)
+  const { data: creatorAttendance } = useQuery({
+    queryKey: ["creator-attendance", userId],
+    queryFn: async () => {
+      if (!userId) return {};
+      const { data, error } = await supabase
+        .from("guestlist_entries")
+        .select("event_id, events!guestlist_entries_event_id_fkey(creator_id)")
+        .eq("user_id", userId)
+        .eq("status", "approved");
+
+      if (error) {
+        console.error("Error fetching creator attendance:", error);
+        return {};
+      }
+
+      const counts: Record<string, number> = {};
+      for (const row of data || []) {
+        const creatorId = (row as any).events?.creator_id;
+        if (creatorId) {
+          counts[creatorId] = (counts[creatorId] || 0) + 1;
+        }
+      }
+      return counts;
+    },
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // NEW: Fetch day-of-week preferences for today
+  const { data: dayOfWeekPrefs } = useQuery({
+    queryKey: ["day-of-week-prefs", userId],
+    queryFn: async () => {
+      if (!userId) return {};
+      const today = new Date().getDay();
+      const { data, error } = await supabase
+        .from("user_day_preferences")
+        .select("category, score")
+        .eq("user_id", userId)
+        .eq("day_of_week", today);
+
+      if (error) {
+        console.error("Error fetching day-of-week prefs:", error);
+        return {};
+      }
+
+      const prefs: Record<string, number> = {};
+      for (const row of data || []) {
+        prefs[row.category] = Number(row.score) || 0;
+      }
+      return prefs;
+    },
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
   });
 
   // Fetch all public events
@@ -124,6 +179,8 @@ export const useForYouEvents = () => {
       categoryPrefs,
       creatorPrefs,
       trendingCounts: trendingData || {},
+      creatorAttendance: creatorAttendance || {},
+      dayOfWeekPrefs: dayOfWeekPrefs || {},
     };
 
     // Filter: posts always show, events must be in the future
@@ -141,7 +198,7 @@ export const useForYouEvents = () => {
 
     // Inject 15% exploration content to prevent echo chambers
     return injectExploration(scored, categoryPrefs);
-  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingData]);
+  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingData, creatorAttendance, dayOfWeekPrefs]);
 
   return {
     data: scoredEvents,

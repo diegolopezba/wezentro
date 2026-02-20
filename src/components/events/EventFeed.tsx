@@ -22,6 +22,8 @@ interface EventFeedProps {
 const useDwellTimeTracker = (userId: string | undefined) => {
   const entryTimestamps = useRef<Map<string, number>>(new Map());
   const trackedScrollPasts = useRef<Set<string>>(new Set());
+  const trackedDwells = useRef<Set<string>>(new Set());
+  const dwellTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
@@ -35,7 +37,23 @@ const useDwellTimeTracker = (userId: string | undefined) => {
 
           if (entry.isIntersecting) {
             entryTimestamps.current.set(eventId, Date.now());
+
+            // Start a 3s timer for positive dwell signal
+            if (!trackedDwells.current.has(eventId)) {
+              const timer = setTimeout(() => {
+                trackedDwells.current.add(eventId);
+                trackPreferenceSignal(userId, eventId, "dwell");
+              }, 3000);
+              dwellTimers.current.set(eventId, timer);
+            }
           } else {
+            // Card left viewport — clear dwell timer
+            const timer = dwellTimers.current.get(eventId);
+            if (timer) {
+              clearTimeout(timer);
+              dwellTimers.current.delete(eventId);
+            }
+
             const enterTime = entryTimestamps.current.get(eventId);
             if (enterTime) {
               const dwellMs = Date.now() - enterTime;
@@ -50,11 +68,14 @@ const useDwellTimeTracker = (userId: string | undefined) => {
           }
         }
       },
-      { threshold: 0.5 } // Card must be 50% visible
+      { threshold: 0.5 }
     );
 
     return () => {
       observerRef.current?.disconnect();
+      // Clear all pending dwell timers
+      dwellTimers.current.forEach((t) => clearTimeout(t));
+      dwellTimers.current.clear();
     };
   }, [userId]);
 

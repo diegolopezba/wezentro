@@ -8,6 +8,7 @@ export const SIGNAL_WEIGHTS = {
   like: 60,         // Clear positive signal
   click: 30,        // Curiosity
   view: 20,         // Mild interest
+  dwell: 15,        // Positive implicit: lingered on card 3+ seconds
   scroll_past: -10, // Implicit negative: saw card <1s and scrolled away
   not_interested: -100, // Strong negative signal
 } as const;
@@ -59,6 +60,11 @@ export const trackPreferenceSignal = async (
     // 4. Update creator preference (don't track self-interactions)
     if (event.creator_id && event.creator_id !== userId) {
       await upsertCreatorPreference(userId, event.creator_id, weight, now, isNegative);
+    }
+
+    // 5. Update day-of-week preference for the current day
+    if (event.category && !isNegative) {
+      await upsertDayPreference(userId, event.category, weight, now);
     }
   } catch (error) {
     // Don't throw - this is a background operation
@@ -149,6 +155,50 @@ const upsertCreatorPreference = async (
       user_id: userId,
       creator_id: creatorId,
       score: isNegative ? 0 : weight,
+      interaction_count: 1,
+      last_interaction: timestamp,
+    });
+  }
+};
+
+/**
+ * Upsert a day-of-week category preference
+ */
+const upsertDayPreference = async (
+  userId: string,
+  category: string,
+  weight: number,
+  timestamp: string
+) => {
+  const dayOfWeek = new Date().getDay(); // 0=Sunday
+
+  const { data: existing } = await supabase
+    .from("user_day_preferences")
+    .select("id, score, interaction_count")
+    .eq("user_id", userId)
+    .eq("day_of_week", dayOfWeek)
+    .eq("category", category)
+    .maybeSingle();
+
+  if (existing) {
+    const newCount = (existing.interaction_count || 0) + 1;
+    const currentScore = Number(existing.score) || 0;
+    const newScore = (currentScore * 0.7) + (weight * 0.3);
+
+    await supabase
+      .from("user_day_preferences")
+      .update({
+        score: Math.min(100, Math.max(0, newScore)),
+        interaction_count: newCount,
+        last_interaction: timestamp,
+      })
+      .eq("id", existing.id);
+  } else {
+    await supabase.from("user_day_preferences").insert({
+      user_id: userId,
+      day_of_week: dayOfWeek,
+      category,
+      score: weight,
       interaction_count: 1,
       last_interaction: timestamp,
     });

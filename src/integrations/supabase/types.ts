@@ -1318,6 +1318,39 @@ export type Database = {
           },
         ]
       }
+      user_day_preferences: {
+        Row: {
+          category: string
+          created_at: string
+          day_of_week: number
+          id: string
+          interaction_count: number | null
+          last_interaction: string | null
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          day_of_week: number
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

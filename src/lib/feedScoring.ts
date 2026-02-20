@@ -1,15 +1,19 @@
 /**
  * Feed Scoring Engine for the "Para Ti" algorithm.
  *
- * Weights (post-refactor):
- *   Friends Going    18%
- *   Proximity        15%
- *   Trending         12%   ← NEW
- *   Learned Prefs    12%
- *   Interest Match   12%
- *   Recency          10%
- *   Time-of-Day       8%   ← NEW
- *   Timing (upcoming) 5%
+ * Weights (v3 — with Creator Loyalty + Day-of-Week):
+ *   Friends Going    15%
+ *   Proximity        13%
+ *   Trending         10%
+ *   Learned Prefs    10%
+ *   Interest Match   10%
+ *   Creator Loyalty   8%  ← NEW
+ *   Recency           8%
+ *   Popularity        7%
+ *   Time-of-Day       6%
+ *   Day-of-Week       5%  ← NEW
+ *   Timing (upcoming) 3%
+ *   Dwell feeds into Learned Prefs implicitly
  *   Diversity bonus applied as post-processing (15-20% exploration slots)
  */
 
@@ -164,6 +168,36 @@ export const getTimeOfDayScore = (category: string | null): number => {
   return 40; // neutral-ish for non-matching
 };
 
+// ───────── NEW: Creator Loyalty ─────────
+/**
+ * Boost events from creators the user has repeatedly attended.
+ */
+export const getCreatorLoyaltyScore = (
+  creatorId: string,
+  creatorAttendance: Record<string, number>
+): number => {
+  const count = creatorAttendance[creatorId] || 0;
+  if (count >= 3) return 100;
+  if (count === 2) return 70;
+  if (count === 1) return 40;
+  return 0;
+};
+
+// ───────── NEW: Day-of-Week Patterns ─────────
+/**
+ * Boost events whose category matches what the user typically engages with
+ * on the current day of week.
+ */
+export const getDayOfWeekScore = (
+  category: string | null,
+  dayPrefs: Record<string, number>
+): number => {
+  if (!category || !Object.keys(dayPrefs).length) return 50;
+  const score = dayPrefs[category.toLowerCase()] ?? dayPrefs[category];
+  if (score != null) return Math.min(100, score);
+  return 30; // unknown category for this day
+};
+
 // ───────── composite score ─────────
 
 export interface ScoringContext {
@@ -173,7 +207,9 @@ export interface ScoringContext {
   followingIds: string[] | null;
   categoryPrefs: Record<string, number>;
   creatorPrefs: Record<string, number>;
-  trendingCounts: Record<string, number>; // eventId -> recent interaction count
+  trendingCounts: Record<string, number>;
+  creatorAttendance: Record<string, number>;
+  dayOfWeekPrefs: Record<string, number>;
 }
 
 export interface ScoredEvent {
@@ -196,25 +232,29 @@ export const calculateEventScore = (
 ): number => {
   const attendees = event.guestlist_entries?.length || 0;
 
-  const proximity  = getProximityScore(event.latitude, event.longitude, ctx.userLat, ctx.userLon);
-  const friends    = getFriendsGoingScore(event.guestlist_entries, ctx.followingIds);
-  const trending   = getTrendingScore(ctx.trendingCounts[event.id] || 0);
-  const learned    = getLearnedPreferenceScore(event.category, event.creator_id, ctx.categoryPrefs, ctx.creatorPrefs);
-  const interest   = getInterestScore(event.category, ctx.userInterests);
-  const recency    = getRecencyScore(event.created_at);
-  const timeOfDay  = getTimeOfDayScore(event.category);
-  const timing     = getTimingScore(event.start_datetime);
+  const proximity       = getProximityScore(event.latitude, event.longitude, ctx.userLat, ctx.userLon);
+  const friends         = getFriendsGoingScore(event.guestlist_entries, ctx.followingIds);
+  const trending        = getTrendingScore(ctx.trendingCounts[event.id] || 0);
+  const learned         = getLearnedPreferenceScore(event.category, event.creator_id, ctx.categoryPrefs, ctx.creatorPrefs);
+  const interest        = getInterestScore(event.category, ctx.userInterests);
+  const recency         = getRecencyScore(event.created_at);
+  const timeOfDay       = getTimeOfDayScore(event.category);
+  const timing          = getTimingScore(event.start_datetime);
+  const creatorLoyalty  = getCreatorLoyaltyScore(event.creator_id, ctx.creatorAttendance);
+  const dayOfWeek       = getDayOfWeekScore(event.category, ctx.dayOfWeekPrefs);
 
   return (
-    friends   * 0.18 +
-    proximity * 0.15 +
-    trending  * 0.12 +
-    learned   * 0.12 +
-    interest  * 0.12 +
-    recency   * 0.10 +
-    timeOfDay * 0.08 +
-    timing    * 0.05 +
-    getPopularityScore(attendees) * 0.08
+    friends        * 0.15 +
+    proximity      * 0.13 +
+    trending       * 0.10 +
+    learned        * 0.10 +
+    interest       * 0.10 +
+    creatorLoyalty * 0.08 +
+    recency        * 0.08 +
+    getPopularityScore(attendees) * 0.07 +
+    timeOfDay      * 0.06 +
+    dayOfWeek      * 0.05 +
+    timing         * 0.03
   );
 };
 
