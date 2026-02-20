@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { trackProfileVisit } from "@/lib/analyticsTracking";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
@@ -39,6 +40,14 @@ const UserProfile = () => {
 
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === id;
+
+  // Track profile visit
+  useEffect(() => {
+    if (id && currentUser?.id && !isOwnProfile) {
+      trackProfileVisit(id, currentUser.id);
+    }
+  }, [id, currentUser?.id, isOwnProfile]);
+
   const {
     data: userProfile,
     isLoading: profileLoading
