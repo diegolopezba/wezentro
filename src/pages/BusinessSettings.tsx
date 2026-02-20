@@ -1,13 +1,27 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Briefcase, BarChart3, ChevronRight, UtensilsCrossed, CalendarCheck } from "lucide-react";
+import { ArrowLeft, Briefcase, BarChart3, ChevronRight, UtensilsCrossed, CalendarCheck, Store } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+
+const BUSINESS_TYPES = [
+  { value: "bar", label: "Bar", emoji: "🍸" },
+  { value: "restaurant", label: "Restaurante", emoji: "🍽️" },
+  { value: "coffee", label: "Café", emoji: "☕" },
+  { value: "club", label: "Club / Discoteca", emoji: "🪩" },
+  { value: "gym", label: "Gimnasio", emoji: "🏋️" },
+  { value: "gallery", label: "Galería / Cultura", emoji: "🎨" },
+  { value: "rooftop", label: "Rooftop", emoji: "🌆" },
+  { value: "venue", label: "Venue / Salón", emoji: "🏛️" },
+  { value: "other", label: "Otro", emoji: "✨" },
+];
 
 const BusinessSettings = () => {
   const navigate = useNavigate();
@@ -15,12 +29,14 @@ const BusinessSettings = () => {
   const [togglingBusiness, setTogglingBusiness] = useState(false);
   const [togglingMenu, setTogglingMenu] = useState(false);
   const [togglingReservations, setTogglingReservations] = useState(false);
+  const [savingType, setSavingType] = useState(false);
 
   useSwipeBack();
 
   const isBusiness = profile?.is_business === true;
   const menuEnabled = (profile as any)?.menu_enabled !== false;
   const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
+  const currentBusinessType = (profile as any)?.business_type || "";
 
   const handleToggleBusiness = async (value: boolean) => {
     if (!user) return;
@@ -37,6 +53,24 @@ const BusinessSettings = () => {
       toast.error(error.message || "Error al cambiar tipo de cuenta");
     } finally {
       setTogglingBusiness(false);
+    }
+  };
+
+  const handleBusinessTypeChange = async (value: string) => {
+    if (!user) return;
+    setSavingType(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ business_type: value } as any)
+        .eq("id", user.id);
+      if (error) throw error;
+      await refreshProfile();
+      toast.success("Tipo de negocio actualizado");
+    } catch (error: any) {
+      toast.error(error.message || "Error al cambiar tipo de negocio");
+    } finally {
+      setSavingType(false);
     }
   };
 
@@ -109,12 +143,46 @@ const BusinessSettings = () => {
           />
         </motion.div>
 
+        {/* Business Type Picker */}
+        {isBusiness && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="py-4 px-4 rounded-xl bg-card border border-border space-y-2"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Store className="w-4 h-4 text-muted-foreground" />
+              <Label className="text-foreground font-semibold">Tipo de negocio</Label>
+            </div>
+            <Select
+              value={currentBusinessType}
+              onValueChange={handleBusinessTypeChange}
+              disabled={savingType}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona tu tipo de negocio" />
+              </SelectTrigger>
+              <SelectContent>
+                {BUSINESS_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    <span className="flex items-center gap-2">
+                      <span>{type.emoji}</span>
+                      <span>{type.label}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </motion.div>
+        )}
+
         {/* Dashboard Button */}
         {isBusiness && (
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
+            transition={{ delay: 0.1 }}
             onClick={() => navigate("/dashboard")}
             className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 hover:from-primary/15 hover:to-primary/10 transition-colors"
           >
@@ -135,7 +203,7 @@ const BusinessSettings = () => {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+              transition={{ delay: 0.15 }}
               className="mt-4"
             >
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1 mb-2">
@@ -147,7 +215,7 @@ const BusinessSettings = () => {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
+              transition={{ delay: 0.2 }}
               className="flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border"
             >
               <div className="w-9 h-9 rounded-lg bg-orange-500/15 flex items-center justify-center">
@@ -168,7 +236,7 @@ const BusinessSettings = () => {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.25 }}
               className="flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border"
             >
               <div className="w-9 h-9 rounded-lg bg-green-500/15 flex items-center justify-center">
