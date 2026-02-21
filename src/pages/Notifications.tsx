@@ -547,7 +547,7 @@ const Notifications = () => {
         </div>
       </header>
 
-      <div className="space-y-2 py-0 px-0">
+      <div className="space-y-0 py-0 px-0">
         {isLoading ? <div className="flex justify-center py-12">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div> : !notifications || notifications.length === 0 ? <motion.div initial={{
