@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { haptic } from "@/lib/haptics";
 
 export interface Reservation {
   id: string;
@@ -70,6 +71,7 @@ export const useCreateReservation = () => {
       return data;
     },
     onSuccess: (_, variables) => {
+      haptic("success");
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       queryClient.invalidateQueries({
         queryKey: ["available-capacity", variables.business_id],

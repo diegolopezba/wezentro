@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
+import { haptic } from "@/lib/haptics";
 
 export const useHasReposted = (eventId: string | undefined) => {
   const { user } = useAuth();
@@ -83,6 +84,7 @@ export const useToggleRepost = () => {
       }
     },
     onSuccess: (_, { eventId, isReposted }) => {
+      if (!isReposted) haptic("medium");
       queryClient.invalidateQueries({ queryKey: ["has-reposted", eventId] });
       queryClient.invalidateQueries({ queryKey: ["repost-count", eventId] });
       queryClient.invalidateQueries({ queryKey: ["following-events-scored"] });

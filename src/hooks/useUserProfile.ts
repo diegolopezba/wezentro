@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendPushNotification } from "@/lib/pushNotifications";
+import { haptic } from "@/lib/haptics";
 
 export interface UserProfile {
   id: string;
@@ -153,6 +154,7 @@ export const useFollowUser = () => {
       });
     },
     onSuccess: (_, targetUserId) => {
+      haptic("medium");
       queryClient.invalidateQueries({ queryKey: ["is-following", user?.id, targetUserId] });
       queryClient.invalidateQueries({ queryKey: ["user-followers", targetUserId] });
       queryClient.invalidateQueries({ queryKey: ["user-following", user?.id] });

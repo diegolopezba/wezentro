@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
+import { haptic } from "@/lib/haptics";
 
 export function useSaveCount(eventId: string | undefined) {
   return useQuery({
@@ -111,6 +112,7 @@ export function useSaveEvent() {
       return data;
     },
     onSuccess: (_, eventId) => {
+      haptic("medium");
       queryClient.invalidateQueries({ queryKey: ["saved-events"] });
       queryClient.invalidateQueries({ queryKey: ["is-event-saved", eventId] });
       queryClient.invalidateQueries({ queryKey: ["save-count", eventId] });

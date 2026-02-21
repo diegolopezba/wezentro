@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { haptic } from "@/lib/haptics";
 
 const NOTIFICATION_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
 
@@ -29,10 +30,8 @@ export const useNotificationFeedback = () => {
       });
     }
 
-    // Vibrate (mobile devices)
-    if ("vibrate" in navigator) {
-      navigator.vibrate([100, 50, 100]);
-    }
+    // Haptic feedback for notifications
+    haptic("notification");
   };
 
   useEffect(() => {
