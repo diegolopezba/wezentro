@@ -69,8 +69,8 @@ export const PostTagNotificationItem = ({
       transition={{ delay: index * 0.03 }}
       className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${
         notification.is_read
-          ? "bg-secondary/30 hover:bg-secondary/50"
-          : "bg-primary/10 hover:bg-primary/15"
+          ? "hover:bg-secondary/30"
+          : "hover:bg-primary/10"
       }`}
       onClick={onClick}
     >
