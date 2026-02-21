@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 
@@ -50,8 +50,8 @@ export const AuthPromptModal = () => {
 
               {/* Content */}
               <div className="text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto">
-                  <Sparkles className="w-8 h-8 text-primary" />
+                <div className="w-16 h-16 flex items-center justify-center mx-auto">
+                  <img src="/logo.png" alt="Zentro" className="w-16 h-16 object-contain" />
                 </div>
 
                 <div>
