@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
+import { haptic } from "@/lib/haptics";
 
 export function useEventLikes(eventId: string) {
   return useQuery({
@@ -61,6 +62,7 @@ export function useLikeEvent() {
       trackPreferenceSignal(user.id, eventId, "like");
     },
     onSuccess: (_, eventId) => {
+      haptic("medium");
       queryClient.invalidateQueries({ queryKey: ["event-liked", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event-likes", eventId] });
     },

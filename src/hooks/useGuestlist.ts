@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendPushNotification } from "@/lib/pushNotifications";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
+import { haptic } from "@/lib/haptics";
 
 export const useIsOnGuestlist = (eventId: string | undefined) => {
   const { user } = useAuth();
@@ -106,6 +107,7 @@ export const useJoinGuestlist = () => {
       return entry;
     },
     onSuccess: (_, eventId) => {
+      haptic("heavy");
       queryClient.invalidateQueries({ queryKey: ["guestlist-status", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event-guestlist", eventId] });
       queryClient.invalidateQueries({ queryKey: ["user-chats"] });
@@ -174,6 +176,7 @@ export const useJoinGuestlistWithPayment = () => {
       return entry;
     },
     onSuccess: (_, eventId) => {
+      haptic("heavy");
       queryClient.invalidateQueries({ queryKey: ["guestlist-status", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event-guestlist", eventId] });
       queryClient.invalidateQueries({ queryKey: ["pending-payments", eventId] });

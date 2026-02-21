@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { haptic } from "@/lib/haptics";
 import { motion } from "framer-motion";
 import {
   Upload,
@@ -346,6 +347,9 @@ const Create = () => {
           ? `¡${isPost ? "Publicación creada" : "Evento creado"}! Invitación enviada a @${selectedCollaborator.username}` 
           : isPost ? "¡Publicación creada!" : "¡Evento creado exitosamente!"
       );
+      
+      // Haptic feedback for successful publish
+      haptic("success");
       
       // Invalidate caches for instant UI updates
       invalidateAfterCreate();
