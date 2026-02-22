@@ -1,160 +1,79 @@
 
 
-# Instagram/TikTok-Level Analytics Redesign
+# Notifications System Audit and Enhancement Plan
 
-## Overview
+## Current State
 
-Restructure the Business Dashboard into a tabbed analytics system inspired by Instagram Insights and TikTok Analytics, with context-aware sections that only appear when relevant to the business type (e.g., Reservations only for businesses that have it enabled).
+The app has **13 notification types** with database triggers, but only **6 have custom UI components**. The remaining 7 types (repost, collaboration_accepted, referral_signup, new_reservation, reservation_cancelled, reservation_tagged, event_reminder) fall through to a generic renderer that shows raw title/body text without avatars or rich formatting.
 
-## New Dashboard Structure
+## What Needs Fixing
 
-The dashboard will be reorganized into **4 main tabs**:
+### 1. Custom UI Components for Existing Types
 
-1. **Overview** -- high-level summary (accounts reached, interactions, followers)
-2. **Content** -- per-event performance with reach, engagement rate, shares
-3. **Audience** -- demographics (age, gender, city), peak activity, follower growth chart
-4. **Actions** -- profile visits, reservations, guestlist conversions, competitive benchmark
+These types already have triggers but use the generic fallback -- they need dedicated, polished UI components:
 
-## Database Changes
+- **repost** -- Show reposter's avatar + "reposted your post" with event thumbnail
+- **collaboration_accepted** -- Show collaborator's avatar + "accepted your collaboration" with event thumbnail
+- **referral_signup** -- Show referred user's avatar + progress indicator (e.g., "3/5 for your free month")
+- **new_reservation** -- Show customer's avatar + reservation details (date, party size)
+- **reservation_cancelled** -- Show who cancelled + reservation details
+- **reservation_tagged** -- Show who tagged you + business name and date
 
-A new `profile_visits` table to track when users visit a business profile:
+### 2. Missing Notification Types to Add
 
-```text
-profile_visits
-  - id (uuid, PK)
-  - profile_id (uuid) -- the business being visited
-  - visitor_id (uuid, nullable) -- logged-in visitor
-  - created_at (timestamptz)
-```
+These are interactions that currently generate no notification at all:
 
-RLS: Business owners can SELECT their own visits. Authenticated users can INSERT.
+- **`like`** -- When someone likes your event/post. This is a standard social feature users expect. Requires a new database trigger on the `event_likes` table.
+- **`event_reminder`** -- Reminders before events you joined (24h and 2h before start). The memory mentions this feature but no trigger or scheduled job exists. This requires a backend function (cron or scheduled task) to check upcoming events and create reminder notifications.
 
-## Tab 1: Overview (Default View)
+### 3. Navigation Fixes
 
-Time-period selector: **Last 7 days | Last 30 days | All time**
+Some notification types don't have proper navigation handlers in the click handler:
+- `repost` -- should navigate to the event
+- `collaboration_accepted` -- should navigate to the event
+- `referral_signup` -- should navigate to the referrals page
+- `reservation_tagged` -- already handled but could link to MyReservations
 
-Metrics with week-over-week trends (percentage change):
-- **Accounts Reached** -- unique users who viewed any of your events (from `event_interactions` type=view, count distinct user_id)
-- **Total Interactions** -- sum of all event_interactions (views + clicks + shares + joins + dwells)
-- **Engagement Rate** -- (interactions / views) * 100
-- **Profile Visits** -- from new `profile_visits` table
-- **Followers** -- total + trend
-- **Content Published** -- events created in period
+## Technical Implementation
 
-Below the stats grid, a **mini line chart** showing daily accounts reached over the selected period.
+### Phase 1: New "like" notification trigger
 
-## Tab 2: Content
+Create a database migration with a trigger on `event_likes` that:
+- Looks up the liker's username
+- Looks up the event creator and title
+- Skips if user likes their own event
+- Inserts a notification with type `like`
 
-Per-event cards (most recent first) showing:
-- Thumbnail + title + date
-- **Reach** (unique viewers)
-- **Impressions** (total views including repeats)  
-- **Engagement Rate** (likes + guestlist joins + shares) / reach
-- **Likes**, **Shares**, **Guestlist Joins**, **Check-ins**
+### Phase 2: Custom UI components
 
-Tap an event card to expand detailed per-event breakdown.
+Create dedicated notification item components for each type that currently uses the generic fallback. Each will:
+- Show the relevant user's avatar (fetched by username extracted from body)
+- Display a formatted Spanish message
+- Show event thumbnail where relevant
+- Include proper timestamp
 
-Keeps existing **Event Comparison** bar chart but adds reach as a bar.
+### Phase 3: Navigation handler updates
 
-## Tab 3: Audience
+Update `handleNotificationClick` to route each type correctly:
+- `like` -> event detail page
+- `repost` -> event detail page  
+- `collaboration_accepted` -> event detail page
+- `referral_signup` -> referrals page
 
-### Demographics (from profiles of users who interacted with your events)
-- **Age Distribution** -- horizontal bar chart bucketed (18-24, 25-34, 35-44, 45+)
-- **Gender Split** -- pie/donut chart (male, female, other, not specified)
-- **Top Cities** -- list of cities (from profiles.city of interactors)
+### Phase 4: Event reminders (separate scope)
 
-### Follower Activity
-- **Follower Growth Chart** -- line chart showing cumulative followers over the last 30 days
-- **Recent Followers** -- existing list with avatars (keep current component)
+Event reminders require a scheduled backend function (cron job) that periodically scans for upcoming events and sends notifications. This is a larger feature and could be done as a follow-up.
 
-### Audience Overlap (if enough data)
-- **Repeat Attendees** -- existing metric, shown here
+## Summary of Changes
 
-## Tab 4: Actions and Conversions
+| File | Change |
+|---|---|
+| New migration SQL | Add `like` notification trigger on `event_likes` |
+| `src/pages/Notifications.tsx` | Add `like` icon, add dedicated components for repost/collaboration_accepted/referral/reservation types, update navigation handler |
+| New component files (optional) | Extract complex notification items into separate files for cleanliness |
+| `src/pages/Notifications.tsx` | Update `getNotificationIcon` with `like` (Heart icon) |
 
-### Conversion Funnel (enhanced)
-- Views -> Likes -> Guestlist Requests -> Approved -> Checked In (with drop-off percentages)
+**Estimated scope:** ~6 new/updated notification item renderers, 1 new DB trigger, navigation fixes.
 
-### Profile Actions
-- Profile visits over period
-- "Reservar" button taps (trackable via new interaction type)
-- Menu views (trackable via new interaction type)
-
-### Reservations Module (ONLY if `profile.reservations_enabled`)
-- Upcoming reservations summary
-- Reservation trend (this week vs last week)
-- Average party size
-- Cancellation rate
-
-### Competitive Benchmark
-Compare your performance against the **average of other businesses of the same `business_type`** in the platform:
-- Your avg reach per event vs platform avg
-- Your avg engagement rate vs platform avg
-- Your follower growth rate vs platform avg
-- Your avg guestlist fill rate vs platform avg
-
-This uses aggregated anonymous data -- no individual business is exposed. Queries will compute averages across businesses with the same `business_type`.
-
-### Sponsored Performance (ONLY if business has sponsored posts)
-- Existing Promociones section with aggregate summary bar
-
-## Conditional Sections Logic
-
-| Section | Condition |
-|---------|-----------|
-| Reservations module | `profile.reservations_enabled === true` |
-| Guestlist Funnel | business has at least 1 event with `has_guestlist = true` |
-| Sponsored Performance | business has at least 1 sponsored post |
-| Menu analytics | `profile.menu_enabled === true` |
-| Competitive Benchmark | `profile.business_type` is set |
-| Demographics | at least 10 interactions exist |
-
-## Technical Details
-
-### New/Modified Files
-
-**Database migration:**
-- Create `profile_visits` table with RLS
-- Add `profile_view` and `menu_view` and `reserve_tap` to tracked interaction types in `analyticsTracking.ts`
-
-**New tracking (analyticsTracking.ts):**
-- `trackProfileVisit(profileId, visitorId)` -- called from `UserProfile.tsx`
-- `trackMenuView(eventOrProfileId, userId)` -- called from `MenuSheet.tsx`
-- `trackReserveTap(businessId, userId)` -- called from `ReservationSheet.tsx`
-
-**New hooks (useBusinessAnalytics.ts):**
-- `useAccountsReached(period)` -- unique viewers across all events in period
-- `useInteractionSummary(period)` -- total interactions breakdown by type
-- `useAudienceDemographics()` -- age/gender/city from profiles of interactors
-- `useFollowerGrowthChart(days)` -- daily follower count for line chart
-- `useProfileVisits(period)` -- count from profile_visits
-- `useCompetitiveBenchmark()` -- averages for same business_type
-- `useReservationTrends()` -- reservation analytics over time
-- Refactor existing hooks to accept a `period` parameter (7d/30d/all)
-
-**New components:**
-- `src/components/dashboard/AnalyticsTabs.tsx` -- tab navigation (Overview, Content, Audience, Actions)
-- `src/components/dashboard/OverviewTab.tsx` -- accounts reached, interactions, engagement rate, mini chart
-- `src/components/dashboard/ContentTab.tsx` -- per-event cards with expanded metrics
-- `src/components/dashboard/AudienceTab.tsx` -- demographics charts, follower growth, recent followers
-- `src/components/dashboard/ActionsTab.tsx` -- conversion funnel, profile actions, reservations, benchmark
-- `src/components/dashboard/CompetitiveBenchmark.tsx` -- comparison cards vs platform average
-- `src/components/dashboard/DemographicsCharts.tsx` -- age bars, gender donut, city list
-- `src/components/dashboard/FollowerGrowthChart.tsx` -- line chart using recharts
-- `src/components/dashboard/PeriodSelector.tsx` -- 7d / 30d / All time toggle
-
-**Modified files:**
-- `src/pages/BusinessDashboard.tsx` -- replace flat layout with tabbed structure
-- `src/pages/UserProfile.tsx` -- add `trackProfileVisit()` call
-- `src/components/menu/MenuSheet.tsx` -- add `trackMenuView()` call
-- `src/components/reservations/ReservationSheet.tsx` -- add `trackReserveTap()` call
-- `src/lib/analyticsTracking.ts` -- add new tracking functions
-
-### Implementation Order
-1. Database migration (profile_visits table)
-2. New tracking functions + integrate into existing pages
-3. New analytics hooks with period support
-4. Tab components (Overview first, then Content, Audience, Actions)
-5. Competitive benchmark (last, as it needs aggregated data)
-6. Integrate everything into BusinessDashboard.tsx
+**Out of scope for now:** Event reminders (requires cron infrastructure), message notifications (handled by chat badges).
 
