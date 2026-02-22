@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, UserPlus, AtSign } from "lucide-react";
+import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, UserPlus, AtSign, Heart, Repeat2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,10 +17,19 @@ import { usePendingCollaborations, useRespondToCollaboration } from "@/hooks/use
 import { toast } from "sonner";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { PostTagNotificationItem } from "@/components/notifications/PostTagNotificationItem";
+import { LikeNotificationItem } from "@/components/notifications/LikeNotificationItem";
+import { RepostNotificationItem } from "@/components/notifications/RepostNotificationItem";
+import { CollaborationAcceptedNotificationItem } from "@/components/notifications/CollaborationAcceptedNotificationItem";
+import { ReferralNotificationItem } from "@/components/notifications/ReferralNotificationItem";
+import { ReservationNotificationItem } from "@/components/notifications/ReservationNotificationItem";
 const getNotificationIcon = (type: string) => {
   switch (type) {
     case "event":
       return Calendar;
+    case "like":
+      return Heart;
+    case "repost":
+      return Repeat2;
     case "guestlist":
     case "guestlist_request":
     case "guestlist_invitation":
@@ -491,6 +500,13 @@ const Notifications = () => {
     if (notification.type === "guestlist_approved" && notification.entity_id) {
       navigate(`/going/${notification.entity_id}`);
     } else if (
+      (notification.type === "like" || notification.type === "repost" || notification.type === "collaboration_accepted") &&
+      notification.entity_id
+    ) {
+      navigate(`/event/${notification.entity_id}`);
+    } else if (notification.type === "referral_signup") {
+      navigate(`/referrals`);
+    } else if (
       (notification.type === "new_reservation" ||
         notification.type === "reservation_tagged" ||
         notification.type === "reservation_cancelled") &&
@@ -515,6 +531,10 @@ const Notifications = () => {
     switch (notification.type) {
       case "follow":
         return <FollowNotificationItem key={notification.id} {...commonProps} />;
+      case "like":
+        return <LikeNotificationItem key={notification.id} {...commonProps} />;
+      case "repost":
+        return <RepostNotificationItem key={notification.id} {...commonProps} />;
       case "guestlist_request":
         return <GuestlistRequestNotificationItem key={notification.id} {...commonProps} />;
       case "guestlist_approved":
@@ -524,6 +544,14 @@ const Notifications = () => {
         return <GuestlistInvitationNotificationItem key={notification.id} {...commonProps} />;
       case "collaboration_request":
         return <CollaborationNotificationItem key={notification.id} {...commonProps} />;
+      case "collaboration_accepted":
+        return <CollaborationAcceptedNotificationItem key={notification.id} {...commonProps} />;
+      case "referral_signup":
+        return <ReferralNotificationItem key={notification.id} {...commonProps} />;
+      case "new_reservation":
+      case "reservation_cancelled":
+      case "reservation_tagged":
+        return <ReservationNotificationItem key={notification.id} {...commonProps} />;
       case "post_tag":
         return <PostTagNotificationItem key={notification.id} {...commonProps} />;
       default:
