@@ -1,79 +1,99 @@
 
 
-# Notifications System Audit and Enhancement Plan
+# Targeted Sponsored Posts + Algorithmic Refinement
 
-## Current State
+## Part 1: Targeted Sponsored Posts
 
-The app has **13 notification types** with database triggers, but only **6 have custom UI components**. The remaining 7 types (repost, collaboration_accepted, referral_signup, new_reservation, reservation_cancelled, reservation_tagged, event_reminder) fall through to a generic renderer that shows raw title/body text without avatars or rich formatting.
+Currently, sponsored posts are shown to ALL users with no filtering. Businesses need the ability to target their promotions by category, geographic radius, and audience demographics.
 
-## What Needs Fixing
+### Database Changes
 
-### 1. Custom UI Components for Existing Types
+Add targeting columns to the `sponsored_posts` table:
 
-These types already have triggers but use the generic fallback -- they need dedicated, polished UI components:
+- `target_categories TEXT[]` -- array of category filters (e.g., `['party', 'concert']`), null means "all"
+- `target_radius_km NUMERIC` -- max distance in km from the event location, null means "no geo filter"
+- `target_gender TEXT` -- gender filter ('male', 'female', 'all'), null means "all"
+- `target_age_min INTEGER` -- minimum age, null means no minimum
+- `target_age_max INTEGER` -- maximum age, null means no maximum
 
-- **repost** -- Show reposter's avatar + "reposted your post" with event thumbnail
-- **collaboration_accepted** -- Show collaborator's avatar + "accepted your collaboration" with event thumbnail
-- **referral_signup** -- Show referred user's avatar + progress indicator (e.g., "3/5 for your free month")
-- **new_reservation** -- Show customer's avatar + reservation details (date, party size)
-- **reservation_cancelled** -- Show who cancelled + reservation details
-- **reservation_tagged** -- Show who tagged you + business name and date
+### Filtering Logic (Client-side)
 
-### 2. Missing Notification Types to Add
+Update `useActiveSponsoredPosts` to also fetch the new targeting columns. Then in `Index.tsx`, filter sponsored posts before injection:
 
-These are interactions that currently generate no notification at all:
+1. **Category match**: If `target_categories` is set, only show the ad if the viewer has interacted with or has interests in at least one of those categories
+2. **Radius match**: If `target_radius_km` is set, compute haversine distance between the user's location and the event's lat/lng; skip if too far
+3. **Demographics match**: If age/gender filters are set, compare against the viewer's `profiles.birth_date` and `profiles.gender`
 
-- **`like`** -- When someone likes your event/post. This is a standard social feature users expect. Requires a new database trigger on the `event_likes` table.
-- **`event_reminder`** -- Reminders before events you joined (24h and 2h before start). The memory mentions this feature but no trigger or scheduled job exists. This requires a backend function (cron or scheduled task) to check upcoming events and create reminder notifications.
+### Dashboard UI Updates
 
-### 3. Navigation Fixes
+Update `PromocionesSection.tsx` create dialog to add targeting fields:
+- Multi-select for categories (party, bar, concert, fitness, culture)
+- Radius slider (1-50 km)
+- Age range inputs (min/max)
+- Gender selector (Todos, Masculino, Femenino)
 
-Some notification types don't have proper navigation handlers in the click handler:
-- `repost` -- should navigate to the event
-- `collaboration_accepted` -- should navigate to the event
-- `referral_signup` -- should navigate to the referrals page
-- `reservation_tagged` -- already handled but could link to MyReservations
+Update `useCreateSponsoredPost` to accept and persist the new targeting params.
 
-## Technical Implementation
+---
 
-### Phase 1: New "like" notification trigger
+## Part 2: Algorithmic Refinement
 
-Create a database migration with a trigger on `event_likes` that:
-- Looks up the liker's username
-- Looks up the event creator and title
-- Skips if user likes their own event
-- Inserts a notification with type `like`
+Two new signals added to the scoring engine:
 
-### Phase 2: Custom UI components
+### A. Collaborative Filtering (new weight: 6%)
 
-Create dedicated notification item components for each type that currently uses the generic fallback. Each will:
-- Show the relevant user's avatar (fetched by username extracted from body)
-- Display a formatted Spanish message
-- Show event thumbnail where relevant
-- Include proper timestamp
+Find users with similar taste profiles and boost events they've engaged with.
 
-### Phase 3: Navigation handler updates
+**How it works:**
+1. New query in `useForYouEvents`: fetch the top 5 "similar users" by comparing `user_category_preferences` overlap (users who like the same categories with similar scores)
+2. Fetch events those similar users recently interacted with positively (join, save, like)
+3. Pass a `collaborativeBoosts: Record<string, number>` map into the scoring context
+4. New scoring function `getCollaborativeScore()`: if an event appears in the collaborative set, boost it proportionally to how many similar users engaged with it
 
-Update `handleNotificationClick` to route each type correctly:
-- `like` -> event detail page
-- `repost` -> event detail page  
-- `collaboration_accepted` -> event detail page
-- `referral_signup` -> referrals page
+### B. Social Proof / Mutual Followers Boost (new weight: +3% added to Friends Going)
 
-### Phase 4: Event reminders (separate scope)
+Currently "Friends Going" counts any followed user attending. Upgrade to weight mutual followers more heavily than one-way follows.
 
-Event reminders require a scheduled backend function (cron job) that periodically scans for upcoming events and sends notifications. This is a larger feature and could be done as a follow-up.
+**How it works:**
+1. Fetch mutual followers using the existing `get_mutual_followers` RPC
+2. In `getFriendsGoingScore()`, count mutual followers attending as 2x weight vs. regular follows
+3. This makes events where close friends (mutuals) are going rank significantly higher
 
-## Summary of Changes
+### Updated Weight Distribution (v5)
+
+| Signal | v4 | v5 |
+|---|---|---|
+| Friends Going (with mutual boost) | 14% | 14% |
+| Proximity | 12% | 11% |
+| Trending | 10% | 9% |
+| Learned Prefs | 9% | 8% |
+| Interest Match | 9% | 8% |
+| Description Tags | 8% | 7% |
+| **Collaborative Filtering** | -- | **6%** |
+| Creator Loyalty | 8% | 7% |
+| Recency | 7% | 7% |
+| Popularity | 7% | 7% |
+| Time-of-Day | 5% | 5% |
+| Day-of-Week | 5% | 5% |
+| **Social Proof (mutual boost)** | -- | **3%** |
+| Timing | 3% | 3% |
+
+---
+
+## Files to Change
 
 | File | Change |
 |---|---|
-| New migration SQL | Add `like` notification trigger on `event_likes` |
-| `src/pages/Notifications.tsx` | Add `like` icon, add dedicated components for repost/collaboration_accepted/referral/reservation types, update navigation handler |
-| New component files (optional) | Extract complex notification items into separate files for cleanliness |
-| `src/pages/Notifications.tsx` | Update `getNotificationIcon` with `like` (Heart icon) |
+| New migration SQL | Add 5 targeting columns to `sponsored_posts` |
+| `src/hooks/useSponsoredPosts.ts` | Fetch targeting columns; accept targeting params in create mutation |
+| `src/components/dashboard/PromocionesSection.tsx` | Add targeting fields to create dialog |
+| `src/pages/Index.tsx` | Filter sponsored posts by targeting criteria before injection |
+| `src/lib/feedScoring.ts` | Add `getCollaborativeScore()`, update `getFriendsGoingScore()` for mutual boost, adjust all weights to v5 |
+| `src/hooks/useForYouEvents.ts` | Add queries for collaborative filtering data (similar users' events) and mutual followers list; pass new context to scoring engine |
 
-**Estimated scope:** ~6 new/updated notification item renderers, 1 new DB trigger, navigation fixes.
+## Technical Details
 
-**Out of scope for now:** Event reminders (requires cron infrastructure), message notifications (handled by chat badges).
+- Collaborative filtering query: Use a DB function or client-side approach that finds users with the most category preference overlap, then fetches their recent positive interactions. Limited to top 5 similar users and last 7 days of interactions to keep query fast.
+- Targeting filters run client-side since the sponsored post volume is low (typically <20 active posts). No need for server-side filtering complexity.
+- Mutual followers are already available via the `get_mutual_followers` RPC function.
 
