@@ -1,29 +1,29 @@
 /**
  * Feed Scoring Engine for the "Para Ti" algorithm.
  *
- * Weights (v4 — with Description Tags):
- *   Friends Going    14%
- *   Proximity        12%
- *   Trending         10%
- *   Learned Prefs     9%
- *   Interest Match    9%
- *   Description Tags  8%  ← NEW
- *   Creator Loyalty   8%
+ * Weights (v5 — with Collaborative Filtering + Social Proof):
+ *   Friends Going (+ mutual boost) 14%
+ *   Proximity        11%
+ *   Trending          9%
+ *   Learned Prefs     8%
+ *   Interest Match    8%
+ *   Description Tags  7%
+ *   Collaborative     6%
+ *   Creator Loyalty   7%
  *   Recency           7%
  *   Popularity        7%
  *   Time-of-Day       5%
  *   Day-of-Week       5%
- *   Timing (upcoming) 3%
- *   Dwell feeds into Learned Prefs implicitly
- *   Diversity bonus applied as post-processing (15-20% exploration slots)
+ *   Social Proof      3%
+ *   Timing            3%
  */
 
 // ───────── helpers ─────────
 
-const haversine = (
+export const haversine = (
   lat1: number, lon1: number, lat2: number, lon2: number
 ): number => {
-  const R = 3959; // miles
+  const R = 6371; // km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
@@ -42,11 +42,11 @@ export const getProximityScore = (
 ): number => {
   if (!eventLat || !eventLon || !userLat || !userLon) return 50;
   const d = haversine(userLat, userLon, eventLat, eventLon);
-  if (d <= 1) return 100;
-  if (d <= 5) return 80;
-  if (d <= 10) return 60;
-  if (d <= 25) return 40;
-  if (d <= 50) return 20;
+  if (d <= 1.6) return 100;  // ~1 mile
+  if (d <= 8) return 80;
+  if (d <= 16) return 60;
+  if (d <= 40) return 40;
+  if (d <= 80) return 20;
   return 10;
 };
 
@@ -93,16 +93,28 @@ export const getTimingScore = (startDatetime: string | null): number => {
 
 export const getFriendsGoingScore = (
   guestEntries: { user: { id: string } }[] | undefined,
-  followingIds: string[] | null
+  followingIds: string[] | null,
+  mutualFollowerIds?: string[] | null
 ): number => {
   if (!followingIds?.length) return 50;
   if (!guestEntries?.length) return 10;
   const ids = guestEntries.map((e) => e.user?.id).filter(Boolean);
-  const n = ids.filter((id) => followingIds.includes(id)).length;
-  if (n >= 5) return 100;
-  if (n >= 3) return 80;
-  if (n >= 2) return 60;
-  if (n >= 1) return 40;
+  const mutualSet = new Set(mutualFollowerIds || []);
+
+  // Mutual followers count as 2x weight
+  let weightedCount = 0;
+  for (const id of ids) {
+    if (mutualSet.has(id)) {
+      weightedCount += 2;
+    } else if (followingIds.includes(id)) {
+      weightedCount += 1;
+    }
+  }
+
+  if (weightedCount >= 8) return 100;
+  if (weightedCount >= 5) return 80;
+  if (weightedCount >= 3) return 60;
+  if (weightedCount >= 1) return 40;
   return 10;
 };
 
@@ -123,11 +135,6 @@ export const getLearnedPreferenceScore = (
   return Math.min(100, score);
 };
 
-// ───────── NEW: Trending Velocity ─────────
-/**
- * Score based on how many interactions an event received in the last 24 h.
- * `recentCount` should be pre-computed from the event_interactions table.
- */
 export const getTrendingScore = (recentCount: number): number => {
   if (recentCount >= 30) return 100;
   if (recentCount >= 15) return 80;
@@ -137,15 +144,6 @@ export const getTrendingScore = (recentCount: number): number => {
   return 5;
 };
 
-// ───────── NEW: Time-of-Day Personalization ─────────
-/**
- * Boost events whose category matches the current time context.
- *
- * Morning   (6-11):  brunch, fitness, wellness, networking
- * Afternoon (11-17): shopping, culture, food, sports
- * Evening   (17-21): dinner, drinks, music, concerts
- * Night     (21-6):  nightlife, party, bar, club, fiesta, DJ
- */
 const TIME_CATEGORY_MAP: Record<string, string[]> = {
   morning:   ["brunch", "fitness", "wellness", "networking", "yoga", "café", "cafe", "desayuno", "culture"],
   afternoon: ["shopping", "culture", "food", "sports", "arte", "museo", "deporte", "comida"],
@@ -166,13 +164,9 @@ export const getTimeOfDayScore = (category: string | null): number => {
   const relevantCats = TIME_CATEGORY_MAP[period] || [];
   const cat = category.toLowerCase();
   if (relevantCats.some((c) => cat.includes(c) || c.includes(cat))) return 100;
-  return 40; // neutral-ish for non-matching
+  return 40;
 };
 
-// ───────── NEW: Creator Loyalty ─────────
-/**
- * Boost events from creators the user has repeatedly attended.
- */
 export const getCreatorLoyaltyScore = (
   creatorId: string,
   creatorAttendance: Record<string, number>
@@ -184,11 +178,6 @@ export const getCreatorLoyaltyScore = (
   return 0;
 };
 
-// ───────── NEW: Day-of-Week Patterns ─────────
-/**
- * Boost events whose category matches what the user typically engages with
- * on the current day of week.
- */
 export const getDayOfWeekScore = (
   category: string | null,
   dayPrefs: Record<string, number>
@@ -196,22 +185,16 @@ export const getDayOfWeekScore = (
   if (!category || !Object.keys(dayPrefs).length) return 50;
   const score = dayPrefs[category.toLowerCase()] ?? dayPrefs[category];
   if (score != null) return Math.min(100, score);
-  return 30; // unknown category for this day
+  return 30;
 };
 
-// ───────── NEW: Description Tag Match ─────────
-/**
- * Score based on how well an event's description tags match user's tag preferences.
- */
 export const getDescriptionTagScore = (
   eventTags: string[] | null,
   tagPrefs: Record<string, number>
 ): number => {
   if (!eventTags?.length || !Object.keys(tagPrefs).length) return 50;
-  
   let totalScore = 0;
   let matchCount = 0;
-  
   for (const tag of eventTags) {
     const prefScore = tagPrefs[tag];
     if (prefScore != null) {
@@ -219,13 +202,41 @@ export const getDescriptionTagScore = (
       matchCount++;
     }
   }
-  
-  if (matchCount === 0) return 30; // no overlap
-  
-  // Average score of matched tags, boosted by number of matches
+  if (matchCount === 0) return 30;
   const avgScore = totalScore / matchCount;
-  const matchBonus = Math.min(20, matchCount * 5); // up to +20 for 4+ matches
+  const matchBonus = Math.min(20, matchCount * 5);
   return Math.min(100, avgScore + matchBonus);
+};
+
+// ───────── NEW v5: Collaborative Filtering ─────────
+export const getCollaborativeScore = (
+  eventId: string,
+  collaborativeBoosts: Record<string, number>
+): number => {
+  const boost = collaborativeBoosts[eventId];
+  if (!boost) return 0;
+  // boost = number of similar users who engaged (1-5)
+  if (boost >= 4) return 100;
+  if (boost >= 3) return 80;
+  if (boost >= 2) return 60;
+  if (boost >= 1) return 40;
+  return 0;
+};
+
+// ───────── NEW v5: Social Proof (mutual followers attending) ─────────
+export const getSocialProofScore = (
+  guestEntries: { user: { id: string } }[] | undefined,
+  mutualFollowerIds: string[] | null
+): number => {
+  if (!mutualFollowerIds?.length || !guestEntries?.length) return 0;
+  const ids = guestEntries.map((e) => e.user?.id).filter(Boolean);
+  const mutualSet = new Set(mutualFollowerIds);
+  const mutualCount = ids.filter((id) => mutualSet.has(id)).length;
+  if (mutualCount >= 4) return 100;
+  if (mutualCount >= 3) return 80;
+  if (mutualCount >= 2) return 60;
+  if (mutualCount >= 1) return 40;
+  return 0;
 };
 
 // ───────── composite score ─────────
@@ -241,6 +252,9 @@ export interface ScoringContext {
   creatorAttendance: Record<string, number>;
   dayOfWeekPrefs: Record<string, number>;
   tagPrefs: Record<string, number>;
+  // v5 additions
+  collaborativeBoosts: Record<string, number>;
+  mutualFollowerIds: string[] | null;
 }
 
 export interface ScoredEvent {
@@ -265,7 +279,7 @@ export const calculateEventScore = (
   const attendees = event.guestlist_entries?.length || 0;
 
   const proximity       = getProximityScore(event.latitude, event.longitude, ctx.userLat, ctx.userLon);
-  const friends         = getFriendsGoingScore(event.guestlist_entries, ctx.followingIds);
+  const friends         = getFriendsGoingScore(event.guestlist_entries, ctx.followingIds, ctx.mutualFollowerIds);
   const trending        = getTrendingScore(ctx.trendingCounts[event.id] || 0);
   const learned         = getLearnedPreferenceScore(event.category, event.creator_id, ctx.categoryPrefs, ctx.creatorPrefs);
   const interest        = getInterestScore(event.category, ctx.userInterests);
@@ -275,39 +289,37 @@ export const calculateEventScore = (
   const creatorLoyalty  = getCreatorLoyaltyScore(event.creator_id, ctx.creatorAttendance);
   const dayOfWeek       = getDayOfWeekScore(event.category, ctx.dayOfWeekPrefs);
   const descTags        = getDescriptionTagScore(event.description_tags || null, ctx.tagPrefs);
+  const collaborative   = getCollaborativeScore(event.id, ctx.collaborativeBoosts);
+  const socialProof     = getSocialProofScore(event.guestlist_entries, ctx.mutualFollowerIds);
 
   return (
     friends        * 0.14 +
-    proximity      * 0.12 +
-    trending       * 0.10 +
-    learned        * 0.09 +
-    interest       * 0.09 +
-    descTags       * 0.08 +
-    creatorLoyalty * 0.08 +
+    proximity      * 0.11 +
+    trending       * 0.09 +
+    learned        * 0.08 +
+    interest       * 0.08 +
+    descTags       * 0.07 +
+    collaborative  * 0.06 +
+    creatorLoyalty * 0.07 +
     recency        * 0.07 +
     getPopularityScore(attendees) * 0.07 +
     timeOfDay      * 0.05 +
     dayOfWeek      * 0.05 +
+    socialProof    * 0.03 +
     timing         * 0.03
   );
 };
 
-// ───────── NEW: Diversity / Exploration injection ─────────
-/**
- * After scoring, replace ~15% of the feed with "exploration" events —
- * events from categories the user hasn't engaged with much.
- * This prevents echo chambers and helps users discover new content.
- */
+// ───────── Diversity / Exploration injection ─────────
 export const injectExploration = <T extends { _score: number; category?: string | null }>(
   scored: T[],
   categoryPrefs: Record<string, number>
 ): (T & { _isExploration?: boolean })[] => {
-  if (scored.length < 6) return scored; // too few events to diversify
+  if (scored.length < 6) return scored;
 
   const explorationRatio = 0.15;
   const explorationSlots = Math.max(1, Math.round(scored.length * explorationRatio));
 
-  // Identify "exploration" events: categories user has low or no affinity for
   const knownCategories = new Set(Object.keys(categoryPrefs).map((c) => c.toLowerCase()));
   const explorationPool = scored.filter((e) => {
     if (!e.category) return false;
@@ -318,15 +330,12 @@ export const injectExploration = <T extends { _score: number; category?: string 
 
   if (explorationPool.length === 0) return scored;
 
-  // Shuffle exploration pool
   const shuffled = [...explorationPool].sort(() => Math.random() - 0.5);
   const picks = shuffled.slice(0, explorationSlots);
   const pickIds = new Set(picks.map((p) => (p as any).id));
 
-  // Remove picked events from main list
   const mainFeed = scored.filter((e) => !pickIds.has((e as any).id));
 
-  // Distribute exploration events evenly through the feed
   const result: (T & { _isExploration?: boolean })[] = [];
   const interval = Math.max(3, Math.floor(mainFeed.length / (picks.length + 1)));
 
@@ -338,7 +347,6 @@ export const injectExploration = <T extends { _score: number; category?: string 
       pickIdx++;
     }
   }
-  // Append remaining picks
   while (pickIdx < picks.length) {
     result.push({ ...picks[pickIdx], _isExploration: true });
     pickIdx++;

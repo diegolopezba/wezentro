@@ -16,10 +16,8 @@ export const useForYouEvents = () => {
   const { location } = useLocationContext();
   const userId = user?.id;
 
-  // Fetch user's learned preferences
   const { data: learnedPrefs } = useUserPreferences(userId);
 
-  // Fetch user's interests from profile
   const { data: userProfile } = useQuery({
     queryKey: ["user-interests", user?.id],
     queryFn: async () => {
@@ -35,7 +33,6 @@ export const useForYouEvents = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch user's following list
   const { data: following } = useQuery({
     queryKey: ["user-following-ids", user?.id],
     queryFn: async () => {
@@ -50,7 +47,6 @@ export const useForYouEvents = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch trending velocity (interaction counts in last 24h)
   const { data: trendingData } = useQuery({
     queryKey: ["trending-counts"],
     queryFn: async () => {
@@ -59,12 +55,7 @@ export const useForYouEvents = () => {
         .from("event_interactions")
         .select("event_id")
         .gte("created_at", twentyFourHoursAgo);
-
-      if (error) {
-        console.error("Error fetching trending data:", error);
-        return {};
-      }
-
+      if (error) return {};
       const counts: Record<string, number> = {};
       for (const row of data || []) {
         counts[row.event_id] = (counts[row.event_id] || 0) + 1;
@@ -74,7 +65,6 @@ export const useForYouEvents = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // NEW: Fetch creator attendance counts (how many events user attended per creator)
   const { data: creatorAttendance } = useQuery({
     queryKey: ["creator-attendance", userId],
     queryFn: async () => {
@@ -84,18 +74,11 @@ export const useForYouEvents = () => {
         .select("event_id, events!guestlist_entries_event_id_fkey(creator_id)")
         .eq("user_id", userId)
         .eq("status", "approved");
-
-      if (error) {
-        console.error("Error fetching creator attendance:", error);
-        return {};
-      }
-
+      if (error) return {};
       const counts: Record<string, number> = {};
       for (const row of data || []) {
         const creatorId = (row as any).events?.creator_id;
-        if (creatorId) {
-          counts[creatorId] = (counts[creatorId] || 0) + 1;
-        }
+        if (creatorId) counts[creatorId] = (counts[creatorId] || 0) + 1;
       }
       return counts;
     },
@@ -103,7 +86,6 @@ export const useForYouEvents = () => {
     staleTime: 10 * 60 * 1000,
   });
 
-  // NEW: Fetch day-of-week preferences for today
   const { data: dayOfWeekPrefs } = useQuery({
     queryKey: ["day-of-week-prefs", userId],
     queryFn: async () => {
@@ -114,23 +96,15 @@ export const useForYouEvents = () => {
         .select("category, score")
         .eq("user_id", userId)
         .eq("day_of_week", today);
-
-      if (error) {
-        console.error("Error fetching day-of-week prefs:", error);
-        return {};
-      }
-
+      if (error) return {};
       const prefs: Record<string, number> = {};
-      for (const row of data || []) {
-        prefs[row.category] = Number(row.score) || 0;
-      }
+      for (const row of data || []) prefs[row.category] = Number(row.score) || 0;
       return prefs;
     },
     enabled: !!userId,
     staleTime: 10 * 60 * 1000,
   });
 
-  // NEW: Fetch user's tag preferences
   const { data: tagPrefs } = useQuery({
     queryKey: ["user-tag-prefs", userId],
     queryFn: async () => {
@@ -139,17 +113,102 @@ export const useForYouEvents = () => {
         .from("user_tag_preferences")
         .select("tag, score")
         .eq("user_id", userId);
-
-      if (error) {
-        console.error("Error fetching tag prefs:", error);
-        return {};
-      }
-
+      if (error) return {};
       const prefs: Record<string, number> = {};
-      for (const row of data || []) {
-        prefs[row.tag] = Number(row.score) || 0;
-      }
+      for (const row of data || []) prefs[row.tag] = Number(row.score) || 0;
       return prefs;
+    },
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // v5: Mutual followers
+  const { data: mutualFollowerIds } = useQuery({
+    queryKey: ["mutual-followers-ids", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase.rpc("get_mutual_followers", { _user_id: userId });
+      if (error) return [];
+      return (data || []).map((u: any) => u.id as string);
+    },
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // v5: Collaborative filtering — find similar users' engaged events
+  const { data: collaborativeBoosts } = useQuery({
+    queryKey: ["collaborative-boosts", userId],
+    queryFn: async () => {
+      if (!userId) return {};
+
+      // 1. Get current user's category preferences
+      const { data: myPrefs, error: myError } = await supabase
+        .from("user_category_preferences")
+        .select("category, score")
+        .eq("user_id", userId);
+      if (myError || !myPrefs?.length) return {};
+
+      const myCategories = myPrefs.map((p) => p.category);
+
+      // 2. Find users who share at least one top category (limited to recent active users)
+      const { data: similarUserPrefs, error: simError } = await supabase
+        .from("user_category_preferences")
+        .select("user_id, category, score")
+        .in("category", myCategories)
+        .neq("user_id", userId)
+        .gte("score", 20)
+        .order("score", { ascending: false })
+        .limit(100);
+
+      if (simError || !similarUserPrefs?.length) return {};
+
+      // Score similarity per user
+      const myScoreMap: Record<string, number> = {};
+      for (const p of myPrefs) myScoreMap[p.category] = Number(p.score) || 0;
+
+      const userScores: Record<string, number> = {};
+      for (const row of similarUserPrefs) {
+        const overlap = myScoreMap[row.category];
+        if (overlap) {
+          const similarity = Math.min(overlap, Number(row.score) || 0);
+          userScores[row.user_id] = (userScores[row.user_id] || 0) + similarity;
+        }
+      }
+
+      // Top 5 similar users
+      const topUsers = Object.entries(userScores)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([uid]) => uid);
+
+      if (!topUsers.length) return {};
+
+      // 3. Get events these users recently interacted with (last 7 days)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: interactions, error: intError } = await supabase
+        .from("event_interactions")
+        .select("event_id, user_id")
+        .in("user_id", topUsers)
+        .in("type", ["join", "save", "like", "click"])
+        .gte("created_at", sevenDaysAgo);
+
+      if (intError || !interactions?.length) return {};
+
+      const boosts: Record<string, number> = {};
+      for (const row of interactions) {
+        boosts[row.event_id] = (boosts[row.event_id] || 0) + 1;
+      }
+      // Normalize: count unique users per event
+      const eventUsers: Record<string, Set<string>> = {};
+      for (const row of interactions) {
+        if (!eventUsers[row.event_id]) eventUsers[row.event_id] = new Set();
+        eventUsers[row.event_id].add(row.user_id!);
+      }
+      const result: Record<string, number> = {};
+      for (const [eid, users] of Object.entries(eventUsers)) {
+        result[eid] = users.size;
+      }
+      return result;
     },
     enabled: !!userId,
     staleTime: 10 * 60 * 1000,
@@ -207,9 +266,10 @@ export const useForYouEvents = () => {
       creatorAttendance: creatorAttendance || {},
       dayOfWeekPrefs: dayOfWeekPrefs || {},
       tagPrefs: tagPrefs || {},
+      collaborativeBoosts: collaborativeBoosts || {},
+      mutualFollowerIds: mutualFollowerIds || null,
     };
 
-    // Filter: posts always show, events must be in the future
     const filtered = events.filter((e) => {
       if (!e.start_datetime) return true;
       return new Date(e.start_datetime) >= now;
@@ -222,9 +282,8 @@ export const useForYouEvents = () => {
       }))
       .sort((a, b) => b._score - a._score);
 
-    // Inject 15% exploration content to prevent echo chambers
     return injectExploration(scored, categoryPrefs);
-  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingData, creatorAttendance, dayOfWeekPrefs, tagPrefs]);
+  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingData, creatorAttendance, dayOfWeekPrefs, tagPrefs, collaborativeBoosts, mutualFollowerIds]);
 
   return {
     data: scoredEvents,

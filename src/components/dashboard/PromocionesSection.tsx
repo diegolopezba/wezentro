@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,18 @@ const statusLabels: Record<string, { label: string; variant: "default" | "second
   completed: { label: "Completado", variant: "destructive" },
 };
 
+const TARGET_CATEGORIES = [
+  { value: "party", label: "🪩 Fiestas" },
+  { value: "bar", label: "🍸 Bares" },
+  { value: "concert", label: "🎵 Conciertos" },
+  { value: "fitness", label: "🏋️ Fitness" },
+  { value: "culture", label: "🎨 Cultura" },
+  { value: "festival", label: "🎪 Festivales" },
+  { value: "rooftop", label: "🌆 Rooftops" },
+  { value: "restaurant", label: "🍽️ Restaurantes" },
+  { value: "coffee", label: "☕ Café" },
+];
+
 export const PromocionesSection = () => {
   const { user } = useAuth();
   const { data: sponsoredPosts = [], isLoading } = useMySponsored();
@@ -44,10 +57,33 @@ export const PromocionesSection = () => {
   const [dailyBudget, setDailyBudget] = useState("");
   const [totalBudget, setTotalBudget] = useState("");
 
-  // Events not already promoted
+  // Targeting state
+  const [targetCategories, setTargetCategories] = useState<string[]>([]);
+  const [targetRadius, setTargetRadius] = useState<number>(25);
+  const [targetGender, setTargetGender] = useState("all");
+  const [targetAgeMin, setTargetAgeMin] = useState("");
+  const [targetAgeMax, setTargetAgeMax] = useState("");
+
   const availableEvents = myEvents.filter(
     (e) => !sponsoredPosts.some((sp: any) => sp.event_id === e.id)
   );
+
+  const toggleCategory = (cat: string) => {
+    setTargetCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+  };
+
+  const resetForm = () => {
+    setSelectedEventId("");
+    setDailyBudget("");
+    setTotalBudget("");
+    setTargetCategories([]);
+    setTargetRadius(25);
+    setTargetGender("all");
+    setTargetAgeMin("");
+    setTargetAgeMax("");
+  };
 
   const handleCreate = async () => {
     if (!selectedEventId) {
@@ -59,12 +95,15 @@ export const PromocionesSection = () => {
         event_id: selectedEventId,
         daily_budget: dailyBudget ? parseFloat(dailyBudget) : undefined,
         total_budget: totalBudget ? parseFloat(totalBudget) : undefined,
+        target_categories: targetCategories.length > 0 ? targetCategories : undefined,
+        target_radius_km: targetRadius < 50 ? targetRadius : undefined,
+        target_gender: targetGender !== "all" ? targetGender : undefined,
+        target_age_min: targetAgeMin ? parseInt(targetAgeMin) : undefined,
+        target_age_max: targetAgeMax ? parseInt(targetAgeMax) : undefined,
       });
       toast.success("Promoción creada como borrador");
       setShowCreate(false);
-      setSelectedEventId("");
-      setDailyBudget("");
-      setTotalBudget("");
+      resetForm();
     } catch {
       toast.error("Error al crear la promoción");
     }
@@ -185,15 +224,16 @@ export const PromocionesSection = () => {
 
       {/* Create dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Nueva Promoción</DialogTitle>
             <DialogDescription>
-              Selecciona un evento y configura el presupuesto para aparecer en el feed "Para Ti".
+              Configura presupuesto y segmentación para aparecer en el feed "Para Ti".
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 mt-2">
+          <div className="space-y-5 mt-2">
+            {/* Event selector */}
             <div className="space-y-2">
               <Label>Evento</Label>
               <Select value={selectedEventId} onValueChange={setSelectedEventId}>
@@ -210,6 +250,7 @@ export const PromocionesSection = () => {
               </Select>
             </div>
 
+            {/* Budget */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Presupuesto diario ($)</Label>
@@ -228,6 +269,87 @@ export const PromocionesSection = () => {
                   value={totalBudget}
                   onChange={(e) => setTotalBudget(e.target.value)}
                 />
+              </div>
+            </div>
+
+            {/* Targeting section */}
+            <div className="border-t border-border pt-4">
+              <p className="text-sm font-semibold text-foreground mb-3">Segmentación</p>
+
+              {/* Category targeting */}
+              <div className="space-y-2 mb-4">
+                <Label className="text-xs text-muted-foreground">Categorías (vacío = todas)</Label>
+                <div className="flex flex-wrap gap-2">
+                  {TARGET_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.value}
+                      type="button"
+                      onClick={() => toggleCategory(cat.value)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        targetCategories.includes(cat.value)
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-secondary-foreground"
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Radius */}
+              <div className="space-y-2 mb-4">
+                <Label className="text-xs text-muted-foreground">
+                  Radio máximo: {targetRadius >= 50 ? "Sin límite" : `${targetRadius} km`}
+                </Label>
+                <Slider
+                  value={[targetRadius]}
+                  onValueChange={([v]) => setTargetRadius(v)}
+                  min={1}
+                  max={50}
+                  step={1}
+                />
+              </div>
+
+              {/* Gender */}
+              <div className="space-y-2 mb-4">
+                <Label className="text-xs text-muted-foreground">Género</Label>
+                <Select value={targetGender} onValueChange={setTargetGender}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="male">Masculino</SelectItem>
+                    <SelectItem value="female">Femenino</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Age range */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Edad mínima</Label>
+                  <Input
+                    type="number"
+                    placeholder="18"
+                    value={targetAgeMin}
+                    onChange={(e) => setTargetAgeMin(e.target.value)}
+                    min={13}
+                    max={99}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Edad máxima</Label>
+                  <Input
+                    type="number"
+                    placeholder="65"
+                    value={targetAgeMax}
+                    onChange={(e) => setTargetAgeMax(e.target.value)}
+                    min={13}
+                    max={99}
+                  />
+                </div>
               </div>
             </div>
 

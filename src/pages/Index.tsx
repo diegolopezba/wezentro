@@ -8,19 +8,71 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { useForYouEvents } from "@/hooks/useForYouEvents";
 import { useFollowingEventsScored } from "@/hooks/useFollowingEventsScored";
 import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
-import { useActiveSponsoredPosts, useTrackSponsoredImpression } from "@/hooks/useSponsoredPosts";
+import { useActiveSponsoredPosts, useTrackSponsoredImpression, SponsoredEventForFeed } from "@/hooks/useSponsoredPosts";
+import { useLocationContext } from "@/contexts/LocationContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
 import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
-import { useAuth } from "@/contexts/AuthContext";
-import { useAuthPrompt } from "@/hooks/useAuthPrompt";
+import { haversine } from "@/lib/feedScoring";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+// ───────── Sponsored Post Targeting Filter ─────────
+
+const filterSponsoredByTargeting = (
+  posts: SponsoredEventForFeed[],
+  userLat: number | null,
+  userLon: number | null,
+  userBirthDate: string | null,
+  userGender: string | null,
+  userInterests: string[] | null
+): SponsoredEventForFeed[] => {
+  return posts.filter((sp) => {
+    // Category match
+    if (sp.target_categories && sp.target_categories.length > 0) {
+      const userCats = (userInterests || []).map((c) => c.toLowerCase());
+      const hasCategoryMatch = sp.target_categories.some((tc) =>
+        userCats.includes(tc.toLowerCase())
+      );
+      if (!hasCategoryMatch) return false;
+    }
+
+    // Radius match
+    if (sp.target_radius_km != null && sp.target_radius_km > 0) {
+      if (!userLat || !userLon || !sp.latitude || !sp.longitude) return false;
+      const dist = haversine(userLat, userLon, sp.latitude, sp.longitude);
+      if (dist > sp.target_radius_km) return false;
+    }
+
+    // Gender match
+    if (sp.target_gender && sp.target_gender !== "all") {
+      if (!userGender || userGender.toLowerCase() !== sp.target_gender.toLowerCase()) return false;
+    }
+
+    // Age match
+    if (sp.target_age_min != null || sp.target_age_max != null) {
+      if (!userBirthDate) return false;
+      const age = Math.floor(
+        (Date.now() - new Date(userBirthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000)
+      );
+      if (sp.target_age_min != null && age < sp.target_age_min) return false;
+      if (sp.target_age_max != null && age > sp.target_age_max) return false;
+    }
+
+    return true;
+  });
+};
+
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
+  const { location } = useLocationContext();
   const isGuest = !user;
   
   const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
@@ -29,7 +81,6 @@ const Index = () => {
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  
   
   const {
     data: forYouEvents = [],
@@ -47,8 +98,24 @@ const Index = () => {
   
   const { data: sponsoredPosts = [] } = useActiveSponsoredPosts();
   const trackImpression = useTrackSponsoredImpression();
+
+  // Fetch user demographics for targeting
+  const { data: userDemographics } = useQuery({
+    queryKey: ["user-demographics", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("birth_date, gender, interests")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000,
+  });
   
-  // Handle notification bell click for guests
   const handleNotificationClick = () => {
     if (isGuest) {
       promptAuth({ action: "ver tus notificaciones" });
@@ -59,7 +126,6 @@ const Index = () => {
   const events = activeTab === "for-you" ? forYouEvents : followingEvents;
   const isLoading = activeTab === "for-you" ? forYouLoading : followingLoading;
 
-  // Pull-to-refresh handler
   const handleRefresh = useCallback(async () => {
     if (activeTab === "for-you") {
       await refetchForYou();
@@ -69,33 +135,39 @@ const Index = () => {
   }, [activeTab, refetchForYou, refetchFollowing]);
 
   useEffect(() => {
-  const handleScroll = (e: Event) => {
-    const container = e.target as HTMLDivElement;
-    const currentScrollY = container.scrollTop;
-    
-    if (currentScrollY > lastScrollY && currentScrollY > 50) {
-      setHeaderVisible(false);
-    } else if (currentScrollY < lastScrollY) {
-      setHeaderVisible(true);
+    const handleScroll = (e: Event) => {
+      const container = e.target as HTMLDivElement;
+      const currentScrollY = container.scrollTop;
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setHeaderVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        setHeaderVisible(true);
+      }
+      setLastScrollY(currentScrollY);
+    };
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
     }
-    
-    setLastScrollY(currentScrollY);
-  };
+  }, [lastScrollY]);
 
-  const container = scrollContainerRef.current;
-  if (container) {
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
-  }
-}, [lastScrollY]);
+  // Filter sponsored posts by targeting criteria
+  const filteredSponsored = useMemo(() => {
+    return filterSponsoredByTargeting(
+      sponsoredPosts,
+      location?.lat || null,
+      location?.lng || null,
+      userDemographics?.birth_date || null,
+      userDemographics?.gender || null,
+      userDemographics?.interests || null
+    );
+  }, [sponsoredPosts, location, userDemographics]);
 
-  // Transform events to EventCard format and filter
   const transformedEvents = useMemo(() => {
-    // Collect sponsored event IDs to exclude from organic results
-    const sponsoredEventIds = new Set(sponsoredPosts.map(sp => sp.id));
+    const sponsoredEventIds = new Set(filteredSponsored.map(sp => sp.id));
 
     const organic = events.filter(event => {
-      // Skip events that are already being shown as sponsored
       if (activeTab === "for-you" && sponsoredEventIds.has(event.id)) return false;
       const matchesSearch = event.title?.toLowerCase().includes(searchQuery.toLowerCase()) || (event.location_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
       return searchQuery === "" || matchesSearch;
@@ -109,9 +181,7 @@ const Index = () => {
         id: event.id,
         title: event.title || undefined,
         imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
-        date: format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", {
-          locale: es
-        }),
+        date: format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", { locale: es }),
         location: event.location_name || "Ubicación por confirmar",
         category: event.category || "party",
         attendees: guestlistEntries.length,
@@ -124,9 +194,8 @@ const Index = () => {
       };
     });
 
-    // Inject sponsored posts in both tabs, every 7-9 posts
-    if (sponsoredPosts.length > 0 && searchQuery === "") {
-      const sponsoredCards = sponsoredPosts.map(sp => {
+    if (filteredSponsored.length > 0 && searchQuery === "") {
+      const sponsoredCards = filteredSponsored.map(sp => {
         const guestlistEntries = sp.guestlist_entries || [];
         const attendeeAvatars = guestlistEntries.map((entry: any) => entry.user).filter(Boolean).map((user: any) => ({
           id: user.id,
@@ -150,10 +219,9 @@ const Index = () => {
         };
       });
 
-      // Interleave: insert one sponsored card every 7-9 organic cards
       const result = [...organic];
       let sponsoredIndex = 0;
-      const interval = 8; // every 8 posts
+      const interval = 8;
       for (let i = interval; i <= result.length && sponsoredIndex < sponsoredCards.length; i += interval + 1) {
         result.splice(i, 0, sponsoredCards[sponsoredIndex]);
         sponsoredIndex++;
@@ -162,23 +230,15 @@ const Index = () => {
     }
 
     return organic;
-  }, [events, searchQuery, activeTab, sponsoredPosts]);
+  }, [events, searchQuery, activeTab, filteredSponsored]);
+
   return <SelectedEventProvider>
       <AppLayout ref={scrollContainerRef}>
-        {/* Header */}
-        {/* Fixed header with logo and notification */}
         <header className="sticky top-0 z-40 safe-top bg-background">
           <div className="flex items-center justify-between px-4 py-4">
-            <motion.div initial={{
-            opacity: 0,
-            x: -20
-          }} animate={{
-            opacity: 1,
-            x: 0
-          }}>
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
               <h1 className="font-brand text-2xl text-foreground font-semibold">zentro</h1>
             </motion.div>
-
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" className="relative" onClick={handleNotificationClick}>
                 <Bell className="w-5 h-5" />
@@ -186,74 +246,37 @@ const Index = () => {
               </Button>
             </div>
           </div>
-
-          {/* Search bar */}
-          {showSearch && <motion.div initial={{
-          opacity: 0,
-          height: 0
-        }} animate={{
-          opacity: 1,
-          height: "auto"
-        }} exit={{
-          opacity: 0,
-          height: 0
-        }} className="px-4 pb-4">
+          {showSearch && <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-4 pb-4">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input placeholder="Buscar eventos, lugares..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
               </div>
             </motion.div>}
-
-          {/* Tabs - hide on scroll down, show on scroll up */}
           <motion.div 
-            animate={{ 
-              height: headerVisible ? "auto" : 0,
-              opacity: headerVisible ? 1 : 0,
-              marginBottom: headerVisible ? 0 : 0
-            }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 300, 
-              damping: 30
-            }}
+            animate={{ height: headerVisible ? "auto" : 0, opacity: headerVisible ? 1 : 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="overflow-hidden"
           >
-            <div 
-              className="flex px-4 pb-3 gap-2"
-              style={{
-                pointerEvents: headerVisible ? "auto" : "none"
-              }}
-            >
+            <div className="flex px-4 pb-3 gap-2" style={{ pointerEvents: headerVisible ? "auto" : "none" }}>
               <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                {activeTab === "for-you" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
-                type: "spring",
-                duration: 0.5
-              }} />}
+                {activeTab === "for-you" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{ type: "spring", duration: 0.5 }} />}
                 <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary" : ""}`}>Para Ti</span>
               </button>
-              {/* Hide Following tab for guests - requires auth */}
               {!isGuest && (
                 <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "following" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                  {activeTab === "following" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{
-                  type: "spring",
-                  duration: 0.5
-                }} />}
+                  {activeTab === "following" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{ type: "spring", duration: 0.5 }} />}
                   <span className={`relative z-10 ${activeTab === "following" ? "text-primary" : ""}`}>Siguiendo</span>
                 </button>
               )}
             </div>
           </motion.div>
         </header>
-
-        {/* Event feed with pull-to-refresh */}
         <PullToRefresh onRefresh={handleRefresh} className="flex-1">
           <LayoutGroup>
             <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
           </LayoutGroup>
         </PullToRefresh>
       </AppLayout>
-
-      {/* Overlay for expansion transition */}
       <EventDetailOverlay />
     </SelectedEventProvider>;
 };
