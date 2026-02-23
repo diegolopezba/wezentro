@@ -1174,6 +1174,11 @@ export type Database = {
           spent: number
           start_date: string | null
           status: string
+          target_age_max: number | null
+          target_age_min: number | null
+          target_categories: string[] | null
+          target_gender: string | null
+          target_radius_km: number | null
           total_budget: number | null
         }
         Insert: {
@@ -1188,6 +1193,11 @@ export type Database = {
           spent?: number
           start_date?: string | null
           status?: string
+          target_age_max?: number | null
+          target_age_min?: number | null
+          target_categories?: string[] | null
+          target_gender?: string | null
+          target_radius_km?: number | null
           total_budget?: number | null
         }
         Update: {
@@ -1202,6 +1212,11 @@ export type Database = {
           spent?: number
           start_date?: string | null
           status?: string
+          target_age_max?: number | null
+          target_age_min?: number | null
+          target_categories?: string[] | null
+          target_gender?: string | null
+          target_radius_km?: number | null
           total_budget?: number | null
         }
         Relationships: [

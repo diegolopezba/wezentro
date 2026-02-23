@@ -16,12 +16,22 @@ export interface SponsoredPost {
   impressions: number;
   clicks: number;
   created_at: string;
+  target_categories: string[] | null;
+  target_radius_km: number | null;
+  target_gender: string | null;
+  target_age_min: number | null;
+  target_age_max: number | null;
 }
 
 export interface SponsoredEventForFeed extends EventWithCreator {
   guestlist_entries?: any[];
   isSponsored: true;
   sponsoredPostId: string;
+  target_categories: string[] | null;
+  target_radius_km: number | null;
+  target_gender: string | null;
+  target_age_min: number | null;
+  target_age_max: number | null;
 }
 
 // Fetch active sponsored posts with their event data for feed injection
@@ -29,10 +39,9 @@ export const useActiveSponsoredPosts = () => {
   return useQuery({
     queryKey: ["active-sponsored-posts"],
     queryFn: async () => {
-      // Get active sponsored posts
       const { data: sponsoredPosts, error: spError } = await supabase
         .from("sponsored_posts")
-        .select("id, event_id")
+        .select("id, event_id, target_categories, target_radius_km, target_gender, target_age_min, target_age_max")
         .eq("status", "active");
 
       if (spError) throw spError;
@@ -40,21 +49,16 @@ export const useActiveSponsoredPosts = () => {
 
       const eventIds = sponsoredPosts.map((sp) => sp.event_id);
 
-      // Fetch the actual event data
       const { data: events, error: evError } = await supabase
         .from("events")
         .select(`
           *,
           creator:profiles!events_creator_id_fkey(
-            id,
-            username,
-            full_name,
-            avatar_url
+            id, username, full_name, avatar_url
           ),
           guestlist_entries(
             user:profiles!guestlist_entries_user_id_fkey(
-              id,
-              avatar_url
+              id, avatar_url
             )
           )
         `)
@@ -63,16 +67,23 @@ export const useActiveSponsoredPosts = () => {
 
       if (evError) throw evError;
 
-      // Map sponsored post IDs to events
-      const spMap = new Map(sponsoredPosts.map((sp) => [sp.event_id, sp.id]));
+      const spMap = new Map(sponsoredPosts.map((sp) => [sp.event_id, sp]));
 
-      return (events || []).map((event) => ({
-        ...event,
-        isSponsored: true as const,
-        sponsoredPostId: spMap.get(event.id) || "",
-      })) as SponsoredEventForFeed[];
+      return (events || []).map((event) => {
+        const sp = spMap.get(event.id);
+        return {
+          ...event,
+          isSponsored: true as const,
+          sponsoredPostId: sp?.id || "",
+          target_categories: (sp as any)?.target_categories || null,
+          target_radius_km: (sp as any)?.target_radius_km != null ? Number((sp as any).target_radius_km) : null,
+          target_gender: (sp as any)?.target_gender || null,
+          target_age_min: (sp as any)?.target_age_min || null,
+          target_age_max: (sp as any)?.target_age_max || null,
+        };
+      }) as SponsoredEventForFeed[];
     },
-    staleTime: 5 * 60 * 1000, // 5 min
+    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -90,11 +101,7 @@ export const useMySponsored = () => {
         .select(`
           *,
           event:events(
-            id,
-            title,
-            image_url,
-            start_datetime,
-            category
+            id, title, image_url, start_datetime, category
           )
         `)
         .eq("business_user_id", user.id)
@@ -117,6 +124,11 @@ export const useCreateSponsoredPost = () => {
       event_id: string;
       daily_budget?: number;
       total_budget?: number;
+      target_categories?: string[];
+      target_radius_km?: number;
+      target_gender?: string;
+      target_age_min?: number;
+      target_age_max?: number;
     }) => {
       if (!user?.id) throw new Error("Not authenticated");
 
@@ -128,7 +140,12 @@ export const useCreateSponsoredPost = () => {
           daily_budget: params.daily_budget ?? null,
           total_budget: params.total_budget ?? null,
           status: "draft",
-        })
+          target_categories: params.target_categories?.length ? params.target_categories : null,
+          target_radius_km: params.target_radius_km ?? null,
+          target_gender: params.target_gender && params.target_gender !== "all" ? params.target_gender : null,
+          target_age_min: params.target_age_min ?? null,
+          target_age_max: params.target_age_max ?? null,
+        } as any)
         .select()
         .single();
 
