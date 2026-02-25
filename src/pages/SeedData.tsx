@@ -17,6 +17,25 @@ export default function SeedData() {
   const [status, setStatus] = useState("");
   const [result, setResult] = useState<any>(null);
 
+  const runDelete = async () => {
+    if (!confirm("¿Eliminar TODOS los datos mock? Esto no se puede deshacer.")) return;
+    setLoading(true);
+    setResult(null);
+    setStatus("Eliminando datos mock...");
+    try {
+      const { data, error } = await supabase.functions.invoke("seed-mock-data", {
+        body: { seedType: "delete" },
+      });
+      if (error) throw new Error(error.message);
+      setResult({ success: true, deleted: data.deleted });
+      setStatus("¡Eliminado!");
+    } catch (err: any) {
+      setResult({ error: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const unlock = () => {
     if (password === ADMIN_PASSWORD) setUnlocked(true);
     else alert("Contraseña incorrecta");
@@ -101,11 +120,15 @@ export default function SeedData() {
               <p>✅ <strong>~200 eventos</strong> por cada negocio</p>
               <p>✅ <strong>Menús</strong> para negocios de comida</p>
               <p>🔑 Password de todas las cuentas: <code className="bg-background px-1 rounded">Zentro2025!</code></p>
-              <p className="text-yellow-500">⚠️ Idempotente — puedes correrlo múltiples veces sin duplicados.</p>
+              <p className="text-warning">⚠️ Idempotente — puedes correrlo múltiples veces sin duplicados.</p>
             </div>
 
             <Button className="w-full" onClick={runSeed} disabled={loading}>
-              {loading ? status || "Iniciando..." : "🚀 Crear Cuentas Mock"}
+              {loading && !status.includes("Eliminando") ? status || "Iniciando..." : "🚀 Crear Cuentas Mock"}
+            </Button>
+
+            <Button variant="destructive" className="w-full" onClick={runDelete} disabled={loading}>
+              {loading && status.includes("Eliminando") ? "Eliminando..." : "🗑️ Eliminar Datos Mock"}
             </Button>
 
             {loading && (
@@ -119,6 +142,8 @@ export default function SeedData() {
               <div className={`rounded-lg p-4 text-sm ${result.error ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
                 {result.error ? (
                   <p>Error: {result.error}</p>
+                ) : result.deleted !== undefined ? (
+                  <p>🗑️ <strong>{result.deleted}</strong> cuentas mock eliminadas.</p>
                 ) : (
                   <div className="space-y-1">
                     <p>✅ Negocios creados: <strong>{result.businesses}</strong></p>
@@ -127,7 +152,7 @@ export default function SeedData() {
                     <p>✅ Menús creados: <strong>{result.menus}</strong></p>
                     {result.errors?.length > 0 && (
                       <details className="mt-2">
-                        <summary className="cursor-pointer text-yellow-400">⚠️ {result.errors.length} advertencias</summary>
+                        <summary className="cursor-pointer text-warning">⚠️ {result.errors.length} advertencias</summary>
                         <ul className="mt-1 space-y-1 text-xs">{result.errors.map((e: string, i: number) => <li key={i}>{e}</li>)}</ul>
                       </details>
                     )}
