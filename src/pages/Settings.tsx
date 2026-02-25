@@ -5,62 +5,53 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+interface SettingsItem {
+  icon: React.ElementType;
+  label: string;
+  path: string;
+  highlight?: boolean;
+}
+
+interface SettingsSection {
+  title: string;
+  items: SettingsItem[];
+}
+
 const Settings = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
-  const settingsItems = [
+  const sections: SettingsSection[] = [
     {
-      icon: Briefcase,
-      label: "Business",
-      path: "/settings/business",
-      highlight: true,
+      title: "Personal",
+      items: [
+        { icon: User, label: "Editar Perfil", path: "/edit-profile" },
+        { icon: Shield, label: "Privacidad", path: "/settings/privacy" },
+        { icon: CreditCard, label: "Suscripción", path: "/settings/subscription" },
+        { icon: Gift, label: "Invitar Amigos", path: "/settings/referrals" },
+      ],
     },
     {
-      icon: Gift,
-      label: "Invitar Amigos",
-      path: "/settings/referrals"
+      title: "Business",
+      items: [
+        { icon: Briefcase, label: "Dashboard Business", path: "/settings/business", highlight: true },
+      ],
     },
     {
-      icon: UtensilsCrossed,
-      label: "Mis Reservas",
-      path: "/settings/reservations"
+      title: "Actividad",
+      items: [
+        { icon: Ticket, label: "Entradas", path: "/settings/tickets" },
+        { icon: UtensilsCrossed, label: "Mis Reservas", path: "/settings/reservations" },
+        { icon: Calendar, label: "Eventos Asistidos", path: "/settings/joined-events" },
+        { icon: Bookmark, label: "Guardados", path: "/saved" },
+      ],
     },
     {
-      icon: Ticket,
-      label: "Entradas",
-      path: "/settings/tickets"
+      title: "Soporte",
+      items: [
+        { icon: HelpCircle, label: "Ayuda y Soporte", path: "/settings/help" },
+      ],
     },
-    {
-      icon: Calendar,
-      label: "Eventos Asistidos",
-      path: "/settings/joined-events"
-    },
-    {
-      icon: Bookmark,
-      label: "Guardados",
-      path: "/saved"
-    },
-    {
-      icon: User,
-      label: "Editar Perfil",
-      path: "/edit-profile"
-    },
-    {
-      icon: Shield,
-      label: "Privacidad",
-      path: "/settings/privacy"
-    },
-    {
-      icon: CreditCard,
-      label: "Suscripción",
-      path: "/settings/subscription"
-    },
-    {
-      icon: HelpCircle,
-      label: "Ayuda y Soporte",
-      path: "/settings/help"
-    }
   ];
 
   const handleSignOut = async () => {
@@ -69,51 +60,62 @@ const Settings = () => {
     navigate("/auth");
   };
 
+  let globalIndex = 0;
+
   return (
     <AppLayout>
-      {/* Header */}
       <header className="sticky top-0 z-40 safe-top">
         <div className="flex items-center gap-3 px-4 py-4">
           <h1 className="font-brand text-xl font-bold text-foreground">Configuración</h1>
         </div>
       </header>
 
-      <div className="px-4 py-2">
-        <div className="divide-y divide-background">
-          {settingsItems.map((item, index) => {
-            const Icon = item.icon;
-            const isHighlight = 'highlight' in item && item.highlight;
-            return (
-              <motion.button
-                key={item.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-4 py-4 px-4 transition-colors mx-0 ${
-                  isHighlight
-                    ? "mb-2 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/5 border border-blue-500/20 hover:from-blue-500/15 hover:to-indigo-500/10"
-                    : "hover:bg-secondary/30"
-                }`}
-              >
-                <Icon className={`w-5 h-5 ${isHighlight ? "text-blue-500" : "text-muted-foreground"}`} />
-                <span className="text-foreground font-medium flex-1 text-left">{item.label}</span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </motion.button>
-            );
-          })}
-        </div>
+      <div className="px-4 py-2 space-y-6 pb-8">
+        {sections.map((section) => (
+          <div key={section.title}>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">
+              {section.title}
+            </p>
+            <div className="rounded-2xl bg-card border border-border overflow-hidden divide-y divide-border">
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                const idx = globalIndex++;
+                return (
+                  <motion.button
+                    key={item.label}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.04 }}
+                    onClick={() => navigate(item.path)}
+                    className="w-full flex items-center gap-4 py-3.5 px-4 hover:bg-secondary/40 transition-colors"
+                  >
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.highlight ? "bg-primary/15" : "bg-secondary"}`}>
+                      <Icon className={`w-4 h-4 ${item.highlight ? "text-primary" : "text-foreground"}`} />
+                    </div>
+                    <span className="text-foreground font-medium flex-1 text-left text-sm">{item.label}</span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
 
-        <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          onClick={handleSignOut}
-          className="w-full flex items-center gap-4 py-4 mt-8 px-4 transition-colors mx-0 bg-primary-foreground"
-        >
-          <LogOut className="w-5 h-5 text-destructive" />
-          <span className="text-destructive font-medium flex-1 text-left">Cerrar Sesión</span>
-        </motion.button>
+        {/* Sign out */}
+        <div className="rounded-2xl bg-card border border-destructive/20 overflow-hidden">
+          <motion.button
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-4 py-3.5 px-4 hover:bg-destructive/5 transition-colors"
+          >
+            <div className="w-8 h-8 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+              <LogOut className="w-4 h-4 text-destructive" />
+            </div>
+            <span className="text-destructive font-medium flex-1 text-left text-sm">Cerrar Sesión</span>
+          </motion.button>
+        </div>
       </div>
     </AppLayout>
   );
