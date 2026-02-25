@@ -154,6 +154,47 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           payment_qr_url: formData.payment_qr_url || null,
         },
       });
+      // Parse @mentions from description and insert into event_tags
+      if (formData.description.trim()) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const mentionRegex = /(?<!\w)@([a-zA-Z0-9_]+)/g;
+          const usernames = new Set<string>();
+          let match;
+          while ((match = mentionRegex.exec(formData.description)) !== null) {
+            usernames.add(match[1].toLowerCase());
+          }
+          if (usernames.size > 0) {
+            const { data: profiles } = await supabase
+              .from("profiles")
+              .select("id, username")
+              .in("username", Array.from(usernames))
+              .neq("id", session.user.id);
+            if (profiles && profiles.length > 0) {
+              // Only insert tags that don't already exist
+              const { data: existingTags } = await supabase
+                .from("event_tags")
+                .select("tagged_user_id")
+                .eq("event_id", event.id);
+              const existingIds = new Set((existingTags || []).map(t => t.tagged_user_id));
+              for (const p of profiles) {
+                if (!existingIds.has(p.id)) {
+                  try {
+                    await supabase.from("event_tags").insert({
+                      event_id: event.id,
+                      tagged_user_id: p.id,
+                      tagged_by: session.user.id,
+                    });
+                  } catch (tagError) {
+                    console.error("Error tagging user:", tagError);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       toast.success("Evento actualizado exitosamente");
       onOpenChange(false);
     } catch (error: any) {

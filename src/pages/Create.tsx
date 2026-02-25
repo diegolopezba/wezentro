@@ -11,7 +11,6 @@ import {
   ImageIcon,
   Video,
   UserPlus,
-  AtSign,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -24,11 +23,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LocationPicker } from "@/components/map/LocationPicker";
 import { CollaboratorPickerModal } from "@/components/events/CollaboratorPickerModal";
-import { TagPickerModal } from "@/components/events/TagPickerModal";
 import { MutualFollower } from "@/hooks/useChats";
-import { SearchUser } from "@/hooks/useSearchUsers";
 import { useInviteCollaborator } from "@/hooks/useEventCollaborators";
-import { useTagUser } from "@/hooks/useEventTags";
 import { useCreateEvent } from "@/hooks/useEventMutations";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import {
@@ -60,7 +56,7 @@ const Create = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isBusiness = profile?.is_business === true;
   const inviteCollaborator = useInviteCollaborator();
-  const tagUser = useTagUser();
+  
   const { invalidateAfterCreate } = useCreateEvent();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,9 +64,7 @@ const Create = () => {
   const [isCompressing, setIsCompressing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showCollaboratorPicker, setShowCollaboratorPicker] = useState(false);
-  const [showTagPicker, setShowTagPicker] = useState(false);
   const [selectedCollaborator, setSelectedCollaborator] = useState<MutualFollower | null>(null);
-  const [selectedTaggedUsers, setSelectedTaggedUsers] = useState<SearchUser[]>([]);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
@@ -332,13 +326,32 @@ const Create = () => {
         }
       }
 
-      // Tag selected users
-      if (selectedTaggedUsers.length > 0 && data.id) {
-        for (const taggedUser of selectedTaggedUsers) {
-          try {
-            await tagUser.mutateAsync({ eventId: data.id, userId: taggedUser.id });
-          } catch (tagError) {
-            console.error("Error tagging user:", tagError);
+      // Parse @mentions from description and insert into event_tags
+      if (data.id && formData.description.trim()) {
+        const mentionRegex = /(?<!\w)@([a-zA-Z0-9_]+)/g;
+        const usernames = new Set<string>();
+        let match;
+        while ((match = mentionRegex.exec(formData.description)) !== null) {
+          usernames.add(match[1].toLowerCase());
+        }
+        if (usernames.size > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("id, username")
+            .in("username", Array.from(usernames))
+            .neq("id", user.id);
+          if (profiles && profiles.length > 0) {
+            for (const p of profiles) {
+              try {
+                await supabase.from("event_tags").insert({
+                  event_id: data.id,
+                  tagged_user_id: p.id,
+                  tagged_by: user.id,
+                });
+              } catch (tagError) {
+                console.error("Error tagging user:", tagError);
+              }
+            }
           }
         }
       }
@@ -669,73 +682,6 @@ const Create = () => {
           </Card>
         </motion.div>
 
-        {/* Tag accounts section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.17 }}
-        >
-          <Card className="glass border-white/10 p-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                  <AtSign className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">Etiquetar cuentas</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Etiqueta a otros usuarios en tu publicación
-                  </p>
-                </div>
-              </div>
-
-              {selectedTaggedUsers.length > 0 && (
-                <div className="space-y-2">
-                  {selectedTaggedUsers.map((taggedUser) => (
-                    <div key={taggedUser.id} className="flex items-center justify-between p-3 rounded-xl bg-secondary/50">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={taggedUser.avatar_url || DEFAULT_AVATAR} />
-                          <AvatarFallback>{taggedUser.username[0]?.toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm font-medium text-foreground">@{taggedUser.username}</p>
-                          {taggedUser.full_name && (
-                            <p className="text-xs text-muted-foreground">{taggedUser.full_name}</p>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedTaggedUsers(prev => prev.filter(u => u.id !== taggedUser.id))}
-                        className="p-1.5 rounded-full hover:bg-secondary transition-colors"
-                      >
-                        <X className="w-4 h-4 text-muted-foreground" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full justify-start gap-2 border-dashed"
-                onClick={() => setShowTagPicker(true)}
-              >
-                <AtSign className="w-4 h-4" />
-                {selectedTaggedUsers.length > 0 ? "Etiquetar más" : "Etiquetar cuenta"}
-              </Button>
-
-              {selectedTaggedUsers.length > 0 && (
-                <p className="text-xs text-muted-foreground bg-primary/10 p-2 rounded-lg">
-                  💡 Los usuarios etiquetados recibirán una notificación y podrán aceptar mostrar la publicación en su perfil.
-                </p>
-              )}
-            </div>
-          </Card>
-        </motion.div>
-
         {/* Guestlist toggle - Premium feature, only for events */}
         {!isPost && (
           <motion.div
@@ -859,19 +805,6 @@ const Create = () => {
         excludeUserIds={selectedCollaborator ? [selectedCollaborator.id] : []}
       />
 
-      {/* Tag picker modal */}
-      <TagPickerModal
-        open={showTagPicker}
-        onOpenChange={setShowTagPicker}
-        onSelect={(user) => setSelectedTaggedUsers(prev => {
-          if (prev.find(u => u.id === user.id)) return prev;
-          return [...prev, user];
-        })}
-        excludeUserIds={[
-          ...selectedTaggedUsers.map(u => u.id),
-          ...(selectedCollaborator ? [selectedCollaborator.id] : []),
-        ]}
-      />
     </AppLayout>
   );
 };
