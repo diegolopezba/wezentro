@@ -15,6 +15,7 @@ import { EditMenuSheet } from "@/components/menu/EditMenuSheet";
 import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
 import { ReservationsManagementSheet } from "@/components/reservations/ReservationsManagementSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
+import { MentionText } from "@/components/ui/MentionText";
 const Profile = () => {
   const navigate = useNavigate();
   const {
@@ -126,7 +127,7 @@ const Profile = () => {
       }} transition={{
         delay: 0.05
       }} className="mt-4">
-          {profile?.bio && <p className="text-sm text-foreground/80">{profile.bio}</p>}
+          {profile?.bio && <MentionText text={profile.bio} className="text-sm text-foreground/80" />}
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
           
           {/* Edit Menu button for food businesses */}

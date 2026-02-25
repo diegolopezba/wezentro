@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage, blobToFile } from "@/lib/mediaCompression";
+import { MentionTextarea } from "@/components/ui/MentionTextarea";
 
 interface EditEventSheetProps {
   event: {
@@ -182,7 +183,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
 
           <div className="space-y-2">
             <Label htmlFor="description">Descripción</Label>
-            <Textarea
+            <MentionTextarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
