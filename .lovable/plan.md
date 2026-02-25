@@ -1,63 +1,114 @@
 
-## Plan: Merge Tag Modal into @mention System
+## Analysis of Current Architecture vs. 1M Scale
 
-### What exists today
+### Critical bottlenecks found:
 
-1. **TagPickerModal + `event_tags` table** — a separate "Tag Accounts" card in the Create page lets users pick users via a modal. On submit, it inserts rows into `event_tags`, which triggers `handle_event_tag()` DB function → `post_tag` notification → tagged user sees accept/decline in the notifications page via `PostTagNotificationItem`.
+**1. Feed Query — No Pagination, Full Table Scan**
+`useForYouEvents` fetches ALL public events with `.eq("is_public", true)` — no `.limit()`, no cursor. At 1M events this is a disaster: it would load thousands of rows, join guestlist_entries for every single one, and send it all to the client to score in JavaScript.
 
-2. **MentionTextarea** — the description field now supports `@username` autocomplete. But typing `@john` in a description does NOT insert into `event_tags` or send any notification.
+**2. Event Interactions Table — No Limit on Trending Query**
+The trending query fetches ALL event_interactions from the last 24h with no limit. At 1M users this could be millions of rows per query.
 
-### Goal
+**3. useChats — Fetches ALL Messages for All Chats**
+`useUserChats` fetches every message across ALL of a user's chats (no limit per chat) just to compute unread counts. This is an N+1 pattern that explodes at scale.
 
-When a user types `@username` in a description and publishes, automatically:
-- Parse the description for `@username` patterns
-- Resolve each username to a user ID (batch lookup against `profiles`)
-- Insert into `event_tags` (so the existing notification trigger fires automatically)
-- The tagged user still gets the `post_tag` notification and can still accept/decline from the Notifications page — nothing changes there
-- Remove the separate "Etiquetar cuentas" card and `TagPickerModal` from the Create page
-- Remove the same from EditEventSheet if present
+**4. Feed Scoring is Done Entirely Client-Side**
+The full 14-signal scoring algorithm runs in the browser after fetching raw events. At 1M posts, the client can't process this — it needs to be a server-side database function.
 
-### What changes
+**5. Collaborative Filtering Makes 3 Sequential DB Queries Per Feed Load**
+Each feed load runs: (1) get my prefs, (2) find similar users, (3) get their interactions. These are unbounded queries at scale.
 
-**1. `src/pages/Create.tsx`**
-- Remove `TagPickerModal` import and its JSX block at the bottom
-- Remove `AtSign` import (if unused after), `TagPickerModal` import, `useTagUser` import, `selectedTaggedUsers` state, `showTagPicker` state, `SearchUser` import (if unused)
-- Remove the entire "Tag accounts section" card (lines ~672–736)
-- In `handleSubmit`, after the event is inserted, extract `@username` mentions from the description using a regex, batch-query `profiles` by those usernames to get their IDs, then insert into `event_tags` for each one (reusing the existing `supabase.from("event_tags").insert(...)` logic). The existing DB trigger will fire the notification automatically.
-- Keep the `MentionTextarea` for description input (already in place)
+**6. No Database Indexes Mentioned**
+The schema has no explicit indexes on `events.is_public`, `events.creator_id`, `events.start_datetime`, `event_interactions.created_at`, etc. Full scans on million-row tables.
 
-**2. `src/components/events/EditEventSheet.tsx`**
-- Check if it also has the TagPickerModal UI — if so, apply the same removal and add the same post-save mention parsing + `event_tags` insert logic
+**7. Images/Videos — No CDN or Responsive Sizing**
+Storage is a single Supabase bucket with no image transformation pipeline, no CDN layer, no lazy-loaded responsive images.
 
-**3. `src/components/events/TagPickerModal.tsx`**
-- Delete this file entirely (or leave it since no other file imports it after Create.tsx is cleaned — either way the import removal makes it dead code; deletion is cleaner)
+**8. No Pagination Anywhere**
+Messages, timelines, notifications, guestlists — all fetched in full with no pagination or infinite scroll backed by cursor queries.
 
-### How mention-to-tag parsing works in `handleSubmit`
+---
+
+## The Plan
+
+### Phase 1 — Database Indexes (Immediate, Zero Code Changes)
+Add composite indexes on the most-queried columns. This alone can give 10-100x query speed improvements on large tables with zero application changes.
 
 ```text
-1. After event insert succeeds and we have data.id:
-2. Parse description: extract all @username tokens via /(?<!\w)@([a-zA-Z0-9_]+)/g
-3. Deduplicate usernames, exclude the creator's own username
-4. Batch query: SELECT id, username FROM profiles WHERE username = ANY(usernames)
-5. For each resolved user: INSERT INTO event_tags (event_id, tagged_user_id, tagged_by) VALUES (...)
-6. DB trigger handle_event_tag() fires automatically → inserts notification for tagged user
-7. Tagged user sees the accept/decline UI in Notifications page (unchanged)
+events:
+  - (is_public, deleted_at, created_at DESC)  ← for feed
+  - (creator_id, deleted_at)                  ← for profile timeline
+  - (start_datetime)                           ← for upcoming events
+
+event_interactions:
+  - (created_at, event_id)                    ← for trending
+  - (user_id, type, created_at)               ← for collaborative filtering
+
+guestlist_entries:
+  - (event_id, status)                        ← for guestlist lookups
+  - (user_id, status)                         ← for user's joined events
+
+notifications:
+  - (user_id, is_read, created_at DESC)       ← for notification feed
+
+messages:
+  - (chat_id, created_at DESC)               ← for message pagination
+
+follows:
+  - (follower_id)                             ← for following feed
 ```
 
-No DB migration needed — `event_tags` table and the `handle_event_tag` trigger already exist and work correctly.
+### Phase 2 — Fix Feed Query (Pagination + Limit)
+Add `.limit(100)` to the feed query immediately (prevents runaway data) and implement cursor-based pagination (load more) so only ~20 events are fetched per page.
 
-### No changes needed to
+The `for-you-events` query changes from:
+```
+fetch ALL events → score in JS → show top N
+```
+to:
+```
+fetch top 200 by recency/location pre-filter → score in JS → show top 50
+→ load more button fetches next 200
+```
 
-- `PostTagNotificationItem` — already works perfectly
-- `useEventTags` / `useRespondToTag` hooks — unchanged
-- Notifications page — unchanged
-- `MentionText` display component — unchanged
-- `MentionTextarea` input component — unchanged
+### Phase 3 — Fix Chat Message Query
+The `useUserChats` hook fetches ALL messages for ALL chats. Replace this with a single SQL function `get_chat_list_with_unread` that:
+- Gets the last 1 message per chat (using `DISTINCT ON` or a window function)
+- Counts unread messages using an indexed `WHERE created_at > last_read_at` per chat
+- Returns both in a single query instead of one big messages dump
 
-### Files to modify/delete
+### Phase 4 — Move Feed Pre-Scoring to Database
+Create a Postgres function `get_scored_feed` that pre-filters events server-side based on:
+- User's location (bounding box filter)
+- Category interests (match against user's interests array)
+- Recency (only events from last 30 days or future)
+- Trending (pre-computed materialized view or cached counter)
 
-| File | Action |
-|---|---|
-| `src/pages/Create.tsx` | Remove TagPickerModal section + state, add mention parsing logic in handleSubmit |
-| `src/components/events/EditEventSheet.tsx` | Same if it has tag UI; add mention parsing on save |
-| `src/components/events/TagPickerModal.tsx` | Delete |
+This reduces the client-side scoring from "score 5000 events" to "score 50 pre-filtered candidates."
+
+### Phase 5 — Trending Pre-computation
+Instead of querying event_interactions in real time, create a `trending_scores` table updated by a scheduled database function every 15 minutes. The feed query reads from this table instead of aggregating millions of interaction rows live.
+
+### Phase 6 — Image Optimization
+Add `?width=400&quality=75` query params to all image URLs via Supabase Storage's built-in image transformation API (already available). This ensures the feed loads thumbnails (~20KB) not full images (~500KB).
+
+---
+
+## What We'll Implement Now
+
+The highest-impact, lowest-risk changes that can be done immediately:
+
+1. **Database indexes** via a migration — no code changes, immediate impact
+2. **Feed query limit** — cap at 200 events max, add cursor for "load more"
+3. **Chat messages fix** — replace full message dump with a server-side function for last-message + unread count
+4. **Trending query limit** — add `.limit(500)` to the interactions query
+5. **Image transformations** — add width/quality params to feed image URLs
+
+These 5 changes would handle the majority of the scaling bottlenecks without requiring an architectural rewrite.
+
+### Files to modify:
+- **New migration**: `supabase/migrations/` — add indexes + `get_chat_list_with_unread` function
+- **`src/hooks/useForYouEvents.ts`**: add `.limit(200)` to events query + cap trending query
+- **`src/hooks/useChats.ts`**: replace message-dump with the new DB function
+- **`src/components/events/EventCard.tsx`**: add image transformation params
+- **`src/pages/Index.tsx`**: wire up "load more" / pagination state
