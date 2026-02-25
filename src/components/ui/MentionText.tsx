@@ -7,7 +7,8 @@ interface MentionTextProps {
   className?: string;
 }
 
-const MENTION_REGEX = /(@[a-zA-Z0-9_]+)/g;
+const MENTION_SPLIT_REGEX = /(@[a-zA-Z0-9_]+)/g;
+const MENTION_TEST_REGEX = /^@[a-zA-Z0-9_]+$/;
 
 export const MentionText = ({ text, className }: MentionTextProps) => {
   const navigate = useNavigate();
@@ -27,14 +28,12 @@ export const MentionText = ({ text, className }: MentionTextProps) => {
     }
   };
 
-  const parts = text.split(MENTION_REGEX);
+  const parts = text.split(MENTION_SPLIT_REGEX);
 
   return (
     <span className={className}>
       {parts.map((part, i) => {
-        if (MENTION_REGEX.test(part)) {
-          // Reset regex lastIndex since we're reusing it
-          MENTION_REGEX.lastIndex = 0;
+        if (MENTION_TEST_REGEX.test(part)) {
           const username = part.slice(1); // Remove @
           return (
             <span
