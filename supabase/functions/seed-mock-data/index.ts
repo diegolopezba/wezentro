@@ -399,11 +399,59 @@ Deno.serve(async (req) => {
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
 
-  const results = { businesses: 0, users: 0, events: 0, menus: 0, errors: [] as string[] };
+  // Parse batch parameters from body
+  const body = await req.json().catch(() => ({}));
+  const startIndex: number = body.startIndex ?? 0;
+  const batchSize: number = body.batchSize ?? 20;
+  const seedType: string = body.seedType ?? 'businesses'; // 'businesses' or 'users'
+
+  const results = { businesses: 0, users: 0, events: 0, menus: 0, errors: [] as string[], done: false };
 
   try {
+    if (seedType === 'users') {
+      // ── SEED NORMAL USERS ───────────────────────────────────────
+      const end = Math.min(startIndex + batchSize, normalUsers.length);
+      for (let i = startIndex; i < end; i++) {
+        const u = normalUsers[i];
+        const email = `${u.username}@zentromock.com`;
+        const avatar = `https://i.pravatar.cc/150?img=${(i % 70) + 1}`;
+
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+          email,
+          password: 'Zentro2025!',
+          email_confirm: true,
+          user_metadata: { username: u.username, full_name: u.fullName, avatar_url: avatar },
+        });
+
+        if (authError && !authError.message.includes('already been registered')) {
+          results.errors.push(`User ${u.username}: ${authError.message}`);
+          continue;
+        }
+
+        const uid = authData?.user?.id;
+        if (!uid) continue;
+
+        await supabaseAdmin.from('profiles').upsert({
+          id: uid,
+          username: u.username,
+          full_name: u.fullName,
+          avatar_url: avatar,
+          city: 'Santa Cruz de la Sierra',
+          is_business: false,
+        }, { onConflict: 'id' });
+
+        results.users++;
+      }
+      results.done = end >= normalUsers.length;
+
+      return new Response(JSON.stringify({ success: true, ...results, nextIndex: end, total: normalUsers.length }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // ── SEED BUSINESSES ──────────────────────────────────────────
-    for (let i = 0; i < businesses.length; i++) {
+    const end = Math.min(startIndex + batchSize, businesses.length);
+    for (let i = startIndex; i < end; i++) {
       const b = businesses[i];
       const email = `${b.username}@zentromock.com`;
       const avatar = getImageUrl(b.imgCat, i);
@@ -510,44 +558,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── SEED NORMAL USERS ───────────────────────────────────────
-    for (let i = 0; i < normalUsers.length; i++) {
-      const u = normalUsers[i];
-      const email = `${u.username}@zentromock.com`;
-      const avatar = `https://i.pravatar.cc/150?img=${(i % 70) + 1}`;
+    results.done = end >= businesses.length;
 
-      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password: 'Zentro2025!',
-        email_confirm: true,
-        user_metadata: {
-          username: u.username,
-          full_name: u.fullName,
-          avatar_url: avatar,
-        },
-      });
-
-      if (authError && !authError.message.includes('already been registered')) {
-        results.errors.push(`User ${u.username}: ${authError.message}`);
-        continue;
-      }
-
-      const uid = authData?.user?.id;
-      if (!uid) continue;
-
-      await supabaseAdmin.from('profiles').upsert({
-        id: uid,
-        username: u.username,
-        full_name: u.fullName,
-        avatar_url: avatar,
-        city: 'Santa Cruz de la Sierra',
-        is_business: false,
-      }, { onConflict: 'id' });
-
-      results.users++;
-    }
-
-    return new Response(JSON.stringify({ success: true, ...results }), {
+    return new Response(JSON.stringify({ success: true, ...results, nextIndex: end, total: businesses.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
