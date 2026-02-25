@@ -1,92 +1,63 @@
 
-## @mention support in bios and event descriptions
+## Plan: Merge Tag Modal into @mention System
 
 ### What exists today
 
-- **Event tagging** already exists as a separate system (TagPickerModal, event_tags table) — users explicitly tag other accounts via a modal after creating an event.
-- **Bio** is a plain text field rendered as `<p>` in UserProfile.tsx (line 221) — no @mention parsing.
-- **Event descriptions** in EventDetailOverlay/TimelineCard/EventCard are rendered as plain text — no clickable @mentions.
-- **`descriptionTagExtractor.ts`** only extracts semantic keyword tags for the recommendation engine; it doesn't parse @mentions.
+1. **TagPickerModal + `event_tags` table** — a separate "Tag Accounts" card in the Create page lets users pick users via a modal. On submit, it inserts rows into `event_tags`, which triggers `handle_event_tag()` DB function → `post_tag` notification → tagged user sees accept/decline in the notifications page via `PostTagNotificationItem`.
 
-### What needs to be built
+2. **MentionTextarea** — the description field now supports `@username` autocomplete. But typing `@john` in a description does NOT insert into `event_tags` or send any notification.
 
-**Phase 1 — Display: parse & render @mentions as clickable links**
+### Goal
 
-Any text that contains `@username` should be rendered as a tappable link that navigates to that user's profile. This applies to:
-1. Bio text on UserProfile page (line 221) and Profile page
-2. Event description text on EventDetailOverlay
-3. Event description text on TimelineCard/EventCard
+When a user types `@username` in a description and publishes, automatically:
+- Parse the description for `@username` patterns
+- Resolve each username to a user ID (batch lookup against `profiles`)
+- Insert into `event_tags` (so the existing notification trigger fires automatically)
+- The tagged user still gets the `post_tag` notification and can still accept/decline from the Notifications page — nothing changes there
+- Remove the separate "Etiquetar cuentas" card and `TagPickerModal` from the Create page
+- Remove the same from EditEventSheet if present
 
-We'll create a `MentionText` component:
-- Splits text by `@word` regex pattern
-- For each @mention token, renders a `<span>` styled like a link in `text-primary`
-- On press, navigates to `/user/:username` or resolves username → user ID via a lightweight lookup query
-- No extra DB queries needed at render time — we'll use username in the URL and the existing `useUserProfile` hook resolves it
+### What changes
 
-**Phase 2 — Input: @mention autocomplete while typing**
+**1. `src/pages/Create.tsx`**
+- Remove `TagPickerModal` import and its JSX block at the bottom
+- Remove `AtSign` import (if unused after), `TagPickerModal` import, `useTagUser` import, `selectedTaggedUsers` state, `showTagPicker` state, `SearchUser` import (if unused)
+- Remove the entire "Tag accounts section" card (lines ~672–736)
+- In `handleSubmit`, after the event is inserted, extract `@username` mentions from the description using a regex, batch-query `profiles` by those usernames to get their IDs, then insert into `event_tags` for each one (reusing the existing `supabase.from("event_tags").insert(...)` logic). The existing DB trigger will fire the notification automatically.
+- Keep the `MentionTextarea` for description input (already in place)
 
-In the bio textarea (EditProfile) and event description textarea (Create + EditEventSheet), as the user types `@` followed by characters, show an inline dropdown of matching users.
+**2. `src/components/events/EditEventSheet.tsx`**
+- Check if it also has the TagPickerModal UI — if so, apply the same removal and add the same post-save mention parsing + `event_tags` insert logic
 
-We'll create a `MentionTextarea` component:
-- Extends the standard `<textarea>` behavior
-- On every keystroke, detects if the cursor is inside a `@word` token (regex match behind cursor)
-- When a `@xxx` pattern is detected with ≥1 character after `@`, fires a debounced search against `profiles` (ilike username)
-- Shows a small floating dropdown of up to 5 results with avatar + username
-- Selecting a result inserts `@username ` at the cursor position
-- Pressing Escape or clicking outside dismisses the dropdown
-- The final saved value is plain text (e.g. "Check out @johndoe at the party"), no special encoding needed
+**3. `src/components/events/TagPickerModal.tsx`**
+- Delete this file entirely (or leave it since no other file imports it after Create.tsx is cleaned — either way the import removal makes it dead code; deletion is cleaner)
 
-### Files to create/modify
+### How mention-to-tag parsing works in `handleSubmit`
+
+```text
+1. After event insert succeeds and we have data.id:
+2. Parse description: extract all @username tokens via /(?<!\w)@([a-zA-Z0-9_]+)/g
+3. Deduplicate usernames, exclude the creator's own username
+4. Batch query: SELECT id, username FROM profiles WHERE username = ANY(usernames)
+5. For each resolved user: INSERT INTO event_tags (event_id, tagged_user_id, tagged_by) VALUES (...)
+6. DB trigger handle_event_tag() fires automatically → inserts notification for tagged user
+7. Tagged user sees the accept/decline UI in Notifications page (unchanged)
+```
+
+No DB migration needed — `event_tags` table and the `handle_event_tag` trigger already exist and work correctly.
+
+### No changes needed to
+
+- `PostTagNotificationItem` — already works perfectly
+- `useEventTags` / `useRespondToTag` hooks — unchanged
+- Notifications page — unchanged
+- `MentionText` display component — unchanged
+- `MentionTextarea` input component — unchanged
+
+### Files to modify/delete
 
 | File | Action |
 |---|---|
-| `src/components/ui/MentionText.tsx` | New — renders plain text with @mentions as clickable spans |
-| `src/components/ui/MentionTextarea.tsx` | New — textarea with @mention autocomplete dropdown |
-| `src/pages/UserProfile.tsx` | Replace bio `<p>` with `<MentionText>` |
-| `src/pages/Profile.tsx` | Replace bio `<p>` with `<MentionText>` |
-| `src/components/events/EventDetailOverlay.tsx` | Replace description `<p>` with `<MentionText>` |
-| `src/components/events/TimelineCard.tsx` | Replace description preview with `<MentionText>` (truncated) |
-| `src/pages/EditProfile.tsx` | Replace bio `<Textarea>` with `<MentionTextarea>` |
-| `src/pages/Create.tsx` | Replace description `<Input>` or `<Textarea>` with `<MentionTextarea>` |
-| `src/components/events/EditEventSheet.tsx` | Replace description `<Textarea>` with `<MentionTextarea>` |
-
-### MentionText component logic
-
-```text
-Input:  "Come party with @johndoe and @marysmith tonight!"
-Output: 
-  "Come party with "
-  <span class="text-primary cursor-pointer" onClick→navigate("/user/johndoe")>@johndoe</span>
-  " and "
-  <span class="text-primary cursor-pointer" onClick→navigate("/user/marysmith")>@marysmith</span>
-  " tonight!"
-```
-
-The regex: `/(@[a-zA-Z0-9_]+)/g` — splits and captures mention tokens.
-
-Navigation uses username directly: `navigate('/user/' + username.slice(1))` — the existing UserProfile page is at `/user/:id` but accepts UUID, so we need a small resolution step. Since `useUserProfile(id)` accepts UUID, we'll add a `useUserByUsername` hook that queries `profiles` by username and returns the ID, OR we can navigate to a new route `/u/:username` that does the lookup. The cleaner approach: add a route `/u/:username` that resolves and redirects to `/user/:id`.
-
-Actually, looking at the existing route structure, UserProfile uses `useParams({ id })` expecting a UUID. The simplest approach that requires no routing change: clicking an @mention fires a query `supabase.from('profiles').select('id').eq('username', username).single()` and then navigates to `/user/${id}`. This is a fast, indexed query.
-
-### MentionTextarea component logic
-
-```text
-User types: "come party with @jo"
-                                 ^cursor here
-
-1. On every keydown/change, extract text behind cursor up to nearest whitespace
-2. If it matches /@(\w+)$/, extract the partial query "jo"
-3. Debounce 200ms, query profiles for username ilike 'jo%', limit 5  
-4. Show dropdown below cursor position
-5. User clicks "@johndoe" → replace "@jo" with "@johndoe " in the text
-6. Dropdown closes
-```
-
-### No database changes needed
-
-- Bio and description are already TEXT columns that can hold @mention strings
-- No structural changes required — @mentions are parsed at render time from plain text
-
-### Summary
-
-This is purely a frontend enhancement. Two new reusable components (`MentionText` for display, `MentionTextarea` for input), then swap them into the relevant pages. No migration, no new tables, no RLS changes.
+| `src/pages/Create.tsx` | Remove TagPickerModal section + state, add mention parsing logic in handleSubmit |
+| `src/components/events/EditEventSheet.tsx` | Same if it has tag UI; add mention parsing on save |
+| `src/components/events/TagPickerModal.tsx` | Delete |
