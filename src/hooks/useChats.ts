@@ -57,7 +57,7 @@ export interface MutualFollower {
   avatar_url: string | null;
 }
 
-// Fetch all chats for current user with last message and participants
+// Fetch all chats for current user — uses server-side function for O(1) unread counts
 export const useUserChats = () => {
   const { user } = useAuth();
 
@@ -66,71 +66,32 @@ export const useUserChats = () => {
     queryFn: async (): Promise<ChatWithDetails[]> => {
       if (!user?.id) return [];
 
-      // Get all chats where user is a participant, including last_read_at
-      const { data: participations, error: partError } = await supabase
-        .from("chat_participants")
-        .select("chat_id, last_read_at")
-        .eq("user_id", user.id);
+      // Single efficient query: last message + unread count via DB function
+      const { data: chatRows, error: chatErr } = await supabase
+        .rpc("get_chat_list_with_unread", { _user_id: user.id });
 
-      if (partError) throw partError;
-      if (!participations || participations.length === 0) return [];
+      if (chatErr) throw chatErr;
+      if (!chatRows || chatRows.length === 0) return [];
 
-      const chatIds = participations.map((p) => p.chat_id);
-      
-      // Create a map of chat_id to last_read_at for quick lookup
-      const lastReadMap: Record<string, string | null> = {};
-      participations.forEach((p) => {
-        lastReadMap[p.chat_id] = p.last_read_at;
-      });
+      const chatIds = chatRows.map((r: any) => r.chat_id as string);
 
-      // Get chat details
-      const { data: chats, error: chatsError } = await supabase
-        .from("chats")
-        .select(`
-          id,
-          type,
-          name,
-          event_id,
-          created_at
-        `)
-        .in("id", chatIds)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false });
-
-      if (chatsError) throw chatsError;
-      if (!chats) return [];
-
-      // Get all participants for these chats
-      const { data: allParticipants, error: allPartError } = await supabase
+      // Fetch participants for all chats in one query
+      const { data: allParticipants, error: partErr } = await supabase
         .from("chat_participants")
         .select(`
           chat_id,
-          user_id,
           profiles:user_id (
-            id,
-            username,
-            full_name,
-            avatar_url
+            id, username, full_name, avatar_url
           )
         `)
         .in("chat_id", chatIds);
 
-      if (allPartError) throw allPartError;
+      if (partErr) throw partErr;
 
-      // Get ALL messages for these chats to count unread
-      const { data: messages, error: msgError } = await supabase
-        .from("messages")
-        .select("chat_id, content, created_at, sender_id")
-        .in("chat_id", chatIds)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false });
-
-      if (msgError) throw msgError;
-
-      // Get event details for event chats
-      const eventIds = chats
-        .filter((c) => c.event_id)
-        .map((c) => c.event_id as string);
+      // Fetch event details for event chats in one query
+      const eventIds = chatRows
+        .filter((r: any) => r.event_id)
+        .map((r: any) => r.event_id as string);
 
       let eventsMap: Record<string, { id: string; title: string | null; image_url: string | null }> = {};
       if (eventIds.length > 0) {
@@ -147,71 +108,43 @@ export const useUserChats = () => {
         }
       }
 
-      // Build chat details
-      const chatsWithDetails: ChatWithDetails[] = chats.map((chat) => {
-        // Get participants for this chat (excluding current user for private chats)
+      const chatsWithDetails: ChatWithDetails[] = chatRows.map((row: any) => {
         const chatParticipants = (allParticipants || [])
-          .filter((p) => p.chat_id === chat.id)
+          .filter((p) => p.chat_id === row.chat_id)
           .map((p) => p.profiles as unknown as ChatParticipant)
           .filter((p): p is ChatParticipant => p !== null);
 
-        // Get messages for this chat
-        const chatMessages = (messages || []).filter((m) => m.chat_id === chat.id);
-        const lastMessage = chatMessages.length > 0 ? chatMessages[0] : null;
-
-        // Calculate unread count
-        const lastReadAt = lastReadMap[chat.id];
-        let unreadCount = 0;
-        if (lastReadAt) {
-          const lastReadTime = new Date(lastReadAt).getTime();
-          unreadCount = chatMessages.filter((m) => {
-            // Don't count own messages as unread
-            if (m.sender_id === user.id) return false;
-            const msgTime = m.created_at ? new Date(m.created_at).getTime() : 0;
-            return msgTime > lastReadTime;
-          }).length;
-        }
-
-        // For private chats, get the other participant
         const otherParticipants = chatParticipants.filter((p) => p.id !== user.id);
 
         return {
-          id: chat.id,
-          type: chat.type,
-          name: chat.type === "private" && otherParticipants.length > 0
+          id: row.chat_id,
+          type: row.chat_type,
+          name: row.chat_type === "private" && otherParticipants.length > 0
             ? otherParticipants[0].full_name || otherParticipants[0].username
-            : chat.name,
-          event_id: chat.event_id,
-          created_at: chat.created_at,
+            : row.chat_name,
+          event_id: row.event_id,
+          created_at: row.chat_created_at,
           participants: chatParticipants,
-          lastMessage: lastMessage
+          lastMessage: row.last_message_at
             ? {
-                content: lastMessage.content,
-                created_at: lastMessage.created_at,
-                sender_id: lastMessage.sender_id,
+                content: row.last_message_content,
+                created_at: row.last_message_at,
+                sender_id: row.last_message_sender_id,
               }
             : null,
-          unreadCount,
-          event: chat.event_id ? eventsMap[chat.event_id] : null,
+          unreadCount: Number(row.unread_count) || 0,
+          event: row.event_id ? eventsMap[row.event_id] || null : null,
         };
       });
 
-      // Filter out private chats with no messages (empty chats)
-      const filteredChats = chatsWithDetails.filter((chat) => {
-        // Always show event chats (guestlist chats)
+      // Filter out private chats with no messages
+      return chatsWithDetails.filter((chat) => {
         if (chat.type === "event") return true;
-        // For private chats, only show if there's at least one message
         return chat.lastMessage !== null;
-      });
-
-      // Sort by last message time
-      return filteredChats.sort((a, b) => {
-        const aTime = a.lastMessage?.created_at || a.created_at || "";
-        const bTime = b.lastMessage?.created_at || b.created_at || "";
-        return new Date(bTime).getTime() - new Date(aTime).getTime();
       });
     },
     enabled: !!user?.id,
+    staleTime: 30 * 1000,
   });
 };
 
