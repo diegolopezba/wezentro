@@ -242,7 +242,8 @@ export const useForYouEvents = () => {
         )
         .eq("is_public", true)
         .is("deleted_at", null)
-        .gte("start_datetime", now)
+        // Include posts (no start_datetime) OR future events
+        .or(`is_post.eq.true,start_datetime.gte.${now}`)
         .order("created_at", { ascending: false })
         .limit(200);
 
