@@ -405,9 +405,36 @@ Deno.serve(async (req) => {
   const batchSize: number = body.batchSize ?? 20;
   const seedType: string = body.seedType ?? 'businesses'; // 'businesses' or 'users'
 
-  const results = { businesses: 0, users: 0, events: 0, menus: 0, errors: [] as string[], done: false };
+  const results = { businesses: 0, users: 0, events: 0, menus: 0, errors: [] as string[], done: false, deleted: 0 };
 
   try {
+    if (seedType === 'delete') {
+      // ── DELETE ALL MOCK DATA ────────────────────────────────────────
+      // Collect all mock usernames
+      const bizUsernames = businesses.map(b => b.username);
+      const userUsernames = normalUsers.map(u => u.username);
+      const allUsernames = [...bizUsernames, ...userUsernames];
+
+      // Get their profile IDs
+      const { data: profiles } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .in('username', allUsernames);
+
+      const userIds = (profiles || []).map((p: any) => p.id);
+
+      if (userIds.length > 0) {
+        // Delete auth users (cascades to profiles via trigger)
+        for (const uid of userIds) {
+          await supabaseAdmin.auth.admin.deleteUser(uid);
+        }
+        results.deleted = userIds.length;
+      }
+
+      results.done = true;
+      return new Response(JSON.stringify(results), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (seedType === 'users') {
       // ── SEED NORMAL USERS ───────────────────────────────────────
       const end = Math.min(startIndex + batchSize, normalUsers.length);
