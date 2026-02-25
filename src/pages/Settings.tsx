@@ -23,6 +23,15 @@ const Settings = () => {
 
   const sections: SettingsSection[] = [
     {
+      title: "Actividad",
+      items: [
+        { icon: Ticket, label: "Entradas", path: "/settings/tickets" },
+        { icon: UtensilsCrossed, label: "Mis Reservas", path: "/settings/reservations" },
+        { icon: Calendar, label: "Eventos Asistidos", path: "/settings/joined-events" },
+        { icon: Bookmark, label: "Guardados", path: "/saved" },
+      ],
+    },
+    {
       title: "Personal",
       items: [
         { icon: User, label: "Editar Perfil", path: "/edit-profile" },
@@ -35,15 +44,6 @@ const Settings = () => {
       title: "Business",
       items: [
         { icon: Briefcase, label: "Dashboard Business", path: "/settings/business", highlight: true },
-      ],
-    },
-    {
-      title: "Actividad",
-      items: [
-        { icon: Ticket, label: "Entradas", path: "/settings/tickets" },
-        { icon: UtensilsCrossed, label: "Mis Reservas", path: "/settings/reservations" },
-        { icon: Calendar, label: "Eventos Asistidos", path: "/settings/joined-events" },
-        { icon: Bookmark, label: "Guardados", path: "/saved" },
       ],
     },
     {
