@@ -56,7 +56,6 @@ const Referrals = lazy(() => import("./pages/Referrals"));
 const MyReservations = lazy(() => import("./pages/MyReservations"));
 const ReservationConfirmation = lazy(() => import("./pages/ReservationConfirmation"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const SeedData = lazy(() => import("./pages/SeedData"));
 
 // Preload core routes after initial render for instant navigation
 const preloadCoreRoutes = () => {
@@ -390,14 +389,6 @@ const App = () => {
                             element={
                               <Suspense fallback={<PageLoader />}>
                                 <TermsOfUse />
-                              </Suspense>
-                            }
-                          />
-                          <Route
-                            path="/admin/seed"
-                            element={
-                              <Suspense fallback={<PageLoader />}>
-                                <SeedData />
                               </Suspense>
                             }
                           />
