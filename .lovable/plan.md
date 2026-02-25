@@ -1,99 +1,92 @@
 
+## @mention support in bios and event descriptions
 
-# Targeted Sponsored Posts + Algorithmic Refinement
+### What exists today
 
-## Part 1: Targeted Sponsored Posts
+- **Event tagging** already exists as a separate system (TagPickerModal, event_tags table) — users explicitly tag other accounts via a modal after creating an event.
+- **Bio** is a plain text field rendered as `<p>` in UserProfile.tsx (line 221) — no @mention parsing.
+- **Event descriptions** in EventDetailOverlay/TimelineCard/EventCard are rendered as plain text — no clickable @mentions.
+- **`descriptionTagExtractor.ts`** only extracts semantic keyword tags for the recommendation engine; it doesn't parse @mentions.
 
-Currently, sponsored posts are shown to ALL users with no filtering. Businesses need the ability to target their promotions by category, geographic radius, and audience demographics.
+### What needs to be built
 
-### Database Changes
+**Phase 1 — Display: parse & render @mentions as clickable links**
 
-Add targeting columns to the `sponsored_posts` table:
+Any text that contains `@username` should be rendered as a tappable link that navigates to that user's profile. This applies to:
+1. Bio text on UserProfile page (line 221) and Profile page
+2. Event description text on EventDetailOverlay
+3. Event description text on TimelineCard/EventCard
 
-- `target_categories TEXT[]` -- array of category filters (e.g., `['party', 'concert']`), null means "all"
-- `target_radius_km NUMERIC` -- max distance in km from the event location, null means "no geo filter"
-- `target_gender TEXT` -- gender filter ('male', 'female', 'all'), null means "all"
-- `target_age_min INTEGER` -- minimum age, null means no minimum
-- `target_age_max INTEGER` -- maximum age, null means no maximum
+We'll create a `MentionText` component:
+- Splits text by `@word` regex pattern
+- For each @mention token, renders a `<span>` styled like a link in `text-primary`
+- On press, navigates to `/user/:username` or resolves username → user ID via a lightweight lookup query
+- No extra DB queries needed at render time — we'll use username in the URL and the existing `useUserProfile` hook resolves it
 
-### Filtering Logic (Client-side)
+**Phase 2 — Input: @mention autocomplete while typing**
 
-Update `useActiveSponsoredPosts` to also fetch the new targeting columns. Then in `Index.tsx`, filter sponsored posts before injection:
+In the bio textarea (EditProfile) and event description textarea (Create + EditEventSheet), as the user types `@` followed by characters, show an inline dropdown of matching users.
 
-1. **Category match**: If `target_categories` is set, only show the ad if the viewer has interacted with or has interests in at least one of those categories
-2. **Radius match**: If `target_radius_km` is set, compute haversine distance between the user's location and the event's lat/lng; skip if too far
-3. **Demographics match**: If age/gender filters are set, compare against the viewer's `profiles.birth_date` and `profiles.gender`
+We'll create a `MentionTextarea` component:
+- Extends the standard `<textarea>` behavior
+- On every keystroke, detects if the cursor is inside a `@word` token (regex match behind cursor)
+- When a `@xxx` pattern is detected with ≥1 character after `@`, fires a debounced search against `profiles` (ilike username)
+- Shows a small floating dropdown of up to 5 results with avatar + username
+- Selecting a result inserts `@username ` at the cursor position
+- Pressing Escape or clicking outside dismisses the dropdown
+- The final saved value is plain text (e.g. "Check out @johndoe at the party"), no special encoding needed
 
-### Dashboard UI Updates
+### Files to create/modify
 
-Update `PromocionesSection.tsx` create dialog to add targeting fields:
-- Multi-select for categories (party, bar, concert, fitness, culture)
-- Radius slider (1-50 km)
-- Age range inputs (min/max)
-- Gender selector (Todos, Masculino, Femenino)
-
-Update `useCreateSponsoredPost` to accept and persist the new targeting params.
-
----
-
-## Part 2: Algorithmic Refinement
-
-Two new signals added to the scoring engine:
-
-### A. Collaborative Filtering (new weight: 6%)
-
-Find users with similar taste profiles and boost events they've engaged with.
-
-**How it works:**
-1. New query in `useForYouEvents`: fetch the top 5 "similar users" by comparing `user_category_preferences` overlap (users who like the same categories with similar scores)
-2. Fetch events those similar users recently interacted with positively (join, save, like)
-3. Pass a `collaborativeBoosts: Record<string, number>` map into the scoring context
-4. New scoring function `getCollaborativeScore()`: if an event appears in the collaborative set, boost it proportionally to how many similar users engaged with it
-
-### B. Social Proof / Mutual Followers Boost (new weight: +3% added to Friends Going)
-
-Currently "Friends Going" counts any followed user attending. Upgrade to weight mutual followers more heavily than one-way follows.
-
-**How it works:**
-1. Fetch mutual followers using the existing `get_mutual_followers` RPC
-2. In `getFriendsGoingScore()`, count mutual followers attending as 2x weight vs. regular follows
-3. This makes events where close friends (mutuals) are going rank significantly higher
-
-### Updated Weight Distribution (v5)
-
-| Signal | v4 | v5 |
-|---|---|---|
-| Friends Going (with mutual boost) | 14% | 14% |
-| Proximity | 12% | 11% |
-| Trending | 10% | 9% |
-| Learned Prefs | 9% | 8% |
-| Interest Match | 9% | 8% |
-| Description Tags | 8% | 7% |
-| **Collaborative Filtering** | -- | **6%** |
-| Creator Loyalty | 8% | 7% |
-| Recency | 7% | 7% |
-| Popularity | 7% | 7% |
-| Time-of-Day | 5% | 5% |
-| Day-of-Week | 5% | 5% |
-| **Social Proof (mutual boost)** | -- | **3%** |
-| Timing | 3% | 3% |
-
----
-
-## Files to Change
-
-| File | Change |
+| File | Action |
 |---|---|
-| New migration SQL | Add 5 targeting columns to `sponsored_posts` |
-| `src/hooks/useSponsoredPosts.ts` | Fetch targeting columns; accept targeting params in create mutation |
-| `src/components/dashboard/PromocionesSection.tsx` | Add targeting fields to create dialog |
-| `src/pages/Index.tsx` | Filter sponsored posts by targeting criteria before injection |
-| `src/lib/feedScoring.ts` | Add `getCollaborativeScore()`, update `getFriendsGoingScore()` for mutual boost, adjust all weights to v5 |
-| `src/hooks/useForYouEvents.ts` | Add queries for collaborative filtering data (similar users' events) and mutual followers list; pass new context to scoring engine |
+| `src/components/ui/MentionText.tsx` | New — renders plain text with @mentions as clickable spans |
+| `src/components/ui/MentionTextarea.tsx` | New — textarea with @mention autocomplete dropdown |
+| `src/pages/UserProfile.tsx` | Replace bio `<p>` with `<MentionText>` |
+| `src/pages/Profile.tsx` | Replace bio `<p>` with `<MentionText>` |
+| `src/components/events/EventDetailOverlay.tsx` | Replace description `<p>` with `<MentionText>` |
+| `src/components/events/TimelineCard.tsx` | Replace description preview with `<MentionText>` (truncated) |
+| `src/pages/EditProfile.tsx` | Replace bio `<Textarea>` with `<MentionTextarea>` |
+| `src/pages/Create.tsx` | Replace description `<Input>` or `<Textarea>` with `<MentionTextarea>` |
+| `src/components/events/EditEventSheet.tsx` | Replace description `<Textarea>` with `<MentionTextarea>` |
 
-## Technical Details
+### MentionText component logic
 
-- Collaborative filtering query: Use a DB function or client-side approach that finds users with the most category preference overlap, then fetches their recent positive interactions. Limited to top 5 similar users and last 7 days of interactions to keep query fast.
-- Targeting filters run client-side since the sponsored post volume is low (typically <20 active posts). No need for server-side filtering complexity.
-- Mutual followers are already available via the `get_mutual_followers` RPC function.
+```text
+Input:  "Come party with @johndoe and @marysmith tonight!"
+Output: 
+  "Come party with "
+  <span class="text-primary cursor-pointer" onClick→navigate("/user/johndoe")>@johndoe</span>
+  " and "
+  <span class="text-primary cursor-pointer" onClick→navigate("/user/marysmith")>@marysmith</span>
+  " tonight!"
+```
 
+The regex: `/(@[a-zA-Z0-9_]+)/g` — splits and captures mention tokens.
+
+Navigation uses username directly: `navigate('/user/' + username.slice(1))` — the existing UserProfile page is at `/user/:id` but accepts UUID, so we need a small resolution step. Since `useUserProfile(id)` accepts UUID, we'll add a `useUserByUsername` hook that queries `profiles` by username and returns the ID, OR we can navigate to a new route `/u/:username` that does the lookup. The cleaner approach: add a route `/u/:username` that resolves and redirects to `/user/:id`.
+
+Actually, looking at the existing route structure, UserProfile uses `useParams({ id })` expecting a UUID. The simplest approach that requires no routing change: clicking an @mention fires a query `supabase.from('profiles').select('id').eq('username', username).single()` and then navigates to `/user/${id}`. This is a fast, indexed query.
+
+### MentionTextarea component logic
+
+```text
+User types: "come party with @jo"
+                                 ^cursor here
+
+1. On every keydown/change, extract text behind cursor up to nearest whitespace
+2. If it matches /@(\w+)$/, extract the partial query "jo"
+3. Debounce 200ms, query profiles for username ilike 'jo%', limit 5  
+4. Show dropdown below cursor position
+5. User clicks "@johndoe" → replace "@jo" with "@johndoe " in the text
+6. Dropdown closes
+```
+
+### No database changes needed
+
+- Bio and description are already TEXT columns that can hold @mention strings
+- No structural changes required — @mentions are parsed at render time from plain text
+
+### Summary
+
+This is purely a frontend enhancement. Two new reusable components (`MentionText` for display, `MentionTextarea` for input), then swap them into the relevant pages. No migration, no new tables, no RLS changes.
