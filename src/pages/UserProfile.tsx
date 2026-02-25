@@ -22,6 +22,7 @@ import { MenuSheet } from "@/components/menu/MenuSheet";
 import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
+import { MentionText } from "@/components/ui/MentionText";
 
 const UserProfile = () => {
   const {
@@ -218,7 +219,7 @@ const UserProfile = () => {
       }} transition={{
         delay: 0.05
       }} className="mt-4">
-          {userProfile.bio && <p className="text-sm text-foreground/80">{userProfile.bio}</p>}
+          {userProfile.bio && <MentionText text={userProfile.bio} className="text-sm text-foreground/80" />}
           {userProfile.city && <p className="text-xs text-muted-foreground mt-1">📍 {userProfile.city}</p>}
         </motion.div>
 

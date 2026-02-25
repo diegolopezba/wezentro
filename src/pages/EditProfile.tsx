@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { BusinessLocationPicker } from "@/components/profile/BusinessLocationPicker";
 import { compressImage, blobToFile } from "@/lib/mediaCompression";
+import { MentionTextarea } from "@/components/ui/MentionTextarea";
 
 const GENDER_OPTIONS = [
   { value: "male", label: "Masculino" },
@@ -333,13 +334,13 @@ const EditProfile = () => {
 
           <div className="space-y-2">
             <Label htmlFor="bio">Biografía</Label>
-            <Textarea
+            <MentionTextarea
               id="bio"
               value={formData.bio}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, bio: e.target.value }))
               }
-              placeholder="Cuéntanos sobre ti..."
+              placeholder="Cuéntanos sobre ti... usa @usuario para mencionar a alguien"
               rows={3}
             />
           </div>

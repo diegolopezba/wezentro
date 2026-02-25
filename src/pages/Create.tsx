@@ -40,6 +40,7 @@ import {
 } from "@/lib/mediaUtils";
 import { compressImage, blobToFile, formatBytes } from "@/lib/mediaCompression";
 import { extractDescriptionTags } from "@/lib/descriptionTagExtractor";
+import { MentionTextarea } from "@/components/ui/MentionTextarea";
 
 const categories = [
   { id: "party", label: "Fiesta", emoji: "🪩" },
@@ -525,12 +526,12 @@ const Create = () => {
 
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">Descripción</label>
-            <textarea
-              placeholder="Cuéntale a la gente de qué trata..."
+            <MentionTextarea
+              placeholder="Cuéntale a la gente de qué trata... usa @usuario para mencionar"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               maxLength={2000}
-              className="flex w-full rounded-xl border border-border bg-secondary/50 px-4 py-3 text-base text-foreground placeholder:text-muted-foreground transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary min-h-[120px] resize-none"
+              className="rounded-xl border-border bg-secondary/50 px-4 py-3 text-base min-h-[120px] resize-none"
             />
           </div>
 
