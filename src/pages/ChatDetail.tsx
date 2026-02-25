@@ -75,10 +75,7 @@ const ChatDetail = () => {
   };
 
   const handleSendEventInvite = (eventId: string) => {
-    console.log("handleSendEventInvite called with:", { chatId, eventId });
-    
     if (!chatId) {
-      console.error("No chatId available");
       toast.error("No se puede enviar invitación - no hay chat seleccionado");
       return;
     }
@@ -92,7 +89,6 @@ const ChatDetail = () => {
       },
       {
         onSuccess: () => {
-          console.log("Event invite sent successfully");
           toast.success("¡Invitación al evento enviada!");
         },
         onError: (error) => {

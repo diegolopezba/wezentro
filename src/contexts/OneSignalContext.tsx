@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Capacitor } from "@capacitor/core";
+import { logger } from "@/lib/logger";
 
 declare global {
   interface Window {
@@ -70,7 +71,7 @@ export const OneSignalProvider = ({ children }: Props) => {
 
   // Check platform support for web
   const checkWebPlatformSupport = useCallback((): PlatformSupport => {
-    console.log("[OneSignal] Checking web platform support...");
+    logger.log("[OneSignal] Checking web platform support...");
     
     if (!('Notification' in window)) {
       return {
@@ -82,7 +83,7 @@ export const OneSignalProvider = ({ children }: Props) => {
 
     if (isIOS()) {
       const iosVersion = getIOSVersion();
-      console.log("[OneSignal] iOS version:", iosVersion);
+      logger.log("[OneSignal] iOS version:", iosVersion);
       
       if (iosVersion < 16) {
         return {
@@ -114,24 +115,21 @@ export const OneSignalProvider = ({ children }: Props) => {
 
   // Initialize Native OneSignal (Capacitor)
   const initNativeOneSignal = useCallback(async () => {
-    console.log("[OneSignal] Initializing native SDK...");
+    logger.log("[OneSignal] Initializing native SDK...");
     
     try {
-      // Dynamic import for native OneSignal
       const OneSignalModule = await import('onesignal-cordova-plugin');
       nativeOneSignal = OneSignalModule.default;
       
-      // Initialize with app ID
       nativeOneSignal.initialize(ONESIGNAL_APP_ID);
       
-      console.log("[OneSignal] Native SDK initialized");
+      logger.log("[OneSignal] Native SDK initialized");
       
-      // Check current subscription status
       const hasPermission = await nativeOneSignal.Notifications.getPermissionAsync();
       const subscriptionId = await nativeOneSignal.User.pushSubscription.getIdAsync();
       const optedIn = await nativeOneSignal.User.pushSubscription.getOptedInAsync();
       
-      console.log("[OneSignal] Native status - Permission:", hasPermission, "ID:", subscriptionId, "OptedIn:", optedIn);
+      logger.log("[OneSignal] Native status - Permission:", hasPermission, "ID:", subscriptionId, "OptedIn:", optedIn);
       
       setIsReady(true);
       setIsSubscribed(hasPermission && !!subscriptionId && optedIn);
@@ -139,15 +137,14 @@ export const OneSignalProvider = ({ children }: Props) => {
       setPlatformSupport({ supported: true });
       setIsLoading(false);
       
-      // Listen for subscription changes
       nativeOneSignal.User.pushSubscription.addEventListener('change', (event: any) => {
-        console.log("[OneSignal] Subscription changed:", event);
+        logger.log("[OneSignal] Subscription changed:", event);
         setIsSubscribed(event.current.optedIn);
         setPlayerId(event.current.id || null);
       });
       
     } catch (error) {
-      console.error("[OneSignal] Native init error:", error);
+      logger.error("[OneSignal] Native init error:", error);
       setPlatformSupport({ 
         supported: false, 
         reason: "Failed to initialize push notifications",
@@ -159,25 +156,23 @@ export const OneSignalProvider = ({ children }: Props) => {
 
   // Initialize Web OneSignal SDK
   const initWebOneSignal = useCallback(async () => {
-    console.log("[OneSignal] Initializing web SDK...");
+    logger.log("[OneSignal] Initializing web SDK...");
     
-    // Check platform first
     const support = checkWebPlatformSupport();
     setPlatformSupport(support);
     
     if (!support.supported && !support.canRetry) {
-      console.log("[OneSignal] Web platform not supported:", support.reason);
+      logger.log("[OneSignal] Web platform not supported:", support.reason);
       setIsLoading(false);
       return;
     }
 
-    // Wait for service worker to be ready
     if ('serviceWorker' in navigator) {
       try {
         await navigator.serviceWorker.ready;
-        console.log("[OneSignal] Service worker ready");
+        logger.log("[OneSignal] Service worker ready");
       } catch (e) {
-        console.log("[OneSignal] Service worker not ready yet");
+        logger.log("[OneSignal] Service worker not ready yet");
       }
     }
 
@@ -189,27 +184,27 @@ export const OneSignalProvider = ({ children }: Props) => {
       script.defer = true;
       document.head.appendChild(script);
       
-      console.log("[OneSignal] Web SDK script added");
+      logger.log("[OneSignal] Web SDK script added");
 
       window.OneSignalDeferred.push(async (OneSignal: any) => {
         try {
-          console.log("[OneSignal] Calling web init()...");
+          logger.log("[OneSignal] Calling web init()...");
           
           await OneSignal.init({
             appId: ONESIGNAL_APP_ID,
             allowLocalhostAsSecureOrigin: true,
           });
           
-          console.log("[OneSignal] Web initialized successfully");
+          logger.log("[OneSignal] Web initialized successfully");
           setIsReady(true);
           await checkWebSubscriptionStatus(OneSignal);
         } catch (error) {
-          console.error("[OneSignal] Web init error:", error);
+          logger.error("[OneSignal] Web init error:", error);
           setIsLoading(false);
         }
       });
     } else {
-      console.log("[OneSignal] Web SDK already loaded");
+      logger.log("[OneSignal] Web SDK already loaded");
       setIsReady(true);
       await checkWebSubscriptionStatus(window.OneSignal);
     }
@@ -217,19 +212,19 @@ export const OneSignalProvider = ({ children }: Props) => {
 
   const checkWebSubscriptionStatus = async (OneSignal: any) => {
     try {
-      console.log("[OneSignal] Checking web subscription status...");
+      logger.log("[OneSignal] Checking web subscription status...");
       
       const permission = await OneSignal.Notifications.permission;
       const id = await OneSignal.User.PushSubscription.id;
       const optedIn = await OneSignal.User.PushSubscription.optedIn;
       
-      console.log("[OneSignal] Web status - Permission:", permission, "ID:", id, "OptedIn:", optedIn);
+      logger.log("[OneSignal] Web status - Permission:", permission, "ID:", id, "OptedIn:", optedIn);
       
       setIsSubscribed(permission && !!id && optedIn);
       setPlayerId(id || null);
       setIsLoading(false);
     } catch (error) {
-      console.error("[OneSignal] Web status check error:", error);
+      logger.error("[OneSignal] Web status check error:", error);
       setIsLoading(false);
     }
   };
@@ -238,7 +233,7 @@ export const OneSignalProvider = ({ children }: Props) => {
   useEffect(() => {
     if (typeof window === "undefined") return;
     
-    console.log("[OneSignal] Starting initialization, isNative:", isNative());
+    logger.log("[OneSignal] Starting initialization, isNative:", isNative());
     
     if (isNative()) {
       initNativeOneSignal();
@@ -246,10 +241,9 @@ export const OneSignalProvider = ({ children }: Props) => {
       initWebOneSignal();
     }
     
-    // Safety timeout
     const timeout = setTimeout(() => {
       if (isLoading) {
-        console.log("[OneSignal] Init timeout reached");
+        logger.log("[OneSignal] Init timeout reached");
         setIsLoading(false);
       }
     }, 15000);
@@ -282,11 +276,11 @@ export const OneSignalProvider = ({ children }: Props) => {
           });
 
           if (error && error.code !== "23505") {
-            console.error("[OneSignal] DB sync error:", error);
+            logger.error("[OneSignal] DB sync error:", error);
           }
         }
       } catch (error) {
-        console.error("[OneSignal] Sync error:", error);
+        logger.error("[OneSignal] Sync error:", error);
       }
     };
 
@@ -296,18 +290,17 @@ export const OneSignalProvider = ({ children }: Props) => {
   // Subscribe - handles both native and web
   const subscribe = useCallback(async (): Promise<boolean> => {
     if (!platformSupport.supported) {
-      console.log("[OneSignal] Cannot subscribe - platform not supported");
+      logger.log("[OneSignal] Cannot subscribe - platform not supported");
       return false;
     }
 
     try {
       setIsLoading(true);
-      console.log("[OneSignal] Starting subscription, isNative:", isNative());
+      logger.log("[OneSignal] Starting subscription, isNative:", isNative());
       
       if (isNative() && nativeOneSignal) {
-        // Native subscription - request permission first
         const granted = await nativeOneSignal.Notifications.requestPermission(true);
-        console.log("[OneSignal] Native permission result:", granted);
+        logger.log("[OneSignal] Native permission result:", granted);
         
         if (!granted) {
           setPlatformSupport({
@@ -319,15 +312,13 @@ export const OneSignalProvider = ({ children }: Props) => {
           return false;
         }
         
-        // Opt in (synchronous in native)
         nativeOneSignal.User.pushSubscription.optIn();
         
-        // Poll for subscription ID (native may take a moment)
         for (let i = 0; i < 30; i++) {
           const id = await nativeOneSignal.User.pushSubscription.getIdAsync();
           const optedIn = await nativeOneSignal.User.pushSubscription.getOptedInAsync();
           
-          console.log(`[OneSignal] Native poll ${i + 1}: ID=${id}, OptedIn=${optedIn}`);
+          logger.log(`[OneSignal] Native poll ${i + 1}: ID=${id}, OptedIn=${optedIn}`);
           
           if (id && optedIn) {
             setIsSubscribed(true);
@@ -350,28 +341,26 @@ export const OneSignalProvider = ({ children }: Props) => {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
         
-        console.log("[OneSignal] Native subscription timed out");
+        logger.log("[OneSignal] Native subscription timed out");
         setIsLoading(false);
         return false;
         
       } else {
-        // Web subscription
         if (!window.OneSignal || !isReady) {
-          console.log("[OneSignal] Cannot subscribe - web SDK not ready");
+          logger.log("[OneSignal] Cannot subscribe - web SDK not ready");
           setIsLoading(false);
           return false;
         }
         
         await window.OneSignal.User.PushSubscription.optIn();
-        console.log("[OneSignal] Web optIn completed");
+        logger.log("[OneSignal] Web optIn completed");
         
-        // Poll for subscription ID
         for (let i = 0; i < 30; i++) {
           const id = await window.OneSignal.User.PushSubscription.id;
           const permission = await window.OneSignal.Notifications.permission;
           const optedIn = await window.OneSignal.User.PushSubscription.optedIn;
           
-          console.log(`[OneSignal] Web poll ${i + 1}: permission=${permission}, id=${id}, optedIn=${optedIn}`);
+          logger.log(`[OneSignal] Web poll ${i + 1}: permission=${permission}, id=${id}, optedIn=${optedIn}`);
           
           if (permission && id && optedIn) {
             setIsSubscribed(true);
@@ -392,7 +381,7 @@ export const OneSignalProvider = ({ children }: Props) => {
           }
           
           if (Notification.permission === 'denied') {
-            console.log("[OneSignal] Web permission denied by user");
+            logger.log("[OneSignal] Web permission denied by user");
             setPlatformSupport({
               supported: false,
               reason: "Notifications are blocked. Enable them in your device settings.",
@@ -405,12 +394,12 @@ export const OneSignalProvider = ({ children }: Props) => {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
         
-        console.log("[OneSignal] Web subscription timed out");
+        logger.log("[OneSignal] Web subscription timed out");
         setIsLoading(false);
         return false;
       }
     } catch (error) {
-      console.error("[OneSignal] Subscribe error:", error);
+      logger.error("[OneSignal] Subscribe error:", error);
       setIsLoading(false);
       return false;
     }
@@ -420,7 +409,7 @@ export const OneSignalProvider = ({ children }: Props) => {
   const unsubscribe = useCallback(async (): Promise<boolean> => {
     try {
       setIsLoading(true);
-      console.log("[OneSignal] Unsubscribing, isNative:", isNative());
+      logger.log("[OneSignal] Unsubscribing, isNative:", isNative());
       
       if (isNative() && nativeOneSignal) {
         nativeOneSignal.User.pushSubscription.optOut();
@@ -446,7 +435,7 @@ export const OneSignalProvider = ({ children }: Props) => {
       setIsLoading(false);
       return true;
     } catch (error) {
-      console.error("[OneSignal] Unsubscribe error:", error);
+      logger.error("[OneSignal] Unsubscribe error:", error);
       setIsLoading(false);
       return false;
     }
