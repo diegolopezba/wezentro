@@ -1572,6 +1572,20 @@ export type Database = {
         Returns: boolean
       }
       generate_referral_code: { Args: { _user_id: string }; Returns: string }
+      get_chat_list_with_unread: {
+        Args: { _user_id: string }
+        Returns: {
+          chat_created_at: string
+          chat_id: string
+          chat_name: string
+          chat_type: string
+          event_id: string
+          last_message_at: string
+          last_message_content: string
+          last_message_sender_id: string
+          unread_count: number
+        }[]
+      }
       get_mutual_followers: {
         Args: { _user_id: string }
         Returns: {

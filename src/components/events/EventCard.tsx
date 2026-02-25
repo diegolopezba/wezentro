@@ -84,6 +84,11 @@ export const EventCard = ({
   };
   const gradientClass = categoryColors[category] || categoryColors.default;
   const isVideo = isVideoUrl(imageUrl);
+
+  // Optimize Supabase storage images with width/quality transforms
+  const optimizedImageUrl = !isVideo && imageUrl && imageUrl.includes('/storage/v1/object/public/')
+    ? `${imageUrl}?width=400&quality=75&resize=cover`
+    : imageUrl;
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(true);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
@@ -172,7 +177,7 @@ export const EventCard = ({
               onLoadedMetadata={handleVideoMetadata} /> :
 
 
-            <img src={imageUrl} alt={title} className="w-full h-full object-cover" onLoad={handleImageLoad} />
+            <img src={optimizedImageUrl} alt={title} className="w-full h-full object-cover" onLoad={handleImageLoad} loading="lazy" />
             }
 
             {/* Sound toggle button - top right */}

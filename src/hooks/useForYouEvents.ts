@@ -54,7 +54,8 @@ export const useForYouEvents = () => {
       const { data, error } = await supabase
         .from("event_interactions")
         .select("event_id")
-        .gte("created_at", twentyFourHoursAgo);
+        .gte("created_at", twentyFourHoursAgo)
+        .limit(500);
       if (error) return {};
       const counts: Record<string, number> = {};
       for (const row of data || []) {
@@ -214,7 +215,7 @@ export const useForYouEvents = () => {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Fetch all public events
+  // Fetch public events (capped at 200 for performance)
   const {
     data: events,
     isLoading,
@@ -223,6 +224,7 @@ export const useForYouEvents = () => {
   } = useQuery({
     queryKey: ["for-you-events"],
     queryFn: async () => {
+      const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("events")
         .select(
@@ -240,11 +242,14 @@ export const useForYouEvents = () => {
         )
         .eq("is_public", true)
         .is("deleted_at", null)
-        .order("created_at", { ascending: false });
+        .gte("start_datetime", now)
+        .order("created_at", { ascending: false })
+        .limit(200);
 
       if (error) throw error;
       return data as (EventWithCreator & { guestlist_entries?: any[] })[];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   // Score, sort, and inject exploration
