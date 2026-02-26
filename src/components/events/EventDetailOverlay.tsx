@@ -26,6 +26,7 @@ import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
+import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 export const EventDetailOverlay = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -462,6 +463,13 @@ export const EventDetailOverlay = () => {
 
                   {/* Invitations Sent Section - Owner only */}
                   {isOwner && event.has_guestlist && <InvitationsSentSection eventId={selectedEventId!} />}
+
+                  {/* Related content */}
+                  <RelatedEventsFeed
+                    eventId={selectedEventId!}
+                    category={event.category}
+                    creatorId={event.creator_id}
+                  />
                 </div>
               </motion.div>
 
