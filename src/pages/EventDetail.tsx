@@ -28,6 +28,7 @@ import { trackEventView } from "@/lib/analyticsTracking";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { useEventTags, useRemoveTag } from "@/hooks/useEventTags";
+import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 
 const EventDetail = () => {
   const {
@@ -505,6 +506,13 @@ const EventDetail = () => {
 
           {/* Invitations Sent Section - Owner only, for events with guestlist */}
           {!isPost && isOwner && event.has_guestlist && <InvitationsSentSection eventId={id!} />}
+
+          {/* Related content */}
+          <RelatedEventsFeed
+            eventId={id!}
+            category={event.category}
+            creatorId={event.creator_id}
+          />
 
           {/* Sign up prompt for unauthenticated users */}
           {!isAuthenticated && <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
