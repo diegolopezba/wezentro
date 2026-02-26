@@ -35,7 +35,7 @@ const EventDetail = () => {
   } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const fromCreate = (location.state as { fromCreate?: boolean })?.fromCreate;
+  const fromCreate = (location.state as {fromCreate?: boolean;})?.fromCreate;
   const {
     user
   } = useAuth();
@@ -143,7 +143,7 @@ const EventDetail = () => {
   // Count pending requests AND pending payments for the badge
   const pendingCount = pendingRequests.length + pendingPayments.length;
   const isAuthenticated = !!user;
-  
+
   // Check if event has QR payment enabled
   const hasPaymentQr = !!(event?.payment_qr_url && (event?.price || 0) > 0);
   // When event has both a price and guestlist, tickets take priority — guestlist becomes invite-only
@@ -188,30 +188,30 @@ const EventDetail = () => {
     try {
       await toggleRepost.mutateAsync({
         eventId: id!,
-        isReposted: !!hasReposted,
+        isReposted: !!hasReposted
       });
     } catch (error: any) {
+
+
+
+
+
       // Error handled in hook
+    }};const handleJoinGuestlist = async () => {if (isGuest) {promptAuth({ action: "unirte a esta lista" });return;
     }
-  };
-  const handleJoinGuestlist = async () => {
-    if (isGuest) {
-      promptAuth({ action: "unirte a esta lista" });
-      return;
-    }
-    
+
     // Check premium subscription first
     if (!hasSubscription) {
       setShowPremiumGate(true);
       return;
     }
-    
+
     // Check if this is a paid event with QR payment
     if (hasPaymentQr) {
       setShowPaymentModal(true);
       return;
     }
-    
+
     // Normal free event join
     try {
       await joinGuestlist.mutateAsync(id!);
@@ -221,7 +221,7 @@ const EventDetail = () => {
       toast.error(error.message || "Error al unirse a la lista");
     }
   };
-  
+
   const handlePaymentSubmitted = async () => {
     try {
       await joinGuestlistWithPayment.mutateAsync(id!);
@@ -339,8 +339,8 @@ const EventDetail = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {isOwner && (
-                      <>
+                    {isOwner &&
+                <>
                         <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
                           <Pencil className="w-4 h-4 mr-2" />
                           Editar evento
@@ -350,17 +350,17 @@ const EventDetail = () => {
                           Eliminar evento
                         </DropdownMenuItem>
                       </>
-                    )}
-                    {!isOwner && user && (
-                      <DropdownMenuItem onClick={() => {
-                        trackPreferenceSignal(user.id, id!, "not_interested");
-                        toast("Se mostrará menos contenido como este", { duration: 2000 });
-                        navigate(-1);
-                      }}>
+                }
+                    {!isOwner && user &&
+                <DropdownMenuItem onClick={() => {
+                  trackPreferenceSignal(user.id, id!, "not_interested");
+                  toast("Se mostrará menos contenido como este", { duration: 2000 });
+                  navigate(-1);
+                }}>
                         <EyeOff className="w-4 h-4 mr-2" />
                         No me interesa
                       </DropdownMenuItem>
-                    )}
+                }
                   </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -379,44 +379,44 @@ const EventDetail = () => {
           </div>
 
           {/* Tagged users */}
-          {eventTags && eventTags.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
+          {eventTags && eventTags.length > 0 &&
+        <div className="flex items-center gap-2 flex-wrap">
               <AtSign className="w-4 h-4 text-muted-foreground shrink-0" />
-              {eventTags.map((tag) => (
-                <div
-                  key={tag.id}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/50 cursor-pointer hover:bg-secondary transition-colors"
-                  onClick={() => navigate(`/user/${tag.tagged_user_id}`)}
-                >
+              {eventTags.map((tag) =>
+          <div
+            key={tag.id}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/50 cursor-pointer hover:bg-secondary transition-colors"
+            onClick={() => navigate(`/user/${tag.tagged_user_id}`)}>
+
                   <img
-                    src={tag.tagged_user?.avatar_url || DEFAULT_AVATAR}
-                    alt={tag.tagged_user?.username || ""}
-                    className="w-5 h-5 rounded-full object-cover"
-                  />
+              src={tag.tagged_user?.avatar_url || DEFAULT_AVATAR}
+              alt={tag.tagged_user?.username || ""}
+              className="w-5 h-5 rounded-full object-cover" />
+
                   <span className="text-xs font-medium text-foreground">
                     @{tag.tagged_user?.username || "user"}
                   </span>
-                  {tag.status === "pending" && (
-                    <span className="text-[10px] text-muted-foreground">(pendiente)</span>
-                  )}
-                  {(tag.tagged_user_id === user?.id || isOwner) && (
-                    <button
-                      className="ml-0.5 p-0.5 rounded-full hover:bg-destructive/20 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeTag.mutate(tag.id, {
-                          onSuccess: () => toast.success("Etiqueta eliminada"),
-                          onError: () => toast.error("Error al eliminar etiqueta"),
-                        });
-                      }}
-                    >
+                  {tag.status === "pending" &&
+            <span className="text-[10px] text-muted-foreground">(pendiente)</span>
+            }
+                  {(tag.tagged_user_id === user?.id || isOwner) &&
+            <button
+              className="ml-0.5 p-0.5 rounded-full hover:bg-destructive/20 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                removeTag.mutate(tag.id, {
+                  onSuccess: () => toast.success("Etiqueta eliminada"),
+                  onError: () => toast.error("Error al eliminar etiqueta")
+                });
+              }}>
+
                       <X className="w-3 h-3 text-muted-foreground hover:text-destructive" />
                     </button>
-                  )}
+            }
                 </div>
-              ))}
-            </div>
           )}
+            </div>
+        }
 
           {/* Details - Only show for events, not posts */}
           {!isPost && <div className="flex items-center gap-2">
@@ -451,7 +451,7 @@ const EventDetail = () => {
                     {/* Avatars row - Premium users see real avatars */}
                     <div className="flex items-center gap-2 mb-4">
                       <div className="flex -space-x-3">
-                        {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={e => {
+                        {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/user/${entry.user_id}`);
                 }} />)}
@@ -511,9 +511,9 @@ const EventDetail = () => {
               <h3 className="font-brand text-lg font-semibold text-foreground mb-2">
                 Únete a Zentro
               </h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                Regístrate para unirte a listas, guardar eventos y conectar con otros asistentes.
-              </p>
+              <p className="text-muted-foreground text-sm mb-4">Regístrate para unirte a listas, comprar entradas, guardar eventos y conectar con amigos.
+
+          </p>
               <Button variant="hero" className="w-full" onClick={() => navigate("/auth")}>
                 Registrarse / Iniciar Sesión
               </Button>
@@ -541,60 +541,60 @@ const EventDetail = () => {
       <PremiumGateModal open={showPremiumGate} onOpenChange={setShowPremiumGate} />
       
       {/* Payment QR Modal */}
-      {hasPaymentQr && (
-        <PaymentQRModal
-          open={showPaymentModal}
-          onOpenChange={setShowPaymentModal}
-          eventTitle={event.title || "Evento"}
-          price={event.price || 0}
-          paymentQrUrl={event.payment_qr_url!}
-          onPaymentSubmitted={handlePaymentSubmitted}
-          isSubmitting={joinGuestlistWithPayment.isPending}
-        />
-      )}
+      {hasPaymentQr &&
+    <PaymentQRModal
+      open={showPaymentModal}
+      onOpenChange={setShowPaymentModal}
+      eventTitle={event.title || "Evento"}
+      price={event.price || 0}
+      paymentQrUrl={event.payment_qr_url!}
+      onPaymentSubmitted={handlePaymentSubmitted}
+      isSubmitting={joinGuestlistWithPayment.isPending} />
 
-      {event.has_guestlist && (
-        <InviteFriendsSheet
-          eventId={id!}
-          eventTitle={event.title || "Evento"}
-          open={showInviteFriendsSheet}
-          onOpenChange={setShowInviteFriendsSheet}
-        />
-      )}
+    }
+
+      {event.has_guestlist &&
+    <InviteFriendsSheet
+      eventId={id!}
+      eventTitle={event.title || "Evento"}
+      open={showInviteFriendsSheet}
+      onOpenChange={setShowInviteFriendsSheet} />
+
+    }
       {/* Floating CTA Bar */}
-      {!isPost && event.has_guestlist && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
+      {!isPost && event.has_guestlist &&
+    <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
           <div className="flex items-center justify-between px-4 py-3">
             <span className="font-brand text-lg font-semibold text-foreground">
               {formattedPrice}
             </span>
-            {isOwner ? (
-              <Button variant="hero" size="default" onClick={() => setShowManagement(true)}>
+            {isOwner ?
+        <Button variant="hero" size="default" onClick={() => setShowManagement(true)}>
                 Gestionar
-                {pendingCount > 0 && (
-                  <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
+                {pendingCount > 0 &&
+          <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
                     {pendingCount}
                   </span>
-                )}
-              </Button>
-            ) : isOnGuestlist ? (
-              isPending ? (
-                <Button variant="ghost" size="default" disabled>
+          }
+              </Button> :
+        isOnGuestlist ?
+        isPending ?
+        <Button variant="ghost" size="default" disabled>
                   <Clock className="w-4 h-4 mr-1" /> Pendiente
-                </Button>
-              ) : (
-                <Button variant="ghost" size="default" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
+                </Button> :
+
+        <Button variant="ghost" size="default" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
                   {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
-                </Button>
-              )
-            ) : (
-              <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
-                {(joinGuestlist.isPending || joinGuestlistWithPayment.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : (hasPaymentQr || isInviteOnlyGuestlist) ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
+                </Button> :
+
+
+        <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
+                {joinGuestlist.isPending || joinGuestlistWithPayment.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr || isInviteOnlyGuestlist ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
               </Button>
-            )}
+        }
           </div>
         </div>
-      )}
+    }
     </div>;
 };
 export default EventDetail;
