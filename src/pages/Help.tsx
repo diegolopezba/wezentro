@@ -102,8 +102,8 @@ const Help = () => {
       answer: "Sí, ve a tu perfil y toca el evento que deseas modificar. Encontrarás opciones para editar los detalles o eliminarlo."
     },
     {
-      question: "¿Cómo funciona Zentro Business?",
-      answer: "Zentro Business es nuestra suscripción premium con analytics avanzados, gestión profesional de eventos, promoción en el mapa y herramientas de reservas para tu negocio."
+      question: "¿Cómo funciona una Cuenta Business?",
+      answer: "Cualquier usuario puede convertir su cuenta en Business de forma gratuita desde Configuración. Las cuentas Business pueden activar reservas de mesa, añadir un menú, aparecer en el mapa y gestionar sus eventos de forma profesional."
     },
     {
       question: "¿Cómo guardo eventos?",
