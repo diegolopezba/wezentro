@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ArrowLeft, Mail, MessageCircle, HelpCircle, Shield, CreditCard, Calendar, Users, ChevronRight, FileText, Trash2, Loader2, History } from "lucide-react";
+import { ArrowLeft, Mail, MessageCircle, HelpCircle, Shield, CreditCard, Calendar, Users, ChevronRight, FileText, Trash2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -138,11 +138,6 @@ const Help = () => {
     }
   ];
 
-  const changelog = [
-    { version: "v1.1.0", date: "Feb 2026", notes: ["Privacidad de mensajería (Todos / Seguidores / Mutuos)", "Reservas para negocios con confirmación en tiempo real", "Mejoras de seguridad en ajustes de usuario", "Programa de referidos con recompensas"] },
-    { version: "v1.0.0", date: "Ene 2026", notes: ["Lanzamiento de Zentro", "Eventos, guestlist, chats y mapa"] },
-  ];
-
   const legalLinks = [
     {
       icon: FileText,
@@ -256,35 +251,6 @@ const Help = () => {
           </div>
         </motion.section>
 
-        {/* Changelog Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-        >
-          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-            <History className="w-5 h-5 text-primary" />
-            Novedades
-          </h2>
-          <div className="space-y-3">
-            {changelog.map((entry) => (
-              <div key={entry.version} className="p-4 rounded-xl bg-secondary/30 border border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-foreground">{entry.version}</span>
-                  <span className="text-xs text-muted-foreground">{entry.date}</span>
-                </div>
-                <ul className="space-y-1">
-                  {entry.notes.map((note, i) => (
-                    <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
-                      <span className="text-primary mt-0.5">•</span>
-                      {note}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </motion.section>
 
         {/* Contact Section */}
         <motion.section
