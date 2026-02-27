@@ -62,10 +62,10 @@ export const EventDetailOverlay = () => {
   } = useHasActiveSubscription();
   const {
     data: pendingRequests = []
-  } = usePendingGuestlistRequests(selectedEventId || undefined);
+  } = usePendingGuestlistRequests(event ? (selectedEventId || undefined) : undefined);
   const {
     data: pendingPayments = []
-  } = usePendingPayments(selectedEventId || undefined);
+  } = usePendingPayments(event ? (selectedEventId || undefined) : undefined);
   const {
     data: guestlist = []
   } = useEventGuestlist(selectedEventId || undefined);
@@ -80,15 +80,15 @@ export const EventDetailOverlay = () => {
   const {
     data: isLiked
   } = useIsEventLiked(selectedEventId!);
-  const { data: likeCount = 0 } = useEventLikes(selectedEventId!);
+  const { data: likeCount = 0 } = useEventLikes(event ? selectedEventId! : undefined);
   const likeEvent = useLikeEvent();
   const unlikeEvent = useUnlikeEvent();
   const {
     data: hasReposted
-  } = useHasReposted(selectedEventId || undefined);
-  const { data: repostCount = 0 } = useRepostCount(selectedEventId || undefined);
+  } = useHasReposted(event ? (selectedEventId || undefined) : undefined);
+  const { data: repostCount = 0 } = useRepostCount(event ? (selectedEventId || undefined) : undefined);
   const toggleRepost = useToggleRepost();
-  const { data: saveCount = 0 } = useSaveCount(selectedEventId || undefined);
+  const { data: saveCount = 0 } = useSaveCount(event ? (selectedEventId || undefined) : undefined);
   const isOnGuestlist = !!guestlistStatus;
   const isPending = guestlistStatus?.status === "pending";
   const isApproved = guestlistStatus?.status === "approved";

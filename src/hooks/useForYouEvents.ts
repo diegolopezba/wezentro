@@ -24,13 +24,14 @@ export const useForYouEvents = () => {
       if (!user?.id) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("interests")
+        .select("interests, birth_date, gender")
         .eq("id", user.id)
         .maybeSingle();
       if (error) throw error;
       return data;
     },
     enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: following } = useQuery({
@@ -63,7 +64,7 @@ export const useForYouEvents = () => {
       }
       return counts;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
   });
 
   const { data: creatorAttendance } = useQuery({
@@ -212,7 +213,7 @@ export const useForYouEvents = () => {
       return result;
     },
     enabled: !!userId,
-    staleTime: 10 * 60 * 1000,
+    staleTime: 30 * 60 * 1000,
   });
 
   // Fetch public events (capped at 200 for performance)
