@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ArrowLeft, Mail, MessageCircle, HelpCircle, Shield, CreditCard, Calendar, Users, ChevronRight, FileText, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Mail, MessageCircle, HelpCircle, Shield, CreditCard, Calendar, Users, ChevronRight, FileText, Trash2, Loader2, History } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -79,27 +79,39 @@ const Help = () => {
   const faqItems = [
     {
       question: "¿Cómo creo un evento?",
-      answer: "Toca el botón '+' en la barra de navegación inferior para acceder a la pantalla de creación. Completa los detalles del evento como título, descripción, fecha, ubicación y categoría. Puedes añadir una imagen y configurar opciones como guestlist."
+      answer: "Toca el botón '+' en la barra de navegación inferior. Completa el título, descripción, fecha, ubicación y categoría. Puedes añadir una imagen y activar la guestlist o tickets con precio."
     },
     {
       question: "¿Qué es la guestlist?",
-      answer: "La guestlist te permite controlar quién asiste a tu evento. Los usuarios pueden solicitar unirse y tú puedes aprobar o rechazar sus solicitudes. También puedes establecer un límite de capacidad."
+      answer: "La guestlist te permite controlar quién asiste a tu evento. Los usuarios solicitan unirse y tú apruebas o rechazas. Puedes establecer un límite de capacidad y ver quién asistió."
+    },
+    {
+      question: "¿Cómo funcionan las reservas?",
+      answer: "Los negocios con reservas activadas aparecen en el mapa. Puedes reservar mesa desde su perfil eligiendo fecha, hora y número de personas. El negocio recibe la solicitud y puede confirmar o cancelar."
+    },
+    {
+      question: "¿Cómo controlo quién me puede escribir?",
+      answer: "Ve a Configuración > Privacidad. Puedes elegir que solo te escriban 'Todos', 'Seguidores' o 'Seguidores mutuos'. Solo usuarios con sesión iniciada pueden ver esta preferencia."
     },
     {
       question: "¿Cómo sigo a otros usuarios?",
-      answer: "Visita el perfil de cualquier usuario y toca el botón 'Seguir'. Verás sus eventos y publicaciones en tu feed principal."
+      answer: "Visita el perfil de cualquier usuario y toca 'Seguir'. Verás sus eventos y publicaciones en tu feed principal."
     },
     {
       question: "¿Puedo editar o eliminar mis eventos?",
-      answer: "Sí, ve a tu perfil y toca el evento que deseas modificar. Encontrarás opciones para editar los detalles o eliminar el evento."
+      answer: "Sí, ve a tu perfil y toca el evento que deseas modificar. Encontrarás opciones para editar los detalles o eliminarlo."
     },
     {
       question: "¿Cómo funciona Zentro Business?",
-      answer: "Zentro Business es nuestra suscripción premium que te da acceso a analytics avanzados, herramientas de gestión de eventos profesionales y la capacidad de promocionar tu negocio de comida en el mapa."
+      answer: "Zentro Business es nuestra suscripción premium con analytics avanzados, gestión profesional de eventos, promoción en el mapa y herramientas de reservas para tu negocio."
     },
     {
       question: "¿Cómo guardo eventos?",
-      answer: "Toca el icono de marcador en cualquier evento para guardarlo. Puedes ver todos tus eventos guardados en Configuración > Guardados."
+      answer: "Toca el icono de marcador en cualquier evento para guardarlo. Accede a todos tus guardados en Configuración > Guardados."
+    },
+    {
+      question: "¿Cómo invito amigos a Zentro?",
+      answer: "Ve a Configuración > Invitar Amigos para obtener tu código de referido único. Cuando un amigo se suscribe usando tu código, ambos reciben un beneficio en su próxima renovación."
     }
   ];
 
@@ -118,7 +130,17 @@ const Help = () => {
       icon: CreditCard,
       title: "Suscripciones",
       description: "Planes y pagos"
+    },
+    {
+      icon: Shield,
+      title: "Privacidad",
+      description: "Mensajería y configuración"
     }
+  ];
+
+  const changelog = [
+    { version: "v1.1.0", date: "Feb 2026", notes: ["Privacidad de mensajería (Todos / Seguidores / Mutuos)", "Reservas para negocios con confirmación en tiempo real", "Mejoras de seguridad en ajustes de usuario", "Programa de referidos con recompensas"] },
+    { version: "v1.0.0", date: "Ene 2026", notes: ["Lanzamiento de Zentro", "Eventos, guestlist, chats y mapa"] },
   ];
 
   const legalLinks = [
@@ -234,6 +256,36 @@ const Help = () => {
           </div>
         </motion.section>
 
+        {/* Changelog Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+            <History className="w-5 h-5 text-primary" />
+            Novedades
+          </h2>
+          <div className="space-y-3">
+            {changelog.map((entry) => (
+              <div key={entry.version} className="p-4 rounded-xl bg-secondary/30 border border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-foreground">{entry.version}</span>
+                  <span className="text-xs text-muted-foreground">{entry.date}</span>
+                </div>
+                <ul className="space-y-1">
+                  {entry.notes.map((note, i) => (
+                    <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      {note}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+
         {/* Contact Section */}
         <motion.section
           initial={{ opacity: 0, y: 10 }}
@@ -249,7 +301,7 @@ const Help = () => {
               ¿No encontraste lo que buscabas? Escríbenos y te ayudaremos lo antes posible.
             </p>
             <a
-              href="mailto:zentro@gmail.com"
+              href="mailto:hello@zentro.com"
               className="flex items-center gap-3 p-4 rounded-xl bg-background/50 border border-border hover:bg-background/80 transition-colors"
             >
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
@@ -257,7 +309,7 @@ const Help = () => {
               </div>
               <div>
                 <p className="font-medium text-foreground">Email de Soporte</p>
-                <p className="text-sm text-primary">zentro@gmail.com</p>
+                <p className="text-sm text-primary">hello@zentro.com</p>
               </div>
             </a>
           </div>
@@ -352,7 +404,7 @@ const Help = () => {
           className="text-center pt-4"
         >
           <p className="text-xs text-muted-foreground">
-            Zentro v1.0.0
+            Zentro v1.1.0
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             © 2025 Zentro. Todos los derechos reservados.
