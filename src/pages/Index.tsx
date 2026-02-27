@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { motion, LayoutGroup } from "framer-motion";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -20,7 +20,6 @@ import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
 import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
 import { haversine } from "@/lib/feedScoring";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 // ───────── Sponsored Post Targeting Filter ─────────
 
@@ -79,7 +78,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollY = useRef(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -99,21 +98,12 @@ const Index = () => {
   const { data: sponsoredPosts = [] } = useActiveSponsoredPosts();
   const trackImpression = useTrackSponsoredImpression();
 
-  // Fetch user demographics for targeting
+  // Reuse the same profile data already fetched by useForYouEvents (same cache key)
   const { data: userDemographics } = useQuery({
-    queryKey: ["user-demographics", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("birth_date, gender, interests")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (error) return null;
-      return data;
-    },
+    queryKey: ["user-interests", user?.id],
     enabled: !!user?.id,
     staleTime: 10 * 60 * 1000,
+    queryFn: async () => null, // never runs — cache hit from useForYouEvents
   });
   
   const handleNotificationClick = () => {
@@ -138,12 +128,12 @@ const Index = () => {
     const handleScroll = (e: Event) => {
       const container = e.target as HTMLDivElement;
       const currentScrollY = container.scrollTop;
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
         setHeaderVisible(false);
-      } else if (currentScrollY < lastScrollY) {
+      } else if (currentScrollY < lastScrollY.current) {
         setHeaderVisible(true);
       }
-      setLastScrollY(currentScrollY);
+      lastScrollY.current = currentScrollY;
     };
     const container = scrollContainerRef.current;
     if (container) {
@@ -272,9 +262,7 @@ const Index = () => {
           </motion.div>
         </header>
         <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-          <LayoutGroup>
-            <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
-          </LayoutGroup>
+          <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
         </PullToRefresh>
       </AppLayout>
       <EventDetailOverlay />
