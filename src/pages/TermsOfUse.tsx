@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const TermsOfUse = () => {
   const navigate = useNavigate();
-  const lastUpdated = "4 de febrero de 2026";
+  const lastUpdated = "27 de febrero de 2026";
 
   return (
     <AppLayout hideNav>
@@ -57,9 +57,11 @@ const TermsOfUse = () => {
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Crear y gestionar eventos públicos y privados</li>
               <li>Descubrir eventos cercanos y de interés</li>
-              <li>Conectar con otros usuarios mediante seguimiento y mensajería</li>
-              <li>Gestionar listas de invitados (guestlists)</li>
-              <li>Acceder a funciones premium mediante suscripciones</li>
+              <li>Conectar con otros usuarios mediante seguimiento y mensajería directa</li>
+              <li>Gestionar listas de invitados (guestlists) y reservaciones</li>
+              <li>Acceder a funciones premium mediante suscripciones Business o Zentro Places</li>
+              <li>Explorar negocios, restaurantes y lugares en el mapa</li>
+              <li>Recibir notificaciones push sobre actividad social y eventos</li>
             </ul>
           </section>
 
@@ -130,6 +132,21 @@ const TermsOfUse = () => {
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro no es responsable de los eventos creados por usuarios ni de las interacciones que ocurran en ellos.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground">7. Mensajería y Privacidad de Comunicación</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Zentro permite la comunicación directa entre usuarios registrados. Usted puede controlar quién puede iniciar conversaciones con usted mediante la configuración de privacidad de mensajes:
+            </p>
+            <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
+              <li><strong>Todos:</strong> cualquier usuario registrado puede enviarle mensajes</li>
+              <li><strong>Seguidores:</strong> solo usuarios que le siguen pueden iniciar conversaciones</li>
+              <li><strong>Mutuos:</strong> solo usuarios que se siguen mutuamente pueden comunicarse</li>
+            </ul>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Solo usuarios con sesión iniciada pueden verificar la configuración de mensajería de otros usuarios. La mensajería no está disponible para visitantes no registrados.
             </p>
           </section>
 

@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
-  const lastUpdated = "4 de febrero de 2026";
+  const lastUpdated = "27 de febrero de 2026";
 
   return (
     <AppLayout hideNav>
@@ -86,15 +86,14 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">4. Compartir Información</h2>
+            <h2 className="text-lg font-semibold text-foreground">4. Información Pública y Privada</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Podemos compartir su información en las siguientes circunstancias:
+              Zentro es una red social pública. Parte de su información es visible para todos, incluyendo visitantes no registrados:
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li><strong>Con otros usuarios:</strong> su perfil público, eventos y publicaciones son visibles para otros usuarios según su configuración de privacidad</li>
-              <li><strong>Proveedores de servicios:</strong> compartimos datos con terceros que nos ayudan a operar la aplicación (alojamiento, análisis, pagos)</li>
-              <li><strong>Cumplimiento legal:</strong> cuando sea requerido por ley o para proteger nuestros derechos</li>
-              <li><strong>Transferencia de negocio:</strong> en caso de fusión, adquisición o venta de activos</li>
+              <li><strong>Información pública:</strong> nombre de usuario, nombre, foto de perfil, biografía, ciudad, eventos públicos que haya creado, seguidores, likes y reposts</li>
+              <li><strong>Solo para usuarios registrados:</strong> su configuración de mensajería (quién puede escribirle) solo es visible para usuarios con sesión iniciada — los visitantes no registrados no pueden acceder a esta información</li>
+              <li><strong>Solo para usted:</strong> sus mensajes privados, eventos guardados, reservaciones, datos de pago y preferencias de contenido</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
               No vendemos su información personal a terceros.
@@ -102,15 +101,28 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">5. Servicios de Terceros</h2>
+            <h2 className="text-lg font-semibold text-foreground">5. Compartir Información con Terceros</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Podemos compartir su información en las siguientes circunstancias:
+            </p>
+            <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
+              <li><strong>Con otros usuarios:</strong> su perfil público y eventos son visibles según lo descrito en la sección 4</li>
+              <li><strong>Proveedores de servicios:</strong> compartimos datos con terceros que nos ayudan a operar la aplicación (alojamiento, análisis, pagos)</li>
+              <li><strong>Cumplimiento legal:</strong> cuando sea requerido por ley o para proteger nuestros derechos</li>
+              <li><strong>Transferencia de negocio:</strong> en caso de fusión, adquisición o venta de activos</li>
+            </ul>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground">6. Servicios de Terceros</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Nuestra aplicación utiliza los siguientes servicios de terceros:
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li><strong>Supabase:</strong> para autenticación y almacenamiento de datos</li>
-              <li><strong>Stripe:</strong> para procesamiento de pagos de suscripciones</li>
+              <li><strong>Infraestructura en la nube:</strong> para autenticación segura y almacenamiento de datos con cifrado en reposo</li>
+              <li><strong>Stripe:</strong> para procesamiento de pagos de suscripciones — los datos de tarjetas nunca pasan por nuestros servidores</li>
               <li><strong>Mapbox:</strong> para servicios de mapas y ubicación</li>
-              <li><strong>OneSignal:</strong> para notificaciones push</li>
+              <li><strong>OneSignal:</strong> para notificaciones push — solo compartimos identificadores de dispositivo anonimizados</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Cada servicio tiene su propia política de privacidad que rige el uso de sus datos.
@@ -154,10 +166,12 @@ const PrivacyPolicy = () => {
               Implementamos medidas de seguridad técnicas y organizativas para proteger su información, incluyendo:
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li>Cifrado de datos en tránsito y en reposo</li>
-              <li>Controles de acceso y autenticación</li>
-              <li>Monitoreo regular de seguridad</li>
-              <li>Políticas de retención de datos</li>
+              <li>Cifrado de datos en tránsito (HTTPS/TLS) y en reposo</li>
+              <li>Controles de acceso a nivel de fila (Row-Level Security) — cada usuario solo puede acceder a sus propios datos privados</li>
+              <li>La configuración de mensajería y preferencias privadas solo son accesibles para usuarios autenticados</li>
+              <li>Los datos de pago (tarjetas) nunca son almacenados en nuestros servidores — son gestionados exclusivamente por Stripe</li>
+              <li>Los tokens QR de guestlist son únicos y solo visibles para el titular y el organizador del evento</li>
+              <li>Monitoreo regular de seguridad y auditorías de acceso</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Sin embargo, ningún método de transmisión por Internet es 100% seguro. No podemos garantizar la seguridad absoluta de sus datos.
