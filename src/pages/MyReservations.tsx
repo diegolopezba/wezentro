@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarDays, Clock, Users, MapPin, X, UserCheck } from "lucide-react";
-import { useUserReservations, useCancelReservation } from "@/hooks/useReservations";
+import { ArrowLeft, CalendarDays, Clock, Users, X, UserCheck } from "lucide-react";
+import { useCancelReservation } from "@/hooks/useReservations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,6 @@ import { format, parseISO, isToday, isTomorrow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +35,7 @@ interface ReservationWithBusiness {
   cancelled_by: string | null;
   created_at: string;
   updated_at: string;
+  isTagged?: boolean;
   business: {
     id: string;
     username: string;
@@ -44,50 +44,54 @@ interface ReservationWithBusiness {
   } | null;
 }
 
-const useTaggedReservations = () => {
+const useAllReservations = () => {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["reservations", "tagged", user?.id],
+    queryKey: ["reservations", "all-combined", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("reservation_guests")
-        .select("reservation_id")
-        .eq("user_id", user.id);
-      if (error) throw error;
-      if (!data || data.length === 0) return [];
+      const today = new Date().toISOString().split("T")[0];
 
-      const ids = data.map((g) => g.reservation_id);
-      const { data: reservations, error: resError } = await supabase
-        .from("reservations")
-        .select("*, business:profiles!reservations_business_id_fkey(id, username, full_name, avatar_url)")
-        .in("id", ids)
-        .gte("reservation_date", new Date().toISOString().split("T")[0])
-        .neq("status", "cancelled")
-        .order("reservation_date", { ascending: true })
-        .order("reservation_time", { ascending: true });
-      if (resError) throw resError;
-      return reservations as ReservationWithBusiness[];
-    },
-    enabled: !!user?.id,
-  });
-};
+      const [myRes, taggedGuests] = await Promise.all([
+        supabase
+          .from("reservations")
+          .select("*, business:profiles!reservations_business_id_fkey(id, username, full_name, avatar_url)")
+          .eq("user_id", user.id)
+          .gte("reservation_date", today)
+          .order("reservation_date", { ascending: true })
+          .order("reservation_time", { ascending: true }),
+        supabase
+          .from("reservation_guests")
+          .select("reservation_id")
+          .eq("user_id", user.id),
+      ]);
 
-const useUserReservationsWithBusiness = () => {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ["reservations", "user-with-business", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("reservations")
-        .select("*, business:profiles!reservations_business_id_fkey(id, username, full_name, avatar_url)")
-        .eq("user_id", user.id)
-        .gte("reservation_date", new Date().toISOString().split("T")[0])
-        .order("reservation_date", { ascending: true })
-        .order("reservation_time", { ascending: true });
-      if (error) throw error;
-      return data as ReservationWithBusiness[];
+      if (myRes.error) throw myRes.error;
+
+      let tagged: ReservationWithBusiness[] = [];
+      if (taggedGuests.data && taggedGuests.data.length > 0) {
+        const ids = taggedGuests.data.map((g) => g.reservation_id);
+        const { data, error } = await supabase
+          .from("reservations")
+          .select("*, business:profiles!reservations_business_id_fkey(id, username, full_name, avatar_url)")
+          .in("id", ids)
+          .gte("reservation_date", today)
+          .neq("status", "cancelled");
+        if (error) throw error;
+        tagged = (data as ReservationWithBusiness[]).map((r) => ({ ...r, isTagged: true }));
+      }
+
+      const mine = (myRes.data as ReservationWithBusiness[]) || [];
+      const taggedIds = new Set(tagged.map((r) => r.id));
+      const combined = [
+        ...mine,
+        ...tagged.filter((r) => !mine.find((m) => m.id === r.id)),
+      ].sort((a, b) => {
+        const dateCompare = a.reservation_date.localeCompare(b.reservation_date);
+        return dateCompare !== 0 ? dateCompare : a.reservation_time.localeCompare(b.reservation_time);
+      });
+
+      return combined;
     },
     enabled: !!user?.id,
   });
@@ -102,12 +106,8 @@ const formatDateLabel = (dateStr: string) => {
 
 const ReservationCard = ({
   reservation,
-  showCancel = false,
-  isTagged = false,
 }: {
   reservation: ReservationWithBusiness;
-  showCancel?: boolean;
-  isTagged?: boolean;
 }) => {
   const navigate = useNavigate();
   const cancelMutation = useCancelReservation();
@@ -138,7 +138,7 @@ const ReservationCard = ({
           </div>
         </button>
         <div className="flex items-center gap-2">
-          {isTagged && (
+          {reservation.isTagged && (
             <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground flex items-center gap-1">
               <UserCheck className="w-3 h-3" />
               Invitado
@@ -171,13 +171,14 @@ const ReservationCard = ({
         <p className="text-xs text-muted-foreground truncate">{reservation.notes}</p>
       )}
 
-      {showCancel && reservation.status !== "cancelled" && (
+      {!reservation.isTagged && reservation.status !== "cancelled" && (
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
               variant="outline"
               size="sm"
               className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+              onClick={(e) => e.stopPropagation()}
             >
               <X className="w-3.5 h-3.5 mr-1" />
               Cancelar reserva
@@ -208,8 +209,7 @@ const ReservationCard = ({
 
 const MyReservations = () => {
   const navigate = useNavigate();
-  const { data: myReservations, isLoading: loadingMine } = useUserReservationsWithBusiness();
-  const { data: taggedReservations, isLoading: loadingTagged } = useTaggedReservations();
+  const { data: reservations, isLoading } = useAllReservations();
 
   return (
     <AppLayout>
@@ -222,66 +222,27 @@ const MyReservations = () => {
         </div>
       </header>
 
-      <div className="px-4 pb-6">
-        <Tabs defaultValue="mine" className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="mine">Mis reservas</TabsTrigger>
-            <TabsTrigger value="tagged">
-              Invitado
-              {taggedReservations && taggedReservations.length > 0 && (
-                <span className="ml-1.5 text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">
-                  {taggedReservations.length}
-                </span>
-              )}
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="mine" className="mt-4 space-y-3">
-            {loadingMine ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : !myReservations || myReservations.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground text-sm">
-                <CalendarDays className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                No tienes reservas próximas
-              </div>
-            ) : (
-              myReservations.map((r) => (
-                <motion.div
-                  key={r.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <ReservationCard reservation={r} showCancel />
-                </motion.div>
-              ))
-            )}
-          </TabsContent>
-
-          <TabsContent value="tagged" className="mt-4 space-y-3">
-            {loadingTagged ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : !taggedReservations || taggedReservations.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground text-sm">
-                <UserCheck className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                No te han incluido en ninguna reserva
-              </div>
-            ) : (
-              taggedReservations.map((r) => (
-                <motion.div
-                  key={r.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <ReservationCard reservation={r} isTagged />
-                </motion.div>
-              ))
-            )}
-          </TabsContent>
-        </Tabs>
+      <div className="px-4 pb-6 mt-4 space-y-3">
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : !reservations || reservations.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            <CalendarDays className="w-10 h-10 mx-auto mb-3 opacity-40" />
+            No tienes reservas próximas
+          </div>
+        ) : (
+          reservations.map((r) => (
+            <motion.div
+              key={r.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <ReservationCard reservation={r} />
+            </motion.div>
+          ))
+        )}
       </div>
     </AppLayout>
   );
