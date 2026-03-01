@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Megaphone, Plus, Play, Pause, Eye, MousePointerClick, DollarSign } from "lucide-react";
+import { Megaphone, Plus, Play, Pause, Eye, MousePointerClick, DollarSign, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SponsoredSummaryBar } from "@/components/dashboard/SponsoredSummaryBar";
@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -25,6 +26,13 @@ import { useMySponsored, useCreateSponsoredPost, useUpdateSponsoredStatus } from
 import { useUserCreatedEvents } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+const CPM = 5; // $5 per 1,000 impressions
+const reachToCost = (reach: number) => (reach / 1000) * CPM;
+const costToReach = (cost: number) => Math.round((cost / CPM) * 1000);
+
+const REACH_PRESETS = [1000, 5000, 10000, 50000, 100000];
+const formatReach = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K` : n.toString();
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Borrador", variant: "secondary" },
@@ -53,9 +61,11 @@ export const PromocionesSection = () => {
   const updateStatusMutation = useUpdateSponsoredStatus();
 
   const [showCreate, setShowCreate] = useState(false);
+  const [budgetMode, setBudgetMode] = useState<"budget" | "reach">("reach");
   const [selectedEventId, setSelectedEventId] = useState("");
   const [dailyBudget, setDailyBudget] = useState("");
   const [totalBudget, setTotalBudget] = useState("");
+  const [targetReach, setTargetReach] = useState(10000);
 
   // Targeting state
   const [targetCategories, setTargetCategories] = useState<string[]>([]);
@@ -78,6 +88,8 @@ export const PromocionesSection = () => {
     setSelectedEventId("");
     setDailyBudget("");
     setTotalBudget("");
+    setTargetReach(10000);
+    setBudgetMode("reach");
     setTargetCategories([]);
     setTargetRadius(25);
     setTargetGender("all");
@@ -90,11 +102,15 @@ export const PromocionesSection = () => {
       toast.error("Selecciona un evento");
       return;
     }
+    const computedTotalBudget = budgetMode === "reach"
+      ? reachToCost(targetReach)
+      : totalBudget ? parseFloat(totalBudget) : undefined;
+
     try {
       await createMutation.mutateAsync({
         event_id: selectedEventId,
         daily_budget: dailyBudget ? parseFloat(dailyBudget) : undefined,
-        total_budget: totalBudget ? parseFloat(totalBudget) : undefined,
+        total_budget: computedTotalBudget,
         target_categories: targetCategories.length > 0 ? targetCategories : undefined,
         target_radius_km: targetRadius < 50 ? targetRadius : undefined,
         target_gender: targetGender !== "all" ? targetGender : undefined,
@@ -250,27 +266,102 @@ export const PromocionesSection = () => {
               </Select>
             </div>
 
-            {/* Budget */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Presupuesto diario ($)</Label>
-                <Input
-                  type="number"
-                  placeholder="10.00"
-                  value={dailyBudget}
-                  onChange={(e) => setDailyBudget(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Presupuesto total ($)</Label>
-                <Input
-                  type="number"
-                  placeholder="100.00"
-                  value={totalBudget}
-                  onChange={(e) => setTotalBudget(e.target.value)}
-                />
-              </div>
-            </div>
+            {/* Budget / Reach toggle */}
+            <Tabs value={budgetMode} onValueChange={(v) => setBudgetMode(v as "budget" | "reach")}>
+              <TabsList className="w-full">
+                <TabsTrigger value="reach" className="flex-1 gap-1.5">
+                  <Users className="w-3.5 h-3.5" /> Alcance estimado
+                </TabsTrigger>
+                <TabsTrigger value="budget" className="flex-1 gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5" /> Presupuesto
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Reach mode */}
+              <TabsContent value="reach" className="space-y-4 mt-4">
+                <div className="space-y-3">
+                  <Label className="text-xs text-muted-foreground">¿A cuántas personas quieres llegar?</Label>
+                  <Slider
+                    value={[targetReach]}
+                    onValueChange={([v]) => setTargetReach(v)}
+                    min={1000}
+                    max={500000}
+                    step={1000}
+                  />
+                  <div className="flex gap-1.5 flex-wrap">
+                    {REACH_PRESETS.map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setTargetReach(p)}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                          targetReach === p ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+                        }`}
+                      >
+                        {formatReach(p)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Summary card */}
+                <motion.div
+                  layout
+                  className="rounded-xl bg-primary/10 border border-primary/20 p-4 space-y-2"
+                >
+                  <div className="flex items-center gap-2 text-primary text-sm font-semibold">
+                    <Sparkles className="w-4 h-4" />
+                    Resumen estimado
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Alcance</p>
+                      <p className="font-semibold text-foreground">{targetReach.toLocaleString()} personas</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Costo total</p>
+                      <p className="font-semibold text-foreground">${reachToCost(targetReach).toFixed(2)}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-xs text-muted-foreground">Tarifa</p>
+                      <p className="font-medium text-foreground">$5 CPM (por cada 1,000 impresiones)</p>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground pt-1">
+                    El alcance real puede variar según la segmentación y disponibilidad del inventario.
+                  </p>
+                </motion.div>
+              </TabsContent>
+
+              {/* Budget mode */}
+              <TabsContent value="budget" className="space-y-3 mt-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Presupuesto diario ($)</Label>
+                    <Input
+                      type="number"
+                      placeholder="10.00"
+                      value={dailyBudget}
+                      onChange={(e) => setDailyBudget(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Presupuesto total ($)</Label>
+                    <Input
+                      type="number"
+                      placeholder="100.00"
+                      value={totalBudget}
+                      onChange={(e) => setTotalBudget(e.target.value)}
+                    />
+                  </div>
+                </div>
+                {totalBudget && parseFloat(totalBudget) > 0 && (
+                  <p className="text-xs text-muted-foreground bg-secondary/50 rounded-lg px-3 py-2">
+                    💡 Con ${parseFloat(totalBudget).toFixed(2)} llegarás a ~{costToReach(parseFloat(totalBudget)).toLocaleString()} personas a $5 CPM
+                  </p>
+                )}
+              </TabsContent>
+            </Tabs>
 
             {/* Targeting section */}
             <div className="border-t border-border pt-4">
