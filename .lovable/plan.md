@@ -1,35 +1,56 @@
 
-## Security Assessment for a Social Network
+## Goal
+Replace (or augment) the raw budget inputs in the "Nueva Promoción" dialog with a reach-based estimator — the advertiser sets a **target audience size** (e.g. "I want to reach 10,000 people") and Zentro calculates the cost automatically at $5 CPM. Exactly how Instagram/Meta Ads works.
 
-After reviewing the RLS policies and the codebase, here is the honest assessment:
+---
 
-### What is FINE for a social network (no changes needed):
-- **`profiles` fully public SELECT** — `USING (true)` is intentional and correct. Instagram, Twitter, TikTok all expose public profiles to everyone including unauthenticated visitors. ✅
-- **`follows` public SELECT** — Follower/following counts and lists are public on every social network. ✅
-- **`event_likes` public SELECT** — Like counts are public on all social platforms. ✅
-- **`reposts` public SELECT** — Repost counts are public. ✅
-- **`event_tags` public SELECT** — Who is tagged in a post is public. ✅
+## How it works mathematically
 
-### The ONE real security issue to fix:
+```
+CPM = $5 (cost per 1,000 impressions)
+Target Reach = 10,000 users
+Estimated Cost = (10,000 / 1,000) × $5 = $50
+```
 
-**`user_settings` has TWO SELECT policies**: "Anyone can view message settings" (USING: true) AND "Users can view own settings" (USING: auth.uid() = user_id). The first one is overly broad — while the `allow_messages_from` field itself is not super sensitive, the real issue is that `useCanMessageUser` (in `useUserSettings.ts`) currently queries `user_settings` directly from the client to check if a user can message another. This works fine with the public policy. However, the "Anyone can view" policy also exposes this to unauthenticated users, which is unnecessary — it should require being logged in.
+The user picks a reach goal → we display the estimated cost → they confirm → that becomes their `total_budget`.
 
-**Fix**: Change "Anyone can view message settings" from `USING (true)` to `USING (auth.uid() IS NOT NULL)` — so only logged-in users can see another user's message preference. Unauthenticated scrapers can't enumerate user IDs and their privacy settings.
+---
 
-### The `profiles` sensitive fields concern:
-The `profiles` table has `birth_date`, `gender`, `business_latitude`, `business_longitude`, `business_phone` exposed. These are low-risk for a social network because:
-- `birth_date` / `gender` — users voluntarily enter these; no query in the app exposes raw birth dates to other users in the UI
-- Business GPS coords — these are intentionally public (they appear on the map)
-- Business phone — intentionally public (it's a contact number for a business)
+## What changes
 
-No action needed on profiles.
+### 1. `PromocionesSection.tsx` — Create dialog UI
+Replace the two raw budget inputs with a mode toggle:
 
-### Summary of changes:
+```
+[ Presupuesto ]  [ Alcance estimado ]   ← toggle tabs
+```
 
-**One migration only:**
-- Change `user_settings` "Anyone can view message settings" policy from `USING (true)` → `USING (auth.uid() IS NOT NULL)` so only authenticated users can check another user's message privacy setting. Unauthenticated scraping is blocked while the messaging feature still works perfectly.
+**Alcance mode:**
+- Slider or input: "¿A cuántas personas quieres llegar?" (e.g. 1,000 → 500,000)
+- Live calculation display:
+  ```
+  Alcance estimado: 10,000 personas
+  Costo total estimado: $50.00 (a $5 CPM)
+  Impresiones necesarias: ~10,000
+  ```
+- On submit, `total_budget` = `(reach / 1000) * 5`
 
-No code changes needed — `useCanMessageUser` already runs inside authenticated routes.
+**Presupuesto mode (existing):**
+- Shows budget inputs as before
+- Adds a reverse estimate: "Con $50, llegarás a ~10,000 personas"
 
-### Files to change:
-- **1 migration**: Update the `user_settings` SELECT policy for non-owners
+### 2. No backend changes needed
+The `sponsored_posts` table already has `total_budget` and `impressions` — we just populate `total_budget` from the reach calculation. No schema changes required.
+
+### 3. Visual design
+- Mode toggle at the top of the budget section
+- Reach slider: 1K → 500K with presets (1K / 5K / 10K / 50K / 100K)
+- Highlighted summary card showing estimated reach and cost before confirming
+- Small disclaimer: "El alcance real puede variar según la segmentación y disponibilidad del inventario"
+
+---
+
+## Files to modify
+- `src/components/dashboard/PromocionesSection.tsx` — add toggle + reach estimator UI + reverse budget estimate
+
+That's the only file. No DB migrations, no new hooks needed.
