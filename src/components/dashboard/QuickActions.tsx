@@ -16,7 +16,7 @@ export const QuickActions = ({ onBoostClick }: QuickActionsProps) => {
       <Button
         variant="outline"
         size="sm"
-        className="flex-shrink-0 gap-1.5 rounded-full border-primary/60 text-primary hover:bg-primary/10 hover:border-primary animate-[glow_2s_ease-in-out_infinite]"
+        className="flex-shrink-0 gap-1.5 rounded-full border-primary/30 text-primary overflow-hidden relative bg-transparent hover:border-primary boost-glow-btn"
         onClick={onBoostClick}
       >
         <Zap className="w-4 h-4" />
