@@ -18,8 +18,17 @@ const BusinessDashboard = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [period, setPeriod] = useState<Period>("7d");
+  const [activeTab, setActiveTab] = useState("overview");
+  const [openBoostWizard, setOpenBoostWizard] = useState(false);
 
   useSwipeBack();
+
+  const handleBoostClick = () => {
+    setActiveTab("actions");
+    setOpenBoostWizard(true);
+    // Reset after a tick so re-clicking works
+    setTimeout(() => setOpenBoostWizard(false), 500);
+  };
 
   const isBusiness = profile?.is_business === true;
   const subLoading = !profile;
@@ -71,9 +80,9 @@ const BusinessDashboard = () => {
       </header>
 
       <div className="px-4 mt-4 space-y-4">
-        <QuickActions />
+        <QuickActions onBoostClick={handleBoostClick} />
 
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full grid grid-cols-4">
             <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
             <TabsTrigger value="content" className="text-xs">Contenido</TabsTrigger>
@@ -91,7 +100,7 @@ const BusinessDashboard = () => {
             <AudienceTab />
           </TabsContent>
           <TabsContent value="actions">
-            <ActionsTab period={period} />
+            <ActionsTab period={period} openBoostWizard={openBoostWizard} />
           </TabsContent>
         </Tabs>
       </div>

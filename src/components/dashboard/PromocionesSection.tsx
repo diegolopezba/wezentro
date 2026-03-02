@@ -68,7 +68,7 @@ const statusConfig: Record<string, { label: string; dot: string; badge: string }
 
 const STEPS = ["Evento", "Audiencia", "Presupuesto", "Confirmar"];
 
-export const PromocionesSection = () => {
+export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: boolean }) => {
   const { user } = useAuth();
   const { data: sponsoredPosts = [], isLoading, refetch } = useMySponsored();
   const { data: myEvents = [] } = useUserCreatedEvents(user?.id);
@@ -87,6 +87,13 @@ export const PromocionesSection = () => {
   const [selectedBudget, setSelectedBudget] = useState(25);
   const [customBudget, setCustomBudget] = useState("");
   const [useCustomBudget, setUseCustomBudget] = useState(false);
+
+  // Open wizard automatically when triggered externally
+  useEffect(() => {
+    if (openWizardOnMount) {
+      setShowWizard(true);
+    }
+  }, [openWizardOnMount]);
 
   const activeBudget = useCustomBudget && customBudget ? parseFloat(customBudget) || 0 : selectedBudget;
   const estimatedReach = costToReach(activeBudget);

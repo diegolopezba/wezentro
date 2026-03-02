@@ -12,6 +12,7 @@ const GuestlistFunnel = lazy(() => import("@/components/dashboard/GuestlistFunne
 
 interface ActionsTabProps {
   period: Period;
+  openBoostWizard?: boolean;
 }
 
 const FunnelStep = ({ label, value, prevValue }: { label: string; value: number; prevValue?: number }) => {
@@ -29,7 +30,7 @@ const FunnelStep = ({ label, value, prevValue }: { label: string; value: number;
   );
 };
 
-export const ActionsTab = ({ period }: ActionsTabProps) => {
+export const ActionsTab = ({ period, openBoostWizard }: ActionsTabProps) => {
   const { profile } = useAuth();
   const { data: funnelData, isLoading: funnelLoading } = useGuestlistFunnel();
   const { data: profileVisits } = useProfileVisits(period);
@@ -79,7 +80,7 @@ export const ActionsTab = ({ period }: ActionsTabProps) => {
       <CompetitiveBenchmark />
 
       {/* Sponsored */}
-      <PromocionesSection />
+      <PromocionesSection openWizardOnMount={openBoostWizard} />
     </div>
   );
 };
