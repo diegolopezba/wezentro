@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.send-push-notification]
 verify_jwt = true
+
+[functions.create-ad-checkout]
+verify_jwt = false
+
+[functions.activate-ad-campaign]
+verify_jwt = false

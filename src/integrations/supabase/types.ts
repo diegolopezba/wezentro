@@ -1163,6 +1163,7 @@ export type Database = {
       }
       sponsored_posts: {
         Row: {
+          ad_payment_session_id: string | null
           business_user_id: string
           clicks: number
           created_at: string
@@ -1182,6 +1183,7 @@ export type Database = {
           total_budget: number | null
         }
         Insert: {
+          ad_payment_session_id?: string | null
           business_user_id: string
           clicks?: number
           created_at?: string
@@ -1201,6 +1203,7 @@ export type Database = {
           total_budget?: number | null
         }
         Update: {
+          ad_payment_session_id?: string | null
           business_user_id?: string
           clicks?: number
           created_at?: string

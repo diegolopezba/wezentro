@@ -26,6 +26,9 @@ import { useMySponsored, useCreateSponsoredPost, useUpdateSponsoredStatus } from
 import { useUserCreatedEvents } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 const CPM = 5; // $5 per 1,000 impressions
 const reachToCost = (reach: number) => (reach / 1000) * CPM;
@@ -55,10 +58,56 @@ const TARGET_CATEGORIES = [
 
 export const PromocionesSection = () => {
   const { user } = useAuth();
-  const { data: sponsoredPosts = [], isLoading } = useMySponsored();
+  const { data: sponsoredPosts = [], isLoading, refetch } = useMySponsored();
   const { data: myEvents = [] } = useUserCreatedEvents(user?.id);
   const createMutation = useCreateSponsoredPost();
   const updateStatusMutation = useUpdateSponsoredStatus();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [activatingId, setActivatingId] = useState<string | null>(null);
+
+  // Handle return from Stripe checkout
+  useEffect(() => {
+    const adActivated = searchParams.get("ad_activated");
+    const sessionId = searchParams.get("session_id");
+    if (!adActivated || !sessionId) return;
+
+    const activate = async () => {
+      try {
+        const { error } = await supabase.functions.invoke("activate-ad-campaign", {
+          body: { sponsored_post_id: adActivated, session_id: sessionId },
+        });
+        if (error) throw error;
+        toast.success("¡Campaña activada! Ya está apareciendo en el feed.");
+        refetch();
+      } catch (e) {
+        toast.error("No se pudo activar la campaña. Contacta soporte.");
+      } finally {
+        navigate("/dashboard", { replace: true });
+      }
+    };
+
+    activate();
+  }, [searchParams]);
+
+  const handleActivate = async (sp: any) => {
+    const totalBudget = Number(sp.total_budget);
+    if (!totalBudget || totalBudget <= 0) {
+      toast.error("Esta campaña no tiene presupuesto definido");
+      return;
+    }
+    setActivatingId(sp.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-ad-checkout", {
+        body: { sponsored_post_id: sp.id, amount_usd: totalBudget },
+      });
+      if (error || !data?.url) throw error ?? new Error("No URL");
+      window.location.href = data.url;
+    } catch {
+      toast.error("Error al iniciar el pago");
+      setActivatingId(null);
+    }
+  };
 
   const [showCreate, setShowCreate] = useState(false);
   const [budgetMode, setBudgetMode] = useState<"budget" | "reach">("reach");
@@ -200,7 +249,17 @@ export const PromocionesSection = () => {
                       {status.label}
                     </Badge>
                   </div>
-                  {(sp.status === "draft" || sp.status === "active" || sp.status === "paused") && (
+                  {sp.status === "draft" && (
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => handleActivate(sp)}
+                      disabled={activatingId === sp.id}
+                    >
+                      {activatingId === sp.id ? "Redirigiendo..." : "Activar →"}
+                    </Button>
+                  )}
+                  {(sp.status === "active" || sp.status === "paused") && (
                     <Button
                       variant="ghost"
                       size="icon"
@@ -228,8 +287,22 @@ export const PromocionesSection = () => {
                   <span className="flex items-center gap-1">
                     <DollarSign className="w-3.5 h-3.5" />
                     ${Number(sp.spent).toFixed(2)}
+                    {sp.total_budget ? ` / $${Number(sp.total_budget).toFixed(2)}` : ""}
                   </span>
                 </div>
+                {sp.total_budget && (
+                  <div className="mt-2">
+                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary rounded-full transition-all"
+                        style={{ width: `${Math.min(100, (Number(sp.spent) / Number(sp.total_budget)) * 100)}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {Math.round((Number(sp.spent) / Number(sp.total_budget)) * 100)}% del presupuesto usado
+                    </p>
+                  </div>
+                )}
               </motion.div>
             );
           })}
