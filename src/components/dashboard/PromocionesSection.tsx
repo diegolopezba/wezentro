@@ -1,60 +1,72 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Megaphone, Plus, Play, Pause, Eye, MousePointerClick, DollarSign, Users, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Megaphone, Plus, Play, Pause, Eye, MousePointerClick, DollarSign,
+  Users, Sparkles, ArrowLeft, ArrowRight, Check, MapPin, Tag, Zap,
+  ChevronRight, TrendingUp, Lock
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SponsoredSummaryBar } from "@/components/dashboard/SponsoredSummaryBar";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useMySponsored, useCreateSponsoredPost, useUpdateSponsoredStatus } from "@/hooks/useSponsoredPosts";
 import { useUserCreatedEvents } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
-const CPM = 5; // $5 per 1,000 impressions
+const CPM = 5;
 const reachToCost = (reach: number) => (reach / 1000) * CPM;
 const costToReach = (cost: number) => Math.round((cost / CPM) * 1000);
+const formatReach = (n: number) =>
+  n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(0)}K` : n.toString();
 
-const REACH_PRESETS = [1000, 5000, 10000, 50000, 100000];
-const formatReach = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K` : n.toString();
+const BUDGET_PRESETS = [
+  { amount: 10, popular: false },
+  { amount: 25, popular: true },
+  { amount: 50, popular: false },
+  { amount: 100, popular: false },
+];
 
-const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  draft: { label: "Borrador", variant: "secondary" },
-  active: { label: "Activo", variant: "default" },
-  paused: { label: "Pausado", variant: "outline" },
-  completed: { label: "Completado", variant: "destructive" },
+const AUDIENCE_PRESETS = [
+  {
+    id: "auto",
+    icon: Zap,
+    title: "Automático",
+    subtitle: "Recomendado · Nosotros optimizamos el alcance por ti",
+    color: "text-primary",
+    bgColor: "bg-primary/10 border-primary/30",
+  },
+  {
+    id: "nearby",
+    icon: MapPin,
+    title: "Público cercano",
+    subtitle: "Personas a menos de 25 km de tu evento",
+    color: "text-foreground",
+    bgColor: "bg-secondary border-border",
+  },
+  {
+    id: "interest",
+    icon: Tag,
+    title: "Por interés",
+    subtitle: "Personas que siguen eventos similares al tuyo",
+    color: "text-foreground",
+    bgColor: "bg-secondary border-border",
+  },
+];
+
+const statusConfig: Record<string, { label: string; dot: string; badge: string }> = {
+  draft: { label: "Borrador", dot: "bg-muted-foreground", badge: "bg-secondary text-secondary-foreground" },
+  active: { label: "Activo", dot: "bg-green-500", badge: "bg-green-500/15 text-green-600" },
+  paused: { label: "Pausado", dot: "bg-yellow-500", badge: "bg-yellow-500/15 text-yellow-600" },
+  completed: { label: "Completado", dot: "bg-muted-foreground", badge: "bg-secondary text-secondary-foreground" },
 };
 
-const TARGET_CATEGORIES = [
-  { value: "party", label: "🪩 Fiestas" },
-  { value: "bar", label: "🍸 Bares" },
-  { value: "concert", label: "🎵 Conciertos" },
-  { value: "fitness", label: "🏋️ Fitness" },
-  { value: "culture", label: "🎨 Cultura" },
-  { value: "festival", label: "🎪 Festivales" },
-  { value: "rooftop", label: "🌆 Rooftops" },
-  { value: "restaurant", label: "🍽️ Restaurantes" },
-  { value: "coffee", label: "☕ Café" },
-];
+const STEPS = ["Evento", "Audiencia", "Presupuesto", "Confirmar"];
 
 export const PromocionesSection = () => {
   const { user } = useAuth();
@@ -66,12 +78,37 @@ export const PromocionesSection = () => {
   const navigate = useNavigate();
   const [activatingId, setActivatingId] = useState<string | null>(null);
 
+  // Wizard state
+  const [showWizard, setShowWizard] = useState(false);
+  const [step, setStep] = useState(0);
+  const [selectedEventId, setSelectedEventId] = useState("");
+  const [audiencePreset, setAudiencePreset] = useState("auto");
+  const [selectedBudget, setSelectedBudget] = useState(25);
+  const [customBudget, setCustomBudget] = useState("");
+  const [useCustomBudget, setUseCustomBudget] = useState(false);
+
+  const activeBudget = useCustomBudget && customBudget ? parseFloat(customBudget) || 0 : selectedBudget;
+  const estimatedReach = costToReach(activeBudget);
+
+  const availableEvents = myEvents.filter(
+    (e) => !sponsoredPosts.some((sp: any) => sp.event_id === e.id)
+  );
+  const selectedEvent = myEvents.find((e) => e.id === selectedEventId);
+
+  const resetWizard = () => {
+    setStep(0);
+    setSelectedEventId("");
+    setAudiencePreset("auto");
+    setSelectedBudget(25);
+    setCustomBudget("");
+    setUseCustomBudget(false);
+  };
+
   // Handle return from Stripe checkout
   useEffect(() => {
     const adActivated = searchParams.get("ad_activated");
     const sessionId = searchParams.get("session_id");
     if (!adActivated || !sessionId) return;
-
     const activate = async () => {
       try {
         const { error } = await supabase.functions.invoke("activate-ad-campaign", {
@@ -80,13 +117,12 @@ export const PromocionesSection = () => {
         if (error) throw error;
         toast.success("¡Campaña activada! Ya está apareciendo en el feed.");
         refetch();
-      } catch (e) {
+      } catch {
         toast.error("No se pudo activar la campaña. Contacta soporte.");
       } finally {
         navigate("/dashboard", { replace: true });
       }
     };
-
     activate();
   }, [searchParams]);
 
@@ -109,66 +145,19 @@ export const PromocionesSection = () => {
     }
   };
 
-  const [showCreate, setShowCreate] = useState(false);
-  const [budgetMode, setBudgetMode] = useState<"budget" | "reach">("reach");
-  const [selectedEventId, setSelectedEventId] = useState("");
-  const [dailyBudget, setDailyBudget] = useState("");
-  const [totalBudget, setTotalBudget] = useState("");
-  const [targetReach, setTargetReach] = useState(10000);
-
-  // Targeting state
-  const [targetCategories, setTargetCategories] = useState<string[]>([]);
-  const [targetRadius, setTargetRadius] = useState<number>(25);
-  const [targetGender, setTargetGender] = useState("all");
-  const [targetAgeMin, setTargetAgeMin] = useState("");
-  const [targetAgeMax, setTargetAgeMax] = useState("");
-
-  const availableEvents = myEvents.filter(
-    (e) => !sponsoredPosts.some((sp: any) => sp.event_id === e.id)
-  );
-
-  const toggleCategory = (cat: string) => {
-    setTargetCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
-  };
-
-  const resetForm = () => {
-    setSelectedEventId("");
-    setDailyBudget("");
-    setTotalBudget("");
-    setTargetReach(10000);
-    setBudgetMode("reach");
-    setTargetCategories([]);
-    setTargetRadius(25);
-    setTargetGender("all");
-    setTargetAgeMin("");
-    setTargetAgeMax("");
-  };
-
   const handleCreate = async () => {
-    if (!selectedEventId) {
-      toast.error("Selecciona un evento");
-      return;
-    }
-    const computedTotalBudget = budgetMode === "reach"
-      ? reachToCost(targetReach)
-      : totalBudget ? parseFloat(totalBudget) : undefined;
-
+    if (!selectedEventId) return;
+    const targetRadiusKm = audiencePreset === "nearby" ? 25 : undefined;
     try {
-      await createMutation.mutateAsync({
+      const sp = await createMutation.mutateAsync({
         event_id: selectedEventId,
-        daily_budget: dailyBudget ? parseFloat(dailyBudget) : undefined,
-        total_budget: computedTotalBudget,
-        target_categories: targetCategories.length > 0 ? targetCategories : undefined,
-        target_radius_km: targetRadius < 50 ? targetRadius : undefined,
-        target_gender: targetGender !== "all" ? targetGender : undefined,
-        target_age_min: targetAgeMin ? parseInt(targetAgeMin) : undefined,
-        target_age_max: targetAgeMax ? parseInt(targetAgeMax) : undefined,
+        total_budget: activeBudget,
+        target_radius_km: targetRadiusKm,
       });
-      toast.success("Promoción creada como borrador");
-      setShowCreate(false);
-      resetForm();
+      setShowWizard(false);
+      resetWizard();
+      // Immediately redirect to checkout
+      handleActivate(sp);
     } catch {
       toast.error("Error al crear la promoción");
     }
@@ -184,349 +173,489 @@ export const PromocionesSection = () => {
     }
   };
 
+  const canAdvance = () => {
+    if (step === 0) return !!selectedEventId;
+    if (step === 2) return activeBudget >= 5;
+    return true;
+  };
+
   return (
     <section>
+      {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-brand text-lg font-semibold text-foreground flex items-center gap-2">
           <Megaphone className="w-5 h-5 text-primary" />
           Promociones
         </h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowCreate(true)}
-          disabled={availableEvents.length === 0}
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Nueva
-        </Button>
+        {sponsoredPosts.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowWizard(true)}
+            disabled={availableEvents.length === 0}
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Nueva
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
         <div className="space-y-3">
-          {[1, 2].map((i) => (
-            <div key={i} className="h-24 bg-secondary/50 rounded-xl animate-pulse" />
-          ))}
+          {[1, 2].map((i) => <div key={i} className="h-24 bg-secondary/50 rounded-xl animate-pulse" />)}
         </div>
       ) : (
         <>
-          {sponsoredPosts.length > 0 && (
-            <SponsoredSummaryBar sponsoredPosts={sponsoredPosts} />
-          )}
+          {sponsoredPosts.length > 0 && <SponsoredSummaryBar sponsoredPosts={sponsoredPosts} />}
+
           {sponsoredPosts.length === 0 ? (
-        <div className="rounded-2xl bg-card border border-border p-6 text-center">
-          <Megaphone className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">
-            Promociona tus eventos para llegar a más personas en el feed "Para Ti".
-          </p>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="mt-3"
-            onClick={() => setShowCreate(true)}
-            disabled={availableEvents.length === 0}
-          >
-            Crear primera promoción
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {sponsoredPosts.map((sp: any) => {
-            const status = statusLabels[sp.status] || statusLabels.draft;
-            return (
-              <motion.div
-                key={sp.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl bg-card border border-border p-4"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground text-sm truncate">
-                      {sp.event?.title || "Evento sin título"}
-                    </p>
-                    <Badge variant={status.variant} className="mt-1 text-[10px]">
-                      {status.label}
-                    </Badge>
+            /* ── Hero empty state ── */
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6"
+            >
+              {/* decorative blobs */}
+              <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/15 blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-primary/10 blur-xl pointer-events-none" />
+
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 rounded-xl bg-primary/20">
+                    <TrendingUp className="w-5 h-5 text-primary" />
                   </div>
-                  {sp.status === "draft" && (
-                    <Button
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={() => handleActivate(sp)}
-                      disabled={activatingId === sp.id}
-                    >
-                      {activatingId === sp.id ? "Redirigiendo..." : "Activar →"}
-                    </Button>
-                  )}
-                  {(sp.status === "active" || sp.status === "paused") && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => handleToggleStatus(sp.id, sp.status)}
-                    >
-                      {sp.status === "active" ? (
-                        <Pause className="w-4 h-4" />
-                      ) : (
-                        <Play className="w-4 h-4" />
-                      )}
-                    </Button>
-                  )}
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">Boost</span>
                 </div>
 
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Eye className="w-3.5 h-3.5" />
-                    {sp.impressions.toLocaleString()}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MousePointerClick className="w-3.5 h-3.5" />
-                    {sp.clicks.toLocaleString()}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <DollarSign className="w-3.5 h-3.5" />
-                    ${Number(sp.spent).toFixed(2)}
-                    {sp.total_budget ? ` / $${Number(sp.total_budget).toFixed(2)}` : ""}
-                  </span>
+                <p className="text-xl font-bold text-foreground leading-tight mb-1">
+                  Llega a miles de personas
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Los eventos con boost reciben <span className="font-semibold text-foreground">3× más asistentes</span> en promedio.
+                </p>
+
+                <div className="flex items-center gap-4 mb-5 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-primary" /> Desde $10</span>
+                  <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-primary" /> Pago seguro</span>
+                  <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-primary" /> Activación inmediata</span>
                 </div>
-                {sp.total_budget && (
-                  <div className="mt-2">
-                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary rounded-full transition-all"
-                        style={{ width: `${Math.min(100, (Number(sp.spent) / Number(sp.total_budget)) * 100)}%` }}
-                      />
+
+                <Button
+                  variant="hero"
+                  size="lg"
+                  className="w-full text-base"
+                  onClick={() => setShowWizard(true)}
+                  disabled={availableEvents.length === 0}
+                >
+                  {availableEvents.length === 0 ? "Crea un evento primero" : "Impulsar mi evento →"}
+                </Button>
+              </div>
+            </motion.div>
+          ) : (
+            /* ── Campaign cards ── */
+            <div className="space-y-3">
+              {sponsoredPosts.map((sp: any) => {
+                const cfg = statusConfig[sp.status] || statusConfig.draft;
+                const progressPct = sp.total_budget
+                  ? Math.min(100, (Number(sp.spent) / Number(sp.total_budget)) * 100)
+                  : 0;
+                return (
+                  <motion.div
+                    key={sp.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-2xl bg-card border border-border overflow-hidden"
+                  >
+                    <div className="flex gap-3 p-4">
+                      {/* Event thumbnail */}
+                      {sp.event?.image_url ? (
+                        <img
+                          src={sp.event.image_url}
+                          alt=""
+                          className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
+                          <Megaphone className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-semibold text-foreground text-sm truncate">
+                              {sp.event?.title || "Evento sin título"}
+                            </p>
+                            <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1 ${cfg.badge}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                              {cfg.label}
+                            </span>
+                          </div>
+
+                          {sp.status === "draft" ? (
+                            <Button
+                              size="sm"
+                              variant="hero"
+                              className="h-8 text-xs shrink-0"
+                              onClick={() => handleActivate(sp)}
+                              disabled={activatingId === sp.id}
+                            >
+                              {activatingId === sp.id ? "..." : "Activar →"}
+                            </Button>
+                          ) : (sp.status === "active" || sp.status === "paused") ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 shrink-0"
+                              onClick={() => handleToggleStatus(sp.id, sp.status)}
+                            >
+                              {sp.status === "active" ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                            </Button>
+                          ) : null}
+                        </div>
+
+                        {/* Stats row */}
+                        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{sp.impressions.toLocaleString()}</span>
+                          <span className="flex items-center gap-1"><MousePointerClick className="w-3 h-3" />{sp.clicks.toLocaleString()}</span>
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />${Number(sp.spent).toFixed(2)}{sp.total_budget ? ` / $${Number(sp.total_budget).toFixed(0)}` : ""}</span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {Math.round((Number(sp.spent) / Number(sp.total_budget)) * 100)}% del presupuesto usado
-                    </p>
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
+
+                    {/* Budget progress */}
+                    {sp.total_budget && (
+                      <div className="px-4 pb-3">
+                        <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary rounded-full transition-all"
+                            style={{ width: `${progressPct}%` }}
+                          />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {Math.round(progressPct)}% del presupuesto usado
+                        </p>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </>
       )}
 
-      {/* Create dialog */}
-      <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Nueva Promoción</DialogTitle>
-            <DialogDescription>
-              Configura presupuesto y segmentación para aparecer en el feed "Para Ti".
-            </DialogDescription>
-          </DialogHeader>
+      {/* ── 4-step wizard sheet ── */}
+      <Sheet open={showWizard} onOpenChange={(open) => { if (!open) { setShowWizard(false); resetWizard(); } }}>
+        <SheetContent side="bottom" className="h-[92dvh] rounded-t-3xl p-0 flex flex-col overflow-hidden">
+          {/* Progress bar */}
+          <div className="flex gap-1 px-5 pt-5 pb-1 shrink-0">
+            {STEPS.map((s, i) => (
+              <div
+                key={s}
+                className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= step ? "bg-primary" : "bg-secondary"}`}
+              />
+            ))}
+          </div>
 
-          <div className="space-y-5 mt-2">
-            {/* Event selector */}
-            <div className="space-y-2">
-              <Label>Evento</Label>
-              <Select value={selectedEventId} onValueChange={setSelectedEventId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona un evento" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableEvents.map((event: any) => (
-                    <SelectItem key={event.id} value={event.id}>
-                      {event.title || "Sin título"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Step label */}
+          <div className="flex items-center justify-between px-5 pt-2 pb-1 shrink-0">
+            <button
+              className="p-1.5 rounded-full hover:bg-secondary transition-colors"
+              onClick={() => {
+                if (step === 0) { setShowWizard(false); resetWizard(); }
+                else setStep(s => s - 1);
+              }}
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+              {step + 1} / {STEPS.length} · {STEPS[step]}
+            </p>
+            <div className="w-8" />
+          </div>
 
-            {/* Budget / Reach toggle */}
-            <Tabs value={budgetMode} onValueChange={(v) => setBudgetMode(v as "budget" | "reach")}>
-              <TabsList className="w-full">
-                <TabsTrigger value="reach" className="flex-1 gap-1.5">
-                  <Users className="w-3.5 h-3.5" /> Alcance estimado
-                </TabsTrigger>
-                <TabsTrigger value="budget" className="flex-1 gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5" /> Presupuesto
-                </TabsTrigger>
-              </TabsList>
+          {/* Step content */}
+          <div className="flex-1 overflow-y-auto px-5 pb-6">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                {/* ── Step 0: Choose event ── */}
+                {step === 0 && (
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <h2 className="text-2xl font-bold text-foreground">¿Qué evento quieres impulsar?</h2>
+                      <p className="text-sm text-muted-foreground mt-1">Elige el evento que aparecerá en el feed de más personas.</p>
+                    </div>
 
-              {/* Reach mode */}
-              <TabsContent value="reach" className="space-y-4 mt-4">
-                <div className="space-y-3">
-                  <Label className="text-xs text-muted-foreground">¿A cuántas personas quieres llegar?</Label>
-                  <Slider
-                    value={[targetReach]}
-                    onValueChange={([v]) => setTargetReach(v)}
-                    min={1000}
-                    max={500000}
-                    step={1000}
-                  />
-                  <div className="flex gap-1.5 flex-wrap">
-                    {REACH_PRESETS.map((p) => (
+                    {availableEvents.length === 0 ? (
+                      <div className="rounded-2xl bg-secondary/50 p-6 text-center">
+                        <p className="text-sm text-muted-foreground">No tienes eventos disponibles para impulsar.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5">
+                        {availableEvents.map((event: any) => {
+                          const isSelected = selectedEventId === event.id;
+                          const dateStr = event.start_datetime
+                            ? format(new Date(event.start_datetime), "d MMM · HH:mm", { locale: es })
+                            : null;
+                          return (
+                            <button
+                              key={event.id}
+                              type="button"
+                              onClick={() => setSelectedEventId(event.id)}
+                              className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 text-left transition-all ${
+                                isSelected
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border bg-card hover:border-primary/40"
+                              }`}
+                            >
+                              {event.image_url ? (
+                                <img src={event.image_url} alt="" className="w-14 h-14 rounded-xl object-cover shrink-0" />
+                              ) : (
+                                <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                                  <Megaphone className="w-5 h-5 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-foreground text-sm truncate">{event.title || "Sin título"}</p>
+                                {dateStr && <p className="text-xs text-muted-foreground mt-0.5">{dateStr}</p>}
+                              </div>
+                              {isSelected && (
+                                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0">
+                                  <Check className="w-3.5 h-3.5 text-primary-foreground" />
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Step 1: Audience ── */}
+                {step === 1 && (
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <h2 className="text-2xl font-bold text-foreground">¿A quién quieres llegar?</h2>
+                      <p className="text-sm text-muted-foreground mt-1">Elige cómo segmentamos tu audiencia.</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      {AUDIENCE_PRESETS.map((preset) => {
+                        const Icon = preset.icon;
+                        const isSelected = audiencePreset === preset.id;
+                        return (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() => setAudiencePreset(preset.id)}
+                            className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all ${
+                              isSelected
+                                ? `border-primary bg-primary/5`
+                                : "border-border bg-card hover:border-primary/40"
+                            }`}
+                          >
+                            <div className={`p-2.5 rounded-xl border ${isSelected ? "bg-primary/15 border-primary/30" : preset.bgColor}`}>
+                              <Icon className={`w-5 h-5 ${isSelected ? "text-primary" : preset.color}`} />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-foreground text-sm">{preset.title}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{preset.subtitle}</p>
+                            </div>
+                            {isSelected && (
+                              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0">
+                                <Check className="w-3.5 h-3.5 text-primary-foreground" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Step 2: Budget ── */}
+                {step === 2 && (
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <h2 className="text-2xl font-bold text-foreground">¿Cuánto quieres invertir?</h2>
+                      <p className="text-sm text-muted-foreground mt-1">Cada $5 = ~1,000 personas alcanzadas.</p>
+                    </div>
+
+                    {/* Budget preset cards */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {BUDGET_PRESETS.map((preset) => {
+                        const isSelected = !useCustomBudget && selectedBudget === preset.amount;
+                        const reach = costToReach(preset.amount);
+                        return (
+                          <button
+                            key={preset.amount}
+                            type="button"
+                            onClick={() => { setSelectedBudget(preset.amount); setUseCustomBudget(false); }}
+                            className={`relative p-4 rounded-2xl border-2 text-left transition-all ${
+                              isSelected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40"
+                            }`}
+                          >
+                            {preset.popular && (
+                              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
+                                Más popular
+                              </span>
+                            )}
+                            <p className="text-2xl font-bold text-foreground">${preset.amount}</p>
+                            <p className="text-xs text-muted-foreground mt-1">~{formatReach(reach)} personas</p>
+                            {isSelected && (
+                              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                                <Check className="w-3 h-3 text-primary-foreground" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Custom budget */}
+                    <div>
                       <button
-                        key={p}
                         type="button"
-                        onClick={() => setTargetReach(p)}
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                          targetReach === p ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+                        onClick={() => setUseCustomBudget(true)}
+                        className={`w-full p-3.5 rounded-2xl border-2 text-sm font-medium transition-all ${
+                          useCustomBudget ? "border-primary bg-primary/5 text-foreground" : "border-dashed border-border text-muted-foreground hover:border-primary/40"
                         }`}
                       >
-                        {formatReach(p)}
+                        {useCustomBudget ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-foreground font-semibold text-lg">$</span>
+                            <Input
+                              type="number"
+                              autoFocus
+                              placeholder="Otro monto"
+                              value={customBudget}
+                              onChange={(e) => setCustomBudget(e.target.value)}
+                              className="border-0 p-0 h-auto text-lg font-semibold bg-transparent focus-visible:ring-0 w-full"
+                              onClick={(e) => e.stopPropagation()}
+                              min={5}
+                            />
+                          </div>
+                        ) : "+ Monto personalizado"}
                       </button>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Summary card */}
-                <motion.div
-                  layout
-                  className="rounded-xl bg-primary/10 border border-primary/20 p-4 space-y-2"
-                >
-                  <div className="flex items-center gap-2 text-primary text-sm font-semibold">
-                    <Sparkles className="w-4 h-4" />
-                    Resumen estimado
+                    {/* Live estimator */}
+                    {activeBudget >= 5 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded-2xl bg-primary/8 border border-primary/20 p-4"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles className="w-4 h-4 text-primary" />
+                          <span className="text-xs font-semibold text-primary uppercase tracking-wider">Estimación</span>
+                        </div>
+                        <p className="text-2xl font-bold text-foreground">
+                          ~{formatReach(estimatedReach)} <span className="text-base font-normal text-muted-foreground">personas</span>
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">por ${activeBudget.toFixed(0)} de inversión</p>
+                      </motion.div>
+                    )}
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Alcance</p>
-                      <p className="font-semibold text-foreground">{targetReach.toLocaleString()} personas</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Costo total</p>
-                      <p className="font-semibold text-foreground">${reachToCost(targetReach).toFixed(2)}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-xs text-muted-foreground">Tarifa</p>
-                      <p className="font-medium text-foreground">$5 CPM (por cada 1,000 impresiones)</p>
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground pt-1">
-                    El alcance real puede variar según la segmentación y disponibilidad del inventario.
-                  </p>
-                </motion.div>
-              </TabsContent>
-
-              {/* Budget mode */}
-              <TabsContent value="budget" className="space-y-3 mt-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Presupuesto diario ($)</Label>
-                    <Input
-                      type="number"
-                      placeholder="10.00"
-                      value={dailyBudget}
-                      onChange={(e) => setDailyBudget(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Presupuesto total ($)</Label>
-                    <Input
-                      type="number"
-                      placeholder="100.00"
-                      value={totalBudget}
-                      onChange={(e) => setTotalBudget(e.target.value)}
-                    />
-                  </div>
-                </div>
-                {totalBudget && parseFloat(totalBudget) > 0 && (
-                  <p className="text-xs text-muted-foreground bg-secondary/50 rounded-lg px-3 py-2">
-                    💡 Con ${parseFloat(totalBudget).toFixed(2)} llegarás a ~{costToReach(parseFloat(totalBudget)).toLocaleString()} personas a $5 CPM
-                  </p>
                 )}
-              </TabsContent>
-            </Tabs>
 
-            {/* Targeting section */}
-            <div className="border-t border-border pt-4">
-              <p className="text-sm font-semibold text-foreground mb-3">Segmentación</p>
+                {/* ── Step 3: Confirm ── */}
+                {step === 3 && (
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <h2 className="text-2xl font-bold text-foreground">Confirmar y pagar</h2>
+                      <p className="text-sm text-muted-foreground mt-1">Revisa tu campaña antes de activarla.</p>
+                    </div>
 
-              {/* Category targeting */}
-              <div className="space-y-2 mb-4">
-                <Label className="text-xs text-muted-foreground">Categorías (vacío = todas)</Label>
-                <div className="flex flex-wrap gap-2">
-                  {TARGET_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat.value}
-                      type="button"
-                      onClick={() => toggleCategory(cat.value)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                        targetCategories.includes(cat.value)
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-secondary-foreground"
-                      }`}
+                    {/* Summary card */}
+                    <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                      {selectedEvent?.image_url && (
+                        <img src={selectedEvent.image_url} alt="" className="w-full h-32 object-cover" />
+                      )}
+                      <div className="p-4 space-y-3">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Evento</p>
+                          <p className="font-semibold text-foreground">{selectedEvent?.title || "Sin título"}</p>
+                        </div>
+                        <div className="h-px bg-border" />
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Audiencia</p>
+                            <p className="font-medium text-foreground">
+                              {AUDIENCE_PRESETS.find(a => a.id === audiencePreset)?.title}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Alcance estimado</p>
+                            <p className="font-medium text-foreground">~{formatReach(estimatedReach)} personas</p>
+                          </div>
+                        </div>
+                        <div className="h-px bg-border" />
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-muted-foreground">Total a pagar</p>
+                          <p className="text-2xl font-bold text-foreground">${activeBudget.toFixed(0)}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pay CTA */}
+                    <Button
+                      variant="hero"
+                      size="xl"
+                      className="w-full text-base"
+                      onClick={handleCreate}
+                      disabled={createMutation.isPending}
                     >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                      {createMutation.isPending ? (
+                        "Procesando..."
+                      ) : (
+                        <>
+                          Pagar ${activeBudget.toFixed(0)} y Activar
+                          <ChevronRight className="w-5 h-5 ml-1" />
+                        </>
+                      )}
+                    </Button>
 
-              {/* Radius */}
-              <div className="space-y-2 mb-4">
-                <Label className="text-xs text-muted-foreground">
-                  Radio máximo: {targetRadius >= 50 ? "Sin límite" : `${targetRadius} km`}
-                </Label>
-                <Slider
-                  value={[targetRadius]}
-                  onValueChange={([v]) => setTargetRadius(v)}
-                  min={1}
-                  max={50}
-                  step={1}
-                />
-              </div>
-
-              {/* Gender */}
-              <div className="space-y-2 mb-4">
-                <Label className="text-xs text-muted-foreground">Género</Label>
-                <Select value={targetGender} onValueChange={setTargetGender}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="male">Masculino</SelectItem>
-                    <SelectItem value="female">Femenino</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Age range */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Edad mínima</Label>
-                  <Input
-                    type="number"
-                    placeholder="18"
-                    value={targetAgeMin}
-                    onChange={(e) => setTargetAgeMin(e.target.value)}
-                    min={13}
-                    max={99}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Edad máxima</Label>
-                  <Input
-                    type="number"
-                    placeholder="65"
-                    value={targetAgeMax}
-                    onChange={(e) => setTargetAgeMax(e.target.value)}
-                    min={13}
-                    max={99}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <Button
-              className="w-full"
-              onClick={handleCreate}
-              disabled={createMutation.isPending || !selectedEventId}
-            >
-              {createMutation.isPending ? "Creando..." : "Crear como borrador"}
-            </Button>
+                    <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                      <Lock className="w-3 h-3" />
+                      El pago es seguro vía Stripe. Sin cargos ocultos.
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          {/* Sticky footer CTA (steps 0–2) */}
+          {step < 3 && (
+            <div className="shrink-0 px-5 pb-6 pt-2 border-t border-border bg-background">
+              {step === 2 && activeBudget >= 5 && (
+                <p className="text-center text-xs text-muted-foreground mb-2">
+                  Llegarás a ~{formatReach(estimatedReach)} personas por ${activeBudget.toFixed(0)}
+                </p>
+              )}
+              <Button
+                variant="hero"
+                size="xl"
+                className="w-full text-base"
+                onClick={() => setStep(s => s + 1)}
+                disabled={!canAdvance()}
+              >
+                Siguiente
+                <ArrowRight className="w-5 h-5 ml-1" />
+              </Button>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </section>
   );
 };
