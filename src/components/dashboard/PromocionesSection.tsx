@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Megaphone, Plus, Play, Pause, Eye, MousePointerClick, DollarSign,
   Users, Sparkles, ArrowLeft, ArrowRight, Check, MapPin, Tag, Zap,
-  ChevronRight, TrendingUp, Lock
+  ChevronRight, TrendingUp, Lock, Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +80,7 @@ export const PromocionesSection = () => {
 
   // Wizard state
   const [showWizard, setShowWizard] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [selectedEventId, setSelectedEventId] = useState("");
   const [audiencePreset, setAudiencePreset] = useState("auto");
@@ -91,7 +92,7 @@ export const PromocionesSection = () => {
   const estimatedReach = costToReach(activeBudget);
 
   const availableEvents = myEvents.filter(
-    (e) => !sponsoredPosts.some((sp: any) => sp.event_id === e.id)
+    (e) => !sponsoredPosts.some((sp: any) => sp.event_id === e.id && sp.id !== editingPostId)
   );
   const selectedEvent = myEvents.find((e) => e.id === selectedEventId);
 
@@ -102,6 +103,27 @@ export const PromocionesSection = () => {
     setSelectedBudget(25);
     setCustomBudget("");
     setUseCustomBudget(false);
+    setEditingPostId(null);
+  };
+
+  const openEditWizard = (sp: any) => {
+    setEditingPostId(sp.id);
+    setSelectedEventId(sp.event_id || "");
+    const budget = Number(sp.total_budget) || 25;
+    const isPreset = BUDGET_PRESETS.some(p => p.amount === budget);
+    if (isPreset) {
+      setSelectedBudget(budget);
+      setUseCustomBudget(false);
+    } else {
+      setCustomBudget(String(budget));
+      setUseCustomBudget(true);
+    }
+    // Infer audience from targeting
+    if (sp.target_radius_km) setAudiencePreset("nearby");
+    else if (sp.target_categories?.length) setAudiencePreset("interest");
+    else setAudiencePreset("auto");
+    setStep(0);
+    setShowWizard(true);
   };
 
   // Handle return from Stripe checkout
@@ -149,17 +171,34 @@ export const PromocionesSection = () => {
     if (!selectedEventId) return;
     const targetRadiusKm = audiencePreset === "nearby" ? 25 : undefined;
     try {
-      const sp = await createMutation.mutateAsync({
-        event_id: selectedEventId,
-        total_budget: activeBudget,
-        target_radius_km: targetRadiusKm,
-      });
-      setShowWizard(false);
-      resetWizard();
-      // Immediately redirect to checkout
-      handleActivate(sp);
+      if (editingPostId) {
+        // Update existing draft
+        const { error } = await supabase
+          .from("sponsored_posts")
+          .update({
+            event_id: selectedEventId,
+            total_budget: activeBudget,
+            target_radius_km: targetRadiusKm ?? null,
+          })
+          .eq("id", editingPostId);
+        if (error) throw error;
+        toast.success("Promoción actualizada");
+        setShowWizard(false);
+        resetWizard();
+        refetch();
+      } else {
+        const sp = await createMutation.mutateAsync({
+          event_id: selectedEventId,
+          total_budget: activeBudget,
+          target_radius_km: targetRadiusKm,
+        });
+        setShowWizard(false);
+        resetWizard();
+        // Immediately redirect to checkout
+        handleActivate(sp);
+      }
     } catch {
-      toast.error("Error al crear la promoción");
+      toast.error("Error al guardar la promoción");
     }
   };
 
@@ -293,24 +332,46 @@ export const PromocionesSection = () => {
                           </div>
 
                           {sp.status === "draft" ? (
-                            <Button
-                              size="sm"
-                              variant="hero"
-                              className="h-8 text-xs shrink-0"
-                              onClick={() => handleActivate(sp)}
-                              disabled={activatingId === sp.id}
-                            >
-                              {activatingId === sp.id ? "..." : "Activar →"}
-                            </Button>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => openEditWizard(sp)}
+                                title="Editar"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="hero"
+                                className="h-8 text-xs"
+                                onClick={() => handleActivate(sp)}
+                                disabled={activatingId === sp.id}
+                              >
+                                {activatingId === sp.id ? "..." : "Activar →"}
+                              </Button>
+                            </div>
                           ) : (sp.status === "active" || sp.status === "paused") ? (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 shrink-0"
-                              onClick={() => handleToggleStatus(sp.id, sp.status)}
-                            >
-                              {sp.status === "active" ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                            </Button>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => openEditWizard(sp)}
+                                title="Editar"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleToggleStatus(sp.id, sp.status)}
+                              >
+                                {sp.status === "active" ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                              </Button>
+                            </div>
                           ) : null}
                         </div>
 
@@ -347,6 +408,7 @@ export const PromocionesSection = () => {
 
       {/* ── 4-step wizard sheet ── */}
       <Sheet open={showWizard} onOpenChange={(open) => { if (!open) { setShowWizard(false); resetWizard(); } }}>
+
         <SheetContent side="bottom" className="h-[92dvh] rounded-t-3xl p-0 flex flex-col overflow-hidden">
           {/* Progress bar */}
           <div className="flex gap-1 px-5 pt-5 pb-1 shrink-0">
@@ -571,8 +633,12 @@ export const PromocionesSection = () => {
                 {step === 3 && (
                   <div className="space-y-4 pt-2">
                     <div>
-                      <h2 className="text-2xl font-bold text-foreground">Confirmar y pagar</h2>
-                      <p className="text-sm text-muted-foreground mt-1">Revisa tu campaña antes de activarla.</p>
+                      <h2 className="text-2xl font-bold text-foreground">
+                        {editingPostId ? "Editar promoción" : "Confirmar y pagar"}
+                      </h2>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {editingPostId ? "Actualiza los detalles de tu campaña." : "Revisa tu campaña antes de activarla."}
+                      </p>
                     </div>
 
                     {/* Summary card */}
@@ -616,6 +682,8 @@ export const PromocionesSection = () => {
                     >
                       {createMutation.isPending ? (
                         "Procesando..."
+                      ) : editingPostId ? (
+                        <>Guardar cambios <Check className="w-5 h-5 ml-1" /></>
                       ) : (
                         <>
                           Pagar ${activeBudget.toFixed(0)} y Activar
