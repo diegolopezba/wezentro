@@ -1,56 +1,62 @@
 
-## Goal
-Replace (or augment) the raw budget inputs in the "Nueva Promoción" dialog with a reach-based estimator — the advertiser sets a **target audience size** (e.g. "I want to reach 10,000 people") and Zentro calculates the cost automatically at $5 CPM. Exactly how Instagram/Meta Ads works.
+## The Problem
 
----
+The current flow is a dense, all-on-one-screen form inside a small dialog. It throws budget mode toggles, sliders, category pills, radius sliders, gender selects, and age inputs all at once. Instagram and TikTok solve this with **guided multi-step flows** — one decision per screen, progressive disclosure, heavy visual feedback, and a sticky cost summary that builds confidence.
 
-## How it works mathematically
+Key insights from Meta/TikTok "Boost" patterns:
+1. **Step-by-step wizard** — not a form dump. Each step is one question.
+2. **Audience first, budget second** — users think "who do I reach" before "how much do I spend"
+3. **Live preview panel** — a persistent cost/reach estimator on the side (or bottom) that updates as they configure
+4. **Bold, simple numbers** — large typography for reach and cost, not small labels
+5. **One primary CTA per step** — "Siguiente →" keeps momentum, final step is "Pagar y Activar"
+6. **Empty state is a hero CTA** — not a tiny button. It should sell the value proposition
 
-```
-CPM = $5 (cost per 1,000 impressions)
-Target Reach = 10,000 users
-Estimated Cost = (10,000 / 1,000) × $5 = $50
-```
+## The Redesign Plan
 
-The user picks a reach goal → we display the estimated cost → they confirm → that becomes their `total_budget`.
+### 1. Replace the Dialog with a full-height Sheet (bottom sheet on mobile)
+A Sheet gives us more vertical space, feels more native on mobile, and allows a step-by-step flow without feeling cramped.
 
----
-
-## What changes
-
-### 1. `PromocionesSection.tsx` — Create dialog UI
-Replace the two raw budget inputs with a mode toggle:
+### 2. 4-Step Wizard Flow
 
 ```
-[ Presupuesto ]  [ Alcance estimado ]   ← toggle tabs
+Step 1: Elige tu evento
+  → Large event cards with cover image, date, already-promoted events greyed out
+  → "¿Qué evento quieres impulsar hoy?"
+
+Step 2: ¿A quién quieres llegar?
+  → Audience presets: "Público cercano" / "Interesados en [category]" / "Personalizado"
+  → Simple toggles, not raw inputs
+  → "Automático (recomendado)" is pre-selected = we handle targeting
+
+Step 3: ¿Cuánto quieres invertir?
+  → 4 budget preset cards: $10 / $25 / $50 / $100 (most popular badge on $25)
+  → Each card shows estimated reach in big bold text
+  → Custom option below
+  → Live updating sticky footer: "Llegarás a ~5,000 personas por $25"
+
+Step 4: Confirmar y Pagar
+  → Summary card: event title, audience, reach estimate, total cost
+  → Big green "Pagar $25 y Activar →" button
+  → Disclaimer line
 ```
 
-**Alcance mode:**
-- Slider or input: "¿A cuántas personas quieres llegar?" (e.g. 1,000 → 500,000)
-- Live calculation display:
-  ```
-  Alcance estimado: 10,000 personas
-  Costo total estimado: $50.00 (a $5 CPM)
-  Impresiones necesarias: ~10,000
-  ```
-- On submit, `total_budget` = `(reach / 1000) * 5`
+### 3. Redesigned Empty State (hero style)
+Replace the weak empty state with a value-prop card:
+- Gradient background
+- Stat: "Eventos con boost reciben 3x más asistentes"
+- Single large CTA button "Impulsar mi evento →"
 
-**Presupuesto mode (existing):**
-- Shows budget inputs as before
-- Adds a reverse estimate: "Con $50, llegarás a ~10,000 personas"
-
-### 2. No backend changes needed
-The `sponsored_posts` table already has `total_budget` and `impressions` — we just populate `total_budget` from the reach calculation. No schema changes required.
-
-### 3. Visual design
-- Mode toggle at the top of the budget section
-- Reach slider: 1K → 500K with presets (1K / 5K / 10K / 50K / 100K)
-- Highlighted summary card showing estimated reach and cost before confirming
-- Small disclaimer: "El alcance real puede variar según la segmentación y disponibilidad del inventario"
-
----
+### 4. Campaign cards (active/draft) — minor improvement
+- Add event cover thumbnail
+- Status badge more prominent with color dot
+- Draft cards: show "Listo para activar" CTA more visually prominent
 
 ## Files to modify
-- `src/components/dashboard/PromocionesSection.tsx` — add toggle + reach estimator UI + reverse budget estimate
+- `src/components/dashboard/PromocionesSection.tsx` — complete redesign (single file, no backend changes)
 
-That's the only file. No DB migrations, no new hooks needed.
+## Key UX principles applied
+- **Reduce cognitive load**: one decision per step
+- **Anchor with presets**: $25 as "más popular" removes paralysis
+- **Show value before cost**: reach number is bigger than dollar amount
+- **Build momentum**: progress indicator + "Siguiente →" keeps flow moving
+- **Trust signals**: "El pago es seguro vía Stripe" on the payment step
