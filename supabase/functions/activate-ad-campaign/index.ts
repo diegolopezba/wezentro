@@ -63,7 +63,7 @@ serve(async (req) => {
       })
       .eq("id", sponsored_post_id)
       .eq("business_user_id", userData.user.id)
-      .eq("status", "draft");
+      .in("status", ["draft", "paused"]);
 
     if (updateError) throw new Error(`Failed to activate campaign: ${updateError.message}`);
 
