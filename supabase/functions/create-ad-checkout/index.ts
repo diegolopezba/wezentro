@@ -16,55 +16,77 @@ serve(async (req) => {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
-
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header");
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError || !userData.user?.email) throw new Error("Not authenticated");
+
+    // Use service role to fetch user info reliably
+    const serviceClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
+    // Verify user using anon client + token
+    const anonClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+
+    const { data: userData, error: userError } = await anonClient.auth.getUser(token);
+    if (userError || !userData.user) {
+      console.error("Auth error:", userError);
+      throw new Error("Not authenticated");
+    }
+
+    const user = userData.user;
+    if (!user.email) throw new Error("User email not available");
 
     const { sponsored_post_id, amount_usd } = await req.json();
     if (!sponsored_post_id || !amount_usd) throw new Error("Missing sponsored_post_id or amount_usd");
 
-    // Verify the sponsored post belongs to this user
-    const { data: post, error: postError } = await supabaseClient
+    console.log("Creating checkout for post:", sponsored_post_id, "amount:", amount_usd, "user:", user.id);
+
+    // Verify the sponsored post belongs to this user (use service role to bypass RLS)
+    const { data: post, error: postError } = await serviceClient
       .from("sponsored_posts")
       .select("id, status, business_user_id")
       .eq("id", sponsored_post_id)
       .single();
 
-    if (postError || !post) throw new Error("Sponsored post not found");
-    if (post.business_user_id !== userData.user.id) throw new Error("Unauthorized");
-    if (post.status !== "draft") throw new Error("Campaign is not in draft status");
+    if (postError || !post) {
+      console.error("Post error:", postError);
+      throw new Error("Sponsored post not found");
+    }
+    if (post.business_user_id !== user.id) throw new Error("Unauthorized");
+    if (post.status !== "draft" && post.status !== "paused") {
+      throw new Error(`Campaign status is '${post.status}', expected draft or paused`);
+    }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
     // Find or create Stripe customer
-    const customers = await stripe.customers.list({ email: userData.user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
     }
 
-    const origin = req.headers.get("origin") || "http://localhost:3000";
+    const origin = req.headers.get("origin") || "https://wezentro.lovable.app";
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      customer_email: customerId ? undefined : userData.user.email,
+      customer_email: customerId ? undefined : user.email,
       line_items: [
         {
           price_data: {
             currency: "usd",
             product_data: {
               name: "Zentro Ad Campaign Budget",
-              description: `Prepaid ad budget for campaign (CPM $5)`,
+              description: `Prepaid ad budget — approx. ${Math.round((amount_usd / 5) * 1000).toLocaleString()} impressions at $5 CPM`,
             },
-            unit_amount: Math.round(amount_usd * 100), // cents
+            unit_amount: Math.round(amount_usd * 100),
           },
           quantity: 1,
         },
@@ -74,9 +96,11 @@ serve(async (req) => {
       cancel_url: `${origin}/dashboard`,
       metadata: {
         sponsored_post_id,
-        user_id: userData.user.id,
+        user_id: user.id,
       },
     });
+
+    console.log("Checkout session created:", session.id);
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -84,6 +108,7 @@ serve(async (req) => {
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
+    console.error("Error:", msg);
     return new Response(JSON.stringify({ error: msg }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
