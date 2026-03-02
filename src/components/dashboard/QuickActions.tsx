@@ -13,19 +13,15 @@ export const QuickActions = ({ onBoostClick }: QuickActionsProps) => {
 
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-      <div className="relative flex-shrink-0">
-        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-accent-red animate-ping z-10" />
-        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-accent-red z-10" />
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5 rounded-full border-primary/40 text-primary hover:bg-primary/10 hover:border-primary"
-          onClick={onBoostClick}
-        >
-          <Zap className="w-4 h-4" />
-          Boost
-        </Button>
-      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="flex-shrink-0 gap-1.5 rounded-full border-primary/60 text-primary hover:bg-primary/10 hover:border-primary animate-[glow_2s_ease-in-out_infinite]"
+        onClick={onBoostClick}
+      >
+        <Zap className="w-4 h-4" />
+        Boost
+      </Button>
 
       <Button
         variant="outline"
