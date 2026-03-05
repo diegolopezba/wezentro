@@ -337,6 +337,8 @@ const UserProfile = () => {
           onClose={() => setViewerIndex(null)}
         />
       )}
-    </AppLayout>;
+    </AppLayout>
+    <EventDetailOverlay />
+  </SelectedEventProvider>;
 };
 export default UserProfile;
