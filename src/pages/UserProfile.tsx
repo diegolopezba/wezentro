@@ -1,10 +1,7 @@
-import { useEffect } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { trackProfileVisit } from "@/lib/analyticsTracking";
 import { useParams, useNavigate } from "react-router-dom";
-import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
-import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
 import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -41,7 +38,6 @@ const UserProfile = () => {
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [reservationSheetOpen, setReservationSheetOpen] = useState(false);
-  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === id;
@@ -153,8 +149,7 @@ const UserProfile = () => {
   }];
   const isFollowPending = followMutation.isPending || unfollowMutation.isPending;
   const renderTimelineCard = (item: any, index: number) => <TimelineCard key={item.id} id={item.id} title={item.title} imageUrl={item.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} startDatetime={item.start_datetime} location={item.location_name} category={item.category} attendees={item.guestlist_entries?.[0]?.count || 0} isPost={item.is_post || false} createdAt={item.created_at} ownerAvatar={item.creator?.avatar_url} creatorId={item.creator_id} index={index} />;
-  return <SelectedEventProvider>
-    <AppLayout>
+  return <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background">
         <div className="flex items-center justify-between px-4 py-0">
@@ -287,17 +282,12 @@ const UserProfile = () => {
       </div>
 
       {/* Timeline Content */}
-      {/* Timeline Content - single column feed */}
-      <div className="py-4 mt-4 px-4 flex flex-col gap-4">
-        {timelineLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : !timeline || timeline.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">Sin publicaciones aún</div>
-        ) : (
-          timeline.map((item, index) => renderTimelineCard(item, index))
-        )}
+      <div className="py-4 mt-4">
+        <div className="masonry-grid">
+          {timelineLoading ? <div className="col-span-2 flex justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div> : !timeline || timeline.length === 0 ? <div className="col-span-2 text-center py-8 text-muted-foreground text-sm">Sin publicaciones aún</div> : timeline.map((item, index) => renderTimelineCard(item, index))}
+        </div>
       </div>
 
       {/* Followers/Following Sheet */}
@@ -325,8 +315,6 @@ const UserProfile = () => {
           businessHours={userProfile?.business_hours}
         />
       )}
-    </AppLayout>
-    <EventDetailOverlay />
-  </SelectedEventProvider>;
+    </AppLayout>;
 };
 export default UserProfile;
