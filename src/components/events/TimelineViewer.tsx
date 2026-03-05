@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,11 +13,13 @@ interface TimelineViewerProps {
 
 export const TimelineViewer = ({ items, initialIndex, onClose }: TimelineViewerProps) => {
   const { openEvent, closeEvent, selectedEventId } = useSelectedEvent();
+  const hasOpenedRef = useRef(false);
 
   // Open the initial item
   useEffect(() => {
     if (items[initialIndex]) {
       openEvent(items[initialIndex].id);
+      hasOpenedRef.current = true;
     }
     return () => {
       closeEvent();
@@ -25,8 +27,9 @@ export const TimelineViewer = ({ items, initialIndex, onClose }: TimelineViewerP
   }, [initialIndex]);
 
   // When the overlay is dismissed (back button, X), close the viewer too
+  // But only after it was opened at least once to avoid closing on mount
   useEffect(() => {
-    if (selectedEventId === null) {
+    if (hasOpenedRef.current && selectedEventId === null) {
       onClose();
     }
   }, [selectedEventId]);
