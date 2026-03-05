@@ -287,12 +287,17 @@ const UserProfile = () => {
       </div>
 
       {/* Timeline Content */}
-      <div className="py-4 mt-4">
-        <div className="masonry-grid">
-          {timelineLoading ? <div className="col-span-2 flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div> : !timeline || timeline.length === 0 ? <div className="col-span-2 text-center py-8 text-muted-foreground text-sm">Sin publicaciones aún</div> : timeline.map((item, index) => renderTimelineCard(item, index))}
-        </div>
+      {/* Timeline Content - single column feed */}
+      <div className="py-4 mt-4 px-4 flex flex-col gap-4">
+        {timelineLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : !timeline || timeline.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">Sin publicaciones aún</div>
+        ) : (
+          timeline.map((item, index) => renderTimelineCard(item, index))
+        )}
       </div>
 
       {/* Followers/Following Sheet */}
@@ -318,14 +323,6 @@ const UserProfile = () => {
           businessId={id}
           businessName={userProfile?.full_name || userProfile?.username || ""}
           businessHours={userProfile?.business_hours}
-        />
-      )}
-      {/* Timeline Viewer – open selected post with prev/next nav */}
-      {viewerIndex !== null && timeline && (
-        <TimelineViewer
-          items={timeline}
-          initialIndex={viewerIndex}
-          onClose={() => setViewerIndex(null)}
         />
       )}
     </AppLayout>
