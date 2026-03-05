@@ -58,6 +58,10 @@ export const TimelineCard = ({
   const handleCardClick = () => {
     if (onPress) {
       onPress();
+      // Also open the event overlay via context if available
+      if (selectedEventContext) {
+        selectedEventContext.openEvent(id);
+      }
       return;
     }
     if (isPost) {
