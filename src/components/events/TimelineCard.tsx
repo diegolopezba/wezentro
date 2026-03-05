@@ -22,6 +22,7 @@ export interface TimelineCardProps {
   index?: number;
   ownerAvatar?: string;
   creatorId?: string;
+  onPress?: () => void;
 }
 
 export const TimelineCard = ({
