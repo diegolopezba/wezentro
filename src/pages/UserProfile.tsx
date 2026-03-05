@@ -162,7 +162,8 @@ const UserProfile = () => {
   }];
   const isFollowPending = followMutation.isPending || unfollowMutation.isPending;
   const renderTimelineCard = (item: any, index: number) => <TimelineCard key={item.id} id={item.id} title={item.title} imageUrl={item.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} startDatetime={item.start_datetime} location={item.location_name} category={item.category} attendees={item.guestlist_entries?.[0]?.count || 0} isPost={item.is_post || false} createdAt={item.created_at} ownerAvatar={item.creator?.avatar_url} creatorId={item.creator_id} index={index} onPress={() => setViewerIndex(index)} />;
-  return <AppLayout>
+  return <SelectedEventProvider>
+    <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background">
         <div className="flex items-center justify-between px-4 py-0">
