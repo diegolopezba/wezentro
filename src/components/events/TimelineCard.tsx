@@ -38,6 +38,7 @@ export const TimelineCard = ({
   index = 0,
   ownerAvatar,
   creatorId,
+  onPress,
 }: TimelineCardProps) => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
