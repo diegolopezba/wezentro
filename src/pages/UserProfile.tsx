@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { trackProfileVisit } from "@/lib/analyticsTracking";
 import { useParams, useNavigate } from "react-router-dom";
+import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
+import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
 import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
 import { TimelineViewer } from "@/components/events/TimelineViewer";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
@@ -160,7 +162,8 @@ const UserProfile = () => {
   }];
   const isFollowPending = followMutation.isPending || unfollowMutation.isPending;
   const renderTimelineCard = (item: any, index: number) => <TimelineCard key={item.id} id={item.id} title={item.title} imageUrl={item.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} startDatetime={item.start_datetime} location={item.location_name} category={item.category} attendees={item.guestlist_entries?.[0]?.count || 0} isPost={item.is_post || false} createdAt={item.created_at} ownerAvatar={item.creator?.avatar_url} creatorId={item.creator_id} index={index} onPress={() => setViewerIndex(index)} />;
-  return <AppLayout>
+  return <SelectedEventProvider>
+    <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background">
         <div className="flex items-center justify-between px-4 py-0">
@@ -334,6 +337,8 @@ const UserProfile = () => {
           onClose={() => setViewerIndex(null)}
         />
       )}
-    </AppLayout>;
+    </AppLayout>
+    <EventDetailOverlay />
+  </SelectedEventProvider>;
 };
 export default UserProfile;
