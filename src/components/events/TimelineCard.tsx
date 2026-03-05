@@ -56,9 +56,11 @@ export const TimelineCard = ({
   }
 
   const handleCardClick = () => {
+    if (onPress) {
+      onPress();
+      return;
+    }
     if (isPost) {
-      // Posts don't have a detail page, just show the image larger
-      // For now, navigate to event detail - can be changed later
       navigate(`/event/${id}`);
     } else if (isHomePage && selectedEventContext) {
       selectedEventContext.openEvent(id);
