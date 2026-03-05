@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { trackProfileVisit } from "@/lib/analyticsTracking";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
+import { TimelineViewer } from "@/components/events/TimelineViewer";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,16 @@ const UserProfile = () => {
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [reservationSheetOpen, setReservationSheetOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+
+  // Listen for prev/next navigation from TimelineViewer
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setViewerIndex((e as CustomEvent).detail as number);
+    };
+    document.addEventListener("timeline-viewer-navigate", handler);
+    return () => document.removeEventListener("timeline-viewer-navigate", handler);
+  }, []);
 
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === id;
@@ -148,7 +159,7 @@ const UserProfile = () => {
     onClick: () => setFollowSheetType("following")
   }];
   const isFollowPending = followMutation.isPending || unfollowMutation.isPending;
-  const renderTimelineCard = (item: any, index: number) => <TimelineCard key={item.id} id={item.id} title={item.title} imageUrl={item.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} startDatetime={item.start_datetime} location={item.location_name} category={item.category} attendees={item.guestlist_entries?.[0]?.count || 0} isPost={item.is_post || false} createdAt={item.created_at} ownerAvatar={item.creator?.avatar_url} creatorId={item.creator_id} index={index} />;
+  const renderTimelineCard = (item: any, index: number) => <TimelineCard key={item.id} id={item.id} title={item.title} imageUrl={item.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} startDatetime={item.start_datetime} location={item.location_name} category={item.category} attendees={item.guestlist_entries?.[0]?.count || 0} isPost={item.is_post || false} createdAt={item.created_at} ownerAvatar={item.creator?.avatar_url} creatorId={item.creator_id} index={index} onPress={() => setViewerIndex(index)} />;
   return <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background">
@@ -313,6 +324,14 @@ const UserProfile = () => {
           businessId={id}
           businessName={userProfile?.full_name || userProfile?.username || ""}
           businessHours={userProfile?.business_hours}
+        />
+      )}
+      {/* Timeline Viewer – open selected post with prev/next nav */}
+      {viewerIndex !== null && timeline && (
+        <TimelineViewer
+          items={timeline}
+          initialIndex={viewerIndex}
+          onClose={() => setViewerIndex(null)}
         />
       )}
     </AppLayout>;
