@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { trackProfileVisit } from "@/lib/analyticsTracking";
 import { useParams, useNavigate } from "react-router-dom";
 import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
 import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
 import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Crown, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
-import { TimelineViewer } from "@/components/events/TimelineViewer";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
