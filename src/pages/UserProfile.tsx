@@ -39,6 +39,16 @@ const UserProfile = () => {
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [reservationSheetOpen, setReservationSheetOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+
+  // Listen for prev/next navigation from TimelineViewer
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setViewerIndex((e as CustomEvent).detail as number);
+    };
+    document.addEventListener("timeline-viewer-navigate", handler);
+    return () => document.removeEventListener("timeline-viewer-navigate", handler);
+  }, []);
 
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === id;
