@@ -1,28 +1,62 @@
 
-## Plan: Replace interests step with age & gender in Onboarding
+## The Problem
 
-### What's changing
-Step 3 of onboarding currently shows a list of interest chips to select. We'll replace it with age (birth date) and gender selection — the same demographic fields that already exist in the `profiles` table (`birth_date` and `gender`).
+The current flow is a dense, all-on-one-screen form inside a small dialog. It throws budget mode toggles, sliders, category pills, radius sliders, gender selects, and age inputs all at once. Instagram and TikTok solve this with **guided multi-step flows** — one decision per screen, progressive disclosure, heavy visual feedback, and a sticky cost summary that builds confidence.
 
-The interests selection is removed entirely from onboarding (users can still set interests later via Edit Profile if needed, but the field isn't used for anything critical right now — the demographic data is actually more valuable for the ad targeting system).
+Key insights from Meta/TikTok "Boost" patterns:
+1. **Step-by-step wizard** — not a form dump. Each step is one question.
+2. **Audience first, budget second** — users think "who do I reach" before "how much do I spend"
+3. **Live preview panel** — a persistent cost/reach estimator on the side (or bottom) that updates as they configure
+4. **Bold, simple numbers** — large typography for reach and cost, not small labels
+5. **One primary CTA per step** — "Siguiente →" keeps momentum, final step is "Pagar y Activar"
+6. **Empty state is a hero CTA** — not a tiny button. It should sell the value proposition
 
-### Step 3 new UI
-- **Gender**: 4 pill/chip buttons to tap (Masculino, Femenino, No binario, Prefiero no decir) — same options as EditProfile
-- **Age**: 3 separate inputs for Day / Month / Year (same pattern as EditProfile), or a simpler birth year-only input to keep it light
+## The Redesign Plan
 
-### Changes
+### 1. Replace the Dialog with a full-height Sheet (bottom sheet on mobile)
+A Sheet gives us more vertical space, feels more native on mobile, and allows a step-by-step flow without feeling cramped.
 
-**`src/pages/Onboarding.tsx`**
-1. Remove the `interests` array and `handleInterestToggle` function
-2. Add `gender` and `birth_day`, `birth_month`, `birth_year` fields to `formData`
-3. Replace step 3 JSX (interest chips) with gender pill selector + birth date inputs
-4. Update `handleComplete` to save `birth_date` and `gender` instead of `interests`
-5. Update step 3 heading/subtitle to "Cuéntanos un poco más" / "Esta info es privada y nos ayuda a personalizar tu experiencia"
-6. Keep the "Omitir por ahora" skip button so it remains optional
+### 2. 4-Step Wizard Flow
 
-### No DB changes needed
-`birth_date` (DATE) and `gender` (TEXT) columns already exist on the `profiles` table from a previous migration. No new migration required.
+```
+Step 1: Elige tu evento
+  → Large event cards with cover image, date, already-promoted events greyed out
+  → "¿Qué evento quieres impulsar hoy?"
 
-### Visual approach
-Gender: horizontal row of 2×2 pill buttons (same `gradient-red` selected style as the old interests)
-Birth date: 3 small side-by-side inputs labeled DD / MM / AAAA, with basic validation (valid date check before saving)
+Step 2: ¿A quién quieres llegar?
+  → Audience presets: "Público cercano" / "Interesados en [category]" / "Personalizado"
+  → Simple toggles, not raw inputs
+  → "Automático (recomendado)" is pre-selected = we handle targeting
+
+Step 3: ¿Cuánto quieres invertir?
+  → 4 budget preset cards: $10 / $25 / $50 / $100 (most popular badge on $25)
+  → Each card shows estimated reach in big bold text
+  → Custom option below
+  → Live updating sticky footer: "Llegarás a ~5,000 personas por $25"
+
+Step 4: Confirmar y Pagar
+  → Summary card: event title, audience, reach estimate, total cost
+  → Big green "Pagar $25 y Activar →" button
+  → Disclaimer line
+```
+
+### 3. Redesigned Empty State (hero style)
+Replace the weak empty state with a value-prop card:
+- Gradient background
+- Stat: "Eventos con boost reciben 3x más asistentes"
+- Single large CTA button "Impulsar mi evento →"
+
+### 4. Campaign cards (active/draft) — minor improvement
+- Add event cover thumbnail
+- Status badge more prominent with color dot
+- Draft cards: show "Listo para activar" CTA more visually prominent
+
+## Files to modify
+- `src/components/dashboard/PromocionesSection.tsx` — complete redesign (single file, no backend changes)
+
+## Key UX principles applied
+- **Reduce cognitive load**: one decision per step
+- **Anchor with presets**: $25 as "más popular" removes paralysis
+- **Show value before cost**: reach number is bigger than dollar amount
+- **Build momentum**: progress indicator + "Siguiente →" keeps flow moving
+- **Trust signals**: "El pago es seguro vía Stripe" on the payment step
