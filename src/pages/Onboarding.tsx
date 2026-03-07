@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, User, Check } from "lucide-react";
+import { ArrowRight, User, Check, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useProcessReferral } from "@/hooks/useReferrals";
 
-const interests = ["Discotecas", "Bares", "Conciertos", "Festivales", "Fiestas Privadas", "Rooftops", "Música en Vivo", "DJ Sets", "Restaurantes y Cafés"];
+const genderOptions = [
+  { value: "male", label: "Masculino" },
+  { value: "female", label: "Femenino" },
+  { value: "non_binary", label: "No binario" },
+  { value: "prefer_not_to_say", label: "Prefiero no decir" },
+];
 
 const Onboarding = () => {
   const navigate = useNavigate();
