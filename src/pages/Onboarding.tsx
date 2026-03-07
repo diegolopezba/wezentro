@@ -26,19 +26,16 @@ const Onboarding = () => {
   const [formData, setFormData] = useState({
     username: "",
     fullName: "",
-    interests: [] as string[]
+    gender: "",
+    birthDay: "",
+    birthMonth: "",
+    birthYear: "",
   });
 
   const validateUsername = (username: string) => {
-    if (username.length < 3) {
-      return "El usuario debe tener al menos 3 caracteres";
-    }
-    if (username.length > 20) {
-      return "El usuario debe tener menos de 20 caracteres";
-    }
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      return "Solo puede contener letras, números y guiones bajos";
-    }
+    if (username.length < 3) return "El usuario debe tener al menos 3 caracteres";
+    if (username.length > 20) return "El usuario debe tener menos de 20 caracteres";
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) return "Solo puede contener letras, números y guiones bajos";
     return "";
   };
 
@@ -50,76 +47,74 @@ const Onboarding = () => {
       .eq("username", username.toLowerCase())
       .neq("id", user.id)
       .maybeSingle();
-    if (error) {
-      console.error("Error checking username:", error);
-      return false;
-    }
+    if (error) return false;
     return !data;
   };
 
   const handleUsernameChange = (value: string) => {
     const lowercased = value.toLowerCase().replace(/[^a-z0-9_]/g, "");
-    setFormData({
-      ...formData,
-      username: lowercased
-    });
+    setFormData({ ...formData, username: lowercased });
     setUsernameError(validateUsername(lowercased));
-  };
-
-  const handleInterestToggle = (interest: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      interests: prev.interests.includes(interest)
-        ? prev.interests.filter((i) => i !== interest)
-        : [...prev.interests, interest]
-    }));
   };
 
   const handleNextStep = async () => {
     if (step === 1) {
       const validationError = validateUsername(formData.username);
-      if (validationError) {
-        setUsernameError(validationError);
-        return;
-      }
+      if (validationError) { setUsernameError(validationError); return; }
       setIsLoading(true);
       const isAvailable = await checkUsernameAvailability(formData.username);
       setIsLoading(false);
-      if (!isAvailable) {
-        setUsernameError("Este usuario ya está en uso");
-        return;
-      }
+      if (!isAvailable) { setUsernameError("Este usuario ya está en uso"); return; }
       setStep(2);
     } else if (step === 2) {
       setStep(3);
     }
   };
 
+  const buildBirthDate = (): string | null => {
+    const { birthDay, birthMonth, birthYear } = formData;
+    if (!birthDay || !birthMonth || !birthYear) return null;
+    const d = parseInt(birthDay), m = parseInt(birthMonth), y = parseInt(birthYear);
+    if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+    if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900 || y > new Date().getFullYear()) return null;
+    return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  };
+
   const handleComplete = async () => {
     if (!user) return;
+
+    const birthDate = buildBirthDate();
+    const { birthDay, birthMonth, birthYear } = formData;
+    const hasPartialDate = birthDay || birthMonth || birthYear;
+    if (hasPartialDate && !birthDate) {
+      toast.error("Por favor ingresa una fecha de nacimiento válida.");
+      return;
+    }
+
     setIsLoading(true);
     const { error } = await supabase
       .from("profiles")
       .update({
         username: formData.username.toLowerCase(),
         full_name: formData.fullName || null,
-        interests: formData.interests.length > 0 ? formData.interests : null
+        gender: formData.gender || null,
+        birth_date: birthDate,
       })
       .eq("id", user.id);
+
     if (error) {
       console.error("Error updating profile:", error);
       toast.error("Error al actualizar perfil. Intenta de nuevo.");
       setIsLoading(false);
       return;
     }
-    
-    // Process referral if exists
+
     const referralCode = localStorage.getItem("zentro_referral_code");
     if (referralCode) {
       await processReferral.mutateAsync(referralCode);
       localStorage.removeItem("zentro_referral_code");
     }
-    
+
     await refreshProfile();
     toast.success("¡Bienvenido a Zentro!");
     navigate("/");
@@ -137,7 +132,7 @@ const Onboarding = () => {
         />
       </div>
 
-      {/* Logo section */}
+      {/* Logo + heading */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -149,32 +144,26 @@ const Onboarding = () => {
         <h1 className="font-brand text-2xl font-bold text-foreground mb-1">
           {step === 1 && "Elige tu nombre de usuario"}
           {step === 2 && "Cuéntanos sobre ti"}
-          {step === 3 && "¿Qué te gusta?"}
+          {step === 3 && "Un poco más sobre ti"}
         </h1>
         <p className="text-muted-foreground text-sm">
           {step === 1 && "Así te encontrarán los demás"}
           {step === 2 && "Ayúdanos a personalizar tu experiencia"}
-          {step === 3 && "Selecciona tus intereses"}
+          {step === 3 && "Esta info es privada y mejora tus recomendaciones"}
         </p>
       </motion.div>
 
       {/* Content */}
       <div className="flex-1 px-6 relative z-10">
         <div className="max-w-sm mx-auto">
+
+          {/* Step 1: Username */}
           {step === 1 && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-6"
-            >
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">
-                  Nombre de usuario
-                </label>
+                <label className="text-sm font-medium text-foreground mb-2 block">Nombre de usuario</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    @
-                  </span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
                   <Input
                     type="text"
                     placeholder="tunombre"
@@ -185,11 +174,8 @@ const Onboarding = () => {
                   />
                 </div>
                 {usernameError && <p className="text-destructive text-xs mt-2">{usernameError}</p>}
-                <p className="text-muted-foreground text-xs mt-2">
-                  Solo letras, números y guiones bajos
-                </p>
+                <p className="text-muted-foreground text-xs mt-2">Solo letras, números y guiones bajos</p>
               </div>
-
               <Button
                 variant="hero"
                 className="w-full"
@@ -199,93 +185,118 @@ const Onboarding = () => {
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                  <>
-                    Continuar
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </>
+                  <>Continuar <ArrowRight className="w-5 h-5 ml-2" /></>
                 )}
               </Button>
             </motion.div>
           )}
 
+          {/* Step 2: Display name */}
           {step === 2 && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-6"
-            >
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">
-                  Nombre para mostrar
-                </label>
+                <label className="text-sm font-medium text-foreground mb-2 block">Nombre para mostrar</label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     type="text"
                     placeholder="¿Cómo te llamamos?"
                     value={formData.fullName}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        fullName: e.target.value
-                      })
-                    }
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     className="pl-12"
                   />
                 </div>
               </div>
               <div className="flex gap-3">
-                <Button variant="secondary" className="flex-1" onClick={() => setStep(1)}>
-                  Atrás
-                </Button>
+                <Button variant="secondary" className="flex-1" onClick={() => setStep(1)}>Atrás</Button>
                 <Button variant="hero" className="flex-1" onClick={handleNextStep}>
-                  Continuar
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  Continuar <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </div>
             </motion.div>
           )}
 
+          {/* Step 3: Gender + birth date */}
           {step === 3 && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-6"
-            >
-              <div className="flex flex-wrap gap-2">
-                {interests.map((interest) => (
-                  <button
-                    key={interest}
-                    type="button"
-                    onClick={() => handleInterestToggle(interest)}
-                    className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
-                      formData.interests.includes(interest)
-                        ? "gradient-red text-white"
-                        : "bg-secondary text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {formData.interests.includes(interest) && <Check className="w-4 h-4" />}
-                    {interest}
-                  </button>
-                ))}
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+
+              {/* Gender */}
+              <div>
+                <label className="text-sm font-medium text-foreground mb-3 block">Género</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {genderOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, gender: opt.value })}
+                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                        formData.gender === opt.value
+                          ? "gradient-red text-white"
+                          : "bg-secondary text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {formData.gender === opt.value && <Check className="w-4 h-4 shrink-0" />}
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <p className="text-muted-foreground text-xs text-center">
-                Selecciona al menos un interés para recomendaciones personalizadas
-              </p>
+              {/* Birth date */}
+              <div>
+                <label className="text-sm font-medium text-foreground mb-3 block">Fecha de nacimiento</label>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Input
+                      type="number"
+                      placeholder="DD"
+                      value={formData.birthDay}
+                      onChange={(e) => setFormData({ ...formData, birthDay: e.target.value })}
+                      min={1} max={31}
+                      className="text-center"
+                    />
+                    <p className="text-muted-foreground text-xs text-center mt-1">Día</p>
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      type="number"
+                      placeholder="MM"
+                      value={formData.birthMonth}
+                      onChange={(e) => setFormData({ ...formData, birthMonth: e.target.value })}
+                      min={1} max={12}
+                      className="text-center"
+                    />
+                    <p className="text-muted-foreground text-xs text-center mt-1">Mes</p>
+                  </div>
+                  <div className="flex-[2]">
+                    <Input
+                      type="number"
+                      placeholder="AAAA"
+                      value={formData.birthYear}
+                      onChange={(e) => setFormData({ ...formData, birthYear: e.target.value })}
+                      min={1900} max={new Date().getFullYear()}
+                      className="text-center"
+                    />
+                    <p className="text-muted-foreground text-xs text-center mt-1">Año</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Privacy note */}
+              <div className="flex items-start gap-2 rounded-xl bg-secondary/60 px-3 py-2.5">
+                <Lock className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                <p className="text-muted-foreground text-xs">
+                  Tu género y edad nunca se muestran públicamente. Solo se usan para personalizar tu experiencia.
+                </p>
+              </div>
 
               <div className="flex gap-3">
-                <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>
-                  Atrás
-                </Button>
+                <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>Atrás</Button>
                 <Button variant="hero" className="flex-1" onClick={handleComplete} disabled={isLoading}>
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
-                    <>
-                      ¡Vamos!
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </>
+                    <>¡Vamos! <ArrowRight className="w-5 h-5 ml-2" /></>
                   )}
                 </Button>
               </div>
