@@ -80,6 +80,15 @@ const Onboarding = () => {
     return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
   };
 
+  const getAge = (birthDate: string): number => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  };
+
   const handleComplete = async () => {
     if (!user) return;
 
@@ -89,6 +98,15 @@ const Onboarding = () => {
     if (hasPartialDate && !birthDate) {
       toast.error("Por favor ingresa una fecha de nacimiento válida.");
       return;
+    }
+
+    // COPPA / store compliance: must be 13+
+    if (birthDate) {
+      const age = getAge(birthDate);
+      if (age < 13) {
+        toast.error("Debes tener al menos 13 años para usar Zentro.");
+        return;
+      }
     }
 
     setIsLoading(true);

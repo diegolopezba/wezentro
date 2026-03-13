@@ -38,9 +38,11 @@ const Auth = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
+    terms?: string;
   }>({});
   const [formData, setFormData] = useState({
     email: "",
