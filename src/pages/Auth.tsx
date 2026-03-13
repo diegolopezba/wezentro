@@ -77,6 +77,7 @@ const Auth = () => {
     const newErrors: {
       email?: string;
       password?: string;
+      terms?: string;
     } = {};
     try {
       emailSchema.parse(formData.email);
@@ -91,6 +92,9 @@ const Auth = () => {
       if (e instanceof z.ZodError) {
         newErrors.password = e.errors[0].message;
       }
+    }
+    if (mode === "signup" && !termsAccepted) {
+      newErrors.terms = "Debes aceptar los Términos y la Política de Privacidad para continuar.";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
