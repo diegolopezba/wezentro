@@ -34,6 +34,18 @@ const config: CapacitorConfig = {
       resize: 'body',
       resizeOnFullScreen: true,
     },
+    // iOS Privacy usage descriptions (required for App Store review)
+    Permissions: {
+      // Location — shown when requesting geolocation for nearby events
+      NSLocationWhenInUseUsageDescription: 'Zentro usa tu ubicación para mostrarte eventos cercanos y ayudarte a crear eventos en tu lugar.',
+      // Camera — shown when uploading event or profile photos
+      NSCameraUsageDescription: 'Zentro usa la cámara para que puedas subir fotos de perfil y de tus eventos.',
+      // Photo library — shown when picking images for events/profile
+      NSPhotoLibraryUsageDescription: 'Zentro accede a tu galería para que puedas elegir fotos para tu perfil y tus eventos.',
+      NSPhotoLibraryAddUsageDescription: 'Zentro puede guardar imágenes de eventos en tu galería.',
+      // Push notifications
+      NSUserNotificationsUsageDescription: 'Zentro envía notificaciones sobre mensajes, eventos y actualizaciones para que no te pierdas nada.',
+    },
   },
 
   android: {
