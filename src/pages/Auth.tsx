@@ -307,6 +307,60 @@ const Auth = () => {
                 </div>
               )}
 
+              {/* Terms checkbox — only shown on signup (store compliance) */}
+              {mode === "signup" && (
+                <div className="space-y-1">
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                    <div
+                      role="checkbox"
+                      aria-checked={termsAccepted}
+                      tabIndex={0}
+                      onClick={() => {
+                        setTermsAccepted(!termsAccepted);
+                        setErrors({ ...errors, terms: undefined });
+                      }}
+                      onKeyDown={(e) => e.key === " " && setTermsAccepted(!termsAccepted)}
+                      className={`mt-0.5 w-5 h-5 rounded shrink-0 border-2 flex items-center justify-center transition-all ${
+                        termsAccepted
+                          ? "gradient-red border-transparent"
+                          : "border-muted-foreground/40 bg-secondary"
+                      }`}
+                    >
+                      {termsAccepted && (
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground leading-relaxed">
+                      Tengo 13 años o más y acepto los{" "}
+                      <button
+                        type="button"
+                        className="text-foreground underline underline-offset-2"
+                        onClick={(e) => { e.stopPropagation(); navigate("/terms"); }}
+                      >
+                        Términos de Uso
+                      </button>
+                      {" "}y la{" "}
+                      <button
+                        type="button"
+                        className="text-foreground underline underline-offset-2"
+                        onClick={(e) => { e.stopPropagation(); navigate("/privacy-policy"); }}
+                      >
+                        Política de Privacidad
+                      </button>
+                      , incluyendo el uso de mis datos para personalizar mi experiencia.
+                    </span>
+                  </label>
+                  {errors.terms && (
+                    <p className="text-destructive text-xs flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" />
+                      {errors.terms}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <Button
                 variant="hero"
                 className="w-full"
@@ -358,23 +412,15 @@ const Auth = () => {
         </AnimatePresence>
       </div>
 
-      {/* Terms */}
-      <div className="p-6 text-center text-xs text-muted-foreground relative z-10">
-        Al continuar, aceptas nuestros{" "}
-        <button 
-          className="text-foreground hover:underline"
-          onClick={() => navigate("/terms")}
-        >
-          Términos
-        </button>{" "}
-        y{" "}
-        <button 
-          className="text-foreground hover:underline"
-          onClick={() => navigate("/privacy-policy")}
-        >
-          Política de Privacidad
-        </button>
-      </div>
+      {/* Login passive terms footer */}
+      {mode === "login" && (
+        <div className="px-6 pb-6 text-center text-xs text-muted-foreground relative z-10">
+          Al iniciar sesión, confirmas que aceptas nuestros{" "}
+          <button className="text-foreground hover:underline" onClick={() => navigate("/terms")}>Términos</button>
+          {" "}y{" "}
+          <button className="text-foreground hover:underline" onClick={() => navigate("/privacy-policy")}>Política de Privacidad</button>
+        </div>
+      )}
     </div>
   );
 };
