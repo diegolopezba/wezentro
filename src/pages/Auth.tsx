@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 
 const emailSchema = z.string().email("Por favor ingresa un correo válido");
-const passwordSchema = z.string().min(6, "La contraseña debe tener al menos 6 caracteres");
+const passwordSchema = z.string().min(8, "La contraseña debe tener al menos 8 caracteres");
 
 interface LocationState {
   from?: { pathname: string };
