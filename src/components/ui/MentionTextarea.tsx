@@ -170,8 +170,7 @@ export const MentionTextarea = ({
           lineHeight: "inherit",
           letterSpacing: "inherit",
           wordSpacing: "inherit",
-          // Ensure the mirror is invisible except for the colored marks
-          color: "transparent",
+          color: "hsl(var(--foreground))",
           background: "transparent",
           zIndex: 0,
           ...style,
