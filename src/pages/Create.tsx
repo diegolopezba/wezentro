@@ -70,6 +70,7 @@ const Create = () => {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const [location, setLocation] = useState({
     address: "",
     latitude: null as number | null,
