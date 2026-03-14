@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { haptic } from "@/lib/haptics";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
   Calendar,
@@ -11,6 +11,7 @@ import {
   ImageIcon,
   Video,
   UserPlus,
+  ChevronDown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
