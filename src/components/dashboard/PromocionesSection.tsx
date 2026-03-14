@@ -167,7 +167,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
         body: { sponsored_post_id: sp.id, amount_usd: totalBudget },
       });
       if (error || !data?.url) throw error ?? new Error("No URL");
-      window.location.href = data.url;
+      window.open(data.url, "_blank", "noopener,noreferrer");
     } catch {
       toast.error("Error al iniciar el pago");
       setActivatingId(null);
