@@ -29,6 +29,7 @@ import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { useEventTags, useRemoveTag } from "@/hooks/useEventTags";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
+import { MentionText } from "@/components/ui/MentionText";
 
 const EventDetail = () => {
   const {
@@ -434,9 +435,7 @@ const EventDetail = () => {
           {/* Description */}
           {event.description && <div className="space-y-2">
               <h2 className="font-brand text-lg font-semibold text-foreground">Acerca de</h2>
-              <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
-                {event.description}
-              </p>
+              <MentionText text={event.description} className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap" />
             </div>}
 
           {/* Guestlist attendees - Only show for events, not posts */}
