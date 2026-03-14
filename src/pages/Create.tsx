@@ -496,11 +496,40 @@ const Create = () => {
           </label>
         </motion.div>
 
-        {/* Category selection — collapsible dropdown */}
+        {/* Event details */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
+          className="space-y-4"
+        >
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">Título</label>
+            <Input
+              placeholder="Dale un nombre atractivo"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              maxLength={100}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">Descripción</label>
+            <MentionTextarea
+              placeholder="Cuéntale a la gente de qué trata... usa @usuario para mencionar"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              maxLength={2000}
+              className="rounded-xl border-border bg-secondary/50 px-4 py-3 text-base min-h-[120px] resize-none"
+            />
+          </div>
+        </motion.div>
+
+        {/* Category selection — collapsible dropdown */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
         >
           <button
             type="button"
@@ -552,33 +581,13 @@ const Create = () => {
           </AnimatePresence>
         </motion.div>
 
-        {/* Event details */}
+        {/* Remaining event details */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.15 }}
           className="space-y-4"
         >
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Título</label>
-            <Input
-              placeholder="Dale un nombre atractivo"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              maxLength={100}
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Descripción</label>
-            <MentionTextarea
-              placeholder="Cuéntale a la gente de qué trata... usa @usuario para mencionar"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              maxLength={2000}
-              className="rounded-xl border-border bg-secondary/50 px-4 py-3 text-base min-h-[120px] resize-none"
-            />
-          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
