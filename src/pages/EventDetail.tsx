@@ -29,6 +29,7 @@ import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { useEventTags, useRemoveTag } from "@/hooks/useEventTags";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
+import { MentionText } from "@/components/ui/MentionText";
 
 const EventDetail = () => {
   const {
