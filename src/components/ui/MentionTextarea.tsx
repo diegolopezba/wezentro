@@ -170,8 +170,7 @@ export const MentionTextarea = ({
           lineHeight: "inherit",
           letterSpacing: "inherit",
           wordSpacing: "inherit",
-          // Ensure the mirror is invisible except for the colored marks
-          color: "transparent",
+          color: "hsl(var(--foreground))",
           background: "transparent",
           zIndex: 0,
           ...style,
@@ -188,7 +187,7 @@ export const MentionTextarea = ({
           "relative flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none",
           className
         )}
-        style={{ ...style, position: "relative", zIndex: 1, background: "transparent" }}
+        style={{ ...style, position: "relative", zIndex: 1, background: "transparent", color: "transparent", caretColor: "hsl(var(--foreground))" }}
         {...props}
       />
       {showDropdown && suggestions.length > 0 && (
