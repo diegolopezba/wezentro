@@ -67,6 +67,19 @@ serve(async (req) => {
 
     if (updateError) throw new Error(`Failed to activate campaign: ${updateError.message}`);
 
+    // ── Persist stripe_customer_id so future charges can skip checkout ──
+    const customerId = typeof session.customer === "string"
+      ? session.customer
+      : session.customer?.id ?? null;
+
+    if (customerId) {
+      await supabaseClient
+        .from("profiles")
+        .update({ stripe_customer_id: customerId })
+        .eq("id", userData.user.id);
+      console.log("Saved stripe_customer_id:", customerId, "for user:", userData.user.id);
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
