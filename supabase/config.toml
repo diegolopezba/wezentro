@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.activate-ad-campaign]
 verify_jwt = false
+
+[functions.charge-boost]
+verify_jwt = false

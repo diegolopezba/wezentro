@@ -813,6 +813,7 @@ export type Database = {
           referral_code: string | null
           reservation_capacity: number | null
           reservations_enabled: boolean | null
+          stripe_customer_id: string | null
           updated_at: string | null
           username: string
         }
@@ -838,6 +839,7 @@ export type Database = {
           referral_code?: string | null
           reservation_capacity?: number | null
           reservations_enabled?: boolean | null
+          stripe_customer_id?: string | null
           updated_at?: string | null
           username: string
         }
@@ -863,6 +865,7 @@ export type Database = {
           referral_code?: string | null
           reservation_capacity?: number | null
           reservations_enabled?: boolean | null
+          stripe_customer_id?: string | null
           updated_at?: string | null
           username?: string
         }

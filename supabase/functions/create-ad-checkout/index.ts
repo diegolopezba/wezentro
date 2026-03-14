@@ -78,6 +78,10 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
+      payment_method_types: ["card"],
+      payment_intent_data: {
+        setup_future_usage: "off_session", // Saves card for direct charging on next boost
+      },
       line_items: [
         {
           price_data: {
@@ -101,6 +105,15 @@ serve(async (req) => {
     });
 
     console.log("Checkout session created:", session.id);
+
+    // Persist customer ID to profile for future saved-card charges
+    const newCustomerId = session.customer ?? customerId;
+    if (newCustomerId) {
+      await serviceClient
+        .from("profiles")
+        .update({ stripe_customer_id: String(newCustomerId) })
+        .eq("id", user.id);
+    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
