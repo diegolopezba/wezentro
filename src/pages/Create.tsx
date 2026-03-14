@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { haptic } from "@/lib/haptics";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
   Calendar,
@@ -11,6 +11,7 @@ import {
   ImageIcon,
   Video,
   UserPlus,
+  ChevronDown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -69,6 +70,7 @@ const Create = () => {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const [location, setLocation] = useState({
     address: "",
     latitude: null as number | null,
@@ -494,30 +496,60 @@ const Create = () => {
           </label>
         </motion.div>
 
-        {/* Category selection */}
+        {/* Category selection — collapsible dropdown */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
         >
-          <label className="text-sm font-medium text-foreground mb-3 block">Categoría</label>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setFormData({ ...formData, category: category.id })}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
-                  formData.category === category.id
-                    ? "gradient-primary text-primary-foreground shadow-glow"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                }`}
+          <button
+            type="button"
+            onClick={() => setCategoryOpen((o) => !o)}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-secondary border border-border text-sm font-medium text-foreground transition-colors hover:bg-secondary/80"
+          >
+            <span className="flex items-center gap-2">
+              {formData.category
+                ? (() => {
+                    const cat = categories.find((c) => c.id === formData.category);
+                    return cat ? <><span>{cat.emoji}</span><span>{cat.label}</span></> : <span className="text-muted-foreground">Seleccionar categoría</span>;
+                  })()
+                : <span className="text-muted-foreground">Seleccionar categoría</span>}
+            </span>
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${categoryOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          <AnimatePresence>
+            {categoryOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden"
               >
-                <span>{category.emoji}</span>
-                <span className="text-sm font-medium">{category.label}</span>
-              </button>
-            ))}
-          </div>
+                <div className="flex flex-wrap gap-2 pt-3">
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, category: category.id });
+                        setCategoryOpen(false);
+                      }}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                        formData.category === category.id
+                          ? "gradient-primary text-primary-foreground shadow-glow"
+                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                      }`}
+                    >
+                      <span>{category.emoji}</span>
+                      <span className="text-sm font-medium">{category.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* Event details */}
