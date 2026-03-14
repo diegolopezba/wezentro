@@ -17,27 +17,56 @@ interface MentionTextareaProps
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
+const MENTION_SPLIT_REGEX = /(@[a-zA-Z0-9_]+)/g;
+
+/** Render the highlight HTML — @mentions in blue, rest as escaped text */
+function buildHighlightHTML(text: string): string {
+  const parts = text.split(MENTION_SPLIT_REGEX);
+  return parts
+    .map((part) => {
+      if (/^@[a-zA-Z0-9_]+$/.test(part)) {
+        return `<mark style="background:transparent;color:hsl(204,100%,47%);font-weight:500;">${escapeHtml(part)}</mark>`;
+      }
+      // Preserve newlines so the mirror div stays in sync with the textarea
+      return escapeHtml(part).replace(/\n/g, "<br/>");
+    })
+    .join("");
+}
+
+function escapeHtml(str: string) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export const MentionTextarea = ({
   value,
   onChange,
   className,
+  style,
   ...props
 }: MentionTextareaProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const mirrorRef = useRef<HTMLDivElement>(null);
   const [suggestions, setSuggestions] = useState<MentionUser[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeQuery, setActiveQuery] = useState<string | null>(null);
   const [activeMentionStart, setActiveMentionStart] = useState<number>(-1);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Keep mirror scroll in sync with textarea scroll
+  const syncScroll = useCallback(() => {
+    if (textareaRef.current && mirrorRef.current) {
+      mirrorRef.current.scrollTop = textareaRef.current.scrollTop;
+    }
+  }, []);
+
   const detectMention = useCallback((text: string, cursorPos: number) => {
     const textBeforeCursor = text.slice(0, cursorPos);
     const match = textBeforeCursor.match(/@(\w+)$/);
     if (match) {
-      return {
-        query: match[1],
-        start: cursorPos - match[0].length,
-      };
+      return { query: match[1], start: cursorPos - match[0].length };
     }
     return null;
   }, []);
@@ -80,9 +109,7 @@ export const MentionTextarea = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Escape") {
-      setShowDropdown(false);
-    }
+    if (e.key === "Escape") setShowDropdown(false);
     props.onKeyDown?.(e);
   };
 
@@ -93,7 +120,6 @@ export const MentionTextarea = ({
     const after = value.slice(cursorPos);
     const newValue = `${before}@${user.username} ${after}`;
 
-    // Synthesize a change event
     const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
       window.HTMLTextAreaElement.prototype,
       "value"
@@ -101,7 +127,6 @@ export const MentionTextarea = ({
     nativeInputValueSetter?.call(textareaRef.current, newValue);
     textareaRef.current.dispatchEvent(new Event("input", { bubbles: true }));
 
-    // Also call onChange manually with a synthetic event
     const syntheticEvent = {
       target: { ...textareaRef.current, value: newValue },
       currentTarget: { ...textareaRef.current, value: newValue },
@@ -111,7 +136,6 @@ export const MentionTextarea = ({
     setShowDropdown(false);
     setActiveQuery(null);
 
-    // Move cursor after inserted mention
     const newCursorPos = activeMentionStart + user.username.length + 2;
     requestAnimationFrame(() => {
       textareaRef.current?.setSelectionRange(newCursorPos, newCursorPos);
@@ -122,10 +146,7 @@ export const MentionTextarea = ({
   // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (
-        textareaRef.current &&
-        !textareaRef.current.contains(e.target as Node)
-      ) {
+      if (textareaRef.current && !textareaRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
       }
     };
@@ -135,15 +156,39 @@ export const MentionTextarea = ({
 
   return (
     <div className="relative">
+      {/* Mirror div — renders colored highlights behind the transparent textarea */}
+      <div
+        ref={mirrorRef}
+        aria-hidden="true"
+        className={cn(
+          "absolute inset-0 flex min-h-[80px] w-full rounded-md border border-transparent px-3 py-2 text-sm pointer-events-none overflow-hidden whitespace-pre-wrap break-words",
+          className
+        )}
+        style={{
+          fontFamily: "inherit",
+          fontSize: "inherit",
+          lineHeight: "inherit",
+          letterSpacing: "inherit",
+          wordSpacing: "inherit",
+          // Ensure the mirror is invisible except for the colored marks
+          color: "transparent",
+          background: "transparent",
+          zIndex: 0,
+          ...style,
+        }}
+        dangerouslySetInnerHTML={{ __html: buildHighlightHTML(value) + "&nbsp;" }}
+      />
       <textarea
         ref={textareaRef}
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onScroll={syncScroll}
         className={cn(
-          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          "relative flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none",
           className
         )}
+        style={{ ...style, position: "relative", zIndex: 1, background: "transparent" }}
         {...props}
       />
       {showDropdown && suggestions.length > 0 && (
