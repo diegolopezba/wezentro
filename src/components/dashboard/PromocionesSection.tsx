@@ -163,11 +163,24 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
     }
     setActivatingId(sp.id);
     try {
-      const { data, error } = await supabase.functions.invoke("create-ad-checkout", {
+      const { data, error } = await supabase.functions.invoke("charge-boost", {
         body: { sponsored_post_id: sp.id, amount_usd: totalBudget },
       });
-      if (error || !data?.url) throw error ?? new Error("No URL");
-      window.open(data.url, "_blank", "noopener,noreferrer");
+      if (error) throw error;
+
+      if (data?.success) {
+        // Card charged directly — campaign is already active
+        toast.success("¡Campaña activada! Ya está apareciendo en el feed.");
+        refetch();
+        setActivatingId(null);
+      } else if (data?.checkout_url) {
+        // No saved card — redirect to Stripe Checkout
+        window.open(data.checkout_url, "_blank", "noopener,noreferrer");
+        // Keep spinner until user returns; reset after 30s as safety net
+        setTimeout(() => setActivatingId(null), 30_000);
+      } else {
+        throw new Error("Respuesta inesperada del servidor");
+      }
     } catch {
       toast.error("Error al iniciar el pago");
       setActivatingId(null);
