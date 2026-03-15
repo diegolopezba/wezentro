@@ -556,5 +556,15 @@ export const EventDetailOverlay = () => {
                 </>}
             </>}
         </motion.div>}
+
+        {/* Menu Sheet */}
+        {event && event.show_menu_button && event.creator_id && (
+          <MenuSheet
+            open={showMenuSheet}
+            onOpenChange={setShowMenuSheet}
+            userId={event.creator_id}
+            businessName={event.creator?.username}
+          />
+        )}
     </AnimatePresence>;
 };

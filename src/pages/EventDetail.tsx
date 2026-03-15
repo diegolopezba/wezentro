@@ -610,6 +610,16 @@ const EventDetail = () => {
           </div>
         </div>
     }
+
+    {/* Menu Sheet */}
+    {event.show_menu_button && event.creator_id && (
+      <MenuSheet
+        open={showMenuSheet}
+        onOpenChange={setShowMenuSheet}
+        userId={event.creator_id}
+        businessName={event.creator?.username}
+      />
+    )}
     </div>;
 };
 export default EventDetail;
