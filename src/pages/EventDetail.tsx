@@ -336,6 +336,12 @@ const EventDetail = () => {
 
             {/* Right: Edit dropdown */}
             <div className="flex items-center gap-1">
+              {event.show_menu_button && event.creator_id && (
+                <Button variant="ghost" size="sm" onClick={() => setShowMenuSheet(true)} className="gap-1.5 px-2">
+                  <UtensilsCrossed className="w-5 h-5" />
+                  <span className="text-xs">Menú</span>
+                </Button>
+              )}
               <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
