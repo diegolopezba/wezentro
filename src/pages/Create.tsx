@@ -59,6 +59,8 @@ const Create = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isBusiness = profile?.is_business === true;
   const inviteCollaborator = useInviteCollaborator();
+  const { data: myMenu } = useMyMenu();
+  const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
   
   const { invalidateAfterCreate } = useCreateEvent();
 
