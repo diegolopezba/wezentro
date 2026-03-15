@@ -822,6 +822,43 @@ const Create = () => {
           </motion.div>
         )}
 
+        {/* Menu button toggle - only for business accounts with menu items */}
+        {isBusiness && hasMenuItems && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22 }}
+          >
+            <Card className="glass border-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                    <UtensilsCrossed className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Mostrar botón de menú</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Los visitantes podrán abrir tu menú desde este post
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, showMenuButton: !formData.showMenuButton })}
+                  className={`relative w-12 h-7 rounded-full transition-colors ${
+                    formData.showMenuButton ? "bg-primary" : "bg-secondary"
+                  }`}
+                >
+                  <motion.div
+                    animate={{ x: formData.showMenuButton ? 22 : 2 }}
+                    className="absolute top-1 w-5 h-5 rounded-full bg-foreground"
+                  />
+                </button>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Create button */}
         <div className="pt-2">
           <Button
