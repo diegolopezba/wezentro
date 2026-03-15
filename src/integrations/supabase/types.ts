@@ -303,6 +303,7 @@ export type Database = {
           payment_qr_url: string | null
           price: number | null
           requires_premium: boolean | null
+          show_menu_button: boolean | null
           start_datetime: string | null
           title: string | null
         }
@@ -328,6 +329,7 @@ export type Database = {
           payment_qr_url?: string | null
           price?: number | null
           requires_premium?: boolean | null
+          show_menu_button?: boolean | null
           start_datetime?: string | null
           title?: string | null
         }
@@ -353,6 +355,7 @@ export type Database = {
           payment_qr_url?: string | null
           price?: number | null
           requires_premium?: boolean | null
+          show_menu_button?: boolean | null
           start_datetime?: string | null
           title?: string | null
         }
