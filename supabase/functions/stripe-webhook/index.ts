@@ -54,9 +54,52 @@ serve(async (req) => {
         logStep("Checkout session completed", { 
           sessionId: session.id, 
           customerId: session.customer,
+          mode: session.mode,
           subscriptionId: session.subscription 
         });
 
+        // ── One-time ad campaign payment ──
+        if (session.mode === "payment" && session.payment_status === "paid" && session.metadata?.sponsored_post_id) {
+          const sponsoredPostId = session.metadata.sponsored_post_id;
+          const userId = session.metadata.user_id;
+          const customerId = typeof session.customer === "string" ? session.customer : null;
+
+          logStep("Ad campaign payment completed", { sponsoredPostId, userId, customerId });
+
+          // Activate the campaign
+          const { error: activateError } = await supabaseClient
+            .from("sponsored_posts")
+            .update({
+              status: "active",
+              start_date: new Date().toISOString(),
+              ad_payment_session_id: session.id,
+            })
+            .eq("id", sponsoredPostId)
+            .eq("business_user_id", userId)
+            .in("status", ["draft", "paused"]);
+
+          if (activateError) {
+            logStep("Error activating campaign", { error: activateError.message });
+          } else {
+            logStep("Campaign activated via webhook", { sponsoredPostId });
+          }
+
+          // Persist stripe_customer_id so future charges skip checkout
+          if (customerId && userId) {
+            const { error: profileError } = await supabaseClient
+              .from("profiles")
+              .update({ stripe_customer_id: customerId })
+              .eq("id", userId);
+            if (profileError) {
+              logStep("Error saving stripe_customer_id", { error: profileError.message });
+            } else {
+              logStep("Saved stripe_customer_id to profile", { customerId, userId });
+            }
+          }
+          break;
+        }
+
+        // ── Subscription payment ──
         if (session.mode === "subscription" && session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
           const customerId = session.customer as string;
