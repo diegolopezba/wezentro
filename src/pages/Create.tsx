@@ -12,6 +12,7 @@ import {
   Video,
   UserPlus,
   ChevronDown,
+  UtensilsCrossed,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -38,6 +39,7 @@ import {
 import { compressImage, blobToFile, formatBytes } from "@/lib/mediaCompression";
 import { extractDescriptionTags } from "@/lib/descriptionTagExtractor";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
+import { useMyMenu } from "@/hooks/useMenu";
 
 const categories = [
   { id: "party", label: "Fiesta", emoji: "🪩" },
