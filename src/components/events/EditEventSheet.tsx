@@ -2,11 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Upload, X, QrCode, MessageCircle } from "lucide-react";
+import { Loader2, Upload, X, QrCode, MessageCircle, UtensilsCrossed } from "lucide-react";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -14,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage, blobToFile } from "@/lib/mediaCompression";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
+import { useMyMenu } from "@/hooks/useMenu";
 
 interface EditEventSheetProps {
   event: {
@@ -29,6 +29,7 @@ interface EditEventSheetProps {
     has_guestlist?: boolean | null;
     has_guestlist_chat?: boolean | null;
     payment_qr_url?: string | null;
+    show_menu_button?: boolean | null;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -50,6 +51,8 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
   const updateEvent = useUpdateEvent();
   const { profile } = useAuth();
   const isBusiness = profile?.is_business === true;
+  const { data: myMenu } = useMyMenu();
+  const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
   const [isUploadingQr, setIsUploadingQr] = useState(false);
   const [isCompressingQr, setIsCompressingQr] = useState(false);
   const qrInputRef = useRef<HTMLInputElement>(null);
@@ -65,6 +68,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
     has_guestlist: event.has_guestlist || false,
     has_guestlist_chat: event.has_guestlist_chat ?? true,
     payment_qr_url: event.payment_qr_url || "",
+    show_menu_button: event.show_menu_button ?? false,
   });
 
   useEffect(() => {
@@ -80,6 +84,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
         has_guestlist: event.has_guestlist || false,
         has_guestlist_chat: event.has_guestlist_chat ?? true,
         payment_qr_url: event.payment_qr_url || "",
+        show_menu_button: event.show_menu_button ?? false,
       });
     }
   }, [open, event]);
@@ -152,6 +157,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           has_guestlist: formData.has_guestlist,
           has_guestlist_chat: formData.has_guestlist ? formData.has_guestlist_chat : null,
           payment_qr_url: formData.payment_qr_url || null,
+          show_menu_button: formData.show_menu_button,
         },
       });
       // Parse @mentions from description and insert into event_tags
@@ -393,6 +399,26 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
                   </Button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Menu Button Toggle - Only for Business users with menu items */}
+          {isBusiness && hasMenuItems && (
+            <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-secondary/50 border border-border">
+              <div className="flex items-center gap-2">
+                <UtensilsCrossed className="w-4 h-4 text-primary" />
+                <div className="flex flex-col">
+                  <Label htmlFor="show-menu-button">Mostrar botón de menú</Label>
+                  <span className="text-xs text-muted-foreground">
+                    Los visitantes podrán ver tu menú desde este post
+                  </span>
+                </div>
+              </div>
+              <Switch
+                id="show-menu-button"
+                checked={formData.show_menu_button}
+                onCheckedChange={(checked) => setFormData({ ...formData, show_menu_button: checked })}
+              />
             </div>
           )}
         </div>

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff } from "lucide-react";
+import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
@@ -30,6 +30,7 @@ import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { useEventTags, useRemoveTag } from "@/hooks/useEventTags";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 import { MentionText } from "@/components/ui/MentionText";
+import { MenuSheet } from "@/components/menu/MenuSheet";
 
 const EventDetail = () => {
   const {
@@ -51,6 +52,7 @@ const EventDetail = () => {
   const [showPremiumGate, setShowPremiumGate] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showInviteFriendsSheet, setShowInviteFriendsSheet] = useState(false);
+  const [showMenuSheet, setShowMenuSheet] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(true);
@@ -334,6 +336,12 @@ const EventDetail = () => {
 
             {/* Right: Edit dropdown */}
             <div className="flex items-center gap-1">
+              {event.show_menu_button && event.creator_id && (
+                <Button variant="ghost" size="sm" onClick={() => setShowMenuSheet(true)} className="gap-1.5 px-2">
+                  <UtensilsCrossed className="w-5 h-5" />
+                  <span className="text-xs">Menú</span>
+                </Button>
+              )}
               <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -602,6 +610,16 @@ const EventDetail = () => {
           </div>
         </div>
     }
+
+    {/* Menu Sheet */}
+    {event.show_menu_button && event.creator_id && (
+      <MenuSheet
+        open={showMenuSheet}
+        onOpenChange={setShowMenuSheet}
+        userId={event.creator_id}
+        businessName={event.creator?.username}
+      />
+    )}
     </div>;
 };
 export default EventDetail;

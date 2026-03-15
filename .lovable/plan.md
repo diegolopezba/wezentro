@@ -1,65 +1,62 @@
 
-## Menu Button on Posts Feature
+## The Problem
 
-### What we're building
+The current flow is a dense, all-on-one-screen form inside a small dialog. It throws budget mode toggles, sliders, category pills, radius sliders, gender selects, and age inputs all at once. Instagram and TikTok solve this with **guided multi-step flows** — one decision per screen, progressive disclosure, heavy visual feedback, and a sticky cost summary that builds confidence.
 
-Business accounts that have a menu can optionally display a **"Menu" button** on their individual post/event detail pages. When viewers tap it, the same menu bottom sheet that appears on the business's profile opens up.
+Key insights from Meta/TikTok "Boost" patterns:
+1. **Step-by-step wizard** — not a form dump. Each step is one question.
+2. **Audience first, budget second** — users think "who do I reach" before "how much do I spend"
+3. **Live preview panel** — a persistent cost/reach estimator on the side (or bottom) that updates as they configure
+4. **Bold, simple numbers** — large typography for reach and cost, not small labels
+5. **One primary CTA per step** — "Siguiente →" keeps momentum, final step is "Pagar y Activar"
+6. **Empty state is a hero CTA** — not a tiny button. It should sell the value proposition
 
-### How it works
+## The Redesign Plan
+
+### 1. Replace the Dialog with a full-height Sheet (bottom sheet on mobile)
+A Sheet gives us more vertical space, feels more native on mobile, and allows a step-by-step flow without feeling cramped.
+
+### 2. 4-Step Wizard Flow
 
 ```
-Create post (business with menu)         Event Detail Page (viewer side)
-+--------------------------------+       +----------------------------------+
-| [Toggle] Show menu button  ●  |  -->  | ♥ 12  ↺  ➤  🔖  |  🍽️ Menú   |
-+--------------------------------+       +----------------------------------+
-                                                             ↓ tap
-                                          +--[ Menu Bottom Sheet ]----------+
-                                          | 🍕 Pizzas     Bs. 45.00        |
-                                          | 🥤 Bebidas    Bs. 15.00        |
-                                          +--------------------------------+
+Step 1: Elige tu evento
+  → Large event cards with cover image, date, already-promoted events greyed out
+  → "¿Qué evento quieres impulsar hoy?"
+
+Step 2: ¿A quién quieres llegar?
+  → Audience presets: "Público cercano" / "Interesados en [category]" / "Personalizado"
+  → Simple toggles, not raw inputs
+  → "Automático (recomendado)" is pre-selected = we handle targeting
+
+Step 3: ¿Cuánto quieres invertir?
+  → 4 budget preset cards: $10 / $25 / $50 / $100 (most popular badge on $25)
+  → Each card shows estimated reach in big bold text
+  → Custom option below
+  → Live updating sticky footer: "Llegarás a ~5,000 personas por $25"
+
+Step 4: Confirmar y Pagar
+  → Summary card: event title, audience, reach estimate, total cost
+  → Big green "Pagar $25 y Activar →" button
+  → Disclaimer line
 ```
 
-### Changes needed
+### 3. Redesigned Empty State (hero style)
+Replace the weak empty state with a value-prop card:
+- Gradient background
+- Stat: "Eventos con boost reciben 3x más asistentes"
+- Single large CTA button "Impulsar mi evento →"
 
-**1. Database migration**
-- Add `show_menu_button boolean DEFAULT false` column to the `events` table.
+### 4. Campaign cards (active/draft) — minor improvement
+- Add event cover thumbnail
+- Status badge more prominent with color dot
+- Draft cards: show "Listo para activar" CTA more visually prominent
 
-**2. `src/pages/Create.tsx`**
-- After the existing guestlist toggle card, add a new card that's only visible when:
-  - The creator is a business (`isBusiness = true`)
-  - The creator has a menu (check using `useMyMenu()` — only show if `menu?.items.length > 0`)
-- Toggle stored in `formData.showMenuButton`
-- Passed to the event insert payload
+## Files to modify
+- `src/components/dashboard/PromocionesSection.tsx` — complete redesign (single file, no backend changes)
 
-**3. `src/hooks/useEventMutations.ts`**
-- Add `show_menu_button?: boolean` to `UpdateEventData` interface so the edit sheet can persist it.
-
-**4. `src/components/events/EditEventSheet.tsx`**
-- Add `show_menu_button` to the event prop interface and `formData`
-- Add the same toggle UI card (conditionally shown for business owners with a menu)
-- Include in the `handleSave` payload
-
-**5. `src/components/events/EventDetailOverlay.tsx` + `src/pages/EventDetail.tsx`**
-- Both files share near-identical action button rows. In the **right side** (`{/* Right: Edit dropdown */}` section), add a "Menú" button **before** the `MoreVertical` dropdown:
-  - Condition: `event.show_menu_button === true`
-  - Uses `UtensilsCrossed` icon + "Menú" label
-  - On click: opens the `MenuSheet` with `userId={event.creator_id}`
-- Import and render `MenuSheet` at the bottom of both components
-
-### Files to change
-
-| File | Change |
-|------|--------|
-| New migration | Add `show_menu_button` column to `events` |
-| `src/pages/Create.tsx` | Add menu toggle for business users |
-| `src/hooks/useEventMutations.ts` | Add field to update interface |
-| `src/components/events/EditEventSheet.tsx` | Add menu toggle + wire to save |
-| `src/components/events/EventDetailOverlay.tsx` | Add menu button + MenuSheet |
-| `src/pages/EventDetail.tsx` | Add menu button + MenuSheet |
-
-### Key UX decisions
-
-- The toggle in Create/Edit only appears if `isBusiness && menu has items` — no empty menus
-- On the detail page, the button shows for **all viewers** (not just logged-in users), matching the profile page behavior
-- The menu button sits on the **right side** of the action row, to the left of the `MoreVertical` dots menu, keeping the left side for social actions (like/repost/share/save)
-- Uses the existing `MenuSheet` component unchanged — zero duplication
+## Key UX principles applied
+- **Reduce cognitive load**: one decision per step
+- **Anchor with presets**: $25 as "más popular" removes paralysis
+- **Show value before cost**: reach number is bigger than dollar amount
+- **Build momentum**: progress indicator + "Siguiente →" keeps flow moving
+- **Trust signals**: "El pago es seguro vía Stripe" on the payment step

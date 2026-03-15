@@ -12,6 +12,7 @@ import {
   Video,
   UserPlus,
   ChevronDown,
+  UtensilsCrossed,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -38,6 +39,7 @@ import {
 import { compressImage, blobToFile, formatBytes } from "@/lib/mediaCompression";
 import { extractDescriptionTags } from "@/lib/descriptionTagExtractor";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
+import { useMyMenu } from "@/hooks/useMenu";
 
 const categories = [
   { id: "party", label: "Fiesta", emoji: "🪩" },
@@ -57,6 +59,8 @@ const Create = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isBusiness = profile?.is_business === true;
   const inviteCollaborator = useInviteCollaborator();
+  const { data: myMenu } = useMyMenu();
+  const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
   
   const { invalidateAfterCreate } = useCreateEvent();
 
@@ -87,6 +91,7 @@ const Create = () => {
     capacity: "",
     hasGuestlist: false,
     hasGuestlistChat: true,
+    showMenuButton: false,
   });
 
   // Auto-detect if this is a post (no date/time) or an event
@@ -290,6 +295,7 @@ const Create = () => {
           is_public: true,
           is_post: isPost,
           description_tags: descriptionTags.length > 0 ? descriptionTags : null,
+          show_menu_button: isBusiness && hasMenuItems ? formData.showMenuButton : false,
         })
         .select()
         .single();
@@ -812,6 +818,43 @@ const Create = () => {
                   </div>
                 </motion.div>
               )}
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Menu button toggle - only for business accounts with menu items */}
+        {isBusiness && hasMenuItems && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22 }}
+          >
+            <Card className="glass border-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                    <UtensilsCrossed className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Mostrar botón de menú</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Los visitantes podrán abrir tu menú desde este post
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, showMenuButton: !formData.showMenuButton })}
+                  className={`relative w-12 h-7 rounded-full transition-colors ${
+                    formData.showMenuButton ? "bg-primary" : "bg-secondary"
+                  }`}
+                >
+                  <motion.div
+                    animate={{ x: formData.showMenuButton ? 22 : 2 }}
+                    className="absolute top-1 w-5 h-5 rounded-full bg-foreground"
+                  />
+                </button>
+              </div>
             </Card>
           </motion.div>
         )}

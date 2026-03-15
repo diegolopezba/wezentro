@@ -15,6 +15,7 @@ interface UpdateEventData {
   has_guestlist?: boolean;
   has_guestlist_chat?: boolean | null;
   payment_qr_url?: string | null;
+  show_menu_button?: boolean;
 }
 
 export function useUpdateEvent() {
