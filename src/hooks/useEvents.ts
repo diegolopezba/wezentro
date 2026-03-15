@@ -20,6 +20,7 @@ export interface Event {
   creator_id: string;
   created_at: string;
   payment_qr_url: string | null;
+  show_menu_button: boolean | null;
   creator?: {
     id: string;
     username: string;
