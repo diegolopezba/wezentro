@@ -51,6 +51,8 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
   const updateEvent = useUpdateEvent();
   const { profile } = useAuth();
   const isBusiness = profile?.is_business === true;
+  const { data: myMenu } = useMyMenu();
+  const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
   const [isUploadingQr, setIsUploadingQr] = useState(false);
   const [isCompressingQr, setIsCompressingQr] = useState(false);
   const qrInputRef = useRef<HTMLInputElement>(null);
@@ -66,6 +68,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
     has_guestlist: event.has_guestlist || false,
     has_guestlist_chat: event.has_guestlist_chat ?? true,
     payment_qr_url: event.payment_qr_url || "",
+    show_menu_button: event.show_menu_button ?? false,
   });
 
   useEffect(() => {
