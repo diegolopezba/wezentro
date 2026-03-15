@@ -401,6 +401,26 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
               )}
             </div>
           )}
+
+          {/* Menu Button Toggle - Only for Business users with menu items */}
+          {isBusiness && hasMenuItems && (
+            <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-secondary/50 border border-border">
+              <div className="flex items-center gap-2">
+                <UtensilsCrossed className="w-4 h-4 text-primary" />
+                <div className="flex flex-col">
+                  <Label htmlFor="show-menu-button">Mostrar botón de menú</Label>
+                  <span className="text-xs text-muted-foreground">
+                    Los visitantes podrán ver tu menú desde este post
+                  </span>
+                </div>
+              </div>
+              <Switch
+                id="show-menu-button"
+                checked={formData.show_menu_button}
+                onCheckedChange={(checked) => setFormData({ ...formData, show_menu_button: checked })}
+              />
+            </div>
+          )}
         </div>
 
         <div className="shrink-0 pt-4 border-t safe-bottom">
