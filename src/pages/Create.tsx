@@ -295,6 +295,7 @@ const Create = () => {
           is_public: true,
           is_post: isPost,
           description_tags: descriptionTags.length > 0 ? descriptionTags : null,
+          show_menu_button: isBusiness && hasMenuItems ? formData.showMenuButton : false,
         })
         .select()
         .single();
