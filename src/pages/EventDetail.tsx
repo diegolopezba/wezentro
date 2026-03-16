@@ -628,6 +628,16 @@ const EventDetail = () => {
         businessName={event.creator?.username}
       />
     )}
+
+    {/* Reservation Sheet */}
+    {event.show_reservation_button && event.creator_id && (
+      <ReservationSheet
+        open={showReservationSheet}
+        onOpenChange={setShowReservationSheet}
+        businessId={event.creator_id}
+        businessName={event.creator?.username || ""}
+      />
+    )}
     </div>;
 };
 export default EventDetail;

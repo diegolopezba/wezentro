@@ -574,5 +574,15 @@ export const EventDetailOverlay = () => {
             businessName={event.creator?.username}
           />
         )}
+
+        {/* Reservation Sheet */}
+        {event && event.show_reservation_button && event.creator_id && (
+          <ReservationSheet
+            open={showReservationSheet}
+            onOpenChange={setShowReservationSheet}
+            businessId={event.creator_id}
+            businessName={event.creator?.username || ""}
+          />
+        )}
     </AnimatePresence>;
 };
