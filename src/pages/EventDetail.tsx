@@ -1,18 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { format } from "date-fns";
 import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
-import { useIsOnGuestlist, useJoinGuestlist, useJoinGuestlistWithPayment, useLeaveGuestlist, useHasActiveSubscription, usePendingGuestlistRequests, usePendingPayments } from "@/hooks/useGuestlist";
-import { useIsEventSaved, useSaveEvent, useUnsaveEvent, useSaveCount } from "@/hooks/useSavedEvents";
-import { useIsEventLiked, useLikeEvent, useUnlikeEvent, useEventLikes } from "@/hooks/useEventLikes";
-import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useReposts";
-import { useAuth } from "@/contexts/AuthContext";
-import { useAuthPrompt } from "@/hooks/useAuthPrompt";
-import { format } from "date-fns";
-import { toast } from "sonner";
+import { useEventGuestlist } from "@/hooks/useEvents";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
 import { ShareGuestlistModal } from "@/components/events/ShareGuestlistModal";
@@ -32,64 +25,47 @@ import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 import { MentionText } from "@/components/ui/MentionText";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
+import { useEventDetailState } from "@/hooks/useEventDetailState";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const EventDetail = () => {
-  const {
-    id
-  } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const fromCreate = (location.state as {fromCreate?: boolean;})?.fromCreate;
+  const fromCreate = (location.state as { fromCreate?: boolean })?.fromCreate;
+  const { user } = useAuth();
+
   const {
-    user
-  } = useAuth();
-  const { promptAuth } = useAuthPrompt();
-  const isGuest = !user;
-  const [showManagement, setShowManagement] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [showGuestlistInviteModal, setShowGuestlistInviteModal] = useState(false);
-  const [showEditSheet, setShowEditSheet] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showPremiumGate, setShowPremiumGate] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showInviteFriendsSheet, setShowInviteFriendsSheet] = useState(false);
-  const [showMenuSheet, setShowMenuSheet] = useState(false);
-  const [showReservationSheet, setShowReservationSheet] = useState(false);
-  const [mediaLoaded, setMediaLoaded] = useState(false);
-  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
-  const [isMuted, setIsMuted] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    setAspectRatio(img.naturalWidth / img.naturalHeight);
-    setMediaLoaded(true);
-  };
-  const handleVideoMetadata = () => {
-    if (videoRef.current) {
-      const {
-        videoWidth,
-        videoHeight
-      } = videoRef.current;
-      setAspectRatio(videoWidth / videoHeight);
-      setMediaLoaded(true);
-    }
-  };
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
-  const togglePlayPause = () => {
-    if (videoRef.current) {
-      if (videoRef.current.paused) {
-        videoRef.current.play();
-      } else {
-        videoRef.current.pause();
-      }
-    }
-  };
+    event, isLoading, error,
+    guestlist, hasSubscription,
+    pendingCount, isSaved, isLiked, likeCount,
+    hasReposted, repostCount, saveCount,
+    isOnGuestlist, isPending, isApproved,
+    isOwner, canInviteToGuestlist,
+    hasPaymentQr, isInviteOnlyGuestlist,
+    isAuthenticated,
+    formattedDate, formattedPrice,
+    videoRef, mediaLoaded, aspectRatio, isMuted,
+    handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
+    joinGuestlistPending, leaveGuestlistPending,
+    saveEventPending, likeEventPending, repostPending,
+    showManagement, setShowManagement,
+    showShareModal, setShowShareModal,
+    showGuestlistInviteModal, setShowGuestlistInviteModal,
+    showEditSheet, setShowEditSheet,
+    showDeleteDialog, setShowDeleteDialog,
+    showPremiumGate, setShowPremiumGate,
+    showPaymentModal, setShowPaymentModal,
+    showInviteFriendsSheet, setShowInviteFriendsSheet,
+    showMenuSheet, setShowMenuSheet,
+    showReservationSheet, setShowReservationSheet,
+    handleSaveToggle, handleLikeToggle, handleRepostToggle,
+    handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
+  } = useEventDetailState(id, () => navigate(-1));
+
+  const { data: eventTags } = useEventTags(id);
+  const removeTag = useRemoveTag();
 
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
@@ -98,156 +74,10 @@ const EventDetail = () => {
   useEffect(() => {
     if (id && user?.id) {
       trackEventView(id, user.id);
-      // Track click signal for preference learning
       trackPreferenceSignal(user.id, id, "click");
     }
   }, [id, user?.id]);
-  const {
-    data: event,
-    isLoading,
-    error
-  } = useEvent(id);
-  const { data: eventTags } = useEventTags(id);
-  const removeTag = useRemoveTag();
-  const {
-    data: guestlistStatus
-  } = useIsOnGuestlist(id);
-  const {
-    data: hasSubscription
-  } = useHasActiveSubscription();
-  const {
-    data: pendingRequests = []
-  } = usePendingGuestlistRequests(id);
-  const {
-    data: pendingPayments = []
-  } = usePendingPayments(id);
-  const {
-    data: isSaved
-  } = useIsEventSaved(id);
-  const saveEvent = useSaveEvent();
-  const unsaveEvent = useUnsaveEvent();
-  const {
-    data: isLiked
-  } = useIsEventLiked(id!);
-  const { data: likeCount = 0 } = useEventLikes(id!);
-  const likeEvent = useLikeEvent();
-  const unlikeEvent = useUnlikeEvent();
-  const {
-    data: hasReposted
-  } = useHasReposted(id);
-  const { data: repostCount = 0 } = useRepostCount(id);
-  const toggleRepost = useToggleRepost();
-  const { data: saveCount = 0 } = useSaveCount(id);
-  const joinGuestlist = useJoinGuestlist();
-  const joinGuestlistWithPayment = useJoinGuestlistWithPayment();
-  const leaveGuestlist = useLeaveGuestlist();
-  const isOnGuestlist = !!guestlistStatus;
-  const isPending = guestlistStatus?.status === "pending";
-  const isApproved = guestlistStatus?.status === "approved";
-  const isOwner = user && user.id === event?.creator_id;
-  const canInviteToGuestlist = user && (isOwner || isApproved);
-  // Count pending requests AND pending payments for the badge
-  const pendingCount = pendingRequests.length + pendingPayments.length;
-  const isAuthenticated = !!user;
 
-  // Check if event has QR payment enabled
-  const hasPaymentQr = !!(event?.payment_qr_url && (event?.price || 0) > 0);
-  // When event has both a price and guestlist, tickets take priority — guestlist becomes invite-only
-  const isInviteOnlyGuestlist = !!(event?.price && event.price > 0 && event?.has_guestlist);
-  const handleSaveToggle = async () => {
-    if (isGuest) {
-      promptAuth({ action: "guardar este evento" });
-      return;
-    }
-    try {
-      if (isSaved) {
-        await unsaveEvent.mutateAsync(id!);
-        toast.success("Evento eliminado de guardados");
-      } else {
-        await saveEvent.mutateAsync(id!);
-        toast.success("¡Evento guardado!");
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Error al guardar evento");
-    }
-  };
-  const handleLikeToggle = async () => {
-    if (isGuest) {
-      promptAuth({ action: "dar like a este evento" });
-      return;
-    }
-    try {
-      if (isLiked) {
-        await unlikeEvent.mutateAsync(id!);
-      } else {
-        await likeEvent.mutateAsync(id!);
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Error al dar like");
-    }
-  };
-  const handleRepostToggle = async () => {
-    if (isGuest) {
-      promptAuth({ action: "repostear este evento" });
-      return;
-    }
-    try {
-      await toggleRepost.mutateAsync({
-        eventId: id!,
-        isReposted: !!hasReposted
-      });
-    } catch (error: any) {
-
-
-
-
-
-      // Error handled in hook
-    }};const handleJoinGuestlist = async () => {if (isGuest) {promptAuth({ action: "unirte a esta lista" });return;
-    }
-
-    // Check premium subscription first
-    if (!hasSubscription) {
-      setShowPremiumGate(true);
-      return;
-    }
-
-    // Check if this is a paid event with QR payment
-    if (hasPaymentQr) {
-      setShowPaymentModal(true);
-      return;
-    }
-
-    // Normal free event join
-    try {
-      await joinGuestlist.mutateAsync(id!);
-      toast.success("¡Solicitud enviada!");
-      setShowInviteFriendsSheet(true);
-    } catch (error: any) {
-      toast.error(error.message || "Error al unirse a la lista");
-    }
-  };
-
-  const handlePaymentSubmitted = async () => {
-    try {
-      await joinGuestlistWithPayment.mutateAsync(id!);
-      setShowInviteFriendsSheet(true);
-    } catch (error: any) {
-      toast.error(error.message || "Error al registrar pago");
-      throw error;
-    }
-  };
-  const handleLeaveGuestlist = async () => {
-    try {
-      await leaveGuestlist.mutateAsync(id!);
-      toast.success("Has salido de la lista");
-    } catch (error: any) {
-      toast.error(error.message || "Error al salir de la lista");
-    }
-  };
-  const {
-    data: guestlist = []
-  } = useEventGuestlist(id);
   if (isLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -260,8 +90,6 @@ const EventDetail = () => {
         <Button onClick={() => navigate("/")}>Ir al Inicio</Button>
       </div>;
   }
-  const formattedDate = event.start_datetime ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a") : null;
-  const formattedPrice = event.price ? `$${event.price}` : "Gratis";
   const isVideo = isVideoUrl(event.image_url);
   const isPost = event.is_post || !event.start_datetime;
   return <div className="min-h-screen bg-background">
@@ -316,18 +144,18 @@ const EventDetail = () => {
           <div className="flex items-center justify-between">
             {/* Left: Like, Repost, Send, Save, Invite */}
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" onClick={handleLikeToggle} disabled={likeEvent.isPending || unlikeEvent.isPending} className="gap-1.5 px-2">
+              <Button variant="ghost" size="sm" onClick={handleLikeToggle} disabled={likeEventPending} className="gap-1.5 px-2">
                 <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
                 {likeCount > 0 && <span className="text-xs text-muted-foreground">{likeCount}</span>}
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleRepostToggle} disabled={toggleRepost.isPending} className="gap-1.5 px-2">
+              <Button variant="ghost" size="sm" onClick={handleRepostToggle} disabled={repostPending} className="gap-1.5 px-2">
                 <Repeat className={`w-5 h-5 ${hasReposted ? 'text-green-500' : ''}`} />
                 {repostCount > 0 && <span className="text-xs text-muted-foreground">{repostCount}</span>}
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
                 <Send className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleSaveToggle} disabled={saveEvent.isPending || unsaveEvent.isPending} className="gap-1.5 px-2">
+              <Button variant="ghost" size="sm" onClick={handleSaveToggle} disabled={saveEventPending} className="gap-1.5 px-2">
                 <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
                 {saveCount > 0 && <span className="text-xs text-muted-foreground">{saveCount}</span>}
               </Button>
@@ -600,13 +428,13 @@ const EventDetail = () => {
                   <Clock className="w-4 h-4 mr-1" /> Pendiente
                 </Button> :
 
-        <Button variant="ghost" size="default" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
-                  {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
+        <Button variant="ghost" size="default" onClick={handleLeaveGuestlist} disabled={leaveGuestlistPending}>
+                  {leaveGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
                 </Button> :
 
 
-        <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
-                {joinGuestlist.isPending || joinGuestlistWithPayment.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr || isInviteOnlyGuestlist ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
+        <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlistPending}>
+                {joinGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr || isInviteOnlyGuestlist ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
               </Button>
         }
           </div>

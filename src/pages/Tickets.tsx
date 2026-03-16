@@ -46,16 +46,12 @@ const Tickets = () => {
         `)
         .eq("user_id", user.id)
         .in("status", ["approved", "pending"])
+        .gt("event.start_datetime", new Date().toISOString())
         .order("joined_at", { ascending: false });
 
       if (error) throw error;
       
-      // Filter out events that have already passed
-      const now = new Date();
-      return data?.filter((ticket: any) => {
-        const eventDate = new Date(ticket.event?.start_datetime);
-        return eventDate >= now;
-      }) || [];
+      return data || [];
     },
     enabled: !!user,
   });

@@ -16,6 +16,7 @@ import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
 import { ReservationsManagementSheet } from "@/components/reservations/ReservationsManagementSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
+import { formatCount as formatCountUtil } from "@/lib/utils";
 const Profile = () => {
   const navigate = useNavigate();
   const {
@@ -47,12 +48,7 @@ const Profile = () => {
 
   // Check if profile is incomplete (missing birth_date or gender)
   const isProfileIncomplete = profile && (!profile.birth_date || !profile.gender);
-  const formatCount = (count: number) => {
-    if (count >= 1000) {
-      return (count / 1000).toFixed(1).replace(/\.0$/, "") + "K";
-    }
-    return count.toString();
-  };
+  const formatCount = (count: number) => formatCountUtil(count);
   const stats = [{
     label: "Eventos",
     value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0)

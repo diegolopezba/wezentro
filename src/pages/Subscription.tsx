@@ -118,18 +118,17 @@ const Subscription = () => {
     }
   };
   return <AppLayout>
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/50">
-          <div className="flex items-center gap-4 p-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full">
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-xl font-semibold">Suscripción</h1>
-          </div>
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/50">
+        <div className="flex items-center gap-4 p-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full">
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold">Suscripción</h1>
         </div>
+      </div>
 
-        <div className="p-4 space-y-6 max-w-2xl mx-auto">
+      <div className="p-4 space-y-6 max-w-2xl mx-auto">
           {/* Current Plan Section */}
           <motion.div initial={{
           opacity: 0,
@@ -261,7 +260,6 @@ const Subscription = () => {
               Cancela en cualquier momento. Sin compromisos a largo plazo.
             </p>
           </motion.div>
-        </div>
       </div>
     </AppLayout>;
 };

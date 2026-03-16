@@ -23,6 +23,7 @@ import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
+import { formatCount as formatCountUtil } from "@/lib/utils";
 
 const UserProfile = () => {
   const {
@@ -81,12 +82,7 @@ const UserProfile = () => {
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
   const createChatMutation = useCreatePrivateChat();
-  const formatCount = (count: number) => {
-    if (count >= 1000) {
-      return (count / 1000).toFixed(1).replace(/\.0$/, "") + "K";
-    }
-    return count.toString();
-  };
+  const formatCount = (count: number) => formatCountUtil(count);
   const handleFollowToggle = () => {
     if (!id) return;
     

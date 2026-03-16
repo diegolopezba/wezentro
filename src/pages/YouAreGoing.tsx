@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { QrCode, MapPin, Calendar, X } from "lucide-react";
+import { MapPin, Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isVideoUrl } from "@/lib/mediaUtils";
+import { QRCodeSVG } from "qrcode.react";
 
 const YouAreGoing = () => {
   const navigate = useNavigate();
@@ -140,8 +141,7 @@ const YouAreGoing = () => {
                   className="w-full bg-white text-black hover:bg-white/90 rounded-xl font-semibold"
                   size="lg"
                 >
-                  <QrCode className="w-4 h-4 mr-2" />
-                  Mostrar QR
+                  Mostrar QR de Entrada
                 </Button>
               ) : guestlistEntry?.payment_status === "pending" ? (
                 <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm">
@@ -171,15 +171,13 @@ const YouAreGoing = () => {
           </DialogHeader>
           <div className="flex flex-col items-center py-6">
             {guestlistEntry?.qr_code_token ? (
-              <div className="bg-white p-4 rounded-xl">
-                <div className="w-48 h-48 flex items-center justify-center border-2 border-dashed border-muted rounded-lg">
-                  <div className="text-center">
-                    <QrCode className="w-16 h-16 mx-auto text-muted-foreground" />
-                    <p className="text-xs text-muted-foreground mt-2 font-mono break-all px-2">
-                      {guestlistEntry.qr_code_token.slice(0, 8)}...
-                    </p>
-                  </div>
-                </div>
+              <div className="bg-white p-5 rounded-2xl shadow-lg">
+                <QRCodeSVG
+                  value={guestlistEntry.qr_code_token}
+                  size={200}
+                  level="H"
+                  includeMargin={false}
+                />
               </div>
             ) : (
               <p className="text-muted-foreground text-sm">Código QR no disponible</p>

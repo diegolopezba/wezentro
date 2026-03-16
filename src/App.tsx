@@ -219,16 +219,6 @@ const App = () => {
                             }
                           />
                           <Route
-                            path="/settings/notifications"
-                            element={
-                              <ProtectedRoute requireProfile>
-                                <Suspense fallback={<PageLoader />}>
-                                  <Notifications />
-                                </Suspense>
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
                             path="/settings/subscription"
                             element={
                               <ProtectedRoute requireProfile>
