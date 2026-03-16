@@ -94,6 +94,7 @@ const Create = () => {
     hasGuestlist: false,
     hasGuestlistChat: true,
     showMenuButton: false,
+    showReservationButton: false,
   });
 
   // Auto-detect if this is a post (no date/time) or an event
