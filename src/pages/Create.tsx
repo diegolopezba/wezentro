@@ -490,7 +490,7 @@ const Create = () => {
                       Sube una imagen o video
                     </span>
                     <span className="text-xs text-muted-foreground/60 mt-1">
-                      Máx. 15 segundos para videos
+                      Máx. 30 segundos para videos
                     </span>
                   </>
                 )}
