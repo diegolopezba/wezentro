@@ -13,6 +13,7 @@ import {
   UserPlus,
   ChevronDown,
   UtensilsCrossed,
+  CalendarCheck,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
