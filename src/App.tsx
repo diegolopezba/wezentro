@@ -48,6 +48,7 @@ const Tickets = lazy(() => import("./pages/Tickets"));
 const YouAreGoing = lazy(() => import("./pages/YouAreGoing"));
 const BusinessDashboard = lazy(() => import("./pages/BusinessDashboard"));
 const BusinessSettings = lazy(() => import("./pages/BusinessSettings"));
+const BusinessPaymentSettings = lazy(() => import("./pages/BusinessPaymentSettings"));
 const JoinedEvents = lazy(() => import("./pages/JoinedEvents"));
 const Help = lazy(() => import("./pages/Help"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
