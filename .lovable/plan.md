@@ -1,62 +1,108 @@
 
-## The Problem
+## Audit: Inconsistencies & Simplification Opportunities
 
-The current flow is a dense, all-on-one-screen form inside a small dialog. It throws budget mode toggles, sliders, category pills, radius sliders, gender selects, and age inputs all at once. Instagram and TikTok solve this with **guided multi-step flows** — one decision per screen, progressive disclosure, heavy visual feedback, and a sticky cost summary that builds confidence.
+After a full read of all pages, routes, hooks, and layouts, here's a categorized list of everything worth cleaning up.
 
-Key insights from Meta/TikTok "Boost" patterns:
-1. **Step-by-step wizard** — not a form dump. Each step is one question.
-2. **Audience first, budget second** — users think "who do I reach" before "how much do I spend"
-3. **Live preview panel** — a persistent cost/reach estimator on the side (or bottom) that updates as they configure
-4. **Bold, simple numbers** — large typography for reach and cost, not small labels
-5. **One primary CTA per step** — "Siguiente →" keeps momentum, final step is "Pagar y Activar"
-6. **Empty state is a hero CTA** — not a tiny button. It should sell the value proposition
+---
 
-## The Redesign Plan
+### 1. Duplicate Route — `/settings/notifications`
 
-### 1. Replace the Dialog with a full-height Sheet (bottom sheet on mobile)
-A Sheet gives us more vertical space, feels more native on mobile, and allows a step-by-step flow without feeling cramped.
+`App.tsx` has both `/notifications` and `/settings/notifications` pointing to the **exact same `Notifications` page**. Nothing in the app navigates to `/settings/notifications` — it's dead code. It should be removed.
 
-### 2. 4-Step Wizard Flow
+---
 
-```
-Step 1: Elige tu evento
-  → Large event cards with cover image, date, already-promoted events greyed out
-  → "¿Qué evento quieres impulsar hoy?"
+### 2. Header Styling Inconsistency (3 different patterns across 15+ pages)
 
-Step 2: ¿A quién quieres llegar?
-  → Audience presets: "Público cercano" / "Interesados en [category]" / "Personalizado"
-  → Simple toggles, not raw inputs
-  → "Automático (recomendado)" is pre-selected = we handle targeting
+Pages use three different header backgrounds, with no consistent rule:
 
-Step 3: ¿Cuánto quieres invertir?
-  → 4 budget preset cards: $10 / $25 / $50 / $100 (most popular badge on $25)
-  → Each card shows estimated reach in big bold text
-  → Custom option below
-  → Live updating sticky footer: "Llegarás a ~5,000 personas por $25"
+- `bg-background` — Settings, Profile, Index, Notifications
+- `bg-background/80 backdrop-blur-xl border-b border-border` — BusinessSettings, BusinessPaymentSettings, BusinessDashboard
+- `glass-strong safe-top` — Saved, Help, TermsOfUse, PrivacyPolicy, ChatDetail
+- `bg-background/80 backdrop-blur-lg` — Create, Chats, JoinedEvents, EditProfile, MyReservations
 
-Step 4: Confirmar y Pagar
-  → Summary card: event title, audience, reach estimate, total cost
-  → Big green "Pagar $25 y Activar →" button
-  → Disclaimer line
-```
+All sub-pages should use the same standard. Suggestion: unify all secondary/sub-pages to `bg-background/80 backdrop-blur-lg` (or move the logic into `AppLayout` as a prop).
 
-### 3. Redesigned Empty State (hero style)
-Replace the weak empty state with a value-prop card:
-- Gradient background
-- Stat: "Eventos con boost reciben 3x más asistentes"
-- Single large CTA button "Impulsar mi evento →"
+---
 
-### 4. Campaign cards (active/draft) — minor improvement
-- Add event cover thumbnail
-- Status badge more prominent with color dot
-- Draft cards: show "Listo para activar" CTA more visually prominent
+### 3. Back Button Style Inconsistency
 
-## Files to modify
-- `src/components/dashboard/PromocionesSection.tsx` — complete redesign (single file, no backend changes)
+Pages have three different back button implementations:
 
-## Key UX principles applied
-- **Reduce cognitive load**: one decision per step
-- **Anchor with presets**: $25 as "más popular" removes paralysis
-- **Show value before cost**: reach number is bigger than dollar amount
-- **Build momentum**: progress indicator + "Siguiente →" keeps flow moving
-- **Trust signals**: "El pago es seguro vía Stripe" on the payment step
+- `<Button variant="ghost" size="icon">` with `<ArrowLeft>` — most pages
+- `<Button variant="ghost" size="icon">` with `<ChevronLeft>` — PrivacySettings, Notifications, Subscription
+- Raw `<button>` with custom classes (no Button component) — MyReservations, Referrals
+
+`MyReservations` uses a raw `<button>` without the `Button` component and without proper sizing classes. `Referrals` uses a custom rounded button style that differs from every other page. Both should use the standard `<Button variant="ghost" size="icon">`.
+
+---
+
+### 4. `JoinedEvents` Back Button Goes to `/settings` (hardcoded)
+
+`JoinedEvents.tsx` line 38: `navigate("/settings")` instead of `navigate(-1)`. This is the only back button in the entire app that doesn't use `navigate(-1)`, meaning if you arrive at JoinedEvents from a deep link, the back button will skip to Settings rather than going back in history.
+
+---
+
+### 5. Duplicated `formatCount` Function
+
+`formatCount` (K abbreviator for numbers) is copy-pasted identically in both `Profile.tsx` and `UserProfile.tsx`. It should live in `src/lib/utils.ts` and be imported in both.
+
+---
+
+### 6. Duplicated `renderTimelineCard` Function
+
+`renderTimelineCard` is also copy-pasted identically in both `Profile.tsx` and `UserProfile.tsx`. Since both render a `<TimelineCard>` with the same props, it can be extracted to a shared helper or inline the `map()` directly without the wrapper function.
+
+---
+
+### 7. `Subscription` Page Wraps `AppLayout` Inside Itself Redundantly
+
+`Subscription.tsx` renders `<AppLayout>` then immediately wraps children in `<div className="min-h-screen bg-background">`. The outer `AppLayout` already provides `min-h-screen bg-background`, creating a redundant nested div that duplicates the background class.
+
+---
+
+### 8. `EventDetailOverlay` and `EventDetail` — ~80% Logic Overlap
+
+(Already tracked in architecture memory.) Both components independently maintain the same 10+ `useState` hooks, the same 15+ query hooks, identical action handlers (save, like, repost, join guestlist), and the same modal/sheet stack. This is the largest simplification opportunity in the codebase — extracting a `useEventDetailState(id)` hook would cut ~400 lines of duplication.
+
+---
+
+### 9. `YouAreGoing` QR Code Shows a Placeholder
+
+The QR dialog renders a dashed box with just a `<QrCode>` icon and the first 8 characters of the token — not an actual scannable QR code. This is functionally broken. The token is present in the database but never rendered into a real QR code image. A library like `qrcode.react` should be added to generate the actual code.
+
+---
+
+### 10. `Tickets` Page Filters Past Events Client-Side
+
+`Tickets.tsx` fetches all guestlist entries then filters out past events in JavaScript. This should be a server-side filter using `.gte("event.start_datetime", new Date().toISOString())` in the query, reducing unnecessary data transfer.
+
+---
+
+### Summary Table
+
+| # | Issue | Effort | Impact |
+|---|-------|--------|--------|
+| 1 | Dead route `/settings/notifications` | Low | Code cleanliness |
+| 2 | 4 different header bg styles | Medium | Visual consistency |
+| 3 | 3 different back button styles | Low | UX consistency |
+| 4 | `JoinedEvents` hardcoded back to `/settings` | Trivial | Navigation bug |
+| 5 | `formatCount` duplicated in 2 files | Low | DRY |
+| 6 | `renderTimelineCard` duplicated in 2 files | Low | DRY |
+| 7 | Redundant `min-h-screen` in Subscription | Trivial | Code cleanliness |
+| 8 | EventDetail / EventDetailOverlay 80% overlap | High | Major DRY + maintainability |
+| 9 | QR code is a placeholder, not real QR | Medium | Functional bug |
+| 10 | Past-event filtering done client-side | Low | Performance |
+
+---
+
+### Recommended Plan
+
+**Phase 1 — Quick wins (issues 1, 3, 4, 5, 6, 7, 10):** One pass of small, low-risk fixes across multiple files.
+
+**Phase 2 — Header consistency (issue 2):** Standardize all sub-page headers to a single pattern; could be a `subPageHeader` variant in `AppLayout`.
+
+**Phase 3 — Real QR code (issue 9):** Install `qrcode.react`, replace the placeholder in `YouAreGoing` with an actual QR render.
+
+**Phase 4 — EventDetail refactor (issue 8):** Extract `useEventDetailState` shared hook — biggest win but highest risk; should be done in isolation.
+
+Want me to implement all of these, or start with a specific phase?
