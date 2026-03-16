@@ -426,6 +426,26 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
               />
             </div>
           )}
+
+          {/* Reservation Button Toggle - Only for Business users with reservations enabled */}
+          {isBusiness && reservationsEnabled && (
+            <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-secondary/50 border border-border">
+              <div className="flex items-center gap-2">
+                <CalendarCheck className="w-4 h-4 text-primary" />
+                <div className="flex flex-col">
+                  <Label htmlFor="show-reservation-button">Mostrar botón Reservar</Label>
+                  <span className="text-xs text-muted-foreground">
+                    Los visitantes podrán reservar una mesa desde este post
+                  </span>
+                </div>
+              </div>
+              <Switch
+                id="show-reservation-button"
+                checked={formData.show_reservation_button}
+                onCheckedChange={(checked) => setFormData({ ...formData, show_reservation_button: checked })}
+              />
+            </div>
+          )}
         </div>
 
         <div className="shrink-0 pt-4 border-t safe-bottom">
