@@ -340,12 +340,6 @@ export const EventDetailOverlay = () => {
                           <span className="text-xs">Menú</span>
                         </Button>
                       )}
-                      {event.show_reservation_button && event.creator_id && (
-                        <Button variant="ghost" size="sm" onClick={() => setShowReservationSheet(true)} className="gap-1.5 px-2">
-                          <CalendarCheck className="w-5 h-5" />
-                          <span className="text-xs">Reservar</span>
-                        </Button>
-                      )}
                       <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -558,6 +552,23 @@ export const EventDetailOverlay = () => {
                             {(joinGuestlist.isPending || joinGuestlistWithPayment.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : (hasPaymentQr || isInviteOnlyGuestlist) ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
                           </Button>
                         )}
+                      </div>
+                    </div>
+                  )}
+                  {/* Floating Reservation CTA Bar — shown only when no guestlist bar */}
+                  {!event.has_guestlist && event.show_reservation_button && event.creator_id && (
+                    <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="font-brand text-base font-semibold text-foreground">
+                          {event.creator?.full_name || event.creator?.username || ""}
+                        </span>
+                        <Button
+                          size="default"
+                          className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold hover:from-orange-400 hover:to-amber-400 shadow-lg rounded-full"
+                          onClick={() => setShowReservationSheet(true)}
+                        >
+                          <CalendarCheck className="w-4 h-4 mr-1" /> Reservar
+                        </Button>
                       </div>
                     </div>
                   )}
