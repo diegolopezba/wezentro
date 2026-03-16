@@ -30,6 +30,7 @@ interface EditEventSheetProps {
     has_guestlist_chat?: boolean | null;
     payment_qr_url?: string | null;
     show_menu_button?: boolean | null;
+    show_reservation_button?: boolean | null;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
