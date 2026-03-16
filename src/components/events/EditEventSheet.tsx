@@ -36,17 +36,7 @@ interface EditEventSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const CATEGORIES = [
-  { value: "party", label: "Fiesta" },
-  { value: "bar", label: "Bar" },
-  { value: "concert", label: "Concierto" },
-  { value: "festival", label: "Festival" },
-  { value: "rooftop", label: "Rooftop" },
-  { value: "restaurant", label: "Restaurante" },
-  { value: "coffee", label: "Café" },
-  { value: "fitness", label: "Fitness" },
-  { value: "culture", label: "Cultura" },
-];
+import { CATEGORIES } from "@/lib/categories";
 
 export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProps) {
   const updateEvent = useUpdateEvent();
@@ -255,8 +245,8 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
               </SelectTrigger>
               <SelectContent>
                 {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.emoji} {cat.label}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -246,8 +246,8 @@ export const EventDetailOverlay = () => {
       toast.error(error.message || "Error al salir de la lista");
     }
   };
-  const formattedDate = event ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a") : "";
-  const formattedPrice = event?.price ? `$${event.price}` : "Free";
+  const formattedDate = event?.start_datetime ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a") : "";
+  const formattedPrice = event?.price ? `Bs. ${event.price}` : "Gratis";
   const isVideo = event ? isVideoUrl(event.image_url) : false;
   return <AnimatePresence>
       {selectedEventId && <motion.div layoutId={`event-card-${selectedEventId}`} className="fixed inset-0 z-50 bg-background overflow-auto" initial={{
@@ -420,7 +420,7 @@ export const EventDetailOverlay = () => {
                               {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={() => navigate(`/user/${entry.user_id}`)} />)}
                               </div>
                               {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
-                                  +{guestlist.length - 5} more
+                                  +{guestlist.length - 5} más
                                 </span>}
                             </div>
 
@@ -564,7 +564,7 @@ export const EventDetailOverlay = () => {
                         </span>
                         <Button
                           size="default"
-                          className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold hover:from-orange-400 hover:to-amber-400 shadow-lg rounded-full"
+                          className="gradient-primary text-primary-foreground font-semibold shadow-lg rounded-full"
                           onClick={() => setShowReservationSheet(true)}
                         >
                           <CalendarCheck className="w-4 h-4 mr-1" /> Reservar

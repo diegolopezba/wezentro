@@ -42,17 +42,7 @@ import { extractDescriptionTags } from "@/lib/descriptionTagExtractor";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
 import { useMyMenu } from "@/hooks/useMenu";
 
-const categories = [
-  { id: "party", label: "Fiesta", emoji: "🪩" },
-  { id: "bar", label: "Bar", emoji: "🍸" },
-  { id: "concert", label: "Concierto", emoji: "🎵" },
-  { id: "festival", label: "Festival", emoji: "🎪" },
-  { id: "rooftop", label: "Rooftop", emoji: "🌆" },
-  { id: "restaurant", label: "Restaurante", emoji: "🍽️" },
-  { id: "coffee", label: "Café", emoji: "☕" },
-  { id: "fitness", label: "Fitness", emoji: "🏋️" },
-  { id: "culture", label: "Cultura", emoji: "🎨" },
-];
+import { CATEGORIES } from "@/lib/categories";
 
 const Create = () => {
   const navigate = useNavigate();
@@ -306,25 +296,8 @@ const Create = () => {
 
       if (error) throw error;
 
-      // If event has guestlist AND group chat is enabled, create the group chat and add creator
-      if (formData.hasGuestlist && formData.hasGuestlistChat && data.id) {
-        const { data: chat, error: chatError } = await supabase
-          .from("chats")
-          .insert({
-            type: "event",
-            event_id: data.id,
-            name: formData.title.trim() || "Chat del Evento",
-          })
-          .select()
-          .single();
-
-        if (!chatError && chat) {
-          await supabase.from("chat_participants").insert({
-            chat_id: chat.id,
-            user_id: user.id,
-          });
-        }
-      }
+      // Group chat is created automatically by the DB trigger (create_event_group_chat).
+      // No manual chat creation needed here to avoid duplicates.
 
       // If collaborator is selected, send collaboration invite
       if (selectedCollaborator && data.id) {
@@ -549,7 +522,7 @@ const Create = () => {
             <span className="flex items-center gap-2">
               {formData.category
                 ? (() => {
-                    const cat = categories.find((c) => c.id === formData.category);
+                    const cat = CATEGORIES.find((c) => c.id === formData.category);
                     return cat ? <><span>{cat.emoji}</span><span>{cat.label}</span></> : <span className="text-muted-foreground">Seleccionar categoría</span>;
                   })()
                 : <span className="text-muted-foreground">Seleccionar categoría</span>}
@@ -567,7 +540,7 @@ const Create = () => {
                 className="overflow-hidden"
               >
                 <div className="flex flex-wrap gap-2 pt-3">
-                  {categories.map((category) => (
+                  {CATEGORIES.map((category) => (
                     <button
                       key={category.id}
                       type="button"

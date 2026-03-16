@@ -98,12 +98,21 @@ const Index = () => {
   const { data: sponsoredPosts = [] } = useActiveSponsoredPosts();
   const trackImpression = useTrackSponsoredImpression();
 
-  // Reuse the same profile data already fetched by useForYouEvents (same cache key)
+  // Fetch user demographics for sponsored post targeting
   const { data: userDemographics } = useQuery({
-    queryKey: ["user-interests", user?.id],
+    queryKey: ["profile", user?.id],
     enabled: !!user?.id,
     staleTime: 10 * 60 * 1000,
-    queryFn: async () => null, // never runs — cache hit from useForYouEvents
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase
+        .from("profiles")
+        .select("birth_date, gender, interests")
+        .eq("id", user.id)
+        .maybeSingle();
+      return data;
+    },
   });
   
   const handleNotificationClick = () => {
@@ -237,6 +246,9 @@ const Index = () => {
               <Button variant="ghost" size="icon" className="relative" onClick={handleNotificationClick}>
                 <Bell className="w-5 h-5" />
                 {!isGuest && unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />}
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => setShowSearch(s => !s)}>
+                <Search className="w-5 h-5" />
               </Button>
             </div>
           </div>
