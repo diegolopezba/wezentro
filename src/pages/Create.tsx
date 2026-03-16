@@ -522,7 +522,7 @@ const Create = () => {
             <span className="flex items-center gap-2">
               {formData.category
                 ? (() => {
-                    const cat = categories.find((c) => c.id === formData.category);
+                    const cat = CATEGORIES.find((c) => c.id === formData.category);
                     return cat ? <><span>{cat.emoji}</span><span>{cat.label}</span></> : <span className="text-muted-foreground">Seleccionar categoría</span>;
                   })()
                 : <span className="text-muted-foreground">Seleccionar categoría</span>}
