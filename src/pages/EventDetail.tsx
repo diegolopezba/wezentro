@@ -144,18 +144,18 @@ const EventDetail = () => {
           <div className="flex items-center justify-between">
             {/* Left: Like, Repost, Send, Save, Invite */}
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" onClick={handleLikeToggle} disabled={likeEvent.isPending || unlikeEvent.isPending} className="gap-1.5 px-2">
+              <Button variant="ghost" size="sm" onClick={handleLikeToggle} disabled={likeEventPending} className="gap-1.5 px-2">
                 <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
                 {likeCount > 0 && <span className="text-xs text-muted-foreground">{likeCount}</span>}
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleRepostToggle} disabled={toggleRepost.isPending} className="gap-1.5 px-2">
+              <Button variant="ghost" size="sm" onClick={handleRepostToggle} disabled={repostPending} className="gap-1.5 px-2">
                 <Repeat className={`w-5 h-5 ${hasReposted ? 'text-green-500' : ''}`} />
                 {repostCount > 0 && <span className="text-xs text-muted-foreground">{repostCount}</span>}
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
                 <Send className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleSaveToggle} disabled={saveEvent.isPending || unsaveEvent.isPending} className="gap-1.5 px-2">
+              <Button variant="ghost" size="sm" onClick={handleSaveToggle} disabled={saveEventPending} className="gap-1.5 px-2">
                 <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
                 {saveCount > 0 && <span className="text-xs text-muted-foreground">{saveCount}</span>}
               </Button>
