@@ -13,7 +13,6 @@ interface UpdateEventData {
   price?: number;
   max_guestlist_capacity?: number | null;
   has_guestlist?: boolean;
-  has_guestlist_chat?: boolean | null;
   payment_qr_url?: string | null;
   show_menu_button?: boolean;
   show_reservation_button?: boolean;

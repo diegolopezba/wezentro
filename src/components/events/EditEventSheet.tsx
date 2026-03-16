@@ -304,39 +304,17 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           </div>
 
           {formData.has_guestlist && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="capacity">Capacidad máxima (opcional)</Label>
-                <Input
-                  id="capacity"
-                  type="number"
-                  min="1"
-                  value={formData.max_guestlist_capacity}
-                  onChange={(e) => setFormData({ ...formData, max_guestlist_capacity: e.target.value })}
-                  placeholder="Dejar vacío para ilimitado"
-                />
-              </div>
-
-              {/* Group chat toggle */}
-              <div className="flex items-center justify-between py-2">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4 text-muted-foreground" />
-                  <div className="flex flex-col">
-                    <Label htmlFor="guestlist-chat">Chat grupal</Label>
-                    <span className="text-xs text-muted-foreground">
-                      Crear un chat con todos los invitados
-                    </span>
-                  </div>
-                </div>
-                <Switch
-                  id="guestlist-chat"
-                  checked={formData.has_guestlist_chat}
-                  onCheckedChange={(checked) => {
-                    setFormData({ ...formData, has_guestlist_chat: checked });
-                  }}
-                />
-              </div>
-            </>
+            <div className="space-y-2">
+              <Label htmlFor="capacity">Capacidad máxima (opcional)</Label>
+              <Input
+                id="capacity"
+                type="number"
+                min="1"
+                value={formData.max_guestlist_capacity}
+                onChange={(e) => setFormData({ ...formData, max_guestlist_capacity: e.target.value })}
+                placeholder="Dejar vacío para ilimitado"
+              />
+            </div>
           )}
 
           {/* Payment QR Section - Only for Business users with price > 0 and guestlist enabled */}

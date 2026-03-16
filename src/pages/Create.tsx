@@ -281,7 +281,6 @@ const Create = () => {
           price: formData.price ? parseFloat(formData.price) : 0,
           max_guestlist_capacity: formData.capacity ? parseInt(formData.capacity) : null,
           has_guestlist: formData.hasGuestlist,
-          has_guestlist_chat: formData.hasGuestlist ? formData.hasGuestlistChat : null,
           image_url: imageUrl,
           creator_id: user.id,
           is_public: true,
@@ -294,9 +293,6 @@ const Create = () => {
         .single();
 
       if (error) throw error;
-
-      // Group chat is created automatically by the DB trigger (create_event_group_chat).
-      // No manual chat creation needed here to avoid duplicates.
 
       // If collaborator is selected, send collaboration invite
       if (selectedCollaborator && data.id) {
