@@ -105,8 +105,8 @@ const Create = () => {
     if (!file) return;
 
     if (isVideoFile(file)) {
-      // Validate video (15s max, 20MB max - lowered for storage optimization)
-      const validation = await validateVideoFile(file, 15, 20);
+      // Validate video (30s max, 20MB max - lowered for storage optimization)
+      const validation = await validateVideoFile(file, 30, 20);
       if (!validation.valid) {
         toast.error(validation.error);
         return;
