@@ -57,7 +57,6 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
     price: event.price?.toString() || "0",
     max_guestlist_capacity: event.max_guestlist_capacity?.toString() || "",
     has_guestlist: event.has_guestlist || false,
-    has_guestlist_chat: event.has_guestlist_chat ?? true,
     payment_qr_url: event.payment_qr_url || "",
     show_menu_button: event.show_menu_button ?? false,
     show_reservation_button: event.show_reservation_button ?? false,
