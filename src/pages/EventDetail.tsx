@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
@@ -31,6 +31,7 @@ import { useEventTags, useRemoveTag } from "@/hooks/useEventTags";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 import { MentionText } from "@/components/ui/MentionText";
 import { MenuSheet } from "@/components/menu/MenuSheet";
+import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 
 const EventDetail = () => {
   const {

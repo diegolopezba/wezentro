@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, X, Bookmark, Repeat, EyeOff, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, X, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -28,6 +28,7 @@ import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 import { MenuSheet } from "@/components/menu/MenuSheet";
+import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 export const EventDetailOverlay = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
