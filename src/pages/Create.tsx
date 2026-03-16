@@ -863,6 +863,44 @@ const Create = () => {
           </motion.div>
         )}
 
+        {/* Reservation button toggle - only for business accounts with reservations enabled */}
+        {isBusiness && reservationsEnabled && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.24 }}
+          >
+            <Card className="glass border-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                    <CalendarCheck className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Mostrar botón Reservar</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Los visitantes podrán reservar una mesa desde este post
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, showReservationButton: !formData.showReservationButton })}
+                  className={`relative w-12 h-7 rounded-full transition-colors ${
+                    formData.showReservationButton ? "bg-primary" : "bg-secondary"
+                  }`}
+                >
+                  <motion.div
+                    animate={{ x: formData.showReservationButton ? 22 : 2 }}
+                    className="absolute top-1 w-5 h-5 rounded-full bg-foreground"
+                  />
+                </button>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
+
         {/* Create button */}
         <div className="pt-2">
           <Button
