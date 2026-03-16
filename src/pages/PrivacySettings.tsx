@@ -113,7 +113,7 @@ const PrivacySettings = () => {
   return (
     <AppLayout>
       {/* Header */}
-      <header className="sticky top-0 z-40 safe-top">
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg safe-top">
         <div className="flex items-center gap-3 px-4 py-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ChevronLeft className="w-5 h-5" />

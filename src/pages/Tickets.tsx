@@ -51,12 +51,7 @@ const Tickets = () => {
 
       if (error) throw error;
       
-      // Filter out events that have already passed
-      const now = new Date();
-      return data?.filter((ticket: any) => {
-        const eventDate = new Date(ticket.event?.start_datetime);
-        return eventDate >= now;
-      }) || [];
+      return data || [];
     },
     enabled: !!user,
   });
