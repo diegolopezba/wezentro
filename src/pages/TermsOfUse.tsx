@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const TermsOfUse = () => {
   const navigate = useNavigate();
-  const lastUpdated = "27 de febrero de 2026";
+  const lastUpdated = "16 de marzo de 2026";
 
   return (
     <AppLayout hideNav>
@@ -120,7 +120,7 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">6. Eventos y Guestlists</h2>
+            <h2 className="text-lg font-semibold text-foreground">6. Eventos, Guestlists y Pagos de Entradas</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Como creador de eventos, usted es responsable de:
             </p>
@@ -129,9 +129,35 @@ const TermsOfUse = () => {
               <li>El cumplimiento de las leyes locales aplicables</li>
               <li>La seguridad y conducta en sus eventos presenciales</li>
               <li>La gestión adecuada de su lista de invitados</li>
+              <li>La configuración correcta de precios y la recepción de pagos si utiliza pagos QR</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro no es responsable de los eventos creados por usuarios ni de las interacciones que ocurran en ellos.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground">6b. Pagos QR mediante BNB Open Banking</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Zentro permite a negocios aceptar pagos por entradas a eventos físicos mediante códigos QR dinámicos integrados con BNB Open Banking. Al utilizar esta funcionalidad:
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed font-medium">Para negocios (organizadores):</p>
+            <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
+              <li>Debe registrarse en BNB Open Banking (<strong>bnb.com.bo/PortalBNB/Api/OpenBanking</strong>) y obtener sus credenciales</li>
+              <li>Es responsable de configurar correctamente sus credenciales en la aplicación</li>
+              <li>El dinero va directamente a su cuenta BNB — Zentro no interviene en la transacción financiera</li>
+              <li>Es responsable de reembolsos y disputas de pago con sus clientes</li>
+              <li>Debe cumplir con la normativa fiscal y tributaria boliviana aplicable</li>
+            </ul>
+            <p className="text-sm text-muted-foreground leading-relaxed font-medium mt-2">Para usuarios (compradores):</p>
+            <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
+              <li>El pago se realiza desde su app bancaria directamente al negocio — Zentro no recibe ni retiene fondos</li>
+              <li>Una vez confirmado el pago, se emite automáticamente su entrada digital</li>
+              <li>En caso de disputa de pago, debe contactar directamente al negocio organizador</li>
+              <li>Zentro no es responsable por errores en el proceso de pago bancario externo</li>
+            </ul>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Zentro actúa exclusivamente como facilitador tecnológico y no es parte de la transacción comercial entre el negocio y el comprador.
             </p>
           </section>
 
