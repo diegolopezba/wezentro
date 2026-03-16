@@ -210,11 +210,15 @@ const Index = () => {
       });
 
       const result = [...organic];
-      let sponsoredIndex = 0;
-      const interval = 8;
-      for (let i = interval; i <= result.length && sponsoredIndex < sponsoredCards.length; i += interval + 1) {
-        result.splice(i, 0, sponsoredCards[sponsoredIndex]);
-        sponsoredIndex++;
+      // First sponsored at index 1 (second card = top of right column in masonry)
+      // Then every 9 positions after (8 organic + 1 sponsored slot)
+      let insertAt = 1;
+      const interval = 9;
+      for (let s = 0; s < sponsoredCards.length; s++) {
+        if (insertAt <= result.length) {
+          result.splice(insertAt, 0, sponsoredCards[s]);
+          insertAt += interval;
+        }
       }
       return result;
     }
