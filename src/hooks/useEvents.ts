@@ -21,6 +21,7 @@ export interface Event {
   created_at: string;
   payment_qr_url: string | null;
   show_menu_button: boolean | null;
+  show_reservation_button: boolean | null;
   creator?: {
     id: string;
     username: string;
