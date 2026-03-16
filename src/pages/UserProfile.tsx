@@ -81,12 +81,7 @@ const UserProfile = () => {
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
   const createChatMutation = useCreatePrivateChat();
-  const formatCount = (count: number) => {
-    if (count >= 1000) {
-      return (count / 1000).toFixed(1).replace(/\.0$/, "") + "K";
-    }
-    return count.toString();
-  };
+  const formatCount = (count: number) => formatCountUtil(count);
   const handleFollowToggle = () => {
     if (!id) return;
     
