@@ -52,6 +52,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
   const updateEvent = useUpdateEvent();
   const { profile } = useAuth();
   const isBusiness = profile?.is_business === true;
+  const reservationsEnabled = (profile as any)?.reservations_enabled === true;
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
   const [isUploadingQr, setIsUploadingQr] = useState(false);
