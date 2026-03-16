@@ -121,6 +121,7 @@ const PrivacyPolicy = () => {
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li><strong>Infraestructura en la nube:</strong> para autenticación segura y almacenamiento de datos con cifrado en reposo</li>
               <li><strong>Stripe:</strong> para procesamiento de pagos de suscripciones — los datos de tarjetas nunca pasan por nuestros servidores</li>
+              <li><strong>BNB Open Banking:</strong> para generación de códigos QR de pago dinámicos en eventos presenciales — las credenciales de la cuenta bancaria son almacenadas cifradas y el dinero va directamente a la cuenta del negocio sin pasar por Zentro</li>
               <li><strong>Mapbox:</strong> para servicios de mapas y ubicación</li>
               <li><strong>OneSignal:</strong> para notificaciones push — solo compartimos identificadores de dispositivo anonimizados</li>
             </ul>
