@@ -46,6 +46,7 @@ const Tickets = () => {
         `)
         .eq("user_id", user.id)
         .in("status", ["approved", "pending"])
+        .gt("event.start_datetime", new Date().toISOString())
         .order("joined_at", { ascending: false });
 
       if (error) throw error;
