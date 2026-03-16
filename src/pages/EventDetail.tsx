@@ -428,13 +428,13 @@ const EventDetail = () => {
                   <Clock className="w-4 h-4 mr-1" /> Pendiente
                 </Button> :
 
-        <Button variant="ghost" size="default" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
-                  {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
+        <Button variant="ghost" size="default" onClick={handleLeaveGuestlist} disabled={leaveGuestlistPending}>
+                  {leaveGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
                 </Button> :
 
 
-        <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
-                {joinGuestlist.isPending || joinGuestlistWithPayment.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr || isInviteOnlyGuestlist ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
+        <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlistPending}>
+                {joinGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaymentQr || isInviteOnlyGuestlist ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
               </Button>
         }
           </div>
