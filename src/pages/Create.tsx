@@ -42,17 +42,7 @@ import { extractDescriptionTags } from "@/lib/descriptionTagExtractor";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
 import { useMyMenu } from "@/hooks/useMenu";
 
-const categories = [
-  { id: "party", label: "Fiesta", emoji: "🪩" },
-  { id: "bar", label: "Bar", emoji: "🍸" },
-  { id: "concert", label: "Concierto", emoji: "🎵" },
-  { id: "festival", label: "Festival", emoji: "🎪" },
-  { id: "rooftop", label: "Rooftop", emoji: "🌆" },
-  { id: "restaurant", label: "Restaurante", emoji: "🍽️" },
-  { id: "coffee", label: "Café", emoji: "☕" },
-  { id: "fitness", label: "Fitness", emoji: "🏋️" },
-  { id: "culture", label: "Cultura", emoji: "🎨" },
-];
+import { CATEGORIES } from "@/lib/categories";
 
 const Create = () => {
   const navigate = useNavigate();
