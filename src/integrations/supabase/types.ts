@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_payment_settings: {
+        Row: {
+          bnb_account_id: string
+          bnb_authorization_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bnb_account_id: string
+          bnb_authorization_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bnb_account_id?: string
+          bnb_authorization_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_participants: {
         Row: {
           chat_id: string
@@ -724,6 +754,50 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_sessions: {
+        Row: {
+          amount: number
+          bnb_qr_id: string | null
+          business_user_id: string
+          buyer_user_id: string
+          confirmed_at: string | null
+          created_at: string
+          event_id: string
+          id: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          bnb_qr_id?: string | null
+          business_user_id: string
+          buyer_user_id: string
+          confirmed_at?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          bnb_qr_id?: string | null
+          business_user_id?: string
+          buyer_user_id?: string
+          confirmed_at?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
