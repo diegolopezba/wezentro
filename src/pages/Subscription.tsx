@@ -260,7 +260,6 @@ const Subscription = () => {
               Cancela en cualquier momento. Sin compromisos a largo plazo.
             </p>
           </motion.div>
-        </div>
       </div>
     </AppLayout>;
 };
