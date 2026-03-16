@@ -328,6 +328,16 @@ const App = () => {
                             }
                           />
                           <Route
+                            path="/settings/business/payments"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Suspense fallback={<PageLoader />}>
+                                  <BusinessPaymentSettings />
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
                             path="/settings/joined-events"
                             element={
                               <ProtectedRoute requireProfile>
