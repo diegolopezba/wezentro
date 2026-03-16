@@ -108,21 +108,6 @@ export const useJoinGuestlistWithPayment = () => {
 
       if (entryError) throw entryError;
 
-      // Find the event's group chat and add user as participant
-      const { data: chat } = await supabase
-        .from("chats")
-        .select("id")
-        .eq("event_id", eventId)
-        .eq("type", "event")
-        .maybeSingle();
-
-      if (chat) {
-        await supabase.from("chat_participants").insert({
-          chat_id: chat.id,
-          user_id: user.id,
-        });
-      }
-
       // Notify event creator about payment registration
       if (event && event.creator_id !== user.id) {
         sendPushNotification({
@@ -130,7 +115,7 @@ export const useJoinGuestlistWithPayment = () => {
           title: "Nuevo pago registrado",
           body: `@${userProfile?.username || "Alguien"} registró un pago para ${event.title || "tu evento"}`,
           data: { type: "payment_pending", eventId },
-        url: `/events/${eventId}`,
+          url: `/events/${eventId}`,
         });
       }
 
