@@ -16,6 +16,7 @@ import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
 import { ReservationsManagementSheet } from "@/components/reservations/ReservationsManagementSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
+import { formatCount as formatCountUtil } from "@/lib/utils";
 const Profile = () => {
   const navigate = useNavigate();
   const {
