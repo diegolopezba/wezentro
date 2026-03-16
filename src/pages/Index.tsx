@@ -247,6 +247,9 @@ const Index = () => {
                 <Bell className="w-5 h-5" />
                 {!isGuest && unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />}
               </Button>
+              <Button variant="ghost" size="icon" onClick={() => setShowSearch(s => !s)}>
+                <Search className="w-5 h-5" />
+              </Button>
             </div>
           </div>
           {showSearch && <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-4 pb-4">
