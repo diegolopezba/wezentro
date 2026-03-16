@@ -562,11 +562,11 @@ const EventDetail = () => {
     <PaymentQRModal
       open={showPaymentModal}
       onOpenChange={setShowPaymentModal}
+      eventId={id!}
       eventTitle={event.title || "Evento"}
       price={event.price || 0}
-      paymentQrUrl={event.payment_qr_url!}
-      onPaymentSubmitted={handlePaymentSubmitted}
-      isSubmitting={joinGuestlistWithPayment.isPending} />
+      paymentQrUrl={event.payment_qr_url ?? undefined}
+      onPaymentConfirmed={handlePaymentSubmitted} />
 
     }
 

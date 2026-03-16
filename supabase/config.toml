@@ -26,3 +26,9 @@ verify_jwt = false
 
 [functions.charge-boost]
 verify_jwt = false
+
+[functions.generate-bnb-qr]
+verify_jwt = false
+
+[functions.check-bnb-payment-status]
+verify_jwt = false
