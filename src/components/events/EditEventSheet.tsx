@@ -71,6 +71,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
     has_guestlist_chat: event.has_guestlist_chat ?? true,
     payment_qr_url: event.payment_qr_url || "",
     show_menu_button: event.show_menu_button ?? false,
+    show_reservation_button: event.show_reservation_button ?? false,
   });
 
   useEffect(() => {
@@ -87,6 +88,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
         has_guestlist_chat: event.has_guestlist_chat ?? true,
         payment_qr_url: event.payment_qr_url || "",
         show_menu_button: event.show_menu_button ?? false,
+        show_reservation_button: event.show_reservation_button ?? false,
       });
     }
   }, [open, event]);
