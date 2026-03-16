@@ -1,62 +1,46 @@
 
-## The Problem
+## Remove Group Chat Feature from Events
 
-The current flow is a dense, all-on-one-screen form inside a small dialog. It throws budget mode toggles, sliders, category pills, radius sliders, gender selects, and age inputs all at once. Instagram and TikTok solve this with **guided multi-step flows** — one decision per screen, progressive disclosure, heavy visual feedback, and a sticky cost summary that builds confidence.
+### What needs to change
 
-Key insights from Meta/TikTok "Boost" patterns:
-1. **Step-by-step wizard** — not a form dump. Each step is one question.
-2. **Audience first, budget second** — users think "who do I reach" before "how much do I spend"
-3. **Live preview panel** — a persistent cost/reach estimator on the side (or bottom) that updates as they configure
-4. **Bold, simple numbers** — large typography for reach and cost, not small labels
-5. **One primary CTA per step** — "Siguiente →" keeps momentum, final step is "Pagar y Activar"
-6. **Empty state is a hero CTA** — not a tiny button. It should sell the value proposition
+The group chat feature for guestlist events is spread across 5 areas:
 
-## The Redesign Plan
+1. **DB trigger** — `create_event_group_chat` fires on every event INSERT and creates a chat row. Needs to be dropped via a migration. The `has_guestlist_chat` column can remain (it's already in the schema and removing it would be a bigger migration) — we just stop using it.
 
-### 1. Replace the Dialog with a full-height Sheet (bottom sheet on mobile)
-A Sheet gives us more vertical space, feels more native on mobile, and allows a step-by-step flow without feeling cramped.
+2. **`useGuestlist.ts`** — Three hooks (`useJoinGuestlist`, `useJoinGuestlistWithPayment`, `useLeaveGuestlist`) each do a lookup for the event chat and add/remove the user. All three chat-related blocks need to be removed.
 
-### 2. 4-Step Wizard Flow
+3. **`Create.tsx`** — Remove the `hasGuestlistChat` form field, its default value, the toggle UI (the entire animated section inside `{formData.hasGuestlist && ...}`), and stop passing `has_guestlist_chat` to the insert.
 
-```
-Step 1: Elige tu evento
-  → Large event cards with cover image, date, already-promoted events greyed out
-  → "¿Qué evento quieres impulsar hoy?"
+4. **`EditEventSheet.tsx`** — Remove `has_guestlist_chat` from the form state, the `useEffect` sync, the save payload, the interface prop, and the entire "Chat grupal" toggle UI block (lines ~324–341).
 
-Step 2: ¿A quién quieres llegar?
-  → Audience presets: "Público cercano" / "Interesados en [category]" / "Personalizado"
-  → Simple toggles, not raw inputs
-  → "Automático (recomendado)" is pre-selected = we handle targeting
+5. **`useEventMutations.ts`** — Remove `has_guestlist_chat` from the `UpdateEventData` interface.
 
-Step 3: ¿Cuánto quieres invertir?
-  → 4 budget preset cards: $10 / $25 / $50 / $100 (most popular badge on $25)
-  → Each card shows estimated reach in big bold text
-  → Custom option below
-  → Live updating sticky footer: "Llegarás a ~5,000 personas por $25"
+6. **`useSubscription.ts`** — Remove "Accede a chats grupales de eventos" from the Premium plan features list.
 
-Step 4: Confirmar y Pagar
-  → Summary card: event title, audience, reach estimate, total cost
-  → Big green "Pagar $25 y Activar →" button
-  → Disclaimer line
+### Database migration
+
+Drop the trigger (which auto-creates chats on event insert) and drop the function:
+
+```sql
+DROP TRIGGER IF EXISTS on_event_created_create_group_chat ON public.events;
+DROP FUNCTION IF EXISTS public.create_event_group_chat();
 ```
 
-### 3. Redesigned Empty State (hero style)
-Replace the weak empty state with a value-prop card:
-- Gradient background
-- Stat: "Eventos con boost reciben 3x más asistentes"
-- Single large CTA button "Impulsar mi evento →"
+The `has_guestlist_chat` column stays in the DB (safe to leave, just ignored). No data is deleted. Existing event-type chats already in the `chats` table will remain but will no longer appear since no new ones are created and the UI paths to join them are removed.
 
-### 4. Campaign cards (active/draft) — minor improvement
-- Add event cover thumbnail
-- Status badge more prominent with color dot
-- Draft cards: show "Listo para activar" CTA more visually prominent
+### What is NOT removed
 
-## Files to modify
-- `src/components/dashboard/PromocionesSection.tsx` — complete redesign (single file, no backend changes)
+- Private 1:1 chats — completely untouched
+- `EventInviteCard` / `GuestlistInviteCard` in private chats — untouched (these are cards shared inside private DMs, unrelated to the group chat feature)
+- The `Chats` page and `ChatDetail` page — untouched (still needed for private messaging)
 
-## Key UX principles applied
-- **Reduce cognitive load**: one decision per step
-- **Anchor with presets**: $25 as "más popular" removes paralysis
-- **Show value before cost**: reach number is bigger than dollar amount
-- **Build momentum**: progress indicator + "Siguiente →" keeps flow moving
-- **Trust signals**: "El pago es seguro vía Stripe" on the payment step
+### Files to edit
+
+| File | Change |
+|---|---|
+| New migration | Drop trigger + function |
+| `src/hooks/useGuestlist.ts` | Remove chat lookup/insert/delete blocks in all 3 hooks |
+| `src/pages/Create.tsx` | Remove `hasGuestlistChat` state + toggle UI + field from insert |
+| `src/components/events/EditEventSheet.tsx` | Remove `has_guestlist_chat` state + toggle UI + field from save |
+| `src/hooks/useEventMutations.ts` | Remove `has_guestlist_chat` from interface |
+| `src/hooks/useSubscription.ts` | Remove group chat feature bullet |
