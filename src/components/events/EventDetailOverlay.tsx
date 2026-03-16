@@ -340,6 +340,12 @@ export const EventDetailOverlay = () => {
                           <span className="text-xs">Menú</span>
                         </Button>
                       )}
+                      {event.show_reservation_button && event.creator_id && (
+                        <Button variant="ghost" size="sm" onClick={() => setShowReservationSheet(true)} className="gap-1.5 px-2">
+                          <CalendarCheck className="w-5 h-5" />
+                          <span className="text-xs">Reservar</span>
+                        </Button>
+                      )}
                       <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
