@@ -245,8 +245,8 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
               </SelectTrigger>
               <SelectContent>
                 {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.emoji} {cat.label}
                   </SelectItem>
                 ))}
               </SelectContent>
