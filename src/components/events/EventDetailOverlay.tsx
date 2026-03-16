@@ -59,6 +59,8 @@ export const EventDetailOverlay = () => {
     handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(selectedEventId || undefined, closeEvent);
 
+  const isVideo = isVideoUrl(event?.image_url);
+
   // Check for showPayment query param (returned from checkout success)
   useEffect(() => {
     const shouldShowPayment = searchParams.get("showPayment") === "true";
@@ -68,31 +70,60 @@ export const EventDetailOverlay = () => {
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, hasPaymentQr, hasSubscription, isOnGuestlist, setSearchParams]);
-  return <AnimatePresence>
-      {selectedEventId && <motion.div layoutId={`event-card-${selectedEventId}`} className="fixed inset-0 z-50 bg-background overflow-auto" initial={{
-      opacity: 0
-    }} animate={{
-      opacity: 1
-    }} exit={{
-      opacity: 0
-    }} transition={{
-      duration: 0.3,
-      ease: [0.22, 1, 0.36, 1]
-    }}>
-          {isLoading ? <div className="min-h-screen flex items-center justify-center">
+
+  return (
+    <AnimatePresence>
+      {selectedEventId && (
+        <motion.div
+          layoutId={`event-card-${selectedEventId}`}
+          className="fixed inset-0 z-50 bg-background overflow-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {isLoading ? (
+            <div className="min-h-screen flex items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div> : error || !event ? <div className="min-h-screen flex flex-col items-center justify-center px-4">
+            </div>
+          ) : error || !event ? (
+            <div className="min-h-screen flex flex-col items-center justify-center px-4">
               <h1 className="font-brand text-xl font-bold text-foreground mb-2">Evento no encontrado</h1>
               <p className="text-muted-foreground mb-4">Este evento puede haber sido eliminado.</p>
               <Button onClick={closeEvent}>Volver</Button>
-            </div> : <>
+            </div>
+          ) : (
+            <>
               {/* Hero media */}
-              <motion.div layoutId={`event-image-${selectedEventId}`} className="relative w-full" style={{
-          aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
-          minHeight: '250px',
-          maxHeight: '70vh'
-        }}>
-                {isVideo ? <video ref={videoRef} src={event.image_url || ""} className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`} onLoadedMetadata={handleVideoMetadata} onClick={togglePlayPause} playsInline autoPlay muted loop /> : <img src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} alt={event.title || "Event"} className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`} onLoad={handleImageLoad} />}
+              <motion.div
+                layoutId={`event-image-${selectedEventId}`}
+                className="relative w-full"
+                style={{
+                  aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
+                  minHeight: '250px',
+                  maxHeight: '70vh'
+                }}
+              >
+                {isVideo ? (
+                  <video
+                    ref={videoRef}
+                    src={event.image_url || ""}
+                    className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoadedMetadata={handleVideoMetadata}
+                    onClick={togglePlayPause}
+                    playsInline
+                    autoPlay
+                    muted
+                    loop
+                  />
+                ) : (
+                  <img
+                    src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
+                    alt={event.title || "Event"}
+                    className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoad={handleImageLoad}
+                  />
+                )}
                 <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-background to-transparent pointer-events-none" />
 
                 {/* Close button */}
@@ -101,29 +132,33 @@ export const EventDetailOverlay = () => {
                     <Button variant="glass" size="icon" onClick={closeEvent}>
                       <X className="w-5 h-5" />
                     </Button>
-                    {isVideo && <button onClick={toggleMute} className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors">
+                    {isVideo && (
+                      <button
+                        onClick={toggleMute}
+                        className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
+                      >
                         {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
-                      </button>}
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>
 
               {/* Content */}
-              <motion.div className="relative -mt-16 px-4 pb-28" initial={{
-          opacity: 0,
-          y: 20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.15
-        }}>
+              <motion.div
+                className="relative -mt-16 px-4 pb-28"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
                 <div className="space-y-6">
                   {/* Category & title */}
                   <div>
-                    {event.category && <span className="inline-block px-3 py-1 rounded-full text-xs gradient-primary mb-3 text-primary font-normal">
+                    {event.category && (
+                      <span className="inline-block px-3 py-1 rounded-full text-xs gradient-primary mb-3 text-primary font-normal">
                         {event.category.replace("_", " ")}
-                      </span>}
+                      </span>
+                    )}
                     {event.title && <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>}
                   </div>
 
@@ -131,24 +166,26 @@ export const EventDetailOverlay = () => {
                   <div className="flex items-center justify-between">
                     {/* Left: Like, Repost, Send, Save, Invite */}
                     <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={handleLikeToggle} disabled={likeEvent.isPending || unlikeEvent.isPending} className="gap-1.5 px-2">
+                      <Button variant="ghost" size="sm" onClick={handleLikeToggle} disabled={likeEventPending} className="gap-1.5 px-2">
                         <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
                         {likeCount > 0 && <span className="text-xs text-muted-foreground">{likeCount}</span>}
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={handleRepostToggle} disabled={toggleRepost.isPending} className="gap-1.5 px-2">
+                      <Button variant="ghost" size="sm" onClick={handleRepostToggle} disabled={repostPending} className="gap-1.5 px-2">
                         <Repeat className={`w-5 h-5 ${hasReposted ? 'text-green-500' : ''}`} />
                         {repostCount > 0 && <span className="text-xs text-muted-foreground">{repostCount}</span>}
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
                         <Send className="w-5 h-5" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={handleSaveToggle} disabled={saveEvent.isPending || unsaveEvent.isPending} className="gap-1.5 px-2">
+                      <Button variant="ghost" size="sm" onClick={handleSaveToggle} disabled={saveEventPending} className="gap-1.5 px-2">
                         <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
                         {saveCount > 0 && <span className="text-xs text-muted-foreground">{saveCount}</span>}
                       </Button>
-                      {event.has_guestlist && canInviteToGuestlist && <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
+                      {event.has_guestlist && canInviteToGuestlist && (
+                        <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
                           <UserPlus className="w-5 h-5" />
-                        </Button>}
+                        </Button>
+                      )}
                     </div>
 
                     {/* Right: Edit dropdown */}
@@ -160,45 +197,45 @@ export const EventDetailOverlay = () => {
                         </Button>
                       )}
                       <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="w-5 h-5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {isOwner && (
-                              <>
-                                <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
-                                  <Pencil className="w-4 h-4 mr-2" />
-                                  Editar evento
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Eliminar evento
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                            {!isOwner && user && (
-                              <DropdownMenuItem onClick={() => {
-                                trackPreferenceSignal(user.id, selectedEventId!, "not_interested");
-                                toast("Se mostrará menos contenido como este", { duration: 2000 });
-                                closeEvent();
-                              }}>
-                                <EyeOff className="w-4 h-4 mr-2" />
-                                No me interesa
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="w-5 h-5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {isOwner && (
+                            <>
+                              <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Editar evento
                               </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Eliminar evento
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {!isOwner && user && (
+                            <DropdownMenuItem onClick={() => {
+                              trackPreferenceSignal(user.id, selectedEventId!, "not_interested");
+                              toast("Se mostrará menos contenido como este", { duration: 2000 });
+                              closeEvent();
+                            }}>
+                              <EyeOff className="w-4 h-4 mr-2" />
+                              No me interesa
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
 
                   {/* Host */}
                   <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
-              if (event.creator_id) {
-                navigate(`/user/${event.creator_id}`);
-              }
-            }}>
+                    if (event.creator_id) {
+                      navigate(`/user/${event.creator_id}`);
+                    }
+                  }}>
                     <img src={event.creator?.avatar_url || DEFAULT_AVATAR} alt="Host" className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" />
                     <p className="font-semibold text-foreground hover:text-primary transition-colors">
                       @{event.creator?.username || "unknown"}
@@ -206,7 +243,8 @@ export const EventDetailOverlay = () => {
                   </div>
 
                   {/* Details - Only show for events, not posts */}
-                  {!event.is_post && <>
+                  {!event.is_post && (
+                    <>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-muted-foreground" />
                         <p className="text-sm text-foreground">{formattedDate}</p>
@@ -216,16 +254,20 @@ export const EventDetailOverlay = () => {
                         <MapPin className="w-4 h-4 text-muted-foreground" />
                         <p className="text-sm text-foreground">{event.location_name || "Ubicación por definir"}</p>
                       </div>
-                    </>}
+                    </>
+                  )}
 
                   {/* Description */}
-                  {event.description && <div className="space-y-2">
+                  {event.description && (
+                    <div className="space-y-2">
                       <h2 className="font-brand text-lg font-semibold text-foreground">Acerca de</h2>
                       <MentionText text={event.description} className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap" />
-                    </div>}
+                    </div>
+                  )}
 
                   {/* Guestlist attendees */}
-                  {event.has_guestlist && <div>
+                  {event.has_guestlist && (
+                    <div>
                       <div className="flex items-center justify-between mb-4">
                         <h2 className="font-brand text-lg font-semibold text-foreground">
                           Lista de invitados ({guestlist.length})
@@ -233,18 +275,23 @@ export const EventDetailOverlay = () => {
                         {guestlist.length > 0 && hasSubscription && <span className="text-sm text-primary cursor-pointer">Ver todos</span>}
                       </div>
 
-                      {guestlist.length > 0 ? hasSubscription ? <>
+                      {guestlist.length > 0 ? (
+                        hasSubscription ? (
+                          <>
                             <div className="flex items-center gap-2 mb-4">
                               <div className="flex -space-x-3">
-                              {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={() => navigate(`/user/${entry.user_id}`)} />)}
+                                {guestlist.slice(0, 5).map((entry: any, i: number) => (
+                                  <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={() => navigate(`/user/${entry.user_id}`)} />
+                                ))}
                               </div>
-                              {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
-                                  +{guestlist.length - 5} más
-                                </span>}
+                              {guestlist.length > 5 && (
+                                <span className="text-sm text-muted-foreground">+{guestlist.length - 5} más</span>
+                              )}
                             </div>
 
                             <div className="space-y-3">
-                              {guestlist.slice(0, 3).map((entry: any) => <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
+                              {guestlist.slice(0, 3).map((entry: any) => (
+                                <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
                                   <img src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={entry.user?.username || "User"} className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate(`/user/${entry.user_id}`)} />
                                   <div className="flex-1 cursor-pointer" onClick={() => navigate(`/user/${entry.user_id}`)}>
                                     <p className="font-medium text-foreground text-sm">
@@ -255,16 +302,21 @@ export const EventDetailOverlay = () => {
                                     </p>
                                   </div>
                                   <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
-                                </div>)}
+                                </div>
+                              ))}
                             </div>
-                          </> : <>
+                          </>
+                        ) : (
+                          <>
                             <div className="flex items-center gap-2 mb-4">
                               <div className="flex -space-x-3">
-                                {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover blur-[3px]" />)}
+                                {guestlist.slice(0, 5).map((entry: any, i: number) => (
+                                  <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover blur-[3px]" />
+                                ))}
                               </div>
-                              {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
-                                  +{guestlist.length - 5} más
-                                </span>}
+                              {guestlist.length > 5 && (
+                                <span className="text-sm text-muted-foreground">+{guestlist.length - 5} más</span>
+                              )}
                             </div>
 
                             <div className="p-4 rounded-2xl bg-secondary/50 border border-border/50">
@@ -276,19 +328,24 @@ export const EventDetailOverlay = () => {
                                 Hazte miembro de Zentro para ver quién está en la lista
                               </p>
                               <Button variant="hero" size="sm" className="w-full" onClick={() => {
-                    closeEvent();
-                    navigate("/subscription");
-                  }}>
+                                closeEvent();
+                                navigate("/subscription");
+                              }}>
                                 Desbloquear Premium
                               </Button>
                             </div>
-                          </> : <div className="text-center py-6 rounded-2xl bg-secondary/30">
+                          </>
+                        )
+                      ) : (
+                        <div className="text-center py-6 rounded-2xl bg-secondary/30">
                           <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                           <p className="text-muted-foreground text-sm">
                             {isInviteOnlyGuestlist ? "Solo por invitación del organizador" : "Nadie se ha unido aún. ¡Sé el primero!"}
                           </p>
-                        </div>}
-                    </div>}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Invitations Sent Section - Owner only */}
                   {isOwner && event.has_guestlist && <InvitationsSentSection eventId={selectedEventId!} />}
@@ -303,21 +360,23 @@ export const EventDetailOverlay = () => {
               </motion.div>
 
               {/* Modals */}
-              {event && <>
+              {event && (
+                <>
                   <GuestlistManagementSheet eventId={selectedEventId!} open={showManagement} onOpenChange={setShowManagement} />
                   <ShareEventModal open={showShareModal} onOpenChange={setShowShareModal} eventId={selectedEventId!} />
                   <ShareGuestlistModal open={showGuestlistInviteModal} onOpenChange={setShowGuestlistInviteModal} eventId={selectedEventId!} />
                   <EditEventSheet open={showEditSheet} onOpenChange={setShowEditSheet} event={event} />
-                  <DeleteEventDialog open={showDeleteDialog} onOpenChange={open => {
-            setShowDeleteDialog(open);
-            if (!open) {
-              // If dialog closed via success (event deleted), the component handles navigation
-              // But we should still close the overlay
-              closeEvent();
-            }
-          }} eventId={selectedEventId!} eventTitle={event.title} />
-                  <PremiumGateModal 
-                    open={showPremiumGate} 
+                  <DeleteEventDialog
+                    open={showDeleteDialog}
+                    onOpenChange={open => {
+                      setShowDeleteDialog(open);
+                      if (!open) closeEvent();
+                    }}
+                    eventId={selectedEventId!}
+                    eventTitle={event.title}
+                  />
+                  <PremiumGateModal
+                    open={showPremiumGate}
                     onOpenChange={setShowPremiumGate}
                     eventId={selectedEventId || undefined}
                   />
@@ -362,13 +421,13 @@ export const EventDetailOverlay = () => {
                               <Clock className="w-4 h-4 mr-1" /> Pendiente
                             </Button>
                           ) : (
-                            <Button variant="ghost" size="default" onClick={handleLeaveGuestlist} disabled={leaveGuestlist.isPending}>
-                              {leaveGuestlist.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
+                            <Button variant="ghost" size="default" onClick={handleLeaveGuestlist} disabled={leaveGuestlistPending}>
+                              {leaveGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
                             </Button>
                           )
                         ) : (
-                          <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlist.isPending || joinGuestlistWithPayment.isPending}>
-                            {(joinGuestlist.isPending || joinGuestlistWithPayment.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : (hasPaymentQr || isInviteOnlyGuestlist) ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
+                          <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlistPending}>
+                            {joinGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : (hasPaymentQr || isInviteOnlyGuestlist) ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
                           </Button>
                         )}
                       </div>
@@ -391,28 +450,32 @@ export const EventDetailOverlay = () => {
                       </div>
                     </div>
                   )}
-                </>}
-            </>}
-        </motion.div>}
+                </>
+              )}
+            </>
+          )}
+        </motion.div>
+      )}
 
-        {/* Menu Sheet */}
-        {event && event.show_menu_button && event.creator_id && (
-          <MenuSheet
-            open={showMenuSheet}
-            onOpenChange={setShowMenuSheet}
-            userId={event.creator_id}
-            businessName={event.creator?.username}
-          />
-        )}
+      {/* Menu Sheet */}
+      {event && event.show_menu_button && event.creator_id && (
+        <MenuSheet
+          open={showMenuSheet}
+          onOpenChange={setShowMenuSheet}
+          userId={event.creator_id}
+          businessName={event.creator?.username}
+        />
+      )}
 
-        {/* Reservation Sheet */}
-        {event && event.show_reservation_button && event.creator_id && (
-          <ReservationSheet
-            open={showReservationSheet}
-            onOpenChange={setShowReservationSheet}
-            businessId={event.creator_id}
-            businessName={event.creator?.username || ""}
-          />
-        )}
-    </AnimatePresence>;
+      {/* Reservation Sheet */}
+      {event && event.show_reservation_button && event.creator_id && (
+        <ReservationSheet
+          open={showReservationSheet}
+          onOpenChange={setShowReservationSheet}
+          businessId={event.creator_id}
+          businessName={event.creator?.username || ""}
+        />
+      )}
+    </AnimatePresence>
+  );
 };
