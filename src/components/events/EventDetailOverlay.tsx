@@ -246,8 +246,8 @@ export const EventDetailOverlay = () => {
       toast.error(error.message || "Error al salir de la lista");
     }
   };
-  const formattedDate = event ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a") : "";
-  const formattedPrice = event?.price ? `$${event.price}` : "Free";
+  const formattedDate = event?.start_datetime ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a") : "";
+  const formattedPrice = event?.price ? `Bs. ${event.price}` : "Gratis";
   const isVideo = event ? isVideoUrl(event.image_url) : false;
   return <AnimatePresence>
       {selectedEventId && <motion.div layoutId={`event-card-${selectedEventId}`} className="fixed inset-0 z-50 bg-background overflow-auto" initial={{
