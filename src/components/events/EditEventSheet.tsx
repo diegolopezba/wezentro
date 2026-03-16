@@ -146,7 +146,6 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           price: parseFloat(formData.price) || 0,
           max_guestlist_capacity: formData.max_guestlist_capacity ? parseInt(formData.max_guestlist_capacity) : null,
           has_guestlist: formData.has_guestlist,
-          has_guestlist_chat: formData.has_guestlist ? formData.has_guestlist_chat : null,
           payment_qr_url: formData.payment_qr_url || null,
           show_menu_button: formData.show_menu_button,
           show_reservation_button: formData.show_reservation_button,
