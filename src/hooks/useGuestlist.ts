@@ -151,22 +151,6 @@ export const useLeaveGuestlist = () => {
         .eq("user_id", user.id);
 
       if (error) throw error;
-
-      // Find the event's group chat and remove user as participant
-      const { data: chat } = await supabase
-        .from("chats")
-        .select("id")
-        .eq("event_id", eventId)
-        .eq("type", "event")
-        .maybeSingle();
-
-      if (chat) {
-        await supabase
-          .from("chat_participants")
-          .delete()
-          .eq("chat_id", chat.id)
-          .eq("user_id", user.id);
-      }
     },
     onSuccess: (_, eventId) => {
       queryClient.invalidateQueries({ queryKey: ["guestlist-status", eventId] });
