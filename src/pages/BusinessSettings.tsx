@@ -46,6 +46,23 @@ const BusinessSettings = () => {
   const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
   const currentBusinessType = (profile as any)?.business_type || "";
 
+  // Load existing BNB credentials on mount
+  useEffect(() => {
+    if (!user || !isBusiness) return;
+    supabase
+      .from("business_payment_settings")
+      .select("bnb_account_id, bnb_authorization_id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setBnbAccountId(data.bnb_account_id);
+          setBnbAuthorizationId(data.bnb_authorization_id);
+          setBnbConnected(true);
+        }
+      });
+  }, [user, isBusiness]);
+
   const handleToggleBusiness = async (value: boolean) => {
     if (!user) return;
     setTogglingBusiness(true);
