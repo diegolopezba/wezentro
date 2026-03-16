@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, X, Bookmark, Repeat, EyeOff, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, X, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -28,6 +28,7 @@ import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 import { MenuSheet } from "@/components/menu/MenuSheet";
+import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 export const EventDetailOverlay = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -47,6 +48,7 @@ export const EventDetailOverlay = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showInviteFriendsSheet, setShowInviteFriendsSheet] = useState(false);
   const [showMenuSheet, setShowMenuSheet] = useState(false);
+  const [showReservationSheet, setShowReservationSheet] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
@@ -338,6 +340,12 @@ export const EventDetailOverlay = () => {
                           <span className="text-xs">Menú</span>
                         </Button>
                       )}
+                      {event.show_reservation_button && event.creator_id && (
+                        <Button variant="ghost" size="sm" onClick={() => setShowReservationSheet(true)} className="gap-1.5 px-2">
+                          <CalendarCheck className="w-5 h-5" />
+                          <span className="text-xs">Reservar</span>
+                        </Button>
+                      )}
                       <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -564,6 +572,16 @@ export const EventDetailOverlay = () => {
             onOpenChange={setShowMenuSheet}
             userId={event.creator_id}
             businessName={event.creator?.username}
+          />
+        )}
+
+        {/* Reservation Sheet */}
+        {event && event.show_reservation_button && event.creator_id && (
+          <ReservationSheet
+            open={showReservationSheet}
+            onOpenChange={setShowReservationSheet}
+            businessId={event.creator_id}
+            businessName={event.creator?.username || ""}
           />
         )}
     </AnimatePresence>;

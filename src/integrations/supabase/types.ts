@@ -304,6 +304,7 @@ export type Database = {
           price: number | null
           requires_premium: boolean | null
           show_menu_button: boolean | null
+          show_reservation_button: boolean | null
           start_datetime: string | null
           title: string | null
         }
@@ -330,6 +331,7 @@ export type Database = {
           price?: number | null
           requires_premium?: boolean | null
           show_menu_button?: boolean | null
+          show_reservation_button?: boolean | null
           start_datetime?: string | null
           title?: string | null
         }
@@ -356,6 +358,7 @@ export type Database = {
           price?: number | null
           requires_premium?: boolean | null
           show_menu_button?: boolean | null
+          show_reservation_button?: boolean | null
           start_datetime?: string | null
           title?: string | null
         }

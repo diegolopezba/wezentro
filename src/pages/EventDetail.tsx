@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
@@ -31,6 +31,7 @@ import { useEventTags, useRemoveTag } from "@/hooks/useEventTags";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 import { MentionText } from "@/components/ui/MentionText";
 import { MenuSheet } from "@/components/menu/MenuSheet";
+import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 
 const EventDetail = () => {
   const {
@@ -53,6 +54,7 @@ const EventDetail = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showInviteFriendsSheet, setShowInviteFriendsSheet] = useState(false);
   const [showMenuSheet, setShowMenuSheet] = useState(false);
+  const [showReservationSheet, setShowReservationSheet] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(true);
@@ -342,6 +344,12 @@ const EventDetail = () => {
                   <span className="text-xs">Menú</span>
                 </Button>
               )}
+              {event.show_reservation_button && event.creator_id && (
+                <Button variant="ghost" size="sm" onClick={() => setShowReservationSheet(true)} className="gap-1.5 px-2">
+                  <CalendarCheck className="w-5 h-5" />
+                  <span className="text-xs">Reservar</span>
+                </Button>
+              )}
               <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -618,6 +626,16 @@ const EventDetail = () => {
         onOpenChange={setShowMenuSheet}
         userId={event.creator_id}
         businessName={event.creator?.username}
+      />
+    )}
+
+    {/* Reservation Sheet */}
+    {event.show_reservation_button && event.creator_id && (
+      <ReservationSheet
+        open={showReservationSheet}
+        onOpenChange={setShowReservationSheet}
+        businessId={event.creator_id}
+        businessName={event.creator?.username || ""}
       />
     )}
     </div>;

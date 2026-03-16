@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Upload, X, QrCode, MessageCircle, UtensilsCrossed } from "lucide-react";
+import { Loader2, Upload, X, QrCode, MessageCircle, UtensilsCrossed, CalendarCheck } from "lucide-react";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -30,6 +30,7 @@ interface EditEventSheetProps {
     has_guestlist_chat?: boolean | null;
     payment_qr_url?: string | null;
     show_menu_button?: boolean | null;
+    show_reservation_button?: boolean | null;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -51,6 +52,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
   const updateEvent = useUpdateEvent();
   const { profile } = useAuth();
   const isBusiness = profile?.is_business === true;
+  const reservationsEnabled = (profile as any)?.reservations_enabled === true;
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
   const [isUploadingQr, setIsUploadingQr] = useState(false);
@@ -69,6 +71,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
     has_guestlist_chat: event.has_guestlist_chat ?? true,
     payment_qr_url: event.payment_qr_url || "",
     show_menu_button: event.show_menu_button ?? false,
+    show_reservation_button: event.show_reservation_button ?? false,
   });
 
   useEffect(() => {
@@ -85,6 +88,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
         has_guestlist_chat: event.has_guestlist_chat ?? true,
         payment_qr_url: event.payment_qr_url || "",
         show_menu_button: event.show_menu_button ?? false,
+        show_reservation_button: event.show_reservation_button ?? false,
       });
     }
   }, [open, event]);
@@ -158,6 +162,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           has_guestlist_chat: formData.has_guestlist ? formData.has_guestlist_chat : null,
           payment_qr_url: formData.payment_qr_url || null,
           show_menu_button: formData.show_menu_button,
+          show_reservation_button: formData.show_reservation_button,
         },
       });
       // Parse @mentions from description and insert into event_tags
@@ -418,6 +423,26 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
                 id="show-menu-button"
                 checked={formData.show_menu_button}
                 onCheckedChange={(checked) => setFormData({ ...formData, show_menu_button: checked })}
+              />
+            </div>
+          )}
+
+          {/* Reservation Button Toggle - Only for Business users with reservations enabled */}
+          {isBusiness && reservationsEnabled && (
+            <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-secondary/50 border border-border">
+              <div className="flex items-center gap-2">
+                <CalendarCheck className="w-4 h-4 text-primary" />
+                <div className="flex flex-col">
+                  <Label htmlFor="show-reservation-button">Mostrar botón Reservar</Label>
+                  <span className="text-xs text-muted-foreground">
+                    Los visitantes podrán reservar una mesa desde este post
+                  </span>
+                </div>
+              </div>
+              <Switch
+                id="show-reservation-button"
+                checked={formData.show_reservation_button}
+                onCheckedChange={(checked) => setFormData({ ...formData, show_reservation_button: checked })}
               />
             </div>
           )}
