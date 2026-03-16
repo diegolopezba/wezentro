@@ -32,6 +32,13 @@ const BusinessSettings = () => {
   const [togglingReservations, setTogglingReservations] = useState(false);
   const [savingType, setSavingType] = useState(false);
 
+  // BNB payment settings state
+  const [bnbAccountId, setBnbAccountId] = useState("");
+  const [bnbAuthorizationId, setBnbAuthorizationId] = useState("");
+  const [bnbConnected, setBnbConnected] = useState(false);
+  const [savingBnb, setSavingBnb] = useState(false);
+  const [showBnbAuth, setShowBnbAuth] = useState(false);
+
   useSwipeBack();
 
   const isBusiness = profile?.is_business === true;
