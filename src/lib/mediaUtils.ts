@@ -101,7 +101,7 @@ export interface VideoValidationResult {
  */
 export const validateVideoFile = async (
   file: File,
-  maxDurationSeconds: number = 15,
+  maxDurationSeconds: number = 30,
   maxSizeMB: number = MAX_VIDEO_SIZE_MB
 ): Promise<VideoValidationResult> => {
   // Check file size
