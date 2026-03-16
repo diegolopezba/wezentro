@@ -506,11 +506,11 @@ export const EventDetailOverlay = () => {
                     <PaymentQRModal
                       open={showPaymentModal}
                       onOpenChange={setShowPaymentModal}
+                      eventId={selectedEventId!}
                       eventTitle={event.title || "Evento"}
                       price={event.price || 0}
-                      paymentQrUrl={event.payment_qr_url!}
-                      onPaymentSubmitted={handlePaymentSubmitted}
-                      isSubmitting={joinGuestlistWithPayment.isPending}
+                      paymentQrUrl={event.payment_qr_url ?? undefined}
+                      onPaymentConfirmed={handlePaymentSubmitted}
                     />
                   )}
                   {event.has_guestlist && (
