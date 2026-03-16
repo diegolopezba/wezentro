@@ -420,7 +420,7 @@ export const EventDetailOverlay = () => {
                               {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={() => navigate(`/user/${entry.user_id}`)} />)}
                               </div>
                               {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
-                                  +{guestlist.length - 5} more
+                                  +{guestlist.length - 5} más
                                 </span>}
                             </div>
 
