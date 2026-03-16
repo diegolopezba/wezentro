@@ -306,25 +306,8 @@ const Create = () => {
 
       if (error) throw error;
 
-      // If event has guestlist AND group chat is enabled, create the group chat and add creator
-      if (formData.hasGuestlist && formData.hasGuestlistChat && data.id) {
-        const { data: chat, error: chatError } = await supabase
-          .from("chats")
-          .insert({
-            type: "event",
-            event_id: data.id,
-            name: formData.title.trim() || "Chat del Evento",
-          })
-          .select()
-          .single();
-
-        if (!chatError && chat) {
-          await supabase.from("chat_participants").insert({
-            chat_id: chat.id,
-            user_id: user.id,
-          });
-        }
-      }
+      // Group chat is created automatically by the DB trigger (create_event_group_chat).
+      // No manual chat creation needed here to avoid duplicates.
 
       // If collaborator is selected, send collaboration invite
       if (selectedCollaborator && data.id) {
