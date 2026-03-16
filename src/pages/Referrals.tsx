@@ -86,14 +86,11 @@ const Referrals = () => {
   return (
     <AppLayout>
       {/* Header */}
-      <header className="sticky top-0 z-40 safe-top">
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg safe-top">
         <div className="flex items-center gap-3 px-4 py-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-secondary/50 text-foreground"
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
-          </button>
+          </Button>
           <h1 className="font-brand text-xl font-bold text-foreground">Invitar Amigos</h1>
         </div>
       </header>
