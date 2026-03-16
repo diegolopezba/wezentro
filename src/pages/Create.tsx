@@ -540,7 +540,7 @@ const Create = () => {
                 className="overflow-hidden"
               >
                 <div className="flex flex-wrap gap-2 pt-3">
-                  {categories.map((category) => (
+                  {CATEGORIES.map((category) => (
                     <button
                       key={category.id}
                       type="button"
