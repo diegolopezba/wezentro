@@ -162,6 +162,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           has_guestlist_chat: formData.has_guestlist ? formData.has_guestlist_chat : null,
           payment_qr_url: formData.payment_qr_url || null,
           show_menu_button: formData.show_menu_button,
+          show_reservation_button: formData.show_reservation_button,
         },
       });
       // Parse @mentions from description and insert into event_tags
