@@ -59,6 +59,7 @@ const Create = () => {
   const { user, profile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isBusiness = profile?.is_business === true;
+  const reservationsEnabled = (profile as any)?.reservations_enabled === true;
   const inviteCollaborator = useInviteCollaborator();
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
