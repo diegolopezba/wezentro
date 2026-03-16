@@ -48,6 +48,7 @@ export const EventDetailOverlay = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showInviteFriendsSheet, setShowInviteFriendsSheet] = useState(false);
   const [showMenuSheet, setShowMenuSheet] = useState(false);
+  const [showReservationSheet, setShowReservationSheet] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
