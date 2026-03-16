@@ -102,7 +102,6 @@ export const useSubscriptionPlans = (): SubscriptionPlan[] => {
       features: [
         "Todo lo del plan Gratis",
         "Únete a listas de invitados",
-        "Accede a chats grupales de eventos",
         "Notificaciones prioritarias",
         "Código QR para check-ins",
       ],

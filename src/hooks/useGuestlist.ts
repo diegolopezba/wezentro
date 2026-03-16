@@ -54,21 +54,6 @@ export const useJoinGuestlist = () => {
 
       if (entryError) throw entryError;
 
-      // Find the event's group chat and add user as participant
-      const { data: chat } = await supabase
-        .from("chats")
-        .select("id")
-        .eq("event_id", eventId)
-        .eq("type", "event")
-        .maybeSingle();
-
-      if (chat) {
-        await supabase.from("chat_participants").insert({
-          chat_id: chat.id,
-          user_id: user.id,
-        });
-      }
-
       // Notify event creator about guestlist request
       if (event && event.creator_id !== user.id) {
         sendPushNotification({
@@ -78,27 +63,6 @@ export const useJoinGuestlist = () => {
           data: { type: "guestlist_request", eventId },
           url: `/events/${eventId}`,
         });
-      }
-
-      // Notify other guestlist members that someone new joined
-      if (chat) {
-        const { data: otherMembers } = await supabase
-          .from("guestlist_entries")
-          .select("user_id")
-          .eq("event_id", eventId)
-          .eq("status", "approved")
-          .neq("user_id", user.id);
-
-        if (otherMembers && otherMembers.length > 0) {
-          const memberIds = otherMembers.map((m) => m.user_id);
-          sendPushNotification({
-            userIds: memberIds,
-            title: "New Guestlist Member",
-            body: `@${userProfile?.username || "Someone"} joined the guestlist for ${event?.title || "an event"}`,
-            data: { type: "guestlist_join", eventId },
-            url: `/events/${eventId}`,
-          });
-        }
       }
 
       // Track preference signal for guestlist join (fire-and-forget)
@@ -144,21 +108,6 @@ export const useJoinGuestlistWithPayment = () => {
 
       if (entryError) throw entryError;
 
-      // Find the event's group chat and add user as participant
-      const { data: chat } = await supabase
-        .from("chats")
-        .select("id")
-        .eq("event_id", eventId)
-        .eq("type", "event")
-        .maybeSingle();
-
-      if (chat) {
-        await supabase.from("chat_participants").insert({
-          chat_id: chat.id,
-          user_id: user.id,
-        });
-      }
-
       // Notify event creator about payment registration
       if (event && event.creator_id !== user.id) {
         sendPushNotification({
@@ -166,7 +115,7 @@ export const useJoinGuestlistWithPayment = () => {
           title: "Nuevo pago registrado",
           body: `@${userProfile?.username || "Alguien"} registró un pago para ${event.title || "tu evento"}`,
           data: { type: "payment_pending", eventId },
-        url: `/events/${eventId}`,
+          url: `/events/${eventId}`,
         });
       }
 
@@ -202,22 +151,6 @@ export const useLeaveGuestlist = () => {
         .eq("user_id", user.id);
 
       if (error) throw error;
-
-      // Find the event's group chat and remove user as participant
-      const { data: chat } = await supabase
-        .from("chats")
-        .select("id")
-        .eq("event_id", eventId)
-        .eq("type", "event")
-        .maybeSingle();
-
-      if (chat) {
-        await supabase
-          .from("chat_participants")
-          .delete()
-          .eq("chat_id", chat.id)
-          .eq("user_id", user.id);
-      }
     },
     onSuccess: (_, eventId) => {
       queryClient.invalidateQueries({ queryKey: ["guestlist-status", eventId] });

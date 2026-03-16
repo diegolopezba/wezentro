@@ -82,7 +82,6 @@ const Create = () => {
     price: "",
     capacity: "",
     hasGuestlist: false,
-    hasGuestlistChat: true,
     showMenuButton: false,
     showReservationButton: false,
   });
@@ -282,7 +281,6 @@ const Create = () => {
           price: formData.price ? parseFloat(formData.price) : 0,
           max_guestlist_capacity: formData.capacity ? parseInt(formData.capacity) : null,
           has_guestlist: formData.hasGuestlist,
-          has_guestlist_chat: formData.hasGuestlist ? formData.hasGuestlistChat : null,
           image_url: imageUrl,
           creator_id: user.id,
           is_public: true,
@@ -295,9 +293,6 @@ const Create = () => {
         .single();
 
       if (error) throw error;
-
-      // Group chat is created automatically by the DB trigger (create_event_group_chat).
-      // No manual chat creation needed here to avoid duplicates.
 
       // If collaborator is selected, send collaboration invite
       if (selectedCollaborator && data.id) {
@@ -753,48 +748,6 @@ const Create = () => {
                 </button>
               </div>
 
-              {/* Group chat toggle - only visible when guestlist is enabled */}
-              {formData.hasGuestlist && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="pt-3 border-t border-border/50"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-                        <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-foreground">Chat grupal</h4>
-                        <p className="text-xs text-muted-foreground">
-                          Crear un chat con todos los invitados
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData({
-                          ...formData,
-                          hasGuestlistChat: !formData.hasGuestlistChat,
-                        });
-                      }}
-                      className={`relative w-10 h-6 rounded-full transition-colors ${
-                        formData.hasGuestlistChat ? "bg-primary" : "bg-secondary"
-                      }`}
-                    >
-                      <motion.div
-                        animate={{ x: formData.hasGuestlistChat ? 18 : 2 }}
-                        className="absolute top-1 w-4 h-4 rounded-full bg-foreground"
-                      />
-                    </button>
-                  </div>
-                </motion.div>
-              )}
             </Card>
           </motion.div>
         )}
