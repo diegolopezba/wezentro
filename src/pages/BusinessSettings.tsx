@@ -135,6 +135,55 @@ const BusinessSettings = () => {
     }
   };
 
+  const handleSaveBnbCredentials = async () => {
+    if (!user) return;
+    if (!bnbAccountId.trim() || !bnbAuthorizationId.trim()) {
+      toast.error("Ingresa ambos campos de BNB");
+      return;
+    }
+    setSavingBnb(true);
+    try {
+      const { error } = await supabase
+        .from("business_payment_settings")
+        .upsert(
+          {
+            user_id: user.id,
+            bnb_account_id: bnbAccountId.trim(),
+            bnb_authorization_id: bnbAuthorizationId.trim(),
+            is_active: true,
+          },
+          { onConflict: "user_id" }
+        );
+      if (error) throw error;
+      setBnbConnected(true);
+      toast.success("¡Credenciales BNB guardadas!");
+    } catch (error: any) {
+      toast.error(error.message || "Error al guardar credenciales");
+    } finally {
+      setSavingBnb(false);
+    }
+  };
+
+  const handleDisconnectBnb = async () => {
+    if (!user) return;
+    setSavingBnb(true);
+    try {
+      const { error } = await supabase
+        .from("business_payment_settings")
+        .delete()
+        .eq("user_id", user.id);
+      if (error) throw error;
+      setBnbAccountId("");
+      setBnbAuthorizationId("");
+      setBnbConnected(false);
+      toast.success("Credenciales BNB eliminadas");
+    } catch (error: any) {
+      toast.error(error.message || "Error al desconectar BNB");
+    } finally {
+      setSavingBnb(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -276,6 +325,105 @@ const BusinessSettings = () => {
                 onCheckedChange={handleToggleReservations}
                 disabled={togglingReservations}
               />
+            </motion.div>
+
+            {/* ── BNB Payment Settings ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mt-4"
+            >
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1 mb-2">
+                Pagos
+              </h2>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="py-4 px-4 rounded-xl bg-card border border-border space-y-4"
+            >
+              {/* Header row */}
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+                  <CreditCard className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <span className="text-foreground font-semibold block">Pagos QR · BNB</span>
+                  <span className="text-xs text-muted-foreground">
+                    QR dinámico — confirmación automática sin intermediarios
+                  </span>
+                </div>
+                {bnbConnected && (
+                  <span className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                    <CheckCircle2 className="w-3 h-3" /> Conectado
+                  </span>
+                )}
+              </div>
+
+              {/* Credential fields */}
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Account ID</Label>
+                  <Input
+                    placeholder="Tu accountId de BNB Open Banking"
+                    value={bnbAccountId}
+                    onChange={(e) => setBnbAccountId(e.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Authorization ID</Label>
+                  <div className="relative">
+                    <Input
+                      placeholder="Tu authorizationId de BNB"
+                      value={bnbAuthorizationId}
+                      onChange={(e) => setBnbAuthorizationId(e.target.value)}
+                      type={showBnbAuth ? "text" : "password"}
+                      autoComplete="off"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setShowBnbAuth(!showBnbAuth)}
+                    >
+                      {showBnbAuth ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Info note */}
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Registra tu negocio en <strong>bnb.com.bo/PortalBNB/Api/OpenBanking</strong> para obtener tus credenciales. Los pagos van directo a tu cuenta BNB.
+              </p>
+
+              {/* Action buttons */}
+              <div className="flex gap-2">
+                <Button
+                  variant="hero"
+                  size="sm"
+                  className="flex-1"
+                  onClick={handleSaveBnbCredentials}
+                  disabled={savingBnb || !bnbAccountId.trim() || !bnbAuthorizationId.trim()}
+                >
+                  {savingBnb ? "Guardando..." : bnbConnected ? "Actualizar" : "Conectar BNB"}
+                </Button>
+                {bnbConnected && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDisconnectBnb}
+                    disabled={savingBnb}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    Desconectar
+                  </Button>
+                )}
+              </div>
             </motion.div>
           </>
         )}
