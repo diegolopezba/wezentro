@@ -141,8 +141,7 @@ const YouAreGoing = () => {
                   className="w-full bg-white text-black hover:bg-white/90 rounded-xl font-semibold"
                   size="lg"
                 >
-                  <QrCode className="w-4 h-4 mr-2" />
-                  Mostrar QR
+                  Mostrar QR de Entrada
                 </Button>
               ) : guestlistEntry?.payment_status === "pending" ? (
                 <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm">
