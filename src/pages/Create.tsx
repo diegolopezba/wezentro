@@ -82,7 +82,6 @@ const Create = () => {
     price: "",
     capacity: "",
     hasGuestlist: false,
-    hasGuestlistChat: true,
     showMenuButton: false,
     showReservationButton: false,
   });
