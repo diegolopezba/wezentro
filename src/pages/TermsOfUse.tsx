@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const TermsOfUse = () => {
   const navigate = useNavigate();
-  const lastUpdated = "27 de febrero de 2026";
+  const lastUpdated = "16 de marzo de 2026";
 
   return (
     <AppLayout hideNav>
