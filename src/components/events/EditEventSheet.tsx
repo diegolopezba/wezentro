@@ -141,7 +141,7 @@ export function EditEventSheet({ event, open, onOpenChange }: EditEventSheetProp
           title: formData.title,
           description: formData.description || null,
           category: formData.category || null,
-          start_datetime: new Date(formData.start_datetime).toISOString(),
+          start_datetime: formData.start_datetime ? new Date(formData.start_datetime).toISOString() : null,
           location_name: formData.location_name || null,
           price: parseFloat(formData.price) || 0,
           max_guestlist_capacity: formData.max_guestlist_capacity ? parseInt(formData.max_guestlist_capacity) : null,

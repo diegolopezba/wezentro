@@ -278,6 +278,8 @@ export const useForYouEvents = () => {
     };
 
     const filtered = events.filter((e) => {
+      // Posts always show regardless of start_datetime
+      if (e.is_post) return true;
       if (!e.start_datetime) return true;
       return new Date(e.start_datetime) >= now;
     });
