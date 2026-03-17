@@ -1,0 +1,1 @@
+ALTER TABLE public.events ADD COLUMN IF NOT EXISTS scanner_access_token uuid DEFAULT gen_random_uuid();
