@@ -394,6 +394,15 @@ const App = () => {
                               </Suspense>
                             }
                           />
+                          {/* Public QR scanner route — no auth required, validated by ?key= param */}
+                          <Route
+                            path="/scan/:eventId"
+                            element={
+                              <Suspense fallback={<PageLoader />}>
+                                <ScanQR />
+                              </Suspense>
+                            }
+                          />
                           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                           <Route
                             path="*"

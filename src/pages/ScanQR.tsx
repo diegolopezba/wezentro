@@ -331,7 +331,7 @@ export default function ScanQR() {
                 )}
                 {state === "already_used" && (
                   <>
-                    <p className="text-xl font-bold text-amber-500">Ya ingresó</p>
+                    <p className="text-xl font-bold text-yellow-500">Ya ingresó</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       {checkedInAt ? `Entrada registrada a las ${formatCheckedIn(checkedInAt)}` : "Este QR ya fue utilizado"}
                     </p>
