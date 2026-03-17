@@ -17,7 +17,7 @@ import {
   Sparkles,
   PartyPopper,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +67,7 @@ const TYPE_OPTIONS: { id: ContentType; label: string; description: string; icon:
 
 const Create = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isBusiness = profile?.is_business === true;
@@ -77,8 +78,9 @@ const Create = () => {
 
   const { invalidateAfterCreate } = useCreateEvent();
 
-  // ── Type selection state (explicit, not auto-detected) ──
-  const [contentType, setContentType] = useState<ContentType>("post");
+  // ── Type selection state — pre-seeded from ?type= query param ──
+  const initialType = (searchParams.get("type") === "event" ? "event" : "post") as ContentType;
+  const [contentType, setContentType] = useState<ContentType>(initialType);
   const isPost = contentType === "post";
 
   const [isSubmitting, setIsSubmitting] = useState(false);
