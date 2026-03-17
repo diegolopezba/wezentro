@@ -11,6 +11,16 @@ import {
   ScoringContext,
 } from "@/lib/feedScoring";
 
+// Interaction type weights for quality-weighted trending (V6)
+// Passive views are excluded — only high-intent actions count
+const TRENDING_WEIGHTS: Record<string, number> = {
+  join: 5,
+  save: 5,
+  like: 3,
+  repost: 3,
+  click: 1,
+};
+
 export const useForYouEvents = () => {
   const { user } = useAuth();
   const { location } = useLocationContext();
@@ -48,14 +58,47 @@ export const useForYouEvents = () => {
     enabled: !!user?.id,
   });
 
+  /**
+   * V6: Quality-weighted trending counts.
+   * Only counts high-intent interactions (join, save, like, repost, click).
+   * Each type has a weight — a "join" counts 5x more than a "click".
+   * This prevents content that was merely scrolled past from trending.
+   */
   const { data: trendingData } = useQuery({
-    queryKey: ["trending-counts"],
+    queryKey: ["trending-counts-v6"],
     queryFn: async () => {
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { data, error } = await supabase
         .from("event_interactions")
-        .select("event_id")
+        .select("event_id, type")
         .gte("created_at", twentyFourHoursAgo)
+        .in("type", Object.keys(TRENDING_WEIGHTS))
+        .limit(1000);
+      if (error) return {};
+      const counts: Record<string, number> = {};
+      for (const row of data || []) {
+        const w = TRENDING_WEIGHTS[row.type] || 0;
+        counts[row.event_id] = (counts[row.event_id] || 0) + w;
+      }
+      return counts;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  /**
+   * V6 NEW: Velocity counts — 2-hour window of high-intent interactions.
+   * This is Zentro's equivalent of TikTok's early-engagement signal.
+   * Posts/events that get rapid early likes, joins, or reposts are boosted.
+   */
+  const { data: velocityData } = useQuery({
+    queryKey: ["velocity-counts-v6"],
+    queryFn: async () => {
+      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from("event_interactions")
+        .select("event_id, type")
+        .gte("created_at", twoHoursAgo)
+        .in("type", ["join", "save", "like", "repost"])
         .limit(500);
       if (error) return {};
       const counts: Record<string, number> = {};
@@ -64,7 +107,7 @@ export const useForYouEvents = () => {
       }
       return counts;
     },
-    staleTime: 15 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // Refresh every 5 min so velocity is fresh
   });
 
   const { data: creatorAttendance } = useQuery({
@@ -124,7 +167,6 @@ export const useForYouEvents = () => {
     staleTime: 10 * 60 * 1000,
   });
 
-  // v5: Mutual followers
   const { data: mutualFollowerIds } = useQuery({
     queryKey: ["mutual-followers-ids", userId],
     queryFn: async () => {
@@ -137,13 +179,11 @@ export const useForYouEvents = () => {
     staleTime: 10 * 60 * 1000,
   });
 
-  // v5: Collaborative filtering — find similar users' engaged events
   const { data: collaborativeBoosts } = useQuery({
     queryKey: ["collaborative-boosts", userId],
     queryFn: async () => {
       if (!userId) return {};
 
-      // 1. Get current user's category preferences
       const { data: myPrefs, error: myError } = await supabase
         .from("user_category_preferences")
         .select("category, score")
@@ -152,7 +192,6 @@ export const useForYouEvents = () => {
 
       const myCategories = myPrefs.map((p) => p.category);
 
-      // 2. Find users who share at least one top category (limited to recent active users)
       const { data: similarUserPrefs, error: simError } = await supabase
         .from("user_category_preferences")
         .select("user_id, category, score")
@@ -164,7 +203,6 @@ export const useForYouEvents = () => {
 
       if (simError || !similarUserPrefs?.length) return {};
 
-      // Score similarity per user
       const myScoreMap: Record<string, number> = {};
       for (const p of myPrefs) myScoreMap[p.category] = Number(p.score) || 0;
 
@@ -177,7 +215,6 @@ export const useForYouEvents = () => {
         }
       }
 
-      // Top 5 similar users
       const topUsers = Object.entries(userScores)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
@@ -185,7 +222,6 @@ export const useForYouEvents = () => {
 
       if (!topUsers.length) return {};
 
-      // 3. Get events these users recently interacted with (last 7 days)
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data: interactions, error: intError } = await supabase
         .from("event_interactions")
@@ -196,11 +232,6 @@ export const useForYouEvents = () => {
 
       if (intError || !interactions?.length) return {};
 
-      const boosts: Record<string, number> = {};
-      for (const row of interactions) {
-        boosts[row.event_id] = (boosts[row.event_id] || 0) + 1;
-      }
-      // Normalize: count unique users per event
       const eventUsers: Record<string, Set<string>> = {};
       for (const row of interactions) {
         if (!eventUsers[row.event_id]) eventUsers[row.event_id] = new Set();
@@ -216,7 +247,6 @@ export const useForYouEvents = () => {
     staleTime: 30 * 60 * 1000,
   });
 
-  // Fetch public events (capped at 200 for performance)
   const {
     data: events,
     isLoading,
@@ -243,7 +273,6 @@ export const useForYouEvents = () => {
         )
         .eq("is_public", true)
         .is("deleted_at", null)
-        // Include posts (no start_datetime) OR future events
         .or(`is_post.eq.true,start_datetime.gte.${now}`)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -254,13 +283,16 @@ export const useForYouEvents = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Score, sort, and inject exploration
   const scoredEvents = useMemo(() => {
     if (!events) return [];
 
     const now = new Date();
     const categoryPrefs = learnedPrefs?.categories || {};
     const creatorPrefs = learnedPrefs?.creators || {};
+
+    // V6: Cold-start detection — user has no learned prefs yet
+    const isNewUser = !userId ||
+      (Object.keys(categoryPrefs).length === 0 && Object.keys(creatorPrefs).length === 0);
 
     const ctx: ScoringContext = {
       userLat: location?.lat || null,
@@ -275,10 +307,11 @@ export const useForYouEvents = () => {
       tagPrefs: tagPrefs || {},
       collaborativeBoosts: collaborativeBoosts || {},
       mutualFollowerIds: mutualFollowerIds || null,
+      velocityCounts: velocityData || {},
+      isNewUser,
     };
 
     const filtered = events.filter((e) => {
-      // Posts always show regardless of start_datetime
       if (e.is_post) return true;
       if (!e.start_datetime) return true;
       return new Date(e.start_datetime) >= now;
@@ -292,7 +325,7 @@ export const useForYouEvents = () => {
       .sort((a, b) => b._score - a._score);
 
     return injectExploration(scored, categoryPrefs);
-  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingData, creatorAttendance, dayOfWeekPrefs, tagPrefs, collaborativeBoosts, mutualFollowerIds]);
+  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingData, velocityData, creatorAttendance, dayOfWeekPrefs, tagPrefs, collaborativeBoosts, mutualFollowerIds, userId]);
 
   return {
     data: scoredEvents,
