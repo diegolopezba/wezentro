@@ -77,6 +77,9 @@ export const EventCard = ({
   const { data: hasSubscription } = useHasActiveSubscription();
   const trackClick = useTrackSponsoredClick();
   const [dismissed, setDismissed] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
   const isHomePage = routerLocation.pathname === "/";
   const selectedEventContext = useContext(SelectedEventContext);
@@ -102,16 +105,11 @@ export const EventCard = ({
 
   if (dismissed) return null;
 
-  const gradientClass = categoryColors[category] || categoryColors.default;
   const isVideo = isVideoUrl(imageUrl);
 
   const optimizedImageUrl = !isVideo && imageUrl && imageUrl.includes('/storage/v1/object/public/')
     ? `${imageUrl}?width=400&quality=75&resize=cover`
     : imageUrl;
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = useState(true);
-  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
