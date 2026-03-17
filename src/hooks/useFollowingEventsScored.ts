@@ -36,18 +36,20 @@ const getCreatorRelationshipScore = (
   return 100;
 };
 
-// Post Recency Score (25% weight - reduced from 30%)
-// Prioritizes recently posted events
-const getPostRecencyScore = (createdAt: string): number => {
+// Post Recency Score (25% weight)
+// V6 FIX: Uses the most relevant date — for reposts, that's the repost date, not the original.
+// This ensures a reposted 2-week-old post scores as fresh as a brand new post.
+const getPostRecencyScore = (dateStr: string): number => {
   const now = new Date();
-  const created = new Date(createdAt);
-  const hoursAgo = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+  const date = new Date(dateStr);
+  const hoursAgo = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-  if (hoursAgo <= 24) return 100;      // < 24 hours ago
-  if (hoursAgo <= 72) return 80;       // 1-3 days ago
-  if (hoursAgo <= 168) return 60;      // 3-7 days ago
-  if (hoursAgo <= 336) return 40;      // 1-2 weeks ago
-  return 20;                            // 2+ weeks ago
+  if (hoursAgo <= 6) return 100;       // < 6 hours ago (V6: extra boost for very fresh)
+  if (hoursAgo <= 24) return 90;       // < 24 hours ago
+  if (hoursAgo <= 72) return 70;       // 1-3 days ago
+  if (hoursAgo <= 168) return 50;      // 3-7 days ago
+  if (hoursAgo <= 336) return 30;      // 1-2 weeks ago
+  return 15;                            // 2+ weeks ago
 };
 
 // Event Timing Score (10% weight)
