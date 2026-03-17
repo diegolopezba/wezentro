@@ -333,6 +333,7 @@ export type Database = {
           payment_qr_url: string | null
           price: number | null
           requires_premium: boolean | null
+          scanner_access_token: string | null
           show_menu_button: boolean | null
           show_reservation_button: boolean | null
           start_datetime: string | null
@@ -360,6 +361,7 @@ export type Database = {
           payment_qr_url?: string | null
           price?: number | null
           requires_premium?: boolean | null
+          scanner_access_token?: string | null
           show_menu_button?: boolean | null
           show_reservation_button?: boolean | null
           start_datetime?: string | null
@@ -387,6 +389,7 @@ export type Database = {
           payment_qr_url?: string | null
           price?: number | null
           requires_premium?: boolean | null
+          scanner_access_token?: string | null
           show_menu_button?: boolean | null
           show_reservation_button?: boolean | null
           start_datetime?: string | null

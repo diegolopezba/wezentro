@@ -57,6 +57,7 @@ const Referrals = lazy(() => import("./pages/Referrals"));
 const MyReservations = lazy(() => import("./pages/MyReservations"));
 const ReservationConfirmation = lazy(() => import("./pages/ReservationConfirmation"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const ScanQR = lazy(() => import("./pages/ScanQR"));
 
 // Preload core routes after initial render for instant navigation
 const preloadCoreRoutes = () => {
@@ -390,6 +391,15 @@ const App = () => {
                             element={
                               <Suspense fallback={<PageLoader />}>
                                 <TermsOfUse />
+                              </Suspense>
+                            }
+                          />
+                          {/* Public QR scanner route — no auth required, validated by ?key= param */}
+                          <Route
+                            path="/scan/:eventId"
+                            element={
+                              <Suspense fallback={<PageLoader />}>
+                                <ScanQR />
                               </Suspense>
                             }
                           />
