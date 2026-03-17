@@ -57,6 +57,7 @@ const Referrals = lazy(() => import("./pages/Referrals"));
 const MyReservations = lazy(() => import("./pages/MyReservations"));
 const ReservationConfirmation = lazy(() => import("./pages/ReservationConfirmation"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const ScanQR = lazy(() => import("./pages/ScanQR"));
 
 // Preload core routes after initial render for instant navigation
 const preloadCoreRoutes = () => {
