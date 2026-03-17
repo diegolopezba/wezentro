@@ -292,8 +292,8 @@ export default function ScanQR() {
                 </motion.div>
               )}
               {state === "already_used" && (
-                <div className="w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center">
-                  <AlertCircle className="w-10 h-10 text-amber-500" />
+                <div className="w-20 h-20 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                  <AlertCircle className="w-10 h-10 text-yellow-500" />
                 </div>
               )}
               {state === "error" && (
