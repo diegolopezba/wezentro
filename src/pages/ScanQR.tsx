@@ -272,12 +272,12 @@ export default function ScanQR() {
             exit={{ opacity: 0, scale: 0.9 }}
           >
             <div
-              className={`w-full max-w-sm rounded-3xl p-6 flex flex-col items-center gap-4 shadow-2xl ${
+            className={`w-full max-w-sm rounded-3xl p-6 flex flex-col items-center gap-4 shadow-2xl bg-card ${
                 state === "success"
-                  ? "bg-card border border-primary/20"
+                  ? "border border-primary/20"
                   : state === "already_used"
-                  ? "bg-card border border-amber-500/20"
-                  : "bg-card border border-destructive/20"
+                  ? "border border-yellow-500/20"
+                  : "border border-destructive/20"
               }`}
             >
               {/* Icon */}
