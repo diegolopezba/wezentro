@@ -1,8 +1,31 @@
-import { Home, Map, Plus, MessageCircle, User } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { Home, Map, Plus, MessageCircle, User, X, Sparkles, PartyPopper } from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPromptSafe } from "@/hooks/useAuthPrompt";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const CREATE_OPTIONS = [
+  {
+    id: "post",
+    label: "Post",
+    icon: Sparkles,
+    type: "post",
+    x: -88,
+    y: -90,
+    delay: 0,
+  },
+  {
+    id: "event",
+    label: "Evento",
+    icon: PartyPopper,
+    type: "event",
+    x: 88,
+    y: -90,
+    delay: 0.06,
+  },
+];
 
 const navItems = [
   {
