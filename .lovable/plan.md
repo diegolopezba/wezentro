@@ -1,62 +1,70 @@
 
-## The Problem
+## Plan: Create Type Picker — Radial Bottom Sheet
 
-The current flow is a dense, all-on-one-screen form inside a small dialog. It throws budget mode toggles, sliders, category pills, radius sliders, gender selects, and age inputs all at once. Instagram and TikTok solve this with **guided multi-step flows** — one decision per screen, progressive disclosure, heavy visual feedback, and a sticky cost summary that builds confidence.
+### What the user wants
+Instead of tapping + and going straight to the Create page, tapping + opens an **interactive semi-circle / radial picker** from the bottom. Two options fan out: **Post** and **Evento**. Tapping one navigates to `/create` with the type pre-selected. Tapping outside dismisses it.
 
-Key insights from Meta/TikTok "Boost" patterns:
-1. **Step-by-step wizard** — not a form dump. Each step is one question.
-2. **Audience first, budget second** — users think "who do I reach" before "how much do I spend"
-3. **Live preview panel** — a persistent cost/reach estimator on the side (or bottom) that updates as they configure
-4. **Bold, simple numbers** — large typography for reach and cost, not small labels
-5. **One primary CTA per step** — "Siguiente →" keeps momentum, final step is "Pagar y Activar"
-6. **Empty state is a hero CTA** — not a tiny button. It should sell the value proposition
+### Approach
 
-## The Redesign Plan
+The + button in `BottomNav` will no longer navigate to `/create` directly. Instead it toggles a **radial picker overlay** that mounts on top of everything (portal-level, z-60). The overlay renders a translucent backdrop + two arc-fanned option buttons that animate up from the center `+` button position. Selecting one navigates to `/create?type=post` or `/create?type=event`.
 
-### 1. Replace the Dialog with a full-height Sheet (bottom sheet on mobile)
-A Sheet gives us more vertical space, feels more native on mobile, and allows a step-by-step flow without feeling cramped.
+The `Create` page already reads `contentType` state — we just need it to also accept a `?type=` query param to pre-select on mount.
 
-### 2. 4-Step Wizard Flow
+---
 
-```
-Step 1: Elige tu evento
-  → Large event cards with cover image, date, already-promoted events greyed out
-  → "¿Qué evento quieres impulsar hoy?"
+### Visual design
 
-Step 2: ¿A quién quieres llegar?
-  → Audience presets: "Público cercano" / "Interesados en [category]" / "Personalizado"
-  → Simple toggles, not raw inputs
-  → "Automático (recomendado)" is pre-selected = we handle targeting
+```text
+         ╭─────────────╮
+         │  🎉 Evento   │   ← fans out top-left
+         ╰─────────────╯
 
-Step 3: ¿Cuánto quieres invertir?
-  → 4 budget preset cards: $10 / $25 / $50 / $100 (most popular badge on $25)
-  → Each card shows estimated reach in big bold text
-  → Custom option below
-  → Live updating sticky footer: "Llegarás a ~5,000 personas por $25"
+  ╭────────────╮
+  │  ✨ Post   │             ← fans out top-right
+  ╰────────────╯
 
-Step 4: Confirmar y Pagar
-  → Summary card: event title, audience, reach estimate, total cost
-  → Big green "Pagar $25 y Activar →" button
-  → Disclaimer line
+       [ + ]                ← original button position (now × when open)
+════════════════════════════
+  ○  ○  [×]  ○  ○          ← bottom nav
 ```
 
-### 3. Redesigned Empty State (hero style)
-Replace the weak empty state with a value-prop card:
-- Gradient background
-- Stat: "Eventos con boost reciben 3x más asistentes"
-- Single large CTA button "Impulsar mi evento →"
+Two pill buttons animate outward (translateX + translateY) from the center + button using `framer-motion` spring animations. Each card shows icon + label. Semi-transparent dark backdrop behind.
 
-### 4. Campaign cards (active/draft) — minor improvement
-- Add event cover thumbnail
-- Status badge more prominent with color dot
-- Draft cards: show "Listo para activar" CTA more visually prominent
+---
 
-## Files to modify
-- `src/components/dashboard/PromocionesSection.tsx` — complete redesign (single file, no backend changes)
+### Implementation
 
-## Key UX principles applied
-- **Reduce cognitive load**: one decision per step
-- **Anchor with presets**: $25 as "más popular" removes paralysis
-- **Show value before cost**: reach number is bigger than dollar amount
-- **Build momentum**: progress indicator + "Siguiente →" keeps flow moving
-- **Trust signals**: "El pago es seguro vía Stripe" on the payment step
+**1. `src/components/layout/BottomNav.tsx`**
+- Remove direct navigation for the center `+` item
+- Add `isPickerOpen` local state
+- On `+` click: if guest → auth prompt as before. If logged in → toggle `isPickerOpen`
+- When open: render the backdrop + two animated option buttons via `AnimatePresence`
+- The + icon rotates 45° → × when open (standard mobile pattern)
+- Backdrop click closes the picker
+- Each option button: click → `navigate('/create?type=post')` or `navigate('/create?type=event')`
+
+**2. `src/pages/Create.tsx`**
+- Read `useSearchParams` on mount
+- If `?type=post` or `?type=event` param exists → set `contentType` on initial state instead of defaulting to `"post"` always
+- No other changes needed to Create page
+
+---
+
+### Animation spec (framer-motion)
+
+```
+Post button:   initial {x:0, y:0, opacity:0} → animate {x:-90, y:-80, opacity:1}
+Evento button: initial {x:0, y:0, opacity:0} → animate {x:+90, y:-80, opacity:1}
+Both use spring: stiffness 300, damping 22, delay 0.05s stagger
+```
+
+Backdrop: `opacity: 0 → 0.6`, `bg-black`, covers full screen below nav, `z-40`.
+
+---
+
+### Files changed
+
+| File | Change |
+|------|--------|
+| `src/components/layout/BottomNav.tsx` | Intercept + tap → show radial picker overlay with 2 animated options |
+| `src/pages/Create.tsx` | Read `?type=` query param to pre-select post/event on load |
