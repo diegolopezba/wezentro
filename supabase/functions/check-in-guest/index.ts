@@ -144,8 +144,22 @@ Deno.serve(async (req) => {
       .eq("id", updatedEntry.user_id)
       .single();
 
-    // Increment check_ins analytics counter
-    await supabaseAdmin.rpc("increment_check_ins", { _event_id: event_id }).catch(() => {});
+    // Update event_analytics check_ins counter (best-effort, ignore errors)
+    supabaseAdmin
+      .from("event_analytics")
+      .select("id, check_ins")
+      .eq("event_id", event_id)
+      .single()
+      .then(({ data: analytics }) => {
+        if (analytics) {
+          supabaseAdmin
+            .from("event_analytics")
+            .update({ check_ins: (analytics.check_ins ?? 0) + 1, updated_at: new Date().toISOString() })
+            .eq("event_id", event_id)
+            .then(() => {});
+        }
+      })
+      .catch(() => {});
 
     return new Response(
       JSON.stringify({
