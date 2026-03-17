@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { Volume2, VolumeX, Repeat } from "lucide-react";
+import { motion } from "framer-motion";
+import { Volume2, VolumeX, Repeat, MoreHorizontal, EyeOff } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useContext } from "react";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,15 @@ import { SelectedEventContext } from "@/contexts/SelectedEventContext";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { RepostInfo } from "@/hooks/useFollowingEventsScored";
 import { useTrackSponsoredClick } from "@/hooks/useSponsoredPosts";
+import { trackPreferenceSignal } from "@/lib/preferenceTracking";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 export interface AttendeeAvatar {
   id: string;
   avatar_url: string | null;
@@ -31,6 +40,7 @@ export interface EventCardProps {
   isSponsored?: boolean;
   sponsoredPostId?: string;
 }
+
 const categoryColors: Record<string, string> = {
   party: "from-[hsl(var(--accent-red))] to-pink-500",
   bar: "from-amber-500 to-orange-500",
@@ -43,6 +53,7 @@ const categoryColors: Record<string, string> = {
   culture: "from-violet-500 to-indigo-500",
   default: "from-[hsl(var(--primary))] to-[hsl(var(--accent))]"
 };
+
 export const EventCard = ({
   id,
   title,
@@ -62,17 +73,18 @@ export const EventCard = ({
 }: EventCardProps) => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
+  const { user } = useAuth();
   const { data: hasSubscription } = useHasActiveSubscription();
   const trackClick = useTrackSponsoredClick();
+  const [dismissed, setDismissed] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
-  // Use expansion transition only on home page
   const isHomePage = routerLocation.pathname === "/";
-
-  // Safe hook call - returns null if context is not available
   const selectedEventContext = useContext(SelectedEventContext);
 
   const handleCardClick = () => {
-    // Track sponsored click
     if (isSponsored && sponsoredPostId) {
       trackClick.mutate(sponsoredPostId);
     }
@@ -82,16 +94,23 @@ export const EventCard = ({
       navigate(`/event/${id}`);
     }
   };
-  const gradientClass = categoryColors[category] || categoryColors.default;
+
+  const handleNotInterested = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDismissed(true);
+    if (user?.id) {
+      trackPreferenceSignal(user.id, id, "not_interested");
+    }
+  };
+
+  if (dismissed) return null;
+
   const isVideo = isVideoUrl(imageUrl);
 
-  // Optimize Supabase storage images with width/quality transforms
   const optimizedImageUrl = !isVideo && imageUrl && imageUrl.includes('/storage/v1/object/public/')
     ? `${imageUrl}?width=400&quality=75&resize=cover`
     : imageUrl;
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = useState(true);
-  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (videoRef.current) {
@@ -99,12 +118,14 @@ export const EventCard = ({
       setIsMuted(!isMuted);
     }
   };
+
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     if (img.naturalWidth && img.naturalHeight) {
       setAspectRatio(img.naturalWidth / img.naturalHeight);
     }
   };
+
   const handleVideoMetadata = () => {
     if (videoRef.current) {
       const { videoWidth, videoHeight } = videoRef.current;
@@ -113,32 +134,32 @@ export const EventCard = ({
       }
     }
   };
-  // Generate repost attribution text
+
   const repostAttribution =
-  repostInfo?.repostedBy && repostInfo.repostedBy.length > 0 ?
-  repostInfo.repostedBy.length === 1 ?
-  `@${repostInfo.repostedBy[0].username}` :
-  repostInfo.repostedBy.length === 2 ?
-  `@${repostInfo.repostedBy[0].username} y @${repostInfo.repostedBy[1].username}` :
-  `@${repostInfo.repostedBy[0].username} y ${repostInfo.repostedBy.length - 1} más` :
-  null;
+    repostInfo?.repostedBy && repostInfo.repostedBy.length > 0
+      ? repostInfo.repostedBy.length === 1
+        ? `@${repostInfo.repostedBy[0].username}`
+        : repostInfo.repostedBy.length === 2
+        ? `@${repostInfo.repostedBy[0].username} y @${repostInfo.repostedBy[1].username}`
+        : `@${repostInfo.repostedBy[0].username} y ${repostInfo.repostedBy.length - 1} más`
+      : null;
 
   return (
     <div className="masonry-item">
       {/* Sponsored badge */}
-      {isSponsored &&
-      <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
-          
+      {isSponsored && (
+        <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
           <span>Patrocinado</span>
         </div>
-      }
+      )}
+
       {/* Repost attribution */}
-      {!isSponsored && repostAttribution &&
-      <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
+      {!isSponsored && repostAttribution && (
+        <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
           <Repeat className="w-3 h-3" />
           <span className="truncate"> {repostAttribution}</span>
         </div>
-      }
+      )}
 
       <motion.div
         layoutId={`event-card-${id}`}
@@ -152,8 +173,8 @@ export const EventCard = ({
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         className="cursor-pointer"
-        onClick={handleCardClick}>
-
+        onClick={handleCardClick}
+      >
         <div className="space-y-2 px-0">
           {/* Media */}
           <div
@@ -163,134 +184,157 @@ export const EventCard = ({
               aspectRatio: aspectRatio ? `${aspectRatio}` : "3/4",
               minHeight: "120px",
               maxHeight: "350px"
-            }}>
+            }}
+          >
+            {isVideo ? (
+              <video
+                ref={videoRef}
+                src={imageUrl}
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+                onLoadedMetadata={handleVideoMetadata}
+              />
+            ) : (
+              <img
+                src={optimizedImageUrl}
+                alt={title}
+                className="w-full h-full object-cover"
+                onLoad={handleImageLoad}
+                loading="lazy"
+              />
+            )}
 
-            {isVideo ?
-            <video
-              ref={videoRef}
-              src={imageUrl}
-              className="w-full h-full object-cover"
-              autoPlay
-              muted
-              loop
-              playsInline
-              onLoadedMetadata={handleVideoMetadata} /> :
-
-
-            <img src={optimizedImageUrl} alt={title} className="w-full h-full object-cover" onLoad={handleImageLoad} loading="lazy" />
-            }
-
-            {/* Sound toggle button - top right */}
-            {isVideo &&
-            <button
-              onClick={toggleMute}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors z-10">
-                {isMuted ?
-              <VolumeX className="w-3.5 h-3.5 text-white" /> :
-              <Volume2 className="w-3.5 h-3.5 text-white" />
-              }
+            {/* Sound toggle button */}
+            {isVideo && (
+              <button
+                onClick={toggleMute}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors z-10"
+              >
+                {isMuted ? (
+                  <VolumeX className="w-3.5 h-3.5 text-white" />
+                ) : (
+                  <Volume2 className="w-3.5 h-3.5 text-white" />
+                )}
               </button>
-            }
+            )}
+
+            {/* "Not interested" 3-dot menu — top right (only for non-sponsored, logged-in users) */}
+            {!isVideo && !isSponsored && user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  asChild
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors z-10">
+                    <MoreHorizontal className="w-3.5 h-3.5 text-white" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="z-50">
+                  <DropdownMenuItem
+                    onClick={handleNotInterested}
+                    className="gap-2 text-muted-foreground"
+                  >
+                    <EyeOff className="w-4 h-4" />
+                    No me interesa
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             {/* Attendees overlay - top left */}
-            {attendees > 0 &&
-            <div className="absolute top-2 left-2 flex items-center gap-1.5">
+            {attendees > 0 && (
+              <div className="absolute top-2 left-2 flex items-center gap-1.5">
                 <div className="flex -space-x-1.5">
-                  {hasSubscription ?
-                <>
-                      {/* Owner avatar first */}
-                      {ownerAvatar &&
-                  <img
-                    src={ownerAvatar}
-                    alt="Owner"
-                    className={cn(
-                      "w-6 h-6 rounded-full border-background object-cover border-0",
-                      creatorId && "cursor-pointer hover:scale-110 transition-transform z-10"
-                    )}
-                    onClick={(e) => {
-                      if (creatorId) {
-                        e.stopPropagation();
-                        navigate(`/user/${creatorId}`);
-                      }
-                    }} />
-
-                  }
-                      {/* Attendee avatars (up to 3, excluding owner) */}
-                      {attendeeAvatars.
-                  filter((a) => a.id !== creatorId).
-                  slice(0, ownerAvatar ? 2 : 3).
-                  map((attendee) =>
-                  attendee.avatar_url ?
-                  <img
-                    key={attendee.id}
-                    src={attendee.avatar_url}
-                    alt="Attendee"
-                    className="w-6 h-6 rounded-full border-background object-cover border-0" /> :
-
-
-                  <img
-                    key={attendee.id}
-                    src={DEFAULT_AVATAR}
-                    alt="Attendee"
-                    className="w-6 h-6 rounded-full border-background object-cover border-0" />
-
-
-                  )}
-                      {/* Show placeholder circles if we don't have enough avatars */}
+                  {hasSubscription ? (
+                    <>
+                      {ownerAvatar && (
+                        <img
+                          src={ownerAvatar}
+                          alt="Owner"
+                          className={cn(
+                            "w-6 h-6 rounded-full border-background object-cover border-0",
+                            creatorId && "cursor-pointer hover:scale-110 transition-transform z-10"
+                          )}
+                          onClick={(e) => {
+                            if (creatorId) {
+                              e.stopPropagation();
+                              navigate(`/user/${creatorId}`);
+                            }
+                          }}
+                        />
+                      )}
+                      {attendeeAvatars
+                        .filter((a) => a.id !== creatorId)
+                        .slice(0, ownerAvatar ? 2 : 3)
+                        .map((attendee) =>
+                          attendee.avatar_url ? (
+                            <img
+                              key={attendee.id}
+                              src={attendee.avatar_url}
+                              alt="Attendee"
+                              className="w-6 h-6 rounded-full border-background object-cover border-0"
+                            />
+                          ) : (
+                            <img
+                              key={attendee.id}
+                              src={DEFAULT_AVATAR}
+                              alt="Attendee"
+                              className="w-6 h-6 rounded-full border-background object-cover border-0"
+                            />
+                          )
+                        )}
                       {attendeeAvatars.filter((a) => a.id !== creatorId).length < (ownerAvatar ? 2 : 3) &&
-                  attendees > attendeeAvatars.filter((a) => a.id !== creatorId).length &&
-                  [
-                  ...Array(
-                    Math.min(
-                      (ownerAvatar ? 2 : 3) - attendeeAvatars.filter((a) => a.id !== creatorId).length,
-                      attendees - attendeeAvatars.filter((a) => a.id !== creatorId).length
+                        attendees > attendeeAvatars.filter((a) => a.id !== creatorId).length &&
+                        [...Array(
+                          Math.min(
+                            (ownerAvatar ? 2 : 3) - attendeeAvatars.filter((a) => a.id !== creatorId).length,
+                            attendees - attendeeAvatars.filter((a) => a.id !== creatorId).length
+                          )
+                        )].map((_, i) => (
+                          <img
+                            key={`placeholder-${i}`}
+                            src={DEFAULT_AVATAR}
+                            alt="Attendee"
+                            className="w-6 h-6 rounded-full border-background object-cover border-0"
+                          />
+                        ))}
+                    </>
+                  ) : (
+                    attendeeAvatars.slice(0, 3).map((attendee) =>
+                      attendee.avatar_url ? (
+                        <img
+                          key={attendee.id}
+                          src={attendee.avatar_url}
+                          alt="Attendee"
+                          className="w-6 h-6 rounded-full border-2 border-background object-cover blur-[2px]"
+                        />
+                      ) : (
+                        <img
+                          key={attendee.id}
+                          src={DEFAULT_AVATAR}
+                          alt="Attendee"
+                          className="w-6 h-6 rounded-full border-2 border-background object-cover blur-[2px]"
+                        />
+                      )
                     )
-                  )].
-                  map((_, i) =>
-                  <img
-                    key={`placeholder-${i}`}
-                    src={DEFAULT_AVATAR}
-                    alt="Attendee"
-                    className="w-6 h-6 rounded-full border-background object-cover border-0" />
-
                   )}
-                    </> : (
-
-                /* Non-premium: show blurred real avatars */
-                attendeeAvatars.
-                slice(0, 3).
-                map((attendee) =>
-                attendee.avatar_url ?
-                <img
-                  key={attendee.id}
-                  src={attendee.avatar_url}
-                  alt="Attendee"
-                  className="w-6 h-6 rounded-full border-2 border-background object-cover blur-[2px]" /> :
-
-
-                <img
-                  key={attendee.id}
-                  src={DEFAULT_AVATAR}
-                  alt="Attendee"
-                  className="w-6 h-6 rounded-full border-2 border-background object-cover blur-[2px]" />
-
-
-                ))
-                }
                 </div>
                 <span className="text-[10px] font-medium text-foreground">{attendees}</span>
               </div>
-            }
+            )}
           </div>
 
-          {/* Content */}
-          {title &&
-          <div className="space-y-1 px-1">
+          {/* Title */}
+          {title && (
+            <div className="space-y-1 px-1">
               <h3 className="font-brand font-semibold text-foreground line-clamp-2 text-xs">{title}</h3>
             </div>
-          }
+          )}
         </div>
       </motion.div>
-    </div>);
-
+    </div>
+  );
 };

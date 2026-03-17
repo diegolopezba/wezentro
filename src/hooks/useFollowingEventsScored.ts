@@ -36,18 +36,20 @@ const getCreatorRelationshipScore = (
   return 100;
 };
 
-// Post Recency Score (25% weight - reduced from 30%)
-// Prioritizes recently posted events
-const getPostRecencyScore = (createdAt: string): number => {
+// Post Recency Score (25% weight)
+// V6 FIX: Uses the most relevant date — for reposts, that's the repost date, not the original.
+// This ensures a reposted 2-week-old post scores as fresh as a brand new post.
+const getPostRecencyScore = (dateStr: string): number => {
   const now = new Date();
-  const created = new Date(createdAt);
-  const hoursAgo = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+  const date = new Date(dateStr);
+  const hoursAgo = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-  if (hoursAgo <= 24) return 100;      // < 24 hours ago
-  if (hoursAgo <= 72) return 80;       // 1-3 days ago
-  if (hoursAgo <= 168) return 60;      // 3-7 days ago
-  if (hoursAgo <= 336) return 40;      // 1-2 weeks ago
-  return 20;                            // 2+ weeks ago
+  if (hoursAgo <= 6) return 100;       // < 6 hours ago (V6: extra boost for very fresh)
+  if (hoursAgo <= 24) return 90;       // < 24 hours ago
+  if (hoursAgo <= 72) return 70;       // 1-3 days ago
+  if (hoursAgo <= 168) return 50;      // 3-7 days ago
+  if (hoursAgo <= 336) return 30;      // 1-2 weeks ago
+  return 15;                            // 2+ weeks ago
 };
 
 // Event Timing Score (10% weight)
@@ -98,7 +100,15 @@ const calculateFollowingEventScore = (
     mutualFollowIds,
     followingIds
   );
-  const postRecencyScore = getPostRecencyScore(event.created_at);
+
+  // V6 FIX: For reposted content, use the most recent repost date as the recency signal.
+  // This means a repost of a 2-week-old post scores as fresh as a brand new post —
+  // matching how Instagram treats reshared content.
+  const recencyDate = event.repostInfo?.mostRecentRepostAt
+    ? event.repostInfo.mostRecentRepostAt
+    : event.created_at;
+  const postRecencyScore = getPostRecencyScore(recencyDate);
+
   const eventTimingScore = getEventTimingScore(event.start_datetime);
   
   // Calculate repost score
@@ -108,10 +118,10 @@ const calculateFollowingEventScore = (
   ).length || 0;
   const repostScore = getRepostScore(repostCount, mutualRepostCount);
 
-  // Weighted formula (90% total - 10% reserved for future social engagement)
+  // Weighted formula
   return (
     creatorRelationshipScore * 0.35 +  // 35% - creator relationship
-    postRecencyScore * 0.25 +           // 25% - post recency
+    postRecencyScore * 0.25 +           // 25% - recency (uses repost date when applicable)
     eventTimingScore * 0.10 +           // 10% - event timing
     repostScore * 0.20                  // 20% - repost boost
   );

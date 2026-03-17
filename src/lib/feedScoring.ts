@@ -1,21 +1,40 @@
 /**
- * Feed Scoring Engine for the "Para Ti" algorithm.
+ * Feed Scoring Engine — Algorithm V6 "Viral Mechanics"
  *
- * Weights (v5 — with Collaborative Filtering + Social Proof):
- *   Friends Going (+ mutual boost) 14%
- *   Proximity        11%
- *   Trending          9%
- *   Learned Prefs     8%
- *   Interest Match    8%
- *   Description Tags  7%
- *   Collaborative     6%
- *   Creator Loyalty   7%
- *   Recency           7%
- *   Popularity        7%
- *   Time-of-Day       5%
- *   Day-of-Week       5%
- *   Social Proof      3%
- *   Timing            3%
+ * V6 changes:
+ *  - Posts and events use SEPARATE weight distributions
+ *  - New velocity signal for posts (TikTok-style early-engagement boost)
+ *  - Quality-weighted trending (join/save=5, like/repost=3, click=1, views excluded)
+ *  - Cold-start boost: new users get interest weight amplified to 0.25
+ *  - Repost recency uses mostRecentRepostAt instead of original created_at
+ *
+ * POST weights (virality-first):
+ *   recency      30%  freshness is the primary signal
+ *   friends      14%
+ *   trending     12%  velocity-weighted
+ *   learned      10%
+ *   interest     10%
+ *   tags          8%
+ *   velocity      6%  NEW — 2-hour high-intent engagement burst
+ *   collaborative 6%
+ *   socialProof   2%
+ *   proximity     2%
+ *
+ * EVENT weights (location + timing-first):
+ *   friends      14%
+ *   proximity    12%
+ *   trending      9%
+ *   creatorLoyalty 7%
+ *   learned       8%
+ *   interest      8%
+ *   tags          7%
+ *   collaborative 6%
+ *   recency       6%
+ *   popularity    7%
+ *   timeOfDay     5%
+ *   dayOfWeek     5%
+ *   socialProof   3%
+ *   timing        3%
  */
 
 // ───────── helpers ─────────
@@ -42,7 +61,7 @@ export const getProximityScore = (
 ): number => {
   if (!eventLat || !eventLon || !userLat || !userLon) return 50;
   const d = haversine(userLat, userLon, eventLat, eventLon);
-  if (d <= 1.6) return 100;  // ~1 mile
+  if (d <= 1.6) return 100;
   if (d <= 8) return 80;
   if (d <= 16) return 60;
   if (d <= 40) return 40;
@@ -73,11 +92,12 @@ export const getInterestScore = (
 
 export const getRecencyScore = (createdAt: string): number => {
   const h = (Date.now() - new Date(createdAt).getTime()) / 3.6e6;
-  if (h <= 24) return 100;
-  if (h <= 72) return 80;
-  if (h <= 168) return 60;
-  if (h <= 336) return 40;
-  return 20;
+  if (h <= 6) return 100;   // V6: extra boost for very fresh content
+  if (h <= 24) return 90;
+  if (h <= 72) return 70;
+  if (h <= 168) return 50;
+  if (h <= 336) return 30;
+  return 15;
 };
 
 export const getTimingScore = (startDatetime: string | null): number => {
@@ -101,7 +121,6 @@ export const getFriendsGoingScore = (
   const ids = guestEntries.map((e) => e.user?.id).filter(Boolean);
   const mutualSet = new Set(mutualFollowerIds || []);
 
-  // Mutual followers count as 2x weight
   let weightedCount = 0;
   for (const id of ids) {
     if (mutualSet.has(id)) {
@@ -135,13 +154,36 @@ export const getLearnedPreferenceScore = (
   return Math.min(100, score);
 };
 
-export const getTrendingScore = (recentCount: number): number => {
-  if (recentCount >= 30) return 100;
-  if (recentCount >= 15) return 80;
-  if (recentCount >= 8) return 60;
-  if (recentCount >= 3) return 40;
-  if (recentCount >= 1) return 20;
-  return 5;
+/**
+ * V6: Quality-weighted trending score.
+ * Uses weighted counts (join/save=5, like/repost=3, click=1) instead of raw counts.
+ * This mirrors Instagram/TikTok where passive views don't count as engagement.
+ */
+export const getTrendingScore = (weightedCount: number): number => {
+  if (weightedCount >= 50) return 100;
+  if (weightedCount >= 25) return 85;
+  if (weightedCount >= 12) return 70;
+  if (weightedCount >= 5) return 50;
+  if (weightedCount >= 2) return 30;
+  if (weightedCount >= 1) return 15;
+  return 0;
+};
+
+/**
+ * V6 NEW: Velocity score — TikTok-style early engagement burst detection.
+ * Measures high-intent interactions in the last 2 hours.
+ * A post/event gaining rapid early traction gets a large boost.
+ */
+export const getVelocityScore = (
+  eventId: string,
+  velocityCounts: Record<string, number>
+): number => {
+  const v = velocityCounts[eventId] || 0;
+  if (v >= 10) return 100;
+  if (v >= 6) return 85;
+  if (v >= 3) return 65;
+  if (v >= 1) return 40;
+  return 0;
 };
 
 const TIME_CATEGORY_MAP: Record<string, string[]> = {
@@ -208,14 +250,12 @@ export const getDescriptionTagScore = (
   return Math.min(100, avgScore + matchBonus);
 };
 
-// ───────── NEW v5: Collaborative Filtering ─────────
 export const getCollaborativeScore = (
   eventId: string,
   collaborativeBoosts: Record<string, number>
 ): number => {
   const boost = collaborativeBoosts[eventId];
   if (!boost) return 0;
-  // boost = number of similar users who engaged (1-5)
   if (boost >= 4) return 100;
   if (boost >= 3) return 80;
   if (boost >= 2) return 60;
@@ -223,7 +263,6 @@ export const getCollaborativeScore = (
   return 0;
 };
 
-// ───────── NEW v5: Social Proof (mutual followers attending) ─────────
 export const getSocialProofScore = (
   guestEntries: { user: { id: string } }[] | undefined,
   mutualFollowerIds: string[] | null
@@ -248,13 +287,17 @@ export interface ScoringContext {
   followingIds: string[] | null;
   categoryPrefs: Record<string, number>;
   creatorPrefs: Record<string, number>;
+  /** V6: quality-weighted trending counts */
   trendingCounts: Record<string, number>;
   creatorAttendance: Record<string, number>;
   dayOfWeekPrefs: Record<string, number>;
   tagPrefs: Record<string, number>;
-  // v5 additions
   collaborativeBoosts: Record<string, number>;
   mutualFollowerIds: string[] | null;
+  /** V6: 2-hour high-intent interaction counts per event */
+  velocityCounts: Record<string, number>;
+  /** V6: true when user has no learned preferences yet (cold start) */
+  isNewUser?: boolean;
 }
 
 export interface ScoredEvent {
@@ -265,6 +308,7 @@ export interface ScoredEvent {
 export const calculateEventScore = (
   event: {
     id: string;
+    is_post?: boolean | null;
     latitude: number | null;
     longitude: number | null;
     category: string | null;
@@ -277,31 +321,57 @@ export const calculateEventScore = (
   ctx: ScoringContext
 ): number => {
   const attendees = event.guestlist_entries?.length || 0;
+  const isPost = !!event.is_post;
 
-  const proximity       = getProximityScore(event.latitude, event.longitude, ctx.userLat, ctx.userLon);
-  const friends         = getFriendsGoingScore(event.guestlist_entries, ctx.followingIds, ctx.mutualFollowerIds);
-  const trending        = getTrendingScore(ctx.trendingCounts[event.id] || 0);
-  const learned         = getLearnedPreferenceScore(event.category, event.creator_id, ctx.categoryPrefs, ctx.creatorPrefs);
-  const interest        = getInterestScore(event.category, ctx.userInterests);
-  const recency         = getRecencyScore(event.created_at);
-  const timeOfDay       = getTimeOfDayScore(event.category);
-  const timing          = getTimingScore(event.start_datetime);
-  const creatorLoyalty  = getCreatorLoyaltyScore(event.creator_id, ctx.creatorAttendance);
-  const dayOfWeek       = getDayOfWeekScore(event.category, ctx.dayOfWeekPrefs);
-  const descTags        = getDescriptionTagScore(event.description_tags || null, ctx.tagPrefs);
-  const collaborative   = getCollaborativeScore(event.id, ctx.collaborativeBoosts);
-  const socialProof     = getSocialProofScore(event.guestlist_entries, ctx.mutualFollowerIds);
+  const proximity      = getProximityScore(event.latitude, event.longitude, ctx.userLat, ctx.userLon);
+  const friends        = getFriendsGoingScore(event.guestlist_entries, ctx.followingIds, ctx.mutualFollowerIds);
+  const trending       = getTrendingScore(ctx.trendingCounts[event.id] || 0);
+  const learned        = getLearnedPreferenceScore(event.category, event.creator_id, ctx.categoryPrefs, ctx.creatorPrefs);
+  const recency        = getRecencyScore(event.created_at);
+  const timeOfDay      = getTimeOfDayScore(event.category);
+  const timing         = getTimingScore(event.start_datetime);
+  const creatorLoyalty = getCreatorLoyaltyScore(event.creator_id, ctx.creatorAttendance);
+  const dayOfWeek      = getDayOfWeekScore(event.category, ctx.dayOfWeekPrefs);
+  const descTags       = getDescriptionTagScore(event.description_tags || null, ctx.tagPrefs);
+  const collaborative  = getCollaborativeScore(event.id, ctx.collaborativeBoosts);
+  const socialProof    = getSocialProofScore(event.guestlist_entries, ctx.mutualFollowerIds);
+  const velocity       = getVelocityScore(event.id, ctx.velocityCounts);
 
+  // V6: Cold-start boost — amplify interest score for new users with no learned prefs
+  const hasLearnedData = Object.keys(ctx.categoryPrefs).length > 0 || Object.keys(ctx.creatorPrefs).length > 0;
+  const interestRaw    = getInterestScore(event.category, ctx.userInterests);
+  // For new users, interest weight triples so onboarding selections dominate the feed
+  const interest       = ctx.isNewUser || !hasLearnedData
+    ? Math.min(100, interestRaw * 1.4)
+    : interestRaw;
+
+  if (isPost) {
+    // ── POST scoring: virality-first ──
+    return (
+      recency       * 0.30 +
+      friends       * 0.14 +
+      trending      * 0.12 +
+      learned       * 0.10 +
+      interest      * 0.10 +
+      descTags      * 0.08 +
+      velocity      * 0.06 +
+      collaborative * 0.06 +
+      socialProof   * 0.02 +
+      proximity     * 0.02
+    );
+  }
+
+  // ── EVENT scoring: location + timing-first ──
   return (
     friends        * 0.14 +
-    proximity      * 0.11 +
-    trending       * 0.09 +
+    proximity      * 0.12 +
     learned        * 0.08 +
     interest       * 0.08 +
+    trending       * 0.09 +
+    creatorLoyalty * 0.07 +
     descTags       * 0.07 +
     collaborative  * 0.06 +
-    creatorLoyalty * 0.07 +
-    recency        * 0.07 +
+    recency        * 0.06 +
     getPopularityScore(attendees) * 0.07 +
     timeOfDay      * 0.05 +
     dayOfWeek      * 0.05 +

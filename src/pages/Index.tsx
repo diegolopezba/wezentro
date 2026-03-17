@@ -180,7 +180,7 @@ const Index = () => {
         id: event.id,
         title: event.title || undefined,
         imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
-        date: format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", { locale: es }),
+        date: event.start_datetime ? format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", { locale: es }) : "",
         location: event.location_name || "Ubicación por confirmar",
         category: event.category || "party",
         attendees: guestlistEntries.length,
