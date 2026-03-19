@@ -218,26 +218,6 @@ const App = () => {
                             }
                           />
                           <Route
-                            path="/settings/subscription"
-                            element={
-                              <ProtectedRoute requireProfile>
-                                <Suspense fallback={<PageLoader />}>
-                                  <Subscription />
-                                </Suspense>
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/checkout-success"
-                            element={
-                              <ProtectedRoute requireProfile>
-                                <Suspense fallback={<PageLoader />}>
-                                  <CheckoutSuccess />
-                                </Suspense>
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
                             path="/settings/privacy"
                             element={
                               <ProtectedRoute requireProfile>

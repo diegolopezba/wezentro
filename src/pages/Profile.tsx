@@ -168,33 +168,6 @@ const Profile = () => {
             </motion.div>}
         </AnimatePresence>
 
-        {/* Subscription badge - only show for non-premium, non-business users */}
-        {!isPremium && !isBusiness && <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.15
-      }} className="mt-4">
-            <div className="p-4 rounded-2xl border bg-gradient-to-r from-amber-500/20 to-amber-500/20 border-amber-500/30 py-[4px]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 rounded-md">
-                    <Crown className="text-white w-[18px] h-[18px]" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">Free</h3>
-                    <p className="text-xs text-muted-foreground">Suscríbete para unirte a guestlists</p>
-                  </div>
-                </div>
-                <Button variant="premium" size="sm" onClick={() => navigate("/settings/subscription")}>
-                  Mejorar
-                </Button>
-              </div>
-            </div>
-          </motion.div>}
       </div>
 
       {/* Timeline Content */}

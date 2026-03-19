@@ -183,7 +183,7 @@ const UserProfile = () => {
       }} className="flex items-start gap-4">
           <div className="relative">
             <img src={userProfile.avatar_url || DEFAULT_AVATAR} alt="Perfil" className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary" />
-            {(isPremium || isBusiness) && <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : isPremium ? "bg-gradient-to-br from-amber-400 to-amber-600" : "bg-gradient-to-br from-blue-500 to-indigo-500"}`}>
+            {isBusiness && <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-blue-500 to-indigo-500"}`}>
                 {isFoodBusiness ? <UtensilsCrossed className="w-4 h-4 text-white" /> : <Crown className="w-4 h-4 text-white" />}
               </div>}
           </div>
