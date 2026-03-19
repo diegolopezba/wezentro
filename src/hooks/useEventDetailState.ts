@@ -181,7 +181,6 @@ export const useEventDetailState = (
     // Data
     event, isLoading, error,
     guestlist, guestlistStatus,
-    hasSubscription,
     pendingCount,
     isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
