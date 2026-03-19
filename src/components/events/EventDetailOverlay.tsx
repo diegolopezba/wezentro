@@ -12,7 +12,7 @@ import { ShareGuestlistModal } from "@/components/events/ShareGuestlistModal";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
-import { PremiumGateModal } from "@/components/events/PremiumGateModal";
+
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { isVideoUrl } from "@/lib/mediaUtils";
