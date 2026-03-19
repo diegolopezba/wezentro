@@ -7,7 +7,6 @@ import {
   useJoinGuestlist,
   useJoinGuestlistWithPayment,
   useLeaveGuestlist,
-  useHasActiveSubscription,
   usePendingGuestlistRequests,
   usePendingPayments,
 } from "@/hooks/useGuestlist";
