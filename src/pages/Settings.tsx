@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase } from "lucide-react";
+import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,7 +36,6 @@ const Settings = () => {
       items: [
         { icon: User, label: "Editar Perfil", path: "/edit-profile" },
         { icon: Shield, label: "Privacidad", path: "/settings/privacy" },
-        { icon: CreditCard, label: "Suscripción", path: "/settings/subscription" },
         { icon: Gift, label: "Invitar Amigos", path: "/settings/referrals" },
       ],
     },

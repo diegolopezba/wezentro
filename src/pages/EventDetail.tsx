@@ -12,7 +12,7 @@ import { ShareGuestlistModal } from "@/components/events/ShareGuestlistModal";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
-import { PremiumGateModal } from "@/components/events/PremiumGateModal";
+
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
@@ -38,7 +38,7 @@ const EventDetail = () => {
 
   const {
     event, isLoading, error,
-    guestlist, hasSubscription,
+    guestlist,
     pendingCount, isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
     isOnGuestlist, isPending, isApproved,
@@ -55,7 +55,6 @@ const EventDetail = () => {
     showGuestlistInviteModal, setShowGuestlistInviteModal,
     showEditSheet, setShowEditSheet,
     showDeleteDialog, setShowDeleteDialog,
-    showPremiumGate, setShowPremiumGate,
     showPaymentModal, setShowPaymentModal,
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
@@ -282,11 +281,11 @@ const EventDetail = () => {
                 <h2 className="font-brand text-lg font-semibold text-foreground">
                   Lista de invitados ({guestlist.length})
                 </h2>
-                {guestlist.length > 0 && hasSubscription && <span className="text-sm text-primary cursor-pointer">Ver todos</span>}
+                {guestlist.length > 0 && <span className="text-sm text-primary cursor-pointer">Ver todos</span>}
               </div>
 
-              {guestlist.length > 0 ? hasSubscription ? <>
-                    {/* Avatars row - Premium users see real avatars */}
+              {guestlist.length > 0 ? <>
+                    {/* Avatars row */}
                     <div className="flex items-center gap-2 mb-4">
                       <div className="flex -space-x-3">
                         {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={(e) => {
@@ -313,30 +312,6 @@ const EventDetail = () => {
                           </div>
                           <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
                         </div>)}
-                    </div>
-                  </> : <>
-                    {/* Non-premium: show blurred real avatars */}
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="flex -space-x-3">
-                        {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover blur-[3px]" />)}
-                      </div>
-                      {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
-                          +{guestlist.length - 5} more
-                        </span>}
-                    </div>
-
-                    {/* Upsell card for non-premium users */}
-                    <div className="p-4 rounded-2xl bg-secondary/50 border border-border/50">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Lock className="w-4 h-4 text-primary" />
-                        <span className="font-semibold text-foreground text-sm">Solo para Miembros</span>
-                      </div>
-                      <p className="text-muted-foreground text-sm mb-4">
-                        Hazte miembro de Zentro para ver quién está en la lista
-                      </p>
-                      <Button variant="hero" size="sm" className="w-full" onClick={() => navigate("/subscription")}>
-                        Hacerse Miembro
-                      </Button>
                     </div>
                   </> : <p className="text-muted-foreground text-sm">{isInviteOnlyGuestlist ? "Solo por invitación del organizador" : "Nadie se ha unido aún. ¡Sé el primero!"}</p>}
             </div>}
@@ -381,9 +356,6 @@ const EventDetail = () => {
 
       {/* Delete Event Dialog - Owner only */}
       {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} />}
-      
-      {/* Premium Gate Modal */}
-      <PremiumGateModal open={showPremiumGate} onOpenChange={setShowPremiumGate} />
       
       {/* Payment QR Modal */}
       {hasPaymentQr &&

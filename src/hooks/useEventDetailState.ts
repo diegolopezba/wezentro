@@ -7,7 +7,6 @@ import {
   useJoinGuestlist,
   useJoinGuestlistWithPayment,
   useLeaveGuestlist,
-  useHasActiveSubscription,
   usePendingGuestlistRequests,
   usePendingPayments,
 } from "@/hooks/useGuestlist";
@@ -51,7 +50,6 @@ export const useEventDetailState = (
   // Data queries
   const { data: event, isLoading, error } = useEvent(eventId);
   const { data: guestlistStatus } = useIsOnGuestlist(eventId);
-  const { data: hasSubscription } = useHasActiveSubscription();
   const { data: pendingRequests = [] } = usePendingGuestlistRequests(event ? eventId : undefined);
   const { data: pendingPayments = [] } = usePendingPayments(event ? eventId : undefined);
   const { data: guestlist = [] } = useEventGuestlist(eventId);
@@ -150,7 +148,6 @@ export const useEventDetailState = (
 
   const handleJoinGuestlist = async () => {
     if (isGuest) { promptAuth({ action: "unirte a esta lista" }); return; }
-    if (!hasSubscription) { setShowPremiumGate(true); return; }
     if (hasPaymentQr) { setShowPaymentModal(true); return; }
     try {
       await joinGuestlist.mutateAsync(eventId!);
@@ -184,7 +181,6 @@ export const useEventDetailState = (
     // Data
     event, isLoading, error,
     guestlist, guestlistStatus,
-    hasSubscription,
     pendingCount,
     isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,

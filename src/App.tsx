@@ -36,8 +36,6 @@ const ChatDetail = lazy(() => import("./pages/ChatDetail"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Saved = lazy(() => import("./pages/Saved"));
 const Notifications = lazy(() => import("./pages/Notifications"));
-const Subscription = lazy(() => import("./pages/Subscription"));
-const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 const PrivacySettings = lazy(() => import("./pages/PrivacySettings"));
 const EditProfile = lazy(() => import("./pages/EditProfile"));
 const EventDetail = lazy(() => import("./pages/EventDetail"));
@@ -215,26 +213,6 @@ const App = () => {
                               <ProtectedRoute requireProfile>
                                 <Suspense fallback={<PageLoader />}>
                                   <Notifications />
-                                </Suspense>
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/settings/subscription"
-                            element={
-                              <ProtectedRoute requireProfile>
-                                <Suspense fallback={<PageLoader />}>
-                                  <Subscription />
-                                </Suspense>
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/checkout-success"
-                            element={
-                              <ProtectedRoute requireProfile>
-                                <Suspense fallback={<PageLoader />}>
-                                  <CheckoutSuccess />
                                 </Suspense>
                               </ProtectedRoute>
                             }

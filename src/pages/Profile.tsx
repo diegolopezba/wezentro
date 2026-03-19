@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserTimeline } from "@/hooks/useUserTimeline";
 import { useUserStats } from "@/hooks/useUserStats";
-import { useUserSubscription } from "@/hooks/useSubscription";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
 import { EditMenuSheet } from "@/components/menu/EditMenuSheet";
@@ -36,10 +35,6 @@ const Profile = () => {
     data: timeline,
     isLoading: timelineLoading
   } = useUserTimeline(user?.id);
-  const {
-    data: subscription
-  } = useUserSubscription();
-  const isPremium = subscription?.plan_type === "user_premium";
   const isBusiness = profile?.is_business === true;
   const isFoodBusiness = profile?.is_food_business === true;
 
@@ -94,7 +89,7 @@ const Profile = () => {
       }} className="flex items-start gap-4">
           <div className="relative">
             <img src={profile?.avatar_url || DEFAULT_AVATAR} alt="Perfil" className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary" />
-            {(isPremium || isBusiness) && <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : isPremium ? "bg-gradient-to-br from-amber-400 to-amber-600" : "bg-gradient-to-br from-blue-500 to-indigo-500"}`}>
+            {isBusiness && <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-blue-500 to-indigo-500"}`}>
                 {isFoodBusiness ? <UtensilsCrossed className="w-4 h-4 text-white" /> : <Crown className="w-4 h-4 text-white" />}
               </div>}
           </div>
@@ -173,33 +168,6 @@ const Profile = () => {
             </motion.div>}
         </AnimatePresence>
 
-        {/* Subscription badge - only show for non-premium, non-business users */}
-        {!isPremium && !isBusiness && <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.15
-      }} className="mt-4">
-            <div className="p-4 rounded-2xl border bg-gradient-to-r from-amber-500/20 to-amber-500/20 border-amber-500/30 py-[4px]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 rounded-md">
-                    <Crown className="text-white w-[18px] h-[18px]" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">Free</h3>
-                    <p className="text-xs text-muted-foreground">Suscríbete para unirte a guestlists</p>
-                  </div>
-                </div>
-                <Button variant="premium" size="sm" onClick={() => navigate("/settings/subscription")}>
-                  Mejorar
-                </Button>
-              </div>
-            </div>
-          </motion.div>}
       </div>
 
       {/* Timeline Content */}

@@ -12,7 +12,7 @@ import { ShareGuestlistModal } from "@/components/events/ShareGuestlistModal";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
-import { PremiumGateModal } from "@/components/events/PremiumGateModal";
+
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { isVideoUrl } from "@/lib/mediaUtils";
@@ -34,7 +34,7 @@ export const EventDetailOverlay = () => {
 
   const {
     event, isLoading, error,
-    guestlist, hasSubscription,
+    guestlist,
     pendingCount, isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
     isOnGuestlist, isPending, isApproved,
@@ -50,7 +50,6 @@ export const EventDetailOverlay = () => {
     showGuestlistInviteModal, setShowGuestlistInviteModal,
     showEditSheet, setShowEditSheet,
     showDeleteDialog, setShowDeleteDialog,
-    showPremiumGate, setShowPremiumGate,
     showPaymentModal, setShowPaymentModal,
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
@@ -64,12 +63,12 @@ export const EventDetailOverlay = () => {
   // Check for showPayment query param (returned from checkout success)
   useEffect(() => {
     const shouldShowPayment = searchParams.get("showPayment") === "true";
-    if (shouldShowPayment && hasPaymentQr && hasSubscription && !isOnGuestlist) {
+    if (shouldShowPayment && hasPaymentQr && !isOnGuestlist) {
       setShowPaymentModal(true);
       searchParams.delete("showPayment");
       setSearchParams(searchParams, { replace: true });
     }
-  }, [searchParams, hasPaymentQr, hasSubscription, isOnGuestlist, setSearchParams]);
+  }, [searchParams, hasPaymentQr, isOnGuestlist, setSearchParams]);
 
   return (
     <AnimatePresence>
@@ -272,70 +271,39 @@ export const EventDetailOverlay = () => {
                         <h2 className="font-brand text-lg font-semibold text-foreground">
                           Lista de invitados ({guestlist.length})
                         </h2>
-                        {guestlist.length > 0 && hasSubscription && <span className="text-sm text-primary cursor-pointer">Ver todos</span>}
+                        {guestlist.length > 0 && <span className="text-sm text-primary cursor-pointer">Ver todos</span>}
                       </div>
 
                       {guestlist.length > 0 ? (
-                        hasSubscription ? (
-                          <>
-                            <div className="flex items-center gap-2 mb-4">
-                              <div className="flex -space-x-3">
-                                {guestlist.slice(0, 5).map((entry: any, i: number) => (
-                                  <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={() => navigate(`/user/${entry.user_id}`)} />
-                                ))}
-                              </div>
-                              {guestlist.length > 5 && (
-                                <span className="text-sm text-muted-foreground">+{guestlist.length - 5} más</span>
-                              )}
-                            </div>
-
-                            <div className="space-y-3">
-                              {guestlist.slice(0, 3).map((entry: any) => (
-                                <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
-                                  <img src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={entry.user?.username || "User"} className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate(`/user/${entry.user_id}`)} />
-                                  <div className="flex-1 cursor-pointer" onClick={() => navigate(`/user/${entry.user_id}`)}>
-                                    <p className="font-medium text-foreground text-sm">
-                                      @{entry.user?.username || "user"}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      Se unió el {format(new Date(entry.joined_at), "d MMM")}
-                                    </p>
-                                  </div>
-                                  <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
-                                </div>
+                        <>
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="flex -space-x-3">
+                              {guestlist.slice(0, 5).map((entry: any, i: number) => (
+                                <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={() => navigate(`/user/${entry.user_id}`)} />
                               ))}
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="flex items-center gap-2 mb-4">
-                              <div className="flex -space-x-3">
-                                {guestlist.slice(0, 5).map((entry: any, i: number) => (
-                                  <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover blur-[3px]" />
-                                ))}
-                              </div>
-                              {guestlist.length > 5 && (
-                                <span className="text-sm text-muted-foreground">+{guestlist.length - 5} más</span>
-                              )}
-                            </div>
+                            {guestlist.length > 5 && (
+                              <span className="text-sm text-muted-foreground">+{guestlist.length - 5} más</span>
+                            )}
+                          </div>
 
-                            <div className="p-4 rounded-2xl bg-secondary/50 border border-border/50">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Lock className="w-4 h-4 text-primary" />
-                                <span className="font-semibold text-foreground text-sm">Solo para miembros</span>
+                          <div className="space-y-3">
+                            {guestlist.slice(0, 3).map((entry: any) => (
+                              <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
+                                <img src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={entry.user?.username || "User"} className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate(`/user/${entry.user_id}`)} />
+                                <div className="flex-1 cursor-pointer" onClick={() => navigate(`/user/${entry.user_id}`)}>
+                                  <p className="font-medium text-foreground text-sm">
+                                    @{entry.user?.username || "user"}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Se unió el {format(new Date(entry.joined_at), "d MMM")}
+                                  </p>
+                                </div>
+                                <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
                               </div>
-                              <p className="text-muted-foreground text-sm mb-4">
-                                Hazte miembro de Zentro para ver quién está en la lista
-                              </p>
-                              <Button variant="hero" size="sm" className="w-full" onClick={() => {
-                                closeEvent();
-                                navigate("/subscription");
-                              }}>
-                                Desbloquear Premium
-                              </Button>
-                            </div>
-                          </>
-                        )
+                            ))}
+                          </div>
+                        </>
                       ) : (
                         <div className="text-center py-6 rounded-2xl bg-secondary/30">
                           <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
@@ -374,11 +342,6 @@ export const EventDetailOverlay = () => {
                     }}
                     eventId={selectedEventId!}
                     eventTitle={event.title}
-                  />
-                  <PremiumGateModal
-                    open={showPremiumGate}
-                    onOpenChange={setShowPremiumGate}
-                    eventId={selectedEventId || undefined}
                   />
                   {hasPaymentQr && (
                     <PaymentQRModal
