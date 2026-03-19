@@ -148,7 +148,6 @@ export const useEventDetailState = (
 
   const handleJoinGuestlist = async () => {
     if (isGuest) { promptAuth({ action: "unirte a esta lista" }); return; }
-    if (!hasSubscription) { setShowPremiumGate(true); return; }
     if (hasPaymentQr) { setShowPaymentModal(true); return; }
     try {
       await joinGuestlist.mutateAsync(eventId!);
