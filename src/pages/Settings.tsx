@@ -36,7 +36,6 @@ const Settings = () => {
       items: [
         { icon: User, label: "Editar Perfil", path: "/edit-profile" },
         { icon: Shield, label: "Privacidad", path: "/settings/privacy" },
-        { icon: CreditCard, label: "Suscripción", path: "/settings/subscription" },
         { icon: Gift, label: "Invitar Amigos", path: "/settings/referrals" },
       ],
     },

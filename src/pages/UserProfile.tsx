@@ -13,7 +13,6 @@ import { useUserStats } from "@/hooks/useUserStats";
 import { useUserTimeline } from "@/hooks/useUserTimeline";
 import { useCanMessageUser } from "@/hooks/useUserSettings";
 import { useCreatePrivateChat } from "@/hooks/useChats";
-import { useUserSubscriptionById } from "@/hooks/useSubscription";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
@@ -70,10 +69,6 @@ const UserProfile = () => {
     data: canMessageData,
     isLoading: canMessageLoading
   } = useCanMessageUser(id);
-  const {
-    data: userSubscription
-  } = useUserSubscriptionById(id);
-  const isPremium = userSubscription?.plan_type === "user_premium";
   const isFoodBusiness = userProfile?.is_food_business === true;
   const isBusiness = userProfile?.is_business === true;
   const menuEnabled = (userProfile as any)?.menu_enabled !== false;

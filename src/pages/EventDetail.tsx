@@ -357,9 +357,6 @@ const EventDetail = () => {
       {/* Delete Event Dialog - Owner only */}
       {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} />}
       
-      {/* Premium Gate Modal */}
-      <PremiumGateModal open={showPremiumGate} onOpenChange={setShowPremiumGate} />
-      
       {/* Payment QR Modal */}
       {hasPaymentQr &&
     <PaymentQRModal

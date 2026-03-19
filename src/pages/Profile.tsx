@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserTimeline } from "@/hooks/useUserTimeline";
 import { useUserStats } from "@/hooks/useUserStats";
-import { useUserSubscription } from "@/hooks/useSubscription";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
 import { EditMenuSheet } from "@/components/menu/EditMenuSheet";
@@ -36,10 +35,6 @@ const Profile = () => {
     data: timeline,
     isLoading: timelineLoading
   } = useUserTimeline(user?.id);
-  const {
-    data: subscription
-  } = useUserSubscription();
-  const isPremium = subscription?.plan_type === "user_premium";
   const isBusiness = profile?.is_business === true;
   const isFoodBusiness = profile?.is_food_business === true;
 

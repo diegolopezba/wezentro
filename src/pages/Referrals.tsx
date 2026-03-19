@@ -7,7 +7,6 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserSubscription } from "@/hooks/useSubscription";
 import { 
   useReferralStats, 
   useReferredUsers, 
@@ -21,9 +20,6 @@ const BASE_URL = "https://zentro.today";
 const Referrals = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: subscription } = useUserSubscription();
-  const isPlacesPremium = subscription?.plan_type === "food_premium";
-  const isBusinessPremium = subscription?.plan_type === "business_premium";
   const { data: stats, isLoading: statsLoading } = useReferralStats();
   const { data: referredUsers, isLoading: usersLoading } = useReferredUsers();
   const generateCode = useGenerateReferralCode();
@@ -32,7 +28,7 @@ const Referrals = () => {
   const referralCode = stats?.referral_code;
   const referralCount = stats?.referral_count || 0;
   const pendingRewards = stats?.pending_rewards || 0;
-  const isBusinessAccount = isPlacesPremium || isBusinessPremium;
+  const isBusinessAccount = false;
 
   // Count paid referrals
   const paidReferrals = referredUsers?.filter(r => r.payment_completed).length || 0;
