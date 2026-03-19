@@ -343,11 +343,6 @@ export const EventDetailOverlay = () => {
                     eventId={selectedEventId!}
                     eventTitle={event.title}
                   />
-                  <PremiumGateModal
-                    open={showPremiumGate}
-                    onOpenChange={setShowPremiumGate}
-                    eventId={selectedEventId || undefined}
-                  />
                   {hasPaymentQr && (
                     <PaymentQRModal
                       open={showPaymentModal}
