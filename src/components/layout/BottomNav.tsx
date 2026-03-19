@@ -1,31 +1,10 @@
-import { Home, Map, Plus, MessageCircle, User, X, Sparkles, PartyPopper } from "lucide-react";
+import { Home, Map, Plus, MessageCircle, User } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPromptSafe } from "@/hooks/useAuthPrompt";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const CREATE_OPTIONS = [
-  {
-    id: "post",
-    label: "Post",
-    icon: Sparkles,
-    type: "post",
-    x: -88,
-    y: -90,
-    delay: 0,
-  },
-  {
-    id: "event",
-    label: "Evento",
-    icon: PartyPopper,
-    type: "event",
-    x: 88,
-    y: -90,
-    delay: 0.06,
-  },
-];
 
 const navItems = [
   {
@@ -110,32 +89,42 @@ export const BottomNav = () => {
         )}
       </AnimatePresence>
 
-      {/* Radial options — rendered above backdrop, anchored near the + button */}
+      {/* Bottom sheet picker */}
       <AnimatePresence>
         {isPickerOpen && (
-          <div className="fixed bottom-[68px] left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-            {CREATE_OPTIONS.map((opt) => {
-              const Icon = opt.icon;
-              return (
-                <motion.button
-                  key={opt.id}
-                  className="absolute pointer-events-auto flex flex-col items-center gap-1.5 -translate-x-1/2 -translate-y-full"
-                  initial={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
-                  animate={{ x: opt.x, y: opt.y, opacity: 1, scale: 1 }}
-                  exit={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
-                  transition={{ type: "spring", stiffness: 320, damping: 24, delay: opt.delay }}
-                  onClick={() => handlePickerSelect(opt.type)}
-                >
-                  <div className="w-14 h-14 rounded-full bg-card border border-border/60 shadow-elevated flex items-center justify-center">
-                    <Icon className="w-6 h-6 text-foreground" />
-                  </div>
-                  <span className="text-xs font-medium text-foreground bg-card/90 backdrop-blur-sm px-2 py-0.5 rounded-full border border-border/40 shadow-sm whitespace-nowrap">
-                    {opt.label}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </div>
+          <motion.div
+            key="create-sheet"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 380, damping: 34 }}
+            className="fixed bottom-0 left-0 right-0 z-50 pb-safe"
+          >
+            {/* Push sheet above the nav bar */}
+            <div className="mx-auto max-w-lg px-4 pb-[80px] pt-4">
+              <div className="rounded-2xl border border-border/50 bg-card shadow-xl overflow-hidden">
+                {/* Handle */}
+                <div className="flex justify-center pt-3 pb-1">
+                  <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+                </div>
+
+                <div className="px-4 pt-2 pb-4 flex flex-col gap-2">
+                  <button
+                    onClick={() => handlePickerSelect("post")}
+                    className="w-full py-4 rounded-xl bg-secondary/60 hover:bg-secondary active:scale-[0.98] transition-all text-foreground text-base font-semibold"
+                  >
+                    Post
+                  </button>
+                  <button
+                    onClick={() => handlePickerSelect("event")}
+                    className="w-full py-4 rounded-xl bg-secondary/60 hover:bg-secondary active:scale-[0.98] transition-all text-foreground text-base font-semibold"
+                  >
+                    Evento
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
