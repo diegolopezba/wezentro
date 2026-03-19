@@ -50,7 +50,6 @@ export const useEventDetailState = (
   // Data queries
   const { data: event, isLoading, error } = useEvent(eventId);
   const { data: guestlistStatus } = useIsOnGuestlist(eventId);
-  const { data: hasSubscription } = useHasActiveSubscription();
   const { data: pendingRequests = [] } = usePendingGuestlistRequests(event ? eventId : undefined);
   const { data: pendingPayments = [] } = usePendingPayments(event ? eventId : undefined);
   const { data: guestlist = [] } = useEventGuestlist(eventId);
