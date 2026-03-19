@@ -34,7 +34,7 @@ export const EventDetailOverlay = () => {
 
   const {
     event, isLoading, error,
-    guestlist, hasSubscription,
+    guestlist,
     pendingCount, isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
     isOnGuestlist, isPending, isApproved,
@@ -50,7 +50,6 @@ export const EventDetailOverlay = () => {
     showGuestlistInviteModal, setShowGuestlistInviteModal,
     showEditSheet, setShowEditSheet,
     showDeleteDialog, setShowDeleteDialog,
-    showPremiumGate, setShowPremiumGate,
     showPaymentModal, setShowPaymentModal,
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,

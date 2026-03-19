@@ -38,7 +38,7 @@ const EventDetail = () => {
 
   const {
     event, isLoading, error,
-    guestlist, hasSubscription,
+    guestlist,
     pendingCount, isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
     isOnGuestlist, isPending, isApproved,
@@ -55,7 +55,6 @@ const EventDetail = () => {
     showGuestlistInviteModal, setShowGuestlistInviteModal,
     showEditSheet, setShowEditSheet,
     showDeleteDialog, setShowDeleteDialog,
-    showPremiumGate, setShowPremiumGate,
     showPaymentModal, setShowPaymentModal,
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
