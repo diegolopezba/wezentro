@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { User, Shield, CreditCard, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase } from "lucide-react";
+import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
