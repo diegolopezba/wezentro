@@ -1,62 +1,93 @@
 
-## The Problem
+## Remove Subscription / Make Everything Free
 
-The current flow is a dense, all-on-one-screen form inside a small dialog. It throws budget mode toggles, sliders, category pills, radius sliders, gender selects, and age inputs all at once. Instagram and TikTok solve this with **guided multi-step flows** — one decision per screen, progressive disclosure, heavy visual feedback, and a sticky cost summary that builds confidence.
+### Goal
+Strip out all paywall logic so every registered user gets full access to guestlists, messaging, and any other "premium" feature — with zero Stripe checkout involved. Keep the codebase clean. The Stripe/subscription infrastructure can stay dormant in the backend for a future return.
 
-Key insights from Meta/TikTok "Boost" patterns:
-1. **Step-by-step wizard** — not a form dump. Each step is one question.
-2. **Audience first, budget second** — users think "who do I reach" before "how much do I spend"
-3. **Live preview panel** — a persistent cost/reach estimator on the side (or bottom) that updates as they configure
-4. **Bold, simple numbers** — large typography for reach and cost, not small labels
-5. **One primary CTA per step** — "Siguiente →" keeps momentum, final step is "Pagar y Activar"
-6. **Empty state is a hero CTA** — not a tiny button. It should sell the value proposition
+---
 
-## The Redesign Plan
+### What subscription currently gates
 
-### 1. Replace the Dialog with a full-height Sheet (bottom sheet on mobile)
-A Sheet gives us more vertical space, feels more native on mobile, and allows a step-by-step flow without feeling cramped.
+1. **Guestlist join** — `handleJoinGuestlist` in `useEventDetailState.ts` checks `hasSubscription`; if false, shows `PremiumGateModal` instead of joining.
+2. **RLS policy** — `guestlist_entries` table has policy: `"Premium users can join guestlists"` which requires `has_active_subscription(auth.uid())`. This blocks the DB insert for non-subscribers.
+3. **PremiumGateModal** — the modal that appears offering the Stripe checkout.
+4. **Profile page** — shows a `Crown` / "Premium" badge based on `isPremium`.
+5. **UserProfile page** — same Crown badge shown on other users' profiles.
+6. **Settings page** — has a "Suscripción" link item pointing to `/settings/subscription`.
+7. **Referrals page** — reads `subscription?.plan_type` to check for old premium tiers.
 
-### 2. 4-Step Wizard Flow
+---
 
-```
-Step 1: Elige tu evento
-  → Large event cards with cover image, date, already-promoted events greyed out
-  → "¿Qué evento quieres impulsar hoy?"
+### What to change
 
-Step 2: ¿A quién quieres llegar?
-  → Audience presets: "Público cercano" / "Interesados en [category]" / "Personalizado"
-  → Simple toggles, not raw inputs
-  → "Automático (recomendado)" is pre-selected = we handle targeting
-
-Step 3: ¿Cuánto quieres invertir?
-  → 4 budget preset cards: $10 / $25 / $50 / $100 (most popular badge on $25)
-  → Each card shows estimated reach in big bold text
-  → Custom option below
-  → Live updating sticky footer: "Llegarás a ~5,000 personas por $25"
-
-Step 4: Confirmar y Pagar
-  → Summary card: event title, audience, reach estimate, total cost
-  → Big green "Pagar $25 y Activar →" button
-  → Disclaimer line
+**1. Database migration — fix the RLS policy (most critical)**
+The DB policy `"Premium users can join guestlists"` has `WITH CHECK: has_active_subscription(auth.uid())`. This blocks all non-subscribers at the DB level regardless of any frontend change. We need to replace it with a simple authenticated-user check:
+```sql
+DROP POLICY "Premium users can join guestlists" ON public.guestlist_entries;
+CREATE POLICY "Authenticated users can join guestlists"
+  ON public.guestlist_entries FOR INSERT TO public
+  WITH CHECK (auth.uid() = user_id);
 ```
 
-### 3. Redesigned Empty State (hero style)
-Replace the weak empty state with a value-prop card:
-- Gradient background
-- Stat: "Eventos con boost reciben 3x más asistentes"
-- Single large CTA button "Impulsar mi evento →"
+**2. `src/hooks/useEventDetailState.ts`**
+- Remove `useHasActiveSubscription` import and usage
+- In `handleJoinGuestlist`, remove the `if (!hasSubscription) { setShowPremiumGate(true); return; }` guard
+- Remove `hasSubscription` from the returned object
 
-### 4. Campaign cards (active/draft) — minor improvement
-- Add event cover thumbnail
-- Status badge more prominent with color dot
-- Draft cards: show "Listo para activar" CTA more visually prominent
+**3. `src/hooks/useGuestlist.ts`**
+- Remove the `useHasActiveSubscription` hook entirely (it's only used for the paywall check)
 
-## Files to modify
-- `src/components/dashboard/PromocionesSection.tsx` — complete redesign (single file, no backend changes)
+**4. `src/components/events/PremiumGateModal.tsx`**
+- Delete the file (no longer needed anywhere)
 
-## Key UX principles applied
-- **Reduce cognitive load**: one decision per step
-- **Anchor with presets**: $25 as "más popular" removes paralysis
-- **Show value before cost**: reach number is bigger than dollar amount
-- **Build momentum**: progress indicator + "Siguiente →" keeps flow moving
-- **Trust signals**: "El pago es seguro vía Stripe" on the payment step
+**5. `src/components/events/EventDetailOverlay.tsx`** and **`src/pages/EventDetail.tsx`**
+- Remove the `PremiumGateModal` import and usage (`showPremiumGate` state and the `<PremiumGateModal>` JSX block)
+- Remove `showPremiumGate` / `setShowPremiumGate` from destructuring
+
+**6. `src/pages/Profile.tsx`**
+- Remove `useUserSubscription` import
+- Remove `isPremium` variable
+- Remove any Crown badge / "Zentro Premium" badge that shows based on `isPremium`
+
+**7. `src/pages/UserProfile.tsx`**
+- Remove `useUserSubscriptionById` import
+- Remove `isPremium` variable
+- Remove Crown badge that shows based on `isPremium`
+
+**8. `src/pages/Settings.tsx`**
+- Remove the `{ icon: CreditCard, label: "Suscripción", path: "/settings/subscription" }` item from the Personal section
+
+**9. `src/pages/Referrals.tsx`**
+- Remove `useUserSubscription` import
+- Remove `isPlacesPremium` / `isBusinessPremium` variables (they referenced removed plan types and aren't used in the current UI)
+
+**10. `src/App.tsx`**
+- Remove the `/settings/subscription` and `/checkout-success` route entries
+- Remove `Subscription` and `CheckoutSuccess` lazy imports
+
+---
+
+### Files NOT touched
+- `supabase/functions/check-subscription`, `create-checkout-session`, `stripe-webhook` — left intact for future re-activation
+- `src/hooks/useSubscription.ts` — left intact (dormant)
+- `src/pages/Subscription.tsx` — left intact (route just removed)
+- `src/pages/CheckoutSuccess.tsx` — left intact (route just removed)
+- Backend `subscriptions` table — untouched
+
+---
+
+### Summary of files changed
+
+| File | Change |
+|------|--------|
+| DB migration | Drop + replace guestlist RLS policy |
+| `useEventDetailState.ts` | Remove subscription check in `handleJoinGuestlist` |
+| `useGuestlist.ts` | Remove `useHasActiveSubscription` hook |
+| `PremiumGateModal.tsx` | Delete |
+| `EventDetailOverlay.tsx` | Remove PremiumGateModal usage |
+| `EventDetail.tsx` | Remove PremiumGateModal usage |
+| `Profile.tsx` | Remove premium badge |
+| `UserProfile.tsx` | Remove premium badge |
+| `Settings.tsx` | Remove Subscription menu item |
+| `Referrals.tsx` | Remove subscription imports |
+| `App.tsx` | Remove subscription routes |
