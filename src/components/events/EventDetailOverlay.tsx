@@ -63,12 +63,12 @@ export const EventDetailOverlay = () => {
   // Check for showPayment query param (returned from checkout success)
   useEffect(() => {
     const shouldShowPayment = searchParams.get("showPayment") === "true";
-    if (shouldShowPayment && hasPaymentQr && hasSubscription && !isOnGuestlist) {
+    if (shouldShowPayment && hasPaymentQr && !isOnGuestlist) {
       setShowPaymentModal(true);
       searchParams.delete("showPayment");
       setSearchParams(searchParams, { replace: true });
     }
-  }, [searchParams, hasPaymentQr, hasSubscription, isOnGuestlist, setSearchParams]);
+  }, [searchParams, hasPaymentQr, isOnGuestlist, setSearchParams]);
 
   return (
     <AnimatePresence>
