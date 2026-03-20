@@ -117,7 +117,7 @@ const Profile = () => {
       }} className="mt-4">
           {/* Business type label */}
           {isBusiness && profile?.business_type &&
-        <p className="text-xs text-primary mb-1 font-normal py-0">{profile.business_type}</p>
+        <p className="text-xs text-primary mb-1 font-normal py-0 capitalize">{profile.business_type}</p>
         }
           {profile?.bio && <MentionText text={profile.bio} className="text-sm text-foreground/80" />}
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
