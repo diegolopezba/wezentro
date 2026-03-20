@@ -207,16 +207,37 @@ const EventDetail = () => {
             </div>
           </div>
 
-          {/* Host */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
-          if (event.creator_id) {
-            navigate(`/user/${event.creator_id}`);
-          }
-        }}>
-            <img src={event.creator?.avatar_url || DEFAULT_AVATAR} alt="Host" className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" />
-            <p className="font-semibold text-foreground hover:text-primary transition-colors">
-              @{event.creator?.username || "unknown"}
-            </p>
+          {/* Host + Collaborators */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
+              if (event.creator_id) navigate(`/user/${event.creator_id}`);
+            }}>
+              <img src={event.creator?.avatar_url || DEFAULT_AVATAR} alt="Host" className="w-10 h-10 rounded-full object-cover hover:scale-105 transition-transform" />
+              <p className="font-semibold text-foreground hover:text-primary transition-colors">
+                {event.creator?.username || "unknown"}
+              </p>
+            </div>
+            {acceptedCollaborators && acceptedCollaborators.length > 0 && (
+              <>
+                <span className="text-muted-foreground text-sm">ft.</span>
+                {acceptedCollaborators.map((collab) => (
+                  <div
+                    key={collab.id}
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => navigate(`/user/${collab.user_id}`)}
+                  >
+                    <img
+                      src={collab.user?.avatar_url || DEFAULT_AVATAR}
+                      alt={collab.user?.username || ""}
+                      className="w-10 h-10 rounded-full object-cover hover:scale-105 transition-transform"
+                    />
+                    <p className="font-semibold text-foreground hover:text-primary transition-colors">
+                      {collab.user?.username || "user"}
+                    </p>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
 
           {/* Tagged users */}
