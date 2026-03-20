@@ -219,7 +219,7 @@ const ChatDetail = () => {
       </div>
 
       {/* Input */}
-      <div className="sticky bottom-0 p-4 glass-strong safe-bottom">
+      <div className={`shrink-0 p-4 glass-strong ${isKeyboardVisible ? "pb-2" : "safe-bottom"}`}>
         <div className="flex gap-2">
           <Button
             variant="ghost"
