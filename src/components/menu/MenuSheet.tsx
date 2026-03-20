@@ -18,41 +18,25 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => {
         <div className="flex items-center gap-2">
           <h4 className="font-medium text-foreground">{item.name}</h4>
           {!item.is_available && (
-            <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">
-              No disponible
-            </span>
+            <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">No disponible</span>
           )}
         </div>
-        {item.description && (
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-            {item.description}
-          </p>
-        )}
+        {item.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
       </div>
       {item.price !== null && (
-        <span className="text-foreground font-semibold whitespace-nowrap">
-          Bs. {item.price.toFixed(2)}
-        </span>
+        <span className="text-foreground font-semibold whitespace-nowrap">Bs. {item.price.toFixed(2)}</span>
       )}
     </div>
   );
 };
 
-const CategorySection = ({
-  category,
-  items,
-}: {
-  category: MenuCategory | null;
-  items: MenuItem[];
-}) => {
+const CategorySection = ({ category, items }: { category: MenuCategory | null; items: MenuItem[] }) => {
   if (items.length === 0) return null;
 
   return (
     <div className="mb-6">
       {category && (
-        <h3 className="text-sm font-semibold text-primary uppercase tracking-wide mb-2 px-1">
-          {category.name}
-        </h3>
+        <h3 className="text-sm font-semibold text-primary uppercase tracking-wide mb-2 px-1">{category.name}</h3>
       )}
       <div className="divide-y divide-border">
         {items.map((item) => (
@@ -63,12 +47,7 @@ const CategorySection = ({
   );
 };
 
-export const MenuSheet = ({
-  open,
-  onOpenChange,
-  userId,
-  businessName,
-}: MenuSheetProps) => {
+export const MenuSheet = ({ open, onOpenChange, userId, businessName }: MenuSheetProps) => {
   const { data: menu, isLoading } = useUserMenu(userId);
 
   // Group items by category
@@ -100,16 +79,12 @@ export const MenuSheet = ({
       <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl">
         <SheetHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-500 flex items-center justify-center">
               <UtensilsCrossed className="w-5 h-5 text-white" />
             </div>
             <div>
-              <SheetTitle className="text-left">
-                {menu?.name || "Menú"}
-              </SheetTitle>
-              {businessName && (
-                <p className="text-sm text-muted-foreground">{businessName}</p>
-              )}
+              <SheetTitle className="text-left">{menu?.name || "Menú"}</SheetTitle>
+              {businessName && <p className="text-sm text-muted-foreground">{businessName}</p>}
             </div>
           </div>
         </SheetHeader>
@@ -130,27 +105,16 @@ export const MenuSheet = ({
           ) : !menu || menu.items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <UtensilsCrossed className="w-12 h-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
-                Este negocio aún no ha agregado items a su menú
-              </p>
+              <p className="text-muted-foreground">Este negocio aún no ha agregado items a su menú</p>
             </div>
           ) : (
             <div>
               {/* Categorized items */}
               {categorized.map(({ category, items }) => (
-                <CategorySection
-                  key={category.id}
-                  category={category}
-                  items={items}
-                />
+                <CategorySection key={category.id} category={category} items={items} />
               ))}
               {/* Uncategorized items */}
-              {uncategorized.length > 0 && (
-                <CategorySection
-                  category={null}
-                  items={uncategorized}
-                />
-              )}
+              {uncategorized.length > 0 && <CategorySection category={null} items={uncategorized} />}
             </div>
           )}
         </ScrollArea>
