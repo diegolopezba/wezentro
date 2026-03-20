@@ -152,17 +152,6 @@ const UserProfile = () => {
             <h1 className="font-brand text-xl font-bold text-foreground">@{userProfile.username}</h1>
           </div>
           <div className="flex items-center gap-1">
-            {/* Message icon in header for food businesses */}
-            {isBusiness && isFoodBusiness && !isOwnProfile && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
-                    {createChatMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <MessageCircle className="w-5 h-5" />}
-                  </Button>
-                </TooltipTrigger>
-                {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent><p>{canMessageData.reason}</p></TooltipContent>}
-              </Tooltip>
-            )}
             {hasBusinessInfo && (
               <Button variant="ghost" size="icon" onClick={() => setBusinessInfoOpen(true)}>
                 <Info className="w-5 h-5" />
@@ -225,39 +214,61 @@ const UserProfile = () => {
         y: 0
       }} transition={{
         delay: 0.1
-      }} className="flex gap-3 mt-4">
+      }} className="flex gap-2 mt-4">
             <Button variant={isFollowing ? "secondary" : "hero"} className="flex-1 min-w-0" onClick={handleFollowToggle} disabled={followStatusLoading || isFollowPending}>
               {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? <>
-                  <UserMinus className="w-4 h-4 mr-2" />
+                  <UserMinus className="w-4 h-4 mr-1" />
                   Siguiendo
                 </> : <>
-                  <UserPlus className="w-4 h-4 mr-2" />
+                  <UserPlus className="w-4 h-4 mr-1" />
                   Seguir
                 </>}
             </Button>
 
-            {/* For food businesses: show Reservar button instead of Message */}
-            {isBusiness && isFoodBusiness && reservationsEnabled ? (
-              <Button
-                variant="secondary"
-                className="flex-1 min-w-0"
-                onClick={() => {
-                  if (isGuest) {
-                    promptAuth({ action: "hacer una reserva" });
-                    return;
-                  }
-                  setReservationSheetOpen(true);
-                }}
-              >
-                <CalendarCheck className="w-4 h-4 mr-2" />
-                Reservar
-              </Button>
+            {/* For food businesses: Message pill + Reserve pill + Menu icon */}
+            {isBusiness && isFoodBusiness ? (
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
+                      {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
+                          <MessageCircle className="w-4 h-4 mr-1" />
+                          Mensaje
+                        </>}
+                    </Button>
+                  </TooltipTrigger>
+                  {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent><p>{canMessageData.reason}</p></TooltipContent>}
+                </Tooltip>
+
+                {reservationsEnabled && (
+                  <Button
+                    variant="secondary"
+                    className="flex-1 min-w-0"
+                    onClick={() => {
+                      if (isGuest) {
+                        promptAuth({ action: "hacer una reserva" });
+                        return;
+                      }
+                      setReservationSheetOpen(true);
+                    }}
+                  >
+                    <CalendarCheck className="w-4 h-4 mr-1" />
+                    Reservar
+                  </Button>
+                )}
+
+                {menuEnabled && (
+                  <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-destructive/15 border-destructive/30 hover:bg-destructive/25 shrink-0">
+                    <UtensilsCrossed className="w-4 h-4 text-destructive" />
+                  </Button>
+                )}
+              </>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
                     {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
-                        <MessageCircle className="w-4 h-4 mr-2" />
+                        <MessageCircle className="w-4 h-4 mr-1" />
                         Mensaje
                       </>}
                   </Button>
@@ -267,11 +278,6 @@ const UserProfile = () => {
                   </TooltipContent>}
               </Tooltip>
             )}
-
-            {/* Menu button for food businesses */}
-            {isBusiness && isFoodBusiness && menuEnabled && <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-destructive/15 border-destructive/30 hover:bg-destructive/25">
-                <UtensilsCrossed className="w-4 h-4 text-destructive" />
-              </Button>}
           </motion.div>}
       </div>
 
