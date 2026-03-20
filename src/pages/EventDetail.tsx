@@ -21,6 +21,7 @@ import { trackEventView } from "@/lib/analyticsTracking";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { useEventTags, useRemoveTag } from "@/hooks/useEventTags";
+import { useAcceptedCollaborators } from "@/hooks/useEventCollaborators";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 import { MentionText } from "@/components/ui/MentionText";
 import { MenuSheet } from "@/components/menu/MenuSheet";
