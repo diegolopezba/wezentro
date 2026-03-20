@@ -239,7 +239,8 @@ const UserProfile = () => {
             {/* For food businesses: show Reservar button instead of Message */}
             {isBusiness && isFoodBusiness && reservationsEnabled ? (
               <Button
-                className="flex-1 min-w-0 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                variant="hero"
+                className="flex-1 min-w-0"
                 onClick={() => {
                   if (isGuest) {
                     promptAuth({ action: "hacer una reserva" });

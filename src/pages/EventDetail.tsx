@@ -421,8 +421,8 @@ const EventDetail = () => {
             {event.creator?.full_name || event.creator?.username || ""}
           </span>
           <Button
+            variant="hero"
             size="default"
-            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold hover:from-orange-400 hover:to-amber-400 shadow-lg rounded-full"
             onClick={() => setShowReservationSheet(true)}
           >
             <CalendarCheck className="w-4 h-4 mr-1" /> Reservar
