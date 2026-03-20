@@ -411,7 +411,7 @@ const Create = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
           <label className="block">
             {mediaPreview ?
-            <div className="relative h-48 rounded-2xl overflow-hidden">
+            <div className="relative rounded-2xl overflow-hidden">
                 {mediaType === "video" ?
               <video src={mediaPreview} className="w-full h-full object-cover" muted playsInline /> :
 
