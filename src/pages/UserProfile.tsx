@@ -215,7 +215,7 @@ const UserProfile = () => {
       }} transition={{
         delay: 0.1
       }} className="flex gap-2 mt-4">
-            <Button variant={isFollowing ? "secondary" : "hero"} className="flex-1 basis-0 min-w-0" onClick={handleFollowToggle} disabled={followStatusLoading || isFollowPending}>
+            <Button variant={isFollowing ? "secondary" : "hero"} className="flex-1 min-w-0" onClick={handleFollowToggle} disabled={followStatusLoading || isFollowPending}>
               {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? "Siguiendo" : "Seguir"}
             </Button>
 
@@ -223,8 +223,8 @@ const UserProfile = () => {
             {isBusiness && isFoodBusiness ? (
               <>
                 <Tooltip>
-                  <TooltipTrigger className="flex-1 basis-0 min-w-0">
-                    <Button variant="secondary" className="w-full" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
+                  <TooltipTrigger asChild>
+                    <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
                       {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Mensaje"}
                     </Button>
                   </TooltipTrigger>
@@ -234,7 +234,7 @@ const UserProfile = () => {
                 {reservationsEnabled && (
                   <Button
                     variant="secondary"
-                    className="flex-1 basis-0 min-w-0"
+                    className="flex-1 min-w-0"
                     onClick={() => {
                       if (isGuest) {
                         promptAuth({ action: "hacer una reserva" });
