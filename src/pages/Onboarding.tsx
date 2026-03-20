@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useProcessReferral } from "@/hooks/useReferrals";
+import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
 
 const genderOptions = [
   { value: "male", label: "Masculino" },

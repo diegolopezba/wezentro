@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import MessageBubble from "@/components/chat/MessageBubble";
 import EventPickerModal from "@/components/chat/EventPickerModal";
 import { toast } from "sonner";
+import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
 
 const ChatDetail = () => {
   const { id: chatId } = useParams();
