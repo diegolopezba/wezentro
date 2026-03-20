@@ -413,9 +413,9 @@ const Create = () => {
             {mediaPreview ?
             <div className="relative rounded-2xl overflow-hidden">
                 {mediaType === "video" ?
-              <video src={mediaPreview} className="w-full h-full object-cover" muted playsInline /> :
+              <video src={mediaPreview} className="w-full object-contain" muted playsInline /> :
 
-              <img src={mediaPreview} alt="Portada" className="w-full h-full object-cover" />
+              <img src={mediaPreview} alt="Portada" className="w-full object-contain" />
               }
                 {(isUploading || isCompressing) &&
               <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
