@@ -1,93 +1,58 @@
 
-## Remove Subscription / Make Everything Free
+## Mobile Keyboard Optimization — Native App Priority
 
-### Goal
-Strip out all paywall logic so every registered user gets full access to guestlists, messaging, and any other "premium" feature — with zero Stripe checkout involved. Keep the codebase clean. The Stripe/subscription infrastructure can stay dormant in the backend for a future return.
+### Context
 
----
+The app runs as a Capacitor native app on iOS/Android, where the keyboard behavior is:
+- **iOS (Capacitor)**: With `Keyboard: { resize: 'body' }` in capacitor.config.ts, iOS already resizes the body when the keyboard opens. This means layouts using `min-h-screen` or `h-screen` will shrink correctly. However, **sticky/fixed bottom elements** and `safe-bottom` padding can still fight the resize, causing the input bar to be pushed too far up or hidden.
+- **Android (Capacitor)**: With `resize: 'body'`, the WebView resizes. `h-[100dvh]` is the most reliable fix for full-screen layouts.
 
-### What subscription currently gates
-
-1. **Guestlist join** — `handleJoinGuestlist` in `useEventDetailState.ts` checks `hasSubscription`; if false, shows `PremiumGateModal` instead of joining.
-2. **RLS policy** — `guestlist_entries` table has policy: `"Premium users can join guestlists"` which requires `has_active_subscription(auth.uid())`. This blocks the DB insert for non-subscribers.
-3. **PremiumGateModal** — the modal that appears offering the Stripe checkout.
-4. **Profile page** — shows a `Crown` / "Premium" badge based on `isPremium`.
-5. **UserProfile page** — same Crown badge shown on other users' profiles.
-6. **Settings page** — has a "Suscripción" link item pointing to `/settings/subscription`.
-7. **Referrals page** — reads `subscription?.plan_type` to check for old premium tiers.
+The existing `useKeyboardAdjust` hook (visualViewport-based) is solid but unused. The safe-area CSS utilities exist. The Capacitor keyboard plugin is already configured with `resize: 'body'`.
 
 ---
 
-### What to change
+### Files to Change
 
-**1. Database migration — fix the RLS policy (most critical)**
-The DB policy `"Premium users can join guestlists"` has `WITH CHECK: has_active_subscription(auth.uid())`. This blocks all non-subscribers at the DB level regardless of any frontend change. We need to replace it with a simple authenticated-user check:
-```sql
-DROP POLICY "Premium users can join guestlists" ON public.guestlist_entries;
-CREATE POLICY "Authenticated users can join guestlists"
-  ON public.guestlist_entries FOR INSERT TO public
-  WITH CHECK (auth.uid() = user_id);
+**1. `index.html`** — Add `interactive-widget=resizes-content` to viewport meta for Android Chrome (PWA/browser users)
+
+**2. `src/pages/ChatDetail.tsx`** — Most critical fix:
+- Replace `min-h-screen bg-background flex flex-col` with `h-[100dvh] flex flex-col bg-background`
+- The messages area already has `flex-1 overflow-y-auto` — keep as-is
+- The input bar: remove `sticky bottom-0` and `safe-bottom` class, replace with a plain `shrink-0` div with `pb-4`. With `resize: 'body'`, the whole page shrinks so the sticky bottom doesn't need safe-area padding when keyboard is open
+- Add `useKeyboardAdjust` hook to toggle between `pb-safe` (keyboard closed) and `pb-2` (keyboard open) for the input wrapper
+
+**3. `src/pages/Auth.tsx`** — Fix form being pushed off-screen:
+- Change outer `overflow-hidden` → `overflow-y-auto` so the form can scroll when keyboard opens
+- Wire `useKeyboardAdjust`: when keyboard is visible, set `pt-6 pb-4` on the logo section instead of `pt-20 pb-10`, and optionally hide the logo image (keep the "zentro" text)
+- This ensures the login/signup form fields remain reachable
+
+**4. `src/pages/Onboarding.tsx`** — Same issue as Auth:
+- The outer wrapper uses `flex flex-col` without overflow. Add `overflow-y-auto` to make it scrollable
+- Wire `useKeyboardAdjust`: collapse the logo/header section (`pt-16 pb-6` → `pt-4 pb-2`, hide logo icon) when keyboard is visible
+
+**5. `src/pages/Create.tsx`** — Already uses `AppLayout` which is `overflow-auto`. The main concern is the description `MentionTextarea` and location picker being below the fold:
+- Add `scrollIntoView` on `onFocus` for the MentionTextarea and any text Input elements inside the form so they auto-scroll into view when tapped
+
+**6. `src/components/reservations/ReservationSheet.tsx`** — The Drawer has `max-h-[92vh] flex flex-col` with `flex-1 overflow-y-auto` on the inner container — this is structurally correct. The fix:
+- On the "extras" step, the notes Textarea is the last element. Add an `onFocus` handler that calls `scrollIntoView` so the notes field scrolls into view when tapped on a small screen with keyboard open
+
+**7. `src/hooks/useKeyboardAdjust.ts`** — Minor improvement: instead of comparing against a captured `initialHeight` (which can drift), use `window.screen.height` as the reference baseline, which is more stable on native:
+```ts
+const baselineHeight = window.screen.height * 0.75; // keyboard visible if viewport < 75% of screen
 ```
-
-**2. `src/hooks/useEventDetailState.ts`**
-- Remove `useHasActiveSubscription` import and usage
-- In `handleJoinGuestlist`, remove the `if (!hasSubscription) { setShowPremiumGate(true); return; }` guard
-- Remove `hasSubscription` from the returned object
-
-**3. `src/hooks/useGuestlist.ts`**
-- Remove the `useHasActiveSubscription` hook entirely (it's only used for the paywall check)
-
-**4. `src/components/events/PremiumGateModal.tsx`**
-- Delete the file (no longer needed anywhere)
-
-**5. `src/components/events/EventDetailOverlay.tsx`** and **`src/pages/EventDetail.tsx`**
-- Remove the `PremiumGateModal` import and usage (`showPremiumGate` state and the `<PremiumGateModal>` JSX block)
-- Remove `showPremiumGate` / `setShowPremiumGate` from destructuring
-
-**6. `src/pages/Profile.tsx`**
-- Remove `useUserSubscription` import
-- Remove `isPremium` variable
-- Remove any Crown badge / "Zentro Premium" badge that shows based on `isPremium`
-
-**7. `src/pages/UserProfile.tsx`**
-- Remove `useUserSubscriptionById` import
-- Remove `isPremium` variable
-- Remove Crown badge that shows based on `isPremium`
-
-**8. `src/pages/Settings.tsx`**
-- Remove the `{ icon: CreditCard, label: "Suscripción", path: "/settings/subscription" }` item from the Personal section
-
-**9. `src/pages/Referrals.tsx`**
-- Remove `useUserSubscription` import
-- Remove `isPlacesPremium` / `isBusinessPremium` variables (they referenced removed plan types and aren't used in the current UI)
-
-**10. `src/App.tsx`**
-- Remove the `/settings/subscription` and `/checkout-success` route entries
-- Remove `Subscription` and `CheckoutSuccess` lazy imports
+Actually — keep current approach but reset `initialHeight` more reliably on focus events.
 
 ---
 
-### Files NOT touched
-- `supabase/functions/check-subscription`, `create-checkout-session`, `stripe-webhook` — left intact for future re-activation
-- `src/hooks/useSubscription.ts` — left intact (dormant)
-- `src/pages/Subscription.tsx` — left intact (route just removed)
-- `src/pages/CheckoutSuccess.tsx` — left intact (route just removed)
-- Backend `subscriptions` table — untouched
-
----
-
-### Summary of files changed
+### Summary of Changes
 
 | File | Change |
-|------|--------|
-| DB migration | Drop + replace guestlist RLS policy |
-| `useEventDetailState.ts` | Remove subscription check in `handleJoinGuestlist` |
-| `useGuestlist.ts` | Remove `useHasActiveSubscription` hook |
-| `PremiumGateModal.tsx` | Delete |
-| `EventDetailOverlay.tsx` | Remove PremiumGateModal usage |
-| `EventDetail.tsx` | Remove PremiumGateModal usage |
-| `Profile.tsx` | Remove premium badge |
-| `UserProfile.tsx` | Remove premium badge |
-| `Settings.tsx` | Remove Subscription menu item |
-| `Referrals.tsx` | Remove subscription imports |
-| `App.tsx` | Remove subscription routes |
+|---|---|
+| `index.html` | Add `interactive-widget=resizes-content` to viewport meta |
+| `ChatDetail.tsx` | `h-[100dvh]` layout + keyboard-aware input padding |
+| `Auth.tsx` | `overflow-y-auto` + collapse logo on keyboard open |
+| `Onboarding.tsx` | `overflow-y-auto` + collapse header on keyboard open |
+| `Create.tsx` | `scrollIntoView` on focus for text inputs below the fold |
+| `ReservationSheet.tsx` | `scrollIntoView` on Textarea focus in extras step |
+
+No new dependencies. All changes use existing hook + CSS utilities already in the project.
