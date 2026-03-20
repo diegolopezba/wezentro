@@ -81,13 +81,13 @@ const UserProfile = () => {
   const formatCount = (count: number) => formatCountUtil(count);
   const handleFollowToggle = () => {
     if (!id) return;
-    
+
     // Prompt guests to sign up
     if (isGuest) {
       promptAuth({ action: "seguir a este usuario" });
       return;
     }
-    
+
     if (isFollowing) {
       unfollowMutation.mutate(id);
     } else {
@@ -96,19 +96,19 @@ const UserProfile = () => {
   };
   const handleMessage = () => {
     if (!id) return;
-    
+
     // Prompt guests to sign up
     if (isGuest) {
       promptAuth({ action: "enviar un mensaje" });
       return;
     }
-    
+
     if (!canMessageData?.canMessage) {
       toast.error(canMessageData?.reason || "No se puede enviar mensaje a este usuario");
       return;
     }
     createChatMutation.mutate(id, {
-      onSuccess: chatId => {
+      onSuccess: (chatId) => {
         navigate(`/chats/${chatId}`);
       },
       onError: () => {
@@ -152,11 +152,22 @@ const UserProfile = () => {
             <h1 className="font-brand text-xl font-bold text-foreground">@{userProfile.username}</h1>
           </div>
           <div className="flex items-center gap-1">
-            {hasBusinessInfo && (
-              <Button variant="ghost" size="icon" onClick={() => setBusinessInfoOpen(true)}>
+            {/* Message icon in header for food businesses */}
+            {isBusiness && isFoodBusiness && !isOwnProfile &&
+          <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
+                    {createChatMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <MessageCircle className="w-5 h-5" />}
+                  </Button>
+                </TooltipTrigger>
+                {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent><p>{canMessageData.reason}</p></TooltipContent>}
+              </Tooltip>
+          }
+            {hasBusinessInfo &&
+          <Button variant="ghost" size="icon" onClick={() => setBusinessInfoOpen(true)}>
                 <Info className="w-5 h-5" />
               </Button>
-            )}
+          }
             {id && <ShareProfileMenu userId={id} username={userProfile.username} />}
           </div>
         </div>
@@ -179,7 +190,7 @@ const UserProfile = () => {
             <p className="text-sm text-muted-foreground mb-2">{userProfile.full_name || userProfile.username}</p>
             {/* Stats */}
             <div className="flex gap-6 mt-2">
-              {stats.map(stat => <div key={stat.label} className={`text-center ${stat.onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`} onClick={stat.onClick}>
+              {stats.map((stat) => <div key={stat.label} className={`text-center ${stat.onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`} onClick={stat.onClick}>
                   <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </div>)}
@@ -198,9 +209,9 @@ const UserProfile = () => {
         delay: 0.05
       }} className="mt-4">
           {/* Business type label */}
-          {isBusiness && businessType && (
-            <p className="text-xs font-medium text-primary mb-1 capitalize">{businessType}</p>
-          )}
+          {isBusiness && businessType &&
+        <p className="text-xs font-medium text-primary mb-1">{businessType}</p>
+        }
           {userProfile.bio && <MentionText text={userProfile.bio} className="text-sm text-foreground/80" />}
           {userProfile.city && <p className="text-xs text-muted-foreground mt-1">📍 {userProfile.city}</p>}
         </motion.div>
@@ -214,61 +225,38 @@ const UserProfile = () => {
         y: 0
       }} transition={{
         delay: 0.1
-      }} className="flex gap-2 mt-4">
+      }} className="flex gap-3 mt-4">
             <Button variant={isFollowing ? "secondary" : "hero"} className="flex-1 min-w-0" onClick={handleFollowToggle} disabled={followStatusLoading || isFollowPending}>
               {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? <>
-                  <UserMinus className="w-4 h-4 mr-1" />
+                  <UserMinus className="w-4 h-4 mr-2" />
                   Siguiendo
                 </> : <>
-                  <UserPlus className="w-4 h-4 mr-1" />
+                  <UserPlus className="w-4 h-4 mr-2" />
                   Seguir
                 </>}
             </Button>
 
-            {/* For food businesses: Message pill + Reserve pill + Menu icon */}
-            {isBusiness && isFoodBusiness ? (
-              <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
-                      {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
-                          <MessageCircle className="w-4 h-4 mr-1" />
-                          Mensaje
-                        </>}
-                    </Button>
-                  </TooltipTrigger>
-                  {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent><p>{canMessageData.reason}</p></TooltipContent>}
-                </Tooltip>
+            {/* For food businesses: show Reservar button instead of Message */}
+            {isBusiness && isFoodBusiness && reservationsEnabled ?
+        <Button
+          className="flex-1 min-w-0 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+          onClick={() => {
+            if (isGuest) {
+              promptAuth({ action: "hacer una reserva" });
+              return;
+            }
+            setReservationSheetOpen(true);
+          }}>
+          
+                <CalendarCheck className="w-4 h-4 mr-2" />
+                Reservar
+              </Button> :
 
-                {reservationsEnabled && (
-                  <Button
-                    variant="secondary"
-                    className="flex-1 min-w-0"
-                    onClick={() => {
-                      if (isGuest) {
-                        promptAuth({ action: "hacer una reserva" });
-                        return;
-                      }
-                      setReservationSheetOpen(true);
-                    }}
-                  >
-                    <CalendarCheck className="w-4 h-4 mr-1" />
-                    Reservar
-                  </Button>
-                )}
-
-                {menuEnabled && (
-                  <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-destructive/15 border-destructive/30 hover:bg-destructive/25 shrink-0">
-                    <UtensilsCrossed className="w-4 h-4 text-destructive" />
-                  </Button>
-                )}
-              </>
-            ) : (
-              <Tooltip>
+        <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
                     {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
-                        <MessageCircle className="w-4 h-4 mr-1" />
+                        <MessageCircle className="w-4 h-4 mr-2" />
                         Mensaje
                       </>}
                   </Button>
@@ -277,7 +265,12 @@ const UserProfile = () => {
                     <p>{canMessageData.reason}</p>
                   </TooltipContent>}
               </Tooltip>
-            )}
+        }
+
+            {/* Menu button for food businesses */}
+            {isBusiness && isFoodBusiness && menuEnabled && <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30">
+                <UtensilsCrossed className="w-4 h-4 text-orange-500" />
+              </Button>}
           </motion.div>}
       </div>
 
@@ -291,30 +284,30 @@ const UserProfile = () => {
       </div>
 
       {/* Followers/Following Sheet */}
-      {id && <FollowersSheet userId={id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={open => !open && setFollowSheetType(null)} />}
+      {id && <FollowersSheet userId={id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={(open) => !open && setFollowSheetType(null)} />}
       {/* Menu Sheet for food businesses */}
       {id && isBusiness && isFoodBusiness && menuEnabled && <MenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} userId={id} businessName={userProfile?.full_name || userProfile?.username} />}
       {/* Business Info Sheet */}
-      {userProfile && (
-        <BusinessInfoSheet
-          open={businessInfoOpen}
-          onOpenChange={setBusinessInfoOpen}
-          businessName={userProfile.full_name || userProfile.username}
-          address={userProfile.business_address}
-          hours={userProfile.business_hours}
-          phone={userProfile.business_phone}
-        />
-      )}
+      {userProfile &&
+    <BusinessInfoSheet
+      open={businessInfoOpen}
+      onOpenChange={setBusinessInfoOpen}
+      businessName={userProfile.full_name || userProfile.username}
+      address={userProfile.business_address}
+      hours={userProfile.business_hours}
+      phone={userProfile.business_phone} />
+
+    }
       {/* Reservation Sheet for food businesses */}
-      {id && isBusiness && isFoodBusiness && reservationsEnabled && (
-        <ReservationSheet
-          open={reservationSheetOpen}
-          onOpenChange={setReservationSheetOpen}
-          businessId={id}
-          businessName={userProfile?.full_name || userProfile?.username || ""}
-          businessHours={userProfile?.business_hours}
-        />
-      )}
+      {id && isBusiness && isFoodBusiness && reservationsEnabled &&
+    <ReservationSheet
+      open={reservationSheetOpen}
+      onOpenChange={setReservationSheetOpen}
+      businessId={id}
+      businessName={userProfile?.full_name || userProfile?.username || ""}
+      businessHours={userProfile?.business_hours} />
+
+    }
     </AppLayout>;
 };
 export default UserProfile;
