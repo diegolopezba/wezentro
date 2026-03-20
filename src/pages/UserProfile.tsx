@@ -183,9 +183,6 @@ const UserProfile = () => {
       }} className="flex items-start gap-4">
           <div className="relative">
             <img src={userProfile.avatar_url || DEFAULT_AVATAR} alt="Perfil" className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary" />
-            {isBusiness && <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-blue-500 to-indigo-500"}`}>
-                {isFoodBusiness ? <UtensilsCrossed className="w-4 h-4 text-white" /> : <Briefcase className="w-4 h-4 text-white" />}
-              </div>}
           </div>
 
           <div className="flex-1">
@@ -210,6 +207,10 @@ const UserProfile = () => {
       }} transition={{
         delay: 0.05
       }} className="mt-4">
+          {/* Business type label */}
+          {isBusiness && userProfile.business_type && (
+            <p className="text-xs font-medium text-primary mb-1">🏢 {userProfile.business_type}</p>
+          )}
           {userProfile.bio && <MentionText text={userProfile.bio} className="text-sm text-foreground/80" />}
           {userProfile.city && <p className="text-xs text-muted-foreground mt-1">📍 {userProfile.city}</p>}
         </motion.div>
