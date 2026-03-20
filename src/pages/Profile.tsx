@@ -61,7 +61,7 @@ const Profile = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background">
         <div className="flex items-center justify-between px-4 py-0">
-          <h1 className="font-brand text-xl font-bold text-foreground">
+          <h1 className="font-brand text-xl text-foreground font-semibold">
             @{profile?.username || "cargando"}
           </h1>
           <div className="flex items-center">
