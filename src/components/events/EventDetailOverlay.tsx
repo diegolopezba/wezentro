@@ -59,6 +59,8 @@ export const EventDetailOverlay = () => {
     handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(selectedEventId || undefined, closeEvent);
 
+  const { data: acceptedCollaborators } = useAcceptedCollaborators(selectedEventId || undefined);
+
   const isVideo = isVideoUrl(event?.image_url);
 
   // Check for showPayment query param (returned from checkout success)
