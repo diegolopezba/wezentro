@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Loader2, Crown, X, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
+import { Settings, Loader2, X, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
