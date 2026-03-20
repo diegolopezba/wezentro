@@ -73,6 +73,7 @@ const UserProfile = () => {
   const isBusiness = userProfile?.is_business === true;
   const menuEnabled = (userProfile as any)?.menu_enabled !== false;
   const reservationsEnabled = (userProfile as any)?.reservations_enabled !== false;
+  const businessType = (userProfile as any)?.business_type as string | null | undefined;
   const hasBusinessInfo = userProfile?.business_address || userProfile?.business_hours || userProfile?.business_phone;
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
