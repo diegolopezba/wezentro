@@ -149,7 +149,7 @@ const UserProfile = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="font-brand text-xl text-foreground font-semibold">@{userProfile.username}</h1>
+            <h1 className="font-brand text-xl text-foreground font-semibold">{userProfile.username}</h1>
           </div>
           <div className="flex items-center gap-1">
             {hasBusinessInfo &&
