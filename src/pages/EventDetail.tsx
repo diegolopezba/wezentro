@@ -66,6 +66,7 @@ const EventDetail = () => {
 
   const { data: eventTags } = useEventTags(id);
   const removeTag = useRemoveTag();
+  const { data: acceptedCollaborators } = useAcceptedCollaborators(id);
 
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
