@@ -141,7 +141,7 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-y-auto">
       {/* Progress bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-secondary z-20">
         <motion.div
@@ -156,11 +156,13 @@ const Onboarding = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="pt-16 pb-6 text-center relative z-10"
+        className={`text-center relative z-10 transition-all duration-300 ${isKeyboardVisible ? "pt-5 pb-2" : "pt-16 pb-6"}`}
       >
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-primary-foreground">
-          <img src="/logo.png" alt="Zentro" className="w-10 h-10 object-fill" />
-        </div>
+        {!isKeyboardVisible && (
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-primary-foreground">
+            <img src="/logo.png" alt="Zentro" className="w-10 h-10 object-fill" />
+          </div>
+        )}
         <h1 className="font-brand text-2xl font-bold text-foreground mb-1">
           {step === 1 && "Elige tu nombre de usuario"}
           {step === 2 && "Cuéntanos sobre ti"}

@@ -421,6 +421,11 @@ export const ReservationSheet = ({
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Alergias, celebraciones, preferencias de asiento..."
                     rows={2}
+                    onFocus={(e) => {
+                      setTimeout(() => {
+                        e.target.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }, 300);
+                    }}
                   />
                 </div>
               </motion.div>
