@@ -239,7 +239,7 @@ const UserProfile = () => {
             {/* For food businesses: show Reservar button instead of Message */}
             {isBusiness && isFoodBusiness && reservationsEnabled ? (
               <Button
-                variant="hero"
+                variant="secondary"
                 className="flex-1 min-w-0"
                 onClick={() => {
                   if (isGuest) {
