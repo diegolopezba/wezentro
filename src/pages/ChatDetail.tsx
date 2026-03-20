@@ -17,6 +17,7 @@ const ChatDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { isVisible: isKeyboardVisible } = useKeyboardAdjust();
   
   const [message, setMessage] = useState("");
   const [eventPickerOpen, setEventPickerOpen] = useState(false);
