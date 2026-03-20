@@ -65,11 +65,11 @@ const Profile = () => {
             @{profile?.username || "cargando"}
           </h1>
           <div className="flex items-center">
-            {hasBusinessInfo && (
-              <Button variant="ghost" size="icon" onClick={() => setBusinessInfoOpen(true)}>
+            {hasBusinessInfo &&
+          <Button variant="ghost" size="icon" onClick={() => setBusinessInfoOpen(true)}>
                 <Info className="w-5 h-5" />
               </Button>
-            )}
+          }
             {user && <ShareProfileMenu userId={user.id} username={profile?.username || ""} />}
             <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
               <Settings className="w-5 h-5" />
@@ -97,7 +97,7 @@ const Profile = () => {
             </p>
             {/* Stats */}
             <div className="flex gap-6 mt-2">
-              {stats.map(stat => <div key={stat.label} className={`text-center ${stat.onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`} onClick={stat.onClick}>
+              {stats.map((stat) => <div key={stat.label} className={`text-center ${stat.onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`} onClick={stat.onClick}>
                   <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </div>)}
@@ -116,15 +116,15 @@ const Profile = () => {
         delay: 0.05
       }} className="mt-4">
           {/* Business type label */}
-          {isBusiness && profile?.business_type && (
-            <p className="text-xs font-medium text-primary mb-1">{profile.business_type}</p>
-          )}
+          {isBusiness && profile?.business_type &&
+        <p className="text-xs text-primary mb-1 font-normal py-0">{profile.business_type}</p>
+        }
           {profile?.bio && <MentionText text={profile.bio} className="text-sm text-foreground/80" />}
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
           
           {/* Edit Menu button for food businesses */}
-          {isBusiness && isFoodBusiness && (
-            <div className="flex gap-2 mt-3">
+          {isBusiness && isFoodBusiness &&
+        <div className="flex gap-2 mt-3">
               <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 hover:from-orange-500/20 hover:to-red-500/20">
                 <UtensilsCrossed className="w-4 h-4 text-orange-500" />
                 Editar Menú
@@ -134,7 +134,7 @@ const Profile = () => {
                 Reservas
               </Button>
             </div>
-          )}
+        }
         </motion.div>
 
         {/* Complete Profile Banner - show when birth_date or gender is missing */}
@@ -186,20 +186,20 @@ const Profile = () => {
       </div>
 
       {/* Followers/Following Sheet */}
-      {user && <FollowersSheet userId={user.id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={open => !open && setFollowSheetType(null)} />}
+      {user && <FollowersSheet userId={user.id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={(open) => !open && setFollowSheetType(null)} />}
       {/* Edit Menu Sheet for food businesses */}
       {isBusiness && isFoodBusiness && <EditMenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} />}
       {/* Reservations Management Sheet for food businesses */}
       {isBusiness && isFoodBusiness && user && <ReservationsManagementSheet open={reservationsSheetOpen} onOpenChange={setReservationsSheetOpen} businessId={user.id} />}
       {/* Business Info Sheet */}
       <BusinessInfoSheet
-        open={businessInfoOpen}
-        onOpenChange={setBusinessInfoOpen}
-        businessName={profile?.full_name || profile?.username}
-        address={profile?.business_address}
-        hours={profile?.business_hours}
-        phone={profile?.business_phone}
-      />
+      open={businessInfoOpen}
+      onOpenChange={setBusinessInfoOpen}
+      businessName={profile?.full_name || profile?.username}
+      address={profile?.business_address}
+      hours={profile?.business_hours}
+      phone={profile?.business_phone} />
+    
     </AppLayout>;
 };
 export default Profile;
