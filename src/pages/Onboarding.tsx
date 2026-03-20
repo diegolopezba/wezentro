@@ -21,6 +21,7 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
   const processReferral = useProcessReferral();
+  const { isVisible: isKeyboardVisible } = useKeyboardAdjust();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [usernameError, setUsernameError] = useState("");

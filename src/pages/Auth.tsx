@@ -20,6 +20,7 @@ interface LocationState {
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { isVisible: isKeyboardVisible } = useKeyboardAdjust();
   const location = useLocation();
   const locationState = location.state as LocationState | null;
   
