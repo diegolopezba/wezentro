@@ -10,12 +10,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import MessageBubble from "@/components/chat/MessageBubble";
 import EventPickerModal from "@/components/chat/EventPickerModal";
 import { toast } from "sonner";
+import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
 
 const ChatDetail = () => {
   const { id: chatId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { isVisible: isKeyboardVisible } = useKeyboardAdjust();
   
   const [message, setMessage] = useState("");
   const [eventPickerOpen, setEventPickerOpen] = useState(false);
@@ -156,9 +158,9 @@ const ChatDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-[100dvh] flex flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-strong safe-top">
+      <header className="shrink-0 z-40 glass-strong safe-top">
         <div className="flex items-center gap-3 px-4 py-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/chats")}>
             <ArrowLeft className="w-5 h-5" />
@@ -217,7 +219,7 @@ const ChatDetail = () => {
       </div>
 
       {/* Input */}
-      <div className="sticky bottom-0 p-4 glass-strong safe-bottom">
+      <div className={`shrink-0 p-4 glass-strong ${isKeyboardVisible ? "pb-2" : "safe-bottom"}`}>
         <div className="flex gap-2">
           <Button
             variant="ghost"

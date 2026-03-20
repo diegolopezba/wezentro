@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
+import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
 
 const emailSchema = z.string().email("Por favor ingresa un correo válido");
 const passwordSchema = z.string().min(8, "La contraseña debe tener al menos 8 caracteres");
@@ -19,6 +20,7 @@ interface LocationState {
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { isVisible: isKeyboardVisible } = useKeyboardAdjust();
   const location = useLocation();
   const locationState = location.state as LocationState | null;
   
@@ -178,7 +180,7 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col relative overflow-y-auto">
       {/* Video Background */}
       <div className="fixed inset-0 w-full h-full z-0">
         <video autoPlay loop muted playsInline className="absolute w-full h-full object-cover" src="/auth-background.mp4">
@@ -195,18 +197,20 @@ const Auth = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="pt-20 pb-10 text-center relative z-10"
+        className={`text-center relative z-10 transition-all duration-300 ${isKeyboardVisible ? "pt-6 pb-3" : "pt-20 pb-10"}`}
       >
-        <motion.div
-          initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="inline-block mb-6"
-        >
-          <div className="w-20 h-20 flex items-center justify-center mx-auto">
-            <img src="/logo.png" alt="Logo de Zentro" className="w-20 h-20 object-contain" />
-          </div>
-        </motion.div>
+        {!isKeyboardVisible && (
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            className="inline-block mb-6"
+          >
+            <div className="w-20 h-20 flex items-center justify-center mx-auto">
+              <img src="/logo.png" alt="Logo de Zentro" className="w-20 h-20 object-contain" />
+            </div>
+          </motion.div>
+        )}
         <h1 className="font-brand text-4xl text-foreground mb-2 font-semibold">zentro</h1>
       </motion.div>
 
