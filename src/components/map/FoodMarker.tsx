@@ -25,7 +25,7 @@ export const FoodMarker = ({ location, onClick }: FoodMarkerProps) => {
       </div>
       
       {/* Food badge */}
-      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-accent-red flex items-center justify-center border-2 border-background">
+      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center border-2 border-background">
         <span className="text-[10px]">🍽️</span>
       </div>
     </button>
