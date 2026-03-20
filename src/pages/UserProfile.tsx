@@ -216,13 +216,7 @@ const UserProfile = () => {
         delay: 0.1
       }} className="flex gap-2 mt-4">
             <Button variant={isFollowing ? "secondary" : "hero"} className="flex-1 min-w-0" onClick={handleFollowToggle} disabled={followStatusLoading || isFollowPending}>
-              {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? <>
-                  <UserMinus className="w-4 h-4 mr-1" />
-                  Siguiendo
-                </> : <>
-                  <UserPlus className="w-4 h-4 mr-1" />
-                  Seguir
-                </>}
+              {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? "Siguiendo" : "Seguir"}
             </Button>
 
             {/* For food businesses: Message pill + Reserve pill + Menu icon */}
@@ -231,10 +225,7 @@ const UserProfile = () => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
-                      {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
-                          <MessageCircle className="w-4 h-4 mr-1" />
-                          Mensaje
-                        </>}
+                      {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Mensaje"}
                     </Button>
                   </TooltipTrigger>
                   {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent><p>{canMessageData.reason}</p></TooltipContent>}
@@ -252,7 +243,6 @@ const UserProfile = () => {
                       setReservationSheetOpen(true);
                     }}
                   >
-                    <CalendarCheck className="w-4 h-4 mr-1" />
                     Reservar
                   </Button>
                 )}
@@ -267,10 +257,7 @@ const UserProfile = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
-                    {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
-                        <MessageCircle className="w-4 h-4 mr-1" />
-                        Mensaje
-                      </>}
+                    {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Mensaje"}
                   </Button>
                 </TooltipTrigger>
                 {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent>
