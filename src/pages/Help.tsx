@@ -175,24 +175,24 @@ const Help = () => {
           animate={{ opacity: 1, y: 0 }}>
           
           <h2 className="text-lg font-semibold text-foreground mb-3">Temas de Ayuda</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {helpTopics.map((topic, index) => {
-              const Icon = topic.icon;
-              return (
-                <motion.div
-                  key={topic.title}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="p-4 rounded-xl bg-secondary/30 border border-border hover:bg-secondary/50 transition-colors cursor-pointer">
-                  
-                  <Icon className="w-5 h-5 text-primary mb-2" />
-                  <h3 className="font-medium text-foreground text-sm">{topic.title}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{topic.description}</p>
-                </motion.div>);
+          
 
-            })}
-          </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          
         </motion.section>
 
         {/* FAQ Section */}
