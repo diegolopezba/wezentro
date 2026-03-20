@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { trackProfileVisit } from "@/lib/analyticsTracking";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, Briefcase, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
+import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,7 @@ const UserProfile = () => {
   const isBusiness = userProfile?.is_business === true;
   const menuEnabled = (userProfile as any)?.menu_enabled !== false;
   const reservationsEnabled = (userProfile as any)?.reservations_enabled !== false;
+  const businessType = (userProfile as any)?.business_type as string | null | undefined;
   const hasBusinessInfo = userProfile?.business_address || userProfile?.business_hours || userProfile?.business_phone;
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
@@ -183,9 +184,6 @@ const UserProfile = () => {
       }} className="flex items-start gap-4">
           <div className="relative">
             <img src={userProfile.avatar_url || DEFAULT_AVATAR} alt="Perfil" className="w-24 h-24 rounded-full object-cover border-primary border-0 bg-secondary" />
-            {isBusiness && <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 border-background ${isFoodBusiness ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-blue-500 to-indigo-500"}`}>
-                {isFoodBusiness ? <UtensilsCrossed className="w-4 h-4 text-white" /> : <Briefcase className="w-4 h-4 text-white" />}
-              </div>}
           </div>
 
           <div className="flex-1">
@@ -210,6 +208,10 @@ const UserProfile = () => {
       }} transition={{
         delay: 0.05
       }} className="mt-4">
+          {/* Business type label */}
+          {isBusiness && businessType && (
+            <p className="text-xs font-medium text-primary mb-1">🏢 {businessType}</p>
+          )}
           {userProfile.bio && <MentionText text={userProfile.bio} className="text-sm text-foreground/80" />}
           {userProfile.city && <p className="text-xs text-muted-foreground mt-1">📍 {userProfile.city}</p>}
         </motion.div>
