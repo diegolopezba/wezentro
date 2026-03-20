@@ -158,9 +158,9 @@ const ChatDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-[100dvh] flex flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-strong safe-top">
+      <header className="shrink-0 z-40 glass-strong safe-top">
         <div className="flex items-center gap-3 px-4 py-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/chats")}>
             <ArrowLeft className="w-5 h-5" />
