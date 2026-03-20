@@ -268,8 +268,8 @@ const UserProfile = () => {
             )}
 
             {/* Menu button for food businesses */}
-            {isBusiness && isFoodBusiness && menuEnabled && <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30">
-                <UtensilsCrossed className="w-4 h-4 text-orange-500" />
+            {isBusiness && isFoodBusiness && menuEnabled && <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-destructive/15 border-destructive/30 hover:bg-destructive/25">
+                <UtensilsCrossed className="w-4 h-4 text-destructive" />
               </Button>}
           </motion.div>}
       </div>
