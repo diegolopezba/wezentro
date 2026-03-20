@@ -45,8 +45,8 @@ export const useUserTimeline = (userId: string | undefined) => {
         guestlist_entries(count)
       `;
 
-      // Fetch own posts and accepted tagged posts in parallel
-      const [ownResult, taggedResult] = await Promise.all([
+      // Fetch own posts, accepted tagged posts, and accepted collab posts in parallel
+      const [ownResult, taggedResult, collabResult] = await Promise.all([
         supabase
           .from("events")
           .select(selectFields)
@@ -58,20 +58,29 @@ export const useUserTimeline = (userId: string | undefined) => {
           .select(`event:events(${selectFields})`)
           .eq("tagged_user_id", userId)
           .eq("status", "accepted"),
+        supabase
+          .from("event_collaborators")
+          .select(`event:events(${selectFields})`)
+          .eq("user_id", userId)
+          .eq("status", "accepted"),
       ]);
 
       if (ownResult.error) throw ownResult.error;
       if (taggedResult.error) throw taggedResult.error;
+      if (collabResult.error) throw collabResult.error;
 
       const ownPosts = (ownResult.data || []) as TimelineItem[];
       const taggedPosts = ((taggedResult.data || [])
         .map((t: any) => t.event)
         .filter((e: any) => e && !e.deleted_at)) as TimelineItem[];
+      const collabPosts = ((collabResult.data || [])
+        .map((c: any) => c.event)
+        .filter((e: any) => e && !e.deleted_at)) as TimelineItem[];
 
       // Merge and deduplicate by id, sort by created_at desc
       const seen = new Set<string>();
       const merged: TimelineItem[] = [];
-      for (const post of [...ownPosts, ...taggedPosts]) {
+      for (const post of [...ownPosts, ...taggedPosts, ...collabPosts]) {
         if (!seen.has(post.id)) {
           seen.add(post.id);
           merged.push(post);
