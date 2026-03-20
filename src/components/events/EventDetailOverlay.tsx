@@ -24,6 +24,7 @@ import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSelectedEvent } from "@/contexts/SelectedEventContext";
 import { useEventDetailState } from "@/hooks/useEventDetailState";
+import { useAcceptedCollaborators } from "@/hooks/useEventCollaborators";
 import { toast } from "sonner";
 
 export const EventDetailOverlay = () => {
