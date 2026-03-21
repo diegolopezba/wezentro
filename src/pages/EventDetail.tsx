@@ -59,7 +59,7 @@ const EventDetail = () => {
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
     showReservationSheet, setShowReservationSheet,
-    handleSaveToggle, handleLikeToggle, handleRepostToggle,
+    handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, () => navigate(-1));
 

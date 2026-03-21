@@ -177,6 +177,11 @@ export const useEventDetailState = (
     }
   };
 
+  const handleSendToggle = () => {
+    if (isGuest) { promptAuth({ action: "enviar este evento" }); return; }
+    setShowShareModal(true);
+  };
+
   return {
     // Data
     event, isLoading, error,

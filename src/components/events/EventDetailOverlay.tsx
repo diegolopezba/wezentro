@@ -54,7 +54,7 @@ export const EventDetailOverlay = () => {
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
     showReservationSheet, setShowReservationSheet,
-    handleSaveToggle, handleLikeToggle, handleRepostToggle,
+    handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(selectedEventId || undefined, closeEvent);
 
