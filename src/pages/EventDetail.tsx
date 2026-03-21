@@ -70,6 +70,13 @@ const EventDetail = () => {
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
 
+  // Auto-open guestlist management sheet if navigated from a guestlist_request notification
+  useEffect(() => {
+    if (openGuestlistOnMount) {
+      setShowManagement(true);
+    }
+  }, [openGuestlistOnMount]);
+
   // Track event view for analytics
   useEffect(() => {
     if (id && user?.id) {
