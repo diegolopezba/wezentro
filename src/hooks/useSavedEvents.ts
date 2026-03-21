@@ -111,8 +111,21 @@ export function useSaveEvent() {
 
       return data;
     },
-    onSuccess: (_, eventId) => {
+    onMutate: async (eventId: string) => {
+      await queryClient.cancelQueries({ queryKey: ["is-event-saved", eventId] });
+      await queryClient.cancelQueries({ queryKey: ["save-count", eventId] });
+      const prevSaved = queryClient.getQueryData(["is-event-saved", eventId, user?.id]);
+      const prevCount = queryClient.getQueryData<number>(["save-count", eventId]);
+      queryClient.setQueryData(["is-event-saved", eventId, user?.id], true);
+      queryClient.setQueryData(["save-count", eventId], (old: number = 0) => old + 1);
       haptic("medium");
+      return { prevSaved, prevCount };
+    },
+    onError: (_, eventId, context) => {
+      queryClient.setQueryData(["is-event-saved", eventId, user?.id], context?.prevSaved);
+      queryClient.setQueryData(["save-count", eventId], context?.prevCount);
+    },
+    onSettled: (_, __, eventId) => {
       queryClient.invalidateQueries({ queryKey: ["saved-events"] });
       queryClient.invalidateQueries({ queryKey: ["is-event-saved", eventId] });
       queryClient.invalidateQueries({ queryKey: ["save-count", eventId] });
@@ -136,7 +149,20 @@ export function useUnsaveEvent() {
 
       if (error) throw error;
     },
-    onSuccess: (_, eventId) => {
+    onMutate: async (eventId: string) => {
+      await queryClient.cancelQueries({ queryKey: ["is-event-saved", eventId] });
+      await queryClient.cancelQueries({ queryKey: ["save-count", eventId] });
+      const prevSaved = queryClient.getQueryData(["is-event-saved", eventId, user?.id]);
+      const prevCount = queryClient.getQueryData<number>(["save-count", eventId]);
+      queryClient.setQueryData(["is-event-saved", eventId, user?.id], false);
+      queryClient.setQueryData(["save-count", eventId], (old: number = 0) => Math.max(0, old - 1));
+      return { prevSaved, prevCount };
+    },
+    onError: (_, eventId, context) => {
+      queryClient.setQueryData(["is-event-saved", eventId, user?.id], context?.prevSaved);
+      queryClient.setQueryData(["save-count", eventId], context?.prevCount);
+    },
+    onSettled: (_, __, eventId) => {
       queryClient.invalidateQueries({ queryKey: ["saved-events"] });
       queryClient.invalidateQueries({ queryKey: ["is-event-saved", eventId] });
       queryClient.invalidateQueries({ queryKey: ["save-count", eventId] });
