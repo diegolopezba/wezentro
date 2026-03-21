@@ -424,7 +424,7 @@ const NotificationItem = ({
     x: 0
   }} transition={{
     delay: index * 0.03
-  }} className={`flex items-start gap-4 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "hover:bg-secondary/30" : "hover:bg-primary/10"}`} onClick={onClick}>
+  }} className={`flex items-start gap-4 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notification.is_read ? "bg-secondary" : "bg-primary/20"}`}>
         <Icon className={`w-5 h-5 ${notification.is_read ? "text-muted-foreground" : "text-primary"}`} />
       </div>
