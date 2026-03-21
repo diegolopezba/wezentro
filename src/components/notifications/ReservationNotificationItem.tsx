@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarCheck, CalendarX, UserCheck, Check } from "lucide-react";
+import { CalendarCheck, CalendarX, UserCheck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { Notification } from "@/hooks/useNotifications";
