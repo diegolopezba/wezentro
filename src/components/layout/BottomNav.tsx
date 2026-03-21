@@ -51,13 +51,13 @@ export const BottomNav = () => {
           <div className="px-4 pt-2 pb-6 flex flex-col gap-3">
             <button
               onClick={() => handlePickerSelect("post")}
-              className="w-full py-4 rounded-xl bg-secondary hover:bg-secondary/80 active:scale-[0.98] transition-all text-foreground text-base font-semibold"
+              className="w-full py-4 rounded-xl bg-secondary active:scale-[0.98] transition-transform text-foreground text-base font-semibold select-none [-webkit-tap-highlight-color:transparent]"
             >
               Post
             </button>
             <button
               onClick={() => handlePickerSelect("event")}
-              className="w-full py-4 rounded-xl bg-secondary hover:bg-secondary/80 active:scale-[0.98] transition-all text-foreground text-base font-semibold"
+              className="w-full py-4 rounded-xl bg-secondary active:scale-[0.98] transition-transform text-foreground text-base font-semibold select-none [-webkit-tap-highlight-color:transparent]"
             >
               Evento
             </button>
