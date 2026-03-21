@@ -64,7 +64,7 @@ export const BusinessInfoSheet = ({
           {phone && (
             <a
               href={`tel:${phone}`}
-              className="flex items-start gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary/70 transition-colors"
+              className="flex items-start gap-3 p-3 rounded-xl bg-secondary/50"
             >
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Phone className="w-5 h-5 text-primary" />

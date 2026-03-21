@@ -42,8 +42,8 @@ export const ReferralNotificationItem = ({ notification, index, onRead, onClick 
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03 }}
-      className={`flex flex-col gap-2 p-4 rounded-2xl cursor-pointer transition-colors ${
-        notification.is_read ? "hover:bg-secondary/30" : "hover:bg-primary/10"
+      className={`flex flex-col gap-2 p-4 rounded-2xl cursor-pointer ${
+        notification.is_read ? "" : "bg-primary/5"
       }`}
       onClick={onClick}
     >

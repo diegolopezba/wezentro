@@ -77,7 +77,7 @@ export const NewChatModal = ({ open, onOpenChange }: NewChatModalProps) => {
                 transition={{ delay: index * 0.03 }}
                 onClick={() => handleSelectUser(user.id)}
                 disabled={createChat.isPending}
-                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors text-left disabled:opacity-50"
+                className="w-full flex items-center gap-3 p-3 rounded-xl text-left disabled:opacity-50"
               >
                 <Avatar className="w-10 h-10">
                   <AvatarImage src={user.avatar_url || DEFAULT_AVATAR} />

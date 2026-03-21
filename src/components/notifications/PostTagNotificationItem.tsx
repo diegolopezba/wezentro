@@ -124,7 +124,7 @@ export const PostTagNotificationItem = ({
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
+            className="flex-1 rounded-xl border-destructive/30 text-destructive"
             onClick={handleDecline}
             disabled={isResponding}
           >

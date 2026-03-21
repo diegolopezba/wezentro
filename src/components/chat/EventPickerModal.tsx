@@ -65,7 +65,7 @@ const EventPickerModal = ({ open, onOpenChange, onSelectEvent }: EventPickerModa
               <div
                 key={event.id}
                 onClick={() => handleSelectEvent(event.id)}
-                className="flex gap-3 p-3 rounded-xl hover:bg-secondary cursor-pointer transition-colors"
+                className="flex gap-3 p-3 rounded-xl cursor-pointer"
               >
                 {event.image_url && (
                   <img

@@ -19,7 +19,7 @@ export const UserSearchResultCard = ({ user, onClick }: UserSearchResultCardProp
   return (
     <button
       onClick={handleClick}
-      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-colors text-left"
+      className="w-full flex items-center gap-3 p-3 rounded-xl text-left"
     >
       <Avatar className="h-10 w-10">
         <AvatarImage src={user.avatar_url || DEFAULT_AVATAR} alt={user.full_name || user.username} />
