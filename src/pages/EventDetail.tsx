@@ -34,6 +34,7 @@ const EventDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const fromCreate = (location.state as { fromCreate?: boolean })?.fromCreate;
+  const openGuestlistOnMount = (location.state as { openGuestlist?: boolean })?.openGuestlist;
   const { user } = useAuth();
 
   const {

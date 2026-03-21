@@ -475,6 +475,8 @@ const Notifications = () => {
     // Navigate based on notification type and entity type
     if (notification.type === "guestlist_approved" && notification.entity_id) {
       navigate(`/going/${notification.entity_id}`);
+    } else if (notification.type === "guestlist_request" && notification.entity_id) {
+      navigate(`/event/${notification.entity_id}`, { state: { openGuestlist: true } });
     } else if (
       (notification.type === "like" || notification.type === "repost" || notification.type === "collaboration_accepted") &&
       notification.entity_id
