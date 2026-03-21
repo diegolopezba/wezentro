@@ -156,7 +156,7 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
                   <div
                     key={user.id}
                     onClick={() => toggleUser(user.id)}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 cursor-pointer transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-xl cursor-pointer"
                   >
                     <Checkbox
                       checked={selectedUsers.includes(user.id)}

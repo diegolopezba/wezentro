@@ -240,7 +240,7 @@ const Help = () => {
                 <button
                   key={link.path}
                   onClick={() => navigate(link.path)}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-secondary/30 border border-border hover:bg-secondary/50 transition-colors text-left">
+                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-secondary/30 border border-border text-left">
                   
                   <Icon className="w-5 h-5 text-muted-foreground" />
                   <span className="flex-1 text-foreground font-medium text-sm">{link.title}</span>
@@ -268,7 +268,7 @@ const Help = () => {
             </p>
             <a
               href="mailto:hello@zentro.com"
-              className="flex items-center gap-3 p-4 rounded-xl bg-background/50 border border-border hover:bg-background/80 transition-colors">
+              className="flex items-center gap-3 p-4 rounded-xl bg-background/50 border border-border">
               
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                 <Mail className="w-5 h-5 text-primary" />

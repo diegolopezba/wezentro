@@ -82,7 +82,7 @@ export function InvitationsSentSection({ eventId }: InvitationsSentSectionProps)
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 cursor-pointer transition-colors"
+            className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 cursor-pointer"
             onClick={() => navigate(`/user/${invitation.invited_user_id}`)}
           >
             <Avatar className="w-10 h-10">

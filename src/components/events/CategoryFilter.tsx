@@ -28,14 +28,13 @@ export const CategoryFilter = ({ selected, onSelect }: CategoryFilterProps) => {
         return (
           <motion.button
             key={category.id}
-            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onSelect(category.id)}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all duration-200",
+              "flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap",
               isSelected
                 ? "gradient-primary text-primary-foreground shadow-glow"
-                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                : "bg-secondary text-secondary-foreground"
             )}
           >
             <span>{category.emoji}</span>

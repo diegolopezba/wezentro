@@ -87,7 +87,7 @@ export const CollaboratorPickerModal = ({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.03 }}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 cursor-pointer transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-xl cursor-pointer"
                     onClick={() => handleSelect(follower)}
                   >
                     <Avatar className="w-10 h-10">

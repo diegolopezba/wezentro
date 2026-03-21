@@ -70,7 +70,7 @@ const FollowNotificationItem = ({
     x: 0
   }} transition={{
     delay: index * 0.03
-  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "hover:bg-secondary/30" : "hover:bg-primary/10"}`} onClick={onClick}>
+  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
       <Avatar className="w-10 h-10 shrink-0">
         <AvatarImage src={followerProfile?.avatar_url || DEFAULT_AVATAR} />
         <AvatarFallback />
@@ -121,7 +121,7 @@ const GuestlistRequestNotificationItem = ({
     x: 0
   }} transition={{
     delay: index * 0.03
-  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "hover:bg-secondary/30" : "hover:bg-primary/10"}`} onClick={onClick}>
+  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
       <Avatar className="w-10 h-10 shrink-0">
         <AvatarImage src={requesterProfile?.avatar_url || DEFAULT_AVATAR} />
         <AvatarFallback />
@@ -161,7 +161,7 @@ const GuestlistStatusNotificationItem = ({
     x: 0
   }} transition={{
     delay: index * 0.03
-  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "hover:bg-secondary/30" : "hover:bg-primary/10"}`} onClick={onClick}>
+  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
       <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
         {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
             <Calendar className="w-5 h-5 text-muted-foreground" />
@@ -248,7 +248,7 @@ const GuestlistInvitationNotificationItem = ({
     x: 0
   }} transition={{
     delay: index * 0.03
-  }} className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "hover:bg-secondary/30" : "hover:bg-primary/10"}`} onClick={onClick}>
+  }} className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
           {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
@@ -283,7 +283,7 @@ const GuestlistInvitationNotificationItem = ({
       
       {/* Accept/Decline buttons for pending invitations */}
       {invitation && <div className="flex gap-2 ml-13">
-          <Button variant="outline" size="sm" className="flex-1 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10" onClick={handleDecline} disabled={isResponding}>
+          <Button variant="outline" size="sm" className="flex-1 rounded-xl border-destructive/30 text-destructive" onClick={handleDecline} disabled={isResponding}>
             {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1.5" />}
             Rechazar
           </Button>
@@ -358,7 +358,7 @@ const CollaborationNotificationItem = ({
     x: 0
   }} transition={{
     delay: index * 0.03
-  }} className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "hover:bg-secondary/30" : "hover:bg-primary/10"}`} onClick={onClick}>
+  }} className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
           {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
@@ -393,7 +393,7 @@ const CollaborationNotificationItem = ({
       
       {/* Accept/Decline buttons for pending collaborations */}
       {collaboration && <div className="flex gap-2 ml-13">
-          <Button variant="outline" size="sm" className="flex-1 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10" onClick={handleDecline} disabled={isResponding}>
+          <Button variant="outline" size="sm" className="flex-1 rounded-xl border-destructive/30 text-destructive" onClick={handleDecline} disabled={isResponding}>
             {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1.5" />}
             Rechazar
           </Button>
@@ -424,7 +424,7 @@ const NotificationItem = ({
     x: 0
   }} transition={{
     delay: index * 0.03
-  }} className={`flex items-start gap-4 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "hover:bg-secondary/30" : "hover:bg-primary/10"}`} onClick={onClick}>
+  }} className={`flex items-start gap-4 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notification.is_read ? "bg-secondary" : "bg-primary/20"}`}>
         <Icon className={`w-5 h-5 ${notification.is_read ? "text-muted-foreground" : "text-primary"}`} />
       </div>

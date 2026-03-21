@@ -86,13 +86,13 @@ const Settings = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.04 }}
                     onClick={() => navigate(item.path)}
-                    className="w-full flex items-center gap-4 py-3.5 px-4 hover:bg-secondary/40 transition-colors"
+                    className="w-full flex items-center gap-4 py-3.5 px-4"
                   >
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.highlight ? "bg-primary/15" : "bg-secondary"}`}>
-                      <Icon className={`w-4 h-4 ${item.highlight ? "text-primary" : "text-foreground"}`} />
+                      <Icon className={`w-4 h-4 ${item.highlight ? "text-primary" : "text-muted-foreground"}`} />
                     </div>
-                    <span className="text-foreground font-medium flex-1 text-left text-sm">{item.label}</span>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-medium flex-1 text-left text-sm text-foreground">{item.label}</span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
                   </motion.button>
                 );
               })}
@@ -100,14 +100,13 @@ const Settings = () => {
           </div>
         ))}
 
-        {/* Sign out */}
-        <div className="rounded-2xl bg-card border border-destructive/20 overflow-hidden">
+        <div className="rounded-2xl bg-card border border-border overflow-hidden">
           <motion.button
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
             onClick={handleSignOut}
-            className="w-full flex items-center gap-4 py-3.5 px-4 hover:bg-destructive/5 transition-colors"
+            className="w-full flex items-center gap-4 py-3.5 px-4"
           >
             <div className="w-8 h-8 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
               <LogOut className="w-4 h-4 text-destructive" />
