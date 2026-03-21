@@ -61,8 +61,21 @@ export function useLikeEvent() {
       // Track preference signal (fire-and-forget)
       trackPreferenceSignal(user.id, eventId, "like");
     },
-    onSuccess: (_, eventId) => {
+    onMutate: async (eventId: string) => {
+      await queryClient.cancelQueries({ queryKey: ["event-liked", eventId] });
+      await queryClient.cancelQueries({ queryKey: ["event-likes", eventId] });
+      const prevLiked = queryClient.getQueryData(["event-liked", eventId, user?.id]);
+      const prevCount = queryClient.getQueryData<number>(["event-likes", eventId]);
+      queryClient.setQueryData(["event-liked", eventId, user?.id], true);
+      queryClient.setQueryData(["event-likes", eventId], (old: number = 0) => old + 1);
       haptic("medium");
+      return { prevLiked, prevCount };
+    },
+    onError: (_, eventId, context) => {
+      queryClient.setQueryData(["event-liked", eventId, user?.id], context?.prevLiked);
+      queryClient.setQueryData(["event-likes", eventId], context?.prevCount);
+    },
+    onSettled: (_, __, eventId) => {
       queryClient.invalidateQueries({ queryKey: ["event-liked", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event-likes", eventId] });
     },
@@ -85,7 +98,20 @@ export function useUnlikeEvent() {
 
       if (error) throw error;
     },
-    onSuccess: (_, eventId) => {
+    onMutate: async (eventId: string) => {
+      await queryClient.cancelQueries({ queryKey: ["event-liked", eventId] });
+      await queryClient.cancelQueries({ queryKey: ["event-likes", eventId] });
+      const prevLiked = queryClient.getQueryData(["event-liked", eventId, user?.id]);
+      const prevCount = queryClient.getQueryData<number>(["event-likes", eventId]);
+      queryClient.setQueryData(["event-liked", eventId, user?.id], false);
+      queryClient.setQueryData(["event-likes", eventId], (old: number = 0) => Math.max(0, old - 1));
+      return { prevLiked, prevCount };
+    },
+    onError: (_, eventId, context) => {
+      queryClient.setQueryData(["event-liked", eventId, user?.id], context?.prevLiked);
+      queryClient.setQueryData(["event-likes", eventId], context?.prevCount);
+    },
+    onSettled: (_, __, eventId) => {
       queryClient.invalidateQueries({ queryKey: ["event-liked", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event-likes", eventId] });
     },

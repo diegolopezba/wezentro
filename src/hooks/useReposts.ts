@@ -62,7 +62,6 @@ export const useToggleRepost = () => {
       if (!user?.id) throw new Error("Must be logged in to repost");
 
       if (isReposted) {
-        // Remove repost
         const { error } = await supabase
           .from("reposts")
           .delete()
@@ -71,7 +70,6 @@ export const useToggleRepost = () => {
 
         if (error) throw error;
       } else {
-        // Add repost
         const { error } = await supabase.from("reposts").insert({
           user_id: user.id,
           event_id: eventId,
@@ -83,17 +81,31 @@ export const useToggleRepost = () => {
         trackPreferenceSignal(user.id, eventId, "repost");
       }
     },
-    onSuccess: (_, { eventId, isReposted }) => {
+    onMutate: async ({ eventId, isReposted }) => {
+      await queryClient.cancelQueries({ queryKey: ["has-reposted", eventId] });
+      await queryClient.cancelQueries({ queryKey: ["repost-count", eventId] });
+      const prevReposted = queryClient.getQueryData(["has-reposted", eventId, user?.id]);
+      const prevCount = queryClient.getQueryData<number>(["repost-count", eventId]);
+      queryClient.setQueryData(["has-reposted", eventId, user?.id], !isReposted);
+      queryClient.setQueryData(["repost-count", eventId], (old: number = 0) =>
+        isReposted ? Math.max(0, old - 1) : old + 1
+      );
       if (!isReposted) haptic("medium");
+      return { prevReposted, prevCount };
+    },
+    onError: (err, { eventId }, context) => {
+      console.error("Repost error:", err);
+      queryClient.setQueryData(["has-reposted", eventId, user?.id], context?.prevReposted);
+      queryClient.setQueryData(["repost-count", eventId], context?.prevCount);
+      toast.error("Error al repostear");
+    },
+    onSuccess: (_, { isReposted }) => {
+      toast.success(isReposted ? "Repost eliminado" : "Reposteado");
+    },
+    onSettled: (_, __, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ["has-reposted", eventId] });
       queryClient.invalidateQueries({ queryKey: ["repost-count", eventId] });
       queryClient.invalidateQueries({ queryKey: ["following-events-scored"] });
-      
-      toast.success(isReposted ? "Repost eliminado" : "Reposteado");
-    },
-    onError: (error) => {
-      console.error("Repost error:", error);
-      toast.error("Error al repostear");
     },
   });
 };
