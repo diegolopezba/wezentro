@@ -70,7 +70,7 @@ const FollowNotificationItem = ({
     x: 0
   }} transition={{
     delay: index * 0.03
-  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "hover:bg-secondary/30" : "hover:bg-primary/10"}`} onClick={onClick}>
+  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
       <Avatar className="w-10 h-10 shrink-0">
         <AvatarImage src={followerProfile?.avatar_url || DEFAULT_AVATAR} />
         <AvatarFallback />
