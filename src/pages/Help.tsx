@@ -240,7 +240,7 @@ const Help = () => {
                 <button
                   key={link.path}
                   onClick={() => navigate(link.path)}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-secondary/30 border border-border hover:bg-secondary/50 transition-colors text-left">
+                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-secondary/30 border border-border text-left">
                   
                   <Icon className="w-5 h-5 text-muted-foreground" />
                   <span className="flex-1 text-foreground font-medium text-sm">{link.title}</span>
