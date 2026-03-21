@@ -219,6 +219,7 @@ export const useEventDetailState = (
     handleSaveToggle,
     handleLikeToggle,
     handleRepostToggle,
+    handleSendToggle,
     handleJoinGuestlist,
     handlePaymentSubmitted,
     handleLeaveGuestlist,
