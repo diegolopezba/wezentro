@@ -393,7 +393,7 @@ const CollaborationNotificationItem = ({
       
       {/* Accept/Decline buttons for pending collaborations */}
       {collaboration && <div className="flex gap-2 ml-13">
-          <Button variant="outline" size="sm" className="flex-1 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10" onClick={handleDecline} disabled={isResponding}>
+          <Button variant="outline" size="sm" className="flex-1 rounded-xl border-destructive/30 text-destructive" onClick={handleDecline} disabled={isResponding}>
             {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1.5" />}
             Rechazar
           </Button>
