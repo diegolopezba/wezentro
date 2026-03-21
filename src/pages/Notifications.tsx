@@ -89,15 +89,7 @@ const FollowNotificationItem = ({
         </p>
       </div>
       
-      {!notification.is_read && <>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={e => {
-        e.stopPropagation();
-        onRead();
-      }}>
-            <Check className="w-4 h-4" />
-          </Button>
-          <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-        </>}
+      {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
     </motion.div>;
 };
 const GuestlistRequestNotificationItem = ({
@@ -148,15 +140,7 @@ const GuestlistRequestNotificationItem = ({
         </p>
       </div>
       
-      {!notification.is_read && <>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={e => {
-        e.stopPropagation();
-        onRead();
-      }}>
-            <Check className="w-4 h-4" />
-          </Button>
-          <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-        </>}
+      {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
     </motion.div>;
 };
 const GuestlistStatusNotificationItem = ({
@@ -196,15 +180,7 @@ const GuestlistStatusNotificationItem = ({
         </p>
       </div>
       
-      {!notification.is_read && <>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={e => {
-        e.stopPropagation();
-        onRead();
-      }}>
-            <Check className="w-4 h-4" />
-          </Button>
-          <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-        </>}
+      {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
     </motion.div>;
 };
 const GuestlistInvitationNotificationItem = ({
@@ -499,6 +475,8 @@ const Notifications = () => {
     // Navigate based on notification type and entity type
     if (notification.type === "guestlist_approved" && notification.entity_id) {
       navigate(`/going/${notification.entity_id}`);
+    } else if (notification.type === "guestlist_request" && notification.entity_id) {
+      navigate(`/event/${notification.entity_id}`, { state: { openGuestlist: true } });
     } else if (
       (notification.type === "like" || notification.type === "repost" || notification.type === "collaboration_accepted") &&
       notification.entity_id

@@ -34,6 +34,7 @@ const EventDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const fromCreate = (location.state as { fromCreate?: boolean })?.fromCreate;
+  const openGuestlistOnMount = (location.state as { openGuestlist?: boolean })?.openGuestlist;
   const { user } = useAuth();
 
   const {
@@ -68,6 +69,13 @@ const EventDetail = () => {
 
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
+
+  // Auto-open guestlist management sheet if navigated from a guestlist_request notification
+  useEffect(() => {
+    if (openGuestlistOnMount) {
+      setShowManagement(true);
+    }
+  }, [openGuestlistOnMount]);
 
   // Track event view for analytics
   useEffect(() => {

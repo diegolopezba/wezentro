@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Repeat2, Check } from "lucide-react";
+import { Repeat2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEvent } from "@/hooks/useEvents";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,12 +71,7 @@ export const RepostNotificationItem = ({ notification, index, onRead, onClick }:
       )}
 
       {!notification.is_read && (
-        <>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={(e) => { e.stopPropagation(); onRead(); }}>
-            <Check className="w-4 h-4" />
-          </Button>
-          <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-        </>
+        <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
       )}
     </motion.div>
   );
