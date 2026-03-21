@@ -177,6 +177,11 @@ export const useEventDetailState = (
     }
   };
 
+  const handleSendToggle = () => {
+    if (isGuest) { promptAuth({ action: "enviar este evento" }); return; }
+    setShowShareModal(true);
+  };
+
   return {
     // Data
     event, isLoading, error,
@@ -214,6 +219,7 @@ export const useEventDetailState = (
     handleSaveToggle,
     handleLikeToggle,
     handleRepostToggle,
+    handleSendToggle,
     handleJoinGuestlist,
     handlePaymentSubmitted,
     handleLeaveGuestlist,

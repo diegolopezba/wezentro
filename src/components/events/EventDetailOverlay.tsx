@@ -54,7 +54,7 @@ export const EventDetailOverlay = () => {
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
     showReservationSheet, setShowReservationSheet,
-    handleSaveToggle, handleLikeToggle, handleRepostToggle,
+    handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(selectedEventId || undefined, closeEvent);
 
@@ -173,7 +173,7 @@ export const EventDetailOverlay = () => {
                         <Repeat className={`w-5 h-5 ${hasReposted ? 'text-green-500' : ''}`} />
                         {repostCount > 0 && <span className="text-xs text-muted-foreground">{repostCount}</span>}
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setShowShareModal(true)}>
+                      <Button variant="ghost" size="icon" onClick={handleSendToggle}>
                         <Send className="w-5 h-5" />
                       </Button>
                       <Button variant="ghost" size="sm" onClick={handleSaveToggle} disabled={saveEventPending} className="gap-1.5 px-2">
