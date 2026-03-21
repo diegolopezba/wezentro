@@ -76,12 +76,7 @@ export const ReservationNotificationItem = ({ notification, index, onRead, onCli
       </div>
 
       {!notification.is_read && (
-        <>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={(e) => { e.stopPropagation(); onRead(); }}>
-            <Check className="w-4 h-4" />
-          </Button>
-          <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-        </>
+        <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
       )}
     </motion.div>
   );
