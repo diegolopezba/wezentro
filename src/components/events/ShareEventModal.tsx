@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,14 +33,13 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
   const createPrivateChat = useCreatePrivateChat();
   const sendMessage = useSendMessage();
 
-  // Business users search all users; regular users filter mutual followers
   const baseUsers = isBusinessUser && searchQuery.length >= 2
     ? searchResults
     : mutualFollowers.filter((user) =>
         user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
-  
+
   const isLoading = isBusinessUser ? loadingSearch : loadingFollowers;
 
   const toggleUser = (userId: string) => {
@@ -84,7 +83,7 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
 
   const handleNativeShare = async () => {
     const shareUrl = `${window.location.origin}/event/${eventId}`;
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -93,13 +92,11 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
           url: shareUrl,
         });
       } catch (error) {
-        // User cancelled or share failed
         if ((error as Error).name !== "AbortError") {
           toast.error("Error al compartir");
         }
       }
     } else {
-      // Fallback: copy to clipboard
       try {
         await navigator.clipboard.writeText(shareUrl);
         toast.success("¡Enlace copiado!");
@@ -110,14 +107,18 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-brand">Enviar evento</DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="h-[75dvh] rounded-t-3xl flex flex-col p-0">
+        {/* Drag handle */}
+        <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-muted shrink-0" />
 
-        <div className="space-y-4">
-          {/* Search */}
+        {/* Header */}
+        <SheetHeader className="px-6 pt-3 pb-2 shrink-0">
+          <SheetTitle className="font-brand text-left">Enviar evento</SheetTitle>
+        </SheetHeader>
+
+        {/* Search */}
+        <div className="px-6 pb-3 shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -127,17 +128,19 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
               className="pl-9"
             />
           </div>
+        </div>
 
-          {/* Followers list */}
-          <ScrollArea className="h-[300px]">
+        {/* User list */}
+        <div className="flex-1 overflow-hidden px-3">
+          <ScrollArea className="h-full">
             {isLoading ? (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
             ) : baseUsers.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center px-4">
+              <div className="flex flex-col items-center justify-center py-12 text-center px-4">
                 <p className="text-muted-foreground text-sm">
-                  {isBusinessUser 
+                  {isBusinessUser
                     ? (searchQuery.length < 2 ? "Escribe para buscar usuarios" : "No se encontraron usuarios")
                     : (searchQuery ? "No se encontraron seguidores" : "Aún no tienes seguidores mutuos")}
                 </p>
@@ -148,7 +151,7 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
                 )}
               </div>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-1 pb-2">
                 {baseUsers.map((user) => (
                   <div
                     key={user.id}
@@ -178,33 +181,33 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
               </div>
             )}
           </ScrollArea>
-
-          {/* Send button with native share */}
-          <div className="flex gap-2">
-            <Button
-              variant="hero"
-              className="flex-1"
-              onClick={handleSend}
-              disabled={selectedUsers.length === 0 || isSending}
-            >
-              {isSending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4 mr-2" />
-              )}
-              Enviar a {selectedUsers.length} {selectedUsers.length === 1 ? "persona" : "personas"}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full shrink-0"
-              onClick={handleNativeShare}
-            >
-              <Share2 className="w-4 h-4" />
-            </Button>
-          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        {/* Footer */}
+        <div className="px-6 pt-3 pb-6 shrink-0 border-t border-border/50 flex gap-2">
+          <Button
+            variant="hero"
+            className="flex-1"
+            onClick={handleSend}
+            disabled={selectedUsers.length === 0 || isSending}
+          >
+            {isSending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4 mr-2" />
+            )}
+            Enviar a {selectedUsers.length} {selectedUsers.length === 1 ? "persona" : "personas"}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full shrink-0"
+            onClick={handleNativeShare}
+          >
+            <Share2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
