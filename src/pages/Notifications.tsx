@@ -358,7 +358,7 @@ const CollaborationNotificationItem = ({
     x: 0
   }} transition={{
     delay: index * 0.03
-  }} className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-colors ${notification.is_read ? "hover:bg-secondary/30" : "hover:bg-primary/10"}`} onClick={onClick}>
+  }} className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
           {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
