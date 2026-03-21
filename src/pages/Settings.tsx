@@ -87,7 +87,23 @@ const Settings = () => {
                     transition={{ delay: idx * 0.04 }}
                     onClick={() => navigate(item.path)}
                     className="w-full flex items-center gap-4 py-3.5 px-4"
-...
+                  >
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.highlight ? "bg-primary/15" : "bg-secondary"}`}>
+                      <Icon className={`w-4 h-4 ${item.highlight ? "text-primary" : "text-muted-foreground"}`} />
+                    </div>
+                    <span className="font-medium flex-1 text-left text-sm text-foreground">{item.label}</span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        <div className="rounded-2xl bg-card border border-border overflow-hidden">
+          <motion.button
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
             onClick={handleSignOut}
             className="w-full flex items-center gap-4 py-3.5 px-4"
