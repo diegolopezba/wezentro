@@ -28,6 +28,8 @@ import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { useEventDetailState } from "@/hooks/useEventDetailState";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { CommentsSheet } from "@/components/events/CommentsSheet";
+import { useCommentCount, useEventComments } from "@/hooks/useEventComments";
 
 const EventDetail = () => {
   const { id } = useParams();
