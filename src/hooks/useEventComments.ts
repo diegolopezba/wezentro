@@ -22,8 +22,8 @@ export const useEventComments = (eventId: string | undefined) => {
     queryKey: ["event-comments", eventId],
     queryFn: async () => {
       if (!eventId) return [];
-      const { data, error } = await supabase
-        .from("event_comments" as any)
+      const { data, error } = await (supabase as any)
+        .from("event_comments")
         .select(`
           id, event_id, user_id, content, created_at, deleted_at,
           user:profiles!user_id(id, username, avatar_url)
