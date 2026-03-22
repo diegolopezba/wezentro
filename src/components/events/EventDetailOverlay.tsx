@@ -25,6 +25,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSelectedEvent } from "@/contexts/SelectedEventContext";
 import { useEventDetailState } from "@/hooks/useEventDetailState";
 import { toast } from "sonner";
+import { CommentsSheet } from "@/components/events/CommentsSheet";
+import { useCommentCount, useEventComments } from "@/hooks/useEventComments";
 
 export const EventDetailOverlay = () => {
   const navigate = useNavigate();
@@ -54,9 +56,14 @@ export const EventDetailOverlay = () => {
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
     showReservationSheet, setShowReservationSheet,
+    showComments, setShowComments,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(selectedEventId || undefined, closeEvent);
+
+  const { data: commentCount = 0 } = useCommentCount(selectedEventId || undefined);
+  const { data: comments = [] } = useEventComments(selectedEventId || undefined);
+  const latestComment = comments[comments.length - 1] ?? null;
 
   const isVideo = isVideoUrl(event?.image_url);
 
@@ -180,6 +187,10 @@ export const EventDetailOverlay = () => {
                         <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
                         {saveCount > 0 && <span className="text-xs text-muted-foreground">{saveCount}</span>}
                       </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setShowComments(true)} className="gap-1.5 px-2">
+                        <MessageCircle className="w-5 h-5" />
+                        {commentCount > 0 && <span className="text-xs text-muted-foreground">{commentCount}</span>}
+                      </Button>
                       {event.has_guestlist && canInviteToGuestlist && (
                         <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
                           <UserPlus className="w-5 h-5" />
@@ -263,6 +274,37 @@ export const EventDetailOverlay = () => {
                       <MentionText text={event.description} className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap" />
                     </div>
                   )}
+
+                  {/* Comment preview teaser */}
+                  <div
+                    className="flex items-center gap-3 py-3 cursor-pointer group"
+                    onClick={() => setShowComments(true)}
+                  >
+                    {latestComment ? (
+                      <>
+                        <img
+                          src={latestComment.user?.avatar_url || DEFAULT_AVATAR}
+                          alt=""
+                          className="w-7 h-7 rounded-full object-cover shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-foreground truncate">
+                            <span className="font-semibold">@{latestComment.user?.username}</span>
+                            {" "}{latestComment.content}
+                          </p>
+                          {commentCount > 1 && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Ver los {commentCount} comentarios →
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                        💬 Sé el primero en comentar…
+                      </p>
+                    )}
+                  </div>
 
                   {/* Guestlist attendees */}
                   {event.has_guestlist && (
@@ -437,6 +479,17 @@ export const EventDetailOverlay = () => {
           onOpenChange={setShowReservationSheet}
           businessId={event.creator_id}
           businessName={event.creator?.username || ""}
+        />
+      )}
+
+      {/* Comments Sheet */}
+      {selectedEventId && (
+        <CommentsSheet
+          open={showComments}
+          onOpenChange={setShowComments}
+          eventId={selectedEventId}
+          eventCreatorId={event?.creator_id}
+          commentCount={commentCount}
         />
       )}
     </AnimatePresence>

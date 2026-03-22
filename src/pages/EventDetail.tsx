@@ -28,6 +28,8 @@ import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { useEventDetailState } from "@/hooks/useEventDetailState";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { CommentsSheet } from "@/components/events/CommentsSheet";
+import { useCommentCount, useEventComments } from "@/hooks/useEventComments";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -60,12 +62,16 @@ const EventDetail = () => {
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
     showReservationSheet, setShowReservationSheet,
+    showComments, setShowComments,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, () => navigate(-1));
 
   const { data: eventTags } = useEventTags(id);
   const removeTag = useRemoveTag();
+  const { data: commentCount = 0 } = useCommentCount(id);
+  const { data: comments = [] } = useEventComments(id);
+  const latestComment = comments[comments.length - 1] ?? null;
 
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
@@ -165,6 +171,10 @@ const EventDetail = () => {
               <Button variant="ghost" size="sm" onClick={handleSaveToggle} disabled={saveEventPending} className="gap-1.5 px-2">
                 <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
                 {saveCount > 0 && <span className="text-xs text-muted-foreground">{saveCount}</span>}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setShowComments(true)} className="gap-1.5 px-2">
+                <MessageCircle className="w-5 h-5" />
+                {commentCount > 0 && <span className="text-xs text-muted-foreground">{commentCount}</span>}
               </Button>
               {!isPost && event.has_guestlist && canInviteToGuestlist && <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
                   <UserPlus className="w-5 h-5" />
@@ -282,6 +292,37 @@ const EventDetail = () => {
               <h2 className="font-brand text-lg font-semibold text-foreground">Acerca de</h2>
               <MentionText text={event.description} className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap" />
             </div>}
+
+          {/* Comment preview teaser */}
+          <div
+            className="flex items-center gap-3 py-3 cursor-pointer group"
+            onClick={() => setShowComments(true)}
+          >
+            {latestComment ? (
+              <>
+                <img
+                  src={latestComment.user?.avatar_url || DEFAULT_AVATAR}
+                  alt=""
+                  className="w-7 h-7 rounded-full object-cover shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-foreground truncate">
+                    <span className="font-semibold">@{latestComment.user?.username}</span>
+                    {" "}{latestComment.content}
+                  </p>
+                  {commentCount > 1 && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Ver los {commentCount} comentarios →
+                    </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                💬 Sé el primero en comentar…
+              </p>
+            )}
+          </div>
 
           {/* Guestlist attendees - Only show for events, not posts */}
           {!isPost && event.has_guestlist && <div>
@@ -458,6 +499,15 @@ const EventDetail = () => {
         businessName={event.creator?.username || ""}
       />
     )}
+
+    {/* Comments Sheet */}
+    <CommentsSheet
+      open={showComments}
+      onOpenChange={setShowComments}
+      eventId={id!}
+      eventCreatorId={event.creator_id}
+      commentCount={commentCount}
+    />
     </div>;
 };
 export default EventDetail;

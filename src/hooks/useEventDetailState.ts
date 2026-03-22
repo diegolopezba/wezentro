@@ -42,6 +42,7 @@ export const useEventDetailState = (
   const [showInviteFriendsSheet, setShowInviteFriendsSheet] = useState(false);
   const [showMenuSheet, setShowMenuSheet] = useState(false);
   const [showReservationSheet, setShowReservationSheet] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(true);
@@ -215,6 +216,7 @@ export const useEventDetailState = (
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
     showReservationSheet, setShowReservationSheet,
+    showComments, setShowComments,
     // Action handlers
     handleSaveToggle,
     handleLikeToggle,
