@@ -293,6 +293,37 @@ const EventDetail = () => {
               <MentionText text={event.description} className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap" />
             </div>}
 
+          {/* Comment preview teaser */}
+          <div
+            className="flex items-center gap-3 py-3 cursor-pointer group"
+            onClick={() => setShowComments(true)}
+          >
+            {latestComment ? (
+              <>
+                <img
+                  src={latestComment.user?.avatar_url || DEFAULT_AVATAR}
+                  alt=""
+                  className="w-7 h-7 rounded-full object-cover shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-foreground truncate">
+                    <span className="font-semibold">@{latestComment.user?.username}</span>
+                    {" "}{latestComment.content}
+                  </p>
+                  {commentCount > 1 && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Ver los {commentCount} comentarios →
+                    </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                💬 Sé el primero en comentar…
+              </p>
+            )}
+          </div>
+
           {/* Guestlist attendees - Only show for events, not posts */}
           {!isPost && event.has_guestlist && <div>
               <div className="flex items-center justify-between mb-4">
