@@ -25,6 +25,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSelectedEvent } from "@/contexts/SelectedEventContext";
 import { useEventDetailState } from "@/hooks/useEventDetailState";
 import { toast } from "sonner";
+import { CommentsSheet } from "@/components/events/CommentsSheet";
+import { useCommentCount, useEventComments } from "@/hooks/useEventComments";
 
 export const EventDetailOverlay = () => {
   const navigate = useNavigate();
