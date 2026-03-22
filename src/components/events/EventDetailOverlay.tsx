@@ -481,6 +481,17 @@ export const EventDetailOverlay = () => {
           businessName={event.creator?.username || ""}
         />
       )}
+
+      {/* Comments Sheet */}
+      {selectedEventId && (
+        <CommentsSheet
+          open={showComments}
+          onOpenChange={setShowComments}
+          eventId={selectedEventId}
+          eventCreatorId={event?.creator_id}
+          commentCount={commentCount}
+        />
+      )}
     </AnimatePresence>
   );
 };
