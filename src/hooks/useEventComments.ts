@@ -62,8 +62,8 @@ export const useAddComment = () => {
   return useMutation({
     mutationFn: async ({ eventId, content }: { eventId: string; content: string }) => {
       if (!user) throw new Error("Debes iniciar sesión para comentar");
-      const { data, error } = await supabase
-        .from("event_comments" as any)
+      const { data, error } = await (supabase as any)
+        .from("event_comments")
         .insert({ event_id: eventId, user_id: user.id, content: content.trim() })
         .select()
         .single();
