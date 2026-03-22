@@ -56,9 +56,14 @@ export const EventDetailOverlay = () => {
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
     showReservationSheet, setShowReservationSheet,
+    showComments, setShowComments,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(selectedEventId || undefined, closeEvent);
+
+  const { data: commentCount = 0 } = useCommentCount(selectedEventId || undefined);
+  const { data: comments = [] } = useEventComments(selectedEventId || undefined);
+  const latestComment = comments[comments.length - 1] ?? null;
 
   const isVideo = isVideoUrl(event?.image_url);
 
