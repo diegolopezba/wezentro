@@ -43,8 +43,8 @@ export const useCommentCount = (eventId: string | undefined) => {
     queryKey: ["event-comment-count", eventId],
     queryFn: async () => {
       if (!eventId) return 0;
-      const { count, error } = await supabase
-        .from("event_comments" as any)
+      const { count, error } = await (supabase as any)
+        .from("event_comments")
         .select("id", { count: "exact", head: true })
         .eq("event_id", eventId)
         .is("deleted_at", null);
