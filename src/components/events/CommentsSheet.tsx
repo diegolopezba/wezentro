@@ -143,12 +143,22 @@ export const CommentsSheet = ({
                     </div>
 
                     {canDelete && (
-                      <button
-                        className="shrink-0 p-1 rounded-full hover:bg-destructive/10 transition-colors opacity-50 hover:opacity-100"
-                        onClick={() => handleDelete(comment.id)}
-                      >
-                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="shrink-0 p-1 rounded-full hover:bg-muted transition-colors opacity-40 hover:opacity-100">
+                            <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(comment.id)}
+                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Eliminar comentario
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
                   </div>
                 );
