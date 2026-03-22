@@ -62,12 +62,16 @@ const EventDetail = () => {
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
     showReservationSheet, setShowReservationSheet,
+    showComments, setShowComments,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, () => navigate(-1));
 
   const { data: eventTags } = useEventTags(id);
   const removeTag = useRemoveTag();
+  const { data: commentCount = 0 } = useCommentCount(id);
+  const { data: comments = [] } = useEventComments(id);
+  const latestComment = comments[comments.length - 1] ?? null;
 
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
