@@ -404,6 +404,32 @@ const CollaborationNotificationItem = ({
         </div>}
     </motion.div>;
 };
+const CommentNotificationItem = ({
+  notification,
+  index,
+  onRead,
+  onClick
+}: NotificationItemProps) => {
+  const extractedUsername = notification.body?.match(/@(\w+)/)?.[1];
+  const { data: event } = useEvent(notification.entity_id || undefined);
+  return <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.03 }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
+    <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
+      {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><MessageCircle className="w-5 h-5 text-muted-foreground" /></div>}
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
+        <span className="font-semibold">@{extractedUsername || "alguien"}</span>
+        {" comentó en "}
+        <span className="font-semibold">{event?.title || "tu publicación"}</span>
+      </p>
+      <p className="text-xs text-muted-foreground/70 mt-0.5">
+        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
+      </p>
+    </div>
+    {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
+  </motion.div>;
+};
+
 const NotificationItem = ({
   notification,
   index,
