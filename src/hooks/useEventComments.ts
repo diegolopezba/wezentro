@@ -85,8 +85,8 @@ export const useDeleteComment = () => {
 
   return useMutation({
     mutationFn: async ({ commentId, eventId }: { commentId: string; eventId: string }) => {
-      const { error } = await supabase
-        .from("event_comments" as any)
+      const { error } = await (supabase as any)
+        .from("event_comments")
         .update({ deleted_at: new Date().toISOString() })
         .eq("id", commentId);
       if (error) throw error;
