@@ -22,10 +22,6 @@ import { RepostNotificationItem } from "@/components/notifications/RepostNotific
 import { CollaborationAcceptedNotificationItem } from "@/components/notifications/CollaborationAcceptedNotificationItem";
 import { ReferralNotificationItem } from "@/components/notifications/ReferralNotificationItem";
 import { ReservationNotificationItem } from "@/components/notifications/ReservationNotificationItem";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
-import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
 const getNotificationIcon = (type: string) => {
   switch (type) {
     case "event":
