@@ -1,31 +1,28 @@
 
-## Root Cause
+## Replace trash icon with a 3-dot dropdown menu on comments
 
-The `event_comments` table has no foreign key from `user_id` to `profiles`. The Supabase query in `useEventComments` uses `user:profiles!user_id(...)` which requires an FK to resolve the join — without it the query returns an empty result (or the join silently fails), while the separate count query (`select id, count: exact`) works fine since it has no join. That's why comment count shows but comments don't render.
+### What changes
+In `CommentsSheet.tsx`, replace the always-visible `<button><Trash2></button>` with a `DropdownMenu` (already in the project) triggered by a `MoreHorizontal` (⋯) icon. The dropdown contains a single "Eliminar comentario" item with a red destructive style. The 3-dot button is only rendered when `canDelete` is true — same logic as before.
 
-### Fix (2 parts)
-
-**1. Database migration** — Add the missing FK:
-```sql
-ALTER TABLE public.event_comments
-  ADD CONSTRAINT event_comments_user_id_fkey
-  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+### Visual result
+```
+[avatar] @username  comment text...   [⋯]   ← only shows when user can delete
+                    2 hours ago
+```
+Tapping ⋯ opens a small dropdown with:
+```
+  🗑  Eliminar comentario   ← red text
 ```
 
-Wait — Supabase PostgREST resolves `profiles!user_id` by looking for an FK from `event_comments.user_id` to `profiles.id`. Since `profiles.id` references `auth.users.id`, we need the FK to point at `profiles`, not `auth.users`:
-```sql
-ALTER TABLE public.event_comments
-  ADD CONSTRAINT event_comments_user_id_fkey
-  FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
-```
-
-This is a pure SQL migration — no code changes needed. The query in `useEventComments.ts` is already written correctly; it just needs the FK to exist.
-
-**2. Verify / update `types.ts`** — After the migration the auto-generated types will reflect the new FK. Since we can't edit `types.ts` directly, the migration alone is sufficient.
-
-### Files Changed
+### Files changed
 | File | Change |
 |---|---|
-| New migration | Add `event_comments_user_id_fkey` FK from `event_comments.user_id → profiles.id` |
+| `src/components/events/CommentsSheet.tsx` | Replace `Trash2` button with `DropdownMenu` + `MoreHorizontal` trigger + "Eliminar" item |
 
-No frontend code changes required. The query, RLS, sheet and teaser are all correct — the FK was just never created.
+### Implementation detail
+- Import `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem` from `@/components/ui/dropdown-menu`
+- Import `MoreHorizontal` and `Trash2` from `lucide-react`
+- Wrap the existing `canDelete && <button>` block with the dropdown
+- The `DropdownMenuContent` uses `align="end"` so it doesn't clip off-screen on the right
+- The delete item calls `handleDelete(comment.id)` on click — same as before
+- No database or hook changes needed
