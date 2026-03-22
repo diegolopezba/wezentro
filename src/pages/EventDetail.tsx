@@ -499,6 +499,15 @@ const EventDetail = () => {
         businessName={event.creator?.username || ""}
       />
     )}
+
+    {/* Comments Sheet */}
+    <CommentsSheet
+      open={showComments}
+      onOpenChange={setShowComments}
+      eventId={id!}
+      eventCreatorId={event.creator_id}
+      commentCount={commentCount}
+    />
     </div>;
 };
 export default EventDetail;
