@@ -216,6 +216,7 @@ export const useEventDetailState = (
     showInviteFriendsSheet, setShowInviteFriendsSheet,
     showMenuSheet, setShowMenuSheet,
     showReservationSheet, setShowReservationSheet,
+    showComments, setShowComments,
     // Action handlers
     handleSaveToggle,
     handleLikeToggle,
