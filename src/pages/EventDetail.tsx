@@ -29,7 +29,7 @@ import { useEventDetailState } from "@/hooks/useEventDetailState";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { CommentsSheet } from "@/components/events/CommentsSheet";
-import { useCommentCount, useEventComments } from "@/hooks/useEventComments";
+import { useCommentCount, useLatestComment } from "@/hooks/useEventComments";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -70,8 +70,7 @@ const EventDetail = () => {
   const { data: eventTags } = useEventTags(id);
   const removeTag = useRemoveTag();
   const { data: commentCount = 0 } = useCommentCount(id);
-  const { data: comments = [] } = useEventComments(id);
-  const latestComment = comments[comments.length - 1] ?? null;
+  const { data: latestComment = null } = useLatestComment(id);
 
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();

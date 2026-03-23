@@ -35,6 +35,7 @@ export const useEventComments = (eventId: string | undefined) => {
       return (data || []) as EventComment[];
     },
     enabled: !!eventId,
+    staleTime: 60_000,
   });
 };
 
@@ -52,6 +53,30 @@ export const useCommentCount = (eventId: string | undefined) => {
       return count ?? 0;
     },
     enabled: !!eventId,
+    staleTime: 60_000,
+  });
+};
+
+export const useLatestComment = (eventId: string | undefined) => {
+  return useQuery({
+    queryKey: ["event-latest-comment", eventId],
+    queryFn: async () => {
+      if (!eventId) return null;
+      const { data } = await (supabase as any)
+        .from("event_comments")
+        .select(`
+          id, event_id, user_id, content, created_at, deleted_at,
+          user:profiles!user_id(id, username, avatar_url)
+        `)
+        .eq("event_id", eventId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data as EventComment | null;
+    },
+    enabled: !!eventId,
+    staleTime: 60_000,
   });
 };
 
@@ -73,6 +98,7 @@ export const useAddComment = () => {
     onSuccess: (_, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ["event-comments", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event-comment-count", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["event-latest-comment", eventId] });
     },
     onError: (err: any) => {
       toast.error(err.message || "Error al publicar comentario");
@@ -95,6 +121,7 @@ export const useDeleteComment = () => {
     onSuccess: ({ eventId }) => {
       queryClient.invalidateQueries({ queryKey: ["event-comments", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event-comment-count", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["event-latest-comment", eventId] });
       toast.success("Comentario eliminado");
     },
     onError: (err: any) => {
