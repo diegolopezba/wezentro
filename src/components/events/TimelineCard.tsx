@@ -113,11 +113,10 @@ export const TimelineCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
-        delay: index * 0.05,
+        delay: Math.min(index, 6) * 0.05,
         duration: 0.3,
         layout: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
       }}
-      whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className="masonry-item cursor-pointer"
       onClick={handleCardClick}

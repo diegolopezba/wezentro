@@ -264,14 +264,14 @@ const Index = () => {
             className="overflow-hidden"
           >
             <div className="flex px-4 pb-3 gap-2" style={{ pointerEvents: headerVisible ? "auto" : "none" }}>
-              <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                {activeTab === "for-you" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{ type: "spring", duration: 0.5 }} />}
-                <span className={`relative z-10 ${activeTab === "for-you" ? "text-primary" : ""}`}>Para Ti</span>
+              <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-colors duration-150 ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground active:text-foreground"}`}>
+                {activeTab === "for-you" && <motion.div initial={false} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 gradient-primary rounded-full" />}
+                <span className="relative z-10">Para Ti</span>
               </button>
               {!isGuest && (
-                <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-all ${activeTab === "following" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                  {activeTab === "following" && <motion.div layoutId="activeTab" className="absolute inset-0 gradient-primary rounded-full" transition={{ type: "spring", duration: 0.5 }} />}
-                  <span className={`relative z-10 ${activeTab === "following" ? "text-primary" : ""}`}>Siguiendo</span>
+                <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-colors duration-150 ${activeTab === "following" ? "text-primary" : "text-muted-foreground active:text-foreground"}`}>
+                  {activeTab === "following" && <motion.div initial={false} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 gradient-primary rounded-full" />}
+                  <span className="relative z-10">Siguiendo</span>
                 </button>
               )}
             </div>
