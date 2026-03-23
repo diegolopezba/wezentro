@@ -99,8 +99,7 @@ export const EventDetailOverlay = () => {
           ) : (
             <>
               {/* Hero media */}
-              <motion.div
-                layoutId={`event-image-${selectedEventId}`}
+              <div
                 className="relative w-full"
                 style={{
                   aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
