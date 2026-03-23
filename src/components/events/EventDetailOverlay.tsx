@@ -80,7 +80,6 @@ export const EventDetailOverlay = () => {
     <AnimatePresence>
       {selectedEventId && (
         <motion.div
-          layoutId={`event-card-${selectedEventId}`}
           className="fixed inset-0 z-50 bg-background overflow-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
