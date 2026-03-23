@@ -26,7 +26,7 @@ import { useSelectedEvent } from "@/contexts/SelectedEventContext";
 import { useEventDetailState } from "@/hooks/useEventDetailState";
 import { toast } from "sonner";
 import { CommentsSheet } from "@/components/events/CommentsSheet";
-import { useCommentCount, useEventComments } from "@/hooks/useEventComments";
+import { useCommentCount, useLatestComment } from "@/hooks/useEventComments";
 
 export const EventDetailOverlay = () => {
   const navigate = useNavigate();
@@ -62,8 +62,7 @@ export const EventDetailOverlay = () => {
   } = useEventDetailState(selectedEventId || undefined, closeEvent);
 
   const { data: commentCount = 0 } = useCommentCount(selectedEventId || undefined);
-  const { data: comments = [] } = useEventComments(selectedEventId || undefined);
-  const latestComment = comments[comments.length - 1] ?? null;
+  const { data: latestComment = null } = useLatestComment(selectedEventId || undefined);
 
   const isVideo = isVideoUrl(event?.image_url);
 
@@ -81,7 +80,6 @@ export const EventDetailOverlay = () => {
     <AnimatePresence>
       {selectedEventId && (
         <motion.div
-          layoutId={`event-card-${selectedEventId}`}
           className="fixed inset-0 z-50 bg-background overflow-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -101,8 +99,7 @@ export const EventDetailOverlay = () => {
           ) : (
             <>
               {/* Hero media */}
-              <motion.div
-                layoutId={`event-image-${selectedEventId}`}
+              <div
                 className="relative w-full"
                 style={{
                   aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
@@ -148,7 +145,7 @@ export const EventDetailOverlay = () => {
                     )}
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Content */}
               <motion.div
