@@ -145,7 +145,7 @@ export const EventDetailOverlay = () => {
                     )}
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Content */}
               <motion.div
