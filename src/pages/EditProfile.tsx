@@ -77,13 +77,6 @@ const EditProfile = () => {
         longitude: profile.business_longitude || null,
         address: profile.business_address || null,
       });
-      setBusinessInfo({
-        hours: profile.business_hours || "",
-        phone: profile.business_phone || "",
-      });
-      setReservationCapacity(
-        (profile as any).reservation_capacity != null ? String((profile as any).reservation_capacity) : ""
-      );
     }
   }, [profile]);
 
