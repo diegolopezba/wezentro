@@ -66,7 +66,16 @@ export const ReservationSheet = ({
   businessId,
   businessName,
   businessHours,
+  reservationStartTime,
+  reservationEndTime,
 }: ReservationSheetProps) => {
+  // Filter time slots based on business reservation window
+  const TIME_SLOTS = ALL_TIME_SLOTS.filter((slot) => {
+    const start = reservationStartTime?.slice(0, 5);
+    const end = reservationEndTime?.slice(0, 5);
+    if (!start || !end) return true;
+    return slot >= start && slot < end;
+  });
   const { user } = useAuth();
   const navigate = useNavigate();
   const { promptAuth } = useAuthPrompt();
