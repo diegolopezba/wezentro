@@ -48,6 +48,8 @@ const YouAreGoing = lazy(() => import("./pages/YouAreGoing"));
 const BusinessDashboard = lazy(() => import("./pages/BusinessDashboard"));
 const BusinessSettings = lazy(() => import("./pages/BusinessSettings"));
 const BusinessPaymentSettings = lazy(() => import("./pages/BusinessPaymentSettings"));
+const BusinessReservations = lazy(() => import("./pages/BusinessReservations"));
+const BusinessInfo = lazy(() => import("./pages/BusinessInfo"));
 const JoinedEvents = lazy(() => import("./pages/JoinedEvents"));
 const Help = lazy(() => import("./pages/Help"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -303,6 +305,26 @@ const App = () => {
                               <ProtectedRoute requireProfile>
                                 <Suspense fallback={<PageLoader />}>
                                   <BusinessPaymentSettings />
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings/business/reservations"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Suspense fallback={<PageLoader />}>
+                                  <BusinessReservations />
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings/business/info"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Suspense fallback={<PageLoader />}>
+                                  <BusinessInfo />
                                 </Suspense>
                               </ProtectedRoute>
                             }
