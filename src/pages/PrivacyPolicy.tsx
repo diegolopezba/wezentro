@@ -263,7 +263,7 @@ const PrivacyPolicy = () => {
             </p>
             <div className="p-4 rounded-xl bg-secondary/30 border border-border">
               <p className="text-sm text-foreground font-medium">Zentro</p>
-              <p className="text-sm text-primary">zentro@gmail.com</p>
+              <p className="text-sm text-primary">hello@zentro.com</p>
             </div>
           </section>
         </motion.div>
