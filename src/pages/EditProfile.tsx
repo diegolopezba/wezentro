@@ -4,9 +4,8 @@ import { ChevronLeft, Camera, Loader2, Info } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -380,24 +379,25 @@ const EditProfile = () => {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label>Género</Label>
-            <RadioGroup
+            <Select
               value={formData.gender}
               onValueChange={(value) =>
                 setFormData((prev) => ({ ...prev, gender: value }))
               }
-              className="flex flex-col gap-2"
             >
-              {GENDER_OPTIONS.map((option) => (
-                <div key={option.value} className="flex items-center space-x-3">
-                  <RadioGroupItem value={option.value} id={option.value} />
-                  <Label htmlFor={option.value} className="font-normal cursor-pointer">
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona tu género" />
+              </SelectTrigger>
+              <SelectContent>
+                {GENDER_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
                     {option.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
