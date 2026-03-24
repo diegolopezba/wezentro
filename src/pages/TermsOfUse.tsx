@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const TermsOfUse = () => {
   const navigate = useNavigate();
-  const lastUpdated = "16 de marzo de 2026";
+  const lastUpdated = "24 de marzo de 2026";
 
   return (
     <AppLayout hideNav>
@@ -120,7 +120,7 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">6. Eventos, Guestlists y Pagos de Entradas</h2>
+            <h2 className="text-lg font-semibold text-foreground">6. Eventos, Guestlists, Reservaciones y Pagos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Como creador de eventos, usted es responsable de:
             </p>
@@ -131,6 +131,9 @@ const TermsOfUse = () => {
               <li>La gestión adecuada de su lista de invitados</li>
               <li>La configuración correcta de precios y la recepción de pagos si utiliza pagos QR</li>
             </ul>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Los negocios con el sistema de reservaciones habilitado pueden configurar su horario de atención y una ventana horaria específica para aceptar reservas de mesa. Los horarios disponibles para los usuarios se limitan a los establecidos por el negocio. Zentro no es responsable de cancelaciones, no-shows ni disputas derivadas de las reservaciones.
+            </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro no es responsable de los eventos creados por usuarios ni de las interacciones que ocurran en ellos.
             </p>
@@ -177,7 +180,7 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">7. Suscripciones y Pagos</h2>
+            <h2 className="text-lg font-semibold text-foreground">8. Suscripciones y Pagos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro ofrece suscripciones premium con funciones adicionales. Al suscribirse:
             </p>
@@ -232,7 +235,7 @@ const TermsOfUse = () => {
               Podemos terminar o suspender su acceso al Servicio de inmediato, sin previo aviso, por cualquier motivo, incluyendo, pero no limitado a, violaciones de estos Términos.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Usted puede eliminar su cuenta en cualquier momento desde la sección de Ayuda y Soporte dentro de la aplicación, o contactándonos en zentro@gmail.com. La eliminación requiere verificación de contraseña para su seguridad. Tras la terminación, su derecho a usar el Servicio cesará inmediatamente y todos sus datos serán eliminados permanentemente.
+              Usted puede eliminar su cuenta en cualquier momento desde la sección de Ayuda y Soporte dentro de la aplicación, o contactándonos en hello@zentro.com. La eliminación requiere verificación de contraseña para su seguridad. Tras la terminación, su derecho a usar el Servicio cesará inmediatamente y todos sus datos serán eliminados permanentemente.
             </p>
           </section>
 
@@ -288,7 +291,7 @@ const TermsOfUse = () => {
             </p>
             <div className="p-4 rounded-xl bg-secondary/30 border border-border">
               <p className="text-sm text-foreground font-medium">Zentro</p>
-              <p className="text-sm text-primary">zentro@gmail.com</p>
+              <p className="text-sm text-primary">hello@zentro.com</p>
             </div>
           </section>
         </motion.div>

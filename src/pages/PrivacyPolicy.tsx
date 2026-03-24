@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
-  const lastUpdated = "16 de marzo de 2026";
+  const lastUpdated = "24 de marzo de 2026";
 
   return (
     <AppLayout hideNav>
@@ -208,7 +208,7 @@ const PrivacyPolicy = () => {
               <li><strong>Restricción:</strong> limitar cómo usamos sus datos</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Para ejercer estos derechos, contáctenos en zentro@gmail.com.
+              Para ejercer estos derechos, contáctenos en hello@zentro.com.
             </p>
           </section>
 
@@ -263,7 +263,7 @@ const PrivacyPolicy = () => {
             </p>
             <div className="p-4 rounded-xl bg-secondary/30 border border-border">
               <p className="text-sm text-foreground font-medium">Zentro</p>
-              <p className="text-sm text-primary">zentro@gmail.com</p>
+              <p className="text-sm text-primary">hello@zentro.com</p>
             </div>
           </section>
         </motion.div>
