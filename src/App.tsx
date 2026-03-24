@@ -310,6 +310,26 @@ const App = () => {
                             }
                           />
                           <Route
+                            path="/settings/business/reservations"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Suspense fallback={<PageLoader />}>
+                                  <BusinessReservations />
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/settings/business/info"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Suspense fallback={<PageLoader />}>
+                                  <BusinessInfo />
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
                             path="/settings/joined-events"
                             element={
                               <ProtectedRoute requireProfile>
