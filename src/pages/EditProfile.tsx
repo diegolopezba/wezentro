@@ -48,11 +48,6 @@ const EditProfile = () => {
     longitude: null,
     address: null,
   });
-  const [businessInfo, setBusinessInfo] = useState({
-    hours: "",
-    phone: "",
-  });
-  const [reservationCapacity, setReservationCapacity] = useState<string>("");
 
   const isBusiness = profile?.is_business === true;
   const isFoodBusiness = profile?.is_food_business === true;
