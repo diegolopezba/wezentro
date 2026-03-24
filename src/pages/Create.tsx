@@ -307,11 +307,7 @@ const Create = () => {
         }
       }
 
-      toast.success(
-        selectedCollaborator ?
-        `¡${isPost ? "Post creado" : "Evento creado"}! Invitación enviada a @${selectedCollaborator.username}` :
-        isPost ? "¡Post publicado!" : "¡Evento creado exitosamente!"
-      );
+      toast.success(isPost ? "¡Post publicado!" : "¡Evento creado exitosamente!");
       haptic("success");
       invalidateAfterCreate();
       navigate(`/event/${data.id}`, { state: { fromCreate: true }, replace: true });
