@@ -66,7 +66,6 @@ const Create = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isBusiness = profile?.is_business === true;
   const reservationsEnabled = (profile as any)?.reservations_enabled === true;
-  const inviteCollaborator = useInviteCollaborator();
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
 
@@ -81,8 +80,6 @@ const Create = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [showCollaboratorPicker, setShowCollaboratorPicker] = useState(false);
-  const [selectedCollaborator, setSelectedCollaborator] = useState<MutualFollower | null>(null);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);

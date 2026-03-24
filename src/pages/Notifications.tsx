@@ -33,12 +33,9 @@ const getNotificationIcon = (type: string) => {
     case "guestlist_invitation":
       return Users;
     case "guestlist_approved":
-    case "collaboration_accepted":
       return CheckCircle;
     case "guestlist_rejected":
       return XCircle;
-    case "collaboration_request":
-      return UserPlus;
     case "post_tag":
       return AtSign;
     default:
