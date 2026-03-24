@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, Camera, Loader2, Info, MapPin, Clock, Phone, Users } from "lucide-react";
+import { ChevronLeft, Camera, Loader2, Info } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { BusinessLocationPicker } from "@/components/profile/BusinessLocationPicker";
 import { compressImage, blobToFile } from "@/lib/mediaCompression";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
 
