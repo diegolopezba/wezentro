@@ -46,7 +46,7 @@ const TYPE_OPTIONS: {id: ContentType;label: string;description: string;icon: Rea
 {
   id: "post",
   label: "Post",
-  description: "Comparte un momento, foto o video sin fecha",
+  description: "Comparte un momento, aventura o experiencia.",
   icon: <Sparkles className="w-5 h-5" />,
   color: "from-violet-500 to-indigo-500"
 },
