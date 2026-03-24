@@ -20,7 +20,7 @@ const Saved = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="font-brand text-xl font-bold text-foreground">
-            Eventos Guardados
+            Guardados
           </h1>
         </div>
       </header>
