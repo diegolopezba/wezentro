@@ -408,8 +408,6 @@ const EditProfile = () => {
             </p>
           </div>
         </motion.div>
-
-        {/* Business Information Section - removed; edit from Business Settings */}
       </div>
     </AppLayout>
   );
