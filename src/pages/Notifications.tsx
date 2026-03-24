@@ -389,7 +389,7 @@ const Notifications = () => {
     } else if (notification.type === "guestlist_request" && notification.entity_id) {
       navigate(`/event/${notification.entity_id}`, { state: { openGuestlist: true } });
     } else if (
-      (notification.type === "like" || notification.type === "repost" || notification.type === "collaboration_accepted") &&
+      (notification.type === "like" || notification.type === "repost") &&
       notification.entity_id
     ) {
       navigate(`/event/${notification.entity_id}`);
