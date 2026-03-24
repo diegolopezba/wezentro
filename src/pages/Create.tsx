@@ -628,62 +628,6 @@ const Create = () => {
         </AnimatePresence>
 
         {/* ── Collaborator section ── */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-          <Card className="glass border-white/10 p-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                  <UserPlus className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">Colaborador</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Invita a un amigo a co-crear este contenido
-                  </p>
-                </div>
-              </div>
-              {selectedCollaborator ?
-              <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/50">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={selectedCollaborator.avatar_url || DEFAULT_AVATAR} />
-                      <AvatarFallback>{selectedCollaborator.username[0]?.toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">@{selectedCollaborator.username}</p>
-                      {selectedCollaborator.full_name &&
-                    <p className="text-xs text-muted-foreground">{selectedCollaborator.full_name}</p>
-                    }
-                    </div>
-                  </div>
-                  <button
-                  type="button"
-                  onClick={() => setSelectedCollaborator(null)}
-                  className="p-1.5 rounded-full hover:bg-secondary transition-colors">
-                  
-                    <X className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </div> :
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full justify-start gap-2 border-dashed"
-                onClick={() => setShowCollaboratorPicker(true)}>
-                
-                  <UserPlus className="w-4 h-4" />
-                  Invitar colaborador
-                </Button>
-              }
-              {selectedCollaborator &&
-              <p className="text-xs text-muted-foreground bg-primary/10 p-2 rounded-lg">
-                  💡 @{selectedCollaborator.username} recibirá una invitación. Si acepta, aparecerá en su perfil y feed.
-                </p>
-              }
-            </div>
-          </Card>
-        </motion.div>
-
         {/* ── Guestlist toggle (events only) ── */}
         <AnimatePresence>
           {!isPost &&
