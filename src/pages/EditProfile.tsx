@@ -144,17 +144,11 @@ const EditProfile = () => {
         gender: formData.gender || null,
       };
 
-      // Add business fields if business account
+      // Add business location if business account
       if (isBusiness) {
         updateData.business_latitude = businessLocation.latitude;
         updateData.business_longitude = businessLocation.longitude;
         updateData.business_address = businessLocation.address;
-        updateData.business_hours = businessInfo.hours.trim() || null;
-        updateData.business_phone = businessInfo.phone.trim() || null;
-        if (isFoodBusiness) {
-          const cap = parseInt(reservationCapacity);
-          updateData.reservation_capacity = isNaN(cap) || cap <= 0 ? null : cap;
-        }
       }
 
       const { error } = await supabase
