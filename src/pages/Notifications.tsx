@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, UserPlus, AtSign, Heart, Repeat2, MessageCircle } from "lucide-react";
+import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, AtSign, Heart, Repeat2, MessageCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,13 +13,11 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useEvent } from "@/hooks/useEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { useRespondToInvitation, useMyPendingInvitations } from "@/hooks/useGuestlistInvitations";
-import { usePendingCollaborations, useRespondToCollaboration } from "@/hooks/useEventCollaborators";
 import { toast } from "sonner";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { PostTagNotificationItem } from "@/components/notifications/PostTagNotificationItem";
 import { LikeNotificationItem } from "@/components/notifications/LikeNotificationItem";
 import { RepostNotificationItem } from "@/components/notifications/RepostNotificationItem";
-import { CollaborationAcceptedNotificationItem } from "@/components/notifications/CollaborationAcceptedNotificationItem";
 import { ReferralNotificationItem } from "@/components/notifications/ReferralNotificationItem";
 import { ReservationNotificationItem } from "@/components/notifications/ReservationNotificationItem";
 const getNotificationIcon = (type: string) => {
@@ -35,12 +33,9 @@ const getNotificationIcon = (type: string) => {
     case "guestlist_invitation":
       return Users;
     case "guestlist_approved":
-    case "collaboration_accepted":
       return CheckCircle;
     case "guestlist_rejected":
       return XCircle;
-    case "collaboration_request":
-      return UserPlus;
     case "post_tag":
       return AtSign;
     default:
@@ -294,116 +289,6 @@ const GuestlistInvitationNotificationItem = ({
         </div>}
     </motion.div>;
 };
-const CollaborationNotificationItem = ({
-  notification,
-  index,
-  onRead,
-  onClick
-}: NotificationItemProps) => {
-  const navigate = useNavigate();
-  const {
-    data: event
-  } = useEvent(notification.entity_id || undefined);
-  const {
-    data: pendingCollaborations
-  } = usePendingCollaborations();
-  const respondToCollaboration = useRespondToCollaboration();
-  const [isResponding, setIsResponding] = useState(false);
-
-  // Extract username from body: "@username invited you..."
-  const extractedUsername = notification.body?.match(/@(\w+)/)?.[1];
-
-  // Find the collaboration for this event
-  const collaboration = pendingCollaborations?.find((collab: any) => collab.event_id === notification.entity_id);
-  const handleAccept = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!collaboration) return;
-    setIsResponding(true);
-    try {
-      await respondToCollaboration.mutateAsync({
-        collaborationId: collaboration.id,
-        status: "accepted"
-      });
-      toast.success("¡Colaboración aceptada!");
-      if (!notification.is_read) onRead();
-      navigate(`/event/${notification.entity_id}`);
-    } catch (error: any) {
-      toast.error(error.message || "Error al aceptar");
-    } finally {
-      setIsResponding(false);
-    }
-  };
-  const handleDecline = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!collaboration) return;
-    setIsResponding(true);
-    try {
-      await respondToCollaboration.mutateAsync({
-        collaborationId: collaboration.id,
-        status: "declined"
-      });
-      toast.success("Colaboración rechazada");
-      if (!notification.is_read) onRead();
-    } catch (error: any) {
-      toast.error(error.message || "Error al rechazar");
-    } finally {
-      setIsResponding(false);
-    }
-  };
-  return <motion.div initial={{
-    opacity: 0,
-    x: -20
-  }} animate={{
-    opacity: 1,
-    x: 0
-  }} transition={{
-    delay: index * 0.03
-  }} className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
-          {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
-              <UserPlus className="w-5 h-5 text-muted-foreground" />
-            </div>}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-            <span className="font-semibold">@{extractedUsername || "alguien"}</span>
-            {" te invitó a colaborar en "}
-            <span className="font-semibold">{event?.title || "una publicación"}</span>
-          </p>
-          <p className="text-xs text-muted-foreground/70 mt-0.5">
-            {formatDistanceToNow(new Date(notification.created_at), {
-            addSuffix: true,
-            locale: es
-          })}
-          </p>
-        </div>
-        
-        {!notification.is_read && !collaboration && <>
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={e => {
-          e.stopPropagation();
-          onRead();
-        }}>
-              <Check className="w-4 h-4" />
-            </Button>
-            <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-          </>}
-      </div>
-      
-      {/* Accept/Decline buttons for pending collaborations */}
-      {collaboration && <div className="flex gap-2 ml-13">
-          <Button variant="outline" size="sm" className="flex-1 rounded-xl border-destructive/30 text-destructive" onClick={handleDecline} disabled={isResponding}>
-            {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1.5" />}
-            Rechazar
-          </Button>
-          <Button size="sm" className="flex-1 rounded-xl" onClick={handleAccept} disabled={isResponding}>
-            {isResponding ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1.5" />}
-            Aceptar
-          </Button>
-        </div>}
-    </motion.div>;
-};
 const CommentNotificationItem = ({
   notification,
   index,
@@ -504,7 +389,7 @@ const Notifications = () => {
     } else if (notification.type === "guestlist_request" && notification.entity_id) {
       navigate(`/event/${notification.entity_id}`, { state: { openGuestlist: true } });
     } else if (
-      (notification.type === "like" || notification.type === "repost" || notification.type === "collaboration_accepted") &&
+      (notification.type === "like" || notification.type === "repost") &&
       notification.entity_id
     ) {
       navigate(`/event/${notification.entity_id}`);
@@ -546,10 +431,6 @@ const Notifications = () => {
         return <GuestlistStatusNotificationItem key={notification.id} {...commonProps} />;
       case "guestlist_invitation":
         return <GuestlistInvitationNotificationItem key={notification.id} {...commonProps} />;
-      case "collaboration_request":
-        return <CollaborationNotificationItem key={notification.id} {...commonProps} />;
-      case "collaboration_accepted":
-        return <CollaborationAcceptedNotificationItem key={notification.id} {...commonProps} />;
       case "referral_signup":
         return <ReferralNotificationItem key={notification.id} {...commonProps} />;
       case "new_reservation":
