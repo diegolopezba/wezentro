@@ -10,7 +10,6 @@ import {
   Loader2,
   ImageIcon,
   Video,
-  UserPlus,
   ChevronDown,
   UtensilsCrossed,
   CalendarCheck,
@@ -22,16 +21,11 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LocationPicker } from "@/components/map/LocationPicker";
-import { CollaboratorPickerModal } from "@/components/events/CollaboratorPickerModal";
-import { MutualFollower } from "@/hooks/useChats";
-import { useInviteCollaborator } from "@/hooks/useEventCollaborators";
 import { useCreateEvent } from "@/hooks/useEventMutations";
-import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import {
   isVideoFile,
   isImageFile,
