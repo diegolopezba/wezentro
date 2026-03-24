@@ -180,7 +180,7 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">7. Suscripciones y Pagos</h2>
+            <h2 className="text-lg font-semibold text-foreground">8. Suscripciones y Pagos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro ofrece suscripciones premium con funciones adicionales. Al suscribirse:
             </p>
