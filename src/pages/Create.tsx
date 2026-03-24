@@ -764,12 +764,6 @@ const Create = () => {
         </div>
       </div>
 
-      <CollaboratorPickerModal
-        open={showCollaboratorPicker}
-        onOpenChange={setShowCollaboratorPicker}
-        onSelect={setSelectedCollaborator}
-        excludeUserIds={selectedCollaborator ? [selectedCollaborator.id] : []} />
-      
     </AppLayout>);
 
 };
