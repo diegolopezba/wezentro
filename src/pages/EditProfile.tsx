@@ -49,7 +49,6 @@ const EditProfile = () => {
   });
 
   const isBusiness = profile?.is_business === true;
-  const isFoodBusiness = profile?.is_food_business === true;
 
   useEffect(() => {
     if (profile) {
