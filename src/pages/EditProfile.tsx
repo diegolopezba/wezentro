@@ -379,24 +379,25 @@ const EditProfile = () => {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label>Género</Label>
-            <RadioGroup
+            <Select
               value={formData.gender}
               onValueChange={(value) =>
                 setFormData((prev) => ({ ...prev, gender: value }))
               }
-              className="flex flex-col gap-2"
             >
-              {GENDER_OPTIONS.map((option) => (
-                <div key={option.value} className="flex items-center space-x-3">
-                  <RadioGroupItem value={option.value} id={option.value} />
-                  <Label htmlFor={option.value} className="font-normal cursor-pointer">
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona tu género" />
+              </SelectTrigger>
+              <SelectContent>
+                {GENDER_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
                     {option.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
