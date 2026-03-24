@@ -22,10 +22,12 @@ interface ReservationSheetProps {
   businessId: string;
   businessName: string;
   businessHours?: string | null;
+  reservationStartTime?: string | null;
+  reservationEndTime?: string | null;
 }
 
 // Generate time slots from 08:00 to 22:30 in 30min intervals
-const TIME_SLOTS = Array.from({ length: 30 }, (_, i) => {
+const ALL_TIME_SLOTS = Array.from({ length: 30 }, (_, i) => {
   const totalMinutes = 8 * 60 + i * 30;
   const h = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
   const m = (totalMinutes % 60).toString().padStart(2, "0");
