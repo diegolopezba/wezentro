@@ -208,7 +208,7 @@ const PrivacyPolicy = () => {
               <li><strong>Restricción:</strong> limitar cómo usamos sus datos</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Para ejercer estos derechos, contáctenos en zentro@gmail.com.
+              Para ejercer estos derechos, contáctenos en hello@zentro.com.
             </p>
           </section>
 
