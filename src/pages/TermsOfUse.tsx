@@ -235,7 +235,7 @@ const TermsOfUse = () => {
               Podemos terminar o suspender su acceso al Servicio de inmediato, sin previo aviso, por cualquier motivo, incluyendo, pero no limitado a, violaciones de estos Términos.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Usted puede eliminar su cuenta en cualquier momento desde la sección de Ayuda y Soporte dentro de la aplicación, o contactándonos en zentro@gmail.com. La eliminación requiere verificación de contraseña para su seguridad. Tras la terminación, su derecho a usar el Servicio cesará inmediatamente y todos sus datos serán eliminados permanentemente.
+              Usted puede eliminar su cuenta en cualquier momento desde la sección de Ayuda y Soporte dentro de la aplicación, o contactándonos en hello@zentro.com. La eliminación requiere verificación de contraseña para su seguridad. Tras la terminación, su derecho a usar el Servicio cesará inmediatamente y todos sus datos serán eliminados permanentemente.
             </p>
           </section>
 
