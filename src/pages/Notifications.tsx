@@ -541,10 +541,6 @@ const Notifications = () => {
         return <GuestlistStatusNotificationItem key={notification.id} {...commonProps} />;
       case "guestlist_invitation":
         return <GuestlistInvitationNotificationItem key={notification.id} {...commonProps} />;
-      case "collaboration_request":
-        return <CollaborationNotificationItem key={notification.id} {...commonProps} />;
-      case "collaboration_accepted":
-        return <CollaborationAcceptedNotificationItem key={notification.id} {...commonProps} />;
       case "referral_signup":
         return <ReferralNotificationItem key={notification.id} {...commonProps} />;
       case "new_reservation":

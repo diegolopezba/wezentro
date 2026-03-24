@@ -278,14 +278,6 @@ const Create = () => {
 
       if (error) throw error;
 
-      if (selectedCollaborator && data.id) {
-        try {
-          await inviteCollaborator.mutateAsync({ eventId: data.id, userId: selectedCollaborator.id });
-        } catch (collabError) {
-          console.error("Error inviting collaborator:", collabError);
-        }
-      }
-
       if (data.id && formData.description.trim()) {
         const mentionRegex = /(?<!\w)@([a-zA-Z0-9_]+)/g;
         const usernames = new Set<string>();
