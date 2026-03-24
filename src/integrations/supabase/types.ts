@@ -937,6 +937,8 @@ export type Database = {
           menu_enabled: boolean | null
           referral_code: string | null
           reservation_capacity: number | null
+          reservation_end_time: string | null
+          reservation_start_time: string | null
           reservations_enabled: boolean | null
           stripe_customer_id: string | null
           updated_at: string | null
@@ -963,6 +965,8 @@ export type Database = {
           menu_enabled?: boolean | null
           referral_code?: string | null
           reservation_capacity?: number | null
+          reservation_end_time?: string | null
+          reservation_start_time?: string | null
           reservations_enabled?: boolean | null
           stripe_customer_id?: string | null
           updated_at?: string | null
@@ -989,6 +993,8 @@ export type Database = {
           menu_enabled?: boolean | null
           referral_code?: string | null
           reservation_capacity?: number | null
+          reservation_end_time?: string | null
+          reservation_start_time?: string | null
           reservations_enabled?: boolean | null
           stripe_customer_id?: string | null
           updated_at?: string | null
