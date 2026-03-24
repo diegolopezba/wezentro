@@ -120,7 +120,7 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">6. Eventos, Guestlists y Pagos de Entradas</h2>
+            <h2 className="text-lg font-semibold text-foreground">6. Eventos, Guestlists, Reservaciones y Pagos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Como creador de eventos, usted es responsable de:
             </p>
@@ -131,6 +131,9 @@ const TermsOfUse = () => {
               <li>La gestión adecuada de su lista de invitados</li>
               <li>La configuración correcta de precios y la recepción de pagos si utiliza pagos QR</li>
             </ul>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Los negocios con el sistema de reservaciones habilitado pueden configurar su horario de atención y una ventana horaria específica para aceptar reservas de mesa. Los horarios disponibles para los usuarios se limitan a los establecidos por el negocio. Zentro no es responsable de cancelaciones, no-shows ni disputas derivadas de las reservaciones.
+            </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro no es responsable de los eventos creados por usuarios ni de las interacciones que ocurran en ellos.
             </p>
