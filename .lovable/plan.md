@@ -1,60 +1,24 @@
 
-## Native App Readiness — Verified Plan
+## Delete Collaboration Feature — Complete Removal Plan
 
-### What was confirmed correct vs. what changed from the previous plan
+### All collab touch points found across the codebase
 
-**Confirmed real problems (verified via code + web sources):**
-- `hover:` sticky states on iOS/Android WebView — confirmed real by WebKit bug #158517, CSS-Tricks, and a Jan 2026 StackOverflow thread. Every `hover:` in the app can trigger a stuck highlight after a tap.
-- `whileHover` on EventCard and TimelineCard — registers a Framer Motion gesture listener per card that does nothing on touch.
-- `layoutId="activeTab"` still present in Index.tsx lines 268 and 273.
-- Animation stagger `index * 0.05` with no clamp — EventCard line 168, causes multi-second delays for late-feed cards.
-
-**What the previous plan got wrong — corrected:**
-- `@capacitor/network` was NOT recommended. A Dec 2025 StackOverflow question and Jan 2026 Ionic forum thread both confirm it fails to detect returning-online on iOS, and the GitHub issue is closed `not_planned` as of Feb 2026. The current `window.online/offline` listeners are more reliable. This fix is dropped entirely.
-
----
-
-### Fix 1 — Enable `hoverOnlyWhenSupported` in Tailwind (HIGHEST IMPACT, 1 line)
-
-Rather than hunting `hover:` class by class across every file, Tailwind has a built-in config flag: `future: { hoverOnlyWhenSupported: true }`. This wraps every `hover:` variant app-wide in `@media (hover: hover)`, which means touch-primary devices (phones, tablets, Capacitor WebView) **never** receive hover styles. One line in `tailwind.config.ts` fixes every file at once — EventCard, EventDetailOverlay, TimelineCard, Index, all UI components, all sheets.
-
-This is the canonical solution documented on CSS-Tricks, Benjamin Crozat's blog, and the Tailwind v3 docs.
-
-**File:** `tailwind.config.ts`
-Add inside the root config object:
-```ts
-future: {
-  hoverOnlyWhenSupported: true,
-},
-```
-
-### Fix 2 — Remove `whileHover` from EventCard and TimelineCard
-
-`whileHover={{ scale: 1.02 }}` on both cards registers a Framer Motion pointer-enter listener that is never triggered on touch screens but still consumes memory per card instance (up to 200 in the feed). Remove it. `whileTap={{ scale: 0.98 }}` is kept — it fires correctly on touch.
-
-**Files:** `src/components/events/EventCard.tsx` line 171, `src/components/events/TimelineCard.tsx` line 120.
-
-### Fix 3 — Clamp animation stagger in EventCard
-
-`delay: index * 0.05` at 200 cards = card #199 has a 9.95-second entrance delay. Cards that scroll into view mid-session appear invisibly delayed. Clamp to `Math.min(index, 6) * 0.05` — first 6 cards stagger (the visible ones on load), the rest appear instantly.
-
-**File:** `src/components/events/EventCard.tsx` line 168.
-
-### Fix 4 — Replace `layoutId="activeTab"` with a simple animated indicator
-
-`layoutId="activeTab"` on the tab pill in Index.tsx registers a layout measurement tracker. Since the tab bar re-renders on every scroll event (via `headerVisible` state), this fires repeatedly. Replace with a `motion.div` that uses `initial={false}` + `animate={{ opacity: 1 }}` — visually identical sliding pill but without layout tracking.
-
-**File:** `src/pages/Index.tsx` lines 267–275.
-
----
-
-### Files changed
-
-| File | Change |
+| File | What to do |
 |---|---|
-| `tailwind.config.ts` | Add `future: { hoverOnlyWhenSupported: true }` |
-| `src/components/events/EventCard.tsx` | Remove `whileHover`; clamp stagger delay |
-| `src/components/events/TimelineCard.tsx` | Remove `whileHover` |
-| `src/pages/Index.tsx` | Replace `layoutId="activeTab"` with simple animate |
+| `src/components/events/CollaboratorPickerModal.tsx` | Delete entire file |
+| `src/hooks/useEventCollaborators.ts` | Delete entire file |
+| `src/components/notifications/CollaborationAcceptedNotificationItem.tsx` | Delete entire file |
+| `src/pages/Create.tsx` | Remove collab imports, state (`showCollaboratorPicker`, `selectedCollaborator`), the post-save invite call (lines 290–295), the toast message branch referencing `selectedCollaborator`, the entire "Collaborator section" Card (lines 651–703), and the `<CollaboratorPickerModal>` render at the bottom |
+| `src/pages/Notifications.tsx` | Remove `usePendingCollaborations`, `useRespondToCollaboration` imports; remove `CollaborationNotificationItem` component (lines 297–405); remove `CollaborationAcceptedNotificationItem` import; remove `UserPlus` from icon imports; remove the two `collaboration_*` cases from `getNotificationIcon`, `handleNotificationClick`, and `renderNotification` |
 
-No new dependencies. No `@capacitor/network` (confirmed buggy on iOS). 4 surgical changes, all verified against live code.
+### What is NOT touched
+- The `event_collaborators` database table and its RLS policies — left in place (no harm keeping it, no migration needed, avoids risk)
+- `src/lib/feedScoring.ts` — the `getCollaborativeScore` function and `collaborativeBoosts` field in the scoring context are a separate algorithmic signal unrelated to the UI feature; leaving them keeps the feed scoring intact
+- `src/hooks/useForYouEvents.ts` — the `collaborativeBoosts` query is a feed ranking input (measures mutual-follower attendance patterns), not the collaboration invitation UI; leaving it untouched
+
+### Result
+- 3 files deleted
+- 2 files surgically cleaned
+- No database migration required
+- No broken imports remain
+- Existing `collaboration_request` / `collaboration_accepted` notifications already in the database will fall through to the generic `NotificationItem` fallback renderer — they will display correctly as plain notifications with no broken UI
