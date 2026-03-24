@@ -17,6 +17,8 @@ export interface UserProfile {
   business_address: string | null;
   business_hours: string | null;
   business_phone: string | null;
+  reservation_start_time: string | null;
+  reservation_end_time: string | null;
 }
 
 export interface FollowUser {
