@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, Camera, Loader2, Info, MapPin, Clock, Phone, Users } from "lucide-react";
+import { ChevronLeft, Camera, Loader2, Info } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { BusinessLocationPicker } from "@/components/profile/BusinessLocationPicker";
 import { compressImage, blobToFile } from "@/lib/mediaCompression";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
 
@@ -48,14 +47,8 @@ const EditProfile = () => {
     longitude: null,
     address: null,
   });
-  const [businessInfo, setBusinessInfo] = useState({
-    hours: "",
-    phone: "",
-  });
-  const [reservationCapacity, setReservationCapacity] = useState<string>("");
 
   const isBusiness = profile?.is_business === true;
-  const isFoodBusiness = profile?.is_food_business === true;
 
   useEffect(() => {
     if (profile) {
@@ -83,13 +76,6 @@ const EditProfile = () => {
         longitude: profile.business_longitude || null,
         address: profile.business_address || null,
       });
-      setBusinessInfo({
-        hours: profile.business_hours || "",
-        phone: profile.business_phone || "",
-      });
-      setReservationCapacity(
-        (profile as any).reservation_capacity != null ? String((profile as any).reservation_capacity) : ""
-      );
     }
   }, [profile]);
 
@@ -157,17 +143,11 @@ const EditProfile = () => {
         gender: formData.gender || null,
       };
 
-      // Add business fields if business account
+      // Add business location if business account
       if (isBusiness) {
         updateData.business_latitude = businessLocation.latitude;
         updateData.business_longitude = businessLocation.longitude;
         updateData.business_address = businessLocation.address;
-        updateData.business_hours = businessInfo.hours.trim() || null;
-        updateData.business_phone = businessInfo.phone.trim() || null;
-        if (isFoodBusiness) {
-          const cap = parseInt(reservationCapacity);
-          updateData.reservation_capacity = isNaN(cap) || cap <= 0 ? null : cap;
-        }
       }
 
       const { error } = await supabase
@@ -428,93 +408,6 @@ const EditProfile = () => {
             </p>
           </div>
         </motion.div>
-
-        {/* Business Information Section - For Business Accounts */}
-        {isBusiness && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="space-y-5"
-          >
-            <div className="flex items-center gap-2">
-              <Label className="text-base font-semibold">Información del Negocio</Label>
-            </div>
-
-            {/* Location Picker - Only for Food businesses */}
-            {isFoodBusiness && (
-              <BusinessLocationPicker
-                latitude={businessLocation.latitude}
-                longitude={businessLocation.longitude}
-                address={businessLocation.address}
-                onLocationChange={handleBusinessLocationChange}
-              />
-            )}
-
-            {/* Business Hours */}
-            <div className="space-y-2">
-              <Label htmlFor="business-hours" className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                Horarios de atención
-              </Label>
-              <Textarea
-                id="business-hours"
-                value={businessInfo.hours}
-                onChange={(e) =>
-                  setBusinessInfo((prev) => ({ ...prev, hours: e.target.value }))
-                }
-                placeholder="Ej: Lun-Vie: 9:00-18:00&#10;Sab: 10:00-14:00"
-                rows={3}
-              />
-            </div>
-
-            {/* Business Phone */}
-            <div className="space-y-2">
-              <Label htmlFor="business-phone" className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-muted-foreground" />
-                Teléfono de contacto
-              </Label>
-              <Input
-                id="business-phone"
-                type="tel"
-                value={businessInfo.phone}
-                onChange={(e) =>
-                  setBusinessInfo((prev) => ({ ...prev, phone: e.target.value }))
-                }
-                placeholder="+591 70000000"
-              />
-            </div>
-
-            {/* Reservation Capacity - only for food businesses */}
-            {isFoodBusiness && (
-              <div className="space-y-2">
-                <Label htmlFor="reservation-capacity" className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-muted-foreground" />
-                  Capacidad de reservas (personas por horario)
-                </Label>
-                <Input
-                  id="reservation-capacity"
-                  type="number"
-                  min={1}
-                  value={reservationCapacity}
-                  onChange={(e) => setReservationCapacity(e.target.value)}
-                  placeholder="Ej: 50"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Número máximo de personas que pueden reservar en un mismo horario.
-                </p>
-              </div>
-            )}
-
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
-              <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-              <p className="text-xs text-muted-foreground">
-                Esta información será visible para los usuarios que visiten tu perfil a
-                través del ícono de información.
-              </p>
-            </div>
-          </motion.div>
-        )}
       </div>
     </AppLayout>
   );

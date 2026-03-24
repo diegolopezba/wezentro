@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Briefcase, BarChart3, ChevronRight, UtensilsCrossed, CalendarCheck, Store, CreditCard } from "lucide-react";
+import { ArrowLeft, Briefcase, BarChart3, ChevronRight, UtensilsCrossed, CalendarCheck, Store, CreditCard, Clock, Phone, Save, Users } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +25,14 @@ const BUSINESS_TYPES = [
   { value: "other", label: "Otro", emoji: "✨" },
 ];
 
+// Generate time options in 30-min intervals from 06:00 to 24:00
+const TIME_OPTIONS = Array.from({ length: 37 }, (_, i) => {
+  const totalMinutes = 6 * 60 + i * 30;
+  const h = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
+  const m = (totalMinutes % 60).toString().padStart(2, "0");
+  return `${h}:${m}`;
+});
+
 const BusinessSettings = () => {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
@@ -30,6 +40,17 @@ const BusinessSettings = () => {
   const [togglingMenu, setTogglingMenu] = useState(false);
   const [togglingReservations, setTogglingReservations] = useState(false);
   const [savingType, setSavingType] = useState(false);
+  const [savingInfo, setSavingInfo] = useState(false);
+  const [savingReservationWindow, setSavingReservationWindow] = useState(false);
+
+  // Business info form state
+  const [businessHours, setBusinessHours] = useState("");
+  const [businessPhone, setBusinessPhone] = useState("");
+
+  // Reservation window state
+  const [reservationStartTime, setReservationStartTime] = useState("12:00");
+  const [reservationEndTime, setReservationEndTime] = useState("22:00");
+  const [reservationCapacity, setReservationCapacity] = useState("");
 
   useSwipeBack();
 
@@ -37,6 +58,21 @@ const BusinessSettings = () => {
   const menuEnabled = (profile as any)?.menu_enabled !== false;
   const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
   const currentBusinessType = (profile as any)?.business_type || "";
+
+  // Sync local state when profile loads
+  useEffect(() => {
+    if (profile) {
+      setBusinessHours((profile as any).business_hours || "");
+      setBusinessPhone((profile as any).business_phone || "");
+      setReservationStartTime((profile as any).reservation_start_time?.slice(0, 5) || "12:00");
+      setReservationEndTime((profile as any).reservation_end_time?.slice(0, 5) || "22:00");
+      setReservationCapacity(
+        (profile as any).reservation_capacity != null
+          ? String((profile as any).reservation_capacity)
+          : ""
+      );
+    }
+  }, [profile]);
 
   const handleToggleBusiness = async (value: boolean) => {
     if (!user) return;
@@ -110,6 +146,54 @@ const BusinessSettings = () => {
     }
   };
 
+  const handleSaveBusinessInfo = async () => {
+    if (!user) return;
+    setSavingInfo(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          business_hours: businessHours.trim() || null,
+          business_phone: businessPhone.trim() || null,
+        } as any)
+        .eq("id", user.id);
+      if (error) throw error;
+      await refreshProfile();
+      toast.success("Información del negocio guardada");
+    } catch (error: any) {
+      toast.error(error.message || "Error al guardar");
+    } finally {
+      setSavingInfo(false);
+    }
+  };
+
+  const handleSaveReservationWindow = async () => {
+    if (!user) return;
+    if (reservationStartTime >= reservationEndTime) {
+      toast.error("La hora de inicio debe ser anterior a la hora de cierre");
+      return;
+    }
+    setSavingReservationWindow(true);
+    try {
+      const cap = parseInt(reservationCapacity);
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          reservation_start_time: reservationStartTime,
+          reservation_end_time: reservationEndTime,
+          reservation_capacity: isNaN(cap) || cap <= 0 ? null : cap,
+        } as any)
+        .eq("id", user.id);
+      if (error) throw error;
+      await refreshProfile();
+      toast.success("Horario de reservas guardado");
+    } catch (error: any) {
+      toast.error(error.message || "Error al guardar");
+    } finally {
+      setSavingReservationWindow(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -174,6 +258,59 @@ const BusinessSettings = () => {
                 ))}
               </SelectContent>
             </Select>
+          </motion.div>
+        )}
+
+        {/* Business Info Section */}
+        {isBusiness && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="py-4 px-4 rounded-xl bg-card border border-border space-y-4"
+          >
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <Label className="text-foreground font-semibold">Información del negocio</Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="business-hours" className="text-sm text-muted-foreground">Horarios de atención</Label>
+              <Textarea
+                id="business-hours"
+                value={businessHours}
+                onChange={(e) => setBusinessHours(e.target.value)}
+                placeholder={"Ej: Lun-Vie: 9:00-18:00\nSab: 10:00-14:00"}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                Esta información se muestra en el perfil para los visitantes.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="business-phone" className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Phone className="w-3.5 h-3.5" /> Teléfono de contacto
+              </Label>
+              <Input
+                id="business-phone"
+                type="tel"
+                value={businessPhone}
+                onChange={(e) => setBusinessPhone(e.target.value)}
+                placeholder="+591 70000000"
+              />
+            </div>
+
+            <Button
+              size="sm"
+              onClick={handleSaveBusinessInfo}
+              disabled={savingInfo}
+              className="w-full"
+            >
+              {savingInfo ? "Guardando..." : (
+                <><Save className="w-4 h-4 mr-2" />Guardar información</>
+              )}
+            </Button>
           </motion.div>
         )}
 
@@ -252,6 +389,81 @@ const BusinessSettings = () => {
                 disabled={togglingReservations}
               />
             </motion.div>
+
+            {/* Reservation Time Window - only when reservations enabled */}
+            {reservationsEnabled && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.28 }}
+                className="py-4 px-4 rounded-xl bg-card border border-border space-y-4"
+              >
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-green-500" />
+                  <Label className="text-foreground font-semibold">Horario de reservas</Label>
+                </div>
+                <p className="text-xs text-muted-foreground -mt-2">
+                  Solo se podrán reservar mesas en el rango de horas que definas aquí.
+                </p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Desde</Label>
+                    <Select value={reservationStartTime} onValueChange={setReservationStartTime}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-52">
+                        {TIME_OPTIONS.map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Hasta</Label>
+                    <Select value={reservationEndTime} onValueChange={setReservationEndTime}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-52">
+                        {TIME_OPTIONS.map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="res-capacity" className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Users className="w-3.5 h-3.5" /> Capacidad por horario (personas)
+                  </Label>
+                  <Input
+                    id="res-capacity"
+                    type="number"
+                    min={1}
+                    value={reservationCapacity}
+                    onChange={(e) => setReservationCapacity(e.target.value)}
+                    placeholder="Ej: 50"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Máximo de personas que pueden reservar en un mismo horario.
+                  </p>
+                </div>
+
+                <Button
+                  size="sm"
+                  onClick={handleSaveReservationWindow}
+                  disabled={savingReservationWindow}
+                  className="w-full"
+                >
+                  {savingReservationWindow ? "Guardando..." : (
+                    <><Save className="w-4 h-4 mr-2" />Guardar horario</>
+                  )}
+                </Button>
+              </motion.div>
+            )}
 
             {/* Pagos section header */}
             <motion.div

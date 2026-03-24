@@ -299,7 +299,9 @@ const UserProfile = () => {
       onOpenChange={setReservationSheetOpen}
       businessId={id}
       businessName={userProfile?.full_name || userProfile?.username || ""}
-      businessHours={userProfile?.business_hours} />
+      businessHours={userProfile?.business_hours}
+      reservationStartTime={(userProfile as any)?.reservation_start_time}
+      reservationEndTime={(userProfile as any)?.reservation_end_time} />
 
     }
     </AppLayout>;
