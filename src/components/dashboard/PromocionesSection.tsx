@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 import {
   Megaphone, Plus, Play, Pause, Eye, MousePointerClick, DollarSign,
   Users, Sparkles, ArrowLeft, ArrowRight, Check, MapPin, Tag, Zap,
