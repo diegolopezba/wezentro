@@ -161,22 +161,8 @@ export const useLeaveGuestlist = () => {
 };
 
 export const useHasActiveSubscription = () => {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ["subscription-status", user?.id],
-    queryFn: async () => {
-      if (!user) return false;
-
-      const { data, error } = await supabase.rpc("has_active_subscription", {
-        _user_id: user.id,
-      });
-
-      if (error) throw error;
-      return data as boolean;
-    },
-    enabled: !!user,
-  });
+  // Subscriptions removed — always return true so all users see full attendee avatars
+  return { data: true, isLoading: false };
 };
 
 export const usePendingGuestlistRequests = (eventId: string | undefined) => {
