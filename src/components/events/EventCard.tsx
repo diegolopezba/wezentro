@@ -73,7 +73,6 @@ export const EventCard = ({
   const navigate = useNavigate();
   const routerLocation = useLocation();
   const { user } = useAuth();
-  const { data: hasSubscription } = useHasActiveSubscription();
   const trackClick = useTrackSponsoredClick();
   const [dismissed, setDismissed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
