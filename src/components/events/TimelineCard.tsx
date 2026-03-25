@@ -40,7 +40,6 @@ export const TimelineCard = ({
 }: TimelineCardProps) => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
-  const { data: hasSubscription } = useHasActiveSubscription();
 
   // Use expansion transition only on home page
   const isHomePage = routerLocation.pathname === "/";
