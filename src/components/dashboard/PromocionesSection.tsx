@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 import {
   Megaphone, Plus, Play, Pause, Eye, MousePointerClick, DollarSign,
   Users, Sparkles, ArrowLeft, ArrowRight, Check, MapPin, Tag, Zap,
@@ -174,8 +176,12 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
         refetch();
         setActivatingId(null);
       } else if (data?.checkout_url) {
-        // No saved card — redirect to Stripe Checkout
-        window.open(data.checkout_url, "_blank", "noopener,noreferrer");
+        // No saved card — open Stripe Checkout in in-app browser (native) or new tab (web)
+        if (Capacitor.isNativePlatform()) {
+          await Browser.open({ url: data.checkout_url });
+        } else {
+          window.open(data.checkout_url, "_blank", "noopener,noreferrer");
+        }
         // Keep spinner until user returns; reset after 30s as safety net
         setTimeout(() => setActivatingId(null), 30_000);
       } else {
