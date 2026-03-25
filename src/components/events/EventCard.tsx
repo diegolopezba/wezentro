@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useContext } from "react";
 import { cn } from "@/lib/utils";
 import { isVideoUrl } from "@/lib/mediaUtils";
-import { useHasActiveSubscription } from "@/hooks/useGuestlist";
 import { SelectedEventContext } from "@/contexts/SelectedEventContext";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { RepostInfo } from "@/hooks/useFollowingEventsScored";
@@ -74,7 +73,6 @@ export const EventCard = ({
   const navigate = useNavigate();
   const routerLocation = useLocation();
   const { user } = useAuth();
-  const { data: hasSubscription } = useHasActiveSubscription();
   const trackClick = useTrackSponsoredClick();
   const [dismissed, setDismissed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -245,79 +243,57 @@ export const EventCard = ({
             {attendees > 0 && (
               <div className="absolute top-2 left-2 flex items-center gap-1.5">
                 <div className="flex -space-x-1.5">
-                  {hasSubscription ? (
-                    <>
-                      {ownerAvatar && (
-                        <img
-                          src={ownerAvatar}
-                          alt="Owner"
-                          className={cn(
-                            "w-6 h-6 rounded-full border-background object-cover border-0",
-                            creatorId && "cursor-pointer hover:scale-110 transition-transform z-10"
-                          )}
-                          onClick={(e) => {
-                            if (creatorId) {
-                              e.stopPropagation();
-                              navigate(`/user/${creatorId}`);
-                            }
-                          }}
-                        />
+                  {ownerAvatar && (
+                    <img
+                      src={ownerAvatar}
+                      alt="Owner"
+                      className={cn(
+                        "w-6 h-6 rounded-full border-background object-cover border-0",
+                        creatorId && "cursor-pointer hover:scale-110 transition-transform z-10"
                       )}
-                      {attendeeAvatars
-                        .filter((a) => a.id !== creatorId)
-                        .slice(0, ownerAvatar ? 2 : 3)
-                        .map((attendee) =>
-                          attendee.avatar_url ? (
-                            <img
-                              key={attendee.id}
-                              src={attendee.avatar_url}
-                              alt="Attendee"
-                              className="w-6 h-6 rounded-full border-background object-cover border-0"
-                            />
-                          ) : (
-                            <img
-                              key={attendee.id}
-                              src={DEFAULT_AVATAR}
-                              alt="Attendee"
-                              className="w-6 h-6 rounded-full border-background object-cover border-0"
-                            />
-                          )
-                        )}
-                      {attendeeAvatars.filter((a) => a.id !== creatorId).length < (ownerAvatar ? 2 : 3) &&
-                        attendees > attendeeAvatars.filter((a) => a.id !== creatorId).length &&
-                        [...Array(
-                          Math.min(
-                            (ownerAvatar ? 2 : 3) - attendeeAvatars.filter((a) => a.id !== creatorId).length,
-                            attendees - attendeeAvatars.filter((a) => a.id !== creatorId).length
-                          )
-                        )].map((_, i) => (
-                          <img
-                            key={`placeholder-${i}`}
-                            src={DEFAULT_AVATAR}
-                            alt="Attendee"
-                            className="w-6 h-6 rounded-full border-background object-cover border-0"
-                          />
-                        ))}
-                    </>
-                  ) : (
-                    attendeeAvatars.slice(0, 3).map((attendee) =>
+                      onClick={(e) => {
+                        if (creatorId) {
+                          e.stopPropagation();
+                          navigate(`/user/${creatorId}`);
+                        }
+                      }}
+                    />
+                  )}
+                  {attendeeAvatars
+                    .filter((a) => a.id !== creatorId)
+                    .slice(0, ownerAvatar ? 2 : 3)
+                    .map((attendee) =>
                       attendee.avatar_url ? (
                         <img
                           key={attendee.id}
                           src={attendee.avatar_url}
                           alt="Attendee"
-                          className="w-6 h-6 rounded-full border-2 border-background object-cover blur-[2px]"
+                          className="w-6 h-6 rounded-full border-background object-cover border-0"
                         />
                       ) : (
                         <img
                           key={attendee.id}
                           src={DEFAULT_AVATAR}
                           alt="Attendee"
-                          className="w-6 h-6 rounded-full border-2 border-background object-cover blur-[2px]"
+                          className="w-6 h-6 rounded-full border-background object-cover border-0"
                         />
                       )
-                    )
-                  )}
+                    )}
+                  {attendeeAvatars.filter((a) => a.id !== creatorId).length < (ownerAvatar ? 2 : 3) &&
+                    attendees > attendeeAvatars.filter((a) => a.id !== creatorId).length &&
+                    [...Array(
+                      Math.min(
+                        (ownerAvatar ? 2 : 3) - attendeeAvatars.filter((a) => a.id !== creatorId).length,
+                        attendees - attendeeAvatars.filter((a) => a.id !== creatorId).length
+                      )
+                    )].map((_, i) => (
+                      <img
+                        key={`placeholder-${i}`}
+                        src={DEFAULT_AVATAR}
+                        alt="Attendee"
+                        className="w-6 h-6 rounded-full border-background object-cover border-0"
+                      />
+                    ))}
                 </div>
                 <span className="text-[10px] font-medium text-foreground">{attendees}</span>
               </div>

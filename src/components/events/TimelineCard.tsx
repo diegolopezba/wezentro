@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { isVideoUrl } from "@/lib/mediaUtils";
-import { useHasActiveSubscription } from "@/hooks/useGuestlist";
+
 import { useSelectedEvent } from "@/contexts/SelectedEventContext";
 import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -40,7 +40,6 @@ export const TimelineCard = ({
 }: TimelineCardProps) => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
-  const { data: hasSubscription } = useHasActiveSubscription();
 
   // Use expansion transition only on home page
   const isHomePage = routerLocation.pathname === "/";

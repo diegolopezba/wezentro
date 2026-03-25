@@ -30,7 +30,7 @@ const Referrals = () => {
   const pendingRewards = stats?.pending_rewards || 0;
   const isBusinessAccount = false;
 
-  // Count paid referrals
+  // Count paid referrals (kept for potential future business referral program)
   const paidReferrals = referredUsers?.filter(r => r.payment_completed).length || 0;
 
   // Generate code if user doesn't have one
