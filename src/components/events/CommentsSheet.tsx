@@ -15,6 +15,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useEventComments, useAddComment, useDeleteComment } from "@/hooks/useEventComments";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
@@ -34,6 +35,7 @@ export const CommentsSheet = ({
   commentCount = 0,
 }: CommentsSheetProps) => {
   const { user } = useAuth();
+  const { data: currentProfile } = useUserProfile(user?.id);
   const { promptAuth } = useAuthPrompt();
   const navigate = useNavigate();
   const [text, setText] = useState("");
@@ -172,7 +174,7 @@ export const CommentsSheet = ({
         <div className="shrink-0 border-t border-border/50 px-4 py-3 safe-bottom">
           <form onSubmit={handleSubmit} className="flex items-center gap-3">
             <Avatar className="w-8 h-8 shrink-0">
-              <AvatarImage src={user?.user_metadata?.avatar_url || DEFAULT_AVATAR} />
+              <AvatarImage src={currentProfile?.avatar_url || DEFAULT_AVATAR} />
               <AvatarFallback />
             </Avatar>
             <input
