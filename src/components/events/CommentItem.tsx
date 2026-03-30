@@ -43,13 +43,17 @@ export const CommentItem = ({
   const navigate = useNavigate();
   const likeComment = useLikeComment();
   const unlikeComment = useUnlikeComment();
-  const [showReplies, setShowReplies] = useState(false);
+  const [showAllReplies, setShowAllReplies] = useState(false);
 
   const { data: replyCount = 0 } = useReplyCount(!isReply ? comment.id : undefined);
   const { data: replies = [] } = useCommentReplies(
-    showReplies && !isReply ? comment.id : undefined,
+    !isReply && replyCount > 0 ? comment.id : undefined,
     eventId
   );
+
+  const inlineReplies = replies.slice(0, 2);
+  const extraReplies = replies.slice(2);
+  const hasMore = replyCount > 2;
 
   const isOwner = user?.id === comment.user_id;
   const isCreator = user?.id === eventCreatorId;
@@ -160,13 +164,30 @@ export const CommentItem = ({
         </div>
       </div>
 
-      {/* Replies toggle */}
-      {!isReply && replyCount > 0 && (
+      {/* Inline replies (first 2 always shown) */}
+      {!isReply && inlineReplies.length > 0 && (
+        <div className="mt-2 space-y-3">
+          {inlineReplies.map((reply) => (
+            <CommentItem
+              key={reply.id}
+              comment={reply}
+              eventId={eventId}
+              eventCreatorId={eventCreatorId}
+              isReply
+              onReply={onReply}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* "Ver más" toggle for 3+ replies */}
+      {!isReply && hasMore && (
         <button
-          onClick={() => setShowReplies(!showReplies)}
+          onClick={() => setShowAllReplies(!showAllReplies)}
           className="ml-[52px] mt-2 flex items-center gap-1 text-xs text-primary font-medium"
         >
-          {showReplies ? (
+          {showAllReplies ? (
             <>
               <ChevronUp className="w-3 h-3" />
               Ocultar respuestas
@@ -174,16 +195,16 @@ export const CommentItem = ({
           ) : (
             <>
               <ChevronDown className="w-3 h-3" />
-              Ver {replyCount} {replyCount === 1 ? "respuesta" : "respuestas"}
+              Ver {replyCount - 2} {replyCount - 2 === 1 ? "respuesta más" : "respuestas más"}
             </>
           )}
         </button>
       )}
 
-      {/* Render replies */}
-      {showReplies && replies.length > 0 && (
+      {/* Extra replies (shown on expand) */}
+      {showAllReplies && extraReplies.length > 0 && (
         <div className="mt-2 space-y-3">
-          {replies.map((reply) => (
+          {extraReplies.map((reply) => (
             <CommentItem
               key={reply.id}
               comment={reply}
