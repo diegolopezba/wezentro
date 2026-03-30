@@ -127,7 +127,7 @@ export const CommentsSheet = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2">
                         <span
-                          className="text-sm font-semibold text-foreground cursor-pointer hover:text-primary transition-colors"
+                          className="text-sm text-foreground cursor-pointer hover:text-primary transition-colors font-medium"
                           onClick={() => navigate(`/user/${comment.user_id}`)}
                         >
                           @{comment.user?.username || "usuario"}
