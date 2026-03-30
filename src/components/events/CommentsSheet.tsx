@@ -1,14 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
-import { Send, Loader2, MessageCircle, Trash2, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Send, Loader2, MessageCircle, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -18,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
+import { CommentItem } from "./CommentItem";
 
 interface CommentsSheetProps {
   open: boolean;
@@ -37,8 +29,8 @@ export const CommentsSheet = ({
   const { user } = useAuth();
   const { data: currentProfile } = useUserProfile(user?.id);
   const { promptAuth } = useAuthPrompt();
-  const navigate = useNavigate();
   const [text, setText] = useState("");
+  const [replyingTo, setReplyingTo] = useState<{ parentId: string; username: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +38,6 @@ export const CommentsSheet = ({
   const addComment = useAddComment();
   const deleteComment = useDeleteComment();
 
-  // Scroll to bottom when new comments arrive
   useEffect(() => {
     if (comments.length > 0) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -62,7 +53,9 @@ export const CommentsSheet = ({
     const trimmed = text.trim();
     if (!trimmed) return;
     setText("");
-    await addComment.mutateAsync({ eventId, content: trimmed });
+    const parentId = replyingTo?.parentId || null;
+    setReplyingTo(null);
+    await addComment.mutateAsync({ eventId, content: trimmed, parentId });
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -72,8 +65,13 @@ export const CommentsSheet = ({
     }
   };
 
-  const handleDelete = (commentId: string) => {
-    deleteComment.mutate({ commentId, eventId });
+  const handleDelete = (commentId: string, parentId?: string | null) => {
+    deleteComment.mutate({ commentId, eventId, parentId });
+  };
+
+  const handleReply = (parentId: string, username: string) => {
+    setReplyingTo({ parentId, username });
+    inputRef.current?.focus();
   };
 
   const totalCount = comments.length || commentCount;
@@ -109,66 +107,35 @@ export const CommentsSheet = ({
             </div>
           ) : (
             <div className="py-3 space-y-5">
-              {comments.map((comment) => {
-                const isOwner = user?.id === comment.user_id;
-                const isCreator = user?.id === eventCreatorId;
-                const canDelete = isOwner || isCreator;
-
-                return (
-                  <div key={comment.id} className="flex items-start gap-3">
-                    <Avatar
-                      className="w-8 h-8 shrink-0 cursor-pointer"
-                      onClick={() => navigate(`/user/${comment.user_id}`)}
-                    >
-                      <AvatarImage src={comment.user?.avatar_url || DEFAULT_AVATAR} />
-                      <AvatarFallback />
-                    </Avatar>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2">
-                        <span
-                          className="text-sm text-foreground cursor-pointer hover:text-primary transition-colors font-medium"
-                          onClick={() => navigate(`/user/${comment.user_id}`)}
-                        >
-                          @{comment.user?.username || "usuario"}
-                        </span>
-                        <span className="text-[11px] text-muted-foreground/60">
-                          {formatDistanceToNow(new Date(comment.created_at), {
-                            addSuffix: true,
-                            locale: es,
-                          })}
-                        </span>
-                      </div>
-                      <p className="text-sm text-foreground/90 mt-0.5 leading-relaxed break-words">
-                        {comment.content}
-                      </p>
-                    </div>
-
-                    {canDelete && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="shrink-0 p-1 rounded-full hover:bg-muted transition-colors opacity-40 hover:opacity-100">
-                            <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44">
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(comment.id)}
-                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Eliminar comentario
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                );
-              })}
+              {comments.map((comment) => (
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  eventId={eventId}
+                  eventCreatorId={eventCreatorId}
+                  onReply={handleReply}
+                  onDelete={handleDelete}
+                />
+              ))}
               <div ref={bottomRef} />
             </div>
           )}
         </ScrollArea>
+
+        {/* Reply indicator */}
+        {replyingTo && (
+          <div className="shrink-0 px-4 py-2 border-t border-border/30 flex items-center justify-between bg-muted/50">
+            <span className="text-xs text-muted-foreground">
+              Respondiendo a <span className="font-medium text-foreground">@{replyingTo.username}</span>
+            </span>
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="p-0.5 rounded-full hover:bg-muted transition-colors"
+            >
+              <X className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+          </div>
+        )}
 
         {/* Input bar */}
         <div className="shrink-0 border-t border-border/50 px-4 py-3 safe-bottom">
@@ -183,7 +150,7 @@ export const CommentsSheet = ({
               value={text}
               onChange={(e) => setText(e.target.value)}
               onFocus={handleInputFocus}
-              placeholder="Añade un comentario…"
+              placeholder={replyingTo ? `Responder a @${replyingTo.username}…` : "Añade un comentario…"}
               maxLength={500}
               className="flex-1 bg-secondary/50 rounded-full px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/40 transition-all"
             />
