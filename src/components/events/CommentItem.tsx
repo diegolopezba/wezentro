@@ -43,13 +43,17 @@ export const CommentItem = ({
   const navigate = useNavigate();
   const likeComment = useLikeComment();
   const unlikeComment = useUnlikeComment();
-  const [showReplies, setShowReplies] = useState(false);
+  const [showAllReplies, setShowAllReplies] = useState(false);
 
   const { data: replyCount = 0 } = useReplyCount(!isReply ? comment.id : undefined);
   const { data: replies = [] } = useCommentReplies(
-    showReplies && !isReply ? comment.id : undefined,
+    !isReply && replyCount > 0 ? comment.id : undefined,
     eventId
   );
+
+  const inlineReplies = replies.slice(0, 2);
+  const extraReplies = replies.slice(2);
+  const hasMore = replyCount > 2;
 
   const isOwner = user?.id === comment.user_id;
   const isCreator = user?.id === eventCreatorId;
