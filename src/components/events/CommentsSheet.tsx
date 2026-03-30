@@ -35,6 +35,7 @@ export const CommentsSheet = ({
   commentCount = 0,
 }: CommentsSheetProps) => {
   const { user } = useAuth();
+  const { data: currentProfile } = useUserProfile(user?.id);
   const { promptAuth } = useAuthPrompt();
   const navigate = useNavigate();
   const [text, setText] = useState("");
