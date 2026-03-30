@@ -118,6 +118,35 @@ export type Database = {
           },
         ]
       }
+      comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "event_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_analytics: {
         Row: {
           check_ins: number | null
@@ -190,6 +219,7 @@ export type Database = {
           deleted_at: string | null
           event_id: string
           id: string
+          parent_id: string | null
           user_id: string
         }
         Insert: {
@@ -198,6 +228,7 @@ export type Database = {
           deleted_at?: string | null
           event_id: string
           id?: string
+          parent_id?: string | null
           user_id: string
         }
         Update: {
@@ -206,6 +237,7 @@ export type Database = {
           deleted_at?: string | null
           event_id?: string
           id?: string
+          parent_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -214,6 +246,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "event_comments"
             referencedColumns: ["id"]
           },
           {
