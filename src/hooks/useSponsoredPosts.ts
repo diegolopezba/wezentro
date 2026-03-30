@@ -165,6 +165,20 @@ export const useUpdateSponsoredStatus = () => {
 
   return useMutation({
     mutationFn: async (params: { id: string; status: string }) => {
+      // Budget exhaustion guard: prevent reactivation when budget is spent
+      if (params.status === "active") {
+        const { data: post } = await supabase
+          .from("sponsored_posts")
+          .select("spent, total_budget")
+          .eq("id", params.id)
+          .single();
+
+        if (post && post.total_budget && Number(post.spent) >= Number(post.total_budget)) {
+          toast.error("Presupuesto agotado. Agrega más presupuesto antes de reactivar.");
+          throw new Error("Budget exhausted");
+        }
+      }
+
       const updateData: Record<string, any> = { status: params.status };
       if (params.status === "active") {
         updateData.start_date = new Date().toISOString();

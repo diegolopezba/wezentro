@@ -171,18 +171,25 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
       if (error) throw error;
 
       if (data?.success) {
-        // Card charged directly — campaign is already active
         toast.success("¡Campaña activada! Ya está apareciendo en el feed.");
         refetch();
         setActivatingId(null);
       } else if (data?.checkout_url) {
-        // No saved card — open Stripe Checkout in in-app browser (native) or new tab (web)
         if (Capacitor.isNativePlatform()) {
+          // Listen for browser close to refetch status
+          const listener = await Browser.addListener("browserFinished", async () => {
+            listener.remove();
+            setActivatingId(null);
+            const { data: refreshed } = await refetch();
+            const activated = refreshed?.find((p: any) => p.id === sp.id && p.status === "active");
+            if (activated) {
+              toast.success("¡Campaña activada! Ya está apareciendo en el feed.");
+            }
+          });
           await Browser.open({ url: data.checkout_url });
         } else {
           window.open(data.checkout_url, "_blank", "noopener,noreferrer");
         }
-        // Keep spinner until user returns; reset after 30s as safety net
         setTimeout(() => setActivatingId(null), 30_000);
       } else {
         throw new Error("Respuesta inesperada del servidor");
