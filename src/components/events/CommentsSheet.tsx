@@ -15,6 +15,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useEventComments, useAddComment, useDeleteComment } from "@/hooks/useEventComments";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
