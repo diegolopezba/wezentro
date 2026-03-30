@@ -174,7 +174,7 @@ export const CommentsSheet = ({
         <div className="shrink-0 border-t border-border/50 px-4 py-3 safe-bottom">
           <form onSubmit={handleSubmit} className="flex items-center gap-3">
             <Avatar className="w-8 h-8 shrink-0">
-              <AvatarImage src={user?.user_metadata?.avatar_url || DEFAULT_AVATAR} />
+              <AvatarImage src={currentProfile?.avatar_url || DEFAULT_AVATAR} />
               <AvatarFallback />
             </Avatar>
             <input
