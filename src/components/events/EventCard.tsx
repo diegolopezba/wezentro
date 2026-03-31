@@ -223,7 +223,7 @@ export const EventCard = ({
                   asChild
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <button className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors z-10">
+                  <button className="absolute top-2 right-2 w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors z-10 bg-transparent">
                     <MoreHorizontal className="w-3.5 h-3.5 text-white" />
                   </button>
                 </DropdownMenuTrigger>
