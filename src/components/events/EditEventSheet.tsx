@@ -250,76 +250,78 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="datetime">Fecha y hora</Label>
-            <Input
-              id="datetime"
-              type="datetime-local"
-              value={formData.start_datetime}
-              onChange={(e) => setFormData({ ...formData, start_datetime: e.target.value })}
-            />
-          </div>
+          {!isPost && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="datetime">Fecha y hora</Label>
+                <Input
+                  id="datetime"
+                  type="datetime-local"
+                  value={formData.start_datetime}
+                  onChange={(e) => setFormData({ ...formData, start_datetime: e.target.value })}
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="location">Ubicación</Label>
-            <Input
-              id="location"
-              value={formData.location_name}
-              onChange={(e) => setFormData({ ...formData, location_name: e.target.value })}
-              placeholder="Ubicación del evento"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="location">Ubicación</Label>
+                <Input
+                  id="location"
+                  value={formData.location_name}
+                  onChange={(e) => setFormData({ ...formData, location_name: e.target.value })}
+                  placeholder="Ubicación del evento"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="price">Precio (Bs)</Label>
-            <Input
-              id="price"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="price">Precio (Bs)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                />
+              </div>
 
-          <div className="flex items-center justify-between py-2">
-            <div className="flex flex-col">
-              <Label htmlFor="guestlist">Habilitar lista de invitados</Label>
-              {!isBusiness && (
-                <span className="text-xs text-muted-foreground">
-                  Requiere cuenta Business (gratis en Configuración)
-                </span>
+              <div className="flex items-center justify-between py-2">
+                <div className="flex flex-col">
+                  <Label htmlFor="guestlist">Habilitar lista de invitados</Label>
+                  {!isBusiness && (
+                    <span className="text-xs text-muted-foreground">
+                      Requiere cuenta Business (gratis en Configuración)
+                    </span>
+                  )}
+                </div>
+                <Switch
+                  id="guestlist"
+                  checked={formData.has_guestlist}
+                  onCheckedChange={(checked) => {
+                    if (checked && !isBusiness) {
+                      toast.info("Activa tu cuenta Business en Configuración para usar guestlists");
+                      return;
+                    }
+                    setFormData({ ...formData, has_guestlist: checked });
+                  }}
+                />
+              </div>
+
+              {formData.has_guestlist && (
+                <div className="space-y-2">
+                  <Label htmlFor="capacity">Capacidad máxima (opcional)</Label>
+                  <Input
+                    id="capacity"
+                    type="number"
+                    min="1"
+                    value={formData.max_guestlist_capacity}
+                    onChange={(e) => setFormData({ ...formData, max_guestlist_capacity: e.target.value })}
+                    placeholder="Dejar vacío para ilimitado"
+                  />
+                </div>
               )}
-            </div>
-            <Switch
-              id="guestlist"
-              checked={formData.has_guestlist}
-              onCheckedChange={(checked) => {
-                if (checked && !isBusiness) {
-                  toast.info("Activa tu cuenta Business en Configuración para usar guestlists");
-                  return;
-                }
-                setFormData({ ...formData, has_guestlist: checked });
-              }}
-            />
-          </div>
 
-          {formData.has_guestlist && (
-            <div className="space-y-2">
-              <Label htmlFor="capacity">Capacidad máxima (opcional)</Label>
-              <Input
-                id="capacity"
-                type="number"
-                min="1"
-                value={formData.max_guestlist_capacity}
-                onChange={(e) => setFormData({ ...formData, max_guestlist_capacity: e.target.value })}
-                placeholder="Dejar vacío para ilimitado"
-              />
-            </div>
-          )}
-
-          {/* Payment QR Section - Only for Business users with price > 0 and guestlist enabled */}
-          {showPaymentQrSection && (
+              {/* Payment QR Section - Only for Business users with price > 0 and guestlist enabled */}
+              {showPaymentQrSection && (
             <div className="space-y-2 p-4 rounded-xl bg-secondary/50 border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <QrCode className="w-4 h-4 text-primary" />
