@@ -400,7 +400,7 @@ const EventDetail = () => {
       {event.has_guestlist && canInviteToGuestlist && <ShareGuestlistModal eventId={id!} open={showGuestlistInviteModal} onOpenChange={setShowGuestlistInviteModal} />}
 
       {/* Edit Event Sheet - Owner only */}
-      {isOwner && <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} />}
+      {isOwner && <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} isPost={!!event.is_post} />}
 
       {/* Delete Event Dialog - Owner only */}
       {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} />}

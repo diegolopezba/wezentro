@@ -193,7 +193,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
         }
       }
 
-      toast.success("Evento actualizado exitosamente");
+      toast.success(isPost ? "Post actualizado exitosamente" : "Evento actualizado exitosamente");
       onOpenChange(false);
     } catch (error: any) {
       toast.error(error.message || "Error al actualizar evento");
