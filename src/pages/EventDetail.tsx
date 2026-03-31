@@ -199,11 +199,11 @@ const EventDetail = () => {
                 <>
                         <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
                           <Pencil className="w-4 h-4 mr-2" />
-                          Editar evento
+                          {event.is_post ? "Editar post" : "Editar evento"}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Eliminar evento
+                          {event.is_post ? "Eliminar post" : "Eliminar evento"}
                         </DropdownMenuItem>
                       </>
                 }
