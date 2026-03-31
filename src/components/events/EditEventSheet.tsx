@@ -33,6 +33,7 @@ interface EditEventSheetProps {
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isPost?: boolean;
 }
 
 import { CATEGORIES } from "@/lib/categories";
