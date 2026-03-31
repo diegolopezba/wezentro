@@ -206,7 +206,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[85dvh] max-h-[85dvh] rounded-t-3xl flex flex-col">
         <SheetHeader className="shrink-0 mb-4">
-          <SheetTitle>Editar evento</SheetTitle>
+          <SheetTitle>{isPost ? "Editar post" : "Editar evento"}</SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 pb-4 -mx-6 px-6">
