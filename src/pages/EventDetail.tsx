@@ -199,11 +199,11 @@ const EventDetail = () => {
                 <>
                         <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
                           <Pencil className="w-4 h-4 mr-2" />
-                          Editar evento
+                          {event.is_post ? "Editar post" : "Editar evento"}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Eliminar evento
+                          {event.is_post ? "Eliminar post" : "Eliminar evento"}
                         </DropdownMenuItem>
                       </>
                 }
@@ -400,7 +400,7 @@ const EventDetail = () => {
       {event.has_guestlist && canInviteToGuestlist && <ShareGuestlistModal eventId={id!} open={showGuestlistInviteModal} onOpenChange={setShowGuestlistInviteModal} />}
 
       {/* Edit Event Sheet - Owner only */}
-      {isOwner && <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} />}
+      {isOwner && <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} isPost={!!event.is_post} />}
 
       {/* Delete Event Dialog - Owner only */}
       {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} />}

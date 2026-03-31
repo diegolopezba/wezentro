@@ -214,11 +214,11 @@ export const EventDetailOverlay = () => {
                             <>
                               <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
                                 <Pencil className="w-4 h-4 mr-2" />
-                                Editar evento
+                                {event.is_post ? "Editar post" : "Editar evento"}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
                                 <Trash2 className="w-4 h-4 mr-2" />
-                                Eliminar evento
+                                {event.is_post ? "Eliminar post" : "Eliminar evento"}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -372,7 +372,7 @@ export const EventDetailOverlay = () => {
                   <GuestlistManagementSheet eventId={selectedEventId!} open={showManagement} onOpenChange={setShowManagement} />
                   <ShareEventModal open={showShareModal} onOpenChange={setShowShareModal} eventId={selectedEventId!} />
                   <ShareGuestlistModal open={showGuestlistInviteModal} onOpenChange={setShowGuestlistInviteModal} eventId={selectedEventId!} />
-                  <EditEventSheet open={showEditSheet} onOpenChange={setShowEditSheet} event={event} />
+                  <EditEventSheet open={showEditSheet} onOpenChange={setShowEditSheet} event={event} isPost={!!event.is_post} />
                   <DeleteEventDialog
                     open={showDeleteDialog}
                     onOpenChange={open => {
