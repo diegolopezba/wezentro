@@ -1,30 +1,27 @@
 
 
-## Plan: Auto-show first 2 replies, "Ver más" for 3+
+## Plan: Differentiate Edit UI for Posts vs Events
 
-### Current behavior
-All replies are hidden behind a "Ver N respuestas" toggle, regardless of count.
+### Problem
+Both posts and events share the same "Editar evento" label and the same `EditEventSheet` form, which shows event-specific fields (date, location, price, guestlist, capacity, payment QR) even for posts where they don't apply.
 
-### New behavior
-- **1–2 replies**: Show them inline automatically (no toggle needed)
-- **3+ replies**: Show the first 2 inline, then a "Ver N más respuestas" button to expand the rest
+### Changes
 
-### Changes — `src/components/events/CommentItem.tsx`
+**1. Dropdown menu labels** — `EventDetailOverlay.tsx` and `EventDetail.tsx`
+- Change "Editar evento" → "Editar post" and "Eliminar evento" → "Eliminar post" when `event.is_post` is true
 
-1. **Always fetch replies** when `replyCount > 0` (remove the `showReplies &&` guard from `useCommentReplies`)
-2. **Auto-display first 2 replies** directly below the comment
-3. **"Ver más" toggle** only appears when `replyCount > 2`:
-   - Collapsed: shows "Ver {replyCount - 2} respuestas más"
-   - Expanded: shows all remaining replies + "Ocultar respuestas"
-4. Remove the current toggle that shows for any `replyCount > 0`
+**2. EditEventSheet — conditionally hide event-only fields**
+- Accept a new `isPost` boolean prop
+- When `isPost` is true, hide: date/time, location, price, guestlist toggle, capacity, payment QR section
+- Only show: title, description, category, and business toggles (menu/reservation)
+- Change sheet title from "Editar evento" to "Editar post" when applicable
+- Change save toast from "Evento actualizado" to "Post actualizado"
 
-### Logic summary
-```text
-if replyCount == 0 → nothing
-if replyCount <= 2 → render all replies inline, no toggle
-if replyCount > 2  → render first 2 inline
-                    → "Ver N más" button toggles the rest
-```
+### Files affected
 
-Single file change, no database or hook changes needed.
+| File | Change |
+|---|---|
+| `src/components/events/EditEventSheet.tsx` | Add `isPost` prop, conditionally render fields and labels |
+| `src/components/events/EventDetailOverlay.tsx` | Pass `isPost` to EditEventSheet, update dropdown labels |
+| `src/pages/EventDetail.tsx` | Pass `isPost` to EditEventSheet, update dropdown labels |
 
