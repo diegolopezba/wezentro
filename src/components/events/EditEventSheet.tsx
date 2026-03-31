@@ -372,6 +372,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
                 </div>
               )}
             </div>
+              )}
+            </>
           )}
 
           {/* Menu Button Toggle - Only for Business users with menu items */}
