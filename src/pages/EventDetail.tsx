@@ -362,7 +362,10 @@ const EventDetail = () => {
                           <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
                         </div>)}
                     </div>
-                  </> : <p className="text-muted-foreground text-sm">{isInviteOnlyGuestlist ? "Solo por invitación del organizador" : "Nadie se ha unido aún. ¡Sé el primero!"}</p>}
+                  </> : <div className="text-center py-6 rounded-2xl bg-secondary/30">
+                      <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground text-sm">{isInviteOnlyGuestlist ? "Solo por invitación del organizador" : "Nadie se ha unido aún. ¡Sé el primero!"}</p>
+                    </div>}
             </div>}
 
           {/* Invitations Sent Section - Owner only, for events with guestlist */}
