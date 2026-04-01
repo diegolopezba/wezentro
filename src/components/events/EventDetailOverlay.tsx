@@ -66,6 +66,7 @@ export const EventDetailOverlay = () => {
   const { data: latestComment = null } = useLatestComment(selectedEventId || undefined);
 
   const isVideo = isVideoUrl(event?.image_url);
+  const isPost = !!(event?.is_post) || (event ? !event.start_datetime : false);
 
   // Check for showPayment query param (returned from checkout success)
   useEffect(() => {
