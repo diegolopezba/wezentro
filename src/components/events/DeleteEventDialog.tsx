@@ -46,10 +46,10 @@ export function DeleteEventDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Eliminar evento</AlertDialogTitle>
+          <AlertDialogTitle>{isPost ? "Eliminar post" : "Eliminar evento"}</AlertDialogTitle>
           <AlertDialogDescription>
             ¿Estás seguro de que quieres eliminar{" "}
-            <span className="font-semibold">{eventTitle || "este evento"}</span>?
+            <span className="font-semibold">{eventTitle || (isPost ? "este post" : "este evento")}</span>?
             Esta acción no se puede deshacer.
           </AlertDialogDescription>
         </AlertDialogHeader>
