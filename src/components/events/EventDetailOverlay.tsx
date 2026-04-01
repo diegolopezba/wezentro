@@ -405,7 +405,7 @@ export const EventDetailOverlay = () => {
                     />
                   )}
                   {/* Floating CTA Bar */}
-                  {event.has_guestlist && (
+                  {!isPost && event.has_guestlist && (
                     <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
                       <div className="flex items-center justify-between px-4 py-3">
                         <span className="font-brand text-lg font-semibold text-foreground">
