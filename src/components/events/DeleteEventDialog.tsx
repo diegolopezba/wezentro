@@ -18,6 +18,7 @@ interface DeleteEventDialogProps {
   eventTitle?: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isPost?: boolean;
 }
 
 export function DeleteEventDialog({
@@ -25,6 +26,7 @@ export function DeleteEventDialog({
   eventTitle,
   open,
   onOpenChange,
+  isPost = false,
 }: DeleteEventDialogProps) {
   const navigate = useNavigate();
   const deleteEvent = useDeleteEvent();
@@ -32,11 +34,11 @@ export function DeleteEventDialog({
   const handleDelete = async () => {
     try {
       await deleteEvent.mutateAsync(eventId);
-      toast.success("Evento eliminado exitosamente");
+      toast.success(isPost ? "Post eliminado exitosamente" : "Evento eliminado exitosamente");
       onOpenChange(false);
       navigate("/");
     } catch (error: any) {
-      toast.error(error.message || "Error al eliminar evento");
+      toast.error(error.message || (isPost ? "Error al eliminar post" : "Error al eliminar evento"));
     }
   };
 
@@ -44,10 +46,10 @@ export function DeleteEventDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Eliminar evento</AlertDialogTitle>
+          <AlertDialogTitle>{isPost ? "Eliminar post" : "Eliminar evento"}</AlertDialogTitle>
           <AlertDialogDescription>
             ¿Estás seguro de que quieres eliminar{" "}
-            <span className="font-semibold">{eventTitle || "este evento"}</span>?
+            <span className="font-semibold">{eventTitle || (isPost ? "este post" : "este evento")}</span>?
             Esta acción no se puede deshacer.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -61,7 +63,7 @@ export function DeleteEventDialog({
             {deleteEvent.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
             ) : null}
-            Eliminar evento
+            {isPost ? "Eliminar post" : "Eliminar evento"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

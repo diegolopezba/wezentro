@@ -6,6 +6,7 @@ import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
 import { ShareGuestlistModal } from "@/components/events/ShareGuestlistModal";
@@ -65,6 +66,7 @@ export const EventDetailOverlay = () => {
   const { data: latestComment = null } = useLatestComment(selectedEventId || undefined);
 
   const isVideo = isVideoUrl(event?.image_url);
+  const isPost = !!(event?.is_post) || (event ? !event.start_datetime : false);
 
   // Check for showPayment query param (returned from checkout success)
   useEffect(() => {
@@ -158,7 +160,7 @@ export const EventDetailOverlay = () => {
                   {/* Category & title */}
                   <div>
                     {event.category && (
-                      <span className="inline-block px-3 py-1 rounded-full text-xs gradient-primary mb-3 text-primary font-normal">
+                      <span className="inline-block px-3 py-1 rounded-full text-xs gradient-primary mb-3 text-primary font-medium">
                         {event.category.replace("_", " ")}
                       </span>
                     )}
@@ -188,7 +190,7 @@ export const EventDetailOverlay = () => {
                         <MessageCircle className="w-5 h-5" />
                         {commentCount > 0 && <span className="text-xs text-muted-foreground">{commentCount}</span>}
                       </Button>
-                      {event.has_guestlist && canInviteToGuestlist && (
+                      {!isPost && event.has_guestlist && canInviteToGuestlist && (
                         <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
                           <UserPlus className="w-5 h-5" />
                         </Button>
@@ -250,18 +252,18 @@ export const EventDetailOverlay = () => {
                   </div>
 
                   {/* Details - Only show for events, not posts */}
-                  {!event.is_post && (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        <p className="text-sm text-foreground">{formattedDate}</p>
-                      </div>
+                  {!isPost && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <p className="text-sm text-foreground">{formattedDate}</p>
+                    </div>
+                  )}
 
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <p className="text-sm text-foreground">{event.location_name || "Ubicación por definir"}</p>
-                      </div>
-                    </>
+                  {event.location_name && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                      <p className="text-sm text-foreground">{event.location_name}</p>
+                    </div>
                   )}
 
                   {/* Description */}
@@ -304,7 +306,7 @@ export const EventDetailOverlay = () => {
                   </div>
 
                   {/* Guestlist attendees */}
-                  {event.has_guestlist && (
+                  {!isPost && event.has_guestlist && (
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <h2 className="font-brand text-lg font-semibold text-foreground">
@@ -335,7 +337,7 @@ export const EventDetailOverlay = () => {
                                     @{entry.user?.username || "user"}
                                   </p>
                                   <p className="text-xs text-muted-foreground">
-                                    Se unió el {format(new Date(entry.joined_at), "d MMM")}
+                                    Se unió el {format(new Date(entry.joined_at), "d MMM", { locale: es })}
                                   </p>
                                 </div>
                                 <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
@@ -355,7 +357,7 @@ export const EventDetailOverlay = () => {
                   )}
 
                   {/* Invitations Sent Section - Owner only */}
-                  {isOwner && event.has_guestlist && <InvitationsSentSection eventId={selectedEventId!} />}
+                  {!isPost && isOwner && event.has_guestlist && <InvitationsSentSection eventId={selectedEventId!} />}
 
                   {/* Related content */}
                   <RelatedEventsFeed
@@ -381,6 +383,7 @@ export const EventDetailOverlay = () => {
                     }}
                     eventId={selectedEventId!}
                     eventTitle={event.title}
+                    isPost={isPost}
                   />
                   {hasPaymentQr && (
                     <PaymentQRModal
@@ -402,7 +405,7 @@ export const EventDetailOverlay = () => {
                     />
                   )}
                   {/* Floating CTA Bar */}
-                  {event.has_guestlist && (
+                  {!isPost && event.has_guestlist && (
                     <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
                       <div className="flex items-center justify-between px-4 py-3">
                         <span className="font-brand text-lg font-semibold text-foreground">
@@ -436,7 +439,7 @@ export const EventDetailOverlay = () => {
                     </div>
                   )}
                   {/* Floating Reservation CTA Bar — shown only when no guestlist bar */}
-                  {!event.has_guestlist && event.show_reservation_button && event.creator_id && (
+                  {(isPost || !event.has_guestlist) && event.show_reservation_button && event.creator_id && (
                     <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
                       <div className="flex items-center justify-between px-4 py-3">
                         <span className="font-brand text-base font-semibold text-foreground">

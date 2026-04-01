@@ -2,6 +2,7 @@ import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -355,13 +356,16 @@ const EventDetail = () => {
                               @{entry.user?.username || "user"}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Joined {format(new Date(entry.joined_at), "MMM d")}
+                              Joined {format(new Date(entry.joined_at), "d MMM", { locale: es })}
                             </p>
                           </div>
                           <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
                         </div>)}
                     </div>
-                  </> : <p className="text-muted-foreground text-sm">{isInviteOnlyGuestlist ? "Solo por invitación del organizador" : "Nadie se ha unido aún. ¡Sé el primero!"}</p>}
+                  </> : <div className="text-center py-6 rounded-2xl bg-secondary/30">
+                      <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground text-sm">{isInviteOnlyGuestlist ? "Solo por invitación del organizador" : "Nadie se ha unido aún. ¡Sé el primero!"}</p>
+                    </div>}
             </div>}
 
           {/* Invitations Sent Section - Owner only, for events with guestlist */}
@@ -403,7 +407,7 @@ const EventDetail = () => {
       {isOwner && <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} isPost={!!event.is_post} />}
 
       {/* Delete Event Dialog - Owner only */}
-      {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} />}
+      {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} isPost={isPost} />}
       
       {/* Payment QR Modal */}
       {hasPaymentQr &&
