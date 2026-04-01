@@ -34,7 +34,7 @@ export function DeleteEventDialog({
   const handleDelete = async () => {
     try {
       await deleteEvent.mutateAsync(eventId);
-      toast.success("Evento eliminado exitosamente");
+      toast.success(isPost ? "Post eliminado exitosamente" : "Evento eliminado exitosamente");
       onOpenChange(false);
       navigate("/");
     } catch (error: any) {
