@@ -63,7 +63,7 @@ export function DeleteEventDialog({
             {deleteEvent.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
             ) : null}
-            Eliminar evento
+            {isPost ? "Eliminar post" : "Eliminar evento"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
