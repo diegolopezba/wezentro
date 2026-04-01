@@ -26,6 +26,7 @@ export function DeleteEventDialog({
   eventTitle,
   open,
   onOpenChange,
+  isPost = false,
 }: DeleteEventDialogProps) {
   const navigate = useNavigate();
   const deleteEvent = useDeleteEvent();
