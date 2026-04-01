@@ -38,7 +38,7 @@ export function DeleteEventDialog({
       onOpenChange(false);
       navigate("/");
     } catch (error: any) {
-      toast.error(error.message || "Error al eliminar evento");
+      toast.error(error.message || (isPost ? "Error al eliminar post" : "Error al eliminar evento"));
     }
   };
 
