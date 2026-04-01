@@ -337,7 +337,7 @@ export const EventDetailOverlay = () => {
                                     @{entry.user?.username || "user"}
                                   </p>
                                   <p className="text-xs text-muted-foreground">
-                                    Se unió el {format(new Date(entry.joined_at), "d MMM")}
+                                    Se unió el {format(new Date(entry.joined_at), "d MMM", { locale: es })}
                                   </p>
                                 </div>
                                 <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
