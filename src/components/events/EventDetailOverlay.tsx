@@ -383,6 +383,7 @@ export const EventDetailOverlay = () => {
                     }}
                     eventId={selectedEventId!}
                     eventTitle={event.title}
+                    isPost={isPost}
                   />
                   {hasPaymentQr && (
                     <PaymentQRModal
