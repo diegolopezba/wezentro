@@ -18,6 +18,7 @@ interface DeleteEventDialogProps {
   eventTitle?: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isPost?: boolean;
 }
 
 export function DeleteEventDialog({
