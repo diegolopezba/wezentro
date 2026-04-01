@@ -439,7 +439,7 @@ export const EventDetailOverlay = () => {
                     </div>
                   )}
                   {/* Floating Reservation CTA Bar — shown only when no guestlist bar */}
-                  {!event.has_guestlist && event.show_reservation_button && event.creator_id && (
+                  {(isPost || !event.has_guestlist) && event.show_reservation_button && event.creator_id && (
                     <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
                       <div className="flex items-center justify-between px-4 py-3">
                         <span className="font-brand text-base font-semibold text-foreground">
