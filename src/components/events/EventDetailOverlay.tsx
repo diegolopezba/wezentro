@@ -160,7 +160,7 @@ export const EventDetailOverlay = () => {
                   {/* Category & title */}
                   <div>
                     {event.category && (
-                      <span className="inline-block px-3 py-1 rounded-full text-xs gradient-primary mb-3 text-primary font-normal">
+                      <span className="inline-block px-3 py-1 rounded-full text-xs gradient-primary mb-3 text-primary font-medium">
                         {event.category.replace("_", " ")}
                       </span>
                     )}
