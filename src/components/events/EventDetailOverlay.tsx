@@ -357,7 +357,7 @@ export const EventDetailOverlay = () => {
                   )}
 
                   {/* Invitations Sent Section - Owner only */}
-                  {isOwner && event.has_guestlist && <InvitationsSentSection eventId={selectedEventId!} />}
+                  {!isPost && isOwner && event.has_guestlist && <InvitationsSentSection eventId={selectedEventId!} />}
 
                   {/* Related content */}
                   <RelatedEventsFeed
