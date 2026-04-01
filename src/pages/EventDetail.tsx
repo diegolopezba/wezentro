@@ -356,7 +356,7 @@ const EventDetail = () => {
                               @{entry.user?.username || "user"}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Joined {format(new Date(entry.joined_at), "MMM d")}
+                              Joined {format(new Date(entry.joined_at), "d MMM", { locale: es })}
                             </p>
                           </div>
                           <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
