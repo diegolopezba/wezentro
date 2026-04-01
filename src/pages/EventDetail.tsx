@@ -407,7 +407,7 @@ const EventDetail = () => {
       {isOwner && <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} isPost={!!event.is_post} />}
 
       {/* Delete Event Dialog - Owner only */}
-      {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} />}
+      {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} isPost={isPost} />}
       
       {/* Payment QR Modal */}
       {hasPaymentQr &&
