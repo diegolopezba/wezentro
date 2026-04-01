@@ -306,7 +306,7 @@ export const EventDetailOverlay = () => {
                   </div>
 
                   {/* Guestlist attendees */}
-                  {event.has_guestlist && (
+                  {!isPost && event.has_guestlist && (
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <h2 className="font-brand text-lg font-semibold text-foreground">
