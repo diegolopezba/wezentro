@@ -42,7 +42,7 @@ export const EventDetailOverlay = () => {
     hasReposted, repostCount, saveCount,
     isOnGuestlist, isPending, isApproved,
     isOwner, canInviteToGuestlist,
-    hasPaymentQr, isInviteOnlyGuestlist,
+    hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
@@ -404,8 +404,8 @@ export const EventDetailOverlay = () => {
                       onOpenChange={setShowInviteFriendsSheet}
                     />
                   )}
-                  {/* Floating CTA Bar */}
-                  {!isPost && event.has_guestlist && (
+                  {/* Floating CTA Bar — show when guestlist OR paid tickets */}
+                  {!isPost && (event.has_guestlist || hasPaidTickets) && (
                     <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
                       <div className="flex items-center justify-between px-4 py-3">
                         <span className="font-brand text-lg font-semibold text-foreground">
@@ -432,14 +432,14 @@ export const EventDetailOverlay = () => {
                           )
                         ) : (
                           <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlistPending}>
-                            {joinGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : (hasPaymentQr || isInviteOnlyGuestlist) ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
+                            {joinGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
                           </Button>
                         )}
                       </div>
                     </div>
                   )}
-                  {/* Floating Reservation CTA Bar — shown only when no guestlist bar */}
-                  {(isPost || !event.has_guestlist) && event.show_reservation_button && event.creator_id && (
+                  {/* Floating Reservation CTA Bar — shown only when no ticket/guestlist bar */}
+                  {event.show_reservation_button && !(event.has_guestlist || hasPaidTickets) && event.creator_id && (
                     <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
                       <div className="flex items-center justify-between px-4 py-3">
                         <span className="font-brand text-base font-semibold text-foreground">

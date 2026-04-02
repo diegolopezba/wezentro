@@ -78,7 +78,8 @@ export const useEventDetailState = (
   const isOwner = !!(user && user.id === event?.creator_id);
   const canInviteToGuestlist = isOwner || isApproved;
   const pendingCount = pendingRequests.length + pendingPayments.length;
-  const hasPaymentQr = !!(event?.payment_qr_url && (event?.price || 0) > 0);
+  const hasPaidTickets = (event?.price ?? 0) > 0;
+  const hasPaymentQr = !!(event?.payment_qr_url && hasPaidTickets);
   const isInviteOnlyGuestlist = !!(event?.price && event.price > 0 && event?.has_guestlist);
   const formattedDate = event?.start_datetime
     ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")
@@ -193,7 +194,7 @@ export const useEventDetailState = (
     // Derived
     isOnGuestlist, isPending, isApproved,
     isOwner, canInviteToGuestlist,
-    hasPaymentQr, isInviteOnlyGuestlist,
+    hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
     isGuest, isAuthenticated: !isGuest,
     formattedDate, formattedPrice,
     // Media
