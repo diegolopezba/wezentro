@@ -46,7 +46,7 @@ export const EventDetailOverlay = () => {
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
-    joinGuestlistPending, leaveGuestlistPending,
+    buyTicketPending, leaveGuestlistPending,
     saveEventPending, likeEventPending, repostPending,
     showManagement, setShowManagement,
     showShareModal, setShowShareModal,
@@ -59,7 +59,7 @@ export const EventDetailOverlay = () => {
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
-    handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
+    handleBuyTicket, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(selectedEventId || undefined, closeEvent);
 
   const { data: commentCount = 0 } = useCommentCount(selectedEventId || undefined);

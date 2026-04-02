@@ -52,7 +52,7 @@ const EventDetail = () => {
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
-    joinGuestlistPending, leaveGuestlistPending,
+    buyTicketPending, leaveGuestlistPending,
     saveEventPending, likeEventPending, repostPending,
     showManagement, setShowManagement,
     showShareModal, setShowShareModal,
@@ -65,7 +65,7 @@ const EventDetail = () => {
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
-    handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
+    handleBuyTicket, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, () => navigate(-1));
 
   const { data: eventTags } = useEventTags(id);
