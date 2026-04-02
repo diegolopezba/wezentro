@@ -62,7 +62,6 @@ export const useEventDetailState = (
   const { data: saveCount = 0 } = useSaveCount(event ? eventId : undefined);
 
   // Mutations
-  const joinGuestlist = useJoinGuestlist();
   const joinGuestlistWithPayment = useJoinGuestlistWithPayment();
   const leaveGuestlist = useLeaveGuestlist();
   const saveEvent = useSaveEvent();
@@ -201,7 +200,7 @@ export const useEventDetailState = (
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
     // Mutation loading states
-    joinGuestlistPending: joinGuestlist.isPending || joinGuestlistWithPayment.isPending,
+    buyTicketPending: joinGuestlistWithPayment.isPending,
     leaveGuestlistPending: leaveGuestlist.isPending,
     saveEventPending: saveEvent.isPending || unsaveEvent.isPending,
     likeEventPending: likeEvent.isPending || unlikeEvent.isPending,
@@ -223,7 +222,7 @@ export const useEventDetailState = (
     handleLikeToggle,
     handleRepostToggle,
     handleSendToggle,
-    handleJoinGuestlist,
+    handleBuyTicket,
     handlePaymentSubmitted,
     handleLeaveGuestlist,
   };
