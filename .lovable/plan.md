@@ -1,48 +1,72 @@
 
 
-## Fix: Events Created from Event Tab Appearing as Posts
+## Decouple Tickets from Guestlist + Move Reservation Toggle to Posts Only
 
-### Root Cause
-Two issues combine to cause this:
+### Part 1 — Show ticket CTA when price > 0 (independent of guestlist)
 
-1. **`start_datetime` requires both date AND time** — Line 245 of `Create.tsx` only sets `start_datetime` when both `formData.date` AND `formData.time` are filled. If either is missing, it stays `null`.
+**`src/pages/EventDetail.tsx` and `src/components/events/EventDetailOverlay.tsx`**
 
-2. **Post detection fallback overrides `is_post`** — The standardized logic `isPost = event.is_post || !event.start_datetime` treats anything without a `start_datetime` as a post, even when `is_post` is explicitly `false`.
-
-So even though `is_post: false` is correctly saved, a missing time or date makes the event look like a post everywhere.
-
-### Fix (two-part)
-
-**Part A — Make `is_post` the single source of truth**
-
-In `EventDetailOverlay.tsx` and `EventDetail.tsx`, change:
+Change the floating CTA bar guard from:
 ```ts
 // Before
-const isPost = event.is_post || !event.start_datetime;
+{!isPost && event.has_guestlist && (
+```
+to:
+```ts
+// After
+{!isPost && (event.has_guestlist || (event.price && event.price > 0)) && (
+```
+
+Update the button label logic inside the bar:
+- Price > 0 → show "Comprar" (buy tickets)
+- Price = 0 + guestlist → show "Unirse" (join guestlist)
+- Already joined → show status as before
+
+**`src/hooks/useEventDetailState.ts`**
+
+Add `hasPaidTickets = (event?.price ?? 0) > 0` as a derived value and export it.
+
+### Part 2 — Reservation toggle: posts only, not events
+
+**`src/pages/Create.tsx`**
+
+Line 278 — flip the condition:
+```ts
+// Before
+show_reservation_button: isBusiness && reservationsEnabled && !isPost ? formData.showReservationButton : false
 
 // After
-const isPost = !!event.is_post;
+show_reservation_button: isBusiness && reservationsEnabled && isPost ? formData.showReservationButton : false
 ```
 
-The fallback heuristic was added for legacy data, but it causes false positives. If old data needs fixing, a one-time migration is safer than a runtime heuristic that breaks new events.
-
-**Part B — Require date+time for events at creation**
-
-In `Create.tsx`, add validation in `handleSubmit` so events cannot be published without a date and time:
+Line 719 — flip the visibility guard:
 ```ts
-if (!isPost && (!formData.date || !formData.time)) {
-  toast.error("Por favor ingresa la fecha y hora del evento");
-  return;
-}
+// Before
+{isBusiness && reservationsEnabled && !isPost &&
+
+// After
+{isBusiness && reservationsEnabled && isPost &&
 ```
 
-This prevents the scenario where an event is saved without `start_datetime`.
+**`src/pages/EventDetail.tsx` and `src/components/events/EventDetailOverlay.tsx`**
+
+Update the reservation CTA bar guard to not overlap with the ticket/guestlist bar:
+```ts
+// Before
+{(isPost || !event.has_guestlist) && event.show_reservation_button && ...
+
+// After  
+{event.show_reservation_button && !(event.has_guestlist || (event.price && event.price > 0)) && ...
+```
+
+This ensures the reservation bar only shows when there's no ticket/guestlist bar already visible.
 
 ### Files
 
 | File | Change |
 |---|---|
-| `src/pages/Create.tsx` | Add date+time validation for events |
-| `src/pages/EventDetail.tsx` | Remove `!event.start_datetime` fallback |
-| `src/components/events/EventDetailOverlay.tsx` | Remove `!event.start_datetime` fallback |
+| `src/pages/Create.tsx` | Flip reservation toggle to posts only; keep date/time validation for events |
+| `src/pages/EventDetail.tsx` | CTA bar: show for guestlist OR price > 0; reservation bar: avoid overlap |
+| `src/components/events/EventDetailOverlay.tsx` | Same CTA + reservation bar changes |
+| `src/hooks/useEventDetailState.ts` | Add `hasPaidTickets` derived state |
 
