@@ -84,7 +84,7 @@ export const useEventDetailState = (
   const formattedDate = event?.start_datetime
     ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")
     : null;
-  const formattedPrice = event?.price ? `$${event.price}` : "Gratis";
+  const formattedPrice = event?.price ? `Bs. ${event.price}` : "Gratis";
 
   // Media handlers
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
