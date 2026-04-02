@@ -1,23 +1,48 @@
 
 
-## Fix: Reservation Button Color Inconsistency
+## Fix: Events Created from Event Tab Appearing as Posts
 
 ### Root Cause
-The "Reservar" button is styled differently in the two detail views:
-- `EventDetail.tsx` uses `variant="hero"` (red gradient — correct)
-- `EventDetailOverlay.tsx` uses the default variant (grey) with a custom `gradient-primary` class that doesn't reliably override the grey
+Two issues combine to cause this:
 
-### Fix
-**File: `src/components/events/EventDetailOverlay.tsx`** (line ~448-450)
+1. **`start_datetime` requires both date AND time** — Line 245 of `Create.tsx` only sets `start_datetime` when both `formData.date` AND `formData.time` are filled. If either is missing, it stays `null`.
 
-Replace the current Button with:
-```tsx
-<Button
-  variant="hero"
-  size="default"
-  onClick={() => setShowReservationSheet(true)}
->
+2. **Post detection fallback overrides `is_post`** — The standardized logic `isPost = event.is_post || !event.start_datetime` treats anything without a `start_datetime` as a post, even when `is_post` is explicitly `false`.
+
+So even though `is_post: false` is correctly saved, a missing time or date makes the event look like a post everywhere.
+
+### Fix (two-part)
+
+**Part A — Make `is_post` the single source of truth**
+
+In `EventDetailOverlay.tsx` and `EventDetail.tsx`, change:
+```ts
+// Before
+const isPost = event.is_post || !event.start_datetime;
+
+// After
+const isPost = !!event.is_post;
 ```
 
-Remove the custom `className` and use `variant="hero"` to match EventDetail.tsx — one line change.
+The fallback heuristic was added for legacy data, but it causes false positives. If old data needs fixing, a one-time migration is safer than a runtime heuristic that breaks new events.
+
+**Part B — Require date+time for events at creation**
+
+In `Create.tsx`, add validation in `handleSubmit` so events cannot be published without a date and time:
+```ts
+if (!isPost && (!formData.date || !formData.time)) {
+  toast.error("Por favor ingresa la fecha y hora del evento");
+  return;
+}
+```
+
+This prevents the scenario where an event is saved without `start_datetime`.
+
+### Files
+
+| File | Change |
+|---|---|
+| `src/pages/Create.tsx` | Add date+time validation for events |
+| `src/pages/EventDetail.tsx` | Remove `!event.start_datetime` fallback |
+| `src/components/events/EventDetailOverlay.tsx` | Remove `!event.start_datetime` fallback |
 
