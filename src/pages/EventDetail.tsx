@@ -47,7 +47,7 @@ const EventDetail = () => {
     hasReposted, repostCount, saveCount,
     isOnGuestlist, isPending, isApproved,
     isOwner, canInviteToGuestlist,
-    hasPaymentQr, isInviteOnlyGuestlist,
+    hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
     isAuthenticated,
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
