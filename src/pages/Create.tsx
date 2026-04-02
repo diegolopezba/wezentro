@@ -275,7 +275,7 @@ const Create = () => {
         is_post: isPost,
         description_tags: descriptionTags.length > 0 ? descriptionTags : null,
         show_menu_button: isBusiness && hasMenuItems ? formData.showMenuButton : false,
-        show_reservation_button: isBusiness && reservationsEnabled && !isPost ? formData.showReservationButton : false
+        show_reservation_button: isBusiness && reservationsEnabled && isPost ? formData.showReservationButton : false
       }).
       select().
       single();
