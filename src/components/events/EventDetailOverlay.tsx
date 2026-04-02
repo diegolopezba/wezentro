@@ -446,8 +446,8 @@ export const EventDetailOverlay = () => {
                           {event.creator?.full_name || event.creator?.username || ""}
                         </span>
                         <Button
+                          variant="hero"
                           size="default"
-                          className="gradient-primary text-primary-foreground font-semibold shadow-lg rounded-full"
                           onClick={() => setShowReservationSheet(true)}
                         >
                           <CalendarCheck className="w-4 h-4 mr-1" /> Reservar
