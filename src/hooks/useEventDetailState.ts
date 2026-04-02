@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import {
   useIsOnGuestlist,
-  useJoinGuestlist,
   useJoinGuestlistWithPayment,
   useLeaveGuestlist,
   usePendingGuestlistRequests,
@@ -147,15 +146,15 @@ export const useEventDetailState = (
     }
   };
 
-  const handleJoinGuestlist = async () => {
-    if (isGuest) { promptAuth({ action: "unirte a esta lista" }); return; }
+  const handleBuyTicket = async () => {
+    if (isGuest) { promptAuth({ action: "comprar entrada" }); return; }
     if (hasPaymentQr) { setShowPaymentModal(true); return; }
     try {
-      await joinGuestlist.mutateAsync(eventId!);
-      toast.success("¡Solicitud enviada!");
+      await joinGuestlistWithPayment.mutateAsync(eventId!);
+      toast.success(hasPaidTickets ? "¡Compra registrada! El organizador confirmará tu pago." : "¡Registro confirmado!");
       setShowInviteFriendsSheet(true);
     } catch (error: any) {
-      toast.error(error.message || "Error al unirse a la lista");
+      toast.error(error.message || "Error al registrar");
     }
   };
 
