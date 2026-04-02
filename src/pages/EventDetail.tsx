@@ -104,7 +104,7 @@ const EventDetail = () => {
       </div>;
   }
   const isVideo = isVideoUrl(event.image_url);
-  const isPost = event.is_post || !event.start_datetime;
+  const isPost = !!event.is_post;
   return <div className="min-h-screen bg-background">
       {/* Hero media */}
       <div className="relative w-full" style={{

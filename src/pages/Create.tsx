@@ -235,6 +235,10 @@ const Create = () => {
       toast.error("Cambia a cuenta Business en Configuración para habilitar listas de invitados");
       return;
     }
+    if (!isPost && (!formData.date || !formData.time)) {
+      toast.error("Por favor ingresa la fecha y hora del evento");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
