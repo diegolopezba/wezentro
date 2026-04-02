@@ -715,8 +715,8 @@ const Create = () => {
           </motion.div>
         }
 
-        {/* ── Reservation button toggle (business + events only) ── */}
-        {isBusiness && reservationsEnabled && !isPost &&
+        {/* ── Reservation button toggle (business + posts only) ── */}
+        {isBusiness && reservationsEnabled && isPost &&
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}>
             <Card className="glass border-white/10 p-4">
               <div className="flex items-center justify-between">

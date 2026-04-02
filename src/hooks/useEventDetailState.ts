@@ -194,7 +194,7 @@ export const useEventDetailState = (
     // Derived
     isOnGuestlist, isPending, isApproved,
     isOwner, canInviteToGuestlist,
-    hasPaymentQr, isInviteOnlyGuestlist,
+    hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
     isGuest, isAuthenticated: !isGuest,
     formattedDate, formattedPrice,
     // Media
