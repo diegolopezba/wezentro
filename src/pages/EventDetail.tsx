@@ -52,7 +52,7 @@ const EventDetail = () => {
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
-    joinGuestlistPending, leaveGuestlistPending,
+    buyTicketPending, leaveGuestlistPending,
     saveEventPending, likeEventPending, repostPending,
     showManagement, setShowManagement,
     showShareModal, setShowShareModal,
@@ -65,7 +65,7 @@ const EventDetail = () => {
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
-    handleJoinGuestlist, handlePaymentSubmitted, handleLeaveGuestlist,
+    handleBuyTicket, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, () => navigate(-1));
 
   const { data: eventTags } = useEventTags(id);
@@ -430,8 +430,8 @@ const EventDetail = () => {
       onOpenChange={setShowInviteFriendsSheet} />
 
     }
-      {/* Floating CTA Bar — show when guestlist OR paid tickets */}
-      {!isPost && (event.has_guestlist || hasPaidTickets) &&
+      {/* Floating CTA Bar — always show for events */}
+      {!isPost &&
     <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
           <div className="flex items-center justify-between px-4 py-3">
             <span className="font-brand text-lg font-semibold text-foreground">
@@ -451,22 +451,19 @@ const EventDetail = () => {
         <Button variant="ghost" size="default" disabled>
                   <Clock className="w-4 h-4 mr-1" /> Pendiente
                 </Button> :
-
         <Button variant="ghost" size="default" onClick={handleLeaveGuestlist} disabled={leaveGuestlistPending}>
                   {leaveGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
                 </Button> :
-
-
-        <Button variant="hero" size="default" onClick={handleJoinGuestlist} disabled={joinGuestlistPending}>
-                {joinGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <><Users className="w-4 h-4 mr-1" /> Unirse</>}
+        <Button variant="hero" size="default" onClick={handleBuyTicket} disabled={buyTicketPending}>
+                {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <>Free</>}
               </Button>
         }
           </div>
         </div>
     }
 
-    {/* Floating Reservation CTA Bar — shown only when no ticket/guestlist bar */}
-    {event.show_reservation_button && !(event.has_guestlist || hasPaidTickets) && event.creator_id && (
+    {/* Floating Reservation CTA Bar — shown only for posts */}
+    {isPost && event.show_reservation_button && event.creator_id && (
       <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
         <div className="flex items-center justify-between px-4 py-3">
           <span className="font-brand text-base font-semibold text-foreground">

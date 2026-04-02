@@ -83,7 +83,7 @@ const Help = () => {
   },
   {
     question: "¿Qué es la guestlist?",
-    answer: "La guestlist te permite controlar quién asiste a tu evento. Los usuarios solicitan unirse y tú apruebas o rechazas. Puedes establecer un límite de capacidad y ver quién asistió."
+    answer: "La guestlist te permite controlar quién asiste a tu evento. Solo el organizador puede invitar personas a la lista. Puedes establecer un límite de capacidad y ver quién asistió."
   },
   {
     question: "¿Cómo funcionan las reservas?",

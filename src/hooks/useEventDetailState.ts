@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import {
   useIsOnGuestlist,
-  useJoinGuestlist,
   useJoinGuestlistWithPayment,
   useLeaveGuestlist,
   usePendingGuestlistRequests,
@@ -62,7 +61,6 @@ export const useEventDetailState = (
   const { data: saveCount = 0 } = useSaveCount(event ? eventId : undefined);
 
   // Mutations
-  const joinGuestlist = useJoinGuestlist();
   const joinGuestlistWithPayment = useJoinGuestlistWithPayment();
   const leaveGuestlist = useLeaveGuestlist();
   const saveEvent = useSaveEvent();
@@ -148,15 +146,15 @@ export const useEventDetailState = (
     }
   };
 
-  const handleJoinGuestlist = async () => {
-    if (isGuest) { promptAuth({ action: "unirte a esta lista" }); return; }
+  const handleBuyTicket = async () => {
+    if (isGuest) { promptAuth({ action: "comprar entrada" }); return; }
     if (hasPaymentQr) { setShowPaymentModal(true); return; }
     try {
-      await joinGuestlist.mutateAsync(eventId!);
-      toast.success("¡Solicitud enviada!");
+      await joinGuestlistWithPayment.mutateAsync(eventId!);
+      toast.success(hasPaidTickets ? "¡Compra registrada! El organizador confirmará tu pago." : "¡Registro confirmado!");
       setShowInviteFriendsSheet(true);
     } catch (error: any) {
-      toast.error(error.message || "Error al unirse a la lista");
+      toast.error(error.message || "Error al registrar");
     }
   };
 
@@ -201,7 +199,7 @@ export const useEventDetailState = (
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
     // Mutation loading states
-    joinGuestlistPending: joinGuestlist.isPending || joinGuestlistWithPayment.isPending,
+    buyTicketPending: joinGuestlistWithPayment.isPending,
     leaveGuestlistPending: leaveGuestlist.isPending,
     saveEventPending: saveEvent.isPending || unsaveEvent.isPending,
     likeEventPending: likeEvent.isPending || unlikeEvent.isPending,
@@ -223,7 +221,7 @@ export const useEventDetailState = (
     handleLikeToggle,
     handleRepostToggle,
     handleSendToggle,
-    handleJoinGuestlist,
+    handleBuyTicket,
     handlePaymentSubmitted,
     handleLeaveGuestlist,
   };
