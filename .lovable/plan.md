@@ -1,53 +1,63 @@
 
 
-## Invitation-Only Guestlists + Always Show Event CTA
+## "People Going" Section with Following Priority
 
-### Summary
+### Concept
 
-- Remove "Unirse" button — guestlists are now invitation-only
-- Always show the floating CTA bar for non-post events (not just when guestlist or price > 0)
-- Button label: "Comprar" when price > 0, "Free" when price = 0
-- Remove self-join guestlist logic from the hook
+Instead of hiding the section when no followed users are attending, always show who's going to the event. Followed users appear first (ranked by interaction score), then remaining attendees fill out the row. This maintains FOMO regardless of whether the user follows anyone attending.
+
+### New Hook: `useFollowingGoing.ts`
+
+Queries `guestlist_entries` (status = 'approved') joined with `profiles` for the event. For authenticated users, also fetches:
+- Their following list from `follows`
+- Interaction scores from `user_creator_preferences`
+
+Returns two things:
+- `followingGoing`: followed attendees sorted by interaction score
+- `othersGoing`: remaining attendees
+
+The UI combines them: following first, then others, to fill the avatar row.
+
+### UI Section
+
+Placed **above** the existing "Lista de invitados" guestlist section in both `EventDetail.tsx` and `EventDetailOverlay.tsx`:
+
+```text
+┌──────────────────────────────────────┐
+│ 👥 Personas que van (12)             │
+│ [avatar][avatar][avatar][avatar] +8  │
+│ @ana, @luis y 10 más van             │
+└──────────────────────────────────────┘
+```
+
+- If some are followed: header says "Personas que sigues que van (N)" showing followed count, with remaining attendees filling the avatar row after them
+- If none are followed (or user is guest): header says "Personas que van (N)" showing total count, avatars from all attendees
+- Avatars are clickable (navigate to profile)
+- Always visible as long as at least 1 person is going
 
 ### Changes
 
-**`src/hooks/useEventDetailState.ts`**
-
-- Remove `handleJoinGuestlist` handler entirely (users can't self-join)
-- Remove `joinGuestlist` mutation import
-- Add a new `handleBuyTicket` handler:
-  - If `isGuest` → prompt auth
-  - If `hasPaymentQr` → show payment modal
-  - Else → register via `joinGuestlistWithPayment` with toast "¡Compra registrada!"
-- For free events, add `handleFreeRegistration` or just make the "Free" button a no-op / navigate to event info (to be clarified — likely just shows a confirmation toast like "¡Registro confirmado!")
-- Export `handleBuyTicket` instead of `handleJoinGuestlist`
-
-**`src/pages/EventDetail.tsx`**
-
-- Line 434: Change CTA bar guard from `!isPost && (event.has_guestlist || hasPaidTickets)` to just `!isPost`
-- Lines 449-462: Remove the "Unirse" branch. For non-owner, non-guestlist users:
-  - `hasPaidTickets` → `<Button onClick={handleBuyTicket}>Comprar</Button>`
-  - Else → `<Button onClick={handleBuyTicket}>Free</Button>` (registers for the free event)
-- Keep "Pendiente" / "Unido" status for users already on the guestlist (invited by owner)
-- Line 469: Update reservation bar guard from `!(event.has_guestlist || hasPaidTickets)` to just `false` or remove it (since CTA bar always shows for events now — reservation is posts-only)
-
-**`src/components/events/EventDetailOverlay.tsx`**
-
-- Same changes as EventDetail.tsx:
-  - Line 408: Guard → `!isPost`
-  - Lines 423-437: Remove "Unirse", add "Comprar" / "Free" logic
-  - Line 442: Remove or hide reservation bar for events
-
-**`src/pages/Help.tsx`**
-
-- Update guestlist FAQ to explain invitation-only model
-
-### Files
-
 | File | Change |
 |---|---|
-| `src/hooks/useEventDetailState.ts` | Remove `handleJoinGuestlist` + `joinGuestlist`; add `handleBuyTicket` for paid and free events |
-| `src/pages/EventDetail.tsx` | CTA bar always shows for events; "Comprar" or "Free" button; remove "Unirse" |
-| `src/components/events/EventDetailOverlay.tsx` | Same CTA changes |
-| `src/pages/Help.tsx` | Update guestlist FAQ |
+| `src/hooks/useFollowingGoing.ts` | New hook — queries approved guestlist entries, identifies followed users, sorts by creator preference score, returns both groups |
+| `src/hooks/useEventDetailState.ts` | Import and expose the hook's data |
+| `src/pages/EventDetail.tsx` | Add "Personas que van" section above guestlist |
+| `src/components/events/EventDetailOverlay.tsx` | Same section |
+
+### Hook logic
+
+```ts
+// Single query for all approved attendees
+const { data: attendees } = supabase
+  .from("guestlist_entries")
+  .select("user_id, user:profiles!...(id, username, avatar_url)")
+  .eq("event_id", eventId)
+  .eq("status", "approved");
+
+// If authenticated, fetch following IDs + preference scores
+// Partition attendees into followingGoing (sorted by score) + othersGoing
+// Return combined list: [...followingGoing, ...othersGoing]
+```
+
+The section renders the combined list with up to 5 avatars stacked, a "+N más" counter, and a text line showing usernames. Followed users get a subtle ring/indicator to distinguish them.
 
