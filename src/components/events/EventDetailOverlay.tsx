@@ -42,7 +42,7 @@ export const EventDetailOverlay = () => {
     hasReposted, repostCount, saveCount,
     attendeesGoing,
     isOnGuestlist, isPending, isApproved,
-    isOwner, canInviteToGuestlist,
+    isOwner,
     hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
