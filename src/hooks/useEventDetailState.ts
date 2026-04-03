@@ -76,7 +76,7 @@ export const useEventDetailState = (
   const isPending = guestlistStatus?.status === "pending";
   const isApproved = guestlistStatus?.status === "approved";
   const isOwner = !!(user && user.id === event?.creator_id);
-  const canInviteToGuestlist = isOwner || isApproved;
+  
   const pendingCount = pendingRequests.length + pendingPayments.length;
   const hasPaidTickets = (event?.price ?? 0) > 0;
   const hasPaymentQr = !!(event?.payment_qr_url && hasPaidTickets);
