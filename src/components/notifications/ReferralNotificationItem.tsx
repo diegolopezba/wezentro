@@ -60,7 +60,7 @@ export const ReferralNotificationItem = ({ notification, index, onRead, onClick 
 
         <div className="flex-1 min-w-0">
           <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-            <span className="font-semibold">@{extractedUsername || "alguien"}</span>
+            <span className="font-semibold">{extractedUsername || "alguien"}</span>
             {" se unió usando tu enlace"}
           </p>
           <p className="text-xs text-muted-foreground/70 mt-0.5">

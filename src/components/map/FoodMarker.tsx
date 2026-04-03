@@ -60,7 +60,7 @@ export const FoodMarkerPopup = ({
           </h4>
           {location.full_name && (
             <p className="text-sm text-muted-foreground truncate">
-              @{location.username}
+              {location.username}
             </p>
           )}
         </div>

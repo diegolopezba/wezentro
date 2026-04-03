@@ -86,7 +86,7 @@ export const ReservationsSummary = () => {
           >
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground truncate">
-                @{(res.profiles as any)?.username || "usuario"}
+                {(res.profiles as any)?.username || "usuario"}
               </p>
               <p className="text-xs text-muted-foreground">
                 {format(new Date(res.reservation_date + "T00:00:00"), "dd MMM")} · {res.reservation_time.slice(0, 5)}

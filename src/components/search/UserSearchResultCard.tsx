@@ -30,7 +30,7 @@ export const UserSearchResultCard = ({ user, onClick }: UserSearchResultCardProp
           {user.full_name || user.username}
         </p>
         <p className="text-sm text-muted-foreground truncate">
-          @{user.username}
+          {user.username}
         </p>
       </div>
     </button>

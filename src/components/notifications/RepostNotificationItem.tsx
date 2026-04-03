@@ -55,7 +55,7 @@ export const RepostNotificationItem = ({ notification, index, onRead, onClick }:
 
       <div className="flex-1 min-w-0">
         <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-          <span className="font-semibold">@{extractedUsername || "alguien"}</span>
+          <span className="font-semibold">{extractedUsername || "alguien"}</span>
           {" reposteó "}
           <span className="font-semibold">{event?.title || "tu publicación"}</span>
         </p>

@@ -315,7 +315,7 @@ export default function ScanQR() {
                       {guest.full_name || `@${guest.username}`}
                     </p>
                     {guest.full_name && (
-                      <p className="text-sm text-muted-foreground">@{guest.username}</p>
+                      <p className="text-sm text-muted-foreground">{guest.username}</p>
                     )}
                   </div>
                 </div>

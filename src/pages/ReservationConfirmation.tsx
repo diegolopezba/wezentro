@@ -137,7 +137,7 @@ const ReservationConfirmation = () => {
                         className="w-10 h-10 rounded-full object-cover border-2 border-white/30"
                       />
                       <span className="text-xs text-white/70">
-                        @{guest.user?.username || "user"}
+                        {guest.user?.username || "user"}
                       </span>
                     </button>
                   ))}

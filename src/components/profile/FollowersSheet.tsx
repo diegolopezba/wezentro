@@ -68,7 +68,7 @@ const UserItem = ({
       <img src={user.avatar_url || DEFAULT_AVATAR} alt={user.username} className="w-12 h-12 rounded-full object-cover bg-secondary" />
       <div className="flex-1 min-w-0">
         <p className="font-medium text-foreground truncate">{user.full_name || user.username}</p>
-        <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
+        <p className="text-sm text-muted-foreground truncate">{user.username}</p>
       </div>
       <FollowButton targetUserId={user.id} />
     </motion.div>;

@@ -73,7 +73,7 @@ const FollowNotificationItem = ({
       
       <div className="flex-1 min-w-0">
         <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-          <span className="font-semibold">@{followerProfile?.username || "alguien"}</span>
+          <span className="font-semibold">{followerProfile?.username || "alguien"}</span>
           {" comenzó a seguirte"}
         </p>
         <p className="text-xs text-muted-foreground/70 mt-0.5">
@@ -124,7 +124,7 @@ const GuestlistRequestNotificationItem = ({
       
       <div className="flex-1 min-w-0">
         <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-          <span className="font-semibold">@{extractedUsername || "alguien"}</span>
+          <span className="font-semibold">{extractedUsername || "alguien"}</span>
           {" quiere unirse a tu evento"}
         </p>
         <p className="text-xs text-muted-foreground/70 mt-0.5">
@@ -253,7 +253,7 @@ const GuestlistInvitationNotificationItem = ({
         
         <div className="flex-1 min-w-0">
           <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-            <span className="font-semibold">@{extractedUsername || "alguien"}</span>
+            <span className="font-semibold">{extractedUsername || "alguien"}</span>
             {" te invitó a "}
             <span className="font-semibold">{event?.title || "un evento"}</span>
           </p>
@@ -303,7 +303,7 @@ const CommentNotificationItem = ({
     </div>
     <div className="flex-1 min-w-0">
       <p className={`text-sm ${notification.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-        <span className="font-semibold">@{extractedUsername || "alguien"}</span>
+        <span className="font-semibold">{extractedUsername || "alguien"}</span>
         {" comentó en "}
         <span className="font-semibold">{event?.title || "tu publicación"}</span>
       </p>

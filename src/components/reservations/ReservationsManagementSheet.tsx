@@ -152,7 +152,7 @@ export const ReservationsManagementSheet = ({
                               "Usuario"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            @{reservation.user?.username}
+                            {reservation.user?.username}
                           </p>
                         </div>
                       </div>

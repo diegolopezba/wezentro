@@ -134,7 +134,7 @@ const ReservationCard = ({
             <p className="text-sm font-medium text-foreground">
               {reservation.business?.full_name || reservation.business?.username || "Negocio"}
             </p>
-            <p className="text-xs text-muted-foreground">@{reservation.business?.username}</p>
+            <p className="text-xs text-muted-foreground">{reservation.business?.username}</p>
           </div>
         </button>
         <div className="flex items-center gap-2">

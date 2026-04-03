@@ -92,7 +92,7 @@ export function InvitationsSentSection({ eventId }: InvitationsSentSectionProps)
             
             <div className="flex-1 min-w-0">
               <p className="font-medium text-foreground text-sm truncate">
-                @{invitation.invited_user?.username || "user"}
+                {invitation.invited_user?.username || "user"}
               </p>
               <p className="text-xs text-muted-foreground">
                 Invited {formatDistanceToNow(new Date(invitation.created_at), { addSuffix: true })}

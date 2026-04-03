@@ -236,7 +236,7 @@ const Referrals = () => {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground truncate">
-                      @{referredUser.username}
+                      {referredUser.username}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Se unió el {new Date(referredUser.created_at).toLocaleDateString("es-ES")}
