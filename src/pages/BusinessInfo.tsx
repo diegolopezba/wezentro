@@ -73,7 +73,7 @@ const BusinessInfo = () => {
       const { error } = await supabase
         .from("profiles")
         .update({
-          business_hours: businessHours.trim() || null,
+          business_hours: serializeSchedule(businessHours),
           business_phone: businessPhone.trim() || null,
           business_address: businessAddress.trim() || null,
         } as any)
