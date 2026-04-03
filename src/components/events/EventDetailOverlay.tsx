@@ -242,7 +242,7 @@ export const EventDetailOverlay = () => {
                   }}>
                     <img src={event.creator?.avatar_url || DEFAULT_AVATAR} alt="Host" className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" />
                     <p className="font-semibold text-foreground hover:text-primary transition-colors">
-                      @{event.creator?.username || "unknown"}
+                      {event.creator?.username || "unknown"}
                     </p>
                   </div>
 
