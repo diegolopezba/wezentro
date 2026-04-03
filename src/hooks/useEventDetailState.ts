@@ -12,6 +12,7 @@ import {
 import { useIsEventSaved, useSaveEvent, useUnsaveEvent, useSaveCount } from "@/hooks/useSavedEvents";
 import { useIsEventLiked, useLikeEvent, useUnlikeEvent, useEventLikes } from "@/hooks/useEventLikes";
 import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useReposts";
+import { useFollowingGoing } from "@/hooks/useFollowingGoing";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { format } from "date-fns";
@@ -59,6 +60,7 @@ export const useEventDetailState = (
   const { data: hasReposted } = useHasReposted(event ? eventId : undefined);
   const { data: repostCount = 0 } = useRepostCount(event ? eventId : undefined);
   const { data: saveCount = 0 } = useSaveCount(event ? eventId : undefined);
+  const { data: attendeesGoing = [] } = useFollowingGoing(eventId);
 
   // Mutations
   const joinGuestlistWithPayment = useJoinGuestlistWithPayment();
@@ -189,6 +191,7 @@ export const useEventDetailState = (
     pendingCount,
     isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
+    attendeesGoing,
     // Derived
     isOnGuestlist, isPending, isApproved,
     isOwner, canInviteToGuestlist,

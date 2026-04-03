@@ -45,6 +45,7 @@ const EventDetail = () => {
     guestlist,
     pendingCount, isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
+    attendeesGoing,
     isOnGuestlist, isPending, isApproved,
     isOwner, canInviteToGuestlist,
     hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
@@ -323,6 +324,47 @@ const EventDetail = () => {
               </p>
             )}
           </div>
+
+          {/* People Going section */}
+          {!isPost && attendeesGoing.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="w-4 h-4 text-primary" />
+                <h2 className="font-brand text-lg font-semibold text-foreground">
+                  {attendeesGoing.some(a => a.isFollowed)
+                    ? `Personas que sigues que van (${attendeesGoing.filter(a => a.isFollowed).length})`
+                    : `Personas que van (${attendeesGoing.length})`}
+                </h2>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-3">
+                  {attendeesGoing.slice(0, 5).map((attendee, i) => (
+                    <img
+                      key={attendee.user_id}
+                      src={attendee.avatar_url || DEFAULT_AVATAR}
+                      alt={attendee.username}
+                      className={`w-10 h-10 rounded-full border-2 object-cover cursor-pointer hover:scale-110 transition-transform z-10 ${
+                        attendee.isFollowed ? "border-primary" : "border-card"
+                      }`}
+                      style={{ zIndex: 5 - i }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/user/${attendee.user_id}`);
+                      }}
+                    />
+                  ))}
+                </div>
+                {attendeesGoing.length > 5 && (
+                  <span className="text-sm text-muted-foreground">+{attendeesGoing.length - 5} más</span>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                {attendeesGoing.slice(0, 2).map(a => `@${a.username}`).join(", ")}
+                {attendeesGoing.length > 2 && ` y ${attendeesGoing.length - 2} más van`}
+                {attendeesGoing.length <= 2 && attendeesGoing.length > 0 && " van"}
+              </p>
+            </div>
+          )}
 
           {/* Guestlist attendees - Only show for events, not posts */}
           {!isPost && event.has_guestlist && <div>
