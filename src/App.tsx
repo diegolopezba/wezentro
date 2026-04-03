@@ -418,6 +418,7 @@ const App = () => {
                             }
                           />
                         </Routes>
+                        </SelectedEventProvider>
                       </AuthPromptProvider>
                     </LocationProvider>
                   </PushNotificationPrompt>

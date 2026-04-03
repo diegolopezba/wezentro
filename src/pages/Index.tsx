@@ -233,8 +233,7 @@ const Index = () => {
     return organic;
   }, [events, searchQuery, activeTab, filteredSponsored]);
 
-  return <SelectedEventProvider>
-      <AppLayout ref={scrollContainerRef}>
+  return <AppLayout ref={scrollContainerRef}>
         <header className="sticky top-0 z-40 safe-top bg-background">
           <div className="flex items-center justify-between px-4 py-4">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
@@ -278,8 +277,6 @@ const Index = () => {
         <PullToRefresh onRefresh={handleRefresh} className="flex-1">
           <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
         </PullToRefresh>
-      </AppLayout>
-      <EventDetailOverlay />
-    </SelectedEventProvider>;
+      </AppLayout>;
 };
 export default Index;
