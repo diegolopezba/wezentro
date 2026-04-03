@@ -1,23 +1,73 @@
 
 
-## Remove "Invitar a la lista" Action Button
+## Interactive Business Hours Editor
 
-### Rationale
+### Problem
+The current business hours input is a plain textarea where owners type free-text. This makes data inconsistent and the display on visitor profiles is unstructured.
 
-The guestlist is owner-managed only. The `UserPlus` button allowed approved attendees (and owners) to invite others via `ShareGuestlistModal`, but this conflicts with the owner-only management model. Owners already have the "Gestionar" button to manage their guestlist.
+### Solution
+Replace the textarea with a **structured day-by-day schedule editor** where each day of the week has toggle (open/closed) and time pickers for opening and closing hours. Data is stored as JSON in the existing `business_hours` text column and rendered nicely on the visitor-facing `BusinessInfoSheet`.
 
-### Changes
+### UI Design — Editor (BusinessInfo.tsx)
+
+```text
+┌─────────────────────────────────┐
+│ 📅 Horarios de atención         │
+│                                 │
+│ Lunes        ○ Cerrado          │
+│              ● Abierto          │
+│              [09:00] - [18:00]  │
+│                                 │
+│ Martes       ● Abierto          │
+│              [09:00] - [18:00]  │
+│ ...                             │
+│ Domingo      ● Cerrado          │
+│                                 │
+│ [  Guardar información  ]       │
+└─────────────────────────────────┘
+```
+
+Each day: a Switch toggle + two time Selects (hour:minute in 30-min increments). Closed days are greyed out.
+
+### UI Design — Visitor Display (BusinessInfoSheet)
+
+```text
+┌──────────────────────────┐
+│ 🕐 Horarios              │
+│                          │
+│ Lun   09:00 – 18:00     │
+│ Mar   09:00 – 18:00     │
+│ Mié   Cerrado           │
+│ ...                      │
+│                          │
+│ ● Abierto ahora (green) │
+│   or                     │
+│ ● Cerrado ahora (red)   │
+└──────────────────────────┘
+```
+
+Show an "Abierto ahora" / "Cerrado ahora" badge based on current local time.
+
+### Data Format
+JSON string stored in `business_hours` column (no schema change needed):
+
+```json
+[
+  { "day": 0, "open": true, "from": "09:00", "to": "18:00" },
+  { "day": 1, "open": true, "from": "09:00", "to": "18:00" },
+  { "day": 6, "open": false, "from": "", "to": "" }
+]
+```
+
+Backward compatibility: if the stored value isn't valid JSON, fall back to displaying it as plain text (for existing free-text entries).
+
+### Files to Change
 
 | File | Change |
 |---|---|
-| `src/pages/EventDetail.tsx` | Remove the `UserPlus` button (~line 180) and the `ShareGuestlistModal` render (~line 402). Remove `UserPlus` import if unused. |
-| `src/components/events/EventDetailOverlay.tsx` | Same removal of the button (~line 194-197) and modal (~line 364). |
-| `src/hooks/useEventDetailState.ts` | Remove `showGuestlistInviteModal`, `setShowGuestlistInviteModal`, and `canInviteToGuestlist` from the hook's state and return value. |
+| `src/components/profile/BusinessHoursEditor.tsx` | **New** — day-by-day schedule component with Switch toggles and time selects |
+| `src/pages/BusinessInfo.tsx` | Replace the `<Textarea>` for hours with `<BusinessHoursEditor>`, serialize/deserialize JSON |
+| `src/components/profile/BusinessInfoSheet.tsx` | Parse JSON hours into a structured table with day rows + "Abierto/Cerrado ahora" badge. Fall back to plain text for legacy data |
 
-### What stays
-- Owner's "Gestionar" button and `GuestlistManagementSheet`
-- `ShareGuestlistModal` component file itself (can be cleaned up later if unused elsewhere)
-- The "Personas que van" section
-
-Pure UI cleanup — no backend changes.
+No database migration needed — reuses existing `business_hours` text column.
 
