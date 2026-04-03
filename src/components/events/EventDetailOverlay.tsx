@@ -2,12 +2,10 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, X, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
+import { Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, X, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
 
@@ -38,13 +36,13 @@ export const EventDetailOverlay = () => {
 
   const {
     event, isLoading, error,
-    guestlist,
+    
     pendingCount, isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
     attendeesGoing,
-    isOnGuestlist, isPending, isApproved,
+    isOnGuestlist, isPending,
     isOwner,
-    hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
+    hasPaidTickets, hasPaymentQr,
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
