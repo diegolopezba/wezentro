@@ -57,7 +57,7 @@ const EventDetail = () => {
     saveEventPending, likeEventPending, repostPending,
     showManagement, setShowManagement,
     showShareModal, setShowShareModal,
-    showGuestlistInviteModal, setShowGuestlistInviteModal,
+    
     showEditSheet, setShowEditSheet,
     showDeleteDialog, setShowDeleteDialog,
     showPaymentModal, setShowPaymentModal,
