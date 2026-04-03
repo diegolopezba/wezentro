@@ -60,6 +60,7 @@ export const useEventDetailState = (
   const { data: hasReposted } = useHasReposted(event ? eventId : undefined);
   const { data: repostCount = 0 } = useRepostCount(event ? eventId : undefined);
   const { data: saveCount = 0 } = useSaveCount(event ? eventId : undefined);
+  const { data: attendeesGoing = [] } = useFollowingGoing(eventId);
 
   // Mutations
   const joinGuestlistWithPayment = useJoinGuestlistWithPayment();
