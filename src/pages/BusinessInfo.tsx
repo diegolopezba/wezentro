@@ -40,7 +40,9 @@ const BusinessInfo = () => {
 
   useEffect(() => {
     if (profile) {
-      setBusinessHours((profile as any).business_hours || "");
+      const raw = (profile as any).business_hours || "";
+      const parsed = parseSchedule(raw);
+      setBusinessHours(parsed || DEFAULT_SCHEDULE);
       setBusinessPhone((profile as any).business_phone || "");
       setBusinessAddress((profile as any).business_address || "");
     }
