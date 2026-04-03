@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -33,6 +33,7 @@ export const EventDetailOverlay = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { selectedEventId, closeEvent } = useSelectedEvent();
+  const [portalNode, setPortalNode] = useState<HTMLDivElement | null>(null);
 
   const {
     event, isLoading, error,
@@ -68,6 +69,20 @@ export const EventDetailOverlay = () => {
   const isVideo = isVideoUrl(event?.image_url);
   const isPost = !!(event?.is_post);
 
+  useEffect(() => {
+    const node = document.createElement("div");
+    node.setAttribute("data-overlay-root", "event-detail-overlay");
+    document.body.appendChild(node);
+    setPortalNode(node);
+
+    return () => {
+      setPortalNode(null);
+      if (node.parentNode) {
+        node.parentNode.removeChild(node);
+      }
+    };
+  }, []);
+
   // Check for showPayment query param (returned from checkout success)
   useEffect(() => {
     const shouldShowPayment = searchParams.get("showPayment") === "true";
@@ -78,10 +93,15 @@ export const EventDetailOverlay = () => {
     }
   }, [searchParams, hasPaymentQr, isOnGuestlist, setSearchParams]);
 
+  if (!portalNode) {
+    return null;
+  }
+
   return createPortal(
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {selectedEventId && (
         <motion.div
+          key={selectedEventId}
           className="fixed inset-0 z-50 bg-background overflow-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -437,44 +457,39 @@ export const EventDetailOverlay = () => {
                       </div>
                     </div>
                   )}
+
+                  {event.show_menu_button && event.creator_id && (
+                    <MenuSheet
+                      open={showMenuSheet}
+                      onOpenChange={setShowMenuSheet}
+                      userId={event.creator_id}
+                      businessName={event.creator?.username}
+                    />
+                  )}
+
+                  {event.show_reservation_button && event.creator_id && (
+                    <ReservationSheet
+                      open={showReservationSheet}
+                      onOpenChange={setShowReservationSheet}
+                      businessId={event.creator_id}
+                      businessName={event.creator?.username || ""}
+                    />
+                  )}
+
+                  <CommentsSheet
+                    open={showComments}
+                    onOpenChange={setShowComments}
+                    eventId={selectedEventId}
+                    eventCreatorId={event?.creator_id}
+                    commentCount={commentCount}
+                  />
                 </>
               )}
             </>
           )}
         </motion.div>
       )}
-
-      {/* Menu Sheet */}
-      {event && event.show_menu_button && event.creator_id && (
-        <MenuSheet
-          open={showMenuSheet}
-          onOpenChange={setShowMenuSheet}
-          userId={event.creator_id}
-          businessName={event.creator?.username}
-        />
-      )}
-
-      {/* Reservation Sheet */}
-      {event && event.show_reservation_button && event.creator_id && (
-        <ReservationSheet
-          open={showReservationSheet}
-          onOpenChange={setShowReservationSheet}
-          businessId={event.creator_id}
-          businessName={event.creator?.username || ""}
-        />
-      )}
-
-      {/* Comments Sheet */}
-      {selectedEventId && (
-        <CommentsSheet
-          open={showComments}
-          onOpenChange={setShowComments}
-          eventId={selectedEventId}
-          eventCreatorId={event?.creator_id}
-          commentCount={commentCount}
-        />
-      )}
     </AnimatePresence>,
-    document.body
+    portalNode
   );
 };
