@@ -34,7 +34,7 @@ export const useEventDetailState = (
   // UI state
   const [showManagement, setShowManagement] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showGuestlistInviteModal, setShowGuestlistInviteModal] = useState(false);
+  
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPremiumGate, setShowPremiumGate] = useState(false);
