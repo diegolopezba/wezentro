@@ -30,7 +30,7 @@ const BusinessInfo = () => {
   const [saving, setSaving] = useState(false);
   const [savingType, setSavingType] = useState(false);
 
-  const [businessHours, setBusinessHours] = useState("");
+  const [businessHours, setBusinessHours] = useState<DaySchedule[]>(DEFAULT_SCHEDULE);
   const [businessPhone, setBusinessPhone] = useState("");
   const [businessAddress, setBusinessAddress] = useState("");
 
