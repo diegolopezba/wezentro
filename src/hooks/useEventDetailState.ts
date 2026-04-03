@@ -210,7 +210,7 @@ export const useEventDetailState = (
     // UI modal state
     showManagement, setShowManagement,
     showShareModal, setShowShareModal,
-    showGuestlistInviteModal, setShowGuestlistInviteModal,
+    
     showEditSheet, setShowEditSheet,
     showDeleteDialog, setShowDeleteDialog,
     showPremiumGate, setShowPremiumGate,
