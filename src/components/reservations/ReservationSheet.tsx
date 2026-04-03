@@ -375,7 +375,7 @@ export const ReservationSheet = ({
                             alt=""
                             className="w-5 h-5 rounded-full object-cover"
                           />
-                          <span className="text-foreground">@{guest.username}</span>
+                          <span className="text-foreground">{guest.username}</span>
                           <button
                             type="button"
                             onClick={() => setTaggedGuests((prev) => prev.filter((g) => g.id !== guest.id))}
@@ -413,7 +413,7 @@ export const ReservationSheet = ({
                             />
                             <div>
                               <p className="text-sm font-medium text-foreground">{u.full_name || u.username}</p>
-                              <p className="text-xs text-muted-foreground">@{u.username}</p>
+                              <p className="text-xs text-muted-foreground">{u.username}</p>
                             </div>
                           </button>
                         ))}

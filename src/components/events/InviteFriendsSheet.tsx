@@ -216,7 +216,7 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground text-sm truncate">
-                        @{user.username}
+                        {user.username}
                       </p>
                       {user.full_name && (
                         <p className="text-xs text-muted-foreground truncate">

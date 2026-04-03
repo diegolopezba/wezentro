@@ -297,7 +297,7 @@ export const GuestlistManagementSheet = ({
         >
           <div className="flex items-center gap-2">
             <p className="font-medium text-foreground text-sm truncate">
-              @{request.user?.username || "user"}
+              {request.user?.username || "user"}
             </p>
             {badgeContent}
           </div>

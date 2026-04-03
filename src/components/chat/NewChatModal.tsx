@@ -88,7 +88,7 @@ export const NewChatModal = ({ open, onOpenChange }: NewChatModalProps) => {
                     {user.full_name || user.username}
                   </p>
                   <p className="text-sm text-muted-foreground truncate">
-                    @{user.username}
+                    {user.username}
                   </p>
                 </div>
               </motion.button>

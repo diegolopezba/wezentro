@@ -64,7 +64,7 @@ export const AudienceInsights = () => {
                 <p className="text-sm font-medium text-foreground truncate">
                   {profile?.full_name || `@${profile?.username}`}
                 </p>
-                <p className="text-xs text-muted-foreground">@{profile?.username}</p>
+                <p className="text-xs text-muted-foreground">{profile?.username}</p>
               </div>
             </motion.div>
           );

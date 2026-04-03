@@ -99,7 +99,7 @@ export const CommentItem = ({
               className="text-sm text-foreground cursor-pointer hover:text-primary transition-colors font-medium"
               onClick={() => navigate(`/user/${comment.user_id}`)}
             >
-              @{comment.user?.username || "usuario"}
+              {comment.user?.username || "usuario"}
             </span>
             <span className="text-[11px] text-muted-foreground/60">
               {formatDistanceToNow(new Date(comment.created_at), {

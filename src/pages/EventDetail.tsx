@@ -305,7 +305,7 @@ const EventDetail = () => {
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-foreground truncate">
-                    <span className="font-semibold">@{latestComment.user?.username}</span>
+                    <span className="font-semibold">{latestComment.user?.username}</span>
                     {" "}{latestComment.content}
                   </p>
                   {commentCount > 1 && (
