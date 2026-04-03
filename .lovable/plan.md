@@ -1,31 +1,23 @@
 
 
-## Remove Redundant Guestlist UI from Event Detail
+## Remove "Invitar a la lista" Action Button
 
 ### Rationale
 
-The new "Personas que van" section already displays all approved attendees (with followed users prioritized). The old "Lista de invitados" section shows the exact same users in a less useful order. Removing it declutters the event detail page without losing any information.
-
-The owner's "Gestionar" (Manage) button remains in the floating CTA bar, so guestlist management is unaffected.
+The guestlist is owner-managed only. The `UserPlus` button allowed approved attendees (and owners) to invite others via `ShareGuestlistModal`, but this conflicts with the owner-only management model. Owners already have the "Gestionar" button to manage their guestlist.
 
 ### Changes
 
 | File | Change |
 |---|---|
-| `src/pages/EventDetail.tsx` | Remove the entire "Lista de invitados" section (lines ~369-411) — the guestlist avatars, attendee list, and empty state |
-| `src/components/events/EventDetailOverlay.tsx` | Same removal of the guestlist section |
+| `src/pages/EventDetail.tsx` | Remove the `UserPlus` button (~line 180) and the `ShareGuestlistModal` render (~line 402). Remove `UserPlus` import if unused. |
+| `src/components/events/EventDetailOverlay.tsx` | Same removal of the button (~line 194-197) and modal (~line 364). |
+| `src/hooks/useEventDetailState.ts` | Remove `showGuestlistInviteModal`, `setShowGuestlistInviteModal`, and `canInviteToGuestlist` from the hook's state and return value. |
 
 ### What stays
-- "Personas que van" section (the new one with following priority)
-- Owner's "Gestionar" button in the CTA bar
-- `GuestlistManagementSheet` component (still accessible via the Gestionar button)
-- All guestlist data fetching in `useEventDetailState` (still needed for management and status checks)
+- Owner's "Gestionar" button and `GuestlistManagementSheet`
+- `ShareGuestlistModal` component file itself (can be cleaned up later if unused elsewhere)
+- The "Personas que van" section
 
-### What gets removed
-- The "Lista de invitados (N)" header
-- The duplicate avatar row
-- The attendee list with join dates and message icons
-- The empty state ("Nadie se ha unido aún")
-
-This is a pure UI cleanup — no hooks, data, or backend changes needed.
+Pure UI cleanup — no backend changes.
 
