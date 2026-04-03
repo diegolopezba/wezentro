@@ -111,7 +111,9 @@ const App = () => {
                   <PushNotificationPrompt>
                     <LocationProvider>
                       <AuthPromptProvider>
+                        <SelectedEventProvider>
                         <AuthPromptModal />
+                        <EventDetailOverlay />
                         <Routes>
                           {/* Public routes */}
                           <Route
