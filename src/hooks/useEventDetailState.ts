@@ -190,6 +190,7 @@ export const useEventDetailState = (
     pendingCount,
     isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
+    attendeesGoing,
     // Derived
     isOnGuestlist, isPending, isApproved,
     isOwner, canInviteToGuestlist,
