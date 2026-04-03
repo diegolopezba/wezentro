@@ -140,19 +140,10 @@ const BusinessInfo = () => {
         >
           {/* Hours */}
           <div className="space-y-2">
-            <Label htmlFor="business-hours" className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Label className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-3.5 h-3.5" /> Horarios de atención
             </Label>
-            <Textarea
-              id="business-hours"
-              value={businessHours}
-              onChange={(e) => setBusinessHours(e.target.value)}
-              placeholder={"Ej: Lun-Vie: 9:00-18:00\nSab: 10:00-14:00"}
-              rows={3}
-            />
-            <p className="text-xs text-muted-foreground">
-              Se muestra en el perfil para los visitantes.
-            </p>
+            <BusinessHoursEditor value={businessHours} onChange={setBusinessHours} />
           </div>
 
           {/* Phone */}
