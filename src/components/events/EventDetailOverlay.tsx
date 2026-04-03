@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, X, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
@@ -79,7 +80,7 @@ export const EventDetailOverlay = () => {
     }
   }, [searchParams, hasPaymentQr, isOnGuestlist, setSearchParams]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {selectedEventId && (
         <motion.div
@@ -475,6 +476,7 @@ export const EventDetailOverlay = () => {
           commentCount={commentCount}
         />
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
