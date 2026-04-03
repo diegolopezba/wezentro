@@ -36,7 +36,7 @@ export const EventDetailOverlay = () => {
 
   const {
     event, isLoading, error,
-    guestlist,
+    
     pendingCount, isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
     attendeesGoing,
