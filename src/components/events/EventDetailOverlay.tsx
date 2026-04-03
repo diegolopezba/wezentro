@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, UserPlus, MoreVertical, Pencil, Trash2, Lock, X, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, X, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
-import { ShareGuestlistModal } from "@/components/events/ShareGuestlistModal";
+
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
@@ -42,7 +42,7 @@ export const EventDetailOverlay = () => {
     hasReposted, repostCount, saveCount,
     attendeesGoing,
     isOnGuestlist, isPending, isApproved,
-    isOwner, canInviteToGuestlist,
+    isOwner,
     hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
@@ -51,7 +51,7 @@ export const EventDetailOverlay = () => {
     saveEventPending, likeEventPending, repostPending,
     showManagement, setShowManagement,
     showShareModal, setShowShareModal,
-    showGuestlistInviteModal, setShowGuestlistInviteModal,
+    
     showEditSheet, setShowEditSheet,
     showDeleteDialog, setShowDeleteDialog,
     showPaymentModal, setShowPaymentModal,
@@ -191,11 +191,6 @@ export const EventDetailOverlay = () => {
                         <MessageCircle className="w-5 h-5" />
                         {commentCount > 0 && <span className="text-xs text-muted-foreground">{commentCount}</span>}
                       </Button>
-                      {!isPost && event.has_guestlist && canInviteToGuestlist && (
-                        <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
-                          <UserPlus className="w-5 h-5" />
-                        </Button>
-                      )}
                     </div>
 
                     {/* Right: Edit dropdown */}
@@ -361,7 +356,7 @@ export const EventDetailOverlay = () => {
                 <>
                   <GuestlistManagementSheet eventId={selectedEventId!} open={showManagement} onOpenChange={setShowManagement} />
                   <ShareEventModal open={showShareModal} onOpenChange={setShowShareModal} eventId={selectedEventId!} />
-                  <ShareGuestlistModal open={showGuestlistInviteModal} onOpenChange={setShowGuestlistInviteModal} eventId={selectedEventId!} />
+                  
                   <EditEventSheet open={showEditSheet} onOpenChange={setShowEditSheet} event={event} isPost={!!event.is_post} />
                   <DeleteEventDialog
                     open={showDeleteDialog}

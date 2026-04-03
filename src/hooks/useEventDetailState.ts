@@ -34,7 +34,7 @@ export const useEventDetailState = (
   // UI state
   const [showManagement, setShowManagement] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showGuestlistInviteModal, setShowGuestlistInviteModal] = useState(false);
+  
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPremiumGate, setShowPremiumGate] = useState(false);
@@ -76,7 +76,7 @@ export const useEventDetailState = (
   const isPending = guestlistStatus?.status === "pending";
   const isApproved = guestlistStatus?.status === "approved";
   const isOwner = !!(user && user.id === event?.creator_id);
-  const canInviteToGuestlist = isOwner || isApproved;
+  
   const pendingCount = pendingRequests.length + pendingPayments.length;
   const hasPaidTickets = (event?.price ?? 0) > 0;
   const hasPaymentQr = !!(event?.payment_qr_url && hasPaidTickets);
@@ -194,7 +194,7 @@ export const useEventDetailState = (
     attendeesGoing,
     // Derived
     isOnGuestlist, isPending, isApproved,
-    isOwner, canInviteToGuestlist,
+    isOwner,
     hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
     isGuest, isAuthenticated: !isGuest,
     formattedDate, formattedPrice,
@@ -210,7 +210,7 @@ export const useEventDetailState = (
     // UI modal state
     showManagement, setShowManagement,
     showShareModal, setShowShareModal,
-    showGuestlistInviteModal, setShowGuestlistInviteModal,
+    
     showEditSheet, setShowEditSheet,
     showDeleteDialog, setShowDeleteDialog,
     showPremiumGate, setShowPremiumGate,
