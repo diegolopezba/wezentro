@@ -81,6 +81,7 @@ export const EventDetailOverlay = () => {
   }, [searchParams, hasPaymentQr, isOnGuestlist, setSearchParams]);
 
   return (
+  return createPortal(
     <AnimatePresence>
       {selectedEventId && (
         <motion.div
