@@ -476,6 +476,7 @@ export const EventDetailOverlay = () => {
           commentCount={commentCount}
         />
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
