@@ -177,9 +177,6 @@ const EventDetail = () => {
                 <MessageCircle className="w-5 h-5" />
                 {commentCount > 0 && <span className="text-xs text-muted-foreground">{commentCount}</span>}
               </Button>
-              {!isPost && event.has_guestlist && canInviteToGuestlist && <Button variant="ghost" size="icon" onClick={() => setShowGuestlistInviteModal(true)}>
-                  <UserPlus className="w-5 h-5" />
-                </Button>}
             </div>
 
             {/* Right: Edit dropdown */}
