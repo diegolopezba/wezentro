@@ -40,7 +40,7 @@ export const EventDetailOverlay = () => {
     pendingCount, isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
     attendeesGoing,
-    isOnGuestlist, isPending, isApproved,
+    isOnGuestlist, isPending,
     isOwner,
     hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
     formattedDate, formattedPrice,
