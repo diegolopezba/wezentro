@@ -45,6 +45,7 @@ const EventDetail = () => {
     guestlist,
     pendingCount, isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
+    attendeesGoing,
     isOnGuestlist, isPending, isApproved,
     isOwner, canInviteToGuestlist,
     hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
