@@ -18,6 +18,8 @@ import { PageLoader } from "@/components/PageLoader";
 import { AuthPromptProvider } from "@/hooks/useAuthPrompt";
 import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
 import { KeepAliveLayout } from "@/components/layout/KeepAliveLayout";
+import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
+import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
 
 // Core navigation pages - preloaded for instant navigation (native app feel)
 const indexImport = () => import("./pages/Index");
