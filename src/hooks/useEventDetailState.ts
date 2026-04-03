@@ -113,6 +113,28 @@ export const useEventDetailState = (
     }
   };
 
+  useEffect(() => {
+    setShowManagement(false);
+    setShowShareModal(false);
+    setShowEditSheet(false);
+    setShowDeleteDialog(false);
+    setShowPremiumGate(false);
+    setShowPaymentModal(false);
+    setShowInviteFriendsSheet(false);
+    setShowMenuSheet(false);
+    setShowReservationSheet(false);
+    setShowComments(false);
+    setMediaLoaded(false);
+    setAspectRatio(null);
+    setIsMuted(true);
+
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+      videoRef.current.muted = true;
+    }
+  }, [eventId]);
+
   // Action handlers
   const handleSaveToggle = async () => {
     if (isGuest) { promptAuth({ action: "guardar este evento" }); return; }
