@@ -12,6 +12,7 @@ import {
 import { useIsEventSaved, useSaveEvent, useUnsaveEvent, useSaveCount } from "@/hooks/useSavedEvents";
 import { useIsEventLiked, useLikeEvent, useUnlikeEvent, useEventLikes } from "@/hooks/useEventLikes";
 import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useReposts";
+import { useFollowingGoing } from "@/hooks/useFollowingGoing";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { format } from "date-fns";
