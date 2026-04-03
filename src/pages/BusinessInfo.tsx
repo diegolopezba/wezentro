@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Clock, Phone, Store, Save, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { BusinessHoursEditor, DaySchedule, DEFAULT_SCHEDULE, parseSchedule, serializeSchedule } from "@/components/profile/BusinessHoursEditor";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
@@ -30,7 +30,7 @@ const BusinessInfo = () => {
   const [saving, setSaving] = useState(false);
   const [savingType, setSavingType] = useState(false);
 
-  const [businessHours, setBusinessHours] = useState("");
+  const [businessHours, setBusinessHours] = useState<DaySchedule[]>(DEFAULT_SCHEDULE);
   const [businessPhone, setBusinessPhone] = useState("");
   const [businessAddress, setBusinessAddress] = useState("");
 
@@ -40,7 +40,9 @@ const BusinessInfo = () => {
 
   useEffect(() => {
     if (profile) {
-      setBusinessHours((profile as any).business_hours || "");
+      const raw = (profile as any).business_hours || "";
+      const parsed = parseSchedule(raw);
+      setBusinessHours(parsed || DEFAULT_SCHEDULE);
       setBusinessPhone((profile as any).business_phone || "");
       setBusinessAddress((profile as any).business_address || "");
     }
@@ -71,7 +73,7 @@ const BusinessInfo = () => {
       const { error } = await supabase
         .from("profiles")
         .update({
-          business_hours: businessHours.trim() || null,
+          business_hours: serializeSchedule(businessHours),
           business_phone: businessPhone.trim() || null,
           business_address: businessAddress.trim() || null,
         } as any)
@@ -138,19 +140,10 @@ const BusinessInfo = () => {
         >
           {/* Hours */}
           <div className="space-y-2">
-            <Label htmlFor="business-hours" className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Label className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-3.5 h-3.5" /> Horarios de atención
             </Label>
-            <Textarea
-              id="business-hours"
-              value={businessHours}
-              onChange={(e) => setBusinessHours(e.target.value)}
-              placeholder={"Ej: Lun-Vie: 9:00-18:00\nSab: 10:00-14:00"}
-              rows={3}
-            />
-            <p className="text-xs text-muted-foreground">
-              Se muestra en el perfil para los visitantes.
-            </p>
+            <BusinessHoursEditor value={businessHours} onChange={setBusinessHours} />
           </div>
 
           {/* Phone */}
