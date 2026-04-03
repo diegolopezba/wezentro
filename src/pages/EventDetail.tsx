@@ -366,50 +366,6 @@ const EventDetail = () => {
             </div>
           )}
 
-          {/* Guestlist attendees - Only show for events, not posts */}
-          {!isPost && event.has_guestlist && <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-brand text-lg font-semibold text-foreground">
-                  Lista de invitados ({guestlist.length})
-                </h2>
-                {guestlist.length > 0 && <span className="text-sm text-primary cursor-pointer">Ver todos</span>}
-              </div>
-
-              {guestlist.length > 0 ? <>
-                    {/* Avatars row */}
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="flex -space-x-3">
-                        {guestlist.slice(0, 5).map((entry: any, i: number) => <img key={entry.id} src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={`Attendee ${i + 1}`} className="w-10 h-10 rounded-full border-2 border-card object-cover cursor-pointer hover:scale-110 transition-transform z-10" onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/user/${entry.user_id}`);
-                }} />)}
-                      </div>
-                      {guestlist.length > 5 && <span className="text-sm text-muted-foreground">
-                          +{guestlist.length - 5} más
-                        </span>}
-                    </div>
-
-                    {/* Attendee list */}
-                    <div className="space-y-3">
-                      {guestlist.slice(0, 3).map((entry: any) => <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
-                          <img src={entry.user?.avatar_url || DEFAULT_AVATAR} alt={entry.user?.username || "User"} className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate(`/user/${entry.user_id}`)} />
-                          <div className="flex-1 cursor-pointer" onClick={() => navigate(`/user/${entry.user_id}`)}>
-                            <p className="font-medium text-foreground text-sm">
-                              @{entry.user?.username || "user"}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Joined {format(new Date(entry.joined_at), "d MMM", { locale: es })}
-                            </p>
-                          </div>
-                          <MessageCircle className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/chats/${entry.user_id}`)} />
-                        </div>)}
-                    </div>
-                  </> : <div className="text-center py-6 rounded-2xl bg-secondary/30">
-                      <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-muted-foreground text-sm">{isInviteOnlyGuestlist ? "Solo por invitación del organizador" : "Nadie se ha unido aún. ¡Sé el primero!"}</p>
-                    </div>}
-            </div>}
-
           {/* Invitations Sent Section - Owner only, for events with guestlist */}
           {!isPost && isOwner && event.has_guestlist && <InvitationsSentSection eventId={id!} />}
 
