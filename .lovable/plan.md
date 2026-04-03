@@ -1,73 +1,44 @@
 
 
-## Interactive Business Hours Editor
+## Remove "@" prefix from usernames everywhere except tags/mentions
 
-### Problem
-The current business hours input is a plain textarea where owners type free-text. This makes data inconsistent and the display on visitor profiles is unstructured.
+The `@` symbol should only appear when someone is **tagged** (e.g. in event tags, mentions in descriptions, "Respondiendo a @user"). All other username displays should show just the plain username.
 
-### Solution
-Replace the textarea with a **structured day-by-day schedule editor** where each day of the week has toggle (open/closed) and time pickers for opening and closing hours. Data is stored as JSON in the existing `business_hours` text column and rendered nicely on the visitor-facing `BusinessInfoSheet`.
+### Changes across 18 files
 
-### UI Design — Editor (BusinessInfo.tsx)
+**Keep `@` (tag/mention contexts):**
+- `src/pages/EventDetail.tsx` line 252 — event tag badges ✓ keep
+- `src/components/events/CommentsSheet.tsx` line 129 — "Respondiendo a @user" ✓ keep
+- `src/components/ui/MentionText.tsx` — rendered mentions ✓ keep
+- `src/components/notifications/PostTagNotificationItem.tsx` — tag notifications ✓ keep
 
-```text
-┌─────────────────────────────────┐
-│ 📅 Horarios de atención         │
-│                                 │
-│ Lunes        ○ Cerrado          │
-│              ● Abierto          │
-│              [09:00] - [18:00]  │
-│                                 │
-│ Martes       ● Abierto          │
-│              [09:00] - [18:00]  │
-│ ...                             │
-│ Domingo      ● Cerrado          │
-│                                 │
-│ [  Guardar información  ]       │
-└─────────────────────────────────┘
-```
+**Remove `@` from these files:**
 
-Each day: a Switch toggle + two time Selects (hour:minute in 30-min increments). Closed days are greyed out.
+| File | Line(s) | Context |
+|---|---|---|
+| `src/components/events/CommentItem.tsx` | 102 | Comment author username |
+| `src/components/events/GuestlistManagementSheet.tsx` | 300 | Guestlist request username |
+| `src/components/events/ShareEventModal.tsx` | 171 | Share user list |
+| `src/components/events/ShareGuestlistModal.tsx` | 155 | Share guestlist user list |
+| `src/components/events/InviteFriendsSheet.tsx` | 219 | Invite friends user list |
+| `src/components/events/InvitationsSentSection.tsx` | 95 | Sent invitations list |
+| `src/pages/EventDetail.tsx` | 308 | Latest comment preview |
+| `src/pages/Notifications.tsx` | 76, 127, 256, 306 | Follow, guestlist request, invite, comment notifications |
+| `src/pages/ReservationConfirmation.tsx` | 140 | Guest username |
+| `src/pages/MyReservations.tsx` | 137 | Business username |
+| `src/pages/ScanQR.tsx` | 318 | Scanned guest username |
+| `src/pages/Referrals.tsx` | 239 | Referred user |
+| `src/components/notifications/LikeNotificationItem.tsx` | 58 | Like notification |
+| `src/components/notifications/RepostNotificationItem.tsx` | 58 | Repost notification |
+| `src/components/notifications/ReferralNotificationItem.tsx` | 63 | Referral notification |
+| `src/components/profile/FollowersSheet.tsx` | 71 | Follower username |
+| `src/components/search/UserSearchResultCard.tsx` | 33 | Search result |
+| `src/components/chat/NewChatModal.tsx` | 91 | New chat user list |
+| `src/components/map/FoodMarker.tsx` | 63 | Food marker username |
+| `src/components/dashboard/AudienceInsights.tsx` | 65, 67 | Recent followers |
+| `src/components/dashboard/ReservationsSummary.tsx` | 89 | Reservation username |
+| `src/components/reservations/ReservationSheet.tsx` | 378, 416 | Guest/user list |
+| `src/components/reservations/ReservationsManagementSheet.tsx` | 155 | Reservation user |
 
-### UI Design — Visitor Display (BusinessInfoSheet)
-
-```text
-┌──────────────────────────┐
-│ 🕐 Horarios              │
-│                          │
-│ Lun   09:00 – 18:00     │
-│ Mar   09:00 – 18:00     │
-│ Mié   Cerrado           │
-│ ...                      │
-│                          │
-│ ● Abierto ahora (green) │
-│   or                     │
-│ ● Cerrado ahora (red)   │
-└──────────────────────────┘
-```
-
-Show an "Abierto ahora" / "Cerrado ahora" badge based on current local time.
-
-### Data Format
-JSON string stored in `business_hours` column (no schema change needed):
-
-```json
-[
-  { "day": 0, "open": true, "from": "09:00", "to": "18:00" },
-  { "day": 1, "open": true, "from": "09:00", "to": "18:00" },
-  { "day": 6, "open": false, "from": "", "to": "" }
-]
-```
-
-Backward compatibility: if the stored value isn't valid JSON, fall back to displaying it as plain text (for existing free-text entries).
-
-### Files to Change
-
-| File | Change |
-|---|---|
-| `src/components/profile/BusinessHoursEditor.tsx` | **New** — day-by-day schedule component with Switch toggles and time selects |
-| `src/pages/BusinessInfo.tsx` | Replace the `<Textarea>` for hours with `<BusinessHoursEditor>`, serialize/deserialize JSON |
-| `src/components/profile/BusinessInfoSheet.tsx` | Parse JSON hours into a structured table with day rows + "Abierto/Cerrado ahora" badge. Fall back to plain text for legacy data |
-
-No database migration needed — reuses existing `business_hours` text column.
+Each change is simply removing the `@` character before the username interpolation — a one-character deletion per instance. No logic changes needed.
 
