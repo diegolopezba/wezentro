@@ -38,6 +38,7 @@ export interface EventCardProps {
   repostInfo?: RepostInfo;
   isSponsored?: boolean;
   sponsoredPostId?: string;
+  compact?: boolean;
 }
 
 const categoryColors: Record<string, string> = {
