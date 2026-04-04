@@ -178,9 +178,9 @@ export const EventCard = ({
             className="relative rounded-2xl overflow-hidden bg-secondary"
             style={{
               width: "100%",
-              aspectRatio: aspectRatio ? `${aspectRatio}` : "3/4",
-              minHeight: "120px",
-              maxHeight: "350px"
+              aspectRatio: aspectRatio ? `${aspectRatio}` : compact ? undefined : "3/4",
+              minHeight: compact ? "80px" : "120px",
+              maxHeight: compact ? undefined : "350px"
             }}
           >
             {isVideo ? (
