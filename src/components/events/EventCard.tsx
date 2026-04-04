@@ -38,6 +38,7 @@ export interface EventCardProps {
   repostInfo?: RepostInfo;
   isSponsored?: boolean;
   sponsoredPostId?: string;
+  compact?: boolean;
 }
 
 const categoryColors: Record<string, string> = {
@@ -68,7 +69,8 @@ export const EventCard = ({
   creatorId,
   repostInfo,
   isSponsored = false,
-  sponsoredPostId
+  sponsoredPostId,
+  compact = false
 }: EventCardProps) => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
@@ -160,9 +162,9 @@ export const EventCard = ({
       )}
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
+        initial={compact ? false : { opacity: 0, y: 20 }}
+        animate={compact ? undefined : { opacity: 1, y: 0 }}
+        transition={compact ? undefined : {
           delay: Math.min(index, 6) * 0.05,
           duration: 0.3,
         }}
@@ -176,9 +178,9 @@ export const EventCard = ({
             className="relative rounded-2xl overflow-hidden bg-secondary"
             style={{
               width: "100%",
-              aspectRatio: aspectRatio ? `${aspectRatio}` : "3/4",
-              minHeight: "120px",
-              maxHeight: "350px"
+              aspectRatio: aspectRatio ? `${aspectRatio}` : compact ? undefined : "3/4",
+              minHeight: compact ? "80px" : "120px",
+              maxHeight: compact ? undefined : "350px"
             }}
           >
             {isVideo ? (
