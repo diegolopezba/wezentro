@@ -418,14 +418,14 @@ const Discover = () => {
 
                 {/* Single event or carousel */}
                 {selectedEvents.length === 1 ? (
-                  <EventCard {...eventToCardProps(selectedEvents[0])} />
+                  <EventCard {...eventToCardProps(selectedEvents[0])} compact />
                 ) : (
                   <div className="space-y-3">
                     <Carousel className="w-full" setApi={setCarouselApi}>
                       <CarouselContent>
                         {selectedEvents.map((event) => (
                           <CarouselItem key={event.id}>
-                            <EventCard {...eventToCardProps(event)} />
+                            <EventCard {...eventToCardProps(event)} compact />
                           </CarouselItem>
                         ))}
                       </CarouselContent>
