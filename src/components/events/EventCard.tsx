@@ -162,9 +162,9 @@ export const EventCard = ({
       )}
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
+        initial={compact ? false : { opacity: 0, y: 20 }}
+        animate={compact ? undefined : { opacity: 1, y: 0 }}
+        transition={compact ? undefined : {
           delay: Math.min(index, 6) * 0.05,
           duration: 0.3,
         }}
