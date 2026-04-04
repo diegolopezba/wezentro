@@ -195,7 +195,7 @@ export const TimelineCard = ({
         {(title || dateDisplay) && (
           <div className="space-y-0.5 px-1">
             {title && (
-              <h3 className="font-brand font-semibold text-foreground line-clamp-2 text-xs">
+              <h3 className="font-brand text-foreground line-clamp-2 text-xs font-normal">
                 {title}
               </h3>
             )}
