@@ -303,7 +303,7 @@ export const EventCard = ({
           {/* Title */}
           {title && (
             <div className="space-y-1 px-1">
-              <h3 className="font-brand font-semibold text-foreground line-clamp-2 text-xs">{title}</h3>
+              <h3 className="font-brand text-foreground line-clamp-2 text-xs font-normal">{title}</h3>
             </div>
           )}
         </div>
