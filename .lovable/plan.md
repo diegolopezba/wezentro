@@ -1,22 +1,21 @@
 
 
-## Make map event card match media dimensions
+## Shrink map popup event card
 
-When tapping a dot on the map, the popup event card currently renders with EventCard's default `3/4` aspect ratio and `maxHeight: 350px`. The card should instead size itself to the natural dimensions of its image/video, constrained to reasonable bounds for the map context.
+The popup container currently spans `left-4 right-4` (full width minus 16px padding each side), so the card fills nearly the entire screen width and the image dominates vertically.
 
-### Approach
+### Changes
 
-**File: `src/components/events/EventCard.tsx`**
+**File: `src/pages/Discover.tsx` (line 399)**
 
-1. Add an optional `compact` prop to `EventCardProps`
-2. When `compact` is true:
-   - Remove `maxHeight: 350px` constraint so the card height follows the media's natural aspect ratio
-   - Remove the entry animation (`initial`/`animate` on `motion.div`) since the parent in Discover already animates the card in
-   - Keep `minHeight` small (e.g. 80px) as a safety net
+Change the container class from:
+```
+className="absolute bottom-20 left-4 right-4 z-50"
+```
+to:
+```
+className="absolute bottom-20 left-8 right-8 z-50 max-w-[220px] mx-auto"
+```
 
-**File: `src/pages/Discover.tsx`**
-
-3. Pass `compact` to the `EventCard` in both the single-event and carousel renders inside the map popup
-
-This is a lightweight change — just one new boolean prop that relaxes height constraints, letting the card naturally match its media.
+This constrains the card to ~220px wide and centers it, making it feel like a compact preview card rather than a full-width overlay. The `compact` prop already removes the forced aspect ratio and max-height, so the image will scale down proportionally with the narrower width.
 
