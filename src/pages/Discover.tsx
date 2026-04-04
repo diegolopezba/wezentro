@@ -396,7 +396,7 @@ const Discover = () => {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="absolute bottom-20 left-4 right-4 z-50"
+              className="absolute bottom-20 left-8 right-8 z-50 max-w-[220px] mx-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="relative">
