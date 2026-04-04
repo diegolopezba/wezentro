@@ -69,7 +69,8 @@ export const EventCard = ({
   creatorId,
   repostInfo,
   isSponsored = false,
-  sponsoredPostId
+  sponsoredPostId,
+  compact = false
 }: EventCardProps) => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
