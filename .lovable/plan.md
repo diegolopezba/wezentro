@@ -1,44 +1,22 @@
 
 
-## Remove "@" prefix from usernames everywhere except tags/mentions
+## Make map event card match media dimensions
 
-The `@` symbol should only appear when someone is **tagged** (e.g. in event tags, mentions in descriptions, "Respondiendo a @user"). All other username displays should show just the plain username.
+When tapping a dot on the map, the popup event card currently renders with EventCard's default `3/4` aspect ratio and `maxHeight: 350px`. The card should instead size itself to the natural dimensions of its image/video, constrained to reasonable bounds for the map context.
 
-### Changes across 18 files
+### Approach
 
-**Keep `@` (tag/mention contexts):**
-- `src/pages/EventDetail.tsx` line 252 — event tag badges ✓ keep
-- `src/components/events/CommentsSheet.tsx` line 129 — "Respondiendo a @user" ✓ keep
-- `src/components/ui/MentionText.tsx` — rendered mentions ✓ keep
-- `src/components/notifications/PostTagNotificationItem.tsx` — tag notifications ✓ keep
+**File: `src/components/events/EventCard.tsx`**
 
-**Remove `@` from these files:**
+1. Add an optional `compact` prop to `EventCardProps`
+2. When `compact` is true:
+   - Remove `maxHeight: 350px` constraint so the card height follows the media's natural aspect ratio
+   - Remove the entry animation (`initial`/`animate` on `motion.div`) since the parent in Discover already animates the card in
+   - Keep `minHeight` small (e.g. 80px) as a safety net
 
-| File | Line(s) | Context |
-|---|---|---|
-| `src/components/events/CommentItem.tsx` | 102 | Comment author username |
-| `src/components/events/GuestlistManagementSheet.tsx` | 300 | Guestlist request username |
-| `src/components/events/ShareEventModal.tsx` | 171 | Share user list |
-| `src/components/events/ShareGuestlistModal.tsx` | 155 | Share guestlist user list |
-| `src/components/events/InviteFriendsSheet.tsx` | 219 | Invite friends user list |
-| `src/components/events/InvitationsSentSection.tsx` | 95 | Sent invitations list |
-| `src/pages/EventDetail.tsx` | 308 | Latest comment preview |
-| `src/pages/Notifications.tsx` | 76, 127, 256, 306 | Follow, guestlist request, invite, comment notifications |
-| `src/pages/ReservationConfirmation.tsx` | 140 | Guest username |
-| `src/pages/MyReservations.tsx` | 137 | Business username |
-| `src/pages/ScanQR.tsx` | 318 | Scanned guest username |
-| `src/pages/Referrals.tsx` | 239 | Referred user |
-| `src/components/notifications/LikeNotificationItem.tsx` | 58 | Like notification |
-| `src/components/notifications/RepostNotificationItem.tsx` | 58 | Repost notification |
-| `src/components/notifications/ReferralNotificationItem.tsx` | 63 | Referral notification |
-| `src/components/profile/FollowersSheet.tsx` | 71 | Follower username |
-| `src/components/search/UserSearchResultCard.tsx` | 33 | Search result |
-| `src/components/chat/NewChatModal.tsx` | 91 | New chat user list |
-| `src/components/map/FoodMarker.tsx` | 63 | Food marker username |
-| `src/components/dashboard/AudienceInsights.tsx` | 65, 67 | Recent followers |
-| `src/components/dashboard/ReservationsSummary.tsx` | 89 | Reservation username |
-| `src/components/reservations/ReservationSheet.tsx` | 378, 416 | Guest/user list |
-| `src/components/reservations/ReservationsManagementSheet.tsx` | 155 | Reservation user |
+**File: `src/pages/Discover.tsx`**
 
-Each change is simply removing the `@` character before the username interpolation — a one-character deletion per instance. No logic changes needed.
+3. Pass `compact` to the `EventCard` in both the single-event and carousel renders inside the map popup
+
+This is a lightweight change — just one new boolean prop that relaxes height constraints, letting the card naturally match its media.
 
