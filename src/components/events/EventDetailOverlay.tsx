@@ -184,7 +184,7 @@ export const EventDetailOverlay = () => {
                         {event.category.replace("_", " ")}
                       </span>
                     )}
-                    {event.title && <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>}
+                    {event.title && <h1 className="font-brand text-foreground font-semibold text-2xl">{event.title}</h1>}
                   </div>
 
                   {/* Event action buttons */}
