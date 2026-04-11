@@ -52,9 +52,34 @@ if (precacheManifest && precacheManifest.length > 0) {
       return; // Let the browser handle it normally (network only)
     }
 
-    // Only cache GET requests for same-origin static assets
+    // Only cache GET requests
     if (event.request.method !== 'GET') return;
 
+    // NAVIGATION REQUESTS (HTML pages): NetworkFirst
+    // Always try the network first to avoid serving stale index.html
+    // that references deleted JS chunk hashes after an app update.
+    if (event.request.mode === 'navigate') {
+      event.respondWith(
+        fetch(event.request)
+          .then((response) => {
+            // Cache the fresh response for offline fallback
+            const clone = response.clone();
+            caches.open('precache-v1').then((cache) => {
+              cache.put(event.request, clone);
+            });
+            return response;
+          })
+          .catch(() => {
+            // Offline: fall back to cached index.html
+            return caches.match('/index.html').then((cached) => {
+              return cached || caches.match(event.request);
+            });
+          })
+      );
+      return;
+    }
+
+    // STATIC ASSETS (JS/CSS with content hashes): CacheFirst
     event.respondWith(
       caches.match(event.request).then((response) => {
         return response || fetch(event.request);
