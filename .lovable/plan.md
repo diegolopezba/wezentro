@@ -1,30 +1,14 @@
 
 
-## PWA Crash Fixes — 3 Changes
+## Fix: Terms checkbox not toggling on tap
 
-### 1. Error Boundary (`src/components/ErrorBoundary.tsx` — new file)
-Create a React class component error boundary with:
-- `componentDidCatch` to log the error
-- A fallback UI showing "Something went wrong" with a "Reload" button
-- Wrap the main app content in `App.tsx` with this boundary
+**Problem**: The `<label>` on line 317 wraps the checkbox div and the text, but has no `onClick` handler. Only clicking the small 20x20 checkbox `div` (line 322) toggles the state. Tapping the surrounding text does nothing, and tapping the link buttons navigates away from the page.
 
-### 2. Service Worker NetworkFirst for Navigation (`public/sw.js`)
-Update the fetch handler to detect navigation requests (`event.request.mode === 'navigate'`) and use network-first strategy:
-- Try network first for HTML pages
-- Fall back to cached `/index.html` only if offline
-- Keep existing cache-first for hashed static assets (JS/CSS)
-- Keep existing bypass patterns for APIs
+**Fix in `src/pages/Auth.tsx`**:
 
-### 3. MapView Memory Leak Fix (`src/components/map/MapView.tsx`)
-- Add a `foodRootsRef` to track React roots created via `createRoot()` for food markers and popups
-- In `clearFoodMarkers()`, call `root.unmount()` on every tracked root before removing markers
-- Clean up popup roots when replacing popups
+1. Add an `onClick` handler to the outer `<label>` element that toggles `termsAccepted`
+2. Keep `e.stopPropagation()` on the two navigation buttons so they don't also toggle the checkbox
+3. Add `e.preventDefault()` to the label click to prevent default label behavior that could cause double-toggling on the checkbox div itself
 
-### 4. Lazy Import Recovery (`src/App.tsx`)
-Add a wrapper around lazy imports that catches chunk-load failures and triggers a one-time page reload (same pattern used by Next.js/CRA):
-```ts
-const lazyWithRetry = (importFn) => lazy(() =>
-  importFn().catch(() => { window.location.reload(); return importFn(); })
-);
-```
+This way, tapping anywhere on the row (except the Terms/Privacy links) will check the box — matching standard mobile UX patterns.
 
