@@ -314,16 +314,19 @@ const Auth = () => {
               {/* Terms checkbox — only shown on signup (store compliance) */}
               {mode === "signup" && (
                 <div className="space-y-1">
-                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <label
+                    className="flex items-start gap-3 cursor-pointer select-none"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setTermsAccepted((prev) => !prev);
+                      setErrors((prev) => ({ ...prev, terms: undefined }));
+                    }}
+                  >
                     <div
                       role="checkbox"
                       aria-checked={termsAccepted}
                       tabIndex={0}
-                      onClick={() => {
-                        setTermsAccepted(!termsAccepted);
-                        setErrors({ ...errors, terms: undefined });
-                      }}
-                      onKeyDown={(e) => e.key === " " && setTermsAccepted(!termsAccepted)}
+                      onKeyDown={(e) => { if (e.key === " ") { e.preventDefault(); setTermsAccepted((prev) => !prev); } }}
                       className={`mt-0.5 w-5 h-5 rounded shrink-0 border-2 flex items-center justify-center transition-all ${
                         termsAccepted
                           ? "gradient-red border-transparent"
