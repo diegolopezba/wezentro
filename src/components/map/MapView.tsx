@@ -47,6 +47,8 @@ const MapView: React.FC<MapViewProps> = ({
   const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const foodMarkersRef = useRef<mapboxgl.Marker[]>([]);
+  const foodRootsRef = useRef<{ unmount: () => void }[]>([]);
+  const popupRootRef = useRef<{ unmount: () => void } | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
 
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -96,10 +98,16 @@ const MapView: React.FC<MapViewProps> = ({
     markersRef.current = [];
   }, []);
 
-  // Clear food markers
+  // Clear food markers and unmount their React roots to prevent memory leaks
   const clearFoodMarkers = useCallback(() => {
+    foodRootsRef.current.forEach((root) => {
+      try { root.unmount(); } catch {}
+    });
+    foodRootsRef.current = [];
     foodMarkersRef.current.forEach((marker) => marker.remove());
     foodMarkersRef.current = [];
+    popupRootRef.current?.unmount();
+    popupRootRef.current = null;
     popupRef.current?.remove();
     popupRef.current = null;
   }, []);
@@ -119,17 +127,18 @@ const MapView: React.FC<MapViewProps> = ({
       
       const root = createRoot(markerElement);
       root.render(<FoodMarker location={location} onClick={() => {}} />);
+      foodRootsRef.current.push(root);
 
-      // Handle click on the marker element directly (more reliable than React onClick inside Mapbox)
       markerElement.addEventListener("click", (e) => {
         e.stopPropagation();
         
-        // Close any existing popup
+        // Clean up previous popup root
+        popupRootRef.current?.unmount();
         popupRef.current?.remove();
 
-        // Create popup content
         const popupContainer = document.createElement("div");
         const popupRoot = createRoot(popupContainer);
+        popupRootRef.current = popupRoot;
         popupRoot.render(
           <FoodMarkerPopup
             location={location}

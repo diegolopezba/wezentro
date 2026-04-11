@@ -34,33 +34,33 @@ const Create = lazy(createImport);
 const Chats = lazy(chatsImport);
 const Profile = lazy(profileImport);
 
-// Secondary pages - lazy loaded on demand
-const ChatDetail = lazy(() => import("./pages/ChatDetail"));
-const Settings = lazy(() => import("./pages/Settings"));
-const Saved = lazy(() => import("./pages/Saved"));
-const Notifications = lazy(() => import("./pages/Notifications"));
-const PrivacySettings = lazy(() => import("./pages/PrivacySettings"));
-const EditProfile = lazy(() => import("./pages/EditProfile"));
-const EventDetail = lazy(() => import("./pages/EventDetail"));
-const Auth = lazy(() => import("./pages/Auth"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
-const UserProfile = lazy(() => import("./pages/UserProfile"));
-const Tickets = lazy(() => import("./pages/Tickets"));
-const YouAreGoing = lazy(() => import("./pages/YouAreGoing"));
-const BusinessDashboard = lazy(() => import("./pages/BusinessDashboard"));
-const BusinessSettings = lazy(() => import("./pages/BusinessSettings"));
-const BusinessPaymentSettings = lazy(() => import("./pages/BusinessPaymentSettings"));
-const BusinessReservations = lazy(() => import("./pages/BusinessReservations"));
-const BusinessInfo = lazy(() => import("./pages/BusinessInfo"));
-const JoinedEvents = lazy(() => import("./pages/JoinedEvents"));
-const Help = lazy(() => import("./pages/Help"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
-const Referrals = lazy(() => import("./pages/Referrals"));
-const MyReservations = lazy(() => import("./pages/MyReservations"));
-const ReservationConfirmation = lazy(() => import("./pages/ReservationConfirmation"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const ScanQR = lazy(() => import("./pages/ScanQR"));
+// Secondary pages - lazy loaded with retry on chunk failures
+const ChatDetail = lazyWithRetry(() => import("./pages/ChatDetail"));
+const Settings = lazyWithRetry(() => import("./pages/Settings"));
+const Saved = lazyWithRetry(() => import("./pages/Saved"));
+const Notifications = lazyWithRetry(() => import("./pages/Notifications"));
+const PrivacySettings = lazyWithRetry(() => import("./pages/PrivacySettings"));
+const EditProfile = lazyWithRetry(() => import("./pages/EditProfile"));
+const EventDetail = lazyWithRetry(() => import("./pages/EventDetail"));
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const Onboarding = lazyWithRetry(() => import("./pages/Onboarding"));
+const UserProfile = lazyWithRetry(() => import("./pages/UserProfile"));
+const Tickets = lazyWithRetry(() => import("./pages/Tickets"));
+const YouAreGoing = lazyWithRetry(() => import("./pages/YouAreGoing"));
+const BusinessDashboard = lazyWithRetry(() => import("./pages/BusinessDashboard"));
+const BusinessSettings = lazyWithRetry(() => import("./pages/BusinessSettings"));
+const BusinessPaymentSettings = lazyWithRetry(() => import("./pages/BusinessPaymentSettings"));
+const BusinessReservations = lazyWithRetry(() => import("./pages/BusinessReservations"));
+const BusinessInfo = lazyWithRetry(() => import("./pages/BusinessInfo"));
+const JoinedEvents = lazyWithRetry(() => import("./pages/JoinedEvents"));
+const Help = lazyWithRetry(() => import("./pages/Help"));
+const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
+const TermsOfUse = lazyWithRetry(() => import("./pages/TermsOfUse"));
+const Referrals = lazyWithRetry(() => import("./pages/Referrals"));
+const MyReservations = lazyWithRetry(() => import("./pages/MyReservations"));
+const ReservationConfirmation = lazyWithRetry(() => import("./pages/ReservationConfirmation"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
 
 // Preload core routes after initial render for instant navigation
 const preloadCoreRoutes = () => {
@@ -97,7 +97,7 @@ const App = () => {
   }, []);
 
   return (
-    <>
+    <ErrorBoundary>
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} minDisplayTime={1200} />}
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -428,7 +428,7 @@ const App = () => {
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
-    </>
+    </ErrorBoundary>
   );
 };
 
