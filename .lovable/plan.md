@@ -1,21 +1,30 @@
 
 
-## Shrink map popup event card
+## PWA Crash Fixes — 3 Changes
 
-The popup container currently spans `left-4 right-4` (full width minus 16px padding each side), so the card fills nearly the entire screen width and the image dominates vertically.
+### 1. Error Boundary (`src/components/ErrorBoundary.tsx` — new file)
+Create a React class component error boundary with:
+- `componentDidCatch` to log the error
+- A fallback UI showing "Something went wrong" with a "Reload" button
+- Wrap the main app content in `App.tsx` with this boundary
 
-### Changes
+### 2. Service Worker NetworkFirst for Navigation (`public/sw.js`)
+Update the fetch handler to detect navigation requests (`event.request.mode === 'navigate'`) and use network-first strategy:
+- Try network first for HTML pages
+- Fall back to cached `/index.html` only if offline
+- Keep existing cache-first for hashed static assets (JS/CSS)
+- Keep existing bypass patterns for APIs
 
-**File: `src/pages/Discover.tsx` (line 399)**
+### 3. MapView Memory Leak Fix (`src/components/map/MapView.tsx`)
+- Add a `foodRootsRef` to track React roots created via `createRoot()` for food markers and popups
+- In `clearFoodMarkers()`, call `root.unmount()` on every tracked root before removing markers
+- Clean up popup roots when replacing popups
 
-Change the container class from:
+### 4. Lazy Import Recovery (`src/App.tsx`)
+Add a wrapper around lazy imports that catches chunk-load failures and triggers a one-time page reload (same pattern used by Next.js/CRA):
+```ts
+const lazyWithRetry = (importFn) => lazy(() =>
+  importFn().catch(() => { window.location.reload(); return importFn(); })
+);
 ```
-className="absolute bottom-20 left-4 right-4 z-50"
-```
-to:
-```
-className="absolute bottom-20 left-8 right-8 z-50 max-w-[220px] mx-auto"
-```
-
-This constrains the card to ~220px wide and centers it, making it feel like a compact preview card rather than a full-width overlay. The `compact` prop already removes the forced aspect ratio and max-height, so the image will scale down proportionally with the narrower width.
 
