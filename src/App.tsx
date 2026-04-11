@@ -1,6 +1,22 @@
 import { Suspense, lazy, useState, useEffect } from "react";
 
 import { Toaster } from "@/components/ui/toaster";
+import ErrorBoundary from "@/components/ErrorBoundary";
+
+// Wrapper for lazy imports that recovers from chunk-load failures
+const lazyWithRetry = (importFn: () => Promise<any>) =>
+  lazy(() =>
+    importFn().catch(() => {
+      const hasReloaded = sessionStorage.getItem("chunk_reload");
+      if (!hasReloaded) {
+        sessionStorage.setItem("chunk_reload", "1");
+        window.location.reload();
+      }
+      sessionStorage.removeItem("chunk_reload");
+      return importFn();
+    })
+  );
+
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
