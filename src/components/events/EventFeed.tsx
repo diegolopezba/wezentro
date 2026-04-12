@@ -1,5 +1,4 @@
 import { useEffect, useRef, useCallback } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { EventCard, EventCardProps } from "./EventCard";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,11 +14,6 @@ interface EventFeedProps {
   emptyStateType?: "for-you" | "following";
 }
 
-/**
- * Dwell-time tracker: uses IntersectionObserver to detect when a card
- * enters the viewport. If the card is visible for < 1 s and then leaves,
- * we fire a "scroll_past" signal (mild negative).
- */
 const useDwellTimeTracker = (userId: string | undefined) => {
   const entryTimestamps = useRef<Map<string, number>>(new Map());
   const trackedScrollPasts = useRef<Set<string>>(new Set());
@@ -38,7 +32,6 @@ const useDwellTimeTracker = (userId: string | undefined) => {
 
           if (entry.isIntersecting) {
             entryTimestamps.current.set(eventId, Date.now());
-
             if (!trackedDwells.current.has(eventId)) {
               const timer = setTimeout(() => {
                 trackedDwells.current.add(eventId);
@@ -52,12 +45,10 @@ const useDwellTimeTracker = (userId: string | undefined) => {
               clearTimeout(timer);
               dwellTimers.current.delete(eventId);
             }
-
             const enterTime = entryTimestamps.current.get(eventId);
             if (enterTime) {
               const dwellMs = Date.now() - enterTime;
               entryTimestamps.current.delete(eventId);
-
               if (dwellMs < 1000 && !trackedScrollPasts.current.has(eventId)) {
                 trackedScrollPasts.current.add(eventId);
                 trackPreferenceSignal(userId, eventId, "scroll_past");
@@ -88,27 +79,13 @@ const useDwellTimeTracker = (userId: string | undefined) => {
   return observeRef;
 };
 
-/**
- * Split events into two columns for masonry layout (used by virtualizer).
- * Returns an array of rows, where each row has [leftEvent, rightEvent?].
- */
-const buildMasonryRows = (events: EventCardProps[]): [EventCardProps, EventCardProps | undefined][] => {
-  const rows: [EventCardProps, EventCardProps | undefined][] = [];
-  for (let i = 0; i < events.length; i += 2) {
-    rows.push([events[i], events[i + 1]]);
-  }
-  return rows;
-};
-
 export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you" }: EventFeedProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const trackImpression = useTrackSponsoredImpression();
   const trackedIds = useRef<Set<string>>(new Set());
   const observeCard = useDwellTimeTracker(user?.id);
-  const parentRef = useRef<HTMLDivElement>(null);
 
-  // Track impressions for sponsored posts
   useEffect(() => {
     const sponsoredEvents = events.filter(e => e.isSponsored && e.sponsoredPostId);
     sponsoredEvents.forEach(e => {
@@ -118,23 +95,6 @@ export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you
       }
     });
   }, [events]);
-
-  const rows = buildMasonryRows(events);
-
-  const virtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => {
-      // Walk up to find the scrollable AppLayout container
-      let el = parentRef.current?.parentElement;
-      while (el) {
-        if (el.scrollHeight > el.clientHeight) return el;
-        el = el.parentElement;
-      }
-      return null;
-    },
-    estimateSize: () => 280,
-    overscan: 3,
-  });
 
   if (isLoading) {
     return <EventFeedSkeleton count={6} />;
@@ -176,43 +136,17 @@ export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you
   }
 
   return (
-    <div ref={parentRef}>
-      <div
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          width: "100%",
-          position: "relative",
-        }}
-      >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
-          const [left, right] = rows[virtualRow.index];
-          return (
-            <div
-              key={virtualRow.key}
-              data-index={virtualRow.index}
-              ref={virtualizer.measureElement}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-            >
-              <div className="grid grid-cols-2 gap-3 px-4">
-                <div ref={observeCard} data-event-id={left.id}>
-                  <EventCard {...left} index={virtualRow.index * 2} />
-                </div>
-                {right && (
-                  <div ref={observeCard} data-event-id={right.id}>
-                    <EventCard {...right} index={virtualRow.index * 2 + 1} />
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+    <div className="columns-2 gap-3 px-4 [column-fill:_balance] w-full">
+      {events.map((event, index) => (
+        <div
+          key={event.id}
+          ref={observeCard}
+          data-event-id={event.id}
+          className="break-inside-avoid mb-3"
+        >
+          <EventCard {...event} index={index} />
+        </div>
+      ))}
     </div>
   );
 };
