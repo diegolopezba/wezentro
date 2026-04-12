@@ -12,16 +12,6 @@ import {
 } from "@/lib/feedScoring";
 import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
 
-// Interaction type weights for quality-weighted trending (V6)
-// Passive views are excluded — only high-intent actions count
-const TRENDING_WEIGHTS: Record<string, number> = {
-  join: 5,
-  save: 5,
-  like: 3,
-  repost: 3,
-  click: 1,
-};
-
 export const useForYouEvents = () => {
   const { user } = useAuth();
   const { location } = useLocationContext();
@@ -60,55 +50,23 @@ export const useForYouEvents = () => {
   });
 
   /**
-   * V6: Quality-weighted trending counts.
-   * Only counts high-intent interactions (join, save, like, repost, click).
-   * Each type has a weight — a "join" counts 5x more than a "click".
-   * This prevents content that was merely scrolled past from trending.
+   * V6: Server-side trending + velocity aggregation via RPC.
+   * Single query replaces two client-side queries, no 1000-row limit.
    */
-  const { data: trendingData } = useQuery({
-    queryKey: ["trending-counts-v6"],
+  const { data: trendingVelocityData } = useQuery({
+    queryKey: ["trending-velocity-rpc"],
     queryFn: async () => {
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { data, error } = await supabase
-        .from("event_interactions")
-        .select("event_id, type")
-        .gte("created_at", twentyFourHoursAgo)
-        .in("type", Object.keys(TRENDING_WEIGHTS))
-        .limit(1000);
-      if (error) return {};
-      const counts: Record<string, number> = {};
+      const { data, error } = await supabase.rpc("get_trending_scores");
+      if (error) return { trending: {}, velocity: {} };
+      const trending: Record<string, number> = {};
+      const velocity: Record<string, number> = {};
       for (const row of data || []) {
-        const w = TRENDING_WEIGHTS[row.type] || 0;
-        counts[row.event_id] = (counts[row.event_id] || 0) + w;
+        trending[row.event_id] = Number(row.trending_score) || 0;
+        velocity[row.event_id] = Number(row.velocity_count) || 0;
       }
-      return counts;
+      return { trending, velocity };
     },
-    staleTime: 10 * 60 * 1000,
-  });
-
-  /**
-   * V6 NEW: Velocity counts — 2-hour window of high-intent interactions.
-   * This is Zentro's equivalent of TikTok's early-engagement signal.
-   * Posts/events that get rapid early likes, joins, or reposts are boosted.
-   */
-  const { data: velocityData } = useQuery({
-    queryKey: ["velocity-counts-v6"],
-    queryFn: async () => {
-      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-      const { data, error } = await supabase
-        .from("event_interactions")
-        .select("event_id, type")
-        .gte("created_at", twoHoursAgo)
-        .in("type", ["join", "save", "like", "repost"])
-        .limit(500);
-      if (error) return {};
-      const counts: Record<string, number> = {};
-      for (const row of data || []) {
-        counts[row.event_id] = (counts[row.event_id] || 0) + 1;
-      }
-      return counts;
-    },
-    staleTime: 5 * 60 * 1000, // Refresh every 5 min so velocity is fresh
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: creatorAttendance } = useQuery({
@@ -266,7 +224,6 @@ export const useForYouEvents = () => {
     const categoryPrefs = learnedPrefs?.categories || {};
     const creatorPrefs = learnedPrefs?.creators || {};
 
-    // V6: Cold-start detection — user has no learned prefs yet
     const isNewUser = !userId ||
       (Object.keys(categoryPrefs).length === 0 && Object.keys(creatorPrefs).length === 0);
 
@@ -277,13 +234,13 @@ export const useForYouEvents = () => {
       followingIds: following || null,
       categoryPrefs,
       creatorPrefs,
-      trendingCounts: trendingData || {},
+      trendingCounts: trendingVelocityData?.trending || {},
       creatorAttendance: creatorAttendance || {},
       dayOfWeekPrefs: dayOfWeekPrefs || {},
       tagPrefs: tagPrefs || {},
       collaborativeBoosts: collaborativeBoosts || {},
       mutualFollowerIds: mutualFollowerIds || null,
-      velocityCounts: velocityData || {},
+      velocityCounts: trendingVelocityData?.velocity || {},
       isNewUser,
     };
 
@@ -301,7 +258,7 @@ export const useForYouEvents = () => {
       .sort((a, b) => b._score - a._score);
 
     return injectExploration(scored, categoryPrefs);
-  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingData, velocityData, creatorAttendance, dayOfWeekPrefs, tagPrefs, collaborativeBoosts, mutualFollowerIds, userId]);
+  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingVelocityData, creatorAttendance, dayOfWeekPrefs, tagPrefs, collaborativeBoosts, mutualFollowerIds, userId]);
 
   return {
     data: scoredEvents,
