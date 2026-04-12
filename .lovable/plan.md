@@ -1,31 +1,56 @@
 
 
-## Prefetch Events During Splash Screen
+## Production Readiness Fixes for 100K Scale
 
-**Why it works**: The splash screen already blocks for 1.2 seconds. Currently that time is wasted — the event queries only start when `Index.tsx` mounts *after* the splash fades. By prefetching during the splash, cards appear instantly with zero skeleton time.
+### Priority 1: Critical (will cause visible failures)
 
-**How Instagram/TikTok do it**: They start API calls the moment the app launches, while the splash animation plays. By the time the splash fades, data is already in memory.
+**1. Add cursor-based pagination to the event feed**
+- Change `fetchForYouEvents` to fetch 20 events at a time with cursor pagination
+- Add infinite scroll in `Index.tsx` using `useInfiniteQuery` instead of `useQuery`
+- This prevents loading 200 events + nested guestlist entries in one query
 
-### Implementation
+**2. Move trending/velocity aggregation to a database function**
+- Create a Supabase RPC (`get_trending_scores`) that aggregates on the server, avoiding the 1000-row client limit
+- Replace the two client-side trending queries with a single RPC call
+- This also reduces data transfer (send scores, not raw rows)
 
-**File: `src/App.tsx`**
+**3. Add virtual scrolling to the feed**
+- Use a virtualizer (e.g., `@tanstack/react-virtual`) so only ~5-8 cards are in the DOM at any time
+- Prevents memory pressure on low-end devices when scrolling through hundreds of cards
 
-Since `QueryClientProvider` already wraps the splash screen (line 118), we can use `queryClient.prefetchQuery()` during the splash phase to warm the cache:
+### Priority 2: Important (performance/reliability)
 
-1. Add a `useEffect` inside `App` (runs on mount) that calls `queryClient.prefetchQuery` for the main events query — the same `["for-you-events"]` query key and fetch function used in `useForYouEvents.ts`
-2. This runs in parallel with the splash animation timer
-3. When `Index.tsx` mounts after splash, `useQuery` finds cached data and renders cards immediately — no skeleton flash
+**4. Add lazy image loading with blur placeholders**
+- Add `loading="lazy"` to event card images
+- Generate low-res blur placeholders for progressive loading
+- Reduces initial bandwidth by ~80%
 
-```text
-Timeline (current):
-  [--- splash 1.2s ---][--- skeleton 300-500ms ---][cards]
+**5. Add a global unhandled rejection handler**
+- Add `window.addEventListener('unhandledrejection', ...)` in `main.tsx`
+- Log errors and optionally show a toast so users know something failed
 
-Timeline (after fix):
-  [--- splash 1.2s (fetching in background) ---][cards instantly]
-```
+**6. Fix auth double-fetch race condition**
+- Remove the manual `getSession()` call in `AuthContext` — the `onAuthStateChange` with `INITIAL_SESSION` event already covers it
+- Eliminates duplicate profile fetches on cold start
 
-**What changes**:
-- Extract the core events fetch function to a shared constant so both `App.tsx` and `useForYouEvents.ts` use the same query key/function
-- Add one `useEffect` in `App` that prefetches during splash
-- No other files change — TanStack Query deduplicates automatically
+**7. Move collaborative filtering to an edge function**
+- The current client-side implementation makes 3-4 sequential queries per page load
+- Move to a single edge function that returns pre-computed boosts
+- Reduces latency from ~800ms to ~100ms
+
+### Priority 3: Scale preparation
+
+**8. Upgrade Lovable Cloud instance**
+- Go to Cloud > Advanced settings > Upgrade instance before launch
+- The default instance won't handle 100K concurrent connections
+
+**9. Add database indexes for hot queries**
+- Add indexes on `event_interactions(created_at, type)` and `guestlist_entries(user_id, status)` for the feed scoring queries
+
+### Technical details
+
+- Priority 1 items prevent the app from breaking under load
+- Priority 2 items improve reliability and perceived performance
+- Priority 3 items are infrastructure prep that requires no code changes in the app itself
+- Estimated implementation: Priority 1 = ~3 messages, Priority 2 = ~2 messages, Priority 3 = configuration only
 
