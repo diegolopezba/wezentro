@@ -1,14 +1,31 @@
 
 
-## Fix: Terms checkbox not toggling on tap
+## Prefetch Events During Splash Screen
 
-**Problem**: The `<label>` on line 317 wraps the checkbox div and the text, but has no `onClick` handler. Only clicking the small 20x20 checkbox `div` (line 322) toggles the state. Tapping the surrounding text does nothing, and tapping the link buttons navigates away from the page.
+**Why it works**: The splash screen already blocks for 1.2 seconds. Currently that time is wasted — the event queries only start when `Index.tsx` mounts *after* the splash fades. By prefetching during the splash, cards appear instantly with zero skeleton time.
 
-**Fix in `src/pages/Auth.tsx`**:
+**How Instagram/TikTok do it**: They start API calls the moment the app launches, while the splash animation plays. By the time the splash fades, data is already in memory.
 
-1. Add an `onClick` handler to the outer `<label>` element that toggles `termsAccepted`
-2. Keep `e.stopPropagation()` on the two navigation buttons so they don't also toggle the checkbox
-3. Add `e.preventDefault()` to the label click to prevent default label behavior that could cause double-toggling on the checkbox div itself
+### Implementation
 
-This way, tapping anywhere on the row (except the Terms/Privacy links) will check the box — matching standard mobile UX patterns.
+**File: `src/App.tsx`**
+
+Since `QueryClientProvider` already wraps the splash screen (line 118), we can use `queryClient.prefetchQuery()` during the splash phase to warm the cache:
+
+1. Add a `useEffect` inside `App` (runs on mount) that calls `queryClient.prefetchQuery` for the main events query — the same `["for-you-events"]` query key and fetch function used in `useForYouEvents.ts`
+2. This runs in parallel with the splash animation timer
+3. When `Index.tsx` mounts after splash, `useQuery` finds cached data and renders cards immediately — no skeleton flash
+
+```text
+Timeline (current):
+  [--- splash 1.2s ---][--- skeleton 300-500ms ---][cards]
+
+Timeline (after fix):
+  [--- splash 1.2s (fetching in background) ---][cards instantly]
+```
+
+**What changes**:
+- Extract the core events fetch function to a shared constant so both `App.tsx` and `useForYouEvents.ts` use the same query key/function
+- Add one `useEffect` in `App` that prefetches during splash
+- No other files change — TanStack Query deduplicates automatically
 
