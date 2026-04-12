@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocationContext } from "@/contexts/LocationContext";
 import { useUserPreferences } from "./useUserPreferences";
-import { EventWithCreator } from "./useEvents";
+import type { EventWithCreator } from "./useEvents";
 import {
   calculateEventScore,
   injectExploration,
@@ -255,7 +255,7 @@ export const useForYouEvents = () => {
     refetch,
   } = useQuery({
     queryKey: FOR_YOU_EVENTS_KEY,
-    queryFn: fetchForYouEvents as any,
+    queryFn: () => fetchForYouEvents() as Promise<(EventWithCreator & { guestlist_entries?: any[] })[]>,
     staleTime: 2 * 60 * 1000,
   });
 
