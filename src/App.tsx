@@ -36,6 +36,7 @@ import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
 import { KeepAliveLayout } from "@/components/layout/KeepAliveLayout";
 import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
 import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
+import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
 
 // Core navigation pages - preloaded for instant navigation (native app feel)
 const indexImport = () => import("./pages/Index");
@@ -110,6 +111,15 @@ const App = () => {
     } else {
       setTimeout(preloadCoreRoutes, 100);
     }
+  }, []);
+
+  // Prefetch event feed data during splash screen so cards appear instantly
+  useEffect(() => {
+    queryClient.prefetchQuery({
+      queryKey: FOR_YOU_EVENTS_KEY,
+      queryFn: fetchForYouEvents,
+      staleTime: 1000 * 60 * 5,
+    });
   }, []);
 
   return (
