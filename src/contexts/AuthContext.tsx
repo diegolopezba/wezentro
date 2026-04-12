@@ -90,15 +90,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id).then(setProfile);
-      }
-      setIsLoading(false);
-    });
+    // The onAuthStateChange listener with INITIAL_SESSION handles the
+    // existing session automatically — no need for a separate getSession() call.
+    // This eliminates the race condition that caused duplicate profile fetches.
 
     return () => subscription.unsubscribe();
   }, []);

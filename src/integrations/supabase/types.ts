@@ -1785,6 +1785,14 @@ export type Database = {
         }[]
       }
       get_subscription_plan: { Args: { _user_id: string }; Returns: string }
+      get_trending_scores: {
+        Args: never
+        Returns: {
+          event_id: string
+          trending_score: number
+          velocity_count: number
+        }[]
+      }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
