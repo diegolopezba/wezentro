@@ -136,13 +136,13 @@ export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you
   }
 
   return (
-    <div className="columns-2 gap-3 px-4 [column-fill:_balance] w-full">
+    <div className="masonry-grid w-full">
       {events.map((event, index) => (
         <div
           key={event.id}
           ref={observeCard}
           data-event-id={event.id}
-          className="break-inside-avoid mb-3"
+          className="masonry-item"
         >
           <EventCard {...event} index={index} />
         </div>
