@@ -36,10 +36,19 @@ export const useUserProfile = (userId: string | undefined, isOwnProfile = false)
 
       // Use raw profiles table for own profile (includes birth_date, stripe_customer_id)
       // Use profiles_public view for other users (hides sensitive fields)
-      const table = isOwnProfile ? "profiles" : "profiles_public";
+      if (isOwnProfile) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error("User not found");
+        return data as UserProfile;
+      }
 
       const { data, error } = await supabase
-        .from(table)
+        .from("profiles_public")
         .select("*")
         .eq("id", userId)
         .maybeSingle();
