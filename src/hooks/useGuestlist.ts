@@ -160,10 +160,6 @@ export const useLeaveGuestlist = () => {
   });
 };
 
-export const useHasActiveSubscription = () => {
-  // Subscriptions removed — always return true so all users see full attendee avatars
-  return { data: true, isLoading: false };
-};
 
 export const usePendingGuestlistRequests = (eventId: string | undefined) => {
   return useQuery({
