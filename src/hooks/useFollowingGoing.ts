@@ -19,10 +19,10 @@ export const useFollowingGoing = (eventId: string | undefined) => {
   return useQuery({
     queryKey: ["following-going", eventId, user?.id],
     queryFn: async (): Promise<AttendeeInfo[]> => {
-      // 1. Get all approved attendees
+      // 1. Get all approved attendees via public view (excludes qr_code_token)
       const { data: entries, error: entriesError } = await supabase
-        .from("guestlist_entries")
-        .select("user_id, user:profiles!guestlist_entries_user_id_fkey(id, username, avatar_url)")
+        .from("guestlist_entries_public")
+        .select("user_id")
         .eq("event_id", eventId!)
         .eq("status", "approved");
 
@@ -33,13 +33,26 @@ export const useFollowingGoing = (eventId: string | undefined) => {
 
       if (!entries || entries.length === 0) return [];
 
-      // Normalize attendees
-      const allAttendees = entries.map((e: any) => ({
-        user_id: e.user_id as string,
-        username: (e.user?.username || "user") as string,
-        avatar_url: (e.user?.avatar_url || null) as string | null,
-        isFollowed: false,
-      }));
+      // Fetch profiles for attendees
+      const userIds = entries.map((e: any) => e.user_id as string).filter(Boolean);
+      if (userIds.length === 0) return [];
+
+      const { data: profiles } = await supabase
+        .from("profiles_public")
+        .select("id, username, avatar_url")
+        .in("id", userIds);
+
+      const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+
+      const allAttendees = userIds.map((uid) => {
+        const profile = profileMap.get(uid);
+        return {
+          user_id: uid,
+          username: (profile?.username || "user") as string,
+          avatar_url: (profile?.avatar_url || null) as string | null,
+          isFollowed: false,
+        };
+      });
 
       // If not authenticated, return all as non-followed
       if (!user?.id) return allAttendees;

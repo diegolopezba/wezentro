@@ -13,7 +13,7 @@ export const useSearchUsers = (searchQuery: string) => {
     queryKey: ["search-users", searchQuery],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profiles")
+        .from("profiles_public")
         .select("id, username, full_name, avatar_url")
         .or(`username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`)
         .limit(20);

@@ -28,14 +28,18 @@ export interface FollowUser {
   avatar_url: string | null;
 }
 
-export const useUserProfile = (userId: string | undefined) => {
+export const useUserProfile = (userId: string | undefined, isOwnProfile = false) => {
   return useQuery({
     queryKey: ["user-profile", userId],
     queryFn: async () => {
       if (!userId) throw new Error("User ID required");
 
+      // Use raw profiles table for own profile (includes birth_date, stripe_customer_id)
+      // Use profiles_public view for other users (hides sensitive fields)
+      const table = isOwnProfile ? "profiles" : "profiles_public";
+
       const { data, error } = await supabase
-        .from("profiles")
+        .from(table)
         .select("*")
         .eq("id", userId)
         .maybeSingle();
