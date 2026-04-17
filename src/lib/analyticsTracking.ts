@@ -70,10 +70,15 @@ export const trackProfileVisit = async (profileId: string, visitorId: string | n
 
     if (existing) return;
 
-    await supabase.from("profile_visits").insert({
+    const { error: insertError } = await supabase.from("profile_visits").insert({
       profile_id: profileId,
       visitor_id: visitorId,
     });
+
+    // Silently ignore duplicate-key violations from the daily unique index
+    if (insertError && insertError.code !== "23505") {
+      console.error("Failed to track profile visit:", insertError);
+    }
   } catch (error) {
     console.error("Failed to track profile visit:", error);
   }

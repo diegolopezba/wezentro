@@ -1032,18 +1032,21 @@ export type Database = {
           created_at: string
           id: string
           profile_id: string
+          visit_date: string | null
           visitor_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           profile_id: string
+          visit_date?: string | null
           visitor_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           profile_id?: string
+          visit_date?: string | null
           visitor_id?: string | null
         }
         Relationships: [
@@ -2004,6 +2007,7 @@ export type Database = {
           reward_claimed: boolean
         }[]
       }
+      get_save_count: { Args: { _event_id: string }; Returns: number }
       get_trending_scores: {
         Args: never
         Returns: {
