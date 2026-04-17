@@ -10,13 +10,12 @@ export function useSaveCount(eventId: string | undefined) {
     queryFn: async () => {
       if (!eventId) return 0;
 
-      const { count, error } = await supabase
-        .from("saved_events")
-        .select("*", { count: "exact", head: true })
-        .eq("event_id", eventId);
+      const { data, error } = await supabase.rpc("get_save_count", {
+        _event_id: eventId,
+      });
 
       if (error) throw error;
-      return count || 0;
+      return Number(data) || 0;
     },
     enabled: !!eventId,
   });
