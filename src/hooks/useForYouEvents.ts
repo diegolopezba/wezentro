@@ -19,6 +19,7 @@ export const useForYouEvents = () => {
   const userId = user?.id;
 
   const { data: blockedIds } = useBlockedIds();
+  const { data: learnedPrefs } = useUserPreferences(userId);
 
   const { data: userProfile } = useQuery({
     queryKey: ["user-interests", user?.id],
@@ -246,6 +247,8 @@ export const useForYouEvents = () => {
     };
 
     const filtered = events.filter((e) => {
+      // Hide content from blocked users (and users who blocked current user)
+      if (blockedIds && e.creator_id && blockedIds.has(e.creator_id)) return false;
       if (e.is_post) return true;
       if (!e.start_datetime) return true;
       return new Date(e.start_datetime) >= now;
@@ -259,7 +262,7 @@ export const useForYouEvents = () => {
       .sort((a, b) => b._score - a._score);
 
     return injectExploration(scored, categoryPrefs);
-  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingVelocityData, creatorAttendance, dayOfWeekPrefs, tagPrefs, collaborativeBoosts, mutualFollowerIds, userId]);
+  }, [events, location, userProfile?.interests, following, learnedPrefs, trendingVelocityData, creatorAttendance, dayOfWeekPrefs, tagPrefs, collaborativeBoosts, mutualFollowerIds, userId, blockedIds]);
 
   return {
     data: scoredEvents,
