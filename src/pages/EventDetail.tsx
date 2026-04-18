@@ -510,6 +510,16 @@ const EventDetail = () => {
       eventCreatorId={event.creator_id}
       commentCount={commentCount}
     />
+
+    {/* Report Sheet */}
+    {id && (
+      <ReportSheet
+        open={showReportSheet}
+        onOpenChange={setShowReportSheet}
+        targetType={event.is_post ? "post" : "event"}
+        targetId={id}
+      />
+    )}
     </div>;
 };
 export default EventDetail;
