@@ -1,57 +1,84 @@
 
-Great question — let me directly address whether these 6 fixes align with industry standards before re-presenting the plan.
 
-## Are these fixes industry-standard?
+## Pre-deployment audit results
 
-**Yes — every single one of these is a baseline practice at Instagram, TikTok, Snapchat, and similar social apps.** Here's the mapping:
+I ran a full sweep: TypeScript (clean), production build (succeeds), error boundary (in place), runtime/console/network logs (no errors), routing, PWA assets, storage usage. The good news: **the app is stable and won't crash**. The bad news: there's **one App Store rejection blocker** plus a few performance and polish issues.
 
-| Our Fix | Industry equivalent |
-|---|---|
-| **1. Hide category preferences from other users** | Instagram never exposes your "interests" graph to other users — it's used server-side for the algorithm only. Exposing behavioral signals enables stalking and ad-targeting abuse. |
-| **2. Hide who saved an event (show count only)** | Instagram shows "X saves" on a post but never reveals WHO saved it. TikTok same. Save lists are private — this is a well-known privacy norm. |
-| **3. Deduplicate profile visits per day** | LinkedIn ("Who viewed your profile") deduplicates by day to prevent inflated counts and spam. Instagram does this for story views too. |
-| **4. Restrict file uploads to image types only** | Standard at every platform. Prevents malware uploads (e.g., `.exe`, `.html` with XSS payloads) being served from your CDN. OWASP top recommendation. |
-| **5. Defense-in-depth on referrals** | "Never trust a single layer" — both the edge function AND the database enforce that you can't fake referrals. Standard zero-trust pattern used at Uber, DoorDash referral systems. |
-| **6. Cleanup of unused tables** | Removing dead tables/columns is standard hygiene — reduces attack surface. Every security audit (SOC 2, ISO 27001) requires it. |
+---
 
-**What we're NOT doing (also intentional, also industry-standard):**
-- We're NOT hiding attendee lists — Instagram shows who likes a post, who follows whom. Social proof is the product.
-- We're NOT hiding business phone/address — those are public business info, like Google Maps listings.
-- We're NOT requiring email verification before posting — Instagram allows browsing pre-verification.
+### 🔴 BLOCKER — App Store rejection guaranteed (Apple Guideline 1.2 — User Generated Content)
 
-## The Plan (unchanged from approved)
+Apple **rejects any UGC app** that doesn't ship with all four of these. Zentro has zero of them:
 
-### 1. Mark already-resolved findings (no code)
-- `subscriptions_any_authenticated_read`, `subscriptions_public_no_policies`, `delete_mock_hardcoded_pw` → mark fixed in scanner.
+1. **Report content** button on every event/post/comment/profile
+2. **Block user** functionality (and a list to manage blocks)
+3. **EULA** with a no-tolerance clause for objectionable content
+4. **Mechanism for filtering objectionable content** (handled via report → review)
 
-### 2. Lock down `user_category_preferences` (Error)
-```sql
-DROP POLICY "Anyone can view category preferences for collaborative filtering"
-  ON user_category_preferences;
-```
-No code impact — feed scoring only reads current user's prefs.
+This is the #1 reason social apps get rejected. Without it, we won't pass review. Estimated work: ~1 day (one `reports` table, one `blocked_users` table, report sheet component, block toggle in profile dropdown, blocklist filter in feed queries).
 
-### 3. Restrict `saved_events` SELECT to owner + creator (Warn)
-- Drop `"Anyone can view save counts"` policy
-- Add owner-only and creator-only SELECT policies
-- Create `get_save_count(_event_id)` SECURITY DEFINER function
-- Update `useSaveCount` in `src/hooks/useSavedEvents.ts` to call the RPC
+---
 
-### 4. Profile visit deduplication (Warn)
-- Add unique daily index on `profile_visits(profile_id, visitor_id, date)`
-- Update `src/lib/analyticsTracking.ts` to swallow duplicate-key errors
+### 🟠 Performance / size issues
 
-### 5. Storage upload restrictions (Warn)
-- Replace `event-images` INSERT policy to enforce `jpg|jpeg|png|webp|gif` extensions only
+| Issue | Impact | Fix |
+|---|---|---|
+| `vendor-map` chunk = **1.67 MB** (Mapbox) | Slow first-load on /discover; flagged in Lighthouse | Already lazy-loaded — verify Mapbox isn't pulled into `index` chunk; confirm it only loads when /discover is hit |
+| `index` main chunk = **564 KB** | Slow initial paint | Audit imports — likely `recharts` or another library pulled in by the root |
+| `vendor-charts` = **411 KB** loaded for non-business users | Wasteful | Confirm BusinessDashboard is the only consumer and route-split it |
+| 229 `console.*` calls in 24 files | Minor — production console pollution | Logger already strips `console.log`; audit `console.error` calls that leak PII |
 
-### 6. Referrals defense-in-depth (Warn)
-- Add INSERT policy: `auth.uid() = referred_user_id AND referrer_id != referred_user_id`
+---
 
-### Files modified
-| File | Change |
-|---|---|
-| Migration SQL | All policy changes + RPC + index |
-| `src/hooks/useSavedEvents.ts` | Use `get_save_count` RPC instead of direct count |
-| `src/lib/analyticsTracking.ts` | Handle duplicate-visit conflict gracefully |
+### 🟡 Code quality / store polish
 
-No UI changes, no breaking changes, fully backward compatible.
+- **254 `as any` casts in 21 files** — mostly around `profile` properties (`menu_enabled`, `business_phone`, etc.). The Supabase types are out of date with these columns. Risk: silent runtime nulls. Should regenerate types.
+- **`maximum-scale=1.0, user-scalable=no` in viewport meta** — Apple recommends against disabling user-scalable for accessibility; some reviewers flag it. Low risk but worth removing the `user-scalable=no`.
+- **Hardcoded `og:image` / `favicon` from `gpt-engineer-file-uploads`** in `index.html` — works but unprofessional URLs in source. Should self-host in `/public`.
+- **No `manifest.webmanifest`** in `/public` — VitePWA generates one at build, so this is fine, but verify it's emitted with proper name/icons for "Add to Home Screen" prompt on iOS.
+- **`SplashScreen.tsx`** runs on every mount with `minDisplayTime={1200}` — adds 1.2s to every cold start. Native Capacitor splash already covers this. Recommend reducing to 400ms or removing entirely on native.
+- **Hardcoded English error text** in `ErrorBoundary` ("Something went wrong", "Reload") — rest of app is Spanish. Should localize.
+
+---
+
+### 🟢 What's already solid
+
+- TypeScript compiles clean
+- Production build succeeds
+- ErrorBoundary catches render crashes
+- Service worker uses NetworkFirst for navigation (no stale chunks)
+- Chunk-load retry with sessionStorage guard
+- Lazy retry on import failures
+- All Capacitor iOS privacy strings present (`NSLocationWhenInUseUsageDescription`, `NSCameraUsageDescription`, etc.)
+- Auth persists via localStorage (correct)
+- Push notifications properly gated behind permission prompt
+
+---
+
+### Recommended fix order (priority)
+
+| # | Fix | Why first | Effort |
+|---|---|---|---|
+| 1 | **Add Report + Block + EULA** | Apple **will reject** without it | ~1 day |
+| 2 | Reduce SplashScreen min display to 400ms | Faster cold start (perceived) | 5 min |
+| 3 | Audit `index` chunk for unnecessary imports | First paint speed | 30 min |
+| 4 | Localize ErrorBoundary to Spanish | Polish | 5 min |
+| 5 | Remove `user-scalable=no` from viewport | Accessibility | 1 min |
+| 6 | Self-host favicon + og:image | Polish | 10 min |
+| 7 | Regenerate Supabase types to remove `as any` | Type safety | 10 min |
+
+---
+
+### My recommendation
+
+**Tackle #1 (Report + Block + EULA) before submitting to either store.** Everything else can ship as-is and be patched in v1.0.1. Without #1, we'll get an Apple rejection email within 24-48 hours of submission and have to resubmit, losing a review cycle (~2-3 days).
+
+Want me to plan the Report + Block implementation in detail? It needs:
+- `reports` table (reporter, target type, target id, reason, status)
+- `blocked_users` table (blocker, blocked) with RLS
+- Report sheet component (reusable for events, comments, profiles)
+- Block action in profile dropdown + UserProfile
+- Filter blocked users out of feed/chats/comments queries
+- EULA acceptance gate added to onboarding
+- "Mis bloqueos" page in Settings
+
