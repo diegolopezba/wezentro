@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocationContext } from "@/contexts/LocationContext";
 import { useUserPreferences } from "./useUserPreferences";
+import { useBlockedIds } from "./useBlockedUsers";
 import type { EventWithCreator } from "./useEvents";
 import {
   calculateEventScore,
@@ -17,7 +18,7 @@ export const useForYouEvents = () => {
   const { location } = useLocationContext();
   const userId = user?.id;
 
-  const { data: learnedPrefs } = useUserPreferences(userId);
+  const { data: blockedIds } = useBlockedIds();
 
   const { data: userProfile } = useQuery({
     queryKey: ["user-interests", user?.id],
