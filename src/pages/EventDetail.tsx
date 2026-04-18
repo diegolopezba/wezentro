@@ -41,6 +41,7 @@ const EventDetail = () => {
   const fromCreate = (location.state as { fromCreate?: boolean })?.fromCreate;
   const openGuestlistOnMount = (location.state as { openGuestlist?: boolean })?.openGuestlist;
   const { user } = useAuth();
+  const [showReportSheet, setShowReportSheet] = useState(false);
 
   const {
     event, isLoading, error,
