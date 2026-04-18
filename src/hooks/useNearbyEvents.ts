@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Event } from "./useEvents";
+import { useBlockedIds } from "./useBlockedUsers";
 
 interface UserLocation {
   lat: number;
@@ -87,8 +88,13 @@ export const useNearbyEvents = (
   filters: FilterOptions,
   friendsData?: FriendsGoingData | null
 ): EventWithDistance[] => {
+  const { data: blockedIds } = useBlockedIds();
+
   return useMemo(() => {
-    let result: EventWithDistance[] = events.map((event) => {
+    const sourceEvents = blockedIds && blockedIds.size > 0
+      ? events.filter((e) => !blockedIds.has(e.creator_id))
+      : events;
+    let result: EventWithDistance[] = sourceEvents.map((event) => {
       let distance: number | null = null;
       
       if (userLocation && event.latitude && event.longitude) {
@@ -199,7 +205,7 @@ export const useNearbyEvents = (
     }
 
     return result;
-  }, [events, userLocation, filters, friendsData]);
+  }, [events, userLocation, filters, friendsData, blockedIds]);
 };
 
 export const formatDistance = (distance: number | null): string => {
