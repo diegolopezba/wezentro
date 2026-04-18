@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendPushNotification } from "@/lib/pushNotifications";
 import { haptic } from "@/lib/haptics";
+import { useBlockedIds } from "./useBlockedUsers";
 
 export interface ChatParticipant {
   id: string;

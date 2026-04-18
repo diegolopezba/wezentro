@@ -33,16 +33,16 @@ class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen flex items-center justify-center bg-background p-6">
           <div className="text-center space-y-4 max-w-sm">
             <h1 className="text-xl font-semibold text-foreground">
-              Something went wrong
+              Algo salió mal
             </h1>
             <p className="text-sm text-muted-foreground">
-              An unexpected error occurred. Please reload the app.
+              Ocurrió un error inesperado. Por favor, recarga la aplicación.
             </p>
             <button
               onClick={this.handleReload}
               className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm"
             >
-              Reload
+              Recargar
             </button>
           </div>
         </div>
