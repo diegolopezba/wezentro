@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Heart, Trash2, MoreHorizontal, ChevronDown, ChevronUp } from "lucide-react";
+import { Heart, Trash2, MoreHorizontal, ChevronDown, ChevronUp, Flag } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -20,6 +21,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
+import { ReportSheet } from "@/components/moderation/ReportSheet";
 
 interface CommentItemProps {
   comment: EventComment;
@@ -44,6 +46,7 @@ export const CommentItem = ({
   const likeComment = useLikeComment();
   const unlikeComment = useUnlikeComment();
   const [showAllReplies, setShowAllReplies] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const { data: replyCount = 0 } = useReplyCount(!isReply ? comment.id : undefined);
   const { data: replies = [] } = useCommentReplies(
@@ -58,6 +61,7 @@ export const CommentItem = ({
   const isOwner = user?.id === comment.user_id;
   const isCreator = user?.id === eventCreatorId;
   const canDelete = isOwner || isCreator;
+  const canReport = !!user && !isOwner;
 
   const handleLikeToggle = () => {
     if (!user) {
@@ -76,11 +80,12 @@ export const CommentItem = ({
       promptAuth({ action: "responder a un comentario" });
       return;
     }
-    // For replies, target the parent comment
     const targetId = comment.parent_id || comment.id;
     const username = comment.user?.username || "usuario";
     onReply?.(targetId, username);
   };
+
+  const showMenu = canDelete || canReport;
 
   return (
     <div>
@@ -112,7 +117,6 @@ export const CommentItem = ({
             {comment.content}
           </p>
 
-          {/* Actions row */}
           <div className="flex items-center gap-4 mt-1.5">
             <button
               onClick={handleLikeToggle}
@@ -120,14 +124,10 @@ export const CommentItem = ({
             >
               <Heart
                 className={`w-3.5 h-3.5 ${
-                  comment.is_liked
-                    ? "fill-red-500 text-red-500"
-                    : ""
+                  comment.is_liked ? "fill-red-500 text-red-500" : ""
                 }`}
               />
-              {comment.like_count > 0 && (
-                <span>{comment.like_count}</span>
-              )}
+              {comment.like_count > 0 && <span>{comment.like_count}</span>}
             </button>
 
             {!isReply && (
@@ -141,9 +141,8 @@ export const CommentItem = ({
           </div>
         </div>
 
-        {/* Like + menu on the right */}
         <div className="flex items-center gap-1 shrink-0">
-          {canDelete && (
+          {showMenu && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="p-1 rounded-full hover:bg-muted transition-colors opacity-40 hover:opacity-100">
@@ -151,20 +150,28 @@ export const CommentItem = ({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuItem
-                  onClick={() => onDelete(comment.id, comment.parent_id)}
-                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Eliminar comentario
-                </DropdownMenuItem>
+                {canDelete && (
+                  <DropdownMenuItem
+                    onClick={() => onDelete(comment.id, comment.parent_id)}
+                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Eliminar comentario
+                  </DropdownMenuItem>
+                )}
+                {canDelete && canReport && <DropdownMenuSeparator />}
+                {canReport && (
+                  <DropdownMenuItem onClick={() => setReportOpen(true)}>
+                    <Flag className="w-4 h-4 mr-2" />
+                    Reportar comentario
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
         </div>
       </div>
 
-      {/* Inline replies (first 2 always shown) */}
       {!isReply && inlineReplies.length > 0 && (
         <div className="mt-2 space-y-3">
           {inlineReplies.map((reply) => (
@@ -181,7 +188,6 @@ export const CommentItem = ({
         </div>
       )}
 
-      {/* "Ver más" toggle for 3+ replies */}
       {!isReply && hasMore && (
         <button
           onClick={() => setShowAllReplies(!showAllReplies)}
@@ -201,7 +207,6 @@ export const CommentItem = ({
         </button>
       )}
 
-      {/* Extra replies (shown on expand) */}
       {showAllReplies && extraReplies.length > 0 && (
         <div className="mt-2 space-y-3">
           {extraReplies.map((reply) => (
@@ -217,6 +222,13 @@ export const CommentItem = ({
           ))}
         </div>
       )}
+
+      <ReportSheet
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        targetType="comment"
+        targetId={comment.id}
+      />
     </div>
   );
 };

@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, X, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
+import { Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, X, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck, Flag } from "lucide-react";
+import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -34,6 +35,7 @@ export const EventDetailOverlay = () => {
   const { user } = useAuth();
   const { selectedEventId, closeEvent } = useSelectedEvent();
   const [portalNode, setPortalNode] = useState<HTMLDivElement | null>(null);
+  const [showReportSheet, setShowReportSheet] = useState(false);
 
   const {
     event, isLoading, error,
@@ -238,6 +240,12 @@ export const EventDetailOverlay = () => {
                                 {event.is_post ? "Eliminar post" : "Eliminar evento"}
                               </DropdownMenuItem>
                             </>
+                          )}
+                          {!isOwner && user && (
+                            <DropdownMenuItem onClick={() => setShowReportSheet(true)}>
+                              <Flag className="w-4 h-4 mr-2" />
+                              Reportar
+                            </DropdownMenuItem>
                           )}
                           {!isOwner && user && (
                             <DropdownMenuItem onClick={() => {
@@ -483,6 +491,15 @@ export const EventDetailOverlay = () => {
                     eventCreatorId={event?.creator_id}
                     commentCount={commentCount}
                   />
+
+                  {selectedEventId && (
+                    <ReportSheet
+                      open={showReportSheet}
+                      onOpenChange={setShowReportSheet}
+                      targetType={event?.is_post ? "post" : "event"}
+                      targetId={selectedEventId}
+                    />
+                  )}
                 </>
               )}
             </>

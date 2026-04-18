@@ -6,7 +6,7 @@ interface SplashScreenProps {
 }
 export const SplashScreen = ({
   onComplete,
-  minDisplayTime = 2000
+  minDisplayTime = 400
 }: SplashScreenProps) => {
   const [isVisible, setIsVisible] = useState(true);
   useEffect(() => {
