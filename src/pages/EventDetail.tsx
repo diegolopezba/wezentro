@@ -3,7 +3,9 @@ import { motion } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff, UtensilsCrossed, CalendarCheck } from "lucide-react";
+import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff, UtensilsCrossed, CalendarCheck, Flag } from "lucide-react";
+import { useState } from "react";
+import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEventGuestlist } from "@/hooks/useEvents";
@@ -206,6 +208,12 @@ const EventDetail = () => {
                         </DropdownMenuItem>
                       </>
                 }
+                    {!isOwner && user && (
+                <DropdownMenuItem onClick={() => setShowReportSheet(true)}>
+                        <Flag className="w-4 h-4 mr-2" />
+                        Reportar
+                      </DropdownMenuItem>
+                )}
                     {!isOwner && user &&
                 <DropdownMenuItem onClick={() => {
                   trackPreferenceSignal(user.id, id!, "not_interested");
