@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useBlockedIds } from "./useBlockedUsers";
 
 export interface Event {
   id: string;
@@ -40,8 +41,9 @@ export interface EventWithCreator extends Event {
 }
 
 export const useEvents = () => {
+  const { data: blockedIds } = useBlockedIds();
   return useQuery({
-    queryKey: ["events"],
+    queryKey: ["events", blockedIds ? Array.from(blockedIds).sort().join(",") : ""],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
@@ -65,7 +67,11 @@ export const useEvents = () => {
         .order("start_datetime", { ascending: true });
 
       if (error) throw error;
-      return data as EventWithCreator[];
+      const events = data as EventWithCreator[];
+      if (blockedIds && blockedIds.size > 0) {
+        return events.filter((e) => !blockedIds.has(e.creator_id));
+      }
+      return events;
     },
   });
 };

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBlockedIds } from "./useBlockedUsers";
 import { EventWithCreator } from "./useEvents";
 
 // Repost info type for feed items
@@ -129,6 +130,7 @@ const calculateFollowingEventScore = (
 
 export const useFollowingEventsScored = () => {
   const { user } = useAuth();
+  const { data: blockedIds } = useBlockedIds();
 
   // Fetch list of users the current user follows
   const { data: followingIds } = useQuery({
@@ -284,7 +286,9 @@ export const useFollowingEventsScored = () => {
     directEvents?.forEach((event) => {
       // Filter: include posts (no start_datetime) OR future events
       if (event.start_datetime && new Date(event.start_datetime) < now) return;
-      
+      // Hide blocked users' content
+      if (blockedIds && blockedIds.has(event.creator_id)) return;
+
       eventMap.set(event.id, { ...event });
     });
 
@@ -301,8 +305,13 @@ export const useFollowingEventsScored = () => {
       repostedEvents.forEach((event) => {
         // Filter: include posts (no start_datetime) OR future events
         if (event.start_datetime && new Date(event.start_datetime) < now) return;
+        // Hide blocked users' content (creator or reposter)
+        if (blockedIds && blockedIds.has(event.creator_id)) return;
 
-        const eventReposts = repostsByEvent.get(event.id) || [];
+        const eventReposts = (repostsByEvent.get(event.id) || []).filter(
+          (r) => !blockedIds || !blockedIds.has(r.user_id)
+        );
+        if (eventReposts.length === 0 && !eventMap.has(event.id)) return;
         const repostInfo: RepostInfo = {
           repostedBy: eventReposts
             .map((r) => r.user)
@@ -329,7 +338,7 @@ export const useFollowingEventsScored = () => {
         _score: calculateFollowingEventScore(event, mutualFollowIds, followingIds || []),
       }))
       .sort((a, b) => b._score - a._score);
-  }, [directEvents, reposts, repostedEvents, mutualFollowIds, followingIds]);
+  }, [directEvents, reposts, repostedEvents, mutualFollowIds, followingIds, blockedIds]);
 
   return {
     data: scoredEvents,

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBlockedIds } from "./useBlockedUsers";
 import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
 
@@ -24,9 +25,10 @@ export interface EventComment {
 // Fetch top-level comments (parent_id IS NULL)
 export const useEventComments = (eventId: string | undefined) => {
   const { user } = useAuth();
+  const { data: blockedIds } = useBlockedIds();
 
   return useQuery({
-    queryKey: ["event-comments", eventId],
+    queryKey: ["event-comments", eventId, blockedIds ? Array.from(blockedIds).sort().join(",") : ""],
     queryFn: async () => {
       if (!eventId) return [];
 
@@ -42,7 +44,10 @@ export const useEventComments = (eventId: string | undefined) => {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      const comments = (data || []) as EventComment[];
+      let comments = (data || []) as EventComment[];
+      if (blockedIds && blockedIds.size > 0) {
+        comments = comments.filter((c) => !blockedIds.has(c.user_id));
+      }
 
       // Batch fetch like counts
       const commentIds = comments.map((c) => c.id);
