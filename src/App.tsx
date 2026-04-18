@@ -36,6 +36,7 @@ import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
 import { KeepAliveLayout } from "@/components/layout/KeepAliveLayout";
 import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
 import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
+import { EulaGate } from "@/components/moderation/EulaGate";
 import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
 
 // Core navigation pages - preloaded for instant navigation (native app feel)
@@ -78,6 +79,7 @@ const MyReservations = lazyWithRetry(() => import("./pages/MyReservations"));
 const ReservationConfirmation = lazyWithRetry(() => import("./pages/ReservationConfirmation"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
+const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
 
 // Preload core routes after initial render for instant navigation
 const preloadCoreRoutes = () => {
@@ -140,6 +142,7 @@ const App = () => {
                         <SelectedEventProvider>
                         <AuthPromptModal />
                         <EventDetailOverlay />
+                        <EulaGate>
                         <Routes>
                           {/* Public routes */}
                           <Route
