@@ -437,6 +437,16 @@ const App = () => {
                               </Suspense>
                             }
                           />
+                          <Route
+                            path="/settings/blocks"
+                            element={
+                              <ProtectedRoute requireProfile>
+                                <Suspense fallback={<PageLoader />}>
+                                  <BlockedUsers />
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
+                          />
                           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                           <Route
                             path="*"
@@ -447,6 +457,7 @@ const App = () => {
                             }
                           />
                         </Routes>
+                        </EulaGate>
                         </SelectedEventProvider>
                       </AuthPromptProvider>
                     </LocationProvider>
