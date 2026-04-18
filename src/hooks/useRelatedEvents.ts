@@ -1,14 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { EventWithCreator } from "@/hooks/useEvents";
+import { useBlockedIds } from "@/hooks/useBlockedUsers";
 
 export const useRelatedEvents = (
   eventId: string | undefined,
   category: string | null | undefined,
   creatorId: string | undefined
 ) => {
+  const { data: blockedIds } = useBlockedIds();
+
   return useQuery({
-    queryKey: ["related-events", eventId, category, creatorId],
+    queryKey: ["related-events", eventId, category, creatorId, blockedIds?.size ?? 0],
     queryFn: async () => {
       if (!eventId) return [];
 
@@ -43,7 +46,11 @@ export const useRelatedEvents = (
         .limit(12);
 
       if (error) throw error;
-      return (data || []) as EventWithCreator[];
+      const events = (data || []) as EventWithCreator[];
+      if (blockedIds && blockedIds.size > 0) {
+        return events.filter((e) => !blockedIds.has(e.creator_id));
+      }
+      return events;
     },
     enabled: !!eventId && (!!category || !!creatorId),
     staleTime: 5 * 60 * 1000,
