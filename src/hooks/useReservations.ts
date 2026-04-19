@@ -157,10 +157,62 @@ export const useCancelReservation = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
       toast.success("Reserva cancelada");
     },
     onError: () => {
       toast.error("Error al cancelar la reserva");
+    },
+  });
+};
+
+interface UpdateReservationParams {
+  reservationId: string;
+  reservation_date: string;
+  reservation_time: string;
+  party_size: number;
+  notes?: string;
+}
+
+/**
+ * Modify an existing reservation. Allowed only when the reservation
+ * starts more than 2 hours in the future. Reminders are auto-refreshed
+ * by a database trigger when date/time/status change.
+ */
+export const useUpdateReservation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: UpdateReservationParams) => {
+      const newWhen = new Date(`${params.reservation_date}T${params.reservation_time}`);
+      if (newWhen.getTime() - Date.now() < 2 * 60 * 60 * 1000) {
+        throw new Error("Solo puedes modificar con más de 2 horas de anticipación");
+      }
+
+      const { data, error } = await supabase
+        .from("reservations")
+        .update({
+          reservation_date: params.reservation_date,
+          reservation_time: params.reservation_time,
+          party_size: params.party_size,
+          notes: params.notes ?? null,
+        })
+        .eq("id", params.reservationId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      haptic("success");
+      queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["reservation-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
+      toast.success("Reserva actualizada");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Error al actualizar la reserva");
     },
   });
 };
