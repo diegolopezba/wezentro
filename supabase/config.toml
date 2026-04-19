@@ -24,3 +24,6 @@ verify_jwt = false
 
 [functions.check-in-guest]
 verify_jwt = false
+
+[functions.send-reservation-reminders]
+verify_jwt = false

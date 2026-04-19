@@ -1490,6 +1490,41 @@ export type Database = {
           },
         ]
       }
+      reservation_reminders: {
+        Row: {
+          created_at: string
+          id: string
+          reminder_type: string
+          reservation_id: string
+          scheduled_for: string
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reminder_type: string
+          reservation_id: string
+          scheduled_for: string
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reminder_type?: string
+          reservation_id?: string
+          scheduled_for?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_reminders_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reservations: {
         Row: {
           business_id: string
@@ -2050,6 +2085,10 @@ export type Database = {
       can_view_full_guestlist_entry: {
         Args: { _entry_user_id: string; _event_id: string; _user_id: string }
         Returns: boolean
+      }
+      enqueue_reservation_reminders: {
+        Args: { _reservation_id: string }
+        Returns: undefined
       }
       generate_referral_code: { Args: { _user_id: string }; Returns: string }
       get_chat_list_with_unread: {
