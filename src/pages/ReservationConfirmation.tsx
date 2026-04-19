@@ -41,10 +41,6 @@ import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
-/** Format a Date as YYYYMMDDTHHmmss for .ics */
-const toIcsDate = (d: Date) =>
-  d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-
 const ReservationConfirmation = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
