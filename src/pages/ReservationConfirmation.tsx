@@ -4,8 +4,6 @@ import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   X,
-  CalendarDays,
-  Clock,
   Users,
   MapPin,
   StickyNote,
