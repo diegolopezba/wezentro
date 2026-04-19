@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
@@ -95,13 +95,6 @@ export const ReservationSheet = ({
 }: ReservationSheetProps) => {
   const isEditMode = !!editingReservation;
 
-  const TIME_SLOTS = ALL_TIME_SLOTS.filter((slot) => {
-    const start = reservationStartTime?.slice(0, 5);
-    const end = reservationEndTime?.slice(0, 5);
-    if (!start || !end) return true;
-    return slot >= start && slot < end;
-  });
-
   const { user } = useAuth();
   const navigate = useNavigate();
   const { promptAuth } = useAuthPrompt();
@@ -127,6 +120,35 @@ export const ReservationSheet = ({
   }, [open, editingReservation]);
 
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined;
+
+  // Build available time slots: respect business window + filter past times when date is today
+  const TIME_SLOTS = useMemo(() => {
+    const start = reservationStartTime?.slice(0, 5);
+    const end = reservationEndTime?.slice(0, 5);
+
+    // If selected date is today, drop any slot in the past (with a small 15-min buffer
+    // so users don't pick a time they can't realistically arrive for).
+    let minTime: string | null = null;
+    if (selectedDate) {
+      const today = new Date();
+      const isToday =
+        selectedDate.getFullYear() === today.getFullYear() &&
+        selectedDate.getMonth() === today.getMonth() &&
+        selectedDate.getDate() === today.getDate();
+      if (isToday) {
+        const buffered = new Date(today.getTime() + 15 * 60 * 1000);
+        const h = buffered.getHours().toString().padStart(2, "0");
+        const m = buffered.getMinutes().toString().padStart(2, "0");
+        minTime = `${h}:${m}`;
+      }
+    }
+
+    return ALL_TIME_SLOTS.filter((slot) => {
+      if (start && end && !(slot >= start && slot < end)) return false;
+      if (minTime && slot <= minTime) return false;
+      return true;
+    });
+  }, [reservationStartTime, reservationEndTime, selectedDate]);
 
   // Live availability for the picked date
   const { data: availability } = useSlotAvailability(
