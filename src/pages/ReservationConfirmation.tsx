@@ -357,15 +357,8 @@ const ReservationConfirmation = () => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.3 }}
-          className="grid grid-cols-3 gap-2 mt-4"
+          className="grid grid-cols-2 gap-2 mt-4"
         >
-          <button
-            onClick={handleAddToCalendar}
-            className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 active:scale-[0.97] transition-transform"
-          >
-            <CalendarPlus className="w-5 h-5 text-foreground" />
-            <span className="text-[11px] font-medium">Calendario</span>
-          </button>
           <button
             onClick={handleDirections}
             className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 active:scale-[0.97] transition-transform"
