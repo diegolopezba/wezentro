@@ -108,11 +108,22 @@ const formatDateLabel = (dateStr: string) => {
 
 const ReservationCard = ({
   reservation,
+  onModify,
 }: {
   reservation: ReservationWithBusiness;
+  onModify: (r: ReservationWithBusiness) => void;
 }) => {
   const navigate = useNavigate();
   const cancelMutation = useCancelReservation();
+
+  // 2h cutoff for modify
+  const reservationWhen = new Date(
+    `${reservation.reservation_date}T${reservation.reservation_time}`
+  );
+  const canModify =
+    !reservation.isTagged &&
+    reservation.status !== "cancelled" &&
+    reservationWhen.getTime() - Date.now() > 2 * 60 * 60 * 1000;
 
   return (
     <div
@@ -174,36 +185,52 @@ const ReservationCard = ({
       )}
 
       {!reservation.isTagged && reservation.status !== "cancelled" && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
+        <div className="flex gap-2 pt-1">
+          {canModify && (
             <Button
               variant="outline"
               size="sm"
-              className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
-              onClick={(e) => e.stopPropagation()}
+              className="flex-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                onModify(reservation);
+              }}
             >
-              <X className="w-3.5 h-3.5 mr-1" />
-              Cancelar reserva
+              <Pencil className="w-3.5 h-3.5 mr-1" />
+              Modificar
             </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Cancelar esta reserva?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Se notificará al negocio que tu reserva ha sido cancelada.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Volver</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => cancelMutation.mutate({ reservationId: reservation.id, cancelledBy: "user" })}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          )}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/10"
+                onClick={(e) => e.stopPropagation()}
               >
-                Sí, cancelar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                <X className="w-3.5 h-3.5 mr-1" />
+                Cancelar
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Cancelar esta reserva?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Se notificará al negocio que tu reserva ha sido cancelada.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Volver</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => cancelMutation.mutate({ reservationId: reservation.id, cancelledBy: "user" })}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Sí, cancelar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       )}
     </div>
   );
@@ -212,6 +239,7 @@ const ReservationCard = ({
 const MyReservations = () => {
   const navigate = useNavigate();
   const { data: reservations, isLoading } = useAllReservations();
+  const [editing, setEditing] = useState<ReservationWithBusiness | null>(null);
 
   return (
     <AppLayout>
@@ -241,11 +269,29 @@ const MyReservations = () => {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <ReservationCard reservation={r} />
+              <ReservationCard reservation={r} onModify={setEditing} />
             </motion.div>
           ))
         )}
       </div>
+
+      {editing && editing.business && (
+        <ReservationSheet
+          open={!!editing}
+          onOpenChange={(o) => !o && setEditing(null)}
+          businessId={editing.business_id}
+          businessName={
+            editing.business.full_name || editing.business.username || "Negocio"
+          }
+          editingReservation={{
+            id: editing.id,
+            reservation_date: editing.reservation_date,
+            reservation_time: editing.reservation_time,
+            party_size: editing.party_size,
+            notes: editing.notes,
+          }}
+        />
+      )}
     </AppLayout>
   );
 };
