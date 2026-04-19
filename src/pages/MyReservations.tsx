@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarDays, Clock, Users, X, UserCheck } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, Users, X, UserCheck, Pencil } from "lucide-react";
 import { useCancelReservation } from "@/hooks/useReservations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import { format, parseISO, isToday, isTomorrow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import {
   AlertDialog,
   AlertDialogAction,

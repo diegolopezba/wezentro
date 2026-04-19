@@ -1,16 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, Users, CalendarDays, Clock, StickyNote, UserPlus, X, ChevronRight } from "lucide-react";
-import { useCreateReservation, useAvailableCapacity } from "@/hooks/useReservations";
+import { Loader2, Users, CalendarDays, Clock, StickyNote, UserPlus, X, ChevronRight, Sparkles } from "lucide-react";
+import {
+  useCreateReservation,
+  useUpdateReservation,
+} from "@/hooks/useReservations";
+import {
+  useSlotAvailability,
+  computeSlotInfo,
+  groupSlotsByPeriod,
+  findAlternatives,
+  type SlotStatus,
+} from "@/hooks/useSlotAvailability";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { useSearchUsers, SearchUser } from "@/hooks/useSearchUsers";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
-import { format, addDays, isBefore, startOfDay } from "date-fns";
+import { format, addDays, startOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,17 +34,24 @@ interface ReservationSheetProps {
   businessHours?: string | null;
   reservationStartTime?: string | null;
   reservationEndTime?: string | null;
+  /** When provided, the sheet runs in EDIT mode for this reservation. */
+  editingReservation?: {
+    id: string;
+    reservation_date: string; // "yyyy-MM-dd"
+    reservation_time: string; // "HH:MM:SS"
+    party_size: number;
+    notes: string | null;
+  };
 }
 
-// Generate time slots from 08:00 to 22:30 in 30min intervals
-const ALL_TIME_SLOTS = Array.from({ length: 30 }, (_, i) => {
+// All possible slots 08:00 → 23:30 (30-min steps)
+const ALL_TIME_SLOTS = Array.from({ length: 32 }, (_, i) => {
   const totalMinutes = 8 * 60 + i * 30;
   const h = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
   const m = (totalMinutes % 60).toString().padStart(2, "0");
   return `${h}:${m}`;
 });
 
-// Generate next N days as chips
 function getDateChips(n = 21) {
   const today = startOfDay(new Date());
   return Array.from({ length: n }, (_, i) => addDays(today, i));
@@ -43,21 +60,27 @@ function getDateChips(n = 21) {
 const DATE_CHIPS = getDateChips(21);
 
 type Step = "date" | "time" | "size" | "extras";
-
 const STEPS: Step[] = ["date", "time", "size", "extras"];
-
 const stepLabel: Record<Step, string> = {
   date: "Fecha",
   time: "Hora",
   size: "Personas",
   extras: "Detalles",
 };
-
 const stepIcon: Record<Step, React.ReactNode> = {
   date: <CalendarDays className="w-3.5 h-3.5" />,
   time: <Clock className="w-3.5 h-3.5" />,
   size: <Users className="w-3.5 h-3.5" />,
   extras: <StickyNote className="w-3.5 h-3.5" />,
+};
+
+const pillClass = (status: SlotStatus, selected: boolean) => {
+  if (selected) return "bg-primary text-primary-foreground border-primary";
+  if (status === "full")
+    return "bg-muted/40 border-border text-muted-foreground/60 cursor-not-allowed";
+  if (status === "limited")
+    return "bg-card border-warning/60 text-foreground hover:border-warning";
+  return "bg-card border-border text-foreground hover:border-primary/50";
 };
 
 export const ReservationSheet = ({
@@ -68,14 +91,17 @@ export const ReservationSheet = ({
   businessHours,
   reservationStartTime,
   reservationEndTime,
+  editingReservation,
 }: ReservationSheetProps) => {
-  // Filter time slots based on business reservation window
+  const isEditMode = !!editingReservation;
+
   const TIME_SLOTS = ALL_TIME_SLOTS.filter((slot) => {
     const start = reservationStartTime?.slice(0, 5);
     const end = reservationEndTime?.slice(0, 5);
     if (!start || !end) return true;
     return slot >= start && slot < end;
   });
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const { promptAuth } = useAuthPrompt();
@@ -88,19 +114,49 @@ export const ReservationSheet = ({
   const [guestSearch, setGuestSearch] = useState("");
   const [taggedGuests, setTaggedGuests] = useState<SearchUser[]>([]);
 
-  const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined;
-  const timeStr = selectedTime ? `${selectedTime}:00` : undefined;
+  // Pre-fill on edit mode whenever the sheet opens
+  useEffect(() => {
+    if (open && editingReservation) {
+      const [y, m, d] = editingReservation.reservation_date.split("-").map(Number);
+      setSelectedDate(new Date(y, m - 1, d));
+      setSelectedTime(editingReservation.reservation_time.slice(0, 5));
+      setPartySize(editingReservation.party_size);
+      setNotes(editingReservation.notes || "");
+      setCurrentStep("date");
+    }
+  }, [open, editingReservation]);
 
-  const { data: capacityData } = useAvailableCapacity(businessId, dateStr, timeStr);
+  const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined;
+
+  // Live availability for the picked date
+  const { data: availability } = useSlotAvailability(
+    businessId,
+    dateStr,
+    editingReservation?.id
+  );
+  const bookings = availability?.bookings ?? new Map<string, number>();
+  const capacity = availability?.capacity ?? null;
+
   const { data: searchResults } = useSearchUsers(guestSearch);
   const createMutation = useCreateReservation();
+  const updateMutation = useUpdateReservation();
 
   const currentStepIndex = STEPS.indexOf(currentStep);
 
+  // Selected slot info
+  const selectedInfo = selectedTime
+    ? computeSlotInfo(selectedTime, bookings, capacity, partySize)
+    : null;
+  const alternatives =
+    selectedInfo?.status === "full"
+      ? findAlternatives(selectedTime, TIME_SLOTS, bookings, capacity, partySize, 3)
+      : [];
+
   const canProceedFrom = (step: Step) => {
     if (step === "date") return !!selectedDate;
-    if (step === "time") return !!selectedTime;
-    if (step === "size") return partySize >= 1;
+    if (step === "time")
+      return !!selectedTime && selectedInfo?.status !== "full";
+    if (step === "size") return partySize >= 1 && selectedInfo?.status !== "full";
     return true;
   };
 
@@ -109,12 +165,40 @@ export const ReservationSheet = ({
     if (next) setCurrentStep(next);
   };
 
+  const resetAll = () => {
+    setCurrentStep("date");
+    setSelectedDate(undefined);
+    setSelectedTime("");
+    setPartySize(2);
+    setNotes("");
+    setTaggedGuests([]);
+    setGuestSearch("");
+  };
+
   const handleSubmit = () => {
     if (!user) {
       promptAuth({ action: "hacer una reserva" });
       return;
     }
     if (!selectedDate || !selectedTime) return;
+
+    if (isEditMode && editingReservation) {
+      updateMutation.mutate(
+        {
+          reservationId: editingReservation.id,
+          reservation_date: format(selectedDate, "yyyy-MM-dd"),
+          reservation_time: `${selectedTime}:00`,
+          party_size: partySize,
+          notes: notes.trim() || undefined,
+        },
+        {
+          onSuccess: () => {
+            onOpenChange(false);
+          },
+        }
+      );
+      return;
+    }
 
     createMutation.mutate(
       {
@@ -128,34 +212,58 @@ export const ReservationSheet = ({
       {
         onSuccess: (data) => {
           onOpenChange(false);
-          // reset
-          setCurrentStep("date");
-          setSelectedDate(undefined);
-          setSelectedTime("");
-          setPartySize(2);
-          setNotes("");
-          setTaggedGuests([]);
-          setGuestSearch("");
+          resetAll();
           navigate(`/reservation/${data.id}`);
         },
       }
     );
   };
 
-  const isOverCapacity =
-    capacityData?.available !== null &&
-    capacityData?.available !== undefined &&
-    partySize > capacityData.available;
+  const isOverCapacity = selectedInfo?.status === "full";
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const grouped = groupSlotsByPeriod(TIME_SLOTS);
+  const renderTimeSection = (label: string, slots: string[]) => {
+    if (slots.length === 0) return null;
+    return (
+      <div className="space-y-2">
+        <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+          {label}
+        </p>
+        <div className="grid grid-cols-4 gap-2">
+          {slots.map((time) => {
+            const info = computeSlotInfo(time, bookings, capacity, partySize);
+            const selected = selectedTime === time;
+            return (
+              <button
+                key={time}
+                onClick={() => info.status !== "full" && setSelectedTime(time)}
+                disabled={info.status === "full"}
+                className={cn(
+                  "relative py-2 rounded-xl text-sm font-medium border transition-all",
+                  pillClass(info.status, selected)
+                )}
+              >
+                {time}
+                {info.status === "limited" && !selected && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-warning" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[92vh] flex flex-col">
         <DrawerHeader className="pb-3 shrink-0">
           <DrawerTitle className="text-lg font-brand">
-            Reservar en {businessName}
+            {isEditMode ? "Modificar reserva" : `Reservar en ${businessName}`}
           </DrawerTitle>
 
-          {/* Step progress bar */}
           <div className="flex gap-1.5 mt-3">
             {STEPS.map((step, idx) => (
               <button
@@ -179,7 +287,7 @@ export const ReservationSheet = ({
 
         <div className="flex-1 overflow-y-auto px-4 pb-2">
           <AnimatePresence mode="wait">
-            {/* STEP: DATE */}
+            {/* DATE */}
             {currentStep === "date" && (
               <motion.div
                 key="date"
@@ -192,8 +300,10 @@ export const ReservationSheet = ({
                 <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide snap-x snap-mandatory">
                   {DATE_CHIPS.map((date) => {
                     const isSelected =
-                      selectedDate && format(selectedDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
-                    const isToday = format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+                      selectedDate &&
+                      format(selectedDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
+                    const isToday =
+                      format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
                     return (
                       <button
                         key={date.toISOString()}
@@ -205,13 +315,27 @@ export const ReservationSheet = ({
                             : "bg-card border-border hover:border-primary/50"
                         )}
                       >
-                        <span className={cn("text-[10px] font-medium uppercase", isSelected ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                        <span
+                          className={cn(
+                            "text-[10px] font-medium uppercase",
+                            isSelected
+                              ? "text-primary-foreground/80"
+                              : "text-muted-foreground"
+                          )}
+                        >
                           {isToday ? "Hoy" : format(date, "EEE", { locale: es })}
                         </span>
                         <span className="text-lg font-bold leading-none">
                           {format(date, "d")}
                         </span>
-                        <span className={cn("text-[10px]", isSelected ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                        <span
+                          className={cn(
+                            "text-[10px]",
+                            isSelected
+                              ? "text-primary-foreground/70"
+                              : "text-muted-foreground"
+                          )}
+                        >
                           {format(date, "MMM", { locale: es })}
                         </span>
                       </button>
@@ -226,38 +350,63 @@ export const ReservationSheet = ({
               </motion.div>
             )}
 
-            {/* STEP: TIME */}
+            {/* TIME */}
             {currentStep === "time" && (
               <motion.div
                 key="time"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-3 py-2"
+                className="space-y-4 py-2"
               >
-                <p className="text-sm text-muted-foreground">
-                  {selectedDate && format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
-                </p>
-                <div className="grid grid-cols-4 gap-2">
-                  {TIME_SLOTS.map((time) => (
-                    <button
-                      key={time}
-                      onClick={() => setSelectedTime(time)}
-                      className={cn(
-                        "py-2 rounded-xl text-sm font-medium border transition-all",
-                        selectedTime === time
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-card border-border hover:border-primary/50 text-foreground"
-                      )}
-                    >
-                      {time}
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    {selectedDate &&
+                      format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
+                  </p>
+                  {capacity != null && (
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-warning" /> Pocos
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-muted-foreground/40" /> Lleno
+                      </span>
+                    </div>
+                  )}
                 </div>
+
+                {renderTimeSection("Almuerzo", grouped.lunch)}
+                {renderTimeSection("Cena", grouped.dinner)}
+                {renderTimeSection("Otros", grouped.other)}
+
+                {selectedInfo?.status === "full" && alternatives.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 space-y-2"
+                  >
+                    <p className="flex items-center gap-1.5 text-xs font-medium text-primary">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      {selectedTime} está lleno. Prueba:
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
+                      {alternatives.map((alt) => (
+                        <button
+                          key={alt}
+                          onClick={() => setSelectedTime(alt)}
+                          className="px-3 py-1.5 rounded-full bg-card border border-primary/40 text-sm font-medium text-foreground hover:bg-primary hover:text-primary-foreground transition-all"
+                        >
+                          {alt}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
               </motion.div>
             )}
 
-            {/* STEP: PARTY SIZE */}
+            {/* PARTY SIZE */}
             {currentStep === "size" && (
               <motion.div
                 key="size"
@@ -267,7 +416,9 @@ export const ReservationSheet = ({
                 className="space-y-4 py-2"
               >
                 <p className="text-sm text-muted-foreground">
-                  {selectedDate && selectedTime && `${format(selectedDate, "d MMM", { locale: es })} a las ${selectedTime}`}
+                  {selectedDate &&
+                    selectedTime &&
+                    `${format(selectedDate, "d MMM", { locale: es })} a las ${selectedTime}`}
                 </p>
 
                 <div className="flex flex-col items-center gap-6 py-6">
@@ -281,7 +432,9 @@ export const ReservationSheet = ({
                     </button>
                     <div className="text-center">
                       <span className="text-5xl font-bold text-foreground">{partySize}</span>
-                      <p className="text-sm text-muted-foreground mt-1">{partySize === 1 ? "persona" : "personas"}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {partySize === 1 ? "persona" : "personas"}
+                      </p>
                     </div>
                     <button
                       onClick={() => setPartySize(Math.min(20, partySize + 1))}
@@ -292,7 +445,6 @@ export const ReservationSheet = ({
                     </button>
                   </div>
 
-                  {/* Quick pick */}
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 6, 8].map((n) => (
                       <button
@@ -311,24 +463,26 @@ export const ReservationSheet = ({
                   </div>
                 </div>
 
-                {capacityData?.available !== null && capacityData?.available !== undefined && (
-                  <div className={cn(
-                    "text-center text-sm px-3 py-2 rounded-xl",
-                    capacityData.available <= 0
-                      ? "bg-destructive/10 text-destructive"
-                      : capacityData.available <= 5
-                      ? "bg-warning/10 text-warning"
-                      : "bg-secondary text-muted-foreground"
-                  )}>
-                    {capacityData.available <= 0
+                {selectedInfo && capacity != null && (
+                  <div
+                    className={cn(
+                      "text-center text-sm px-3 py-2 rounded-xl",
+                      selectedInfo.status === "full"
+                        ? "bg-destructive/10 text-destructive"
+                        : selectedInfo.status === "limited"
+                        ? "bg-warning/10 text-warning"
+                        : "bg-secondary text-muted-foreground"
+                    )}
+                  >
+                    {selectedInfo.status === "full"
                       ? "Sin disponibilidad para este horario"
-                      : `${capacityData.available} lugares disponibles`}
+                      : `${Math.max(0, capacity - selectedInfo.booked)} lugares disponibles`}
                   </div>
                 )}
               </motion.div>
             )}
 
-            {/* STEP: EXTRAS (guests + notes) */}
+            {/* EXTRAS */}
             {currentStep === "extras" && (
               <motion.div
                 key="extras"
@@ -337,7 +491,6 @@ export const ReservationSheet = ({
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-5 py-2"
               >
-                {/* Summary pill */}
                 <div className="flex gap-2 flex-wrap">
                   {selectedDate && (
                     <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full">
@@ -357,71 +510,78 @@ export const ReservationSheet = ({
                   </span>
                 </div>
 
-                {/* Guests */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2 text-sm font-medium">
-                    <UserPlus className="w-4 h-4 text-primary" />
-                    Invitados <span className="text-muted-foreground font-normal">(opcional)</span>
-                  </Label>
-                  {taggedGuests.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {taggedGuests.map((guest) => (
-                        <div
-                          key={guest.id}
-                          className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-secondary text-sm"
-                        >
-                          <img
-                            src={guest.avatar_url || DEFAULT_AVATAR}
-                            alt=""
-                            className="w-5 h-5 rounded-full object-cover"
-                          />
-                          <span className="text-foreground">{guest.username}</span>
-                          <button
-                            type="button"
-                            onClick={() => setTaggedGuests((prev) => prev.filter((g) => g.id !== guest.id))}
-                            className="text-muted-foreground hover:text-foreground"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <Input
-                    placeholder="Buscar usuario..."
-                    value={guestSearch}
-                    onChange={(e) => setGuestSearch(e.target.value)}
-                  />
-                  {guestSearch.length >= 2 && searchResults && searchResults.length > 0 && (
-                    <div className="border rounded-xl max-h-36 overflow-y-auto divide-y">
-                      {searchResults
-                        .filter((u) => u.id !== user?.id && !taggedGuests.some((g) => g.id === u.id))
-                        .map((u) => (
-                          <button
-                            key={u.id}
-                            type="button"
-                            className="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-secondary/50"
-                            onClick={() => {
-                              setTaggedGuests((prev) => [...prev, u]);
-                              setGuestSearch("");
-                            }}
+                {/* Guests — only on create */}
+                {!isEditMode && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2 text-sm font-medium">
+                      <UserPlus className="w-4 h-4 text-primary" />
+                      Invitados <span className="text-muted-foreground font-normal">(opcional)</span>
+                    </Label>
+                    {taggedGuests.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {taggedGuests.map((guest) => (
+                          <div
+                            key={guest.id}
+                            className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-secondary text-sm"
                           >
                             <img
-                              src={u.avatar_url || DEFAULT_AVATAR}
+                              src={guest.avatar_url || DEFAULT_AVATAR}
                               alt=""
-                              className="w-6 h-6 rounded-full object-cover"
+                              className="w-5 h-5 rounded-full object-cover"
                             />
-                            <div>
-                              <p className="text-sm font-medium text-foreground">{u.full_name || u.username}</p>
-                              <p className="text-xs text-muted-foreground">{u.username}</p>
-                            </div>
-                          </button>
+                            <span className="text-foreground">{guest.username}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setTaggedGuests((prev) => prev.filter((g) => g.id !== guest.id))
+                              }
+                              className="text-muted-foreground hover:text-foreground"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         ))}
-                    </div>
-                  )}
-                </div>
+                      </div>
+                    )}
+                    <Input
+                      placeholder="Buscar usuario..."
+                      value={guestSearch}
+                      onChange={(e) => setGuestSearch(e.target.value)}
+                    />
+                    {guestSearch.length >= 2 && searchResults && searchResults.length > 0 && (
+                      <div className="border rounded-xl max-h-36 overflow-y-auto divide-y">
+                        {searchResults
+                          .filter(
+                            (u) => u.id !== user?.id && !taggedGuests.some((g) => g.id === u.id)
+                          )
+                          .map((u) => (
+                            <button
+                              key={u.id}
+                              type="button"
+                              className="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-secondary/50"
+                              onClick={() => {
+                                setTaggedGuests((prev) => [...prev, u]);
+                                setGuestSearch("");
+                              }}
+                            >
+                              <img
+                                src={u.avatar_url || DEFAULT_AVATAR}
+                                alt=""
+                                className="w-6 h-6 rounded-full object-cover"
+                              />
+                              <div>
+                                <p className="text-sm font-medium text-foreground">
+                                  {u.full_name || u.username}
+                                </p>
+                                <p className="text-xs text-muted-foreground">{u.username}</p>
+                              </div>
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                {/* Notes */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-sm font-medium">
                     <StickyNote className="w-4 h-4 text-primary" />
@@ -459,14 +619,12 @@ export const ReservationSheet = ({
           ) : (
             <Button
               onClick={handleSubmit}
-              disabled={createMutation.isPending || isOverCapacity}
+              disabled={isPending || isOverCapacity}
               className="w-full"
               variant="hero"
             >
-              {createMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : null}
-              Confirmar Reserva
+              {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {isEditMode ? "Guardar cambios" : "Confirmar Reserva"}
             </Button>
           )}
         </div>
