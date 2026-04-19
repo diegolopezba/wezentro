@@ -9,7 +9,6 @@ import {
   StickyNote,
   UtensilsCrossed,
   Check,
-  CalendarPlus,
   Navigation,
   MessageCircle,
   Pencil,
@@ -81,39 +80,6 @@ const ReservationConfirmation = () => {
   const formattedDate = format(parseISO(reservation.reservation_date), "EEE d 'de' MMM", { locale: es });
   const formattedTime = reservation.reservation_time.slice(0, 5);
   const confirmationCode = reservation.id.slice(0, 4).toUpperCase();
-
-  const handleAddToCalendar = () => {
-    haptic("light");
-    if (!reservationStart) return;
-    const end = new Date(reservationStart.getTime() + 90 * 60 * 1000); // +1.5h default
-    const title = `Reserva en ${business?.full_name || business?.username || "restaurante"}`;
-    const desc = reservation.notes ? reservation.notes.replace(/\n/g, "\\n") : "";
-    const loc = business?.business_address || "";
-    const ics = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//Zentro//Reservation//ES",
-      "BEGIN:VEVENT",
-      `UID:${reservation.id}@zentro`,
-      `DTSTAMP:${toIcsDate(new Date())}`,
-      `DTSTART:${toIcsDate(reservationStart)}`,
-      `DTEND:${toIcsDate(end)}`,
-      `SUMMARY:${title}`,
-      `DESCRIPTION:${desc}`,
-      `LOCATION:${loc}`,
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n");
-    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `reserva-${confirmationCode}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   const handleDirections = () => {
     haptic("light");
