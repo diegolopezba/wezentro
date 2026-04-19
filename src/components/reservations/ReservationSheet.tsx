@@ -95,12 +95,7 @@ export const ReservationSheet = ({
 }: ReservationSheetProps) => {
   const isEditMode = !!editingReservation;
 
-  const TIME_SLOTS = ALL_TIME_SLOTS.filter((slot) => {
-    const start = reservationStartTime?.slice(0, 5);
-    const end = reservationEndTime?.slice(0, 5);
-    if (!start || !end) return true;
-    return slot >= start && slot < end;
-  });
+  const [selectedDate, setSelectedDateEarly] = [undefined, undefined] as any; // placeholder removed below
 
   const { user } = useAuth();
   const navigate = useNavigate();
