@@ -9,7 +9,6 @@ import {
   StickyNote,
   UtensilsCrossed,
   Check,
-  CalendarPlus,
   Navigation,
   MessageCircle,
   Pencil,
@@ -41,10 +40,6 @@ import {
 import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
-
-/** Format a Date as YYYYMMDDTHHmmss for .ics */
-const toIcsDate = (d: Date) =>
-  d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 
 const ReservationConfirmation = () => {
   const navigate = useNavigate();
@@ -81,39 +76,6 @@ const ReservationConfirmation = () => {
   const formattedDate = format(parseISO(reservation.reservation_date), "EEE d 'de' MMM", { locale: es });
   const formattedTime = reservation.reservation_time.slice(0, 5);
   const confirmationCode = reservation.id.slice(0, 4).toUpperCase();
-
-  const handleAddToCalendar = () => {
-    haptic("light");
-    if (!reservationStart) return;
-    const end = new Date(reservationStart.getTime() + 90 * 60 * 1000); // +1.5h default
-    const title = `Reserva en ${business?.full_name || business?.username || "restaurante"}`;
-    const desc = reservation.notes ? reservation.notes.replace(/\n/g, "\\n") : "";
-    const loc = business?.business_address || "";
-    const ics = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//Zentro//Reservation//ES",
-      "BEGIN:VEVENT",
-      `UID:${reservation.id}@zentro`,
-      `DTSTAMP:${toIcsDate(new Date())}`,
-      `DTSTART:${toIcsDate(reservationStart)}`,
-      `DTEND:${toIcsDate(end)}`,
-      `SUMMARY:${title}`,
-      `DESCRIPTION:${desc}`,
-      `LOCATION:${loc}`,
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n");
-    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `reserva-${confirmationCode}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   const handleDirections = () => {
     haptic("light");
@@ -357,15 +319,8 @@ const ReservationConfirmation = () => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.3 }}
-          className="grid grid-cols-3 gap-2 mt-4"
+          className="grid grid-cols-2 gap-2 mt-4"
         >
-          <button
-            onClick={handleAddToCalendar}
-            className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 active:scale-[0.97] transition-transform"
-          >
-            <CalendarPlus className="w-5 h-5 text-foreground" />
-            <span className="text-[11px] font-medium">Calendario</span>
-          </button>
           <button
             onClick={handleDirections}
             className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 active:scale-[0.97] transition-transform"
