@@ -96,12 +96,12 @@ const EventDetail = () => {
   }, [id, user?.id]);
 
   if (isLoading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-[100dvh] bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>;
   }
   if (error || !event) {
-    return <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
+    return <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4">
         <h1 className="font-brand text-xl font-bold text-foreground mb-2">Evento no encontrado</h1>
         <p className="text-muted-foreground mb-4">Este evento puede haber sido eliminado o no existe.</p>
         <Button onClick={() => navigate("/")}>Ir al Inicio</Button>
@@ -109,13 +109,12 @@ const EventDetail = () => {
   }
   const isVideo = isVideoUrl(event.image_url);
   const isPost = !!event.is_post;
-  return <div className="min-h-screen bg-background">
+  return <div className="min-h-[100dvh] bg-background">
       {/* Hero media */}
       <div className="relative w-full" style={{
       aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
       minHeight: '250px',
-      maxHeight: '70vh'
-    }}>
+      maxHeight: '70vh' }}>
         {isVideo ? <video ref={videoRef} src={event.image_url || ""} className={`w-full h-full object-cover transition-opacity duration-500 cursor-pointer ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`} onLoadedMetadata={handleVideoMetadata} onClick={togglePlayPause} playsInline autoPlay muted loop /> : <img src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} alt={event.title || "Event"} className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`} onLoad={handleImageLoad} />}
         <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-background to-transparent pointer-events-none" />
 
@@ -133,7 +132,7 @@ const EventDetail = () => {
           }}>
               {fromCreate ? <X className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
             </Button>
-            {isVideo && <button onClick={toggleMute} className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors">
+            {isVideo && <button onClick={toggleMute} className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors">
                 {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
               </button>}
           </div>
@@ -236,8 +235,8 @@ const EventDetail = () => {
             navigate(`/user/${event.creator_id}`);
           }
         }}>
-            <img src={event.creator?.avatar_url || DEFAULT_AVATAR} alt="Host" className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" />
-            <p className="font-semibold text-foreground hover:text-primary transition-colors">
+            <img src={event.creator?.avatar_url || DEFAULT_AVATAR} alt="Host" className="w-12 h-12 rounded-full object-cover transition-transform" />
+            <p className="font-semibold text-foreground transition-colors">
               {event.creator?.username || "unknown"}
             </p>
           </div>
@@ -249,8 +248,7 @@ const EventDetail = () => {
               {eventTags.map((tag) =>
           <div
             key={tag.id}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/50 cursor-pointer hover:bg-secondary transition-colors"
-            onClick={() => navigate(`/user/${tag.tagged_user_id}`)}>
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/50 cursor-pointer transition-colors" onClick={() => navigate(`/user/${tag.tagged_user_id}`)}>
 
                   <img
               src={tag.tagged_user?.avatar_url || DEFAULT_AVATAR}
@@ -265,8 +263,7 @@ const EventDetail = () => {
             }
                   {(tag.tagged_user_id === user?.id || isOwner) &&
             <button
-              className="ml-0.5 p-0.5 rounded-full hover:bg-destructive/20 transition-colors"
-              onClick={(e) => {
+              className="ml-0.5 p-0.5 rounded-full transition-colors" onClick={(e) => {
                 e.stopPropagation();
                 removeTag.mutate(tag.id, {
                   onSuccess: () => toast.success("Etiqueta eliminada"),
@@ -274,7 +271,7 @@ const EventDetail = () => {
                 });
               }}>
 
-                      <X className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                      <X className="w-3 h-3 text-muted-foreground " />
                     </button>
             }
                 </div>
@@ -302,16 +299,13 @@ const EventDetail = () => {
 
           {/* Comment preview teaser */}
           <div
-            className="flex items-center gap-3 py-3 cursor-pointer group"
-            onClick={() => setShowComments(true)}
+            className="flex items-center gap-3 py-3 cursor-pointer group" onClick={() => setShowComments(true)}
           >
             {latestComment ? (
               <>
                 <img
                   src={latestComment.user?.avatar_url || DEFAULT_AVATAR}
-                  alt=""
-                  className="w-7 h-7 rounded-full object-cover shrink-0"
-                />
+                  alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-foreground truncate">
                     <span className="font-semibold">{latestComment.user?.username}</span>
@@ -338,8 +332,7 @@ const EventDetail = () => {
                 <Users className="w-4 h-4 text-primary" />
                 <h2 className="font-brand text-lg font-semibold text-foreground">
                   {attendeesGoing.some(a => a.isFollowed)
-                    ? `Personas que sigues que van (${attendeesGoing.filter(a => a.isFollowed).length})`
-                    : `Personas que van (${attendeesGoing.length})`}
+                    ? `Personas que sigues que van (${attendeesGoing.filter(a => a.isFollowed).length})` : `Personas que van (${attendeesGoing.length})`}
                 </h2>
               </div>
               <div className="flex items-center gap-3">
@@ -349,9 +342,8 @@ const EventDetail = () => {
                       key={attendee.user_id}
                       src={attendee.avatar_url || DEFAULT_AVATAR}
                       alt={attendee.username}
-                      className={`w-10 h-10 rounded-full border-2 object-cover cursor-pointer hover:scale-110 transition-transform z-10 ${
-                        attendee.isFollowed ? "border-primary" : "border-card"
-                      }`}
+                      className={`w-10 h-10 rounded-full border-2 object-cover cursor-pointer transition-transform z-10 ${
+                        attendee.isFollowed ? "border-primary" : "border-card" }`}
                       style={{ zIndex: 5 - i }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -472,9 +464,7 @@ const EventDetail = () => {
             {event.creator?.full_name || event.creator?.username || ""}
           </span>
           <Button
-            variant="hero"
-            size="default"
-            onClick={() => setShowReservationSheet(true)}
+            variant="hero" size="default" onClick={() => setShowReservationSheet(true)}
           >
             <CalendarCheck className="w-4 h-4 mr-1" /> Reservar
           </Button>

@@ -345,15 +345,10 @@ const Create = () => {
             return (
               <motion.button
                 key={option.id}
-                type="button"
-                onClick={() => handleTypeChange(option.id)}
+                type="button" onClick={() => handleTypeChange(option.id)}
                 whileTap={{ scale: 0.97 }}
-                className={cn(
-                  "relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 text-center",
-                  active ?
-                  "border-primary/60 bg-primary/10" :
-                  "border-border bg-secondary/40 hover:bg-secondary/70"
-                )}>
+                className={cn( "relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 text-center",
+                  active ? "border-primary/60 bg-primary/10" : "border-border bg-secondary/40 " )}>
                 
                 {/* Gradient icon bubble */}
                 
@@ -367,10 +362,8 @@ const Create = () => {
 
                 
                 <div>
-                  <p className={cn(
-                    "font-semibold text-sm leading-tight",
-                    active ? "text-foreground" : "text-muted-foreground"
-                  )}>
+                  <p className={cn( "font-semibold text-sm leading-tight",
+                    active ? "text-foreground" : "text-muted-foreground" )}>
                     {option.label}
                   </p>
                   <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
@@ -380,9 +373,7 @@ const Create = () => {
                 {/* Active indicator dot */}
                 {active &&
                 <motion.div
-                  layoutId="type-active-dot"
-                  className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }} />
+                  layoutId="type-active-dot" className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary" transition={{ type: "spring", stiffness: 400, damping: 30 }} />
 
                 }
               </motion.button>);
@@ -410,8 +401,7 @@ const Create = () => {
                   <>
                           <div className="h-2 bg-secondary rounded-full overflow-hidden">
                             <motion.div
-                        className="h-full bg-primary rounded-full"
-                        initial={{ width: 0 }}
+                        className="h-full bg-primary rounded-full" initial={{ width: 0 }}
                         animate={{ width: `${uploadProgress}%` }}
                         transition={{ duration: 0.2 }} />
                       
@@ -426,9 +416,8 @@ const Create = () => {
               }
                 {!isUploading && !isCompressing &&
               <button
-                type="button"
-                onClick={(e) => {e.preventDefault();removeMedia();}}
-                className="absolute top-3 right-3 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors">
+                type="button" onClick={(e) => {e.preventDefault();removeMedia();}}
+                className="absolute top-3 right-3 p-2 rounded-full bg-background/80 backdrop-blur-sm transition-colors">
                 
                     <X className="w-4 h-4" />
                   </button>
@@ -442,7 +431,7 @@ const Create = () => {
                 </div>
               </div> :
 
-            <div className="relative h-48 rounded-2xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
+            <div className="relative h-48 rounded-2xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center cursor-pointer transition-colors">
                 {isCompressing ?
               <>
                     <Loader2 className="w-10 h-10 text-primary mb-2 animate-spin" />
@@ -461,9 +450,7 @@ const Create = () => {
             }
             <input
               ref={fileInputRef}
-              type="file"
-              accept="image/*,video/mp4,video/webm,video/quicktime"
-              onChange={handleMediaChange}
+              type="file" accept="image/*,video/mp4,video/webm,video/quicktime" onChange={handleMediaChange}
               className="hidden" />
             
           </label>
@@ -490,14 +477,11 @@ const Create = () => {
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">Descripción</label>
             <MentionTextarea
-              placeholder={isPost ?
-              "Cuéntalo, usa @usuario para mencionar..." :
-              "Describe tu evento... usa @usuario para mencionar"}
+              placeholder={isPost ? "Cuéntalo, usa @usuario para mencionar..." : "Describe tu evento... usa @usuario para mencionar"}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               maxLength={2000}
-              className="rounded-xl border-border bg-secondary/50 px-4 py-3 text-base min-h-[120px] resize-none"
-              onFocus={(e) => {
+              className="rounded-xl border-border bg-secondary/50 px-4 py-3 text-base min-h-[120px] resize-none" onFocus={(e) => {
                 setTimeout(() => {
                   e.target.scrollIntoView({ behavior: "smooth", block: "center" });
                 }, 300);
@@ -509,9 +493,8 @@ const Create = () => {
         {/* ── Category ── */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <button
-            type="button"
-            onClick={() => setCategoryOpen((o) => !o)}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-secondary border border-border text-sm font-medium text-foreground transition-colors hover:bg-secondary/80">
+            type="button" onClick={() => setCategoryOpen((o) => !o)}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-secondary border border-border text-sm font-medium text-foreground transition-colors ">
             
             <span className="flex items-center gap-2">
               {formData.category ?
@@ -538,16 +521,12 @@ const Create = () => {
                   {CATEGORIES.map((category) =>
                 <button
                   key={category.id}
-                  type="button"
-                  onClick={() => {
+                  type="button" onClick={() => {
                     setFormData({ ...formData, category: category.id });
                     setCategoryOpen(false);
                   }}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
-                  formData.category === category.id ?
-                  "gradient-primary text-primary-foreground shadow-glow" :
-                  "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`
-                  }>
+                  formData.category === category.id ? "gradient-primary text-primary-foreground shadow-glow" : "bg-secondary text-secondary-foreground "}` }>
                   
                       <span>{category.emoji}</span>
                       <span className="text-sm font-medium">{category.label}</span>
@@ -563,8 +542,7 @@ const Create = () => {
         <AnimatePresence>
           {!isPost &&
           <motion.div
-            key="event-fields"
-            initial={{ opacity: 0, height: 0 }}
+            key="event-fields" initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
@@ -576,9 +554,7 @@ const Create = () => {
                   <div className="relative">
                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                    type="date"
-                    className="pl-10"
-                    value={formData.date}
+                    type="date" className="pl-10" value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     min={new Date().toISOString().split("T")[0]} />
                   
@@ -587,8 +563,7 @@ const Create = () => {
                 <div>
                   <label className="text-sm font-medium text-foreground mb-2 block">Hora</label>
                   <Input
-                  type="time"
-                  value={formData.time}
+                  type="time" value={formData.time}
                   onChange={(e) => setFormData({ ...formData, time: e.target.value })} />
                 
                 </div>
@@ -602,13 +577,9 @@ const Create = () => {
                   <div className="relative">
                     <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                    type="number"
-                    placeholder="0 (Gratis)"
-                    className="pl-10"
-                    value={formData.price}
+                    type="number" placeholder="0 (Gratis)" className="pl-10" value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    min="0"
-                    step="0.01" />
+                    min="0" step="0.01" />
                   
                   </div>
                 </div>
@@ -617,10 +588,7 @@ const Create = () => {
                   <div className="relative">
                     <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                    type="number"
-                    placeholder="Ilimitada"
-                    className="pl-10"
-                    value={formData.capacity}
+                    type="number" placeholder="Ilimitada" className="pl-10" value={formData.capacity}
                     onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                     min="1" />
                   
@@ -636,8 +604,7 @@ const Create = () => {
         <AnimatePresence>
           {!isPost &&
           <motion.div
-            key="guestlist-toggle"
-            initial={{ opacity: 0, height: 0 }}
+            key="guestlist-toggle" initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
@@ -652,15 +619,12 @@ const Create = () => {
                     <div>
                       <h3 className="font-semibold text-foreground">Lista de Invitados</h3>
                       <p className="text-xs text-muted-foreground">
-                        {isBusiness ?
-                      "Crea una lista de invitados para tu evento" :
-                      "Requiere cuenta Business (gratis en Configuración)"}
+                        {isBusiness ? "Crea una lista de invitados para tu evento" : "Requiere cuenta Business (gratis en Configuración)"}
                       </p>
                     </div>
                   </div>
                   <button
-                  type="button"
-                  onClick={() => {
+                  type="button" onClick={() => {
                     if (!isBusiness) {
                       toast.info("Activa tu cuenta Business en Configuración para usar guestlists", {
                         action: { label: "Ir", onClick: () => navigate("/settings") }
@@ -670,8 +634,7 @@ const Create = () => {
                     setFormData({ ...formData, hasGuestlist: !formData.hasGuestlist });
                   }}
                   className={`relative w-12 h-7 rounded-full transition-colors ${
-                  formData.hasGuestlist ? "bg-primary" : "bg-secondary"}`
-                  }>
+                  formData.hasGuestlist ? "bg-primary" : "bg-secondary"}` }>
                   
                     <motion.div
                     animate={{ x: formData.hasGuestlist ? 22 : 2 }}
@@ -699,11 +662,9 @@ const Create = () => {
                   </div>
                 </div>
                 <button
-                type="button"
-                onClick={() => setFormData({ ...formData, showMenuButton: !formData.showMenuButton })}
+                type="button" onClick={() => setFormData({ ...formData, showMenuButton: !formData.showMenuButton })}
                 className={`relative w-12 h-7 rounded-full transition-colors ${
-                formData.showMenuButton ? "bg-primary" : "bg-secondary"}`
-                }>
+                formData.showMenuButton ? "bg-primary" : "bg-secondary"}` }>
                 
                   <motion.div
                   animate={{ x: formData.showMenuButton ? 22 : 2 }}
@@ -730,11 +691,9 @@ const Create = () => {
                   </div>
                 </div>
                 <button
-                type="button"
-                onClick={() => setFormData({ ...formData, showReservationButton: !formData.showReservationButton })}
+                type="button" onClick={() => setFormData({ ...formData, showReservationButton: !formData.showReservationButton })}
                 className={`relative w-12 h-7 rounded-full transition-colors ${
-                formData.showReservationButton ? "bg-primary" : "bg-secondary"}`
-                }>
+                formData.showReservationButton ? "bg-primary" : "bg-secondary"}` }>
                 
                   <motion.div
                   animate={{ x: formData.showReservationButton ? 22 : 2 }}
@@ -749,9 +708,7 @@ const Create = () => {
         {/* ── Publish button ── */}
         <div className="pt-2">
           <Button
-            variant="hero"
-            className="w-full"
-            onClick={handleSubmit}
+            variant="hero" className="w-full" onClick={handleSubmit}
             disabled={isSubmitting || isUploading}>
             
             {isSubmitting ?
@@ -759,11 +716,7 @@ const Create = () => {
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 {isUploading ? `Subiendo... ${uploadProgress}%` : "Creando..."}
               </> :
-            isPost ?
-            "Publicar Post" :
-
-            "Crear Evento"
-            }
+            isPost ? "Publicar Post" : "Crear Evento" }
           </Button>
         </div>
       </div>

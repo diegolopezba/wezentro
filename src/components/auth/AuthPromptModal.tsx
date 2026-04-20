@@ -27,8 +27,7 @@ export const AuthPromptModal = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
-            onClick={closePrompt}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]" onClick={closePrompt}
           />
 
           {/* Modal */}
@@ -37,14 +36,12 @@ export const AuthPromptModal = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed left-4 right-4 bottom-8 z-[101] max-w-md mx-auto"
-          >
+            className="fixed left-4 right-4 bottom-8 z-[101] max-w-md mx-auto" >
             <div className="bg-card rounded-3xl p-6 shadow-elevated border border-border/50">
               {/* Close button */}
               <button
                 onClick={closePrompt}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-secondary/80 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-              >
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-secondary/80 flex items-center justify-center text-muted-foreground transition-colors" >
                 <X className="w-4 h-4" />
               </button>
 
@@ -66,16 +63,12 @@ export const AuthPromptModal = () => {
                 {/* Action buttons */}
                 <div className="space-y-3 pt-2">
                   <Button
-                    variant="hero"
-                    className="w-full"
-                    onClick={handleSignUp}
+                    variant="hero" className="w-full" onClick={handleSignUp}
                   >
                     Crear Cuenta
                   </Button>
                   <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={handleSignIn}
+                    variant="secondary" className="w-full" onClick={handleSignIn}
                   >
                     Ya tengo cuenta
                   </Button>

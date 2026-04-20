@@ -79,76 +79,61 @@ const Help = () => {
   const faqItems = [
   {
     question: "¿Cómo creo un evento?",
-    answer: "Toca el botón '+' en la barra de navegación inferior. Completa el título, descripción, fecha, ubicación y categoría. Puedes añadir una imagen y activar la guestlist o tickets con precio."
-  },
+    answer: "Toca el botón '+' en la barra de navegación inferior. Completa el título, descripción, fecha, ubicación y categoría. Puedes añadir una imagen y activar la guestlist o tickets con precio." },
   {
     question: "¿Qué es la guestlist?",
-    answer: "La guestlist te permite controlar quién asiste a tu evento. Solo el organizador puede invitar personas a la lista. Puedes establecer un límite de capacidad y ver quién asistió."
-  },
+    answer: "La guestlist te permite controlar quién asiste a tu evento. Solo el organizador puede invitar personas a la lista. Puedes establecer un límite de capacidad y ver quién asistió." },
   {
     question: "¿Cómo funcionan las reservas?",
-    answer: "Los negocios con reservas activadas aparecen en el mapa. Puedes reservar mesa desde su perfil eligiendo fecha, hora y número de personas. El negocio recibe la solicitud y puede confirmar o cancelar."
-  },
+    answer: "Los negocios con reservas activadas aparecen en el mapa. Puedes reservar mesa desde su perfil eligiendo fecha, hora y número de personas. El negocio recibe la solicitud y puede confirmar o cancelar." },
   {
     question: "¿Cómo controlo quién me puede escribir?",
-    answer: "Ve a Configuración > Privacidad. Puedes elegir que solo te escriban 'Todos', 'Seguidores' o 'Seguidores mutuos'. Solo usuarios con sesión iniciada pueden ver esta preferencia."
-  },
+    answer: "Ve a Configuración > Privacidad. Puedes elegir que solo te escriban 'Todos', 'Seguidores' o 'Seguidores mutuos'. Solo usuarios con sesión iniciada pueden ver esta preferencia." },
   {
     question: "¿Cómo sigo a otros usuarios?",
-    answer: "Visita el perfil de cualquier usuario y toca 'Seguir'. Verás sus eventos y publicaciones en tu feed principal."
-  },
+    answer: "Visita el perfil de cualquier usuario y toca 'Seguir'. Verás sus eventos y publicaciones en tu feed principal." },
   {
     question: "¿Puedo editar o eliminar mis eventos?",
-    answer: "Sí, ve a tu perfil y toca el evento que deseas modificar. Encontrarás opciones para editar los detalles o eliminarlo."
-  },
+    answer: "Sí, ve a tu perfil y toca el evento que deseas modificar. Encontrarás opciones para editar los detalles o eliminarlo." },
   {
     question: "¿Cómo funciona una Cuenta Business?",
-    answer: "Cualquier usuario puede convertir su cuenta en Business de forma gratuita desde Configuración. Las cuentas Business pueden activar reservas de mesa, añadir un menú, aparecer en el mapa y gestionar sus eventos de forma profesional."
-  },
+    answer: "Cualquier usuario puede convertir su cuenta en Business de forma gratuita desde Configuración. Las cuentas Business pueden activar reservas de mesa, añadir un menú, aparecer en el mapa y gestionar sus eventos de forma profesional." },
   {
     question: "¿Cómo guardo eventos?",
-    answer: "Toca el icono de marcador en cualquier evento para guardarlo. Accede a todos tus guardados en Configuración > Guardados."
-  },
+    answer: "Toca el icono de marcador en cualquier evento para guardarlo. Accede a todos tus guardados en Configuración > Guardados." },
   {
     question: "¿Cómo invito amigos a Zentro?",
-    answer: "Ve a Configuración > Invitar Amigos para obtener tu código de referido único. Cuando un amigo se suscribe usando tu código, ambos reciben un beneficio en su próxima renovación."
-  }];
+    answer: "Ve a Configuración > Invitar Amigos para obtener tu código de referido único. Cuando un amigo se suscribe usando tu código, ambos reciben un beneficio en su próxima renovación." }];
 
 
   const helpTopics = [
   {
     icon: Calendar,
     title: "Eventos",
-    description: "Crear, editar y gestionar eventos"
-  },
+    description: "Crear, editar y gestionar eventos" },
   {
     icon: Users,
     title: "Comunidad",
-    description: "Seguir usuarios y conectar"
-  },
+    description: "Seguir usuarios y conectar" },
   {
     icon: CreditCard,
     title: "Suscripciones",
-    description: "Planes y pagos"
-  },
+    description: "Planes y pagos" },
   {
     icon: Shield,
     title: "Privacidad",
-    description: "Mensajería y configuración"
-  }];
+    description: "Mensajería y configuración" }];
 
 
   const legalLinks = [
   {
     icon: FileText,
     title: "Términos de Uso",
-    path: "/terms"
-  },
+    path: "/terms" },
   {
     icon: Shield,
     title: "Política de Privacidad",
-    path: "/privacy-policy"
-  }];
+    path: "/privacy-policy" }];
 
 
   return (
@@ -157,9 +142,7 @@ const Help = () => {
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg safe-top">
         <div className="flex items-center gap-3 px-4 py-4">
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
+            variant="ghost" size="icon" onClick={() => navigate(-1)}
             className="shrink-0">
             
             <ArrowLeft className="w-5 h-5" />
@@ -212,7 +195,7 @@ const Help = () => {
               value={`item-${index}`}
               className="border border-border rounded-xl px-4 bg-secondary/20">
               
-                <AccordionTrigger className="text-left text-sm font-medium hover:no-underline py-4">
+                <AccordionTrigger className="text-left text-sm font-medium py-4">
                   {item.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-sm pb-4">
@@ -267,8 +250,7 @@ const Help = () => {
               ¿No encontraste lo que buscabas? Escríbenos y te ayudaremos lo antes posible.
             </p>
             <a
-              href="mailto:hello@zentro.com"
-              className="flex items-center gap-3 p-4 rounded-xl bg-background/50 border border-border">
+              href="mailto:hello@zentro.com" className="flex items-center gap-3 p-4 rounded-xl bg-background/50 border border-border">
               
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                 <Mail className="w-5 h-5 text-primary" />
@@ -299,9 +281,7 @@ const Help = () => {
               <Dialog open={deleteDialogOpen} onOpenChange={handleDialogOpenChange}>
                 <DialogTrigger asChild>
                   <Button
-                  variant="destructive"
-                  className="w-full"
-                  disabled={isDeleting}>
+                  variant="destructive" className="w-full" disabled={isDeleting}>
                   
                     <Trash2 className="w-4 h-4 mr-2" />
                     Eliminar mi cuenta
@@ -318,10 +298,7 @@ const Help = () => {
                     <div className="space-y-2">
                       <Label htmlFor="delete-password">Ingresa tu contraseña para confirmar</Label>
                       <Input
-                      id="delete-password"
-                      type="password"
-                      placeholder="Tu contraseña"
-                      value={password}
+                      id="delete-password" type="password" placeholder="Tu contraseña" value={password}
                       onChange={(e) => {
                         setPassword(e.target.value);
                         setPasswordError("");
@@ -335,25 +312,20 @@ const Help = () => {
                   </div>
                   <DialogFooter className="gap-2 sm:gap-0">
                     <Button
-                    variant="outline"
-                    onClick={() => handleDialogOpenChange(false)}
+                    variant="outline" onClick={() => handleDialogOpenChange(false)}
                     disabled={isDeleting}>
                     
                       Cancelar
                     </Button>
                     <Button
-                    variant="destructive"
-                    onClick={handleDeleteAccount}
+                    variant="destructive" onClick={handleDeleteAccount}
                     disabled={isDeleting || !password.trim()}>
                     
                       {isDeleting ?
                     <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           Eliminando...
-                        </> :
-
-                    "Eliminar cuenta"
-                    }
+                        </> : "Eliminar cuenta" }
                     </Button>
                   </DialogFooter>
                 </DialogContent>

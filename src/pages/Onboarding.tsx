@@ -141,12 +141,11 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col overflow-y-auto">
+    <div className="min-h-[100dvh] bg-background flex flex-col overflow-y-auto">
       {/* Progress bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-secondary z-20">
         <motion.div
-          className="h-full bg-foreground"
-          initial={{ width: "33%" }}
+          className="h-full bg-foreground" initial={{ width: "33%" }}
           animate={{ width: `${(step / 3) * 100}%` }}
           transition={{ duration: 0.3 }}
         />
@@ -187,21 +186,16 @@ const Onboarding = () => {
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
                   <Input
-                    type="text"
-                    placeholder="tunombre"
-                    value={formData.username}
+                    type="text" placeholder="tunombre" value={formData.username}
                     onChange={(e) => handleUsernameChange(e.target.value)}
-                    className="pl-9"
-                    maxLength={20}
+                    className="pl-9" maxLength={20}
                   />
                 </div>
                 {usernameError && <p className="text-destructive text-xs mt-2">{usernameError}</p>}
                 <p className="text-muted-foreground text-xs mt-2">Solo letras, números y guiones bajos</p>
               </div>
               <Button
-                variant="hero"
-                className="w-full"
-                onClick={handleNextStep}
+                variant="hero" className="w-full" onClick={handleNextStep}
                 disabled={isLoading || !formData.username || !!usernameError}
               >
                 {isLoading ? (
@@ -221,12 +215,9 @@ const Onboarding = () => {
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
-                    type="text"
-                    placeholder="¿Cómo te llamamos?"
-                    value={formData.fullName}
+                    type="text" placeholder="¿Cómo te llamamos?" value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="pl-12"
-                  />
+                    className="pl-12" />
                 </div>
               </div>
               <div className="flex gap-3">
@@ -249,13 +240,10 @@ const Onboarding = () => {
                   {genderOptions.map((opt) => (
                     <button
                       key={opt.value}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, gender: opt.value })}
+                      type="button" onClick={() => setFormData({ ...formData, gender: opt.value })}
                       className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                         formData.gender === opt.value
-                          ? "gradient-red text-white"
-                          : "bg-secondary text-muted-foreground hover:text-foreground"
-                      }`}
+                          ? "gradient-red text-white" : "bg-secondary text-muted-foreground " }`}
                     >
                       {formData.gender === opt.value && <Check className="w-4 h-4 shrink-0" />}
                       {opt.label}
@@ -270,35 +258,26 @@ const Onboarding = () => {
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <Input
-                      type="number"
-                      placeholder="DD"
-                      value={formData.birthDay}
+                      type="number" placeholder="DD" value={formData.birthDay}
                       onChange={(e) => setFormData({ ...formData, birthDay: e.target.value })}
                       min={1} max={31}
-                      className="text-center"
-                    />
+                      className="text-center" />
                     <p className="text-muted-foreground text-xs text-center mt-1">Día</p>
                   </div>
                   <div className="flex-1">
                     <Input
-                      type="number"
-                      placeholder="MM"
-                      value={formData.birthMonth}
+                      type="number" placeholder="MM" value={formData.birthMonth}
                       onChange={(e) => setFormData({ ...formData, birthMonth: e.target.value })}
                       min={1} max={12}
-                      className="text-center"
-                    />
+                      className="text-center" />
                     <p className="text-muted-foreground text-xs text-center mt-1">Mes</p>
                   </div>
                   <div className="flex-[2]">
                     <Input
-                      type="number"
-                      placeholder="AAAA"
-                      value={formData.birthYear}
+                      type="number" placeholder="AAAA" value={formData.birthYear}
                       onChange={(e) => setFormData({ ...formData, birthYear: e.target.value })}
                       min={1900} max={new Date().getFullYear()}
-                      className="text-center"
-                    />
+                      className="text-center" />
                     <p className="text-muted-foreground text-xs text-center mt-1">Año</p>
                   </div>
                 </div>
@@ -332,8 +311,7 @@ const Onboarding = () => {
         <div className="p-6 text-center relative z-10">
           <button
             onClick={handleComplete}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            disabled={isLoading}
+            className="text-sm text-muted-foreground transition-colors" disabled={isLoading}
           >
             Omitir por ahora
           </button>

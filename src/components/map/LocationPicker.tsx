@@ -65,9 +65,7 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
       if (lngLat) {
         // Reverse geocode to get address
         try {
-          const response = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${token}`
-          );
+          const response = await fetch( `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${token}` );
           const data = await response.json();
           const placeName = data.features?.[0]?.place_name || value.address;
           
@@ -109,9 +107,7 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
     searchTimeout.current = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${token}&limit=5`
-        );
+        const response = await fetch( `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${token}&limit=5` );
         const data = await response.json();
         setSearchResults(data.features || []);
         setShowResults(true);
@@ -155,9 +151,7 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
       <div className="relative">
         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Search for a venue or address"
-          className="pl-10 pr-10"
-          value={searchQuery}
+          placeholder="Search for a venue or address" className="pl-10 pr-10" value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
           onFocus={() => searchResults.length > 0 && setShowResults(true)}
           maxLength={200}
@@ -175,10 +169,8 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
             {searchResults.map((result) => (
               <button
                 key={result.id}
-                type="button"
-                onClick={() => selectLocation(result)}
-                className="w-full px-4 py-3 text-left hover:bg-background/50 transition-colors flex items-start gap-3"
-              >
+                type="button" onClick={() => selectLocation(result)}
+                className="w-full px-4 py-3 text-left transition-colors flex items-start gap-3" >
                 <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                 <span className="text-sm text-foreground line-clamp-2">
                   {result.place_name}
@@ -194,8 +186,7 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
         <div className="relative">
           <div
             ref={mapContainer}
-            className="h-40 rounded-xl overflow-hidden"
-          />
+            className="h-40 rounded-xl overflow-hidden" />
           <div className="absolute bottom-2 left-2 right-2 px-3 py-1.5 rounded-lg bg-background/80 backdrop-blur-sm">
             <p className="text-xs text-muted-foreground">
               Drag the pin to adjust location

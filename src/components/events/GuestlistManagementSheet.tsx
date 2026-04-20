@@ -116,18 +116,14 @@ function ScannerPanel({ eventId }: { eventId: string }) {
           {/* Action buttons */}
           <div className="grid grid-cols-2 gap-3">
             <Button
-              variant="hero"
-              className="gap-2"
-              onClick={handleShare}
+              variant="hero" className="gap-2" onClick={handleShare}
               disabled={!scannerUrl}
             >
               {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
               {copied ? "Copiado" : "Compartir"}
             </Button>
             <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleCopy}
+              variant="outline" className="gap-2" onClick={handleCopy}
               disabled={!scannerUrl}
             >
               <Copy className="w-4 h-4" />
@@ -144,10 +140,7 @@ function ScannerPanel({ eventId }: { eventId: string }) {
               </p>
             </div>
             <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 border-destructive/20 text-destructive hover:bg-destructive/5"
-              onClick={() => regenerateMutation.mutate()}
+              variant="outline" size="sm" className="gap-2 border-destructive/20 text-destructive " onClick={() => regenerateMutation.mutate()}
               disabled={regenerateMutation.isPending}
             >
               {regenerateMutation.isPending ? (
@@ -182,8 +175,7 @@ export const GuestlistManagementSheet = ({
 
   // Filter pending requests that don't have pending payments (for non-payment events)
   const nonPaymentPendingRequests = pendingRequests.filter(
-    (r: any) => r.payment_status !== "pending"
-  );
+    (r: any) => r.payment_status !== "pending" );
 
   const handleApprove = async (entryId: string, userId: string) => {
     setProcessingIds((prev) => new Set(prev).add(entryId));
@@ -253,8 +245,7 @@ export const GuestlistManagementSheet = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center py-16 text-center"
-    >
+      className="flex flex-col items-center justify-center py-16 text-center" >
       <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-4">
         {icon}
       </div>
@@ -277,20 +268,17 @@ export const GuestlistManagementSheet = ({
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 20, height: 0 }}
         transition={{ delay: index * 0.05 }}
-        className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50"
-      >
+        className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50" >
         <img
           src={request.user?.avatar_url || DEFAULT_AVATAR}
           alt={request.user?.username || "User"}
-          className="w-12 h-12 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform"
-          onClick={() => {
+          className="w-12 h-12 rounded-full object-cover cursor-pointer transition-transform" onClick={() => {
             onOpenChange(false);
             navigate(`/user/${request.user_id}`);
           }}
         />
         <div
-          className="flex-1 min-w-0 cursor-pointer"
-          onClick={() => {
+          className="flex-1 min-w-0 cursor-pointer" onClick={() => {
             onOpenChange(false);
             navigate(`/user/${request.user_id}`);
           }}
@@ -344,10 +332,7 @@ export const GuestlistManagementSheet = ({
                 </div>
               ) : pendingPayments.length === 0 ? (
                 renderEmptyState(
-                  <DollarSign className="w-8 h-8 text-muted-foreground" />,
-                  "Sin pagos pendientes",
-                  "Los pagos registrados aparecerán aquí"
-                )
+                  <DollarSign className="w-8 h-8 text-muted-foreground" />, "Sin pagos pendientes", "Los pagos registrados aparecerán aquí" )
               ) : (
                 <div className="space-y-3">
                   <AnimatePresence mode="popLayout">
@@ -358,10 +343,7 @@ export const GuestlistManagementSheet = ({
                         index,
                         <>
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive"
-                            onClick={() => handleRejectPayment(request.id, request.user_id)}
+                            variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-destructive/10 text-destructive" onClick={() => handleRejectPayment(request.id, request.user_id)}
                             disabled={isProcessing}
                           >
                             {isProcessing ? (
@@ -371,10 +353,7 @@ export const GuestlistManagementSheet = ({
                             )}
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary"
-                            onClick={() => handleConfirmPayment(request.id, request.user_id)}
+                            variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-primary/10 text-primary" onClick={() => handleConfirmPayment(request.id, request.user_id)}
                             disabled={isProcessing}
                           >
                             {isProcessing ? (
@@ -402,10 +381,7 @@ export const GuestlistManagementSheet = ({
                 </div>
               ) : nonPaymentPendingRequests.length === 0 ? (
                 renderEmptyState(
-                  <Users className="w-8 h-8 text-muted-foreground" />,
-                  "Sin solicitudes pendientes",
-                  "Las nuevas solicitudes aparecerán aquí"
-                )
+                  <Users className="w-8 h-8 text-muted-foreground" />, "Sin solicitudes pendientes", "Las nuevas solicitudes aparecerán aquí" )
               ) : (
                 <div className="space-y-3">
                   <AnimatePresence mode="popLayout">
@@ -416,10 +392,7 @@ export const GuestlistManagementSheet = ({
                         index,
                         <>
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive"
-                            onClick={() => handleReject(request.id, request.user_id)}
+                            variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-destructive/10 text-destructive" onClick={() => handleReject(request.id, request.user_id)}
                             disabled={isProcessing}
                           >
                             {isProcessing ? (
@@ -429,10 +402,7 @@ export const GuestlistManagementSheet = ({
                             )}
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary"
-                            onClick={() => handleApprove(request.id, request.user_id)}
+                            variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-primary/10 text-primary" onClick={() => handleApprove(request.id, request.user_id)}
                             disabled={isProcessing}
                           >
                             {isProcessing ? (
@@ -485,10 +455,7 @@ export const GuestlistManagementSheet = ({
               </div>
             ) : pendingRequests.length === 0 ? (
               renderEmptyState(
-                <Users className="w-8 h-8 text-muted-foreground" />,
-                "Sin solicitudes pendientes",
-                "Las nuevas solicitudes aparecerán aquí"
-              )
+                <Users className="w-8 h-8 text-muted-foreground" />, "Sin solicitudes pendientes", "Las nuevas solicitudes aparecerán aquí" )
             ) : (
               <div className="space-y-3">
                 <AnimatePresence mode="popLayout">
@@ -499,10 +466,7 @@ export const GuestlistManagementSheet = ({
                       index,
                       <>
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive"
-                          onClick={() => handleReject(request.id, request.user_id)}
+                          variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-destructive/10 text-destructive" onClick={() => handleReject(request.id, request.user_id)}
                           disabled={isProcessing}
                         >
                           {isProcessing ? (
@@ -512,10 +476,7 @@ export const GuestlistManagementSheet = ({
                           )}
                         </Button>
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary"
-                          onClick={() => handleApprove(request.id, request.user_id)}
+                          variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-primary/10 text-primary" onClick={() => handleApprove(request.id, request.user_id)}
                           disabled={isProcessing}
                         >
                           {isProcessing ? (

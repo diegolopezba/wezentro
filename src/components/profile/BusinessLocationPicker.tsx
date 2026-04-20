@@ -96,8 +96,7 @@ export const BusinessLocationPicker = ({
         <div>
           <Label className="text-foreground font-medium">Ubicación de tu negocio</Label>
           <p className="text-xs text-muted-foreground">
-            Aparecerás en el mapa cuando busquen "Comida"
-          </p>
+            Aparecerás en el mapa cuando busquen "Comida" </p>
         </div>
       </div>
 
@@ -114,19 +113,14 @@ export const BusinessLocationPicker = ({
 
           <div className="flex gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPicker(false)}
-              className="flex-1"
-            >
+              variant="outline" size="sm" onClick={() => setShowPicker(false)}
+              className="flex-1" >
               Cancelar
             </Button>
             <Button
               onClick={handleSaveLocation}
               disabled={isSaving || !latitude || !longitude}
-              size="sm"
-              className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-            >
+              size="sm" className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 " >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Guardar
             </Button>
@@ -139,24 +133,18 @@ export const BusinessLocationPicker = ({
             <Input
               value={address || ""}
               readOnly
-              className="bg-secondary/50"
-            />
+              className="bg-secondary/50" />
           </div>
 
           <div className="flex gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPicker(true)}
-              className="flex-1"
-            >
+              variant="outline" size="sm" onClick={() => setShowPicker(true)}
+              className="flex-1" >
               <MapPin className="w-4 h-4 mr-2" />
               Cambiar
             </Button>
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearLocation}
+              variant="outline" size="sm" onClick={handleClearLocation}
               disabled={isSaving}
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Eliminar"}
@@ -166,8 +154,7 @@ export const BusinessLocationPicker = ({
       ) : (
         <Button
           onClick={() => setShowPicker(true)}
-          className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-        >
+          className="w-full bg-gradient-to-r from-orange-500 to-red-500 " >
           <MapPin className="w-4 h-4 mr-2" />
           Establecer ubicación
         </Button>

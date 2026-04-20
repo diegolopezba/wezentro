@@ -10,15 +10,13 @@ export const FoodMarker = ({ location, onClick }: FoodMarkerProps) => {
   return (
     <button
       onClick={onClick}
-      className="group relative flex flex-col items-center focus:outline-none"
-    >
+      className="group relative flex flex-col items-center focus:outline-none" >
       {/* Avatar container */}
       <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-border shadow-lg group-hover:scale-110 transition-transform">
         <img
           src={location.avatar_url || defaultAvatar}
           alt={location.full_name || location.username}
-          className="w-full h-full object-cover"
-          onError={(e) => {
+          className="w-full h-full object-cover" onError={(e) => {
             e.currentTarget.src = defaultAvatar;
           }}
         />
@@ -43,14 +41,12 @@ export const FoodMarkerPopup = ({
   return (
     <button
       onClick={onViewProfile}
-      className="bg-background rounded-xl p-3 shadow-xl border border-border min-w-[200px] text-left hover:bg-secondary/50 transition-colors cursor-pointer"
-    >
+      className="bg-background rounded-xl p-3 shadow-xl border border-border min-w-[200px] text-left transition-colors cursor-pointer" >
       <div className="flex items-center gap-3">
         <img
           src={location.avatar_url || defaultAvatar}
           alt={location.full_name || location.username}
-          className="w-12 h-12 rounded-full object-cover border-2 border-border"
-          onError={(e) => {
+          className="w-12 h-12 rounded-full object-cover border-2 border-border" onError={(e) => {
             e.currentTarget.src = defaultAvatar;
           }}
         />

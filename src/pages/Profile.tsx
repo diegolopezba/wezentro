@@ -97,7 +97,7 @@ const Profile = () => {
             </p>
             {/* Stats */}
             <div className="flex gap-6 mt-2">
-              {stats.map((stat) => <div key={stat.label} className={`text-center ${stat.onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`} onClick={stat.onClick}>
+              {stats.map((stat) => <div key={stat.label} className={`text-center ${stat.onClick ? "cursor-pointer transition-opacity" : ""}`} onClick={stat.onClick}>
                   <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </div>)}
@@ -125,11 +125,11 @@ const Profile = () => {
           {/* Edit Menu button for food businesses */}
           {isBusiness && isFoodBusiness &&
         <div className="flex gap-2 mt-3">
-              <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 hover:from-orange-500/20 hover:to-red-500/20">
+              <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 ">
                 <UtensilsCrossed className="w-4 h-4 text-orange-500" />
                 Editar Menú
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 hover:from-orange-500/20 hover:to-red-500/20">
+              <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 ">
                 <CalendarCheck className="w-4 h-4 text-orange-500" />
                 Reservas
               </Button>
@@ -152,7 +152,7 @@ const Profile = () => {
           delay: 0.1
         }} className="mt-4">
               <div className="p-4 rounded-2xl border bg-gradient-to-r from-secondary to-secondary/50 border-border relative py-[8px]">
-                <button onClick={() => setShowProfileBanner(false)} className="absolute top-3 right-3 w-6 h-6 rounded-full bg-background/50 flex items-center justify-center hover:bg-background transition-colors">
+                <button onClick={() => setShowProfileBanner(false)} className="absolute top-3 right-3 w-6 h-6 rounded-full bg-background/50 flex items-center justify-center transition-colors">
                   <X className="w-3.5 h-3.5 text-muted-foreground" />
                 </button>
                 <div className="flex items-center gap-3 pr-6">

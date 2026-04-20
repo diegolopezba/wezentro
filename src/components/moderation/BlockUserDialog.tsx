@@ -42,8 +42,7 @@ export const BlockUserDialog = ({ open, onOpenChange, userId, username, onBlocke
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={blockUser.isPending}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
+            className="bg-destructive text-destructive-foreground " >
             Bloquear
           </AlertDialogAction>
         </AlertDialogFooter>

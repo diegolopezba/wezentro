@@ -48,8 +48,7 @@ const Auth = () => {
   }>({});
   const [formData, setFormData] = useState({
     email: "",
-    password: ""
-  });
+    password: "" });
 
   // Capture referral code from URL and store in localStorage
   useEffect(() => {
@@ -173,14 +172,14 @@ const Auth = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-muted-foreground/30 border-t-foreground rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative overflow-y-auto">
+    <div className="min-h-[100dvh] bg-background flex flex-col relative overflow-y-auto">
       {/* Video Background */}
       <div className="fixed inset-0 w-full h-full z-0">
         <video autoPlay loop muted playsInline className="absolute w-full h-full object-cover" src="/auth-background.mp4">
@@ -204,8 +203,7 @@ const Auth = () => {
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            className="inline-block mb-6"
-          >
+            className="inline-block mb-6" >
             <div className="w-20 h-20 flex items-center justify-center mx-auto">
               <img src="/logo.png" alt="Logo de Zentro" className="w-20 h-20 object-contain" />
             </div>
@@ -222,8 +220,7 @@ const Auth = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="max-w-sm mx-auto space-y-6"
-          >
+            className="max-w-sm mx-auto space-y-6" >
             {/* Toggle */}
             {mode !== "reset" && (
               <div className="flex p-1 rounded-xl bg-secondary">
@@ -233,8 +230,7 @@ const Auth = () => {
                     setErrors({});
                   }}
                   className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
-                    mode === "login" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-                  }`}
+                    mode === "login" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground" }`}
                 >
                   Iniciar Sesión
                 </button>
@@ -244,8 +240,7 @@ const Auth = () => {
                     setErrors({});
                   }}
                   className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
-                    mode === "signup" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-                  }`}
+                    mode === "signup" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground" }`}
                 >
                   Registrarse
                 </button>
@@ -265,12 +260,7 @@ const Auth = () => {
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    autoCapitalize="none"
-                    placeholder="Correo electrónico"
-                    value={formData.email}
+                    type="email" inputMode="email" autoComplete="email" autoCapitalize="none" placeholder="Correo electrónico" value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     className={`pl-12 ${errors.email ? "border-destructive" : ""}`}
                   />
@@ -289,16 +279,13 @@ const Auth = () => {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       type={showPassword ? "text" : "password"}
-                      placeholder="Contraseña"
-                      value={formData.password}
+                      placeholder="Contraseña" value={formData.password}
                       onChange={(e) => handleInputChange("password", e.target.value)}
                       className={`pl-12 pr-12 ${errors.password ? "border-destructive" : ""}`}
                     />
                     <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
+                      type="button" onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors" >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
@@ -315,23 +302,19 @@ const Auth = () => {
               {mode === "signup" && (
                 <div className="space-y-1">
                   <label
-                    className="flex items-start gap-3 cursor-pointer select-none"
-                    onClick={(e) => {
+                    className="flex items-start gap-3 cursor-pointer select-none" onClick={(e) => {
                       e.preventDefault();
                       setTermsAccepted((prev) => !prev);
                       setErrors((prev) => ({ ...prev, terms: undefined }));
                     }}
                   >
                     <div
-                      role="checkbox"
-                      aria-checked={termsAccepted}
+                      role="checkbox" aria-checked={termsAccepted}
                       tabIndex={0}
                       onKeyDown={(e) => { if (e.key === " ") { e.preventDefault(); setTermsAccepted((prev) => !prev); } }}
                       className={`mt-0.5 w-5 h-5 rounded shrink-0 border-2 flex items-center justify-center transition-all ${
                         termsAccepted
-                          ? "gradient-red border-transparent"
-                          : "border-muted-foreground/40 bg-secondary"
-                      }`}
+                          ? "gradient-red border-transparent" : "border-muted-foreground/40 bg-secondary" }`}
                     >
                       {termsAccepted && (
                         <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
@@ -342,17 +325,13 @@ const Auth = () => {
                     <span className="text-xs text-muted-foreground leading-relaxed">
                       Tengo 13 años o más y acepto los{" "}
                       <button
-                        type="button"
-                        className="text-foreground underline underline-offset-2"
-                        onClick={(e) => { e.stopPropagation(); navigate("/terms"); }}
+                        type="button" className="text-foreground underline underline-offset-2" onClick={(e) => { e.stopPropagation(); navigate("/terms"); }}
                       >
                         Términos de Uso
                       </button>
                       {" "}y la{" "}
                       <button
-                        type="button"
-                        className="text-foreground underline underline-offset-2"
-                        onClick={(e) => { e.stopPropagation(); navigate("/privacy-policy"); }}
+                        type="button" className="text-foreground underline underline-offset-2" onClick={(e) => { e.stopPropagation(); navigate("/privacy-policy"); }}
                       >
                         Política de Privacidad
                       </button>
@@ -369,9 +348,7 @@ const Auth = () => {
               )}
 
               <Button
-                variant="hero"
-                className="w-full"
-                onClick={mode === "reset" ? handleResetPassword : handleAuth}
+                variant="hero" className="w-full" onClick={mode === "reset" ? handleResetPassword : handleAuth}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -390,8 +367,7 @@ const Auth = () => {
               <p className="text-center text-sm text-muted-foreground">
                 ¿Olvidaste tu contraseña?{" "}
                 <button
-                  className="text-foreground hover:underline"
-                  onClick={() => {
+                  className="text-foreground " onClick={() => {
                     setMode("reset");
                     setErrors({});
                   }}
@@ -405,8 +381,7 @@ const Auth = () => {
               <p className="text-center text-sm text-muted-foreground">
                 ¿Recordaste tu contraseña?{" "}
                 <button
-                  className="text-foreground hover:underline"
-                  onClick={() => {
+                  className="text-foreground " onClick={() => {
                     setMode("login");
                     setErrors({});
                   }}
@@ -423,9 +398,9 @@ const Auth = () => {
       {mode === "login" && (
         <div className="px-6 pb-6 text-center text-xs text-muted-foreground relative z-10">
           Al iniciar sesión, confirmas que aceptas nuestros{" "}
-          <button className="text-foreground hover:underline" onClick={() => navigate("/terms")}>Términos</button>
+          <button className="text-foreground " onClick={() => navigate("/terms")}>Términos</button>
           {" "}y{" "}
-          <button className="text-foreground hover:underline" onClick={() => navigate("/privacy-policy")}>Política de Privacidad</button>
+          <button className="text-foreground " onClick={() => navigate("/privacy-policy")}>Política de Privacidad</button>
         </div>
       )}
     </div>

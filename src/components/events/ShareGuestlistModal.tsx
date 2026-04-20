@@ -29,8 +29,7 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
 
   const { data: mutualFollowers = [], isLoading: loadingFollowers } = useMutualFollowers();
   const { data: searchResults = [], isLoading: loadingSearch } = useSearchUsers(
-    isBusinessUser ? searchQuery : ""
-  );
+    isBusinessUser ? searchQuery : "" );
   const { data: guestlist = [], isLoading: loadingGuestlist } = useEventGuestlist(eventId);
   const { data: existingInvitations = [] } = useEventInvitations(eventId);
   const sendInvitations = useSendGuestlistInvitations();
@@ -105,8 +104,7 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
               placeholder={isBusinessUser ? "Buscar usuarios..." : "Buscar seguidores mutuos..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+              className="pl-9" />
           </div>
 
           {/* Followers list */}
@@ -121,11 +119,8 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
                   {isBusinessUser 
                     ? (searchQuery.length < 2 ? "Escribe para buscar usuarios" : "No se encontraron usuarios")
                     : (searchQuery 
-                        ? "No se encontraron seguidores" 
-                        : availableFollowersCount === 0 
-                          ? "¡Todos tus seguidores mutuos ya están en la lista!"
-                          : "Aún no tienes seguidores mutuos"
-                      )
+                        ? "No se encontraron seguidores" : availableFollowersCount === 0 
+                          ? "¡Todos tus seguidores mutuos ya están en la lista!" : "Aún no tienes seguidores mutuos" )
                   }
                 </p>
                 {!isBusinessUser && (
@@ -140,8 +135,7 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
                   <div
                     key={user.id}
                     onClick={() => toggleUser(user.id)}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 cursor-pointer transition-colors"
-                  >
+                    className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" >
                     <Checkbox
                       checked={selectedUsers.includes(user.id)}
                       onCheckedChange={() => toggleUser(user.id)}
@@ -168,9 +162,7 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
 
           {/* Send button */}
           <Button
-            variant="hero"
-            className="w-full"
-            onClick={handleSend}
+            variant="hero" className="w-full" onClick={handleSend}
             disabled={selectedUsers.length === 0 || sendInvitations.isPending}
           >
             {sendInvitations.isPending ? (

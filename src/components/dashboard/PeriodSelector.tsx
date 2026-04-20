@@ -20,12 +20,9 @@ export const PeriodSelector = ({ value, onChange }: PeriodSelectorProps) => {
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
-          className={cn(
-            "px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+          className={cn( "px-3 py-1.5 rounded-md text-xs font-medium transition-all",
             value === opt.value
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          )}
+              ? "bg-background text-foreground shadow-sm" : "text-muted-foreground " )}
         >
           {opt.label}
         </button>

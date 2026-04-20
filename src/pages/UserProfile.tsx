@@ -117,12 +117,12 @@ const UserProfile = () => {
     });
   };
   if (profileLoading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-[100dvh] bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>;
   }
   if (!userProfile) {
-    return <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
+    return <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4">
         <h1 className="font-brand text-xl font-bold text-foreground mb-2">Usuario no encontrado</h1>
         <Button onClick={() => navigate(-1)}>Volver</Button>
       </div>;
@@ -179,7 +179,7 @@ const UserProfile = () => {
             <p className="text-sm text-muted-foreground mb-2">{userProfile.full_name || userProfile.username}</p>
             {/* Stats */}
             <div className="flex gap-6 mt-2">
-              {stats.map((stat) => <div key={stat.label} className={`text-center ${stat.onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`} onClick={stat.onClick}>
+              {stats.map((stat) => <div key={stat.label} className={`text-center ${stat.onClick ? "cursor-pointer transition-opacity" : ""}`} onClick={stat.onClick}>
                   <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </div>)}
@@ -233,9 +233,7 @@ const UserProfile = () => {
 
                 {reservationsEnabled &&
           <Button
-            variant="secondary"
-            className="flex-1 min-w-0"
-            onClick={() => {
+            variant="secondary" className="flex-1 min-w-0" onClick={() => {
               if (isGuest) {
                 promptAuth({ action: "hacer una reserva" });
                 return;
@@ -248,7 +246,7 @@ const UserProfile = () => {
           }
 
                 {menuEnabled &&
-          <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-destructive/15 border-destructive/30 hover:bg-destructive/25 shrink-0">
+          <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-destructive/15 border-destructive/30 shrink-0">
                     <UtensilsCrossed className="w-4 h-4 text-destructive" />
                   </Button>
           }

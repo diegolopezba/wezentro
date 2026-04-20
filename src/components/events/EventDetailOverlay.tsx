@@ -104,18 +104,17 @@ export const EventDetailOverlay = () => {
       {selectedEventId && (
         <motion.div
           key={selectedEventId}
-          className="fixed inset-0 z-50 bg-background overflow-auto"
-          initial={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-background overflow-auto" initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         >
           {isLoading ? (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-[100dvh] flex items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : error || !event ? (
-            <div className="min-h-screen flex flex-col items-center justify-center px-4">
+            <div className="min-h-[100dvh] flex flex-col items-center justify-center px-4">
               <h1 className="font-brand text-xl font-bold text-foreground mb-2">Evento no encontrado</h1>
               <p className="text-muted-foreground mb-4">Este evento puede haber sido eliminado.</p>
               <Button onClick={closeEvent}>Volver</Button>
@@ -124,12 +123,10 @@ export const EventDetailOverlay = () => {
             <>
               {/* Hero media */}
               <div
-                className="relative w-full"
-                style={{
+                className="relative w-full" style={{
                   aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
                   minHeight: '250px',
-                  maxHeight: '70vh'
-                }}
+                  maxHeight: '70vh' }}
               >
                 {isVideo ? (
                   <video
@@ -162,8 +159,7 @@ export const EventDetailOverlay = () => {
                     {isVideo && (
                       <button
                         onClick={toggleMute}
-                        className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
-                      >
+                        className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors" >
                         {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
                       </button>
                     )}
@@ -173,8 +169,7 @@ export const EventDetailOverlay = () => {
 
               {/* Content */}
               <motion.div
-                className="relative -mt-16 px-4 pb-28"
-                initial={{ opacity: 0, y: 20 }}
+                className="relative -mt-16 px-4 pb-28" initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
               >
@@ -268,8 +263,8 @@ export const EventDetailOverlay = () => {
                       navigate(`/user/${event.creator_id}`);
                     }
                   }}>
-                    <img src={event.creator?.avatar_url || DEFAULT_AVATAR} alt="Host" className="w-12 h-12 rounded-full object-cover hover:scale-105 transition-transform" />
-                    <p className="font-semibold text-foreground hover:text-primary transition-colors">
+                    <img src={event.creator?.avatar_url || DEFAULT_AVATAR} alt="Host" className="w-12 h-12 rounded-full object-cover transition-transform" />
+                    <p className="font-semibold text-foreground transition-colors">
                       {event.creator?.username || "unknown"}
                     </p>
                   </div>
@@ -299,16 +294,13 @@ export const EventDetailOverlay = () => {
 
                   {/* Comment preview teaser */}
                   <div
-                    className="flex items-center gap-3 py-3 cursor-pointer group"
-                    onClick={() => setShowComments(true)}
+                    className="flex items-center gap-3 py-3 cursor-pointer group" onClick={() => setShowComments(true)}
                   >
                     {latestComment ? (
                       <>
                         <img
                           src={latestComment.user?.avatar_url || DEFAULT_AVATAR}
-                          alt=""
-                          className="w-7 h-7 rounded-full object-cover shrink-0"
-                        />
+                          alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-foreground truncate">
                             <span className="font-semibold">{latestComment.user?.username}</span>
@@ -335,8 +327,7 @@ export const EventDetailOverlay = () => {
                         <Users className="w-4 h-4 text-primary" />
                         <h2 className="font-brand text-lg font-semibold text-foreground">
                           {attendeesGoing.some(a => a.isFollowed)
-                            ? `Personas que sigues que van (${attendeesGoing.filter(a => a.isFollowed).length})`
-                            : `Personas que van (${attendeesGoing.length})`}
+                            ? `Personas que sigues que van (${attendeesGoing.filter(a => a.isFollowed).length})` : `Personas que van (${attendeesGoing.length})`}
                         </h2>
                       </div>
                       <div className="flex items-center gap-3">
@@ -346,9 +337,8 @@ export const EventDetailOverlay = () => {
                               key={attendee.user_id}
                               src={attendee.avatar_url || DEFAULT_AVATAR}
                               alt={attendee.username}
-                              className={`w-10 h-10 rounded-full border-2 object-cover cursor-pointer hover:scale-110 transition-transform z-10 ${
-                                attendee.isFollowed ? "border-primary" : "border-card"
-                              }`}
+                              className={`w-10 h-10 rounded-full border-2 object-cover cursor-pointer transition-transform z-10 ${
+                                attendee.isFollowed ? "border-primary" : "border-card" }`}
                               style={{ zIndex: 5 - i }}
                               onClick={() => navigate(`/user/${attendee.user_id}`)}
                             />
@@ -456,9 +446,7 @@ export const EventDetailOverlay = () => {
                           {event.creator?.full_name || event.creator?.username || ""}
                         </span>
                         <Button
-                          variant="hero"
-                          size="default"
-                          onClick={() => setShowReservationSheet(true)}
+                          variant="hero" size="default" onClick={() => setShowReservationSheet(true)}
                         >
                           <CalendarCheck className="w-4 h-4 mr-1" /> Reservar
                         </Button>

@@ -82,8 +82,7 @@ const ReservationConfirmation = () => {
     const query = business?.business_address
       ? encodeURIComponent(business.business_address)
       : business?.business_latitude && business?.business_longitude
-      ? `${business.business_latitude},${business.business_longitude}`
-      : null;
+      ? `${business.business_latitude},${business.business_longitude}` : null;
     if (!query) {
       toast.error("Sin dirección disponible");
       return;
@@ -135,8 +134,7 @@ const ReservationConfirmation = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-background overflow-y-auto"
-    >
+      className="fixed inset-0 z-50 bg-background overflow-y-auto" >
       {/* Ambient glow background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/20 blur-[120px]" />
@@ -147,18 +145,12 @@ const ReservationConfirmation = () => {
       <div className="relative z-20 flex items-center justify-between p-4 safe-top">
         <Button
           onClick={() => navigate(-1)}
-          variant="ghost"
-          size="icon"
-          className="bg-card/60 backdrop-blur-md text-foreground rounded-full border border-border/50"
-        >
+          variant="ghost" size="icon" className="bg-card/60 backdrop-blur-md text-foreground rounded-full border border-border/50" >
           <X className="w-5 h-5" />
         </Button>
         <Button
           onClick={handleShare}
-          variant="ghost"
-          size="icon"
-          className="bg-card/60 backdrop-blur-md text-foreground rounded-full border border-border/50"
-        >
+          variant="ghost" size="icon" className="bg-card/60 backdrop-blur-md text-foreground rounded-full border border-border/50" >
           <Share2 className="w-5 h-5" />
         </Button>
       </div>
@@ -170,8 +162,7 @@ const ReservationConfirmation = () => {
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 15 }}
-          className="flex flex-col items-center gap-3 pt-4 pb-8"
-        >
+          className="flex flex-col items-center gap-3 pt-4 pb-8" >
           <div className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
             <Check className="w-8 h-8 text-emerald-400" strokeWidth={3} />
           </div>
@@ -185,18 +176,14 @@ const ReservationConfirmation = () => {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="relative rounded-3xl bg-card/70 backdrop-blur-xl border border-border/60 overflow-hidden shadow-2xl"
-        >
+          className="relative rounded-3xl bg-card/70 backdrop-blur-xl border border-border/60 overflow-hidden shadow-2xl" >
           {/* Top: business */}
           <button
             onClick={() => business && navigate(`/user/${business.id}`)}
-            className="w-full p-5 flex items-center gap-3 text-left active:bg-muted/30 transition-colors"
-          >
+            className="w-full p-5 flex items-center gap-3 text-left active:bg-muted/30 transition-colors" >
             <img
               src={business?.avatar_url || DEFAULT_AVATAR}
-              alt=""
-              className="w-12 h-12 rounded-2xl object-cover border border-border/60"
-            />
+              alt="" className="w-12 h-12 rounded-2xl object-cover border border-border/60" />
             <div className="flex-1 min-w-0">
               <p className="font-brand text-lg font-semibold truncate">
                 {business?.full_name || business?.username || "Restaurante"}
@@ -261,9 +248,7 @@ const ReservationConfirmation = () => {
               <div className="flex items-center gap-2">
                 <img
                   src={profile?.avatar_url || DEFAULT_AVATAR}
-                  alt=""
-                  className="w-7 h-7 rounded-full object-cover"
-                />
+                  alt="" className="w-7 h-7 rounded-full object-cover" />
                 <span className="text-sm font-medium">
                   {profile?.full_name || profile?.username || "Invitado"}
                 </span>
@@ -286,9 +271,7 @@ const ReservationConfirmation = () => {
                     >
                       <img
                         src={g.user?.avatar_url || DEFAULT_AVATAR}
-                        alt=""
-                        className="w-8 h-8 rounded-full object-cover border-2 border-card"
-                      />
+                        alt="" className="w-8 h-8 rounded-full object-cover border-2 border-card" />
                     </button>
                   ))}
                   {extraGuests > 0 && (
@@ -305,9 +288,7 @@ const ReservationConfirmation = () => {
               <div className="pt-4 border-t border-border/40">
                 <div className="flex gap-2 p-3 rounded-xl bg-muted/40 border border-border/40">
                   <StickyNote className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-                  <p className="text-sm text-foreground/90 italic">
-                    "{reservation.notes}"
-                  </p>
+                  <p className="text-sm text-foreground/90 italic"> "{reservation.notes}" </p>
                 </div>
               </div>
             )}
@@ -319,20 +300,17 @@ const ReservationConfirmation = () => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.3 }}
-          className="grid grid-cols-2 gap-2 mt-4"
-        >
+          className="grid grid-cols-2 gap-2 mt-4" >
           <button
             onClick={handleDirections}
-            className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 active:scale-[0.97] transition-transform"
-          >
+            className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 active:scale-[0.97] transition-transform" >
             <Navigation className="w-5 h-5 text-foreground" />
             <span className="text-[11px] font-medium">Cómo llegar</span>
           </button>
           <button
             onClick={handleMessage}
             disabled={createChat.isPending}
-            className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 active:scale-[0.97] transition-transform disabled:opacity-50"
-          >
+            className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 active:scale-[0.97] transition-transform disabled:opacity-50" >
             {createChat.isPending ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
@@ -348,12 +326,10 @@ const ReservationConfirmation = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.3 }}
-            className="mt-4"
-          >
+            className="mt-4" >
             <Button
               onClick={() => setMenuOpen(true)}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl font-semibold h-12"
-            >
+              className="w-full bg-primary text-primary-foreground rounded-2xl font-semibold h-12" >
               <UtensilsCrossed className="w-4 h-4 mr-2" />
               Ver Menú
             </Button>
@@ -365,22 +341,17 @@ const ReservationConfirmation = () => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55, duration: 0.3 }}
-          className="grid grid-cols-2 gap-2 mt-2"
-        >
+          className="grid grid-cols-2 gap-2 mt-2" >
           <Button
             onClick={() => setEditOpen(true)}
             disabled={!canModify}
-            variant="outline"
-            className="rounded-2xl h-11 bg-transparent"
-          >
+            variant="outline" className="rounded-2xl h-11 bg-transparent" >
             <Pencil className="w-4 h-4 mr-1.5" />
             Modificar
           </Button>
           <Button
             onClick={() => setCancelOpen(true)}
-            variant="outline"
-            className="rounded-2xl h-11 bg-transparent text-destructive border-destructive/40 hover:bg-destructive/10"
-          >
+            variant="outline" className="rounded-2xl h-11 bg-transparent text-destructive border-destructive/40 " >
             <Trash2 className="w-4 h-4 mr-1.5" />
             Cancelar
           </Button>
@@ -434,13 +405,10 @@ const ReservationConfirmation = () => {
             <AlertDialogAction
               onClick={handleCancel}
               disabled={cancelMutation.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+              className="bg-destructive text-destructive-foreground " >
               {cancelMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                "Sí, cancelar"
-              )}
+              ) : ( "Sí, cancelar" )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
