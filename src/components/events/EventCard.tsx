@@ -76,6 +76,7 @@ export const EventCard = ({
   const routerLocation = useLocation();
   const { user } = useAuth();
   const trackClick = useTrackSponsoredClick();
+  const clickedRef = useRef(false);
   const [dismissed, setDismissed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(true);
