@@ -88,6 +88,7 @@ const UserProfile = () => {
       return;
     }
 
+    haptic("medium");
     if (isFollowing) {
       unfollowMutation.mutate(id);
     } else {
