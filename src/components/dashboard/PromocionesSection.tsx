@@ -388,7 +388,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                                 {activatingId === sp.id ? "..." : "Activar →"}
                               </Button>
                             </div>
-                          ) : (sp.status === "active" || sp.status === "paused") ? (
+                          ) : (sp.status === "active" || sp.status === "paused" || sp.status === "paused_daily") ? (
                             <div className="flex items-center gap-1.5 shrink-0">
                               <Button
                                 variant="ghost"
