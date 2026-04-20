@@ -86,7 +86,8 @@ export const EventCard = ({
   const selectedEventContext = useContext(SelectedEventContext);
 
   const handleCardClick = () => {
-    if (isSponsored && sponsoredPostId) {
+    if (isSponsored && sponsoredPostId && !clickedRef.current) {
+      clickedRef.current = true;
       trackClick.mutate(sponsoredPostId);
     }
     if (isHomePage && selectedEventContext) {
