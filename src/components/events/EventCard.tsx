@@ -11,6 +11,7 @@ import { useTrackSponsoredClick } from "@/hooks/useSponsoredPosts";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { useAuth } from "@/contexts/AuthContext";
 import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
+import { haptic } from "@/lib/haptics";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,6 +94,7 @@ const EventCardComponent = ({
   const selectedEventContext = useContext(SelectedEventContext);
 
   const handleCardClick = () => {
+    haptic("light");
     if (isSponsored && sponsoredPostId && !clickedRef.current) {
       clickedRef.current = true;
       trackClick.mutate(sponsoredPostId);

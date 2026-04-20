@@ -13,6 +13,7 @@ import { useUserStats } from "@/hooks/useUserStats";
 import { useUserTimeline } from "@/hooks/useUserTimeline";
 import { useCanMessageUser } from "@/hooks/useUserSettings";
 import { useCreatePrivateChat } from "@/hooks/useChats";
+import { haptic } from "@/lib/haptics";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";

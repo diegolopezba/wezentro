@@ -10,6 +10,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { CommentItem } from "./CommentItem";
+import { haptic } from "@/lib/haptics";
 
 interface CommentsSheetProps {
   open: boolean;
@@ -55,6 +56,7 @@ export const CommentsSheet = ({
     setText("");
     const parentId = replyingTo?.parentId || null;
     setReplyingTo(null);
+    haptic("light");
     await addComment.mutateAsync({ eventId, content: trimmed, parentId });
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   };
