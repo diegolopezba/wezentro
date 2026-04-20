@@ -96,6 +96,8 @@ const Index = () => {
         id: user.id,
         avatar_url: user.avatar_url
       }));
+      // Prefer the server-side total from the optimized RPC; fall back to entries length.
+      const attendeeTotal = (event as any)._attendee_count ?? guestlistEntries.length;
       return {
         id: event.id,
         title: event.title || undefined,
@@ -103,7 +105,7 @@ const Index = () => {
         date: event.start_datetime ? format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", { locale: es }) : "",
         location: event.location_name || "Ubicación por confirmar",
         category: event.category || "party",
-        attendees: guestlistEntries.length,
+        attendees: attendeeTotal,
         attendeeAvatars,
         hasGuestlist: event.has_guestlist || false,
         ownerAvatar: event.creator?.avatar_url || undefined,

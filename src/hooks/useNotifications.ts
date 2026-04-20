@@ -32,6 +32,7 @@ export const useNotifications = () => {
       return data as Notification[];
     },
     enabled: !!user?.id,
+    staleTime: 0,
   });
 };
 
@@ -53,6 +54,7 @@ export const useUnreadNotificationsCount = () => {
       return count || 0;
     },
     enabled: !!user?.id,
+    staleTime: 0,
   });
 };
 
