@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import "./index.css";
 // Initialize production logger (suppresses console.log in production)
 import "./lib/logger";
+import { Capacitor } from "@capacitor/core";
 
 // Global unhandled promise rejection handler
 window.addEventListener("unhandledrejection", (event) => {
@@ -13,6 +14,24 @@ window.addEventListener("unhandledrejection", (event) => {
     event.preventDefault();
   }
 });
+
+// Configure native status bar once at boot (Capacitor only).
+// Uses a fully dynamic import so the build does not require @capacitor/status-bar
+// to be installed in web-only contexts.
+if (Capacitor.isNativePlatform()) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (import("@capacitor/status-bar" as any) as Promise<any>)
+    .then((mod) => {
+      const { StatusBar, Style } = mod;
+      StatusBar?.setStyle?.({ style: Style.Dark }).catch(() => {});
+      if (Capacitor.getPlatform() === "ios") {
+        StatusBar?.setOverlaysWebView?.({ overlay: false }).catch(() => {});
+      }
+    })
+    .catch(() => {
+      // Plugin not installed in this build — fail silently.
+    });
+}
 
 // Note: StrictMode is disabled because keepalive-for-react requires it for page caching
 createRoot(document.getElementById("root")!).render(<App />);

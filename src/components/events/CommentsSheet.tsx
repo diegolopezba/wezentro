@@ -79,9 +79,7 @@ export const CommentsSheet = ({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        side="bottom"
-        className="h-[85vh] flex flex-col p-0 rounded-t-3xl"
-      >
+        side="bottom" className="h-[85vh] flex flex-col p-0 rounded-t-3xl" >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">
           <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
@@ -130,8 +128,7 @@ export const CommentsSheet = ({
             </span>
             <button
               onClick={() => setReplyingTo(null)}
-              className="p-0.5 rounded-full hover:bg-muted transition-colors"
-            >
+              className="p-0.5 rounded-full transition-colors" >
               <X className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
           </div>
@@ -146,21 +143,15 @@ export const CommentsSheet = ({
             </Avatar>
             <input
               ref={inputRef}
-              type="text"
-              value={text}
+              type="text" value={text}
               onChange={(e) => setText(e.target.value)}
               onFocus={handleInputFocus}
               placeholder={replyingTo ? `Responder a @${replyingTo.username}…` : "Añade un comentario…"}
               maxLength={500}
-              className="flex-1 bg-secondary/50 rounded-full px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/40 transition-all"
-            />
+              className="flex-1 bg-secondary/50 rounded-full px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
             <Button
-              type="submit"
-              size="icon-sm"
-              variant="hero"
-              disabled={!text.trim() || addComment.isPending}
-              className="shrink-0"
-            >
+              type="submit" size="icon-sm" variant="hero" disabled={!text.trim() || addComment.isPending}
+              className="shrink-0" >
               {addComment.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (

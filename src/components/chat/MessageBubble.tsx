@@ -26,8 +26,7 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.03 }}
-        className="flex justify-center py-2"
-      >
+        className="flex justify-center py-2" >
         <p className="text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
           {message.content}
         </p>
@@ -47,8 +46,7 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
         <div className="max-w-[80%]">
           {!isMe && message.sender && (
             <p 
-              className="text-xs text-muted-foreground mb-1 ml-1 cursor-pointer hover:underline"
-              onClick={() => navigate(`/user/${message.sender_id}`)}
+              className="text-xs text-muted-foreground mb-1 ml-1 cursor-pointer " onClick={() => navigate(`/user/${message.sender_id}`)}
             >
               {message.sender.full_name || message.sender.username}
             </p>
@@ -74,8 +72,7 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
         <div className="max-w-[80%]">
           {!isMe && message.sender && (
             <p 
-              className="text-xs text-muted-foreground mb-1 ml-1 cursor-pointer hover:underline"
-              onClick={() => navigate(`/user/${message.sender_id}`)}
+              className="text-xs text-muted-foreground mb-1 ml-1 cursor-pointer " onClick={() => navigate(`/user/${message.sender_id}`)}
             >
               {message.sender.full_name || message.sender.username}
             </p>
@@ -100,8 +97,7 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
       <div className="max-w-[75%]">
         {!isMe && message.sender && (
           <p 
-            className="text-xs text-muted-foreground mb-1 ml-3 cursor-pointer hover:underline"
-            onClick={() => navigate(`/user/${message.sender_id}`)}
+            className="text-xs text-muted-foreground mb-1 ml-3 cursor-pointer " onClick={() => navigate(`/user/${message.sender_id}`)}
           >
             {message.sender.full_name || message.sender.username}
           </p>
@@ -109,16 +105,13 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
         <div
           className={`px-4 py-3 rounded-2xl ${
             isMe
-              ? "bg-primary text-primary-foreground rounded-br-md"
-              : "bg-secondary text-foreground rounded-bl-md"
-          }`}
+              ? "bg-primary text-primary-foreground rounded-br-md" : "bg-secondary text-foreground rounded-bl-md" }`}
         >
           <p className="text-sm">{message.content}</p>
         </div>
         <p
           className={`text-xs mt-1 ${
-            isMe ? "text-right mr-1" : "ml-3"
-          } text-muted-foreground`}
+            isMe ? "text-right mr-1" : "ml-3" } text-muted-foreground`}
         >
           {formatTime(message.created_at)}
         </p>

@@ -67,9 +67,7 @@ export const ReportSheet = ({ open, onOpenChange, targetType, targetId }: Report
               onClick={() => setSelectedReason(r.value)}
               className={`w-full text-left rounded-xl border p-3 transition-colors ${
                 selectedReason === r.value
-                  ? "border-primary bg-primary/10"
-                  : "border-border bg-card hover:bg-muted"
-              }`}
+                  ? "border-primary bg-primary/10" : "border-border bg-card " }`}
             >
               <p className="text-sm font-medium text-foreground">{r.label}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{r.description}</p>
@@ -85,9 +83,7 @@ export const ReportSheet = ({ open, onOpenChange, targetType, targetId }: Report
             <Textarea
               value={details}
               onChange={(e) => setDetails(e.target.value.slice(0, 500))}
-              placeholder="Cuéntanos más sobre lo que viste..."
-              className="mt-2 min-h-[80px]"
-              maxLength={500}
+              placeholder="Cuéntanos más sobre lo que viste..." className="mt-2 min-h-[80px]" maxLength={500}
             />
             <p className="text-[10px] text-muted-foreground mt-1 text-right">{details.length}/500</p>
           </div>
@@ -95,16 +91,12 @@ export const ReportSheet = ({ open, onOpenChange, targetType, targetId }: Report
 
         <div className="sticky bottom-0 bg-background pt-4 pb-2 mt-4">
           <Button
-            variant="hero"
-            className="w-full"
-            disabled={!selectedReason || createReport.isPending}
+            variant="hero" className="w-full" disabled={!selectedReason || createReport.isPending}
             onClick={handleSubmit}
           >
             {createReport.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              "Enviar reporte"
-            )}
+            ) : ( "Enviar reporte" )}
           </Button>
         </div>
       </SheetContent>

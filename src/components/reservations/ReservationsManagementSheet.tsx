@@ -99,8 +99,7 @@ export const ReservationsManagementSheet = ({
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
-                  mode="single"
-                  selected={filterDate}
+                  mode="single" selected={filterDate}
                   onSelect={setFilterDate}
                   locale={es}
                 />
@@ -108,11 +107,8 @@ export const ReservationsManagementSheet = ({
             </Popover>
             {filterDate && (
               <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setFilterDate(undefined)}
-                className="h-8 w-8"
-              >
+                variant="ghost" size="icon" onClick={() => setFilterDate(undefined)}
+                className="h-8 w-8" >
                 <X className="w-4 h-4" />
               </Button>
             )}
@@ -136,20 +132,16 @@ export const ReservationsManagementSheet = ({
                 {items!.map((reservation) => (
                   <div
                     key={reservation.id}
-                    className="p-3 rounded-xl border bg-card space-y-2"
-                  >
+                    className="p-3 rounded-xl border bg-card space-y-2" >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <img
                           src={reservation.user?.avatar_url || DEFAULT_AVATAR}
-                          alt=""
-                          className="w-8 h-8 rounded-full object-cover bg-secondary"
-                        />
+                          alt="" className="w-8 h-8 rounded-full object-cover bg-secondary" />
                         <div>
                           <p className="text-sm font-medium text-foreground">
                             {reservation.user?.full_name ||
-                              reservation.user?.username ||
-                              "Usuario"}
+                              reservation.user?.username || "Usuario"}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {reservation.user?.username}
@@ -179,10 +171,7 @@ export const ReservationsManagementSheet = ({
 
                     <div className="flex gap-2">
                       <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() =>
+                        variant="outline" size="sm" className="flex-1" onClick={() =>
                           reservation.user &&
                           handleMessage(reservation.user.id)
                         }
@@ -194,10 +183,7 @@ export const ReservationsManagementSheet = ({
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/10"
-                          >
+                            variant="outline" size="sm" className="flex-1 text-destructive border-destructive/30 " >
                             Cancelar
                           </Button>
                         </AlertDialogTrigger>
@@ -215,8 +201,7 @@ export const ReservationsManagementSheet = ({
                             <AlertDialogCancel>Volver</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleCancel(reservation.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
+                              className="bg-destructive text-destructive-foreground " >
                               Sí, cancelar
                             </AlertDialogAction>
                           </AlertDialogFooter>
@@ -247,8 +232,7 @@ const ReservationGuestAvatars = ({ reservationId }: { reservationId: string }) =
             src={(g.user as any)?.avatar_url || DEFAULT_AVATAR}
             alt={(g.user as any)?.username || ""}
             title={`@${(g.user as any)?.username}`}
-            className="w-5 h-5 rounded-full border border-background object-cover"
-          />
+            className="w-5 h-5 rounded-full border border-background object-cover" />
         ))}
       </div>
     </div>

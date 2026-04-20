@@ -38,8 +38,7 @@ export const MentionText = ({ text, className }: MentionTextProps) => {
           return (
             <span
               key={i}
-              className="text-[hsl(204,100%,47%)] cursor-pointer hover:underline font-medium"
-              onClick={(e) => handleMentionClick(e, username)}
+              className="text-[hsl(204,100%,47%)] cursor-pointer font-medium" onClick={(e) => handleMentionClick(e, username)}
             >
               {part}
             </span>

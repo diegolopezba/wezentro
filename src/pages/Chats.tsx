@@ -56,11 +56,8 @@ const Chats = () => {
             Mensajes
           </h1>
           <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setNewChatOpen(true)}
-            className="rounded-full"
-          >
+            size="icon" variant="ghost" onClick={() => setNewChatOpen(true)}
+            className="rounded-full" >
             <Plus className="w-5 h-5" />
           </Button>
         </div>
@@ -91,9 +88,7 @@ const Chats = () => {
             </p>
             <Button
               onClick={() => setNewChatOpen(true)}
-              className="mt-4"
-              variant="outline"
-            >
+              className="mt-4" variant="outline" >
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Mensaje
             </Button>
@@ -106,11 +101,9 @@ const Chats = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               onClick={() => navigate(`/chats/${chat.id}`)}
-              className="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors hover:bg-muted/30 px-0"
-            >
+              className="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors px-0" >
               <div
-                className="relative"
-                onClick={(e) => {
+                className="relative" onClick={(e) => {
                   if (chat.type === "private") {
                     e.stopPropagation();
                     const otherUserId = getOtherParticipantId(chat);
@@ -120,11 +113,10 @@ const Chats = () => {
                   }
                 }}
               >
-                <Avatar className={`w-14 h-14 ${chat.type === "private" ? "cursor-pointer hover:scale-105 transition-transform" : ""}`}>
+                <Avatar className={`w-14 h-14 ${chat.type === "private" ? "cursor-pointer transition-transform" : ""}`}>
                   <AvatarImage
                     src={getChatAvatar(chat) || DEFAULT_AVATAR}
-                    className="object-cover"
-                  />
+                    className="object-cover" />
                   <AvatarFallback />
                 </Avatar>
                 {chat.type === "event" && (

@@ -117,9 +117,7 @@ const ReservationCard = ({
   const cancelMutation = useCancelReservation();
 
   // 2h cutoff for modify
-  const reservationWhen = new Date(
-    `${reservation.reservation_date}T${reservation.reservation_time}`
-  );
+  const reservationWhen = new Date( `${reservation.reservation_date}T${reservation.reservation_time}` );
   const canModify =
     !reservation.isTagged &&
     reservation.status !== "cancelled" &&
@@ -127,8 +125,7 @@ const ReservationCard = ({
 
   return (
     <div
-      className="p-3 rounded-xl border bg-card space-y-2 cursor-pointer"
-      onClick={() => navigate(`/reservation/${reservation.id}`)}
+      className="p-3 rounded-xl border bg-card space-y-2 cursor-pointer" onClick={() => navigate(`/reservation/${reservation.id}`)}
     >
       <div className="flex items-center justify-between">
         <button
@@ -136,13 +133,10 @@ const ReservationCard = ({
             e.stopPropagation();
             reservation.business && navigate(`/user/${reservation.business.id}`);
           }}
-          className="flex items-center gap-2"
-        >
+          className="flex items-center gap-2" >
           <img
             src={reservation.business?.avatar_url || DEFAULT_AVATAR}
-            alt=""
-            className="w-8 h-8 rounded-full object-cover bg-secondary"
-          />
+            alt="" className="w-8 h-8 rounded-full object-cover bg-secondary" />
           <div className="text-left">
             <p className="text-sm font-medium text-foreground">
               {reservation.business?.full_name || reservation.business?.username || "Negocio"}
@@ -188,10 +182,7 @@ const ReservationCard = ({
         <div className="flex gap-2 pt-1">
           {canModify && (
             <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={(e) => {
+              variant="outline" size="sm" className="flex-1" onClick={(e) => {
                 e.stopPropagation();
                 onModify(reservation);
               }}
@@ -203,10 +194,7 @@ const ReservationCard = ({
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/10"
-                onClick={(e) => e.stopPropagation()}
+                variant="outline" size="sm" className="flex-1 text-destructive border-destructive/30 " onClick={(e) => e.stopPropagation()}
               >
                 <X className="w-3.5 h-3.5 mr-1" />
                 Cancelar
@@ -223,8 +211,7 @@ const ReservationCard = ({
                 <AlertDialogCancel>Volver</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => cancelMutation.mutate({ reservationId: reservation.id, cancelledBy: "user" })}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
+                  className="bg-destructive text-destructive-foreground " >
                   Sí, cancelar
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -281,8 +268,7 @@ const MyReservations = () => {
           onOpenChange={(o) => !o && setEditing(null)}
           businessId={editing.business_id}
           businessName={
-            editing.business.full_name || editing.business.username || "Negocio"
-          }
+            editing.business.full_name || editing.business.username || "Negocio" }
           editingReservation={{
             id: editing.id,
             reservation_date: editing.reservation_date,

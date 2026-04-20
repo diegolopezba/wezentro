@@ -35,7 +35,7 @@ const BusinessDashboard = () => {
 
   if (!subLoading && !isBusiness) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-[100dvh] bg-background flex flex-col">
         <header className="sticky top-0 z-40 safe-top">
           <div className="flex items-center gap-3 px-4 py-4 bg-background">
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -63,7 +63,7 @@ const BusinessDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <div className="min-h-[100dvh] bg-background pb-8">
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-4">

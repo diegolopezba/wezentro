@@ -30,8 +30,7 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
 
   const { data: mutualFollowers = [], isLoading: loadingFollowers } = useMutualFollowers();
   const { data: searchResults = [], isLoading: loadingSearch } = useSearchUsers(
-    isBusinessUser ? searchQuery : ""
-  );
+    isBusinessUser ? searchQuery : "" );
   const { data: guestlist = [] } = useEventGuestlist(eventId);
   const { data: existingInvitations = [] } = useEventInvitations(eventId);
   const sendInvitations = useSendGuestlistInvitations();
@@ -91,14 +90,7 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
     }
   }, [open]);
 
-  const confettiColors = [
-    "hsl(var(--primary))",
-    "hsl(var(--accent))",
-    "#f59e0b",
-    "#ec4899",
-    "#8b5cf6",
-    "#10b981",
-    "#f97316",
+  const confettiColors = [ "hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#ec4899", "#8b5cf6", "#10b981", "#f97316",
   ];
 
   const confettiParticles = Array.from({ length: 30 }, (_, i) => {
@@ -114,8 +106,7 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
     return (
       <span
         key={i}
-        className="absolute pointer-events-none"
-        style={{
+        className="absolute pointer-events-none" style={{
           left: `${left}%`,
           top: "-8px",
           width: `${size}px`,
@@ -125,10 +116,8 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
           opacity: showConfetti ? 1 : 0,
           transform: `rotate(${rotation}deg)`,
           animation: showConfetti
-            ? `confetti-fall ${duration}s ease-out ${delay}s forwards`
-            : "none",
-          // @ts-ignore
-          "--x-drift": `${xDrift}px`,
+            ? `confetti-fall ${duration}s ease-out ${delay}s forwards` : "none",
+          // @ts-ignore "--x-drift": `${xDrift}px`,
         } as React.CSSProperties}
       />
     );
@@ -136,8 +125,7 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
 
   return (
     <>
-      <style>{`
-        @keyframes confetti-fall {
+      <style>{` @keyframes confetti-fall {
           0% {
             opacity: 1;
             transform: translateY(0) translateX(0) rotate(0deg) scale(1);
@@ -146,8 +134,7 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
             opacity: 0;
             transform: translateY(350px) translateX(var(--x-drift, 0px)) rotate(720deg) scale(0.5);
           }
-        }
-      `}</style>
+        } `}</style>
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="max-h-[85vh] overflow-hidden">
           {/* Confetti container */}
@@ -177,8 +164,7 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
               placeholder={isBusinessUser ? "Buscar usuarios..." : "Buscar seguidores mutuos..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+              className="pl-9" />
           </div>
 
           {/* Users list */}
@@ -191,11 +177,8 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
               <div className="flex flex-col items-center justify-center h-full text-center px-4">
                 <p className="text-muted-foreground text-sm">
                   {isBusinessUser
-                    ? searchQuery.length < 2 ? "Escribe para buscar usuarios" : "No se encontraron usuarios"
-                    : searchQuery
-                      ? "No se encontraron seguidores"
-                      : "Aún no tienes seguidores mutuos"
-                  }
+                    ? searchQuery.length < 2 ? "Escribe para buscar usuarios" : "No se encontraron usuarios" : searchQuery
+                      ? "No se encontraron seguidores" : "Aún no tienes seguidores mutuos" }
                 </p>
               </div>
             ) : (
@@ -204,8 +187,7 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
                   <div
                     key={user.id}
                     onClick={() => toggleUser(user.id)}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 cursor-pointer transition-colors"
-                  >
+                    className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" >
                     <Checkbox
                       checked={selectedUsers.includes(user.id)}
                       onCheckedChange={() => toggleUser(user.id)}
@@ -236,9 +218,7 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
             Ahora no
           </Button>
           <Button
-            variant="hero"
-            className="flex-1"
-            onClick={handleSend}
+            variant="hero" className="flex-1" onClick={handleSend}
             disabled={selectedUsers.length === 0 || sendInvitations.isPending}
           >
             {sendInvitations.isPending ? (

@@ -79,8 +79,8 @@ const pillClass = (status: SlotStatus, selected: boolean) => {
   if (status === "full")
     return "bg-muted/40 border-border text-muted-foreground/60 cursor-not-allowed";
   if (status === "limited")
-    return "bg-card border-warning/60 text-foreground hover:border-warning";
-  return "bg-card border-border text-foreground hover:border-primary/50";
+    return "bg-card border-warning/60 text-foreground ";
+  return "bg-card border-border text-foreground ";
 };
 
 export const ReservationSheet = ({
@@ -170,8 +170,7 @@ export const ReservationSheet = ({
     ? computeSlotInfo(selectedTime, bookings, capacity, partySize)
     : null;
   const alternatives =
-    selectedInfo?.status === "full"
-      ? findAlternatives(selectedTime, TIME_SLOTS, bookings, capacity, partySize, 3)
+    selectedInfo?.status === "full" ? findAlternatives(selectedTime, TIME_SLOTS, bookings, capacity, partySize, 3)
       : [];
 
   const canProceedFrom = (step: Step) => {
@@ -261,8 +260,7 @@ export const ReservationSheet = ({
                 key={time}
                 onClick={() => info.status !== "full" && setSelectedTime(time)}
                 disabled={info.status === "full"}
-                className={cn(
-                  "relative py-2 rounded-xl text-sm font-medium border transition-all",
+                className={cn( "relative py-2 rounded-xl text-sm font-medium border transition-all",
                   pillClass(info.status, selected)
                 )}
               >
@@ -291,14 +289,10 @@ export const ReservationSheet = ({
               <button
                 key={step}
                 onClick={() => idx < currentStepIndex && setCurrentStep(step)}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-full text-xs font-medium transition-all",
+                className={cn( "flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-full text-xs font-medium transition-all",
                   idx === currentStepIndex
-                    ? "bg-primary text-primary-foreground"
-                    : idx < currentStepIndex
-                    ? "bg-primary/20 text-primary cursor-pointer"
-                    : "bg-secondary text-muted-foreground cursor-default"
-                )}
+                    ? "bg-primary text-primary-foreground" : idx < currentStepIndex
+                    ? "bg-primary/20 text-primary cursor-pointer" : "bg-secondary text-muted-foreground cursor-default" )}
               >
                 {stepIcon[step]}
                 <span className="hidden sm:inline">{stepLabel[step]}</span>
@@ -312,12 +306,10 @@ export const ReservationSheet = ({
             {/* DATE */}
             {currentStep === "date" && (
               <motion.div
-                key="date"
-                initial={{ opacity: 0, x: 20 }}
+                key="date" initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-3 py-2"
-              >
+                className="space-y-3 py-2" >
                 <p className="text-sm text-muted-foreground">¿Cuándo quieres ir?</p>
                 <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide snap-x snap-mandatory">
                   {DATE_CHIPS.map((date) => {
@@ -330,20 +322,14 @@ export const ReservationSheet = ({
                       <button
                         key={date.toISOString()}
                         onClick={() => setSelectedDate(date)}
-                        className={cn(
-                          "flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-2xl border transition-all shrink-0 snap-start min-w-[56px]",
+                        className={cn( "flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-2xl border transition-all shrink-0 snap-start min-w-[56px]",
                           isSelected
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-card border-border hover:border-primary/50"
-                        )}
+                            ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border " )}
                       >
                         <span
-                          className={cn(
-                            "text-[10px] font-medium uppercase",
+                          className={cn( "text-[10px] font-medium uppercase",
                             isSelected
-                              ? "text-primary-foreground/80"
-                              : "text-muted-foreground"
-                          )}
+                              ? "text-primary-foreground/80" : "text-muted-foreground" )}
                         >
                           {isToday ? "Hoy" : format(date, "EEE", { locale: es })}
                         </span>
@@ -351,12 +337,9 @@ export const ReservationSheet = ({
                           {format(date, "d")}
                         </span>
                         <span
-                          className={cn(
-                            "text-[10px]",
+                          className={cn( "text-[10px]",
                             isSelected
-                              ? "text-primary-foreground/70"
-                              : "text-muted-foreground"
-                          )}
+                              ? "text-primary-foreground/70" : "text-muted-foreground" )}
                         >
                           {format(date, "MMM", { locale: es })}
                         </span>
@@ -375,12 +358,10 @@ export const ReservationSheet = ({
             {/* TIME */}
             {currentStep === "time" && (
               <motion.div
-                key="time"
-                initial={{ opacity: 0, x: 20 }}
+                key="time" initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-4 py-2"
-              >
+                className="space-y-4 py-2" >
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
                     {selectedDate &&
@@ -406,8 +387,7 @@ export const ReservationSheet = ({
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 space-y-2"
-                  >
+                    className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 space-y-2" >
                     <p className="flex items-center gap-1.5 text-xs font-medium text-primary">
                       <Sparkles className="w-3.5 h-3.5" />
                       {selectedTime} está lleno. Prueba:
@@ -417,8 +397,7 @@ export const ReservationSheet = ({
                         <button
                           key={alt}
                           onClick={() => setSelectedTime(alt)}
-                          className="px-3 py-1.5 rounded-full bg-card border border-primary/40 text-sm font-medium text-foreground hover:bg-primary hover:text-primary-foreground transition-all"
-                        >
+                          className="px-3 py-1.5 rounded-full bg-card border border-primary/40 text-sm font-medium text-foreground transition-all" >
                           {alt}
                         </button>
                       ))}
@@ -431,16 +410,13 @@ export const ReservationSheet = ({
             {/* PARTY SIZE */}
             {currentStep === "size" && (
               <motion.div
-                key="size"
-                initial={{ opacity: 0, x: 20 }}
+                key="size" initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-4 py-2"
-              >
+                className="space-y-4 py-2" >
                 <p className="text-sm text-muted-foreground">
                   {selectedDate &&
-                    selectedTime &&
-                    `${format(selectedDate, "d MMM", { locale: es })} a las ${selectedTime}`}
+                    selectedTime && `${format(selectedDate, "d MMM", { locale: es })} a las ${selectedTime}`}
                 </p>
 
                 <div className="flex flex-col items-center gap-6 py-6">
@@ -448,8 +424,7 @@ export const ReservationSheet = ({
                     <button
                       onClick={() => setPartySize(Math.max(1, partySize - 1))}
                       disabled={partySize <= 1}
-                      className="w-14 h-14 rounded-full border-2 border-border flex items-center justify-center text-2xl font-light disabled:opacity-30 hover:border-primary/60 transition-all"
-                    >
+                      className="w-14 h-14 rounded-full border-2 border-border flex items-center justify-center text-2xl font-light disabled:opacity-30 transition-all" >
                       −
                     </button>
                     <div className="text-center">
@@ -461,8 +436,7 @@ export const ReservationSheet = ({
                     <button
                       onClick={() => setPartySize(Math.min(20, partySize + 1))}
                       disabled={partySize >= 20}
-                      className="w-14 h-14 rounded-full border-2 border-border flex items-center justify-center text-2xl font-light disabled:opacity-30 hover:border-primary/60 transition-all"
-                    >
+                      className="w-14 h-14 rounded-full border-2 border-border flex items-center justify-center text-2xl font-light disabled:opacity-30 transition-all" >
                       +
                     </button>
                   </div>
@@ -472,12 +446,9 @@ export const ReservationSheet = ({
                       <button
                         key={n}
                         onClick={() => setPartySize(n)}
-                        className={cn(
-                          "w-9 h-9 rounded-full text-sm font-medium border transition-all",
+                        className={cn( "w-9 h-9 rounded-full text-sm font-medium border transition-all",
                           partySize === n
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "border-border text-muted-foreground hover:border-primary/50"
-                        )}
+                            ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground " )}
                       >
                         {n}
                       </button>
@@ -487,18 +458,10 @@ export const ReservationSheet = ({
 
                 {selectedInfo && capacity != null && (
                   <div
-                    className={cn(
-                      "text-center text-sm px-3 py-2 rounded-xl",
-                      selectedInfo.status === "full"
-                        ? "bg-destructive/10 text-destructive"
-                        : selectedInfo.status === "limited"
-                        ? "bg-warning/10 text-warning"
-                        : "bg-secondary text-muted-foreground"
-                    )}
+                    className={cn( "text-center text-sm px-3 py-2 rounded-xl",
+                      selectedInfo.status === "full" ? "bg-destructive/10 text-destructive" : selectedInfo.status === "limited" ? "bg-warning/10 text-warning" : "bg-secondary text-muted-foreground" )}
                   >
-                    {selectedInfo.status === "full"
-                      ? "Sin disponibilidad para este horario"
-                      : `${Math.max(0, capacity - selectedInfo.booked)} lugares disponibles`}
+                    {selectedInfo.status === "full" ? "Sin disponibilidad para este horario" : `${Math.max(0, capacity - selectedInfo.booked)} lugares disponibles`}
                   </div>
                 )}
               </motion.div>
@@ -507,12 +470,10 @@ export const ReservationSheet = ({
             {/* EXTRAS */}
             {currentStep === "extras" && (
               <motion.div
-                key="extras"
-                initial={{ opacity: 0, x: 20 }}
+                key="extras" initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-5 py-2"
-              >
+                className="space-y-5 py-2" >
                 <div className="flex gap-2 flex-wrap">
                   {selectedDate && (
                     <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full">
@@ -544,21 +505,16 @@ export const ReservationSheet = ({
                         {taggedGuests.map((guest) => (
                           <div
                             key={guest.id}
-                            className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-secondary text-sm"
-                          >
+                            className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-secondary text-sm" >
                             <img
                               src={guest.avatar_url || DEFAULT_AVATAR}
-                              alt=""
-                              className="w-5 h-5 rounded-full object-cover"
-                            />
+                              alt="" className="w-5 h-5 rounded-full object-cover" />
                             <span className="text-foreground">{guest.username}</span>
                             <button
-                              type="button"
-                              onClick={() =>
+                              type="button" onClick={() =>
                                 setTaggedGuests((prev) => prev.filter((g) => g.id !== guest.id))
                               }
-                              className="text-muted-foreground hover:text-foreground"
-                            >
+                              className="text-muted-foreground " >
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -566,8 +522,7 @@ export const ReservationSheet = ({
                       </div>
                     )}
                     <Input
-                      placeholder="Buscar usuario..."
-                      value={guestSearch}
+                      placeholder="Buscar usuario..." value={guestSearch}
                       onChange={(e) => setGuestSearch(e.target.value)}
                     />
                     {guestSearch.length >= 2 && searchResults && searchResults.length > 0 && (
@@ -579,18 +534,14 @@ export const ReservationSheet = ({
                           .map((u) => (
                             <button
                               key={u.id}
-                              type="button"
-                              className="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-secondary/50"
-                              onClick={() => {
+                              type="button" className="flex items-center gap-2 px-3 py-2 w-full text-left " onClick={() => {
                                 setTaggedGuests((prev) => [...prev, u]);
                                 setGuestSearch("");
                               }}
                             >
                               <img
                                 src={u.avatar_url || DEFAULT_AVATAR}
-                                alt=""
-                                className="w-6 h-6 rounded-full object-cover"
-                              />
+                                alt="" className="w-6 h-6 rounded-full object-cover" />
                               <div>
                                 <p className="text-sm font-medium text-foreground">
                                   {u.full_name || u.username}
@@ -612,8 +563,7 @@ export const ReservationSheet = ({
                   <Textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Alergias, celebraciones, preferencias de asiento..."
-                    rows={2}
+                    placeholder="Alergias, celebraciones, preferencias de asiento..." rows={2}
                     onFocus={(e) => {
                       setTimeout(() => {
                         e.target.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -630,9 +580,7 @@ export const ReservationSheet = ({
         <div className="px-4 pb-6 pt-3 border-t shrink-0">
           {currentStep !== "extras" ? (
             <Button
-              className="w-full"
-              variant="hero"
-              disabled={!canProceedFrom(currentStep)}
+              className="w-full" variant="hero" disabled={!canProceedFrom(currentStep)}
               onClick={goNext}
             >
               Continuar
@@ -642,9 +590,7 @@ export const ReservationSheet = ({
             <Button
               onClick={handleSubmit}
               disabled={isPending || isOverCapacity}
-              className="w-full"
-              variant="hero"
-            >
+              className="w-full" variant="hero" >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               {isEditMode ? "Guardar cambios" : "Confirmar Reserva"}
             </Button>

@@ -22,8 +22,7 @@ const Tickets = () => {
       
       const { data, error } = await supabase
         .from("guestlist_entries")
-        .select(`
-          id,
+        .select(` id,
           event_id,
           qr_code_token,
           joined_at,
@@ -42,8 +41,7 @@ const Tickets = () => {
               username,
               full_name
             )
-          )
-        `)
+          ) `)
         .eq("user_id", user.id)
         .in("status", ["approved", "pending"])
         .gt("event.start_datetime", new Date().toISOString())
@@ -136,7 +134,7 @@ const Tickets = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                   onClick={() => canViewEntry ? navigate(`/going/${event.id}`) : null}
-                  className={`w-full flex items-center gap-4 p-4 bg-secondary/30 hover:bg-secondary/50 rounded-2xl transition-colors ${!canViewEntry ? 'opacity-80' : ''}`}
+                  className={`w-full flex items-center gap-4 p-4 bg-secondary/30 rounded-2xl transition-colors ${!canViewEntry ? 'opacity-80' : ''}`}
                 >
                   {/* Event Image */}
                   <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-secondary">
@@ -144,8 +142,7 @@ const Tickets = () => {
                       <img 
                         src={event.image_url} 
                         alt={event.title} 
-                        className="w-full h-full object-cover"
-                      />
+                        className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Ticket className="w-6 h-6 text-muted-foreground" />
@@ -181,8 +178,7 @@ const Tickets = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-16 text-center"
-          >
+            className="flex flex-col items-center justify-center py-16 text-center" >
             <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center mb-4">
               <Ticket className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -192,8 +188,7 @@ const Tickets = () => {
             </p>
             <Button
               onClick={() => navigate("/")}
-              className="mt-6 rounded-xl"
-            >
+              className="mt-6 rounded-xl" >
               Descubrir Eventos
             </Button>
           </motion.div>

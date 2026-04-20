@@ -121,9 +121,7 @@ export const MentionTextarea = ({
     const newValue = `${before}@${user.username} ${after}`;
 
     const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-      window.HTMLTextAreaElement.prototype,
-      "value"
-    )?.set;
+      window.HTMLTextAreaElement.prototype, "value" )?.set;
     nativeInputValueSetter?.call(textareaRef.current, newValue);
     textareaRef.current.dispatchEvent(new Event("input", { bubbles: true }));
 
@@ -159,9 +157,7 @@ export const MentionTextarea = ({
       {/* Mirror div — renders colored highlights behind the transparent textarea */}
       <div
         ref={mirrorRef}
-        aria-hidden="true"
-        className={cn(
-          "absolute inset-0 flex min-h-[80px] w-full rounded-md border border-transparent px-3 py-2 text-sm pointer-events-none overflow-hidden whitespace-pre-wrap break-words",
+        aria-hidden="true" className={cn( "absolute inset-0 flex min-h-[80px] w-full rounded-md border border-transparent px-3 py-2 text-sm pointer-events-none overflow-hidden whitespace-pre-wrap break-words",
           className
         )}
         style={{
@@ -183,8 +179,7 @@ export const MentionTextarea = ({
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         onScroll={syncScroll}
-        className={cn(
-          "relative flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none",
+        className={cn( "relative flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none",
           className
         )}
         style={{ ...style, position: "relative", zIndex: 1, background: "transparent", color: "transparent", caretColor: "hsl(var(--foreground))" }}
@@ -195,9 +190,7 @@ export const MentionTextarea = ({
           {suggestions.map((user) => (
             <button
               key={user.id}
-              type="button"
-              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent transition-colors text-left"
-              onMouseDown={(e) => {
+              type="button" className="w-full flex items-center gap-3 px-3 py-2.5 transition-colors text-left" onMouseDown={(e) => {
                 e.preventDefault();
                 selectSuggestion(user);
               }}

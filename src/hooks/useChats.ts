@@ -145,7 +145,7 @@ export const useUserChats = () => {
       });
     },
     enabled: !!user?.id,
-    staleTime: 30 * 1000,
+    staleTime: 0,
   });
 };
 

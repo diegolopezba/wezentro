@@ -101,8 +101,7 @@ export const CommentItem = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
             <span
-              className="text-sm text-foreground cursor-pointer hover:text-primary transition-colors font-medium"
-              onClick={() => navigate(`/user/${comment.user_id}`)}
+              className="text-sm text-foreground cursor-pointer transition-colors font-medium" onClick={() => navigate(`/user/${comment.user_id}`)}
             >
               {comment.user?.username || "usuario"}
             </span>
@@ -120,12 +119,10 @@ export const CommentItem = ({
           <div className="flex items-center gap-4 mt-1.5">
             <button
               onClick={handleLikeToggle}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
+              className="flex items-center gap-1 text-xs text-muted-foreground transition-colors" >
               <Heart
                 className={`w-3.5 h-3.5 ${
-                  comment.is_liked ? "fill-red-500 text-red-500" : ""
-                }`}
+                  comment.is_liked ? "fill-red-500 text-red-500" : "" }`}
               />
               {comment.like_count > 0 && <span>{comment.like_count}</span>}
             </button>
@@ -133,8 +130,7 @@ export const CommentItem = ({
             {!isReply && (
               <button
                 onClick={handleReply}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
-              >
+                className="text-xs text-muted-foreground transition-colors font-medium" >
                 Responder
               </button>
             )}
@@ -145,7 +141,7 @@ export const CommentItem = ({
           {showMenu && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="p-1 rounded-full hover:bg-muted transition-colors opacity-40 hover:opacity-100">
+                <button className="p-1 rounded-full transition-colors opacity-40 ">
                   <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>
@@ -153,8 +149,7 @@ export const CommentItem = ({
                 {canDelete && (
                   <DropdownMenuItem
                     onClick={() => onDelete(comment.id, comment.parent_id)}
-                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                  >
+                    className="text-destructive focus:text-destructive focus:bg-destructive/10" >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Eliminar comentario
                   </DropdownMenuItem>
@@ -191,8 +186,7 @@ export const CommentItem = ({
       {!isReply && hasMore && (
         <button
           onClick={() => setShowAllReplies(!showAllReplies)}
-          className="ml-[52px] mt-2 flex items-center gap-1 text-xs text-primary font-medium"
-        >
+          className="ml-[52px] mt-2 flex items-center gap-1 text-xs text-primary font-medium" >
           {showAllReplies ? (
             <>
               <ChevronUp className="w-3 h-3" />
@@ -226,8 +220,7 @@ export const CommentItem = ({
       <ReportSheet
         open={reportOpen}
         onOpenChange={setReportOpen}
-        targetType="comment"
-        targetId={comment.id}
+        targetType="comment" targetId={comment.id}
       />
     </div>
   );

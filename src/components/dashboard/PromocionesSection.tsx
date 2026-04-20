@@ -264,9 +264,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
         </h2>
         {sponsoredPosts.length > 0 && (
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowWizard(true)}
+            variant="outline" size="sm" onClick={() => setShowWizard(true)}
             disabled={availableEvents.length === 0}
           >
             <Plus className="w-4 h-4 mr-1" />
@@ -288,8 +286,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6"
-            >
+              className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6" >
               {/* decorative blobs */}
               <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/15 blur-2xl pointer-events-none" />
               <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-primary/10 blur-xl pointer-events-none" />
@@ -316,10 +313,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                 </div>
 
                 <Button
-                  variant="hero"
-                  size="lg"
-                  className="w-full text-base"
-                  onClick={() => setShowWizard(true)}
+                  variant="hero" size="lg" className="w-full text-base" onClick={() => setShowWizard(true)}
                   disabled={availableEvents.length === 0}
                 >
                   {availableEvents.length === 0 ? "Crea un evento primero" : "Impulsar mi evento →"}
@@ -339,16 +333,13 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                     key={sp.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-2xl bg-card border border-border overflow-hidden"
-                  >
+                    className="rounded-2xl bg-card border border-border overflow-hidden" >
                     <div className="flex gap-3 p-4">
                       {/* Event thumbnail */}
                       {sp.event?.image_url ? (
                         <img
                           src={sp.event.image_url}
-                          alt=""
-                          className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
-                        />
+                          alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
                       ) : (
                         <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
                           <Megaphone className="w-5 h-5 text-muted-foreground" />
@@ -370,19 +361,12 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                           {sp.status === "draft" ? (
                             <div className="flex items-center gap-1.5 shrink-0">
                               <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => openEditWizard(sp)}
-                                title="Editar"
-                              >
+                                variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditWizard(sp)}
+                                title="Editar" >
                                 <Pencil className="w-3.5 h-3.5" />
                               </Button>
                               <Button
-                                size="sm"
-                                variant="hero"
-                                className="h-8 text-xs"
-                                onClick={() => handleActivate(sp)}
+                                size="sm" variant="hero" className="h-8 text-xs" onClick={() => handleActivate(sp)}
                                 disabled={activatingId === sp.id}
                               >
                                 {activatingId === sp.id ? "..." : "Activar →"}
@@ -391,19 +375,12 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                           ) : (sp.status === "active" || sp.status === "paused" || sp.status === "paused_daily") ? (
                             <div className="flex items-center gap-1.5 shrink-0">
                               <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => openEditWizard(sp)}
-                                title="Editar"
-                              >
+                                variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditWizard(sp)}
+                                title="Editar" >
                                 <Pencil className="w-3.5 h-3.5" />
                               </Button>
                               <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => handleToggleStatus(sp.id, sp.status)}
+                                variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleToggleStatus(sp.id, sp.status)}
                               >
                                 {sp.status === "active" ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                               </Button>
@@ -425,8 +402,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                       <div className="px-4 pb-3">
                         <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-primary rounded-full transition-all"
-                            style={{ width: `${progressPct}%` }}
+                            className="h-full bg-primary rounded-full transition-all" style={{ width: `${progressPct}%` }}
                           />
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-1">
@@ -468,8 +444,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
           {/* Step label */}
           <div className="flex items-center justify-between px-5 pt-2 pb-1 shrink-0">
             <button
-              className="p-1.5 rounded-full hover:bg-secondary transition-colors"
-              onClick={() => {
+              className="p-1.5 rounded-full transition-colors" onClick={() => {
                 if (step === 0) { setShowWizard(false); resetWizard(); }
                 else setStep(s => s - 1);
               }}
@@ -514,13 +489,10 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                           return (
                             <button
                               key={event.id}
-                              type="button"
-                              onClick={() => setSelectedEventId(event.id)}
+                              type="button" onClick={() => setSelectedEventId(event.id)}
                               className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 text-left transition-all ${
                                 isSelected
-                                  ? "border-primary bg-primary/5"
-                                  : "border-border bg-card hover:border-primary/40"
-                              }`}
+                                  ? "border-primary bg-primary/5" : "border-border bg-card " }`}
                             >
                               {event.image_url ? (
                                 <img src={event.image_url} alt="" className="w-14 h-14 rounded-xl object-cover shrink-0" />
@@ -561,13 +533,10 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                         return (
                           <button
                             key={preset.id}
-                            type="button"
-                            onClick={() => setAudiencePreset(preset.id)}
+                            type="button" onClick={() => setAudiencePreset(preset.id)}
                             className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all ${
                               isSelected
-                                ? `border-primary bg-primary/5`
-                                : "border-border bg-card hover:border-primary/40"
-                            }`}
+                                ? `border-primary bg-primary/5` : "border-border bg-card " }`}
                           >
                             <div className={`p-2.5 rounded-xl border ${isSelected ? "bg-primary/15 border-primary/30" : preset.bgColor}`}>
                               <Icon className={`w-5 h-5 ${isSelected ? "text-primary" : preset.color}`} />
@@ -604,11 +573,9 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                         return (
                           <button
                             key={preset.amount}
-                            type="button"
-                            onClick={() => { setSelectedBudget(preset.amount); setUseCustomBudget(false); }}
+                            type="button" onClick={() => { setSelectedBudget(preset.amount); setUseCustomBudget(false); }}
                             className={`relative p-4 rounded-2xl border-2 text-left transition-all ${
-                              isSelected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40"
-                            }`}
+                              isSelected ? "border-primary bg-primary/5" : "border-border bg-card " }`}
                           >
                             {preset.popular && (
                               <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
@@ -630,23 +597,18 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                     {/* Custom budget */}
                     <div>
                       <button
-                        type="button"
-                        onClick={() => setUseCustomBudget(true)}
+                        type="button" onClick={() => setUseCustomBudget(true)}
                         className={`w-full p-3.5 rounded-2xl border-2 text-sm font-medium transition-all ${
-                          useCustomBudget ? "border-primary bg-primary/5 text-foreground" : "border-dashed border-border text-muted-foreground hover:border-primary/40"
-                        }`}
+                          useCustomBudget ? "border-primary bg-primary/5 text-foreground" : "border-dashed border-border text-muted-foreground " }`}
                       >
                         {useCustomBudget ? (
                           <div className="flex items-center gap-2">
                             <span className="text-foreground font-semibold text-lg">$</span>
                             <Input
-                              type="number"
-                              autoFocus
-                              placeholder="Otro monto"
-                              value={customBudget}
+                              type="number" autoFocus
+                              placeholder="Otro monto" value={customBudget}
                               onChange={(e) => setCustomBudget(e.target.value)}
-                              className="border-0 p-0 h-auto text-lg font-semibold bg-transparent focus-visible:ring-0 w-full"
-                              onClick={(e) => e.stopPropagation()}
+                              className="border-0 p-0 h-auto text-lg font-semibold bg-transparent focus-visible:ring-0 w-full" onClick={(e) => e.stopPropagation()}
                               min={5}
                             />
                           </div>
@@ -659,8 +621,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                       <motion.div
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="rounded-2xl bg-primary/8 border border-primary/20 p-4"
-                      >
+                        className="rounded-2xl bg-primary/8 border border-primary/20 p-4" >
                         <div className="flex items-center gap-2 mb-2">
                           <Sparkles className="w-4 h-4 text-primary" />
                           <span className="text-xs font-semibold text-primary uppercase tracking-wider">Estimación</span>
@@ -719,15 +680,10 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
 
                     {/* Pay CTA */}
                     <Button
-                      variant="hero"
-                      size="xl"
-                      className="w-full text-base"
-                      onClick={handleCreate}
+                      variant="hero" size="xl" className="w-full text-base" onClick={handleCreate}
                       disabled={createMutation.isPending}
                     >
-                      {createMutation.isPending ? (
-                        "Procesando..."
-                      ) : editingPostId ? (
+                      {createMutation.isPending ? ( "Procesando..." ) : editingPostId ? (
                         <>Guardar cambios <Check className="w-5 h-5 ml-1" /></>
                       ) : (
                         <>
@@ -756,10 +712,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                 </p>
               )}
               <Button
-                variant="hero"
-                size="xl"
-                className="w-full text-base"
-                onClick={() => setStep(s => s + 1)}
+                variant="hero" size="xl" className="w-full text-base" onClick={() => setStep(s => s + 1)}
                 disabled={!canAdvance()}
               >
                 Siguiente

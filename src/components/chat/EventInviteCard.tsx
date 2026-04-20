@@ -24,15 +24,13 @@ const EventInviteCard = ({ event }: EventInviteCardProps) => {
   return (
     <div
       onClick={handleClick}
-      className="cursor-pointer rounded-xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-colors max-w-[280px]"
-    >
+      className="cursor-pointer rounded-xl overflow-hidden bg-card border border-border transition-colors max-w-[280px]" >
       {event.image_url && (
         <div className="aspect-[16/9] overflow-hidden">
           {isVideo ? (
             <video
               src={event.image_url}
-              className="w-full h-full object-cover"
-              autoPlay
+              className="w-full h-full object-cover" autoPlay
               muted
               loop
               playsInline
@@ -41,8 +39,7 @@ const EventInviteCard = ({ event }: EventInviteCardProps) => {
             <img
               src={event.image_url}
               alt={event.title || "Event"}
-              className="w-full h-full object-cover"
-            />
+              className="w-full h-full object-cover" />
           )}
         </div>
       )}

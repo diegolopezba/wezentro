@@ -61,7 +61,7 @@ const BusinessSettings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-[100dvh] bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-4">
@@ -77,8 +77,7 @@ const BusinessSettings = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 py-4 px-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/5 border border-blue-500/20"
-        >
+          className="flex items-center gap-4 py-4 px-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/5 border border-blue-500/20" >
           <div className="w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center">
             <Briefcase className="w-5 h-5 text-blue-500" />
           </div>
@@ -101,8 +100,7 @@ const BusinessSettings = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
               onClick={() => navigate("/dashboard")}
-              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 hover:from-primary/15 hover:to-primary/10 transition-colors"
-            >
+              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 transition-colors" >
               <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
                 <BarChart3 className="w-5 h-5 text-primary" />
               </div>
@@ -118,8 +116,7 @@ const BusinessSettings = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="mt-4"
-            >
+              className="mt-4" >
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1 mb-2">
                 Funciones
               </h2>
@@ -131,8 +128,7 @@ const BusinessSettings = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.12 }}
               onClick={() => navigate("/settings/business/info")}
-              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors"
-            >
+              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
               <div className="w-9 h-9 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0">
                 <Info className="w-5 h-5 text-blue-500" />
               </div>
@@ -148,8 +144,7 @@ const BusinessSettings = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border"
-            >
+              className="flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border" >
               <div className="w-9 h-9 rounded-lg bg-orange-500/15 flex items-center justify-center">
                 <UtensilsCrossed className="w-5 h-5 text-orange-500" />
               </div>
@@ -170,8 +165,7 @@ const BusinessSettings = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               onClick={() => navigate("/settings/business/reservations")}
-              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors"
-            >
+              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
               <div className="w-9 h-9 rounded-lg bg-green-500/15 flex items-center justify-center shrink-0">
                 <CalendarCheck className="w-5 h-5 text-green-500" />
               </div>
@@ -189,8 +183,7 @@ const BusinessSettings = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
-              className="mt-4"
-            >
+              className="mt-4" >
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1 mb-2">
                 Pagos
               </h2>
@@ -202,8 +195,7 @@ const BusinessSettings = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.28 }}
               onClick={() => navigate("/settings/business/payments")}
-              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors"
-            >
+              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
               <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
                 <CreditCard className="w-5 h-5 text-primary" />
               </div>

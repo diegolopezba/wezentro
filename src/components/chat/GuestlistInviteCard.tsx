@@ -27,15 +27,13 @@ const GuestlistInviteCard = ({ event, senderId }: GuestlistInviteCardProps) => {
   return (
     <div
       onClick={handleClick}
-      className="cursor-pointer rounded-xl overflow-hidden bg-card border border-primary/30 hover:border-primary/50 transition-colors max-w-[280px]"
-    >
+      className="cursor-pointer rounded-xl overflow-hidden bg-card border border-primary/30 transition-colors max-w-[280px]" >
       {event.image_url && (
         <div className="aspect-[16/9] overflow-hidden relative">
           {isVideo ? (
             <video
               src={event.image_url}
-              className="w-full h-full object-cover"
-              autoPlay
+              className="w-full h-full object-cover" autoPlay
               muted
               loop
               playsInline
@@ -44,8 +42,7 @@ const GuestlistInviteCard = ({ event, senderId }: GuestlistInviteCardProps) => {
             <img
               src={event.image_url}
               alt={event.title || "Event"}
-              className="w-full h-full object-cover"
-            />
+              className="w-full h-full object-cover" />
           )}
           {/* Guestlist badge */}
           <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full bg-primary/90 text-primary-foreground text-xs font-medium">

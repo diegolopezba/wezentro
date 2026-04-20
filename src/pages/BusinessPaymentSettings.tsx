@@ -89,7 +89,7 @@ const BusinessPaymentSettings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-[100dvh] bg-background">
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -111,8 +111,7 @@ const BusinessPaymentSettings = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-start gap-3 py-4 px-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20"
-        >
+          className="flex items-start gap-3 py-4 px-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20" >
           <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 mt-0.5">
             <CreditCard className="w-5 h-5 text-primary" />
           </div>
@@ -129,37 +128,29 @@ const BusinessPaymentSettings = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="py-4 px-4 rounded-xl bg-card border border-border space-y-4"
-        >
+          className="py-4 px-4 rounded-xl bg-card border border-border space-y-4" >
           <h2 className="text-sm font-semibold text-foreground">Credenciales Open Banking</h2>
 
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Account ID</Label>
               <Input
-                placeholder="Tu accountId de BNB Open Banking"
-                value={bnbAccountId}
+                placeholder="Tu accountId de BNB Open Banking" value={bnbAccountId}
                 onChange={(e) => setBnbAccountId(e.target.value)}
-                autoComplete="off"
-                disabled={loading}
+                autoComplete="off" disabled={loading}
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Authorization ID</Label>
               <div className="relative">
                 <Input
-                  placeholder="Tu authorizationId de BNB"
-                  value={bnbAuthorizationId}
+                  placeholder="Tu authorizationId de BNB" value={bnbAuthorizationId}
                   onChange={(e) => setBnbAuthorizationId(e.target.value)}
                   type={showBnbAuth ? "text" : "password"}
-                  autoComplete="off"
-                  className="pr-10"
-                  disabled={loading}
+                  autoComplete="off" className="pr-10" disabled={loading}
                 />
                 <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => setShowBnbAuth(!showBnbAuth)}
+                  type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors" onClick={() => setShowBnbAuth(!showBnbAuth)}
                 >
                   {showBnbAuth ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -169,22 +160,16 @@ const BusinessPaymentSettings = () => {
 
           <div className="flex gap-2 pt-1">
             <Button
-              variant="hero"
-              size="sm"
-              className="flex-1"
-              onClick={handleSave}
+              variant="hero" size="sm" className="flex-1" onClick={handleSave}
               disabled={savingBnb || loading || !bnbAccountId.trim() || !bnbAuthorizationId.trim()}
             >
               {savingBnb ? "Guardando..." : bnbConnected ? "Actualizar" : "Conectar BNB"}
             </Button>
             {bnbConnected && (
               <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDisconnect}
+                variant="ghost" size="sm" onClick={handleDisconnect}
                 disabled={savingBnb}
-                className="text-destructive hover:text-destructive"
-              >
+                className="text-destructive " >
                 Desconectar
               </Button>
             )}
@@ -196,8 +181,7 @@ const BusinessPaymentSettings = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="py-4 px-4 rounded-xl bg-card border border-border space-y-2"
-        >
+          className="py-4 px-4 rounded-xl bg-card border border-border space-y-2" >
           <h2 className="text-sm font-semibold text-foreground">¿Cómo obtener tus credenciales?</h2>
           <ol className="space-y-1.5 text-xs text-muted-foreground list-decimal list-inside leading-relaxed">
             <li>Ingresa a <strong className="text-foreground">bnb.com.bo/PortalBNB/Api/OpenBanking</strong></li>
@@ -212,8 +196,7 @@ const BusinessPaymentSettings = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="px-4 py-3 rounded-xl bg-muted/50 border border-border"
-        >
+          className="px-4 py-3 rounded-xl bg-muted/50 border border-border" >
           <p className="text-xs text-muted-foreground leading-relaxed">
             🔒 Tus credenciales se almacenan de forma cifrada y solo son accesibles por tu cuenta. Zentro nunca retiene ni procesa el dinero de tus transacciones.
           </p>

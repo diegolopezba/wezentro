@@ -156,26 +156,21 @@ const PrivacySettings = () => {
                     disabled={updateSettings.isPending}
                     className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-colors ${
                       isSelected
-                        ? "bg-primary/10 border-2 border-primary"
-                        : "bg-secondary/50 hover:bg-secondary/70 border-2 border-transparent"
-                    }`}
+                        ? "bg-primary/10 border-2 border-primary" : "bg-secondary/50 border-2 border-transparent" }`}
                   >
                     <div
                       className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                        isSelected ? "bg-primary/20" : "bg-muted"
-                      }`}
+                        isSelected ? "bg-primary/20" : "bg-muted" }`}
                     >
                       <Icon
                         className={`w-5 h-5 ${
-                          isSelected ? "text-primary" : "text-muted-foreground"
-                        }`}
+                          isSelected ? "text-primary" : "text-muted-foreground" }`}
                       />
                     </div>
                     <div className="flex-1 text-left">
                       <p
                         className={`font-medium ${
-                          isSelected ? "text-primary" : "text-foreground"
-                        }`}
+                          isSelected ? "text-primary" : "text-foreground" }`}
                       >
                         {option.label}
                       </p>
@@ -186,15 +181,13 @@ const PrivacySettings = () => {
                     {/* Radio indicator */}
                     <div
                       className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        isSelected ? "border-primary" : "border-muted-foreground"
-                      }`}
+                        isSelected ? "border-primary" : "border-muted-foreground" }`}
                     >
                       {isSelected && (
                         <motion.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          className="w-2.5 h-2.5 rounded-full bg-primary"
-                        />
+                          className="w-2.5 h-2.5 rounded-full bg-primary" />
                       )}
                     </div>
                   </motion.button>
@@ -225,8 +218,7 @@ const PrivacySettings = () => {
               <div className="flex items-center gap-4">
                 <div
                   className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    isSubscribed ? "bg-primary/20" : "bg-muted"
-                  }`}
+                    isSubscribed ? "bg-primary/20" : "bg-muted" }`}
                 >
                   {isSubscribed ? (
                     <Bell className="w-5 h-5 text-primary" />
@@ -240,10 +232,8 @@ const PrivacySettings = () => {
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {isSubscribed
-                      ? "Activadas"
-                      : isPushDisabled
-                      ? "No disponible"
-                      : "Desactivadas"}
+                      ? "Activadas" : isPushDisabled
+                      ? "No disponible" : "Desactivadas"}
                   </p>
                 </div>
               </div>
@@ -264,15 +254,11 @@ const PrivacySettings = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-3"
-              >
+                className="mt-3" >
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={sendTestNotification}
+                  variant="outline" size="sm" onClick={sendTestNotification}
                   disabled={isSendingTest}
-                  className="w-full"
-                >
+                  className="w-full" >
                   {isSendingTest ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   ) : (

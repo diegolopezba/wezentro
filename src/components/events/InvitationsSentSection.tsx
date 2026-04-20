@@ -42,7 +42,7 @@ export function InvitationsSentSection({ eventId }: InvitationsSentSectionProps)
         );
       case "accepted":
         return (
-          <Badge className="gap-1 bg-emerald-500/20 text-emerald-600 hover:bg-emerald-500/30">
+          <Badge className="gap-1 bg-emerald-500/20 text-emerald-600 ">
             <CheckCircle className="w-3 h-3" />
             Accepted
           </Badge>
@@ -82,8 +82,7 @@ export function InvitationsSentSection({ eventId }: InvitationsSentSectionProps)
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 cursor-pointer"
-            onClick={() => navigate(`/user/${invitation.invited_user_id}`)}
+            className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 cursor-pointer" onClick={() => navigate(`/user/${invitation.invited_user_id}`)}
           >
             <Avatar className="w-10 h-10">
               <AvatarImage src={invitation.invited_user?.avatar_url || DEFAULT_AVATAR} />

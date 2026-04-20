@@ -58,8 +58,7 @@ export function DeleteEventDialog({
           <AlertDialogAction
             onClick={handleDelete}
             disabled={deleteEvent.isPending}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
+            className="bg-destructive text-destructive-foreground " >
             {deleteEvent.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
             ) : null}

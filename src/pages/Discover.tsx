@@ -82,8 +82,7 @@ const Discover = () => {
       const { data, error } = await supabase
         .from("guestlist_entries")
         .select("event_id, user_id")
-        .in(
-          "event_id",
+        .in( "event_id",
           events.map((e) => e.id),
         );
 
@@ -252,17 +251,14 @@ const Discover = () => {
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
               <Input
-                placeholder="Buscar eventos, personas..."
-                value={searchQuery}
+                placeholder="Buscar eventos, personas..." value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
-                className="pl-10 pr-10 bg-card/90 backdrop-blur-md border-border/50"
-              />
+                className="pl-10 pr-10 bg-card/90 backdrop-blur-md border-border/50" />
               {searchQuery && (
                 <button
                   onClick={handleClearSearch}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
-                >
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" >
                   <X className="w-4 h-4" />
                 </button>
               )}
@@ -275,17 +271,13 @@ const Discover = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 right-0 mt-2 bg-card/95 backdrop-blur-md rounded-xl border border-border/50 shadow-elevated overflow-hidden max-h-[60vh] z-50"
-                  >
+                    className="absolute top-full left-0 right-0 mt-2 bg-card/95 backdrop-blur-md rounded-xl border border-border/50 shadow-elevated overflow-hidden max-h-[60vh] z-50" >
                     {/* Tabs */}
                     <div className="flex border-b border-border/50">
                       <button
                         onClick={() => setSearchTab("events")}
-                        className={cn(
-                          "flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2",
-                          searchTab === "events"
-                            ? "text-primary border-b-2 border-primary bg-primary/5"
-                            : "text-muted-foreground hover:text-foreground",
+                        className={cn( "flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2",
+                          searchTab === "events" ? "text-primary border-b-2 border-primary bg-primary/5" : "text-muted-foreground ",
                         )}
                       >
                         <MapPin className="w-4 h-4" />
@@ -293,11 +285,8 @@ const Discover = () => {
                       </button>
                       <button
                         onClick={() => setSearchTab("people")}
-                        className={cn(
-                          "flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2",
-                          searchTab === "people"
-                            ? "text-primary border-b-2 border-primary bg-primary/5"
-                            : "text-muted-foreground hover:text-foreground",
+                        className={cn( "flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2",
+                          searchTab === "people" ? "text-primary border-b-2 border-primary bg-primary/5" : "text-muted-foreground ",
                         )}
                       >
                         <Users className="w-4 h-4" />
@@ -314,14 +303,12 @@ const Discover = () => {
                               <button
                                 key={event.id}
                                 onClick={() => handleMarkerClick([event])}
-                                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-colors text-left"
-                              >
+                                className="w-full flex items-center gap-3 p-3 rounded-xl transition-colors text-left" >
                                 <div className="w-12 h-12 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
                                   <img
                                     src={event.image_url || "/placeholder.svg"}
                                     alt={event.title || "Evento"}
-                                    className="w-full h-full object-cover"
-                                  />
+                                    className="w-full h-full object-cover" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="font-medium text-foreground truncate">
@@ -361,10 +348,7 @@ const Discover = () => {
               </AnimatePresence>
             </div>
             <Button
-              variant="secondary"
-              size="icon"
-              className="bg-card/90 backdrop-blur-md border-border/50 relative"
-              onClick={() => setIsFilterOpen(true)}
+              variant="secondary" size="icon" className="bg-card/90 backdrop-blur-md border-border/50 relative" onClick={() => setIsFilterOpen(true)}
             >
               <SlidersHorizontal className="w-4 h-4" />
               {activeFilterCount > 0 && (
@@ -396,15 +380,11 @@ const Discover = () => {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="absolute bottom-20 left-8 right-8 z-50 max-w-[220px] mx-auto"
-              onClick={(e) => e.stopPropagation()}
+              className="absolute bottom-20 left-8 right-8 z-50 max-w-[220px] mx-auto" onClick={(e) => e.stopPropagation()}
             >
               <div className="relative">
                 <Button
-                  variant="secondary"
-                  size="icon"
-                  className="absolute -top-2 -right-2 z-10 w-8 h-8 rounded-full bg-card shadow-elevated"
-                  onClick={handleCloseEventCard}
+                  variant="secondary" size="icon" className="absolute -top-2 -right-2 z-10 w-8 h-8 rounded-full bg-card shadow-elevated" onClick={handleCloseEventCard}
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -441,11 +421,9 @@ const Discover = () => {
                           <button
                             key={index}
                             onClick={() => carouselApi?.scrollTo(index)}
-                            className={cn(
-                              "w-2 h-2 rounded-full transition-all duration-200",
+                            className={cn( "w-2 h-2 rounded-full transition-all duration-200",
                               index === currentSlide
-                                ? "bg-primary w-4"
-                                : "bg-muted-foreground/40 hover:bg-muted-foreground/60",
+                                ? "bg-primary w-4" : "bg-muted-foreground/40 ",
                             )}
                           />
                         ))}

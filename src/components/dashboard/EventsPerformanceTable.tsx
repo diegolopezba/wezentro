@@ -18,8 +18,7 @@ export const EventsPerformanceTable = ({
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-20 bg-secondary/50 rounded-xl animate-pulse"
-          />
+            className="h-20 bg-secondary/50 rounded-xl animate-pulse" />
         ))}
       </div>
     );
@@ -49,17 +48,13 @@ export const EventsPerformanceTable = ({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors"
-          >
+            className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 transition-colors" >
             {/* Event image */}
             <img
               src={
-                event.image_url ||
-                "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=100&q=80"
-              }
+                event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=100&q=80" }
               alt={event.title}
-              className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
-            />
+              className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
 
             {/* Event info */}
             <div className="flex-1 min-w-0">
@@ -96,11 +91,8 @@ export const EventsPerformanceTable = ({
               <div
                 className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                   conversionRate >= 50
-                    ? "bg-green-500/20 text-green-400"
-                    : conversionRate >= 25
-                    ? "bg-yellow-500/20 text-yellow-400"
-                    : "bg-muted text-muted-foreground"
-                }`}
+                    ? "bg-green-500/20 text-green-400" : conversionRate >= 25
+                    ? "bg-yellow-500/20 text-yellow-400" : "bg-muted text-muted-foreground" }`}
               >
                 {conversionRate}%
               </div>

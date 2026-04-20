@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Volume2, VolumeX, Repeat, MoreHorizontal, EyeOff } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useRef, useContext } from "react";
+import { useState, useRef, useContext, useEffect, memo } from "react";
 import { cn } from "@/lib/utils";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { SelectedEventContext } from "@/contexts/SelectedEventContext";
@@ -10,6 +10,7 @@ import { RepostInfo } from "@/hooks/useFollowingEventsScored";
 import { useTrackSponsoredClick } from "@/hooks/useSponsoredPosts";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { useAuth } from "@/contexts/AuthContext";
+import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,7 +55,7 @@ const categoryColors: Record<string, string> = {
   default: "from-[hsl(var(--primary))] to-[hsl(var(--accent))]"
 };
 
-export const EventCard = ({
+const EventCardComponent = ({
   id,
   title,
   imageUrl,
@@ -81,6 +82,12 @@ export const EventCard = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(true);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+
+  // Reset click-tracking when this card represents a different event
+  // (e.g. when remounted in a different feed slot).
+  useEffect(() => {
+    clickedRef.current = false;
+  }, [id]);
 
   const isHomePage = routerLocation.pathname === "/";
   const selectedEventContext = useContext(SelectedEventContext);
@@ -109,8 +116,8 @@ export const EventCard = ({
 
   const isVideo = isVideoUrl(imageUrl);
 
-  const optimizedImageUrl = !isVideo && imageUrl && imageUrl.includes('/storage/v1/object/public/')
-    ? `${imageUrl}?width=400&quality=75&resize=cover`
+  const optimizedImageUrl = !isVideo
+    ? getOptimizedImageUrl(imageUrl, ImageSizes.card)
     : imageUrl;
 
   const toggleMute = (e: React.MouseEvent) => {
@@ -203,6 +210,7 @@ export const EventCard = ({
                 className="w-full h-full object-cover"
                 onLoad={handleImageLoad}
                 loading="lazy"
+                decoding="async"
               />
             )}
 
@@ -210,7 +218,7 @@ export const EventCard = ({
             {isVideo && (
               <button
                 onClick={toggleMute}
-                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors z-10"
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors z-10"
               >
                 {isMuted ? (
                   <VolumeX className="w-3.5 h-3.5 text-white" />
@@ -249,11 +257,13 @@ export const EventCard = ({
                 <div className="flex -space-x-1.5">
                   {ownerAvatar && (
                     <img
-                      src={ownerAvatar}
+                      src={getOptimizedImageUrl(ownerAvatar, ImageSizes.avatarXs)}
                       alt="Owner"
+                      loading="lazy"
+                      decoding="async"
                       className={cn(
                         "w-6 h-6 rounded-full border-background object-cover border-0",
-                        creatorId && "cursor-pointer hover:scale-110 transition-transform z-10"
+                        creatorId && "cursor-pointer transition-transform z-10"
                       )}
                       onClick={(e) => {
                         if (creatorId) {
@@ -270,8 +280,10 @@ export const EventCard = ({
                       attendee.avatar_url ? (
                         <img
                           key={attendee.id}
-                          src={attendee.avatar_url}
+                          src={getOptimizedImageUrl(attendee.avatar_url, ImageSizes.avatarXs)}
                           alt="Attendee"
+                          loading="lazy"
+                          decoding="async"
                           className="w-6 h-6 rounded-full border-background object-cover border-0"
                         />
                       ) : (
@@ -279,6 +291,8 @@ export const EventCard = ({
                           key={attendee.id}
                           src={DEFAULT_AVATAR}
                           alt="Attendee"
+                          loading="lazy"
+                          decoding="async"
                           className="w-6 h-6 rounded-full border-background object-cover border-0"
                         />
                       )
@@ -295,6 +309,8 @@ export const EventCard = ({
                         key={`placeholder-${i}`}
                         src={DEFAULT_AVATAR}
                         alt="Attendee"
+                        loading="lazy"
+                        decoding="async"
                         className="w-6 h-6 rounded-full border-background object-cover border-0"
                       />
                     ))}
@@ -315,3 +331,28 @@ export const EventCard = ({
     </div>
   );
 };
+
+/**
+ * React.memo with a shallow comparator on the props that actually drive rendering.
+ * Prevents 200-card re-render storms when the parent updates unrelated state.
+ */
+export const EventCard = memo(EventCardComponent, (prev, next) => {
+  return (
+    prev.id === next.id &&
+    prev.title === next.title &&
+    prev.imageUrl === next.imageUrl &&
+    prev.date === next.date &&
+    prev.location === next.location &&
+    prev.category === next.category &&
+    prev.attendees === next.attendees &&
+    prev.hasGuestlist === next.hasGuestlist &&
+    prev.ownerAvatar === next.ownerAvatar &&
+    prev.creatorId === next.creatorId &&
+    prev.isSponsored === next.isSponsored &&
+    prev.sponsoredPostId === next.sponsoredPostId &&
+    prev.compact === next.compact &&
+    prev.index === next.index &&
+    (prev.attendeeAvatars?.length || 0) === (next.attendeeAvatars?.length || 0) &&
+    prev.repostInfo?.repostedBy?.length === next.repostInfo?.repostedBy?.length
+  );
+});

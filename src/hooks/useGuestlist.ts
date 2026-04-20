@@ -24,6 +24,7 @@ export const useIsOnGuestlist = (eventId: string | undefined) => {
       return data;
     },
     enabled: !!eventId && !!user,
+    staleTime: 0,
   });
 };
 

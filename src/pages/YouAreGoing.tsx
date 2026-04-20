@@ -61,8 +61,7 @@ const YouAreGoing = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50"
-    >
+      className="fixed inset-0 z-50" >
       {/* Background Media */}
       <div className="absolute inset-0">
         {isVideo ? (
@@ -72,14 +71,12 @@ const YouAreGoing = () => {
             loop
             muted
             playsInline
-            className="w-full h-full object-cover"
-          />
+            className="w-full h-full object-cover" />
         ) : (
           <img
             src={event.image_url || "/placeholder.svg"}
             alt={event.title || "Event"}
-            className="w-full h-full object-cover"
-          />
+            className="w-full h-full object-cover" />
         )}
       </div>
 
@@ -87,10 +84,7 @@ const YouAreGoing = () => {
       <div className="absolute top-0 right-0 safe-top z-20 p-4">
         <Button
           onClick={() => navigate(-1)}
-          variant="ghost"
-          size="icon"
-          className="bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 rounded-full"
-        >
+          variant="ghost" size="icon" className="bg-black/30 backdrop-blur-sm text-white rounded-full" >
           <X className="w-5 h-5" />
         </Button>
       </div>
@@ -104,8 +98,7 @@ const YouAreGoing = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="px-6 pt-8 pb-6 safe-bottom"
-        >
+          className="px-6 pt-8 pb-6 safe-bottom" >
 
           <div className="text-center space-y-4">
             {/* Guestlist badge - shown when user was invited (no ticket purchase) */}
@@ -138,9 +131,7 @@ const YouAreGoing = () => {
               {canViewQr ? (
                 <Button
                   onClick={() => setShowQR(true)}
-                  className="w-full bg-white text-black hover:bg-white/90 rounded-xl font-semibold"
-                  size="lg"
-                >
+                  className="w-full bg-white text-black rounded-xl font-semibold" size="lg" >
                   Mostrar QR de Entrada
                 </Button>
               ) : guestlistEntry?.payment_status === "pending" ? (
@@ -175,8 +166,7 @@ const YouAreGoing = () => {
                 <QRCodeSVG
                   value={guestlistEntry.qr_code_token}
                   size={200}
-                  level="H"
-                  includeMargin={false}
+                  level="H" includeMargin={false}
                 />
               </div>
             ) : (

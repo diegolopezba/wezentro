@@ -117,14 +117,12 @@ export const TimelineCard = ({
         layout: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
       }}
       whileTap={{ scale: 0.98 }}
-      className="masonry-item cursor-pointer"
-      onClick={handleCardClick}
+      className="masonry-item cursor-pointer" onClick={handleCardClick}
     >
       <div className="space-y-2 px-0">
         {/* Media */}
         <div
-          className="relative rounded-xl overflow-hidden bg-secondary"
-          style={{
+          className="relative rounded-xl overflow-hidden bg-secondary" style={{
             width: "100%",
             aspectRatio: aspectRatio ? `${aspectRatio}` : "3/4",
             minHeight: "120px",
@@ -135,8 +133,7 @@ export const TimelineCard = ({
             <video
               ref={videoRef}
               src={imageUrl}
-              className="w-full h-full object-cover"
-              autoPlay
+              className="w-full h-full object-cover" autoPlay
               muted
               loop
               playsInline
@@ -146,8 +143,7 @@ export const TimelineCard = ({
             <img
               src={imageUrl}
               alt={title || "Post"}
-              className="w-full h-full object-cover"
-              onLoad={handleImageLoad}
+              className="w-full h-full object-cover" onLoad={handleImageLoad}
             />
           )}
 
@@ -155,8 +151,7 @@ export const TimelineCard = ({
           {isVideo && (
             <button
               onClick={toggleMute}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors z-10"
-            >
+              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors z-10" >
               {isMuted ? (
                 <VolumeX className="w-3.5 h-3.5 text-white" />
               ) : (
@@ -172,11 +167,8 @@ export const TimelineCard = ({
                 {ownerAvatar && (
                   <img
                     src={ownerAvatar}
-                    alt="Owner"
-                    className={cn(
-                      "w-5 h-5 rounded-full border-background object-cover border-0",
-                      creatorId && "cursor-pointer hover:scale-110 transition-transform z-10"
-                    )}
+                    alt="Owner" className={cn( "w-5 h-5 rounded-full border-background object-cover border-0",
+                      creatorId && "cursor-pointer transition-transform z-10" )}
                     onClick={(e) => {
                       if (creatorId) {
                         e.stopPropagation();
