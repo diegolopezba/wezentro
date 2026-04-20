@@ -9,7 +9,7 @@ export interface AppLayoutProps {
 export const AppLayout = forwardRef<HTMLDivElement, AppLayoutProps>(
   ({ children, hideNav = false }, ref) => {
     return (
-      <div ref={ref} className="min-h-screen bg-background overflow-auto">
+      <div ref={ref} className="min-h-[100dvh] bg-background overflow-auto">
         {/* Main content */}
         <main className={hideNav ? "" : "pb-24"}>
           {children}
