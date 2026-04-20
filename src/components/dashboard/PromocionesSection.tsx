@@ -75,6 +75,7 @@ const STEPS = ["Evento", "Audiencia", "Presupuesto", "Confirmar"];
 export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: boolean }) => {
   const { user } = useAuth();
   const { data: sponsoredPosts = [], isLoading, refetch } = useMySponsored();
+  const { data: dailySpendMap = {} } = useTodayDailySpend();
   const { data: myEvents = [] } = useUserCreatedEvents(user?.id);
   const createMutation = useCreateSponsoredPost();
   const updateStatusMutation = useUpdateSponsoredStatus();
