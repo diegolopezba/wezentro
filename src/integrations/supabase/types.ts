@@ -2169,6 +2169,39 @@ export type Database = {
           target_radius_km: number
         }[]
       }
+      get_for_you_events: {
+        Args: never
+        Returns: {
+          attendee_avatars: Json
+          attendee_count: number
+          category: string
+          created_at: string
+          creator_avatar_url: string
+          creator_full_name: string
+          creator_id: string
+          creator_username: string
+          description: string
+          description_tags: string[]
+          end_datetime: string
+          has_guestlist: boolean
+          has_guestlist_chat: boolean
+          id: string
+          image_url: string
+          is_business_event: boolean
+          is_post: boolean
+          is_public: boolean
+          latitude: number
+          location_name: string
+          longitude: number
+          max_guestlist_capacity: number
+          payment_qr_url: string
+          price: number
+          show_menu_button: boolean
+          show_reservation_button: boolean
+          start_datetime: string
+          title: string
+        }[]
+      }
       get_mutual_followers: {
         Args: { _user_id: string }
         Returns: {
