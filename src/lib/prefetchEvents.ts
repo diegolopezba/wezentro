@@ -2,29 +2,51 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const FOR_YOU_EVENTS_KEY = ["for-you-events"];
 
+/**
+ * Fetches the "For You" feed using the optimized server-side RPC.
+ * Returns rows shaped to be backwards-compatible with the previous nested-select payload.
+ */
 export const fetchForYouEvents = async () => {
-  const now = new Date().toISOString();
-  const { data, error } = await supabase
-    .from("events")
-    .select(
-      `
-      *,
-      creator:profiles!events_creator_id_fkey(
-        id, username, full_name, avatar_url
-      ),
-      guestlist_entries(
-        user:profiles!guestlist_entries_user_id_fkey(
-          id, avatar_url
-        )
-      )
-    `
-    )
-    .eq("is_public", true)
-    .is("deleted_at", null)
-    .or(`is_post.eq.true,start_datetime.gte.${now}`)
-    .order("created_at", { ascending: false })
-    .limit(200);
+  const { data, error } = await supabase.rpc("get_for_you_events");
 
   if (error) throw error;
-  return data;
+
+  // Reshape RPC rows to match the previous nested shape consumed by useForYouEvents/EventFeed.
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    description_tags: row.description_tags,
+    image_url: row.image_url,
+    category: row.category,
+    location_name: row.location_name,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    start_datetime: row.start_datetime,
+    end_datetime: row.end_datetime,
+    price: row.price,
+    has_guestlist: row.has_guestlist,
+    has_guestlist_chat: row.has_guestlist_chat,
+    max_guestlist_capacity: row.max_guestlist_capacity,
+    is_post: row.is_post,
+    is_public: row.is_public,
+    is_business_event: row.is_business_event,
+    show_menu_button: row.show_menu_button,
+    show_reservation_button: row.show_reservation_button,
+    payment_qr_url: row.payment_qr_url,
+    creator_id: row.creator_id,
+    created_at: row.created_at,
+    creator: {
+      id: row.creator_id,
+      username: row.creator_username,
+      full_name: row.creator_full_name,
+      avatar_url: row.creator_avatar_url,
+    },
+    // Map the lightweight avatar array back into the shape expected by consumers
+    // (guestlist_entries[].user.{id, avatar_url}).
+    guestlist_entries: Array.isArray(row.attendee_avatars)
+      ? row.attendee_avatars.map((a: any) => ({ user: a }))
+      : [],
+    _attendee_count: Number(row.attendee_count) || 0,
+  }));
 };
