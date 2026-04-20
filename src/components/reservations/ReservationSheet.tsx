@@ -37,7 +37,9 @@ interface ReservationSheetProps {
   /** When provided, the sheet runs in EDIT mode for this reservation. */
   editingReservation?: {
     id: string;
-    reservation_date: string; // "yyyy-MM-dd" reservation_time: string; // "HH:MM:SS" party_size: number;
+    reservation_date: string; // "yyyy-MM-dd"
+    reservation_time: string; // "HH:MM:SS"
+    party_size: number;
     notes: string | null;
   };
 }
