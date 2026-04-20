@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocationContext } from "@/contexts/LocationContext";
 import { EventWithCreator } from "./useEvents";
 import { toast } from "sonner";
 
@@ -35,20 +36,57 @@ export interface SponsoredEventForFeed extends EventWithCreator {
   target_age_max: number | null;
 }
 
-// Fetch active sponsored posts with their event data for feed injection
+// Stable per-device fingerprint for guest click dedup
+const FP_KEY = "zentro_ad_fp";
+export const getAdFingerprint = (): string => {
+  try {
+    let fp = localStorage.getItem(FP_KEY);
+    if (!fp) {
+      fp = crypto.randomUUID();
+      localStorage.setItem(FP_KEY, fp);
+    }
+    return fp;
+  } catch {
+    return "anon";
+  }
+};
+
+// Fetch eligible sponsored posts for the current viewer (server-side targeting)
 export const useActiveSponsoredPosts = () => {
+  const { user } = useAuth();
+  const { location } = useLocationContext();
+
   return useQuery({
-    queryKey: ["active-sponsored-posts"],
+    queryKey: ["active-sponsored-posts", user?.id, location?.lat, location?.lng],
     queryFn: async () => {
-      const { data: sponsoredPosts, error: spError } = await supabase
-        .from("sponsored_posts")
-        .select("id, event_id, target_categories, target_radius_km, target_gender, target_age_min, target_age_max")
-        .eq("status", "active");
+      // Server-side targeting via RPC
+      const { data: eligible, error: rpcError } = await supabase.rpc(
+        "get_eligible_sponsored_posts" as any,
+        {
+          _user_id: user?.id ?? null,
+          _lat: location?.lat ?? null,
+          _lng: location?.lng ?? null,
+        }
+      );
 
-      if (spError) throw spError;
-      if (!sponsoredPosts || sponsoredPosts.length === 0) return [];
+      if (rpcError) {
+        console.warn("Eligibility RPC failed, returning empty:", rpcError);
+        return [];
+      }
+      const rows = (eligible || []) as Array<{
+        sponsored_post_id: string;
+        event_id: string;
+        target_categories: string[] | null;
+        target_radius_km: number | null;
+        target_gender: string | null;
+        target_age_min: number | null;
+        target_age_max: number | null;
+        preference_score: number | null;
+      }>;
 
-      const eventIds = sponsoredPosts.map((sp) => sp.event_id);
+      if (rows.length === 0) return [];
+
+      const eventIds = rows.map((r) => r.event_id);
 
       const { data: events, error: evError } = await supabase
         .from("events")
@@ -68,21 +106,25 @@ export const useActiveSponsoredPosts = () => {
 
       if (evError) throw evError;
 
-      const spMap = new Map(sponsoredPosts.map((sp) => [sp.event_id, sp]));
+      const eventMap = new Map((events || []).map((e: any) => [e.id, e]));
 
-      return (events || []).map((event) => {
-        const sp = spMap.get(event.id);
-        return {
-          ...event,
-          isSponsored: true as const,
-          sponsoredPostId: sp?.id || "",
-          target_categories: (sp as any)?.target_categories || null,
-          target_radius_km: (sp as any)?.target_radius_km != null ? Number((sp as any).target_radius_km) : null,
-          target_gender: (sp as any)?.target_gender || null,
-          target_age_min: (sp as any)?.target_age_min || null,
-          target_age_max: (sp as any)?.target_age_max || null,
-        };
-      }) as SponsoredEventForFeed[];
+      // Preserve RPC ordering (already sorted by preference score desc + random tiebreak)
+      return rows
+        .map((r) => {
+          const ev = eventMap.get(r.event_id);
+          if (!ev) return null;
+          return {
+            ...ev,
+            isSponsored: true as const,
+            sponsoredPostId: r.sponsored_post_id,
+            target_categories: r.target_categories,
+            target_radius_km: r.target_radius_km != null ? Number(r.target_radius_km) : null,
+            target_gender: r.target_gender,
+            target_age_min: r.target_age_min,
+            target_age_max: r.target_age_max,
+          };
+        })
+        .filter(Boolean) as SponsoredEventForFeed[];
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -112,6 +154,35 @@ export const useMySponsored = () => {
       return data || [];
     },
     enabled: !!user?.id,
+  });
+};
+
+// Today's per-campaign spend (UTC day) for the current user's campaigns
+export const useTodayDailySpend = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["sponsored-daily-spend-today", user?.id],
+    enabled: !!user?.id,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("sponsored_daily_spend" as any)
+        .select("sponsored_post_id, spent, impressions")
+        .eq("day", today);
+      if (error) {
+        console.warn("daily spend fetch failed", error);
+        return {} as Record<string, { spent: number; impressions: number }>;
+      }
+      const map: Record<string, { spent: number; impressions: number }> = {};
+      for (const row of (data || []) as any[]) {
+        map[row.sponsored_post_id] = {
+          spent: Number(row.spent || 0),
+          impressions: Number(row.impressions || 0),
+        };
+      }
+      return map;
+    },
   });
 };
 
@@ -210,12 +281,15 @@ export const useTrackSponsoredImpression = () => {
   });
 };
 
-// Track click on sponsored post
+// Track click on sponsored post (deduped server-side per viewer per day)
 export const useTrackSponsoredClick = () => {
+  const { user } = useAuth();
   return useMutation({
     mutationFn: async (sponsoredPostId: string) => {
-      const { error } = await supabase.rpc("increment_sponsored_clicks" as any, {
+      const { error } = await supabase.rpc("increment_sponsored_clicks_v2" as any, {
         _post_id: sponsoredPostId,
+        _viewer_id: user?.id ?? null,
+        _fingerprint: user?.id ? null : getAdFingerprint(),
       });
       if (error) console.warn("Failed to track click:", error);
     },

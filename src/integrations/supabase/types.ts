@@ -1639,6 +1639,57 @@ export type Database = {
           },
         ]
       }
+      sponsored_clicks: {
+        Row: {
+          created_at: string
+          day: string
+          id: string
+          sponsored_post_id: string
+          viewer_fingerprint: string | null
+          viewer_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          day?: string
+          id?: string
+          sponsored_post_id: string
+          viewer_fingerprint?: string | null
+          viewer_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          id?: string
+          sponsored_post_id?: string
+          viewer_fingerprint?: string | null
+          viewer_id?: string | null
+        }
+        Relationships: []
+      }
+      sponsored_daily_spend: {
+        Row: {
+          day: string
+          impressions: number
+          spent: number
+          sponsored_post_id: string
+          updated_at: string
+        }
+        Insert: {
+          day?: string
+          impressions?: number
+          spent?: number
+          sponsored_post_id: string
+          updated_at?: string
+        }
+        Update: {
+          day?: string
+          impressions?: number
+          spent?: number
+          sponsored_post_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sponsored_posts: {
         Row: {
           ad_payment_session_id: string | null
@@ -2105,6 +2156,19 @@ export type Database = {
           unread_count: number
         }[]
       }
+      get_eligible_sponsored_posts: {
+        Args: { _lat?: number; _lng?: number; _user_id?: string }
+        Returns: {
+          event_id: string
+          preference_score: number
+          sponsored_post_id: string
+          target_age_max: number
+          target_age_min: number
+          target_categories: string[]
+          target_gender: string
+          target_radius_km: number
+        }[]
+      }
       get_mutual_followers: {
         Args: { _user_id: string }
         Returns: {
@@ -2145,6 +2209,10 @@ export type Database = {
       }
       increment_sponsored_clicks: {
         Args: { _post_id: string }
+        Returns: undefined
+      }
+      increment_sponsored_clicks_v2: {
+        Args: { _fingerprint?: string; _post_id: string; _viewer_id?: string }
         Returns: undefined
       }
       increment_sponsored_impressions: {

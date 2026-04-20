@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { SponsoredSummaryBar } from "@/components/dashboard/SponsoredSummaryBar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
-import { useMySponsored, useCreateSponsoredPost, useUpdateSponsoredStatus } from "@/hooks/useSponsoredPosts";
+import { useMySponsored, useCreateSponsoredPost, useUpdateSponsoredStatus, useTodayDailySpend } from "@/hooks/useSponsoredPosts";
 import { useUserCreatedEvents } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -65,6 +65,8 @@ const statusConfig: Record<string, { label: string; dot: string; badge: string }
   draft: { label: "Borrador", dot: "bg-muted-foreground", badge: "bg-secondary text-secondary-foreground" },
   active: { label: "Activo", dot: "bg-green-500", badge: "bg-green-500/15 text-green-600" },
   paused: { label: "Pausado", dot: "bg-yellow-500", badge: "bg-yellow-500/15 text-yellow-600" },
+  paused_daily: { label: "Pausado por presupuesto diario", dot: "bg-yellow-500", badge: "bg-yellow-500/15 text-yellow-600" },
+  scheduled: { label: "Programado", dot: "bg-blue-500", badge: "bg-blue-500/15 text-blue-600" },
   completed: { label: "Completado", dot: "bg-muted-foreground", badge: "bg-secondary text-secondary-foreground" },
 };
 
@@ -73,6 +75,7 @@ const STEPS = ["Evento", "Audiencia", "Presupuesto", "Confirmar"];
 export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: boolean }) => {
   const { user } = useAuth();
   const { data: sponsoredPosts = [], isLoading, refetch } = useMySponsored();
+  const { data: dailySpendMap = {} } = useTodayDailySpend();
   const { data: myEvents = [] } = useUserCreatedEvents(user?.id);
   const createMutation = useCreateSponsoredPost();
   const updateStatusMutation = useUpdateSponsoredStatus();
@@ -385,7 +388,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                                 {activatingId === sp.id ? "..." : "Activar →"}
                               </Button>
                             </div>
-                          ) : (sp.status === "active" || sp.status === "paused") ? (
+                          ) : (sp.status === "active" || sp.status === "paused" || sp.status === "paused_daily") ? (
                             <div className="flex items-center gap-1.5 shrink-0">
                               <Button
                                 variant="ghost"
@@ -428,6 +431,15 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-1">
                           {Math.round(progressPct)}% del presupuesto usado
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Daily spend (today) */}
+                    {sp.daily_budget && (
+                      <div className="px-4 pb-3 -mt-1">
+                        <p className="text-[10px] text-muted-foreground">
+                          Hoy: ${(dailySpendMap[sp.id]?.spent ?? 0).toFixed(2)} / ${Number(sp.daily_budget).toFixed(2)}
                         </p>
                       </div>
                     )}
