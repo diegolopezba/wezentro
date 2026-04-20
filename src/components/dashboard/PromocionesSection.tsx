@@ -65,6 +65,8 @@ const statusConfig: Record<string, { label: string; dot: string; badge: string }
   draft: { label: "Borrador", dot: "bg-muted-foreground", badge: "bg-secondary text-secondary-foreground" },
   active: { label: "Activo", dot: "bg-green-500", badge: "bg-green-500/15 text-green-600" },
   paused: { label: "Pausado", dot: "bg-yellow-500", badge: "bg-yellow-500/15 text-yellow-600" },
+  paused_daily: { label: "Pausado por presupuesto diario", dot: "bg-yellow-500", badge: "bg-yellow-500/15 text-yellow-600" },
+  scheduled: { label: "Programado", dot: "bg-blue-500", badge: "bg-blue-500/15 text-blue-600" },
   completed: { label: "Completado", dot: "bg-muted-foreground", badge: "bg-secondary text-secondary-foreground" },
 };
 
