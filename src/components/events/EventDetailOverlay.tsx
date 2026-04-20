@@ -28,6 +28,7 @@ import { useEventDetailState } from "@/hooks/useEventDetailState";
 import { toast } from "sonner";
 import { CommentsSheet } from "@/components/events/CommentsSheet";
 import { useCommentCount, useLatestComment } from "@/hooks/useEventComments";
+import { EventDetailSkeleton } from "@/components/skeletons/EventDetailSkeleton";
 
 export const EventDetailOverlay = () => {
   const navigate = useNavigate();
@@ -110,9 +111,7 @@ export const EventDetailOverlay = () => {
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         >
           {isLoading ? (
-            <div className="min-h-[100dvh] flex items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
+            <EventDetailSkeleton />
           ) : error || !event ? (
             <div className="min-h-[100dvh] flex flex-col items-center justify-center px-4">
               <h1 className="font-brand text-xl font-bold text-foreground mb-2">Evento no encontrado</h1>
