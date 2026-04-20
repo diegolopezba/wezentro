@@ -31,16 +31,27 @@ Deno.serve(async (req) => {
       .select('id');
     if (e1) throw e1;
 
-    // 2) Activate scheduled campaigns whose start_date has passed
-    const { data: activated, error: e2 } = await supabase
+    // 2) Activate scheduled campaigns whose start_date has passed and end_date hasn't
+    const { data: scheduledRows, error: e2sel } = await supabase
       .from('sponsored_posts')
-      .update({ status: 'active' })
+      .select('id, end_date')
       .eq('status', 'scheduled')
       .not('start_date', 'is', null)
-      .lte('start_date', nowIso)
-      .or(`end_date.is.null,end_date.gt.${nowIso}`)
-      .select('id');
-    if (e2) throw e2;
+      .lte('start_date', nowIso);
+    if (e2sel) throw e2sel;
+    const toActivate = (scheduledRows ?? [])
+      .filter((r: any) => !r.end_date || new Date(r.end_date) > new Date(nowIso))
+      .map((r: any) => r.id);
+    let activated: { id: string }[] = [];
+    if (toActivate.length > 0) {
+      const { data: act, error: e2 } = await supabase
+        .from('sponsored_posts')
+        .update({ status: 'active' })
+        .in('id', toActivate)
+        .select('id');
+      if (e2) throw e2;
+      activated = act ?? [];
+    }
 
     // 3) Reactivate paused_daily campaigns whose today's spend is below daily_budget
     //    (mostly relevant after UTC midnight rollover — new day = no row yet = spent < budget)
