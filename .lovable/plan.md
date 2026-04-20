@@ -1,116 +1,42 @@
 
-The user wants a better UI for the reservation confirmation screen (`src/pages/ReservationConfirmation.tsx`). I already have the file in context. Current state:
+User picked option 1: switch masonry cards to `rounded-xl` (16px to match Pinterest) and audit other card surfaces for consistency.
 
-- Full-screen overlay with business avatar as background
-- Gradient overlay at bottom
-- Centered text: user name, business, location, date/time/party, guests, notes
-- White "Ver Menú" button
+Let me check the relevant card surfaces to make a complete audit.
+<lov-tool-use id="toolu_vrtx_01UGqR6sddEt31hSJtWaQkHh" name="code--search_files" integration-id="code" data="{\"query\": \"rounded-2xl|rounded-3xl\", \"include_patterns\": \"src/components/events/*.tsx,src/components/map/*.tsx,src/components/dashboard/*.tsx,src/components/chat/*.tsx,src/components/notifications/*.tsx,src/components/profile/*.tsx\"}">
+</lov-tool-use>
 
-Issues with current design:
-- Feels generic — looks like a generic event confirmation, not a premium restaurant booking
-- Date/time/party crammed in one row, hard to scan
-- No clear "ticket" feel — this is essentially a reservation receipt
-- No QR/confirmation code for arrival
-- No quick actions (cancel, modify, message business, directions, add to calendar)
-- Notes look like an afterthought
-- Background photo of business avatar can be low-res / unflattering
-- Business name button is small and unclear
-- No visual hierarchy — everything is the same white text on gradient
+<lov-tool-use id="toolu_vrtx_01UgL4sxHEbpW4QYpqJDypFj" name="code--search_files" integration-id="code" data="{\"query\": \"rounded-2xl|rounded-3xl\", \"include_patterns\": \"src/components/**/*.tsx,src/pages/**/*.tsx\"}">
+</lov-tool-use>
+I have enough context. The masonry feed cards are the primary target. Let me present the plan.
 
-Plan: redesign as a premium "boarding pass" style ticket card with strong hierarchy, contextual actions, and a confirmation code feel — similar to OpenTable / Resy / Airbnb booking confirmations.
+<lov-plan>
+Pinterest uses 16px (`rounded-xl` in our config since `--radius: 1rem`). Currently the feed cards use `rounded-2xl` (~24px). Goal: match Pinterest while keeping the rest of the app visually consistent.
 
----
+## Scope: feed/grid event cards only
 
-# Plan: Redesign Reservation Confirmation Screen
+These are the "Pinterest-style" cards that should switch from `rounded-2xl` → `rounded-xl`:
 
-## Goal
-Transform the confirmation screen from a generic photo-overlay into a premium, scannable "digital reservation pass" — inspired by Resy, OpenTable, and Airbnb trip confirmations.
+1. **`src/components/events/TimelineCard.tsx`** — media wrapper (line ~125)
+2. **`src/components/events/EventCard.tsx`** — media wrapper
+3. **`src/components/events/RelatedEventsFeed.tsx`** — skeleton placeholder
+4. **`src/components/skeletons/index.tsx`** — `EventFeedSkeleton` masonry items (so loading state matches)
 
-## New Layout (top → bottom)
+## Out of scope (intentionally kept at `rounded-2xl`)
 
-```text
-┌─────────────────────────────┐
-│  ← Close          Share ⤴  │  ← floating header
-│                             │
-│      ✓  Reserva confirmada  │  ← success badge (green check)
-│                             │
-│  ┌───────────────────────┐  │
-│  │  [Business avatar]    │  │  ← Pass card (rounded-3xl, glass)
-│  │  Restaurant Name      │  │
-│  │  📍 Address           │  │
-│  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │  │  ← dashed divider (ticket style)
-│  │                       │  │
-│  │  FECHA      HORA      │  │
-│  │  Vie 19 Abr  20:30    │  │  ← big, bold
-│  │                       │  │
-│  │  PERSONAS   CÓDIGO    │  │
-│  │  4          #A7F2     │  │  ← short reservation code
-│  │                       │  │
-│  │  A nombre de:         │  │
-│  │  [avatar] Juan Perez  │  │
-│  │                       │  │
-│  │  Invitados (3):       │  │
-│  │  [○][○][○]            │  │
-│  │                       │  │
-│  │  📝 "Mesa cerca de    │  │
-│  │  ventana por favor"   │  │
-│  └───────────────────────┘  │
-│                             │
-│  Quick actions row:         │
-│  [📅 Calendario] [🗺 Cómo   │
-│   llegar] [💬 Mensaje]      │
-│                             │
-│  [   Ver Menú   ]  primary  │
-│  [ Modificar ] [ Cancelar ] │  ← secondary row
-└─────────────────────────────┘
-```
+These are not "pin cards" — they're sheets, panels, banners, notification rows, dashboard cards. Changing them would flatten the visual hierarchy:
 
-## Key Changes
+- Notification rows (`Notifications.tsx`)
+- Dashboard summary cards (`ReservationsSummary`, `PromocionesSection`, etc.)
+- Tickets list rows
+- Referrals hero banner
+- Auth prompt panel in `EventDetail`
+- Reservation confirmation pass card (intentionally larger radius for ticket feel)
 
-1. **Background**: Replace full-screen avatar with a subtle dark background + soft radial gradient using the business's dominant color tone (or fallback brand red glow). Cleaner, less noisy.
+Rationale: Pinterest itself uses different radii for pins (16px) vs surfaces/modals. Mirroring that gives a cleaner hierarchy: **content = 16px, surfaces = 24px**.
 
-2. **Success badge**: Animated green checkmark at top ("Reserva confirmada") for emotional payoff.
+## Audit result
 
-3. **Pass card**: A central glass/elevated card with rounded-3xl corners and dashed divider separating header from details (boarding-pass aesthetic).
+After grepping `rounded-2xl|rounded-3xl` across 41 files, the only true "card-like grid items" that should match Pinterest are the 4 files above. Everything else is a surface/panel and stays as-is.
 
-4. **Information hierarchy**: 
-   - Date & time: large display font, side-by-side
-   - Party size & confirmation code: secondary row
-   - Confirmation code: derived from `reservation.id` (first 4 chars uppercased) — gives a "real reservation" feel
-   - Each label small uppercase muted text, value large
-
-5. **Guests**: Stacked overlapping avatars (max 5 + count) instead of full row — more compact.
-
-6. **Notes**: Styled as a subtle quoted block with sticky-note icon.
-
-7. **Quick actions row** (icon buttons): 
-   - **Add to Calendar** — generates `.ics` data URI on the fly (no library needed)
-   - **Cómo llegar** — opens `https://maps.google.com/?q={address}` in new tab / native maps
-   - **Mensaje** — navigates to `/chats` with business pre-selected (uses existing chat flow)
-
-8. **Primary CTA**: "Ver Menú" stays as main button (only if business has menu enabled).
-
-9. **Secondary actions**:
-   - **Modificar** — only shown if reservation is >2h away (reuses existing `useUpdateReservation` guard logic) → opens `ReservationSheet` in edit mode
-   - **Cancelar** — confirm dialog → calls existing `useCancelReservation`
-
-10. **Animations**: Stagger card and action entries with framer-motion (already in use). Subtle scale-in on the success check.
-
-## Files to Modify
-- `src/pages/ReservationConfirmation.tsx` — full redesign (single file change)
-
-## Files to Reference (no changes)
-- `src/components/reservations/ReservationSheet.tsx` — for edit mode trigger
-- `src/hooks/useReservations.ts` — `useCancelReservation`, `useUpdateReservation` already exist
-
-## What's NOT in scope
-- No new database fields
-- No new edge functions
-- No backend changes
-- No changes to the reservation flow itself — only the post-confirmation screen
-
-## Technical notes
-- Confirmation code: `reservation.id.slice(0, 4).toUpperCase()` — deterministic, no migration
-- `.ics` generation: inline string template + `data:text/calendar;charset=utf-8,...` link
-- Maps deep link: `geo:` on Android via Capacitor, `maps://` on iOS, fallback to `https://maps.google.com`
-- All styling uses existing design tokens (brand red, glass utility, pill buttons per memory rules)
+## Implementation
+Single-line className swaps in 4 files. No logic changes, no new dependencies.
