@@ -86,14 +86,14 @@ Deno.serve(async (req) => {
       JSON.stringify({
         ok: true,
         completed: completed?.length ?? 0,
-        activated: activated?.length ?? 0,
+        activated: activated.length,
         reactivated: reactivated.length,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
     console.error('lifecycle error', err);
-    return new Response(JSON.stringify({ error: String(err) }), {
+    return new Response(JSON.stringify({ error: (err as Error)?.message || String(err) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
