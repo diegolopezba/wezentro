@@ -175,7 +175,7 @@ export const EventCard = ({
         <div className="space-y-2 px-0">
           {/* Media */}
           <div
-            className="relative rounded-2xl overflow-hidden bg-secondary"
+            className="relative rounded-xl overflow-hidden bg-secondary"
             style={{
               width: "100%",
               aspectRatio: aspectRatio ? `${aspectRatio}` : compact ? undefined : "3/4",

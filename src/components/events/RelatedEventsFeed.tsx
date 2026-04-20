@@ -13,7 +13,7 @@ const RelatedSkeleton = () => (
   <div className="masonry-grid">
     {Array.from({ length: 4 }).map((_, i) => (
       <div key={i} className="masonry-item space-y-2">
-        <Skeleton className="w-full rounded-2xl" style={{ aspectRatio: "3/4" }} />
+        <Skeleton className="w-full rounded-xl" style={{ aspectRatio: "3/4" }} />
         <Skeleton className="h-3 w-3/4 mx-1" />
       </div>
     ))}
