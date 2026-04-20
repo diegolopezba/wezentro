@@ -434,6 +434,15 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                         </p>
                       </div>
                     )}
+
+                    {/* Daily spend (today) */}
+                    {sp.daily_budget && (
+                      <div className="px-4 pb-3 -mt-1">
+                        <p className="text-[10px] text-muted-foreground">
+                          Hoy: ${(dailySpendMap[sp.id]?.spent ?? 0).toFixed(2)} / ${Number(sp.daily_budget).toFixed(2)}
+                        </p>
+                      </div>
+                    )}
                   </motion.div>
                 );
               })}
