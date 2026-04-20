@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  */
 export const EventCardSkeleton = () => {
   return (
-    <div className="masonry-item rounded-2xl overflow-hidden bg-card">
+    <div className="masonry-item rounded-xl overflow-hidden bg-card">
       <Skeleton className="w-full aspect-[3/4]" />
       <div className="p-3 space-y-2">
         <Skeleton className="h-4 w-3/4" />

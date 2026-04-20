@@ -123,7 +123,7 @@ export const TimelineCard = ({
       <div className="space-y-2 px-0">
         {/* Media */}
         <div
-          className="relative rounded-2xl overflow-hidden bg-secondary"
+          className="relative rounded-xl overflow-hidden bg-secondary"
           style={{
             width: "100%",
             aspectRatio: aspectRatio ? `${aspectRatio}` : "3/4",
