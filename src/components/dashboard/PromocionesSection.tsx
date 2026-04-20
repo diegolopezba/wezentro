@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { SponsoredSummaryBar } from "@/components/dashboard/SponsoredSummaryBar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
-import { useMySponsored, useCreateSponsoredPost, useUpdateSponsoredStatus } from "@/hooks/useSponsoredPosts";
+import { useMySponsored, useCreateSponsoredPost, useUpdateSponsoredStatus, useTodayDailySpend } from "@/hooks/useSponsoredPosts";
 import { useUserCreatedEvents } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
