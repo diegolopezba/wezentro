@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, ReactNode } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { RefreshCw } from "lucide-react";
+import { haptic } from "@/lib/haptics";
 
 interface PullToRefreshProps {
   children: ReactNode;
@@ -80,9 +81,11 @@ export const PullToRefresh = ({
     if (distance >= threshold && !isRefreshing) {
       setIsRefreshing(true);
       pullDistance.set(threshold);
+      haptic("medium");
       
       try {
         await onRefresh();
+        haptic("success");
       } finally {
         setIsRefreshing(false);
         pullDistance.set(0);

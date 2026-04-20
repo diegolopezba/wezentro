@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useUserFollowers, useUserFollowing, useIsFollowing, useFollowUser, useUnfollowUser, FollowUser } from "@/hooks/useUserProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
+import { haptic } from "@/lib/haptics";
 interface FollowersSheetProps {
   userId: string;
   type: "followers" | "following";
@@ -30,6 +31,7 @@ const FollowButton = ({
   if (user?.id === targetUserId) return null;
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    haptic("medium");
     if (isFollowing) {
       unfollowMutation.mutate(targetUserId);
     } else {
