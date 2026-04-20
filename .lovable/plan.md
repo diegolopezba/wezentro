@@ -1,99 +1,117 @@
 
-# Plan: Harden Sponsored Post System (Gaps 4–7, 9)
+# Plan: Native-Feel Polish & Performance (Items 15–35) — Revised
 
-Skipping Gap 3 (server-side impression dedup) per user request. Implementing the rest.
-
----
-
-## Gap 4 — Fix click tracking + dedup
-
-**Backend:**
-- New table `sponsored_clicks(id, sponsored_post_id, viewer_id nullable, viewer_fingerprint text, day date generated, created_at)` with unique index on `(sponsored_post_id, viewer_id, day)` and `(sponsored_post_id, viewer_fingerprint, day)`.
-- Rewrite `increment_sponsored_clicks(_post_id, _viewer_id, _fingerprint)`:
-  - Insert into `sponsored_clicks`. On conflict → return early.
-  - Otherwise bump `clicks` on `sponsored_posts`.
-
-**Frontend:**
-- `EventCard.tsx`: when `isSponsored && sponsoredPostId` and the card is tapped → call `trackSponsoredClick.mutate({ postId, viewerId, fingerprint })`. Use a ref-based `Set` so re-renders don't double-fire.
-- `useSponsoredPosts.ts`: update `useTrackSponsoredClick` signature to pass viewer + fingerprint (localStorage UUID for guests).
+Changes from previous plan: delete `hover:` entirely (no `md:hover:` wrap), skip item 19 (header stays in `Index.tsx`).
 
 ---
 
-## Gap 5 — Enforce `daily_budget`
+## Phase A — Performance core (items 15, 16, 20, 22, 23, 24)
 
-Extend `increment_sponsored_impressions` (still bumps in-place since Gap 3 is skipped):
-- After bumping `spent`, compute today's spend from `sponsored_posts.impressions` daily delta — since we don't have per-impression rows, use a new lightweight counter table `sponsored_daily_spend(post_id, day, spent)` with upsert on each impression. Cheap, single row per post per day.
-- If `daily_budget IS NOT NULL` AND today's `spent >= daily_budget` → set status to `paused_daily`.
-- Allowed status values now include `paused_daily` (alongside existing `draft`, `active`, `paused`, `completed`).
+**15. Delete all `hover:` classes**
+- Strip every `hover:*` Tailwind utility across the codebase (~133 occurrences). No replacement, no `active:` swap unless the interaction genuinely needs visual feedback that's currently missing. Most buttons already have `active:scale-95` from project conventions.
 
----
+**16. Virtualize the masonry feed**
+- Wire `@tanstack/react-virtual`'s `useWindowVirtualizer` into `EventFeed.tsx`. Render only visible rows + 5 overscan. Falls back to full render if the list is <30 items.
 
-## Gap 6 — `end_date` scheduling + lifecycle cron
+**20. `React.memo` for `EventCard`**
+- Custom comparator on `id`, `attendees`, `isSponsored`, `dismissed`. Prevents 200-card re-render storm on parent updates.
 
-**New edge function** `sponsored-posts-lifecycle` (`verify_jwt = false`):
-- Set `status = 'completed'` where `status IN ('active','paused_daily')` AND `end_date < now()`.
-- Set `status = 'active'` where `status = 'scheduled'` AND `start_date <= now()` AND (`end_date IS NULL` OR `end_date > now()`).
-- Reactivate `paused_daily` campaigns where today's `sponsored_daily_spend.spent < daily_budget` (handles UTC day rollover).
+**22. Image CDN transforms**
+- New `src/lib/imageOptimization.ts` with `getOptimizedImageUrl(url, width, quality?)`:
+  - If URL is from Supabase storage → append `?width=...&quality=70&resize=cover`
+  - Otherwise → return unchanged
+- Apply at: `EventCard` (480px), `Avatar` everywhere (80–160px), `MessageBubble` thumbnails (320px), notification items (40px), dashboard charts (40px).
 
-**Cron:** Enable `pg_cron` + `pg_net`, schedule the function every 15 minutes via the insert tool (so user-specific URL/anon key isn't migrated).
+**23. Per-query `staleTime`**
+- Override to `0` for `useChats`, `useNotifications`, `useEventComments`, `useGuestlist`. Keep 5 min default for events/profile/feed.
 
-Also adds `'scheduled'` as a valid status so advertisers can future-date campaigns (UI hookup out of scope — just supports it in the model).
-
----
-
-## Gap 7 — Smarter targeting (server-side eligibility + engagement ranking)
-
-**New RPC** `get_eligible_sponsored_posts(_user_id uuid, _lat float, _lng float)`:
-- Selects active sponsored posts joined with their event.
-- Filters server-side by: `target_gender`, `target_age_min/max` (computed from viewer's `birth_date`), `target_radius_km` (Haversine vs event lat/lng), `target_categories` (intersect viewer's `interests`).
-- Orders by viewer's `user_category_preferences.score` for the ad's category DESC, then random for ties / new users.
-- Returns same shape currently consumed by `useActiveSponsoredPosts`.
-
-**Frontend:**
-- `useSponsoredPosts.ts`: `useActiveSponsoredPosts` calls the new RPC (passing user id + location). Falls back to current query for guests.
-- `Index.tsx`: remove `filterSponsoredByTargeting` and the `userDemographics` query — eligibility now happens server-side. Keep the index-1 + every-9 injection logic.
+**24. New `get_for_you_events` RPC**
+- Returns event row + top-5 guestlist avatars (just `avatar_url`) joined server-side instead of full nested profile rows.
+- Reduces typical 200-event payload from ~2 MB to ~150 KB.
+- `useForYouEvents.ts` switches to `supabase.rpc('get_for_you_events', { _user_id, _lat, _lng })`.
 
 ---
 
-## Gap 9 — Daily spend visibility in dashboard
+## Phase B — Image & DOM hygiene (items 17, 18, 33, 34)
 
-- `SponsoredSummaryBar.tsx` (or campaign row in `BusinessDashboard`): for each campaign show `Hoy: Bs. X / Bs. Y` (today's spend vs daily cap) when `daily_budget` is set.
-- Source: query `sponsored_daily_spend` for the current UTC day per campaign.
-- Add a small "Pausado por presupuesto diario" badge when `status = 'paused_daily'`.
+**17. `loading="lazy" decoding="async"`**
+- Add to all 23 unflagged `<img>` tags. First 4 above-the-fold home cards get `fetchpriority="high"`.
 
----
+**18. Faster splash**
+- `minDisplayTime` 1200 → 400 ms. Hide as soon as the initial `useForYouEvents` query resolves rather than waiting on a fixed timer.
 
-## Files to create / modify
+**33. `min-h-screen` → `min-h-[100dvh]`**
+- Sweep all 27 occurrences. Fixes iOS Safari URL-bar viewport jump.
 
-**New migration:**
-- Create `sponsored_clicks` + `sponsored_daily_spend` tables with indexes
-- Rewrite `increment_sponsored_impressions` (daily spend + paused_daily logic)
-- Rewrite `increment_sponsored_clicks` (dedup + counter bump)
-- Create `get_eligible_sponsored_posts` RPC
-- Enable `pg_cron`, `pg_net`
-
-**Cron schedule (via insert tool, not migration):**
-- Schedule `sponsored-posts-lifecycle` every 15 min
-
-**New edge function:**
-- `supabase/functions/sponsored-posts-lifecycle/index.ts`
-
-**Frontend:**
-- `src/hooks/useSponsoredPosts.ts` — new RPC for eligibility, updated click tracking signature, expose `useTodayDailySpend`
-- `src/components/events/EventCard.tsx` — wire click tracking on sponsored taps
-- `src/pages/Index.tsx` — remove client-side targeting filter and demographics query
-- `src/components/dashboard/SponsoredSummaryBar.tsx` (and/or campaign rows in `BusinessDashboard.tsx`) — show today's spend vs daily cap, paused_daily badge
-
-**Out of scope:**
-- No pricing changes ($5 CPM stays)
-- No advertiser UI changes for targeting form
-- Gap 3 (impression dedup) — explicitly skipped
+**34. Skeleton for `EventDetailOverlay`**
+- New `EventDetailSkeleton` (hero blur + title bars) shown while data loads. Removes pop-in.
 
 ---
 
-## Risks / mitigations
+## Phase C — Native UX (items 28, 29, 30, 31, 32, 35)
 
-- **RPC signature changes** → publish new function names alongside old (`increment_sponsored_clicks_v2`), migrate clients atomically, drop old after deploy verified.
-- **Guest fingerprinting for click dedup** = best-effort (localStorage UUID) — clears on cache wipe. Acceptable for click integrity.
-- **Cron at 15 min** keeps DB load low; daily-budget pause is real-time inside the impression RPC so no over-spend window.
-- **`sponsored_daily_spend` row growth** = 1 row per campaign per day → trivial.
+**28. Haptics on missing flows**
+- `triggerHaptic('light')` on: sponsored card tap, follow toggle, comment send, pull-to-refresh complete, sheet open/close.
+
+**29. Safe-area on overlays**
+- Close button on `EventDetailOverlay` + `ChatDetail` header gets `top-[env(safe-area-inset-top)] mt-2`.
+
+**30. Keyboard handling on chat**
+- Apply `useKeyboardAdjust` to `ChatDetail.tsx`. Compose bar lifts via `transform: translateY(-keyboardHeight)`.
+
+**31. Dynamic status bar**
+- Configure `@capacitor/status-bar` once at boot in `main.tsx` to `Style.Dark` overlay-true. Remove ad-hoc calls elsewhere.
+
+**32. High-res splash assets**
+- Replace splash PNG with 1024×1024 maskable icon + 2732×2732 splash for store reviewer compliance. Update `capacitor.config.ts`.
+
+**35. Global swipe-back**
+- Mount `useSwipeBack()` once inside `KeepAliveLayout` so every page gets iOS-style edge-swipe → `navigate(-1)`.
+
+---
+
+## Phase D — Code-weight (item 21 — light touch)
+
+**21. Framer-motion trim**
+- Replace ~12 trivial `<motion.div animate={{opacity:1}}>` fade-ins with `.animate-fade-in` CSS class.
+- Consolidate duplicate `AnimatePresence` instances in `Index.tsx`, `Discover.tsx`, `Profile.tsx`.
+- Saves ~30 KB gzipped, no behavior change. No full migration.
+
+---
+
+## Files touched
+
+**Phase A:** `EventFeed.tsx`, `EventCard.tsx`, new `src/lib/imageOptimization.ts`, `useForYouEvents.ts`, `useChats.ts`, `useNotifications.ts`, `useEventComments.ts`, `useGuestlist.ts`, ~20 files containing avatar/img usage, new migration with `get_for_you_events` RPC.
+
+**Phase B:** ~23 component files (img attrs), `SplashScreen.tsx`, `App.tsx`, sweep `min-h-screen`, new `src/components/skeletons/EventDetailSkeleton.tsx`.
+
+**Phase C:** `EventCard.tsx`, `EventDetailOverlay.tsx`, `ChatDetail.tsx`, `main.tsx`, `capacitor.config.ts`, new splash assets, `KeepAliveLayout.tsx`.
+
+**Phase D:** ~15 component files with trivial motion replacements.
+
+**Hover sweep:** ~50 files containing `hover:` utilities.
+
+---
+
+## Out of scope
+- Items 1–14 (security + correctness bugs) per earlier decision
+- Item 19 (header lift) per this revision
+- Test coverage, full motion migration, OneSignal background push
+
+---
+
+## Risks
+- **Virtualization + CSS columns** can be tricky; if the masonry breaks, fall back to chunked rendering (50 cards, load more on scroll).
+- **`get_for_you_events` RPC** changes feed shape; will parity-check against current output before deleting old query.
+- **Image transforms** require Supabase image transformation API — confirmed available on Lovable Cloud. External (non-storage) URLs pass through untouched.
+
+---
+
+## Execution order
+1. Phase A (biggest wins)
+2. Phase B (visual polish)
+3. Phase C (native feel)
+4. Phase D (last)
+5. `hover:` sweep can run in parallel with any phase
+
+Each phase ships independently.
