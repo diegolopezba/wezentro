@@ -8,77 +8,27 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { useForYouEvents } from "@/hooks/useForYouEvents";
 import { useFollowingEventsScored } from "@/hooks/useFollowingEventsScored";
 import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
-import { useActiveSponsoredPosts, useTrackSponsoredImpression, SponsoredEventForFeed } from "@/hooks/useSponsoredPosts";
-import { useLocationContext } from "@/contexts/LocationContext";
+import { useActiveSponsoredPosts, useTrackSponsoredImpression } from "@/hooks/useSponsoredPosts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { haversine } from "@/lib/feedScoring";
-import { useQuery } from "@tanstack/react-query";
-
-// ───────── Sponsored Post Targeting Filter ─────────
-
-const filterSponsoredByTargeting = (
-  posts: SponsoredEventForFeed[],
-  userLat: number | null,
-  userLon: number | null,
-  userBirthDate: string | null,
-  userGender: string | null,
-  userInterests: string[] | null
-): SponsoredEventForFeed[] => {
-  return posts.filter((sp) => {
-    // Category match
-    if (sp.target_categories && sp.target_categories.length > 0) {
-      const userCats = (userInterests || []).map((c) => c.toLowerCase());
-      const hasCategoryMatch = sp.target_categories.some((tc) =>
-        userCats.includes(tc.toLowerCase())
-      );
-      if (!hasCategoryMatch) return false;
-    }
-
-    // Radius match
-    if (sp.target_radius_km != null && sp.target_radius_km > 0) {
-      if (!userLat || !userLon || !sp.latitude || !sp.longitude) return false;
-      const dist = haversine(userLat, userLon, sp.latitude, sp.longitude);
-      if (dist > sp.target_radius_km) return false;
-    }
-
-    // Gender match
-    if (sp.target_gender && sp.target_gender !== "all") {
-      if (!userGender || userGender.toLowerCase() !== sp.target_gender.toLowerCase()) return false;
-    }
-
-    // Age match
-    if (sp.target_age_min != null || sp.target_age_max != null) {
-      if (!userBirthDate) return false;
-      const age = Math.floor(
-        (Date.now() - new Date(userBirthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000)
-      );
-      if (sp.target_age_min != null && age < sp.target_age_min) return false;
-      if (sp.target_age_max != null && age > sp.target_age_max) return false;
-    }
-
-    return true;
-  });
-};
 
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
-  const { location } = useLocationContext();
   const isGuest = !user;
-  
+
   const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const {
     data: forYouEvents = [],
     isLoading: forYouLoading,
@@ -92,27 +42,11 @@ const Index = () => {
   const {
     data: unreadCount = 0
   } = useUnreadNotificationsCount();
-  
+
+  // Server-side targeted + ranked sponsored posts
   const { data: sponsoredPosts = [] } = useActiveSponsoredPosts();
   const trackImpression = useTrackSponsoredImpression();
 
-  // Fetch user demographics for sponsored post targeting
-  const { data: userDemographics } = useQuery({
-    queryKey: ["profile", user?.id],
-    enabled: !!user?.id,
-    staleTime: 10 * 60 * 1000,
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data } = await supabase
-        .from("profiles")
-        .select("birth_date, gender, interests")
-        .eq("id", user.id)
-        .maybeSingle();
-      return data;
-    },
-  });
-  
   const handleNotificationClick = () => {
     if (isGuest) {
       promptAuth({ action: "ver tus notificaciones" });
@@ -149,20 +83,8 @@ const Index = () => {
     }
   }, [lastScrollY]);
 
-  // Filter sponsored posts by targeting criteria
-  const filteredSponsored = useMemo(() => {
-    return filterSponsoredByTargeting(
-      sponsoredPosts,
-      location?.lat || null,
-      location?.lng || null,
-      userDemographics?.birth_date || null,
-      userDemographics?.gender || null,
-      userDemographics?.interests || null
-    );
-  }, [sponsoredPosts, location, userDemographics]);
-
   const transformedEvents = useMemo(() => {
-    const sponsoredEventIds = new Set(filteredSponsored.map(sp => sp.id));
+    const sponsoredEventIds = new Set(sponsoredPosts.map(sp => sp.id));
 
     const organic = events.filter(event => {
       if (activeTab === "for-you" && sponsoredEventIds.has(event.id)) return false;
@@ -191,8 +113,8 @@ const Index = () => {
       };
     });
 
-    if (filteredSponsored.length > 0 && searchQuery === "") {
-      const sponsoredCards = filteredSponsored.map(sp => {
+    if (sponsoredPosts.length > 0 && searchQuery === "") {
+      const sponsoredCards = sponsoredPosts.map(sp => {
         const guestlistEntries = sp.guestlist_entries || [];
         const attendeeAvatars = guestlistEntries.map((entry: any) => entry.user).filter(Boolean).map((user: any) => ({
           id: user.id,
@@ -217,8 +139,7 @@ const Index = () => {
       });
 
       const result = [...organic];
-      // First sponsored at index 1 (second card = top of right column in masonry)
-      // Then every 9 positions after (8 organic + 1 sponsored slot)
+      // First sponsored at index 1, then every 9 positions (8 organic + 1 sponsored slot)
       let insertAt = 1;
       const interval = 9;
       for (let s = 0; s < sponsoredCards.length; s++) {
@@ -231,7 +152,7 @@ const Index = () => {
     }
 
     return organic;
-  }, [events, searchQuery, activeTab, filteredSponsored]);
+  }, [events, searchQuery, activeTab, sponsoredPosts]);
 
   return <AppLayout ref={scrollContainerRef}>
         <header className="sticky top-0 z-40 safe-top bg-background">
@@ -255,7 +176,7 @@ const Index = () => {
                 <Input placeholder="Buscar eventos, lugares..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
               </div>
             </motion.div>}
-          <motion.div 
+          <motion.div
             animate={{ height: headerVisible ? "auto" : 0, opacity: headerVisible ? 1 : 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="overflow-hidden"
