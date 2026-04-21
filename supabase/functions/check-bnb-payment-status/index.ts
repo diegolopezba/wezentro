@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     // Fetch payment session
     const { data: session, error: sessionError } = await supabase
       .from("payment_sessions")
-      .select("id, event_id, buyer_user_id, business_user_id, bnb_qr_id, amount, status")
+      .select("id, event_id, buyer_user_id, business_user_id, bnb_qr_id, amount, status, ticket_tier_id")
       .eq("id", paymentSessionId)
       .single();
 
