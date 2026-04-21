@@ -148,11 +148,9 @@ const App = () => {
                   <PushNotificationPrompt>
                     <LocationProvider>
                       <AuthPromptProvider>
-                        <SelectedEventProvider>
                         <AuthPromptModal />
-                        <EventDetailOverlay />
                         <EulaGate>
-                        <Routes>
+                        <AppRoutes />
                           {/* Public routes */}
                           <Route
                             path="/auth"
