@@ -64,6 +64,7 @@ export const useEventDetailState = (
   const { data: repostCount = 0 } = useRepostCount(event ? eventId : undefined);
   const { data: saveCount = 0 } = useSaveCount(event ? eventId : undefined);
   const { data: attendeesGoing = [] } = useFollowingGoing(eventId);
+  const { data: ticketTiers = [] } = useTicketTiers(eventId);
 
   // Mutations
   const joinGuestlistWithPayment = useJoinGuestlistWithPayment();
@@ -74,20 +75,54 @@ export const useEventDetailState = (
   const unlikeEvent = useUnlikeEvent();
   const toggleRepost = useToggleRepost();
 
+  // Tier-derived state
+  const tierAvailability = useMemo(() => computeTierAvailability(ticketTiers), [ticketTiers]);
+  const hasTiers = ticketTiers.length > 0;
+  // Sequential mode: any tier has a non-null unlock_after_tier_id
+  const isSequential = useMemo(
+    () => ticketTiers.some((t) => !!t.unlock_after_tier_id),
+    [ticketTiers]
+  );
+  const purchasableTiers = useMemo(
+    () => tierAvailability.filter((a) => a.unlocked && !a.soldOut).map((a) => a.tier),
+    [tierAvailability]
+  );
+  const cheapestPurchasableTier: TicketTier | null = useMemo(() => {
+    if (purchasableTiers.length === 0) return null;
+    return [...purchasableTiers].sort((a, b) => Number(a.price) - Number(b.price))[0];
+  }, [purchasableTiers]);
+  const allTiersSoldOut = hasTiers && purchasableTiers.length === 0;
+
   // Derived state
   const isOnGuestlist = !!guestlistStatus;
   const isPending = guestlistStatus?.status === "pending";
   const isApproved = guestlistStatus?.status === "approved";
   const isOwner = !!(user && user.id === event?.creator_id);
-  
+
   const pendingCount = pendingRequests.length + pendingPayments.length;
-  const hasPaidTickets = (event?.price ?? 0) > 0;
+  const legacyHasPaid = (event?.price ?? 0) > 0;
+  const hasPaidTickets = hasTiers
+    ? ticketTiers.some((t) => Number(t.price) > 0)
+    : legacyHasPaid;
   const hasPaymentQr = !!(event?.payment_qr_url && hasPaidTickets);
-  const isInviteOnlyGuestlist = !!(event?.price && event.price > 0 && event?.has_guestlist);
+  const isInviteOnlyGuestlist = !!(hasPaidTickets && event?.has_guestlist);
   const formattedDate = event?.start_datetime
     ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")
     : null;
-  const formattedPrice = event?.price ? `Bs. ${event.price}` : "Gratis";
+
+  const formattedPrice = (() => {
+    if (hasTiers) {
+      if (allTiersSoldOut) return "Agotado";
+      const prices = purchasableTiers.map((t) => Number(t.price));
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      if (purchasableTiers.length === 1 || min === max) {
+        return min > 0 ? `Bs. ${min}` : "Gratis";
+      }
+      return `Desde Bs. ${min}`;
+    }
+    return event?.price ? `Bs. ${event.price}` : "Gratis";
+  })();
 
   // Media handlers
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
