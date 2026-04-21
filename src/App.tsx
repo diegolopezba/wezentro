@@ -166,4 +166,79 @@ const App = () => {
   );
 };
 
+/**
+ * Pinterest-style modal routing.
+ *
+ * When a user opens an event from the feed via `useOpenEvent()`, we navigate
+ * to /event/:id but stash the previous location in `state.backgroundLocation`.
+ *
+ * - The first <Routes> renders the *background* (the feed) so it stays mounted.
+ * - The second <Routes> renders the EventDetailModal *on top* when a
+ *   backgroundLocation is present.
+ *
+ * Direct visits to /event/:id (deep links / shared URLs / push notifications)
+ * have no backgroundLocation, so only the full <EventDetail/> page renders.
+ */
+const AppRoutes = () => {
+  const location = useLocation();
+  const state = location.state as { backgroundLocation?: Location } | null;
+  const backgroundLocation = state?.backgroundLocation;
+
+  return (
+    <>
+      <Routes location={backgroundLocation || location}>
+        <Route path="/auth" element={<Suspense fallback={<PageLoader />}><Auth /></Suspense>} />
+        <Route path="/onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Onboarding /></Suspense></ProtectedRoute>} />
+
+        {/* Keep-alive enabled routes - 4 core navigation pages */}
+        <Route element={<KeepAliveLayout />}>
+          <Route path="/" element={<GuestAllowedRoute><Index /></GuestAllowedRoute>} />
+          <Route path="/discover" element={<GuestAllowedRoute><Discover /></GuestAllowedRoute>} />
+          <Route path="/chats" element={<ProtectedRoute requireProfile><Chats /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute requireProfile><Profile /></ProtectedRoute>} />
+        </Route>
+
+        <Route path="/create" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Create /></Suspense></ProtectedRoute>} />
+        <Route path="/chats/:id" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><ChatDetail /></Suspense></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Settings /></Suspense></ProtectedRoute>} />
+        <Route path="/saved" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Saved /></Suspense></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Notifications /></Suspense></ProtectedRoute>} />
+        <Route path="/settings/privacy" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><PrivacySettings /></Suspense></ProtectedRoute>} />
+        <Route path="/edit-profile" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><EditProfile /></Suspense></ProtectedRoute>} />
+
+        {/* Public event preview route (full page — used for deep links) */}
+        <Route path="/event/:id" element={<Suspense fallback={<PageLoader />}><EventDetail /></Suspense>} />
+
+        <Route path="/user/:id" element={<GuestAllowedRoute><Suspense fallback={<PageLoader />}><UserProfile /></Suspense></GuestAllowedRoute>} />
+        <Route path="/settings/tickets" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Tickets /></Suspense></ProtectedRoute>} />
+        <Route path="/going/:id" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><YouAreGoing /></Suspense></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BusinessDashboard /></Suspense></ProtectedRoute>} />
+        <Route path="/settings/business" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BusinessSettings /></Suspense></ProtectedRoute>} />
+        <Route path="/settings/business/payments" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BusinessPaymentSettings /></Suspense></ProtectedRoute>} />
+        <Route path="/settings/business/reservations" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BusinessReservations /></Suspense></ProtectedRoute>} />
+        <Route path="/settings/business/info" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BusinessInfo /></Suspense></ProtectedRoute>} />
+        <Route path="/settings/joined-events" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><JoinedEvents /></Suspense></ProtectedRoute>} />
+        <Route path="/settings/help" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Help /></Suspense></ProtectedRoute>} />
+        <Route path="/settings/referrals" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Referrals /></Suspense></ProtectedRoute>} />
+        <Route path="/settings/reservations" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><MyReservations /></Suspense></ProtectedRoute>} />
+        <Route path="/reservation/:id" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><ReservationConfirmation /></Suspense></ProtectedRoute>} />
+        <Route path="/privacy-policy" element={<Suspense fallback={<PageLoader />}><PrivacyPolicy /></Suspense>} />
+        <Route path="/terms" element={<Suspense fallback={<PageLoader />}><TermsOfUse /></Suspense>} />
+        {/* Public QR scanner route — no auth required, validated by ?key= param */}
+        <Route path="/scan/:eventId" element={<Suspense fallback={<PageLoader />}><ScanQR /></Suspense>} />
+        <Route path="/settings/blocks" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BlockedUsers /></Suspense></ProtectedRoute>} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFound /></Suspense>} />
+      </Routes>
+
+      {/* Modal route — only renders on top when opened from the feed */}
+      {backgroundLocation && (
+        <Routes>
+          <Route path="/event/:id" element={<EventDetailModal />} />
+        </Routes>
+      )}
+    </>
+  );
+};
+
 export default App;
