@@ -248,6 +248,34 @@ const Create = () => {
       return;
     }
 
+    // Validate ticket tiers (events only, business + tiers mode)
+    const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
+    const useTiers = !isPost && isBusiness && pricingMode === "tiers";
+    if (useTiers) {
+      if (draftTiers.length === 0) {
+        toast.error("Añade al menos un tipo de entrada");
+        return;
+      }
+      for (const t of draftTiers) {
+        if (!t.name.trim()) {
+          toast.error("Cada entrada necesita un nombre");
+          return;
+        }
+        const price = parseFloat(t.price);
+        if (isNaN(price) || price < 0) {
+          toast.error(`Precio inválido para "${t.name}"`);
+          return;
+        }
+        cleanTiers.push({
+          name: t.name.trim(),
+          price,
+          capacity: t.capacity ? parseInt(t.capacity) : null,
+          description: t.description.trim() || null,
+          display_order: cleanTiers.length,
+        });
+      }
+    }
+
     setIsSubmitting(true);
     try {
       let imageUrl: string | null = null;
@@ -264,6 +292,11 @@ const Create = () => {
         formData.category
       );
 
+      // For tier mode, legacy price = cheapest tier (used as a fallback display)
+      const insertPrice = useTiers && cleanTiers.length > 0
+        ? Math.min(...cleanTiers.map((t) => t.price))
+        : (!isPost && formData.price ? parseFloat(formData.price) : 0);
+
       const { data, error } = await supabase.
       from("events").
       insert({
@@ -274,7 +307,7 @@ const Create = () => {
         location_name: isPost ? null : location.address.trim() || null,
         latitude: isPost ? null : location.latitude,
         longitude: isPost ? null : location.longitude,
-        price: !isPost && formData.price ? parseFloat(formData.price) : 0,
+        price: insertPrice,
         max_guestlist_capacity: formData.capacity ? parseInt(formData.capacity) : null,
         has_guestlist: !isPost && formData.hasGuestlist,
         image_url: imageUrl,
@@ -289,6 +322,20 @@ const Create = () => {
       single();
 
       if (error) throw error;
+
+      // Persist ticket tiers
+      if (useTiers && data?.id && cleanTiers.length > 0) {
+        try {
+          await replaceTiers.mutateAsync({
+            eventId: data.id,
+            tiers: cleanTiers,
+            sequential: tierSaleMode === "sequential",
+          });
+        } catch (tierErr: any) {
+          console.error("Error saving tiers:", tierErr);
+          toast.error("Evento creado, pero falló al guardar las entradas. Edítalas desde el evento.");
+        }
+      }
 
       if (data.id && formData.description.trim()) {
         const mentionRegex = /(?<!\w)@([a-zA-Z0-9_]+)/g;
