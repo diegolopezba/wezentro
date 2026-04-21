@@ -39,6 +39,8 @@ import { MentionTextarea } from "@/components/ui/MentionTextarea";
 import { useMyMenu } from "@/hooks/useMenu";
 import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
+import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
+import { useReplaceTicketTiers } from "@/hooks/useTicketTiers";
 
 type ContentType = "post" | "event";
 
@@ -103,6 +105,12 @@ const Create = () => {
     showMenuButton: false,
     showReservationButton: false
   });
+
+  // Ticket tier state (events only, business accounts)
+  const [pricingMode, setPricingMode] = useState<TicketPricingMode>("single");
+  const [tierSaleMode, setTierSaleMode] = useState<TierSaleMode>("parallel");
+  const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
+  const replaceTiers = useReplaceTicketTiers();
 
   const handleTypeChange = (type: ContentType) => {
     setContentType(type);
@@ -240,6 +248,34 @@ const Create = () => {
       return;
     }
 
+    // Validate ticket tiers (events only, business + tiers mode)
+    const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
+    const useTiers = !isPost && isBusiness && pricingMode === "tiers";
+    if (useTiers) {
+      if (draftTiers.length === 0) {
+        toast.error("Añade al menos un tipo de entrada");
+        return;
+      }
+      for (const t of draftTiers) {
+        if (!t.name.trim()) {
+          toast.error("Cada entrada necesita un nombre");
+          return;
+        }
+        const price = parseFloat(t.price);
+        if (isNaN(price) || price < 0) {
+          toast.error(`Precio inválido para "${t.name}"`);
+          return;
+        }
+        cleanTiers.push({
+          name: t.name.trim(),
+          price,
+          capacity: t.capacity ? parseInt(t.capacity) : null,
+          description: t.description.trim() || null,
+          display_order: cleanTiers.length,
+        });
+      }
+    }
+
     setIsSubmitting(true);
     try {
       let imageUrl: string | null = null;
@@ -256,6 +292,11 @@ const Create = () => {
         formData.category
       );
 
+      // For tier mode, legacy price = cheapest tier (used as a fallback display)
+      const insertPrice = useTiers && cleanTiers.length > 0
+        ? Math.min(...cleanTiers.map((t) => t.price))
+        : (!isPost && formData.price ? parseFloat(formData.price) : 0);
+
       const { data, error } = await supabase.
       from("events").
       insert({
@@ -266,7 +307,7 @@ const Create = () => {
         location_name: isPost ? null : location.address.trim() || null,
         latitude: isPost ? null : location.latitude,
         longitude: isPost ? null : location.longitude,
-        price: !isPost && formData.price ? parseFloat(formData.price) : 0,
+        price: insertPrice,
         max_guestlist_capacity: formData.capacity ? parseInt(formData.capacity) : null,
         has_guestlist: !isPost && formData.hasGuestlist,
         image_url: imageUrl,
@@ -281,6 +322,20 @@ const Create = () => {
       single();
 
       if (error) throw error;
+
+      // Persist ticket tiers
+      if (useTiers && data?.id && cleanTiers.length > 0) {
+        try {
+          await replaceTiers.mutateAsync({
+            eventId: data.id,
+            tiers: cleanTiers,
+            sequential: tierSaleMode === "sequential",
+          });
+        } catch (tierErr: any) {
+          console.error("Error saving tiers:", tierErr);
+          toast.error("Evento creado, pero falló al guardar las entradas. Edítalas desde el evento.");
+        }
+      }
 
       if (data.id && formData.description.trim()) {
         const mentionRegex = /(?<!\w)@([a-zA-Z0-9_]+)/g;
@@ -571,30 +626,56 @@ const Create = () => {
 
               <LocationPicker value={location} onChange={setLocation} />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Precio</label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                    type="number" placeholder="0 (Gratis)" className="pl-10" value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    min="0" step="0.01" />
-                  
+              {isBusiness ? (
+                <>
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Entradas</label>
+                    <TicketTiersEditor
+                      mode={pricingMode}
+                      onModeChange={setPricingMode}
+                      singlePrice={formData.price}
+                      onSinglePriceChange={(v) => setFormData({ ...formData, price: v })}
+                      tiers={draftTiers}
+                      onTiersChange={setDraftTiers}
+                      saleMode={tierSaleMode}
+                      onSaleModeChange={setTierSaleMode}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Capacidad total (opcional)</label>
+                    <div className="relative">
+                      <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="number" placeholder="Ilimitada" className="pl-10" value={formData.capacity}
+                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                        min="1" />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Precio</label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="number" placeholder="0 (Gratis)" className="pl-10" value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        min="0" step="0.01" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Capacidad</label>
+                    <div className="relative">
+                      <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="number" placeholder="Ilimitada" className="pl-10" value={formData.capacity}
+                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                        min="1" />
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Capacidad</label>
-                  <div className="relative">
-                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                    type="number" placeholder="Ilimitada" className="pl-10" value={formData.capacity}
-                    onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                    min="1" />
-                  
-                  </div>
-                </div>
-              </div>
+              )}
             </m.div>
           }
         </AnimatePresence>
