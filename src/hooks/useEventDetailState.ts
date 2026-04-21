@@ -125,7 +125,10 @@ export const useEventDetailState = (
     setShowReservationSheet(false);
     setShowComments(false);
     setMediaLoaded(false);
-    setAspectRatio(null);
+    // NOTE: deliberately NOT resetting aspectRatio here. Letting the previous
+    // value persist until the new media's onLoad fires keeps the hero from
+    // collapsing to 16/9 for a frame when navigating between two events of
+    // different aspect ratios (Pinterest/Instagram-style smooth swap).
     setIsMuted(true);
 
     if (videoRef.current) {
