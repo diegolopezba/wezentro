@@ -1,10 +1,10 @@
 import { m } from "framer-motion";
 import { Volume2, VolumeX, Repeat, MoreHorizontal, EyeOff } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useRef, useContext, useEffect, memo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect, memo } from "react";
 import { cn } from "@/lib/utils";
 import { isVideoUrl } from "@/lib/mediaUtils";
-import { SelectedEventContext } from "@/contexts/SelectedEventContext";
+import { useOpenEvent } from "@/hooks/useOpenEvent";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { RepostInfo } from "@/hooks/useFollowingEventsScored";
 import { useTrackSponsoredClick } from "@/hooks/useSponsoredPosts";
@@ -75,7 +75,7 @@ const EventCardComponent = ({
   compact = false
 }: EventCardProps) => {
   const navigate = useNavigate();
-  const routerLocation = useLocation();
+  const openEvent = useOpenEvent();
   const { user } = useAuth();
   const trackClick = useTrackSponsoredClick();
   const clickedRef = useRef(false);
@@ -90,20 +90,15 @@ const EventCardComponent = ({
     clickedRef.current = false;
   }, [id]);
 
-  const isHomePage = routerLocation.pathname === "/";
-  const selectedEventContext = useContext(SelectedEventContext);
-
   const handleCardClick = () => {
     haptic("light");
     if (isSponsored && sponsoredPostId && !clickedRef.current) {
       clickedRef.current = true;
       trackClick.mutate(sponsoredPostId);
     }
-    if (isHomePage && selectedEventContext) {
-      selectedEventContext.openEvent(id);
-    } else {
-      navigate(`/event/${id}`);
-    }
+    // Always open as a modal-on-top of the current page.
+    // Direct visits to /event/:id (deep links) get the full page automatically.
+    openEvent(id);
   };
 
   const handleNotInterested = (e: React.MouseEvent) => {

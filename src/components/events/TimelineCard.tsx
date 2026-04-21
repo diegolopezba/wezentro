@@ -1,11 +1,10 @@
 import { m } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { isVideoUrl } from "@/lib/mediaUtils";
-
-import { useSelectedEvent } from "@/contexts/SelectedEventContext";
+import { useOpenEvent } from "@/hooks/useOpenEvent";
 import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -39,29 +38,11 @@ export const TimelineCard = ({
   creatorId,
 }: TimelineCardProps) => {
   const navigate = useNavigate();
-  const routerLocation = useLocation();
-
-  // Use expansion transition only on home page
-  const isHomePage = routerLocation.pathname === "/";
-  let selectedEventContext: { openEvent: (id: string) => void } | null = null;
-  
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    selectedEventContext = useSelectedEvent();
-  } catch {
-    // Context not available, will use navigation
-  }
+  const openEvent = useOpenEvent();
 
   const handleCardClick = () => {
-    if (isPost) {
-      // Posts don't have a detail page, just show the image larger
-      // For now, navigate to event detail - can be changed later
-      navigate(`/event/${id}`);
-    } else if (isHomePage && selectedEventContext) {
-      selectedEventContext.openEvent(id);
-    } else {
-      navigate(`/event/${id}`);
-    }
+    // Open event-modal-on-top (Pinterest pattern). For posts and events alike.
+    openEvent(id);
   };
 
   const isVideo = isVideoUrl(imageUrl);
