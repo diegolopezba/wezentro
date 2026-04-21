@@ -127,6 +127,7 @@ const App = () => {
 
   return (
     <ErrorBoundary>
+      <LazyMotion features={domAnimation} strict>
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} minDisplayTime={1200} />}
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
