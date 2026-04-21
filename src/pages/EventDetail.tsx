@@ -17,6 +17,7 @@ import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
+import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
@@ -68,6 +69,8 @@ const EventDetail = () => {
     showMenuSheet, setShowMenuSheet,
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
+    showTierPicker, setShowTierPicker,
+    ticketTiers, hasTiers, isSequential, selectedTier, openPaymentForTier,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleBuyTicket, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, () => navigate(-1));
@@ -409,17 +412,29 @@ const EventDetail = () => {
       {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} isPost={isPost} />}
       
       {/* Payment QR Modal */}
-      {hasPaymentQr &&
+      {(hasPaymentQr || hasTiers) &&
     <PaymentQRModal
       open={showPaymentModal}
       onOpenChange={setShowPaymentModal}
       eventId={id!}
       eventTitle={event.title || "Evento"}
-      price={event.price || 0}
+      price={selectedTier ? Number(selectedTier.price) : (event.price || 0)}
+      ticketTierId={selectedTier?.id ?? null}
+      ticketTierName={selectedTier?.name ?? null}
       paymentQrUrl={event.payment_qr_url ?? undefined}
       onPaymentConfirmed={handlePaymentSubmitted} />
 
     }
+
+    {hasTiers && (
+      <TicketTierPicker
+        open={showTierPicker}
+        onOpenChange={setShowTierPicker}
+        tiers={ticketTiers}
+        sequential={isSequential}
+        onSelect={openPaymentForTier}
+      />
+    )}
 
       {event.has_guestlist &&
     <InviteFriendsSheet
