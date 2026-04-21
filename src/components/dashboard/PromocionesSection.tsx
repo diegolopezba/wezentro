@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
 import {
@@ -283,7 +283,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
 
           {sponsoredPosts.length === 0 ? (
             /* ── Hero empty state ── */
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6" >
@@ -319,7 +319,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                   {availableEvents.length === 0 ? "Crea un evento primero" : "Impulsar mi evento →"}
                 </Button>
               </div>
-            </motion.div>
+            </m.div>
           ) : (
             /* ── Campaign cards ── */
             <div className="space-y-3">
@@ -329,7 +329,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                   ? Math.min(100, (Number(sp.spent) / Number(sp.total_budget)) * 100)
                   : 0;
                 return (
-                  <motion.div
+                  <m.div
                     key={sp.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -419,7 +419,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                         </p>
                       </div>
                     )}
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
@@ -460,7 +460,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
           {/* Step content */}
           <div className="flex-1 overflow-y-auto px-5 pb-6">
             <AnimatePresence mode="wait">
-              <motion.div
+              <m.div
                 key={step}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -618,7 +618,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
 
                     {/* Live estimator */}
                     {activeBudget >= 5 && (
-                      <motion.div
+                      <m.div
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="rounded-2xl bg-primary/8 border border-primary/20 p-4" >
@@ -630,7 +630,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                           ~{formatReach(estimatedReach)} <span className="text-base font-normal text-muted-foreground">personas</span>
                         </p>
                         <p className="text-sm text-muted-foreground mt-1">por ${activeBudget.toFixed(0)} de inversión</p>
-                      </motion.div>
+                      </m.div>
                     )}
                   </div>
                 )}
@@ -699,7 +699,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                     </div>
                   </div>
                 )}
-              </motion.div>
+              </m.div>
             </AnimatePresence>
           </div>
 

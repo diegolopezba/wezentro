@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowLeft, CalendarCheck, Clock, Users, Save } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -104,7 +104,7 @@ const BusinessReservations = () => {
 
       <div className="px-4 py-4 space-y-3">
         {/* Toggle */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border"
@@ -121,11 +121,11 @@ const BusinessReservations = () => {
             onCheckedChange={handleToggleReservations}
             disabled={togglingReservations}
           />
-        </motion.div>
+        </m.div>
 
         {/* Reservation window config — only when enabled */}
         {reservationsEnabled && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
@@ -195,7 +195,7 @@ const BusinessReservations = () => {
                 <><Save className="w-4 h-4 mr-2" />Guardar configuración</>
               )}
             </Button>
-          </motion.div>
+          </m.div>
         )}
       </div>
     </div>

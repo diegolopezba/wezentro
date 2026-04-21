@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -28,7 +28,7 @@ export const CategoryFilterBar = ({
         const isSelected = selectedCategories.includes(category.value);
 
         return (
-          <motion.button
+          <m.button
             key={category.value}
             whileTap={{ scale: 0.95 }}
             onClick={() => onToggleCategory(category.value)}
@@ -41,7 +41,7 @@ export const CategoryFilterBar = ({
           >
             <span>{category.emoji}</span>
             <span className="font-medium">{category.label}</span>
-          </motion.button>
+          </m.button>
         );
       })}
     </div>

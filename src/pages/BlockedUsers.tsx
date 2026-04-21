@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowLeft, Ban, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -39,7 +39,7 @@ const BlockedUsers = () => {
         ) : (
           <div className="rounded-2xl bg-card border border-border overflow-hidden divide-y divide-border">
             {blocked.map((b, idx) => (
-              <motion.div
+              <m.div
                 key={b.id}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -66,7 +66,7 @@ const BlockedUsers = () => {
                 >
                   Desbloquear
                 </Button>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         )}

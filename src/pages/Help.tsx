@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useState } from "react";
 import { ArrowLeft, Mail, MessageCircle, HelpCircle, Shield, CreditCard, Calendar, Users, ChevronRight, FileText, Trash2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -153,7 +153,7 @@ const Help = () => {
 
       <div className="px-4 py-4 pb-8 space-y-6">
         {/* Quick Help Topics */}
-        <motion.section
+        <m.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}>
           
@@ -176,10 +176,10 @@ const Help = () => {
 
 
           
-        </motion.section>
+        </m.section>
 
         {/* FAQ Section */}
-        <motion.section
+        <m.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}>
@@ -204,10 +204,10 @@ const Help = () => {
               </AccordionItem>
             )}
           </Accordion>
-        </motion.section>
+        </m.section>
 
         {/* Legal Section */}
-        <motion.section
+        <m.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}>
@@ -232,11 +232,11 @@ const Help = () => {
 
             })}
           </div>
-        </motion.section>
+        </m.section>
 
 
         {/* Contact Section */}
-        <motion.section
+        <m.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}>
@@ -261,11 +261,11 @@ const Help = () => {
               </div>
             </a>
           </div>
-        </motion.section>
+        </m.section>
 
         {/* Delete Account Section */}
         {user &&
-        <motion.section
+        <m.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}>
@@ -331,11 +331,11 @@ const Help = () => {
                 </DialogContent>
               </Dialog>
             </div>
-          </motion.section>
+          </m.section>
         }
 
         {/* App Info */}
-        <motion.section
+        <m.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
@@ -347,7 +347,7 @@ const Help = () => {
           <p className="text-xs text-muted-foreground mt-1">
             © 2026 Zentro. Todos los derechos reservados.
           </p>
-        </motion.section>
+        </m.section>
       </div>
     </AppLayout>);
 

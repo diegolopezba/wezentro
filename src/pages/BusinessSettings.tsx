@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import {
   ArrowLeft, Briefcase, BarChart3, ChevronRight,
   UtensilsCrossed, CalendarCheck, CreditCard, Info,
@@ -74,7 +74,7 @@ const BusinessSettings = () => {
 
       <div className="px-4 py-4 space-y-3">
         {/* Business Account Toggle */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-4 py-4 px-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/5 border border-blue-500/20" >
@@ -90,12 +90,12 @@ const BusinessSettings = () => {
             onCheckedChange={handleToggleBusiness}
             disabled={togglingBusiness}
           />
-        </motion.div>
+        </m.div>
 
         {isBusiness && (
           <>
             {/* Dashboard Button */}
-            <motion.button
+            <m.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
@@ -109,10 +109,10 @@ const BusinessSettings = () => {
                 <span className="text-xs text-muted-foreground">Analytics e insights</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </motion.button>
+            </m.button>
 
             {/* Section: Funciones */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -120,10 +120,10 @@ const BusinessSettings = () => {
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1 mb-2">
                 Funciones
               </h2>
-            </motion.div>
+            </m.div>
 
             {/* Información del negocio → nav */}
-            <motion.button
+            <m.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.12 }}
@@ -137,10 +137,10 @@ const BusinessSettings = () => {
                 <span className="text-xs text-muted-foreground">Tipo, horarios, teléfono y dirección</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </motion.button>
+            </m.button>
 
             {/* Menu Toggle */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
@@ -157,10 +157,10 @@ const BusinessSettings = () => {
                 onCheckedChange={handleToggleMenu}
                 disabled={togglingMenu}
               />
-            </motion.div>
+            </m.div>
 
             {/* Reservas → nav */}
-            <motion.button
+            <m.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -176,10 +176,10 @@ const BusinessSettings = () => {
                 </span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </motion.button>
+            </m.button>
 
             {/* Section: Pagos */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
@@ -187,10 +187,10 @@ const BusinessSettings = () => {
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1 mb-2">
                 Pagos
               </h2>
-            </motion.div>
+            </m.div>
 
             {/* Pagos QR nav button */}
-            <motion.button
+            <m.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.28 }}
@@ -204,7 +204,7 @@ const BusinessSettings = () => {
                 <span className="text-xs text-muted-foreground">QR dinámico — confirmación automática sin intermediarios</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </motion.button>
+            </m.button>
           </>
         )}
       </div>

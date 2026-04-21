@@ -3,7 +3,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPromptSafe } from "@/hooks/useAuthPrompt";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useState } from "react";
 
@@ -78,7 +78,7 @@ export const BottomNav = () => {
                   className="relative flex items-center justify-center px-4 py-2 no-select"
                   onClick={(e) => handleNavClick(e, item)}
                 >
-                  <motion.div
+                  <m.div
                     animate={{ rotate: isPickerOpen ? 45 : 0 }}
                     transition={{ type: "spring", stiffness: 340, damping: 22 }}
                   >
@@ -88,7 +88,7 @@ export const BottomNav = () => {
                         isPickerOpen ? "text-foreground" : "text-muted-foreground"
                       )}
                     />
-                  </motion.div>
+                  </m.div>
                 </button>
               );
             }

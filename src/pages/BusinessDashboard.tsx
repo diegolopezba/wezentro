@@ -11,7 +11,7 @@ import { OverviewTab } from "@/components/dashboard/OverviewTab";
 import { ContentTab } from "@/components/dashboard/ContentTab";
 import { AudienceTab } from "@/components/dashboard/AudienceTab";
 import { ActionsTab } from "@/components/dashboard/ActionsTab";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import type { Period } from "@/components/dashboard/PeriodSelector";
 
 const BusinessDashboard = () => {
@@ -45,7 +45,7 @@ const BusinessDashboard = () => {
           </div>
         </header>
         <div className="flex-1 flex items-center justify-center p-6">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-sm">
+          <m.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-sm">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
               <BarChart3 className="w-10 h-10 text-white" />
             </div>
@@ -56,7 +56,7 @@ const BusinessDashboard = () => {
             <Button variant="premium" size="lg" className="w-full" onClick={() => navigate("/settings")}>
               Ir a Configuración
             </Button>
-          </motion.div>
+          </m.div>
         </div>
       </div>
     );

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 interface SplashScreenProps {
   onComplete: () => void;
   minDisplayTime?: number;
@@ -21,7 +21,7 @@ export const SplashScreen = ({
     }
   };
   return <AnimatePresence onExitComplete={handleAnimationComplete}>
-      {isVisible && <motion.div initial={{
+      {isVisible && <m.div initial={{
       opacity: 1
     }} exit={{
       opacity: 0
@@ -31,7 +31,7 @@ export const SplashScreen = ({
     }} className="fixed inset-0 z-[9999] flex items-center justify-center bg-background" style={{
       background: "hsl(240 6% 4%)"
     }}>
-          <motion.img alt="Loading..." initial={{
+          <m.img alt="Loading..." initial={{
         scale: 0.9,
         opacity: 0
       }} animate={{
@@ -41,6 +41,6 @@ export const SplashScreen = ({
         duration: 0.3,
         ease: "easeOut"
       }} className="w-48 h-48 object-fill" src="/lovable-uploads/11ff2e19-f4c9-4c50-8921-c329037d49ac.png" />
-        </motion.div>}
+        </m.div>}
     </AnimatePresence>;
 };

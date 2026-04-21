@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -63,7 +63,7 @@ export const PostTagNotificationItem = ({
   };
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03 }}
@@ -150,6 +150,6 @@ export const PostTagNotificationItem = ({
           </Button>
         </div>
       )}
-    </motion.div>
+    </m.div>
   );
 };

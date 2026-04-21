@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, ReactNode } from "react";
-import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import { m, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { RefreshCw } from "lucide-react";
 import { haptic } from "@/lib/haptics";
 
@@ -106,7 +106,7 @@ export const PullToRefresh = ({
       {/* Pull indicator */}
       <AnimatePresence>
         {(isPulling || isRefreshing) && (
-          <motion.div
+          <m.div
             className="absolute left-0 right-0 flex items-center justify-center z-10 pointer-events-none"
             style={{ 
               top: 0,
@@ -116,11 +116,11 @@ export const PullToRefresh = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <motion.div
+            <m.div
               className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
               style={{ opacity }}
             >
-              <motion.div
+              <m.div
                 style={{ rotate: isRefreshing ? undefined : rotation }}
                 animate={isRefreshing ? { rotate: 360 } : undefined}
                 transition={isRefreshing ? { 
@@ -130,21 +130,21 @@ export const PullToRefresh = ({
                 } : undefined}
               >
                 <RefreshCw className="w-5 h-5 text-foreground" />
-              </motion.div>
-            </motion.div>
-          </motion.div>
+              </m.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* Content with pull offset */}
-      <motion.div
+      <m.div
         style={{ 
           y: isPulling || isRefreshing ? pullDistance : 0,
           transition: isPulling ? 'none' : 'transform 0.2s ease-out'
         }}
       >
         {children}
-      </motion.div>
+      </m.div>
     </div>
   );
 };

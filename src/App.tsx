@@ -1,4 +1,5 @@
 import { Suspense, lazy, useState, useEffect } from "react";
+import { LazyMotion, domAnimation } from "framer-motion";
 
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -126,6 +127,7 @@ const App = () => {
 
   return (
     <ErrorBoundary>
+      <LazyMotion features={domAnimation} strict>
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} minDisplayTime={1200} />}
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -468,6 +470,7 @@ const App = () => {
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
+      </LazyMotion>
     </ErrorBoundary>
   );
 };

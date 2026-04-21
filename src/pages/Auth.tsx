@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -193,13 +193,13 @@ const Auth = () => {
       </div>
 
       {/* Logo section */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className={`text-center relative z-10 transition-all duration-300 ${isKeyboardVisible ? "pt-6 pb-3" : "pt-20 pb-10"}`}
       >
         {!isKeyboardVisible && (
-          <motion.div
+          <m.div
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -207,15 +207,15 @@ const Auth = () => {
             <div className="w-20 h-20 flex items-center justify-center mx-auto">
               <img src="/logo.png" alt="Logo de Zentro" className="w-20 h-20 object-contain" />
             </div>
-          </motion.div>
+          </m.div>
         )}
         <h1 className="font-brand text-4xl text-foreground mb-2 font-semibold">zentro</h1>
-      </motion.div>
+      </m.div>
 
       {/* Content */}
       <div className="flex-1 px-6 relative z-10">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={mode}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -390,7 +390,7 @@ const Auth = () => {
                 </button>
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
 

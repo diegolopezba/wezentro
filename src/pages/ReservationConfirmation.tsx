@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -130,7 +130,7 @@ const ReservationConfirmation = () => {
   const extraGuests = (guests?.length ?? 0) - visibleGuests.length;
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -158,7 +158,7 @@ const ReservationConfirmation = () => {
       {/* Content */}
       <div className="relative z-10 px-5 pb-10 safe-bottom max-w-md mx-auto">
         {/* Success badge */}
-        <motion.div
+        <m.div
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 15 }}
@@ -169,10 +169,10 @@ const ReservationConfirmation = () => {
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
             Reserva confirmada
           </p>
-        </motion.div>
+        </m.div>
 
         {/* Pass card */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
@@ -293,10 +293,10 @@ const ReservationConfirmation = () => {
               </div>
             )}
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Quick actions */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.3 }}
@@ -318,11 +318,11 @@ const ReservationConfirmation = () => {
             )}
             <span className="text-[11px] font-medium">Mensaje</span>
           </button>
-        </motion.div>
+        </m.div>
 
         {/* Primary CTA */}
         {business?.menu_enabled && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.3 }}
@@ -333,11 +333,11 @@ const ReservationConfirmation = () => {
               <UtensilsCrossed className="w-4 h-4 mr-2" />
               Ver Menú
             </Button>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Secondary actions */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55, duration: 0.3 }}
@@ -355,7 +355,7 @@ const ReservationConfirmation = () => {
             <Trash2 className="w-4 h-4 mr-1.5" />
             Cancelar
           </Button>
-        </motion.div>
+        </m.div>
 
         {!canModify && (
           <p className="text-[11px] text-muted-foreground text-center mt-2">
@@ -413,7 +413,7 @@ const ReservationConfirmation = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </motion.div>
+    </m.div>
   );
 };
 

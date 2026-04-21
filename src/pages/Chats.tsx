@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Plus, MessageCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -95,7 +95,7 @@ const Chats = () => {
           </div>
         ) : (
           chats.map((chat, index) => (
-            <motion.div
+            <m.div
               key={chat.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -147,7 +147,7 @@ const Chats = () => {
                   </span>
                 </div>
               )}
-            </motion.div>
+            </m.div>
           ))
         )}
       </div>

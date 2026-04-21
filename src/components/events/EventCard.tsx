@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Volume2, VolumeX, Repeat, MoreHorizontal, EyeOff } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useContext, useEffect, memo } from "react";
@@ -172,7 +172,7 @@ const EventCardComponent = ({
         </div>
       )}
 
-      <motion.div
+      <m.div
         initial={compact ? false : { opacity: 0, y: 20 }}
         animate={compact ? undefined : { opacity: 1, y: 0 }}
         transition={compact ? undefined : {
@@ -329,7 +329,7 @@ const EventCardComponent = ({
             </div>
           )}
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 };

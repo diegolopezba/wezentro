@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { Loader2, Mail, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -77,7 +77,7 @@ export function InvitationsSentSection({ eventId }: InvitationsSentSectionProps)
 
       <div className="space-y-2">
         {invitations.map((invitation, index) => (
-          <motion.div
+          <m.div
             key={invitation.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -99,7 +99,7 @@ export function InvitationsSentSection({ eventId }: InvitationsSentSectionProps)
             </div>
             
             {getStatusBadge(invitation.status)}
-          </motion.div>
+          </m.div>
         ))}
       </div>
     </div>

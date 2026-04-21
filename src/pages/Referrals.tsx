@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowLeft, Copy, Share2, Gift, Users, Check, Crown, Clock, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,7 @@ const Referrals = () => {
 
       <div className="px-4 py-2 space-y-6">
         {/* Hero Card */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-background border border-primary/20 p-6"
@@ -162,10 +162,10 @@ const Referrals = () => {
               </>
             )}
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Share Section */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -197,10 +197,10 @@ const Referrals = () => {
             <Share2 className="w-4 h-4 mr-2" />
             Compartir enlace
           </Button>
-        </motion.div>
+        </m.div>
 
         {/* Referred Users */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -223,7 +223,7 @@ const Referrals = () => {
           ) : referredUsers && referredUsers.length > 0 ? (
             <div className="space-y-2">
               {referredUsers.map((referredUser, index) => (
-                <motion.div
+                <m.div
                   key={referredUser.id}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -257,7 +257,7 @@ const Referrals = () => {
                   ) : (
                     <Check className="w-5 h-5 text-primary shrink-0" />
                   )}
-                </motion.div>
+                </m.div>
               ))}
             </div>
           ) : (
@@ -267,10 +267,10 @@ const Referrals = () => {
               <p className="text-xs mt-1">¡Comparte tu enlace para empezar!</p>
             </div>
           )}
-        </motion.div>
+        </m.div>
 
         {/* Info */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
@@ -308,7 +308,7 @@ const Referrals = () => {
               </li>
             </ul>
           )}
-        </motion.div>
+        </m.div>
       </div>
     </AppLayout>
   );

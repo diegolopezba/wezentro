@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ChevronLeft, Loader2, Calendar } from "lucide-react";
@@ -50,7 +50,7 @@ const JoinedEvents = () => {
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : !joinedEvents || joinedEvents.length === 0 ? (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center py-12 gap-4"
@@ -69,7 +69,7 @@ const JoinedEvents = () => {
             <Button variant="outline" onClick={() => navigate("/")}>
               Explorar eventos
             </Button>
-          </motion.div>
+          </m.div>
         ) : (
           <div className="masonry-grid">
             {joinedEvents.map((event, index) => renderEventCard(event, index))}

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Message } from "@/hooks/useChats";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +22,7 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
   // System messages
   if (isSystem) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.03 }}
@@ -30,14 +30,14 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
         <p className="text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
           {message.content}
         </p>
-      </motion.div>
+      </m.div>
     );
   }
 
   // Event invite messages
   if (isEventInvite && message.event) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.03 }}
@@ -56,14 +56,14 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
             {formatTime(message.created_at)}
           </p>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
   // Guestlist invite messages
   if (isGuestlistInvite && message.event) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.03 }}
@@ -82,13 +82,13 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
             {formatTime(message.created_at)}
           </p>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
   // Regular text messages
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03 }}
@@ -116,7 +116,7 @@ const MessageBubble = ({ message, index }: MessageBubbleProps) => {
           {formatTime(message.created_at)}
         </p>
       </div>
-    </motion.div>
+    </m.div>
   );
 };
 

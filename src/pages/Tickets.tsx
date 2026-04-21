@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Ticket, Calendar } from "lucide-react";
 import { format } from "date-fns";
@@ -128,7 +128,7 @@ const Tickets = () => {
                     (ticket.payment_status === "none" || ticket.payment_status === "confirmed" || !ticket.payment_status);
                   
                   return (
-                <motion.button
+                <m.button
                   key={ticket.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -170,12 +170,12 @@ const Tickets = () => {
                   </div>
 
                   <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-                </motion.button>
+                </m.button>
               );
             })}
           </div>
         ) : (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center py-16 text-center" >
@@ -191,7 +191,7 @@ const Tickets = () => {
               className="mt-6 rounded-xl" >
               Descubrir Eventos
             </Button>
-          </motion.div>
+          </m.div>
         )}
       </div>
     </AppLayout>

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Gift } from "lucide-react";
@@ -38,7 +38,7 @@ export const ReferralNotificationItem = ({ notification, index, onRead, onClick 
   });
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03 }}
@@ -78,6 +78,6 @@ export const ReferralNotificationItem = ({ notification, index, onRead, onClick 
         <Progress value={(current / total) * 100} className="h-2 flex-1" />
         <span className="text-xs text-muted-foreground font-medium">{current}/{total}</span>
       </div>
-    </motion.div>
+    </m.div>
   );
 };

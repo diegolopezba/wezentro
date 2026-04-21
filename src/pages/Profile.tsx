@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Settings, Loader2, X, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -80,7 +80,7 @@ const Profile = () => {
 
       {/* Profile info */}
       <div className="px-4 py-[10px] bg-background">
-        <motion.div initial={{
+        <m.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
@@ -103,10 +103,10 @@ const Profile = () => {
                 </div>)}
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Bio */}
-        <motion.div initial={{
+        <m.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
@@ -135,11 +135,11 @@ const Profile = () => {
               </Button>
             </div>
         }
-        </motion.div>
+        </m.div>
 
         {/* Complete Profile Banner - show when birth_date or gender is missing */}
         <AnimatePresence>
-          {isProfileIncomplete && showProfileBanner && <motion.div initial={{
+          {isProfileIncomplete && showProfileBanner && <m.div initial={{
           opacity: 0,
           y: 20
         }} animate={{
@@ -166,7 +166,7 @@ const Profile = () => {
                   </Button>
                 </div>
               </div>
-            </motion.div>}
+            </m.div>}
         </AnimatePresence>
 
       </div>

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarCheck, CalendarX, UserCheck } from "lucide-react";
@@ -38,7 +38,7 @@ export const ReservationNotificationItem = ({ notification, index, onRead, onCli
   const iconBgColor = isCancelled ? "bg-red-500" : isTagged ? "bg-blue-500" : "bg-emerald-500";
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03 }}
@@ -77,6 +77,6 @@ export const ReservationNotificationItem = ({ notification, index, onRead, onCli
       {!notification.is_read && (
         <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
       )}
-    </motion.div>
+    </m.div>
   );
 };

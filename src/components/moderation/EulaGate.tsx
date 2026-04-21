@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -53,12 +53,12 @@ export const EulaGate = ({ children }: { children: React.ReactNode }) => {
     return (
       <>
         {children}
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="fixed inset-0 z-[9998] bg-background/95 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
         >
-          <motion.div
+          <m.div
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             className="w-full max-w-md rounded-3xl bg-card border border-border p-6 space-y-4"
@@ -92,8 +92,8 @@ export const EulaGate = ({ children }: { children: React.ReactNode }) => {
             <Button variant="hero" className="w-full" disabled={submitting} onClick={handleAccept}>
               {submitting ? "Guardando..." : "Acepto y entiendo"}
             </Button>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </>
     );
   }

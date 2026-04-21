@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, X, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck, Flag } from "lucide-react";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
@@ -103,7 +103,7 @@ export const EventDetailOverlay = () => {
   return createPortal(
     <AnimatePresence initial={false}>
       {selectedEventId && (
-        <motion.div
+        <m.div
           key={selectedEventId}
           className="fixed inset-0 z-50 bg-background overflow-auto" initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -167,7 +167,7 @@ export const EventDetailOverlay = () => {
               </div>
 
               {/* Content */}
-              <motion.div
+              <m.div
                 className="relative -mt-16 px-4 pb-28" initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
@@ -365,7 +365,7 @@ export const EventDetailOverlay = () => {
                     creatorId={event.creator_id}
                   />
                 </div>
-              </motion.div>
+              </m.div>
 
               {/* Modals */}
               {event && (
@@ -491,7 +491,7 @@ export const EventDetailOverlay = () => {
               )}
             </>
           )}
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>,
     portalNode

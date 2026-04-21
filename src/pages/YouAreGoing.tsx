@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -57,7 +57,7 @@ const YouAreGoing = () => {
   const isVideo = isVideoUrl(event.image_url);
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -94,7 +94,7 @@ const YouAreGoing = () => {
 
       {/* Content - Bottom Aligned */}
       <div className="relative h-full flex flex-col justify-end">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
@@ -151,7 +151,7 @@ const YouAreGoing = () => {
               ) : null}
             </div>
           </div>
-        </motion.div>
+        </m.div>
       </div>
 
       {/* QR Code Dialog */}
@@ -178,7 +178,7 @@ const YouAreGoing = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </m.div>
   );
 };
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -57,7 +57,7 @@ const FollowNotificationItem = ({
   const {
     data: followerProfile
   } = useUserProfile(notification.entity_id || undefined);
-  return <motion.div initial={{
+  return <m.div initial={{
     opacity: 0,
     x: -20
   }} animate={{
@@ -85,7 +85,7 @@ const FollowNotificationItem = ({
       </div>
       
       {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
-    </motion.div>;
+    </m.div>;
 };
 const GuestlistRequestNotificationItem = ({
   notification,
@@ -108,7 +108,7 @@ const GuestlistRequestNotificationItem = ({
     },
     enabled: !!extractedUsername
   });
-  return <motion.div initial={{
+  return <m.div initial={{
     opacity: 0,
     x: -20
   }} animate={{
@@ -136,7 +136,7 @@ const GuestlistRequestNotificationItem = ({
       </div>
       
       {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
-    </motion.div>;
+    </m.div>;
 };
 const GuestlistStatusNotificationItem = ({
   notification,
@@ -148,7 +148,7 @@ const GuestlistStatusNotificationItem = ({
     data: event
   } = useEvent(notification.entity_id || undefined);
   const isApproved = notification.type === "guestlist_approved";
-  return <motion.div initial={{
+  return <m.div initial={{
     opacity: 0,
     x: -20
   }} animate={{
@@ -176,7 +176,7 @@ const GuestlistStatusNotificationItem = ({
       </div>
       
       {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
-    </motion.div>;
+    </m.div>;
 };
 const GuestlistInvitationNotificationItem = ({
   notification,
@@ -235,7 +235,7 @@ const GuestlistInvitationNotificationItem = ({
       setIsResponding(false);
     }
   };
-  return <motion.div initial={{
+  return <m.div initial={{
     opacity: 0,
     x: -20
   }} animate={{
@@ -287,7 +287,7 @@ const GuestlistInvitationNotificationItem = ({
             Aceptar
           </Button>
         </div>}
-    </motion.div>;
+    </m.div>;
 };
 const CommentNotificationItem = ({
   notification,
@@ -297,7 +297,7 @@ const CommentNotificationItem = ({
 }: NotificationItemProps) => {
   const extractedUsername = notification.body?.match(/@(\w+)/)?.[1];
   const { data: event } = useEvent(notification.entity_id || undefined);
-  return <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.03 }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
+  return <m.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.03 }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
     <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
       {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><MessageCircle className="w-5 h-5 text-muted-foreground" /></div>}
     </div>
@@ -312,7 +312,7 @@ const CommentNotificationItem = ({
       </p>
     </div>
     {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
-  </motion.div>;
+  </m.div>;
 };
 
 const NotificationItem = ({
@@ -327,7 +327,7 @@ const NotificationItem = ({
   onClick: () => void;
 }) => {
   const Icon = getNotificationIcon(notification.type);
-  return <motion.div initial={{
+  return <m.div initial={{
     opacity: 0,
     x: -20
   }} animate={{
@@ -367,7 +367,7 @@ const NotificationItem = ({
       </div>
       
       {!notification.is_read}
-    </motion.div>;
+    </m.div>;
 };
 const Notifications = () => {
   const navigate = useNavigate();
@@ -465,7 +465,7 @@ const Notifications = () => {
       <div className="space-y-0 py-0 px-0">
         {isLoading ? <div className="flex justify-center py-12">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          </div> : !notifications || notifications.length === 0 ? <motion.div initial={{
+          </div> : !notifications || notifications.length === 0 ? <m.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
@@ -479,7 +479,7 @@ const Notifications = () => {
             <p className="text-sm text-muted-foreground">
               Cuando alguien te siga o interactúe con tus eventos, lo verás aquí
             </p>
-          </motion.div> : notifications.map((notification, index) => renderNotification(notification, index))}
+          </m.div> : notifications.map((notification, index) => renderNotification(notification, index))}
       </div>
     </AppLayout>;
 };

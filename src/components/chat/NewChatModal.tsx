@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -70,7 +70,7 @@ export const NewChatModal = ({ open, onOpenChange }: NewChatModalProps) => {
             </div>
           ) : (
             filteredFollowers.map((user, index) => (
-              <motion.button
+              <m.button
                 key={user.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -91,7 +91,7 @@ export const NewChatModal = ({ open, onOpenChange }: NewChatModalProps) => {
                     {user.username}
                   </p>
                 </div>
-              </motion.button>
+              </m.button>
             ))
           )}
         </div>

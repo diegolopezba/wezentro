@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Eye, MousePointerClick, TrendingUp, UserCheck, UsersRound, FileText } from "lucide-react";
 import { StatsCard } from "./StatsCard";
 import { PeriodSelector, Period } from "./PeriodSelector";
@@ -130,7 +130,7 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
 
       {/* Mini chart */}
       {chartData && chartData.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="rounded-2xl bg-card border border-border p-4">
+        <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="rounded-2xl bg-card border border-border p-4">
           <p className="text-sm font-medium text-muted-foreground mb-3">Cuentas alcanzadas por día</p>
           <ResponsiveContainer width="100%" height={140}>
             <LineChart data={chartData}>
@@ -140,7 +140,7 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
               <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
-        </motion.div>
+        </m.div>
       )}
     </div>
   );

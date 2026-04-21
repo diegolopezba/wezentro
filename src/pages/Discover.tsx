@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, MapPin, X, Users } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -266,7 +266,7 @@ const Discover = () => {
               {/* Search Results Dropdown */}
               <AnimatePresence>
                 {showSearchDropdown && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
@@ -343,7 +343,7 @@ const Discover = () => {
                         </div>
                       )}
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
             </div>
@@ -375,7 +375,7 @@ const Discover = () => {
         {/* Selected event card(s) */}
         <AnimatePresence>
           {selectedEvents.length > 0 && (
-            <motion.div
+            <m.div
               initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
@@ -432,7 +432,7 @@ const Discover = () => {
                   </div>
                 )}
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 

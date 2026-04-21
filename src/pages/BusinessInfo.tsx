@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowLeft, Clock, Phone, Store, Save, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,7 +101,7 @@ const BusinessInfo = () => {
 
       <div className="px-4 py-4 space-y-3">
         {/* Business Type */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="py-4 px-4 rounded-xl bg-card border border-border space-y-2"
@@ -129,10 +129,10 @@ const BusinessInfo = () => {
               ))}
             </SelectContent>
           </Select>
-        </motion.div>
+        </m.div>
 
         {/* Info fields */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
@@ -184,7 +184,7 @@ const BusinessInfo = () => {
               <><Save className="w-4 h-4 mr-2" />Guardar información</>
             )}
           </Button>
-        </motion.div>
+        </m.div>
       </div>
     </div>
   );
