@@ -162,6 +162,8 @@ export const useEventDetailState = (
     setShowMenuSheet(false);
     setShowReservationSheet(false);
     setShowComments(false);
+    setShowTierPicker(false);
+    setSelectedTier(null);
     setMediaLoaded(false);
     // NOTE: deliberately NOT resetting aspectRatio here. Letting the previous
     // value persist until the new media's onLoad fires keeps the hero from
@@ -211,9 +213,27 @@ export const useEventDetailState = (
     }
   };
 
+  const openPaymentForTier = (tier: TicketTier) => {
+    setSelectedTier(tier);
+    setShowTierPicker(false);
+    setShowPaymentModal(true);
+  };
+
   const handleBuyTicket = async () => {
     if (isGuest) { promptAuth({ action: "comprar entrada" }); return; }
-    if (hasPaymentQr) { setShowPaymentModal(true); return; }
+    // Multi-tier path
+    if (hasTiers) {
+      if (allTiersSoldOut) { toast.error("Todas las entradas están agotadas"); return; }
+      // Sequential mode → only one tier visible at a time, skip picker
+      if (isSequential || purchasableTiers.length === 1) {
+        if (cheapestPurchasableTier) openPaymentForTier(cheapestPurchasableTier);
+        return;
+      }
+      setShowTierPicker(true);
+      return;
+    }
+    // Legacy single-price path
+    if (hasPaymentQr) { setSelectedTier(null); setShowPaymentModal(true); return; }
     try {
       await joinGuestlistWithPayment.mutateAsync(eventId!);
       toast.success(hasPaidTickets ? "¡Compra registrada! El organizador confirmará tu pago." : "¡Registro confirmado!");
@@ -282,6 +302,12 @@ export const useEventDetailState = (
     showMenuSheet, setShowMenuSheet,
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
+    showTierPicker, setShowTierPicker,
+    // Tiers
+    ticketTiers, hasTiers, isSequential, allTiersSoldOut,
+    purchasableTiers, cheapestPurchasableTier,
+    selectedTier, setSelectedTier,
+    openPaymentForTier,
     // Action handlers
     handleSaveToggle,
     handleLikeToggle,

@@ -13,6 +13,10 @@ interface PaymentQRModalProps {
   eventId: string;
   eventTitle: string;
   price: number;
+  /** Optional ticket tier id — when set, the QR is generated for this specific tier. */
+  ticketTierId?: string | null;
+  /** Optional tier name to display in the header alongside the event title. */
+  ticketTierName?: string | null;
   /** Legacy fallback: static QR URL. Used when no BNB credentials exist. */
   paymentQrUrl?: string;
   onPaymentConfirmed: () => Promise<void>;
@@ -26,6 +30,8 @@ export function PaymentQRModal({
   eventId,
   eventTitle,
   price,
+  ticketTierId,
+  ticketTierName,
   paymentQrUrl,
   onPaymentConfirmed,
 }: PaymentQRModalProps) {
@@ -85,7 +91,7 @@ export function PaymentQRModal({
     setStep("loading");
     try {
       const { data, error } = await supabase.functions.invoke("generate-bnb-qr", {
-        body: { eventId },
+        body: { eventId, ticketTierId: ticketTierId ?? null },
       });
 
       if (error || !data) {
@@ -121,7 +127,7 @@ export function PaymentQRModal({
         setStep("error");
       }
     }
-  }, [eventId, paymentQrUrl]);
+  }, [eventId, paymentQrUrl, ticketTierId]);
 
   // Initialize when modal opens
   useEffect(() => {
