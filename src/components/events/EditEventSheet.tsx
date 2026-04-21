@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { compressImage, blobToFile } from "@/lib/mediaCompression";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
 import { useMyMenu } from "@/hooks/useMenu";
+import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
+import { useTicketTiers, useReplaceTicketTiers } from "@/hooks/useTicketTiers";
 
 interface EditEventSheetProps {
   event: {
@@ -45,6 +47,11 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
   const reservationsEnabled = (profile as any)?.reservations_enabled === true;
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
+  const { data: existingTiers = [] } = useTicketTiers(event.id);
+  const replaceTiers = useReplaceTicketTiers();
+  const [pricingMode, setPricingMode] = useState<TicketPricingMode>("single");
+  const [saleMode, setSaleMode] = useState<TierSaleMode>("parallel");
+  const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const [isUploadingQr, setIsUploadingQr] = useState(false);
   const [isCompressingQr, setIsCompressingQr] = useState(false);
   const qrInputRef = useRef<HTMLInputElement>(null);
@@ -80,6 +87,28 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
       });
     }
   }, [open, event]);
+
+  // Hydrate tier editor when tiers load / sheet opens
+  useEffect(() => {
+    if (!open) return;
+    if (existingTiers.length > 0) {
+      setPricingMode("tiers");
+      setSaleMode(existingTiers.some((t) => !!t.unlock_after_tier_id) ? "sequential" : "parallel");
+      setDraftTiers(
+        existingTiers.map((t) => ({
+          key: t.id,
+          name: t.name,
+          price: String(t.price ?? ""),
+          capacity: t.capacity != null ? String(t.capacity) : "",
+          description: t.description ?? "",
+        }))
+      );
+    } else {
+      setPricingMode("single");
+      setSaleMode("parallel");
+      setDraftTiers([]);
+    }
+  }, [open, existingTiers]);
 
   const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
