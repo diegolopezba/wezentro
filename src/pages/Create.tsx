@@ -626,30 +626,56 @@ const Create = () => {
 
               <LocationPicker value={location} onChange={setLocation} />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Precio</label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                    type="number" placeholder="0 (Gratis)" className="pl-10" value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    min="0" step="0.01" />
-                  
+              {isBusiness ? (
+                <>
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Entradas</label>
+                    <TicketTiersEditor
+                      mode={pricingMode}
+                      onModeChange={setPricingMode}
+                      singlePrice={formData.price}
+                      onSinglePriceChange={(v) => setFormData({ ...formData, price: v })}
+                      tiers={draftTiers}
+                      onTiersChange={setDraftTiers}
+                      saleMode={tierSaleMode}
+                      onSaleModeChange={setTierSaleMode}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Capacidad total (opcional)</label>
+                    <div className="relative">
+                      <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="number" placeholder="Ilimitada" className="pl-10" value={formData.capacity}
+                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                        min="1" />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Precio</label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="number" placeholder="0 (Gratis)" className="pl-10" value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        min="0" step="0.01" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Capacidad</label>
+                    <div className="relative">
+                      <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="number" placeholder="Ilimitada" className="pl-10" value={formData.capacity}
+                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                        min="1" />
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Capacidad</label>
-                  <div className="relative">
-                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                    type="number" placeholder="Ilimitada" className="pl-10" value={formData.capacity}
-                    onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                    min="1" />
-                  
-                  </div>
-                </div>
-              </div>
+              )}
             </m.div>
           }
         </AnimatePresence>
