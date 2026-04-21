@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { eventId } = await req.json();
+    const { eventId, ticketTierId } = await req.json();
     if (!eventId) {
       return new Response(JSON.stringify({ error: "eventId required" }), {
         status: 400,
@@ -67,7 +67,35 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!event.price || event.price <= 0) {
+    // Resolve effective price + tier (if any)
+    let tier: { id: string; name: string; price: number; capacity: number | null; sold_count: number } | null = null;
+    let effectivePrice: number = Number(event.price ?? 0);
+    let effectiveTitle: string = event.title || "Ticket";
+
+    if (ticketTierId) {
+      const { data: t, error: tErr } = await supabase
+        .from("ticket_tiers")
+        .select("id, name, price, capacity, sold_count, event_id, is_active")
+        .eq("id", ticketTierId)
+        .single();
+      if (tErr || !t || t.event_id !== eventId || !t.is_active) {
+        return new Response(JSON.stringify({ error: "Ticket tier not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (t.capacity != null && t.sold_count >= t.capacity) {
+        return new Response(JSON.stringify({ error: "Tier sold out" }), {
+          status: 409,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      tier = t as any;
+      effectivePrice = Number(t.price);
+      effectiveTitle = `${event.title || "Ticket"} — ${t.name}`;
+    }
+
+    if (!effectivePrice || effectivePrice <= 0) {
       return new Response(JSON.stringify({ error: "Event has no price" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
