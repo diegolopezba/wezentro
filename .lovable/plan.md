@@ -1,117 +1,49 @@
 
-# Plan: Native-Feel Polish & Performance (Items 15–35) — Revised
 
-Changes from previous plan: delete `hover:` entirely (no `md:hover:` wrap), skip item 19 (header stays in `Index.tsx`).
+# Plan: Instagram/Pinterest-Style Animation Strategy
 
----
+Replace reflexive `framer-motion` usage with the same pattern Instagram and Pinterest use on web: **CSS-first, framer-motion only for gestures**.
 
-## Phase A — Performance core (items 15, 16, 20, 22, 23, 24)
+## Approach
 
-**15. Delete all `hover:` classes**
-- Strip every `hover:*` Tailwind utility across the codebase (~133 occurrences). No replacement, no `active:` swap unless the interaction genuinely needs visual feedback that's currently missing. Most buttons already have `active:scale-95` from project conventions.
+**Tier 1 — CSS-only (no framer-motion):**
+Files using only simple fades, slides, or staggered list entries. Replace `<motion.div initial={{opacity:0}} animate={{opacity:1}}>` with `<div className="animate-fade-in">`. Staggered lists use `style={{ animationDelay: \`${i * 30}ms\` }}`.
 
-**16. Virtualize the masonry feed**
-- Wire `@tanstack/react-virtual`'s `useWindowVirtualizer` into `EventFeed.tsx`. Render only visible rows + 5 overscan. Falls back to full render if the list is <30 items.
+Target ~29 files including: notification items, dashboard cards (`StatsCard`, `EventsPerformanceTable`, `PromocionesSection`), profile sections, comment items, search results, settings rows, splash screen, onboarding steps.
 
-**20. `React.memo` for `EventCard`**
-- Custom comparator on `id`, `attendees`, `isSponsored`, `dismissed`. Prevents 200-card re-render storm on parent updates.
+**Tier 2 — LazyMotion + `m`:**
+Files that genuinely need framer-motion (gestures, layout animations, AnimatePresence with exit animations, drag). Wrap `App.tsx` in `<LazyMotion features={domAnimation} strict>` and replace every `motion.X` → `m.X` import. This swaps the 50 KB `motion` for the 6 KB `m` proxy — features only load on-demand.
 
-**22. Image CDN transforms**
-- New `src/lib/imageOptimization.ts` with `getOptimizedImageUrl(url, width, quality?)`:
-  - If URL is from Supabase storage → append `?width=...&quality=70&resize=cover`
-  - Otherwise → return unchanged
-- Apply at: `EventCard` (480px), `Avatar` everywhere (80–160px), `MessageBubble` thumbnails (320px), notification items (40px), dashboard charts (40px).
+Target ~30 files including: `EventCard` (long-press scale), `EventDetailOverlay` (AnimatePresence exit), `PullToRefresh` (drag), `Index.tsx` header (animated height), tab pill indicators, sheet drawers.
 
-**23. Per-query `staleTime`**
-- Override to `0` for `useChats`, `useNotifications`, `useEventComments`, `useGuestlist`. Keep 5 min default for events/profile/feed.
+**Tier 3 — Untouched:**
+`PullToRefresh`, `useSwipeBack`, gesture-driven sheets — leave as full `framer-motion` since they need physics/drag.
 
-**24. New `get_for_you_events` RPC**
-- Returns event row + top-5 guestlist avatars (just `avatar_url`) joined server-side instead of full nested profile rows.
-- Reduces typical 200-event payload from ~2 MB to ~150 KB.
-- `useForYouEvents.ts` switches to `supabase.rpc('get_for_you_events', { _user_id, _lat, _lng })`.
+## Bundle impact
 
----
+- Current: ~50 KB framer-motion across all routes
+- After: ~6 KB `m` proxy + on-demand `domAnimation` chunk (~12 KB) loaded once
+- Net savings: ~30 KB initial gzipped, faster TTI on first load
 
-## Phase B — Image & DOM hygiene (items 17, 18, 33, 34)
+## Execution
 
-**17. `loading="lazy" decoding="async"`**
-- Add to all 23 unflagged `<img>` tags. First 4 above-the-fold home cards get `fetchpriority="high"`.
-
-**18. Faster splash**
-- `minDisplayTime` 1200 → 400 ms. Hide as soon as the initial `useForYouEvents` query resolves rather than waiting on a fixed timer.
-
-**33. `min-h-screen` → `min-h-[100dvh]`**
-- Sweep all 27 occurrences. Fixes iOS Safari URL-bar viewport jump.
-
-**34. Skeleton for `EventDetailOverlay`**
-- New `EventDetailSkeleton` (hero blur + title bars) shown while data loads. Removes pop-in.
-
----
-
-## Phase C — Native UX (items 28, 29, 30, 31, 32, 35)
-
-**28. Haptics on missing flows**
-- `triggerHaptic('light')` on: sponsored card tap, follow toggle, comment send, pull-to-refresh complete, sheet open/close.
-
-**29. Safe-area on overlays**
-- Close button on `EventDetailOverlay` + `ChatDetail` header gets `top-[env(safe-area-inset-top)] mt-2`.
-
-**30. Keyboard handling on chat**
-- Apply `useKeyboardAdjust` to `ChatDetail.tsx`. Compose bar lifts via `transform: translateY(-keyboardHeight)`.
-
-**31. Dynamic status bar**
-- Configure `@capacitor/status-bar` once at boot in `main.tsx` to `Style.Dark` overlay-true. Remove ad-hoc calls elsewhere.
-
-**32. High-res splash assets**
-- Replace splash PNG with 1024×1024 maskable icon + 2732×2732 splash for store reviewer compliance. Update `capacitor.config.ts`.
-
-**35. Global swipe-back**
-- Mount `useSwipeBack()` once inside `KeepAliveLayout` so every page gets iOS-style edge-swipe → `navigate(-1)`.
-
----
-
-## Phase D — Code-weight (item 21 — light touch)
-
-**21. Framer-motion trim**
-- Replace ~12 trivial `<motion.div animate={{opacity:1}}>` fade-ins with `.animate-fade-in` CSS class.
-- Consolidate duplicate `AnimatePresence` instances in `Index.tsx`, `Discover.tsx`, `Profile.tsx`.
-- Saves ~30 KB gzipped, no behavior change. No full migration.
-
----
+1. Add `<LazyMotion features={domAnimation} strict>` wrapper in `App.tsx`
+2. Tier 1 conversion: 29 files → CSS classes (mechanical search/replace per file)
+3. Tier 2 conversion: 30 files → `motion` → `m` import swap (mechanical)
+4. Verify nothing visually regresses on: feed scroll, event detail open/close, tab switch, sheet open, pull-to-refresh
 
 ## Files touched
 
-**Phase A:** `EventFeed.tsx`, `EventCard.tsx`, new `src/lib/imageOptimization.ts`, `useForYouEvents.ts`, `useChats.ts`, `useNotifications.ts`, `useEventComments.ts`, `useGuestlist.ts`, ~20 files containing avatar/img usage, new migration with `get_for_you_events` RPC.
-
-**Phase B:** ~23 component files (img attrs), `SplashScreen.tsx`, `App.tsx`, sweep `min-h-screen`, new `src/components/skeletons/EventDetailSkeleton.tsx`.
-
-**Phase C:** `EventCard.tsx`, `EventDetailOverlay.tsx`, `ChatDetail.tsx`, `main.tsx`, `capacitor.config.ts`, new splash assets, `KeepAliveLayout.tsx`.
-
-**Phase D:** ~15 component files with trivial motion replacements.
-
-**Hover sweep:** ~50 files containing `hover:` utilities.
-
----
-
-## Out of scope
-- Items 1–14 (security + correctness bugs) per earlier decision
-- Item 19 (header lift) per this revision
-- Test coverage, full motion migration, OneSignal background push
-
----
+~60 component files. No new files. No config changes beyond the `App.tsx` wrapper. No dependency changes — `framer-motion` stays installed (still used in Tier 2 + Tier 3).
 
 ## Risks
-- **Virtualization + CSS columns** can be tricky; if the masonry breaks, fall back to chunked rendering (50 cards, load more on scroll).
-- **`get_for_you_events` RPC** changes feed shape; will parity-check against current output before deleting old query.
-- **Image transforms** require Supabase image transformation API — confirmed available on Lovable Cloud. External (non-storage) URLs pass through untouched.
 
----
+- `strict` mode on `LazyMotion` will throw at runtime if any `motion.X` was missed during the rename — that's the point, it surfaces misses immediately rather than silently double-loading the bundle.
+- AnimatePresence `exit` animations work identically with `m`.
 
-## Execution order
-1. Phase A (biggest wins)
-2. Phase B (visual polish)
-3. Phase C (native feel)
-4. Phase D (last)
-5. `hover:` sweep can run in parallel with any phase
+## Out of scope
 
-Each phase ships independently.
+- Replacing `framer-motion` entirely (Tier 3 keeps it)
+- Touching `PullToRefresh`, `useSwipeBack`, drag gestures
+- New animations or visual changes
+
