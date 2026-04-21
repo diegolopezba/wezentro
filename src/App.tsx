@@ -470,6 +470,7 @@ const App = () => {
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
+      </LazyMotion>
     </ErrorBoundary>
   );
 };
