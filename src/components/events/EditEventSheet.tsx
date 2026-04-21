@@ -341,17 +341,33 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="price">Precio (Bs)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                />
-              </div>
+              {isBusiness ? (
+                <div className="space-y-2">
+                  <Label>Entradas</Label>
+                  <TicketTiersEditor
+                    mode={pricingMode}
+                    onModeChange={setPricingMode}
+                    singlePrice={formData.price}
+                    onSinglePriceChange={(v) => setFormData({ ...formData, price: v })}
+                    tiers={draftTiers}
+                    onTiersChange={setDraftTiers}
+                    saleMode={saleMode}
+                    onSaleModeChange={setSaleMode}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="price">Precio (Bs)</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  />
+                </div>
+              )}
 
               <div className="flex items-center justify-between py-2">
                 <div className="flex flex-col">
