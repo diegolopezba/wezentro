@@ -635,6 +635,7 @@ export type Database = {
           payment_status: string | null
           qr_code_token: string | null
           status: string | null
+          ticket_tier_id: string | null
           user_id: string
         }
         Insert: {
@@ -647,6 +648,7 @@ export type Database = {
           payment_status?: string | null
           qr_code_token?: string | null
           status?: string | null
+          ticket_tier_id?: string | null
           user_id: string
         }
         Update: {
@@ -659,6 +661,7 @@ export type Database = {
           payment_status?: string | null
           qr_code_token?: string | null
           status?: string | null
+          ticket_tier_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -667,6 +670,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guestlist_entries_ticket_tier_id_fkey"
+            columns: ["ticket_tier_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_tiers"
             referencedColumns: ["id"]
           },
           {
@@ -997,6 +1007,7 @@ export type Database = {
           event_id: string
           id: string
           status: string
+          ticket_tier_id: string | null
         }
         Insert: {
           amount: number
@@ -1008,6 +1019,7 @@ export type Database = {
           event_id: string
           id?: string
           status?: string
+          ticket_tier_id?: string | null
         }
         Update: {
           amount?: number
@@ -1019,6 +1031,7 @@ export type Database = {
           event_id?: string
           id?: string
           status?: string
+          ticket_tier_id?: string | null
         }
         Relationships: [
           {
@@ -1026,6 +1039,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_ticket_tier_id_fkey"
+            columns: ["ticket_tier_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_tiers"
             referencedColumns: ["id"]
           },
         ]
@@ -1775,6 +1795,66 @@ export type Database = {
           },
         ]
       }
+      ticket_tiers: {
+        Row: {
+          capacity: number | null
+          created_at: string
+          description: string | null
+          display_order: number
+          event_id: string
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          sold_count: number
+          unlock_after_tier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          event_id: string
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number
+          sold_count?: number
+          unlock_after_tier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          event_id?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          sold_count?: number
+          unlock_after_tier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_tiers_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_tiers_unlock_after_tier_id_fkey"
+            columns: ["unlock_after_tier_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_category_preferences: {
         Row: {
           category: string
@@ -2252,6 +2332,7 @@ export type Database = {
         Args: { _post_id: string }
         Returns: undefined
       }
+      increment_tier_sold: { Args: { _tier_id: string }; Returns: boolean }
       is_blocked: {
         Args: { _target: string; _viewer: string }
         Returns: boolean
