@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { X, Check, Loader2, Users, DollarSign, Clock, QrCode, Copy, RotateCcw, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -242,7 +242,7 @@ export const GuestlistManagementSheet = ({
   };
 
   const renderEmptyState = (icon: React.ReactNode, title: string, subtitle: string) => (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col items-center justify-center py-16 text-center" >
@@ -251,7 +251,7 @@ export const GuestlistManagementSheet = ({
       </div>
       <h2 className="font-medium text-foreground mb-1">{title}</h2>
       <p className="text-sm text-muted-foreground">{subtitle}</p>
-    </motion.div>
+    </m.div>
   );
 
   const renderUserRow = (
@@ -262,7 +262,7 @@ export const GuestlistManagementSheet = ({
   ) => {
     const isProcessing = processingIds.has(request.id);
     return (
-      <motion.div
+      <m.div
         key={request.id}
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -296,7 +296,7 @@ export const GuestlistManagementSheet = ({
         <div className="flex gap-2">
           {actions}
         </div>
-      </motion.div>
+      </m.div>
     );
   };
 

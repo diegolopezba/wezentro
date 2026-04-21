@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CalendarDays, Clock, Users, X, UserCheck, Pencil } from "lucide-react";
@@ -251,13 +251,13 @@ const MyReservations = () => {
           </div>
         ) : (
           reservations.map((r) => (
-            <motion.div
+            <m.div
               key={r.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
             >
               <ReservationCard reservation={r} onModify={setEditing} />
-            </motion.div>
+            </m.div>
           ))
         )}
       </div>

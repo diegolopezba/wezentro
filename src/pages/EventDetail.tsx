@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -141,7 +141,7 @@ const EventDetail = () => {
 
       {/* Content */}
       <div className="relative -mt-16 px-4 pb-28">
-        <motion.div initial={{
+        <m.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
@@ -386,7 +386,7 @@ const EventDetail = () => {
                 Registrarse / Iniciar Sesión
               </Button>
             </div>}
-        </motion.div>
+        </m.div>
       </div>
 
 

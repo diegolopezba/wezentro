@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { trackProfileVisit } from "@/lib/analyticsTracking";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
@@ -166,7 +166,7 @@ const UserProfile = () => {
 
       {/* Profile info */}
       <div className="px-4 py-0 bg-background">
-        <motion.div initial={{
+        <m.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
@@ -187,10 +187,10 @@ const UserProfile = () => {
                 </div>)}
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Bio */}
-        <motion.div initial={{
+        <m.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
@@ -205,10 +205,10 @@ const UserProfile = () => {
         }
           {userProfile.bio && <MentionText text={userProfile.bio} className="text-sm text-foreground/80" />}
           {userProfile.city && <p className="text-xs text-muted-foreground mt-1">📍 {userProfile.city}</p>}
-        </motion.div>
+        </m.div>
 
         {/* Action buttons - only show for other users */}
-        {!isOwnProfile && <motion.div initial={{
+        {!isOwnProfile && <m.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
@@ -265,7 +265,7 @@ const UserProfile = () => {
                   </TooltipContent>}
               </Tooltip>
         }
-          </motion.div>}
+          </m.div>}
       </div>
 
       {/* Timeline Content */}

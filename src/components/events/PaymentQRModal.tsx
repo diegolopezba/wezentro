@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -190,7 +190,7 @@ export function PaymentQRModal({
 
           {/* ── LOADING ── */}
           {step === "loading" && (
-            <motion.div
+            <m.div
               key="loading"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -199,12 +199,12 @@ export function PaymentQRModal({
             >
               <Loader2 className="w-10 h-10 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">Generando tu QR de pago...</p>
-            </motion.div>
+            </m.div>
           )}
 
           {/* ── BLURRED (QR hidden) ── */}
           {step === "blurred" && (
-            <motion.div
+            <m.div
               key="blurred"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -237,12 +237,12 @@ export function PaymentQRModal({
                   ✓ QR generado en tiempo real — válido por 2 horas
                 </p>
               )}
-            </motion.div>
+            </m.div>
           )}
 
           {/* ── REVEALED / POLLING ── */}
           {(step === "revealed" || step === "polling") && (
-            <motion.div
+            <m.div
               key="revealed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -309,12 +309,12 @@ export function PaymentQRModal({
                   )}
                 </Button>
               )}
-            </motion.div>
+            </m.div>
           )}
 
           {/* ── SUCCESS ── */}
           {step === "success" && (
-            <motion.div
+            <m.div
               key="success"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -338,12 +338,12 @@ export function PaymentQRModal({
               <Button variant="hero" className="w-full" onClick={handleViewTickets}>
                 Ver Entradas
               </Button>
-            </motion.div>
+            </m.div>
           )}
 
           {/* ── EXPIRED ── */}
           {step === "expired" && (
-            <motion.div
+            <m.div
               key="expired"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -364,12 +364,12 @@ export function PaymentQRModal({
               <Button variant="ghost" className="w-full" onClick={handleClose}>
                 Cancelar
               </Button>
-            </motion.div>
+            </m.div>
           )}
 
           {/* ── ERROR ── */}
           {step === "error" && (
-            <motion.div
+            <m.div
               key="error"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -390,7 +390,7 @@ export function PaymentQRModal({
               <Button variant="ghost" className="w-full" onClick={handleClose}>
                 Cancelar
               </Button>
-            </motion.div>
+            </m.div>
           )}
 
         </AnimatePresence>

@@ -1,5 +1,5 @@
 import { Suspense, lazy, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Eye, Heart, Share2, Users, UserCheck } from "lucide-react";
 import { EventPerformance, useEventPerformance } from "@/hooks/useBusinessAnalytics";
 import { format } from "date-fns";
@@ -15,7 +15,7 @@ const EventCard = ({ event }: { event: EventPerformance }) => {
   const engagementRate = reach > 0 ? Math.round((engagementActions / reach) * 100) : 0;
 
   return (
-    <motion.div layout className="rounded-2xl bg-card border border-border overflow-hidden">
+    <m.div layout className="rounded-2xl bg-card border border-border overflow-hidden">
       <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center gap-3 p-3 text-left">
         {event.image_url ? (
           <img src={event.image_url} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
@@ -42,7 +42,7 @@ const EventCard = ({ event }: { event: EventPerformance }) => {
 
       <AnimatePresence>
         {expanded && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+          <m.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
             <div className="px-3 pb-3 grid grid-cols-2 gap-2">
               <Stat label="Alcance" value={reach} icon={Eye} />
               <Stat label="Likes" value={event.likes_count} icon={Heart} />
@@ -50,10 +50,10 @@ const EventCard = ({ event }: { event: EventPerformance }) => {
               <Stat label="Check-ins" value={event.checked_in} icon={UserCheck} />
               <Stat label="Aprobados" value={event.approved_guests} icon={UserCheck} />
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </m.div>
   );
 };
 

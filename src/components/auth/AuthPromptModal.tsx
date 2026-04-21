@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
@@ -23,7 +23,7 @@ export const AuthPromptModal = () => {
       {isOpen && (
         <>
           {/* Backdrop */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -31,7 +31,7 @@ export const AuthPromptModal = () => {
           />
 
           {/* Modal */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -75,7 +75,7 @@ export const AuthPromptModal = () => {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         </>
       )}
     </AnimatePresence>

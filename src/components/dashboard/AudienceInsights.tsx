@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
@@ -49,7 +49,7 @@ export const AudienceInsights = () => {
         {followers.map((f: any, i: number) => {
           const profile = f.profiles;
           return (
-            <motion.div
+            <m.div
               key={f.follower_id}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -66,7 +66,7 @@ export const AudienceInsights = () => {
                 </p>
                 <p className="text-xs text-muted-foreground">{profile?.username}</p>
               </div>
-            </motion.div>
+            </m.div>
           );
         })}
       </div>

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase, Ban } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
@@ -81,7 +81,7 @@ const Settings = () => {
                 const Icon = item.icon;
                 const idx = globalIndex++;
                 return (
-                  <motion.button
+                  <m.button
                     key={item.label}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -94,7 +94,7 @@ const Settings = () => {
                     </div>
                     <span className="font-medium flex-1 text-left text-sm text-foreground">{item.label}</span>
                     <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
-                  </motion.button>
+                  </m.button>
                 );
               })}
             </div>
@@ -102,7 +102,7 @@ const Settings = () => {
         ))}
 
         <div className="rounded-2xl bg-card border border-border overflow-hidden">
-          <motion.button
+          <m.button
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
@@ -113,7 +113,7 @@ const Settings = () => {
               <LogOut className="w-4 h-4 text-destructive" />
             </div>
             <span className="text-destructive font-medium flex-1 text-left text-sm">Cerrar Sesión</span>
-          </motion.button>
+          </m.button>
         </div>
       </div>
     </AppLayout>

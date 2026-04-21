@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -159,9 +159,9 @@ const Index = () => {
   return <AppLayout ref={scrollContainerRef}>
         <header className="sticky top-0 z-40 safe-top bg-background">
           <div className="flex items-center justify-between px-4 py-4">
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+            <m.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
               <h1 className="font-brand text-2xl text-foreground font-semibold">zentro</h1>
-            </motion.div>
+            </m.div>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" className="relative" onClick={handleNotificationClick}>
                 <Bell className="w-5 h-5" />
@@ -172,30 +172,30 @@ const Index = () => {
               </Button>
             </div>
           </div>
-          {showSearch && <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-4 pb-4">
+          {showSearch && <m.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-4 pb-4">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input placeholder="Buscar eventos, lugares..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
               </div>
-            </motion.div>}
-          <motion.div
+            </m.div>}
+          <m.div
             animate={{ height: headerVisible ? "auto" : 0, opacity: headerVisible ? 1 : 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="overflow-hidden"
           >
             <div className="flex px-4 pb-3 gap-2" style={{ pointerEvents: headerVisible ? "auto" : "none" }}>
               <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-colors duration-150 ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground active:text-foreground"}`}>
-                {activeTab === "for-you" && <motion.div initial={false} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 gradient-primary rounded-full" />}
+                {activeTab === "for-you" && <m.div initial={false} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 gradient-primary rounded-full" />}
                 <span className="relative z-10">Para Ti</span>
               </button>
               {!isGuest && (
                 <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-colors duration-150 ${activeTab === "following" ? "text-primary" : "text-muted-foreground active:text-foreground"}`}>
-                  {activeTab === "following" && <motion.div initial={false} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 gradient-primary rounded-full" />}
+                  {activeTab === "following" && <m.div initial={false} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 gradient-primary rounded-full" />}
                   <span className="relative z-10">Siguiendo</span>
                 </button>
               )}
             </div>
-          </motion.div>
+          </m.div>
         </header>
         <PullToRefresh onRefresh={handleRefresh} className="flex-1">
           <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />

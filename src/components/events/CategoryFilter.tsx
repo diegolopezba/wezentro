@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const categories = [
@@ -26,7 +26,7 @@ export const CategoryFilter = ({ selected, onSelect }: CategoryFilterProps) => {
         const isSelected = selected === category.id;
         
         return (
-          <motion.button
+          <m.button
             key={category.id}
             whileTap={{ scale: 0.95 }}
             onClick={() => onSelect(category.id)}
@@ -39,7 +39,7 @@ export const CategoryFilter = ({ selected, onSelect }: CategoryFilterProps) => {
           >
             <span>{category.emoji}</span>
             <span className="text-sm font-medium">{category.label}</span>
-          </motion.button>
+          </m.button>
         );
       })}
     </div>

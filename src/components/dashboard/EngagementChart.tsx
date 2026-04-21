@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import {
   BarChart,
   Bar,
@@ -48,7 +48,7 @@ export const EngagementChart = ({ events, isLoading }: EngagementChartProps) => 
     }));
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="h-64"
@@ -91,6 +91,6 @@ export const EngagementChart = ({ events, isLoading }: EngagementChartProps) => 
           <Bar dataKey="checkedIn" fill="hsl(217, 91%, 60%)" name="Checked In" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
-    </motion.div>
+    </m.div>
   );
 };

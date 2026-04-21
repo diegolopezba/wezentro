@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { GuestlistFunnelData } from "@/hooks/useBusinessAnalytics";
 import { Mail, CheckCircle, Users, UserCheck, Ticket } from "lucide-react";
 
@@ -53,7 +53,7 @@ export const GuestlistFunnel = ({ data, isLoading }: GuestlistFunnelProps) => {
         }
 
         return (
-          <motion.div
+          <m.div
             key={step.key}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -77,7 +77,7 @@ export const GuestlistFunnel = ({ data, isLoading }: GuestlistFunnelProps) => {
                   </div>
                 </div>
                 <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                  <motion.div
+                  <m.div
                     initial={{ width: 0 }}
                     animate={{ width: `${percentage}%` }}
                     transition={{ delay: index * 0.1 + 0.2, duration: 0.5 }}
@@ -90,7 +90,7 @@ export const GuestlistFunnel = ({ data, isLoading }: GuestlistFunnelProps) => {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         );
       })}
     </div>

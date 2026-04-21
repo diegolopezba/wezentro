@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { format } from "date-fns";
 import { Eye, Heart, Users, UserCheck, CheckCircle2 } from "lucide-react";
 import { EventPerformance } from "@/hooks/useBusinessAnalytics";
@@ -43,7 +43,7 @@ export const EventsPerformanceTable = ({
             : 0;
 
         return (
-          <motion.div
+          <m.div
             key={event.id}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -97,7 +97,7 @@ export const EventsPerformanceTable = ({
                 {conversionRate}%
               </div>
             </div>
-          </motion.div>
+          </m.div>
         );
       })}
     </div>

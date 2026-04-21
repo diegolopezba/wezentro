@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Loader2, UserPlus } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -57,7 +57,7 @@ const UserItem = ({
   onClose: () => void;
 }) => {
   const navigate = useNavigate();
-  return <motion.div initial={{
+  return <m.div initial={{
     opacity: 0,
     x: -10
   }} animate={{
@@ -73,7 +73,7 @@ const UserItem = ({
         <p className="text-sm text-muted-foreground truncate">{user.username}</p>
       </div>
       <FollowButton targetUserId={user.id} />
-    </motion.div>;
+    </m.div>;
 };
 export const FollowersSheet = ({
   userId,

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { CalendarCheck, Users } from "lucide-react";
 import { format } from "date-fns";
 
@@ -57,15 +57,15 @@ export const ReservationsSummary = () => {
   return (
     <div className="space-y-3">
       <div className="flex gap-3">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex-1 p-3 rounded-xl bg-primary/10 border border-primary/20"
         >
           <p className="text-2xl font-bold text-foreground">{data.upcomingCount}</p>
           <p className="text-xs text-muted-foreground">Próximas</p>
-        </motion.div>
-        <motion.div
+        </m.div>
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -73,12 +73,12 @@ export const ReservationsSummary = () => {
         >
           <p className="text-2xl font-bold text-foreground">{data.totalGuests}</p>
           <p className="text-xs text-muted-foreground">Personas esperadas</p>
-        </motion.div>
+        </m.div>
       </div>
 
       <div className="space-y-2">
         {data.upcoming.map((res: any) => (
-          <motion.div
+          <m.div
             key={res.id}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -96,7 +96,7 @@ export const ReservationsSummary = () => {
               <Users className="w-3.5 h-3.5" />
               {res.party_size}
             </div>
-          </motion.div>
+          </m.div>
         ))}
       </div>
     </div>

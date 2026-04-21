@@ -23,7 +23,7 @@ import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { format, addDays, startOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface ReservationSheetProps {
@@ -305,7 +305,7 @@ export const ReservationSheet = ({
           <AnimatePresence mode="wait">
             {/* DATE */}
             {currentStep === "date" && (
-              <motion.div
+              <m.div
                 key="date" initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
@@ -352,12 +352,12 @@ export const ReservationSheet = ({
                     <Clock className="w-3 h-3" /> Horario: {businessHours.split("\n")[0]}
                   </p>
                 )}
-              </motion.div>
+              </m.div>
             )}
 
             {/* TIME */}
             {currentStep === "time" && (
-              <motion.div
+              <m.div
                 key="time" initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
@@ -384,7 +384,7 @@ export const ReservationSheet = ({
                 {renderTimeSection("Otros", grouped.other)}
 
                 {selectedInfo?.status === "full" && alternatives.length > 0 && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 space-y-2" >
@@ -402,14 +402,14 @@ export const ReservationSheet = ({
                         </button>
                       ))}
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
-              </motion.div>
+              </m.div>
             )}
 
             {/* PARTY SIZE */}
             {currentStep === "size" && (
-              <motion.div
+              <m.div
                 key="size" initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
@@ -464,12 +464,12 @@ export const ReservationSheet = ({
                     {selectedInfo.status === "full" ? "Sin disponibilidad para este horario" : `${Math.max(0, capacity - selectedInfo.booked)} lugares disponibles`}
                   </div>
                 )}
-              </motion.div>
+              </m.div>
             )}
 
             {/* EXTRAS */}
             {currentStep === "extras" && (
-              <motion.div
+              <m.div
                 key="extras" initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
@@ -571,7 +571,7 @@ export const ReservationSheet = ({
                     }}
                   />
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { WifiOff, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -16,7 +16,7 @@ export const OfflineFallback = ({
   message = "Sin conexión a internet" 
 }: OfflineFallbackProps) => {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col items-center justify-center py-12 px-4 text-center"
@@ -36,6 +36,6 @@ export const OfflineFallback = ({
           Reintentar
         </Button>
       )}
-    </motion.div>
+    </m.div>
   );
 };

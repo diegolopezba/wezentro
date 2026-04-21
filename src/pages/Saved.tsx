@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowLeft, Bookmark } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ const Saved = () => {
       <div className="py-2 px-0">
         {isLoading ? <EventFeedSkeleton count={6} /> : savedEvents && savedEvents.length > 0 ? <div className="masonry-grid">
             {savedEvents.map((item, index) => <EventCard key={item.id} id={item.event.id} title={item.event.title || undefined} date={item.event.start_datetime} location={item.event.location_name || ""} imageUrl={item.event.image_url || ""} category={item.event.category || ""} index={index} />)}
-          </div> : <motion.div initial={{
+          </div> : <m.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
@@ -47,7 +47,7 @@ const Saved = () => {
             <Button variant="hero" className="mt-6" onClick={() => navigate("/")}>
               Explorar Eventos
             </Button>
-          </motion.div>}
+          </m.div>}
       </div>
     </AppLayout>;
 };

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { CheckCircle, XCircle, AlertCircle, Camera, RotateCcw, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -217,7 +217,7 @@ export default function ScanQR() {
             <span className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg" />
             {/* Scanning line animation */}
             {state === "scanning" && (
-              <motion.div
+              <m.div
                 className="absolute left-2 right-2 h-0.5 bg-primary/80 rounded-full shadow-lg"
                 initial={{ top: "0%" }}
                 animate={{ top: "100%" }}
@@ -251,21 +251,21 @@ export default function ScanQR() {
       {/* Loading state */}
       <AnimatePresence>
         {state === "loading" && (
-          <motion.div
+          <m.div
             className="absolute inset-0 z-20 flex items-center justify-center bg-black/60"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <div className="w-12 h-12 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* Result overlay */}
       <AnimatePresence>
         {(state === "success" || state === "already_used" || state === "error") && (
-          <motion.div
+          <m.div
             className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -282,14 +282,14 @@ export default function ScanQR() {
             >
               {/* Icon */}
               {state === "success" && (
-                <motion.div
+                <m.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center"
                 >
                   <CheckCircle className="w-10 h-10 text-primary" />
-                </motion.div>
+                </m.div>
               )}
               {state === "already_used" && (
                 <div className="w-20 h-20 rounded-full bg-yellow-500/10 flex items-center justify-center">
@@ -356,7 +356,7 @@ export default function ScanQR() {
                 Escanear siguiente
               </Button>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 

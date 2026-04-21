@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowLeft, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -30,7 +30,7 @@ const TermsOfUse = () => {
       </header>
 
       <ScrollArea className="h-[calc(100vh-80px)]">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="px-4 py-6 pb-12 space-y-6"
@@ -294,7 +294,7 @@ const TermsOfUse = () => {
               <p className="text-sm text-primary">hello@zentro.com</p>
             </div>
           </section>
-        </motion.div>
+        </m.div>
       </ScrollArea>
     </AppLayout>
   );

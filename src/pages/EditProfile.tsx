@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ChevronLeft, Camera, Loader2, Info } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -243,7 +243,7 @@ const EditProfile = () => {
 
       <div className="px-4 py-6 space-y-8">
         {/* Profile Picture */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center"
@@ -272,10 +272,10 @@ const EditProfile = () => {
           <p className="text-sm text-muted-foreground mt-3">
             Toca para cambiar foto de perfil
           </p>
-        </motion.div>
+        </m.div>
 
         {/* Form Fields */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
@@ -323,10 +323,10 @@ const EditProfile = () => {
               rows={3}
             />
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Personal Information Section */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -407,7 +407,7 @@ const EditProfile = () => {
               se comparte individualmente.
             </p>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </AppLayout>
   );

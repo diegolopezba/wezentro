@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useState } from "react";
 import { ChevronLeft, Users, UserCheck, Heart, Loader2, Bell, BellOff, Send, AlertTriangle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -128,7 +128,7 @@ const PrivacySettings = () => {
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -147,7 +147,7 @@ const PrivacySettings = () => {
                 const isSelected = currentValue === option.value;
 
                 return (
-                  <motion.button
+                  <m.button
                     key={option.value}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -184,13 +184,13 @@ const PrivacySettings = () => {
                         isSelected ? "border-primary" : "border-muted-foreground" }`}
                     >
                       {isSelected && (
-                        <motion.div
+                        <m.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           className="w-2.5 h-2.5 rounded-full bg-primary" />
                       )}
                     </div>
-                  </motion.button>
+                  </m.button>
                 );
               })}
             </div>
@@ -251,7 +251,7 @@ const PrivacySettings = () => {
 
             {/* Test notification button */}
             {isSubscribed && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-3" >
@@ -266,9 +266,9 @@ const PrivacySettings = () => {
                   )}
                   Enviar Notificación de Prueba
                 </Button>
-              </motion.div>
+              </m.div>
             )}
-          </motion.div>
+          </m.div>
         )}
       </div>
     </AppLayout>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowRight, User, Check, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -144,7 +144,7 @@ const Onboarding = () => {
     <div className="min-h-[100dvh] bg-background flex flex-col overflow-y-auto">
       {/* Progress bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-secondary z-20">
-        <motion.div
+        <m.div
           className="h-full bg-foreground" initial={{ width: "33%" }}
           animate={{ width: `${(step / 3) * 100}%` }}
           transition={{ duration: 0.3 }}
@@ -152,7 +152,7 @@ const Onboarding = () => {
       </div>
 
       {/* Logo + heading */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className={`text-center relative z-10 transition-all duration-300 ${isKeyboardVisible ? "pt-5 pb-2" : "pt-16 pb-6"}`}
@@ -172,7 +172,7 @@ const Onboarding = () => {
           {step === 2 && "Ayúdanos a personalizar tu experiencia"}
           {step === 3 && "Esta info es privada y mejora tus recomendaciones"}
         </p>
-      </motion.div>
+      </m.div>
 
       {/* Content */}
       <div className="flex-1 px-6 relative z-10">
@@ -180,7 +180,7 @@ const Onboarding = () => {
 
           {/* Step 1: Username */}
           {step === 1 && (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+            <m.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div>
                 <label className="text-sm font-medium text-foreground mb-2 block">Nombre de usuario</label>
                 <div className="relative">
@@ -204,12 +204,12 @@ const Onboarding = () => {
                   <>Continuar <ArrowRight className="w-5 h-5 ml-2" /></>
                 )}
               </Button>
-            </motion.div>
+            </m.div>
           )}
 
           {/* Step 2: Display name */}
           {step === 2 && (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+            <m.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div>
                 <label className="text-sm font-medium text-foreground mb-2 block">Nombre para mostrar</label>
                 <div className="relative">
@@ -226,12 +226,12 @@ const Onboarding = () => {
                   Continuar <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {/* Step 3: Gender + birth date */}
           {step === 3 && (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+            <m.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
 
               {/* Gender */}
               <div>
@@ -301,7 +301,7 @@ const Onboarding = () => {
                   )}
                 </Button>
               </div>
-            </motion.div>
+            </m.div>
           )}
         </div>
       </div>

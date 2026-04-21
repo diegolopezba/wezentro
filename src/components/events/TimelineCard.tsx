@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef } from "react";
@@ -107,7 +107,7 @@ export const TimelineCard = ({
   const dateDisplay = getDateDisplay();
 
   return (
-    <motion.div
+    <m.div
       layoutId={`timeline-card-${id}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -197,6 +197,6 @@ export const TimelineCard = ({
           </div>
         )}
       </div>
-    </motion.div>
+    </m.div>
   );
 };

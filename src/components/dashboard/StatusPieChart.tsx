@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { GuestlistStatusBreakdown } from "@/hooks/useBusinessAnalytics";
 
@@ -48,7 +48,7 @@ export const StatusPieChart = ({ data, isLoading }: StatusPieChartProps) => {
   ].filter((item) => item.value > 0);
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       className="h-64"
@@ -86,6 +86,6 @@ export const StatusPieChart = ({ data, isLoading }: StatusPieChartProps) => {
           />
         </PieChart>
       </ResponsiveContainer>
-    </motion.div>
+    </m.div>
   );
 };

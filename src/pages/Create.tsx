@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { haptic } from "@/lib/haptics";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import {
   Upload,
   Calendar,
@@ -335,7 +335,7 @@ const Create = () => {
       <div className="px-4 py-6 space-y-6 pb-24">
 
         {/* ── Type selector (Instagram-style wheel) ── */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-2 gap-3">
@@ -343,7 +343,7 @@ const Create = () => {
           {TYPE_OPTIONS.map((option) => {
             const active = contentType === option.id;
             return (
-              <motion.button
+              <m.button
                 key={option.id}
                 type="button" onClick={() => handleTypeChange(option.id)}
                 whileTap={{ scale: 0.97 }}
@@ -372,17 +372,17 @@ const Create = () => {
                 </div>
                 {/* Active indicator dot */}
                 {active &&
-                <motion.div
+                <m.div
                   layoutId="type-active-dot" className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary" transition={{ type: "spring", stiffness: 400, damping: 30 }} />
 
                 }
-              </motion.button>);
+              </m.button>);
 
           })}
-        </motion.div>
+        </m.div>
 
         {/* ── Media upload ── */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+        <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
           <label className="block">
             {mediaPreview ?
             <div className="relative rounded-2xl overflow-hidden">
@@ -400,7 +400,7 @@ const Create = () => {
 
                   <>
                           <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                            <motion.div
+                            <m.div
                         className="h-full bg-primary rounded-full" initial={{ width: 0 }}
                         animate={{ width: `${uploadProgress}%` }}
                         transition={{ duration: 0.2 }} />
@@ -454,10 +454,10 @@ const Create = () => {
               className="hidden" />
             
           </label>
-        </motion.div>
+        </m.div>
 
         {/* ── Text fields ── */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08 }}
@@ -488,10 +488,10 @@ const Create = () => {
               }}
             />
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ── Category ── */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <button
             type="button" onClick={() => setCategoryOpen((o) => !o)}
             className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-secondary border border-border text-sm font-medium text-foreground transition-colors ">
@@ -510,7 +510,7 @@ const Create = () => {
           </button>
           <AnimatePresence>
             {categoryOpen &&
-            <motion.div
+            <m.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
@@ -533,15 +533,15 @@ const Create = () => {
                     </button>
                 )}
                 </div>
-              </motion.div>
+              </m.div>
             }
           </AnimatePresence>
-        </motion.div>
+        </m.div>
 
         {/* ── Event-only fields (date, time, location, price, capacity) ── */}
         <AnimatePresence>
           {!isPost &&
-          <motion.div
+          <m.div
             key="event-fields" initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -595,7 +595,7 @@ const Create = () => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           }
         </AnimatePresence>
 
@@ -603,7 +603,7 @@ const Create = () => {
         {/* ── Guestlist toggle (events only) ── */}
         <AnimatePresence>
           {!isPost &&
-          <motion.div
+          <m.div
             key="guestlist-toggle" initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -636,20 +636,20 @@ const Create = () => {
                   className={`relative w-12 h-7 rounded-full transition-colors ${
                   formData.hasGuestlist ? "bg-primary" : "bg-secondary"}` }>
                   
-                    <motion.div
+                    <m.div
                     animate={{ x: formData.hasGuestlist ? 22 : 2 }}
                     className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
                   
                   </button>
                 </div>
               </Card>
-            </motion.div>
+            </m.div>
           }
         </AnimatePresence>
 
         {/* ── Menu button toggle (business only) ── */}
         {isBusiness && hasMenuItems &&
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
+        <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
             <Card className="glass border-white/10 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -666,19 +666,19 @@ const Create = () => {
                 className={`relative w-12 h-7 rounded-full transition-colors ${
                 formData.showMenuButton ? "bg-primary" : "bg-secondary"}` }>
                 
-                  <motion.div
+                  <m.div
                   animate={{ x: formData.showMenuButton ? 22 : 2 }}
                   className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
                 
                 </button>
               </div>
             </Card>
-          </motion.div>
+          </m.div>
         }
 
         {/* ── Reservation button toggle (business + posts only) ── */}
         {isBusiness && reservationsEnabled && isPost &&
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}>
+        <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}>
             <Card className="glass border-white/10 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -695,14 +695,14 @@ const Create = () => {
                 className={`relative w-12 h-7 rounded-full transition-colors ${
                 formData.showReservationButton ? "bg-primary" : "bg-secondary"}` }>
                 
-                  <motion.div
+                  <m.div
                   animate={{ x: formData.showReservationButton ? 22 : 2 }}
                   className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
                 
                 </button>
               </div>
             </Card>
-          </motion.div>
+          </m.div>
         }
 
         {/* ── Publish button ── */}

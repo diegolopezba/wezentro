@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowLeft, CreditCard, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -108,7 +108,7 @@ const BusinessPaymentSettings = () => {
 
       <div className="px-4 py-4 space-y-4">
         {/* Hero card */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-start gap-3 py-4 px-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20" >
@@ -121,10 +121,10 @@ const BusinessPaymentSettings = () => {
               Sin intermediarios — el pago va directo a tu cuenta BNB. Escaneado por cualquier app bancaria boliviana.
             </p>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Credentials */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
@@ -174,10 +174,10 @@ const BusinessPaymentSettings = () => {
               </Button>
             )}
           </div>
-        </motion.div>
+        </m.div>
 
         {/* How to get credentials */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -189,10 +189,10 @@ const BusinessPaymentSettings = () => {
             <li>Recibirás tu <strong className="text-foreground">Account ID</strong> y <strong className="text-foreground">Authorization ID</strong></li>
             <li>Pégalos aquí — los pagos llegarán directo a tu cuenta</li>
           </ol>
-        </motion.div>
+        </m.div>
 
         {/* Security note */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
@@ -200,7 +200,7 @@ const BusinessPaymentSettings = () => {
           <p className="text-xs text-muted-foreground leading-relaxed">
             🔒 Tus credenciales se almacenan de forma cifrada y solo son accesibles por tu cuenta. Zentro nunca retiene ni procesa el dinero de tus transacciones.
           </p>
-        </motion.div>
+        </m.div>
       </div>
     </div>
   );
