@@ -21,7 +21,7 @@ const lazyWithRetry = (importFn: () => Promise<any>) =>
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, type Location } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OneSignalProvider } from "@/contexts/OneSignalContext";
 import { LocationProvider } from "@/contexts/LocationContext";
@@ -35,8 +35,6 @@ import { PageLoader } from "@/components/PageLoader";
 import { AuthPromptProvider } from "@/hooks/useAuthPrompt";
 import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
 import { KeepAliveLayout } from "@/components/layout/KeepAliveLayout";
-import { SelectedEventProvider } from "@/contexts/SelectedEventContext";
-import { EventDetailOverlay } from "@/components/events/EventDetailOverlay";
 import { EulaGate } from "@/components/moderation/EulaGate";
 import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
 
@@ -82,13 +80,21 @@ const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
 const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
 
-// Preload core routes after initial render for instant navigation
+// Lazily-imported, but pre-loadable for instant tap response
+const eventDetailImport = () => import("./pages/EventDetail");
+const userProfileImport = () => import("./pages/UserProfile");
+
+// Preload core routes after initial render for instant navigation.
+// Includes EventDetail + UserProfile because they're the most-tapped
+// secondary routes from the feed (avoids waiting for the JS chunk on tap).
 const preloadCoreRoutes = () => {
   indexImport();
   discoverImport();
   createImport();
   chatsImport();
   profileImport();
+  eventDetailImport();
+  userProfileImport();
 };
 
 // Configure QueryClient with caching to eliminate refetching on navigation
