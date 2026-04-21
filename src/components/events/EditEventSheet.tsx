@@ -165,6 +165,38 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
 
   const handleSave = async () => {
     try {
+      // Validate tiers if in tiers mode
+      const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
+      if (!isPost && pricingMode === "tiers") {
+        if (draftTiers.length === 0) {
+          toast.error("Añade al menos un tipo de entrada");
+          return;
+        }
+        for (const t of draftTiers) {
+          if (!t.name.trim()) {
+            toast.error("Cada entrada necesita un nombre");
+            return;
+          }
+          const price = parseFloat(t.price);
+          if (isNaN(price) || price < 0) {
+            toast.error(`Precio inválido para "${t.name}"`);
+            return;
+          }
+          cleanTiers.push({
+            name: t.name.trim(),
+            price,
+            capacity: t.capacity ? parseInt(t.capacity) : null,
+            description: t.description.trim() || null,
+            display_order: cleanTiers.length,
+          });
+        }
+      }
+
+      const legacyPrice =
+        !isPost && pricingMode === "tiers" && cleanTiers.length > 0
+          ? Math.min(...cleanTiers.map((t) => t.price))
+          : parseFloat(formData.price) || 0;
+
       await updateEvent.mutateAsync({
         eventId: event.id,
         data: {
@@ -173,7 +205,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
           category: formData.category || null,
           start_datetime: formData.start_datetime ? new Date(formData.start_datetime).toISOString() : null,
           location_name: formData.location_name || null,
-          price: parseFloat(formData.price) || 0,
+          price: legacyPrice,
           max_guestlist_capacity: formData.max_guestlist_capacity ? parseInt(formData.max_guestlist_capacity) : null,
           has_guestlist: formData.has_guestlist,
           payment_qr_url: formData.payment_qr_url || null,
@@ -181,6 +213,14 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
           show_reservation_button: formData.show_reservation_button,
         },
       });
+
+      if (!isPost) {
+        await replaceTiers.mutateAsync({
+          eventId: event.id,
+          tiers: pricingMode === "tiers" ? cleanTiers : [],
+          sequential: saleMode === "sequential",
+        });
+      }
       // Parse @mentions from description and insert into event_tags
       if (formData.description.trim()) {
         const { data: { session } } = await supabase.auth.getSession();
