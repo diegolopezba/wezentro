@@ -21,6 +21,11 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("[ErrorBoundary] Uncaught error:", error, errorInfo);
+    // Defensive: ensure body isn't left scroll-locked from a child modal,
+    // otherwise the "Recargar" button can be unreachable on iOS PWA.
+    try {
+      document.body.style.overflow = "";
+    } catch {}
   }
 
   handleReload = () => {

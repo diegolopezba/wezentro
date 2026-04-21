@@ -516,3 +516,26 @@ const EventDetailModalInner = () => {
     </m.div>
   );
 };
+
+/**
+ * Public wrapper. The local ModalErrorBoundary catches any render error
+ * inside the modal tree and dismisses the modal route via navigate(-1),
+ * so a single broken event never blanks the whole app.
+ */
+export const EventDetailModal = () => {
+  const navigate = useNavigate();
+  return (
+    <ModalErrorBoundary
+      onError={() => {
+        try {
+          navigate(-1);
+        } catch {
+          // no-op
+        }
+      }}
+    >
+      <EventDetailModalInner />
+    </ModalErrorBoundary>
+  );
+};
+
