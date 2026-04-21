@@ -167,8 +167,8 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         currency: "BOB",
-        gloss: (event.title || "Ticket").substring(0, 50),
-        amount: event.price,
+        gloss: effectiveTitle.substring(0, 50),
+        amount: effectivePrice,
         singleUse: true,
         expirationDate,
       }),
@@ -204,8 +204,9 @@ Deno.serve(async (req) => {
         buyer_user_id: user.id,
         business_user_id: event.creator_id,
         bnb_qr_id: qrId,
-        amount: event.price,
+        amount: effectivePrice,
         status: "pending",
+        ticket_tier_id: tier?.id ?? null,
       })
       .select("id")
       .single();
@@ -223,8 +224,9 @@ Deno.serve(async (req) => {
         mode: "bnb",
         paymentSessionId: session.id,
         qrImageBase64,
-        amount: event.price,
-        eventTitle: event.title,
+        amount: effectivePrice,
+        eventTitle: effectiveTitle,
+        ticketTierId: tier?.id ?? null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
