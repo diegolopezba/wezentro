@@ -39,6 +39,8 @@ import { MentionTextarea } from "@/components/ui/MentionTextarea";
 import { useMyMenu } from "@/hooks/useMenu";
 import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
+import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
+import { useReplaceTicketTiers } from "@/hooks/useTicketTiers";
 
 type ContentType = "post" | "event";
 
@@ -103,6 +105,12 @@ const Create = () => {
     showMenuButton: false,
     showReservationButton: false
   });
+
+  // Ticket tier state (events only, business accounts)
+  const [pricingMode, setPricingMode] = useState<TicketPricingMode>("single");
+  const [tierSaleMode, setTierSaleMode] = useState<TierSaleMode>("parallel");
+  const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
+  const replaceTiers = useReplaceTicketTiers();
 
   const handleTypeChange = (type: ContentType) => {
     setContentType(type);
