@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { m } from "framer-motion";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { ModalErrorBoundary } from "@/components/events/ModalErrorBoundary";
 import {
   Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock,
   Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, X, Bookmark, Repeat,
@@ -42,9 +43,19 @@ import { EventDetailSkeleton } from "@/components/skeletons/EventDetailSkeleton"
  * background location, the modal unmounts, the feed is right where
  * it was. Browser/Android back button works for free.
  */
-export const EventDetailModal = () => {
+const EventDetailModalInner = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Pinterest pattern: when navigating from one event to another inside the
+  // modal (same component, different :id), reset scroll synchronously before
+  // paint so the new event renders at the top instead of preserving the
+  // previous scroll position.
+  useLayoutEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [id]);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [showReportSheet, setShowReportSheet] = useState(false);
@@ -83,14 +94,11 @@ export const EventDetailModal = () => {
   const isVideo = isVideoUrl(event?.image_url);
   const isPost = !!(event?.is_post);
 
-  // Lock body scroll while modal is mounted
-  useEffect(() => {
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, []);
+  // Body-scroll lock intentionally removed: the modal is `fixed inset-0`
+  // and fully covers the viewport, so background scroll is invisible. The
+  // previous overflow toggle caused race conditions on rapid open/close in
+  // iOS PWA that occasionally crashed the app to a white screen. Pinterest
+  // mobile web takes the same no-lock approach.
 
   // Check for showPayment query param (returned from checkout success)
   useEffect(() => {
@@ -104,6 +112,7 @@ export const EventDetailModal = () => {
 
   return (
     <m.div
+      ref={scrollRef}
       className="fixed inset-0 z-50 bg-background overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -507,3 +516,26 @@ export const EventDetailModal = () => {
     </m.div>
   );
 };
+
+/**
+ * Public wrapper. The local ModalErrorBoundary catches any render error
+ * inside the modal tree and dismisses the modal route via navigate(-1),
+ * so a single broken event never blanks the whole app.
+ */
+export const EventDetailModal = () => {
+  const navigate = useNavigate();
+  return (
+    <ModalErrorBoundary
+      onError={() => {
+        try {
+          navigate(-1);
+        } catch {
+          // no-op
+        }
+      }}
+    >
+      <EventDetailModalInner />
+    </ModalErrorBoundary>
+  );
+};
+

@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useLayoutEffect } from "react";
 import { m } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
@@ -79,6 +79,11 @@ const EventDetail = () => {
 
   // Enable swipe-from-left-edge to go back on mobile
   useSwipeBack();
+
+  // Defensive scroll-reset on id change (e.g. deep-link nav between events)
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [id]);
 
   // Auto-open guestlist management sheet if navigated from a guestlist_request notification
   useEffect(() => {
