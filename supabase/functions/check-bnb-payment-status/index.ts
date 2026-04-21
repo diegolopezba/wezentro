@@ -176,6 +176,18 @@ Deno.serve(async (req) => {
         .update({ status: "confirmed", confirmed_at: now })
         .eq("id", paymentSessionId);
 
+      // Atomically increment tier sold_count if a tier was selected
+      if (session.ticket_tier_id) {
+        const { data: incOk, error: incErr } = await supabase.rpc("increment_tier_sold", {
+          _tier_id: session.ticket_tier_id,
+        });
+        if (incErr) {
+          console.error("Failed to increment tier sold_count:", incErr);
+        } else if (incOk === false) {
+          console.warn("Tier was sold out at confirmation time:", session.ticket_tier_id);
+        }
+      }
+
       // Upsert guestlist entry as approved with payment confirmed
       const { error: guestlistError } = await supabase
         .from("guestlist_entries")
@@ -186,6 +198,7 @@ Deno.serve(async (req) => {
             status: "approved",
             payment_status: "confirmed",
             payment_confirmed_at: now,
+            ticket_tier_id: session.ticket_tier_id ?? null,
           },
           { onConflict: "event_id,user_id" }
         );
