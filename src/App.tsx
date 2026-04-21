@@ -36,6 +36,7 @@ import { AuthPromptProvider } from "@/hooks/useAuthPrompt";
 import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
 import { KeepAliveLayout } from "@/components/layout/KeepAliveLayout";
 import { EulaGate } from "@/components/moderation/EulaGate";
+import { EventDetailModal } from "@/components/events/EventDetailModal";
 import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
 
 // Core navigation pages - preloaded for instant navigation (native app feel)
