@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
@@ -13,6 +13,7 @@ import { useIsEventSaved, useSaveEvent, useUnsaveEvent, useSaveCount } from "@/h
 import { useIsEventLiked, useLikeEvent, useUnlikeEvent, useEventLikes } from "@/hooks/useEventLikes";
 import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useReposts";
 import { useFollowingGoing } from "@/hooks/useFollowingGoing";
+import { useTicketTiers, computeTierAvailability, type TicketTier } from "@/hooks/useTicketTiers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { format } from "date-fns";
@@ -43,6 +44,8 @@ export const useEventDetailState = (
   const [showMenuSheet, setShowMenuSheet] = useState(false);
   const [showReservationSheet, setShowReservationSheet] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showTierPicker, setShowTierPicker] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<TicketTier | null>(null);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(true);
