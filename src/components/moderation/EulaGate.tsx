@@ -42,7 +42,7 @@ export const EulaGate = ({ children }: { children: React.ReactNode }) => {
     setSubmitting(true);
     await (supabase as any)
       .from("eula_acceptances")
-      .insert({ user_id: user.id, version: "1.0" });
+      .insert({ user_id: user.id, version: "1.1" });
     setNeedsAccept(false);
     setSubmitting(false);
   };
