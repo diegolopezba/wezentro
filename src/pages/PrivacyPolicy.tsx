@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
-  const lastUpdated = "24 de marzo de 2026";
+  const lastUpdated = "22 de abril de 2026";
 
   return (
     <AppLayout hideNav>
@@ -58,6 +58,7 @@ const PrivacyPolicy = () => {
               <li>Información de perfil: foto de perfil, biografía e intereses</li>
               <li>Contenido generado: eventos, publicaciones, mensajes y comentarios</li>
               <li>Información de ubicación cuando crea eventos o utiliza funciones basadas en ubicación</li>
+              <li>Categoría de entrada seleccionada al comprar tickets a un evento (por ejemplo: "General", "VIP", "Early Bird")</li>
             </ul>
 
             <h3 className="text-base font-medium text-foreground">2.2 Información recopilada automáticamente</h3>
@@ -131,7 +132,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">6. Datos de Ubicación</h2>
+            <h2 className="text-lg font-semibold text-foreground">7. Datos de Ubicación</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro recopila datos de ubicación para:
             </p>
@@ -146,7 +147,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">7. Notificaciones Push</h2>
+            <h2 className="text-lg font-semibold text-foreground">8. Notificaciones Push</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Con su consentimiento, enviamos notificaciones push para informarle sobre:
             </p>
@@ -162,7 +163,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">8. Seguridad de Datos</h2>
+            <h2 className="text-lg font-semibold text-foreground">9. Seguridad de Datos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Implementamos medidas de seguridad técnicas y organizativas para proteger su información, incluyendo:
             </p>
@@ -181,7 +182,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">8b. Datos de Pagos en Eventos</h2>
+            <h2 className="text-lg font-semibold text-foreground">9b. Datos de Pagos en Eventos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Cuando un negocio configura pagos QR mediante BNB Open Banking:
             </p>
@@ -189,13 +190,14 @@ const PrivacyPolicy = () => {
               <li>Zentro actúa únicamente como <strong>facilitador técnico</strong> — no retiene, procesa ni tiene acceso al dinero de las transacciones</li>
               <li>Los pagos van directamente desde el banco del usuario al banco del negocio sin intermediarios</li>
               <li>Zentro registra el monto, el estado de la transacción y el identificador de la sesión de pago para confirmar su entrada al evento</li>
+              <li>Para eventos con múltiples categorías de entradas, también se registra la categoría adquirida (por ejemplo: "General", "VIP") como parte del comprobante de compra</li>
               <li>No se almacenan datos bancarios del usuario pagador (número de cuenta, contraseñas bancarias)</li>
-              <li>Los registros de pago se conservan para verificación de asistencia y resolución de disputas</li>
+              <li>Los registros de pago se conservan durante el período requerido por la normativa fiscal aplicable, para verificación de asistencia y resolución de disputas</li>
             </ul>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">9. Sus Derechos</h2>
+            <h2 className="text-lg font-semibold text-foreground">10. Sus Derechos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Dependiendo de su ubicación, puede tener los siguientes derechos:
             </p>
@@ -213,9 +215,9 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">10. Eliminación de Cuenta</h2>
+            <h2 className="text-lg font-semibold text-foreground">11. Eliminación de Cuenta</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Puede eliminar su cuenta y datos personales en cualquier momento desde la sección de Ayuda y Soporte dentro de la aplicación. La eliminación requiere verificación de su contraseña para garantizar su seguridad. También puede contactarnos en zentro@gmail.com. Tras la eliminación:
+              Puede eliminar su cuenta y datos personales en cualquier momento desde la sección de Ayuda y Soporte dentro de la aplicación. La eliminación requiere verificación de su contraseña para garantizar su seguridad. También puede contactarnos en hello@zentro.com. Tras la eliminación:
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Sus datos personales serán eliminados de forma inmediata</li>
@@ -226,7 +228,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">11. Privacidad de Menores</h2>
+            <h2 className="text-lg font-semibold text-foreground">12. Privacidad de Menores</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro no está dirigido a menores de 13 años. No recopilamos intencionalmente información de niños menores de 13 años. Si descubrimos que hemos recopilado información de un menor, la eliminaremos de inmediato.
             </p>
@@ -236,28 +238,28 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">12. Retención de Datos</h2>
+            <h2 className="text-lg font-semibold text-foreground">13. Retención de Datos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Retenemos su información personal mientras su cuenta esté activa o según sea necesario para proporcionarle servicios. Podemos retener cierta información según lo requiera la ley o para fines comerciales legítimos.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">13. Transferencias Internacionales</h2>
+            <h2 className="text-lg font-semibold text-foreground">14. Transferencias Internacionales</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Sus datos pueden ser transferidos y procesados en países distintos al suyo. Nos aseguramos de que existan salvaguardas adecuadas para proteger su información de acuerdo con esta política.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">14. Cambios a esta Política</h2>
+            <h2 className="text-lg font-semibold text-foreground">15. Cambios a esta Política</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Podemos actualizar esta política periódicamente. Le notificaremos sobre cambios significativos mediante un aviso en la aplicación o por correo electrónico. El uso continuado de Zentro después de los cambios constituye su aceptación de la política actualizada.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">15. Contacto</h2>
+            <h2 className="text-lg font-semibold text-foreground">16. Contacto</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Si tiene preguntas sobre esta Política de Privacidad o nuestras prácticas de datos, contáctenos en:
             </p>
