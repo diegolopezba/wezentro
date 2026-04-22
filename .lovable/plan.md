@@ -1,158 +1,56 @@
 
 
-# Plan: Multiple ticket tiers (Shotgun + Dice model)
+# Plan: Update Terms of Use & Privacy Policy
 
-## How the leaders do it
+Targeted edits to both legal documents — covering multi-tier tickets, payment/refund clarity for App Store review, and fixing existing bugs.
 
-**Dice** — *Sequential* tiers. "Tier One: 50 tix at £5, Tier Two: 50 tix at £10. Tier Two only unlocks after Tier One sells out." Buyer always sees one price (the cheapest currently available). Drives urgency.
+## Terms of Use (`src/pages/TermsOfUse.tsx`)
 
-**Shotgun** — *Parallel* tiers. All tickets visible at once with their own name, price, capacity (e.g. General Bs.50 / VIP Bs.150 / Backstage Bs.300). Buyer picks. Optional category grouping.
+**Add new section after §6b (BNB Payments):** "Múltiples categorías de entradas (Tiers)"
+- Organizers can define multiple ticket categories per event with distinct names, prices, and capacities
+- Two sale modes: "todas a la vez" (all tiers visible at once) and "por orden" (sequential — next tier unlocks when previous sells out)
+- Each tier is a separate ticket; access level and refund policy is per-tier
+- Organizer is responsible for honoring the access level of each tier
+- Once a tier sells out it becomes unavailable; Zentro does not maintain waitlists
 
-Your use case ("different tiers" + "different sectors") needs both. We support both with one toggle per event.
+**Add new section: "Política de reembolsos y cancelaciones"** (currently buried in §8 — Apple reviewers look for this explicitly)
+- Event tickets via BNB: refunds handled directly by the organizing business; Zentro is not a party to the transaction
+- Subscription payments via Stripe: no refunds for partial periods, cancel anytime
+- App Store / Play Store IAPs: governed by Apple/Google policies
+- If an event is cancelled by the organizer, the organizer is responsible for refunding ticket holders
 
----
+**Fix bugs:**
+- Two sections currently numbered "8" (Suscripciones, Programa de Referidos) → renumber and cascade the rest
+- Update "Última actualización" to today's date
+- §6 bullet "configuración correcta de precios" → expand to include "y categorías de entradas"
+- §9 "Compras dentro de la Aplicación" → clarify this refers only to subscription IAPs, not BNB ticket purchases
 
-## Data model (1 new table, no breaking changes)
+## Privacy Policy (`src/pages/PrivacyPolicy.tsx`)
 
-**`ticket_tiers`**
-- `id` uuid PK
-- `event_id` uuid FK → events
-- `name` text (e.g. "Early Bird", "VIP", "General")
-- `description` text nullable
-- `price` numeric (Bs.)
-- `capacity` integer nullable (null = unlimited)
-- `sold_count` integer default 0
-- `display_order` integer (drag-to-reorder)
-- `unlock_after_tier_id` uuid nullable, self-FK → ticket_tiers — **this is the magic field**: if set, tier is hidden until the referenced tier hits `sold_count >= capacity`. Null = always visible. This single field cleanly expresses both Shotgun (all null = parallel) and Dice (chained = sequential).
-- `is_active` boolean
-- `created_at`, `updated_at`
+**Fix bugs:**
+- Two sections numbered "6" ("Servicios de Terceros" and "Datos de Ubicación") → renumber Datos de Ubicación to §7 and cascade the rest
+- §10 contact email says **"zentro@gmail.com"** — this is wrong, fix to **"hello@zentro.com"**
+- Update "Última actualización" to today's date
 
-**`guestlist_entries.ticket_tier_id`** — new nullable FK. Existing entries (and free events / single-price events) stay null and behave exactly like today.
+**Content additions:**
+- §2.1: add bullet "Categoría de entrada seleccionada al comprar tickets" so tier choice is transparently disclosed
+- §8b: mention that for multi-tier events, the tier name (e.g. "VIP", "General") is stored alongside the ticket purchase record
+- Retention period: leave generic ("durante el período requerido por la normativa fiscal aplicable") — not pinning a number per your instruction
 
-**`payment_sessions.ticket_tier_id`** — new nullable FK so each QR is bound to a tier.
+## EULA version bump
 
-**Backwards compat**: `events.price` stays as the fallback when an event has zero tier rows. No migration of old data needed.
+In `src/components/moderation/EulaGate.tsx`, change recorded acceptance version from `"1.0"` → `"1.1"`. This re-prompts existing users to accept the updated terms on next app open — standard pattern Apple reviewers expect when material terms change.
 
-**Atomicity**: New `increment_tier_sold(_tier_id)` SECURITY DEFINER function bumps `sold_count` in a single UPDATE … RETURNING, also re-validating capacity to prevent overselling under concurrent buyers.
+## Files touched
 
----
+- `src/pages/TermsOfUse.tsx`
+- `src/pages/PrivacyPolicy.tsx`
+- `src/components/moderation/EulaGate.tsx`
 
-## Owner UX — creating tiers
+## Out of scope
 
-A new **`TicketTiersEditor`** component, used inside both `Create.tsx` and `EditEventSheet.tsx` (business accounts only, paid events only).
-
-The current "Precio (Bs)" field becomes a section with two modes:
-
-```text
-○ Precio único       Bs. [    ]
-● Múltiples entradas
-
-  ┌──────────────────────────────────────┐
-  │ ≡  Early Bird     Bs.50   /80   ✏  ✕ │
-  │ ≡  General        Bs.80   /200  ✏  ✕ │
-  │ ≡  VIP            Bs.150  /50   ✏  ✕ │
-  └──────────────────────────────────────┘
-   + Añadir tipo de entrada
-
-  Modo de venta
-  ● Todas a la vez (Shotgun)
-  ○ Por orden, una tras otra (Dice)
-```
-
-- **"Todas a la vez"** → all `unlock_after_tier_id` = null (parallel).
-- **"Por orden"** → auto-chains them by `display_order` (each tier's `unlock_after_tier_id` = the previous one).
-- Drag-to-reorder updates `display_order` (and re-chains the unlock chain in sequential mode).
-- Per-row sheet to edit name / price / capacity / description.
-
-Validation: name required, price ≥ 0, capacity ≥ 1 or empty.
-
----
-
-## Buyer UX — picking a tier
-
-In `EventDetailModal` and `EventDetail` page, the floating CTA changes based on tier count:
-
-| Scenario                   | CTA shows                                | Tap behavior                          |
-|----------------------------|------------------------------------------|---------------------------------------|
-| 0 tiers (legacy)           | `Bs. X — Comprar`                        | Same as today                         |
-| 1 tier                     | `Tier name · Bs. X — Comprar`            | Opens PaymentQRModal directly         |
-| 2+ parallel tiers          | `Desde Bs. X — Comprar`                  | Opens **TicketTierPicker** sheet      |
-| 2+ sequential, current=N   | `Tier N · Bs. X — Comprar`               | Opens PaymentQRModal for current tier |
-| All tiers sold out         | `Agotado` (disabled)                     | —                                     |
-
-**`TicketTierPicker`** bottom sheet (parallel mode):
-```text
-Elige tu entrada
-
-┌────────────────────────────────────────┐
-│ Early Bird                    Bs. 50  │  ← Agotado (greyed)
-│ Solo para los primeros 80              │
-├────────────────────────────────────────┤
-│ General                       Bs. 80  │  ← tappable
-│ Quedan 47                              │
-├────────────────────────────────────────┤
-│ VIP                          Bs. 150  │  ← tappable
-│ Acceso al área VIP                     │
-└────────────────────────────────────────┘
-```
-
-Sequential mode hides locked tiers entirely (Dice behavior — buyer never sees the next price until current is gone). A subtle "Próximas tandas: 2 más" hint appears below to communicate that more (pricier) tiers exist.
-
-Status badges on every tier card:
-- `Quedan N` if capacity − sold_count ≤ 10
-- `Agotado` if sold_count ≥ capacity
-- `Próximamente` if `unlock_after_tier_id` not yet sold out (only shown to owner in preview)
-
----
-
-## Dynamic QR per tier
-
-`generate-bnb-qr` edge function gains a `ticketTierId` param:
-- Looks up the tier's `price` (instead of `events.price`).
-- Re-checks tier is unlocked + has capacity (returns 409 if just sold out — buyer sees "Esta entrada se agotó, elige otra").
-- BNB `gloss` field becomes `"{event.title} — {tier.name}"` so the buyer's bank shows what they're paying for.
-- Stores `ticket_tier_id` on the new `payment_sessions` row.
-
-`check-bnb-payment-status` on confirm:
-- Calls `increment_tier_sold(tier_id)` atomically.
-- If that fails (race-condition oversell), refunds via marking session `failed` and notifies user — extremely unlikely but defensive.
-- Stamps the new `guestlist_entries` row with `ticket_tier_id`.
-
----
-
-## Owner management view
-
-In `GuestlistManagementSheet`, the existing list gets a tier filter chip row at the top (`Todas · Early Bird · VIP · …`) plus per-tier sold/capacity counters. Each guest entry shows a small tier badge next to their name. Stats card at the top: total revenue per tier.
-
-In the user-facing `/tickets` page, each ticket card shows the tier name as a subtitle.
-
----
-
-## Files
-
-**New**
-- `supabase/migrations/*.sql` — `ticket_tiers` table + 2 nullable FKs + RLS + `increment_tier_sold` function
-- `src/hooks/useTicketTiers.ts` — list / create / update / reorder / delete + realtime subscription
-- `src/components/events/TicketTiersEditor.tsx` — owner editor (used by Create + Edit)
-- `src/components/events/TicketTierPicker.tsx` — buyer bottom sheet
-- `src/components/events/TicketTierBadge.tsx` — small reusable label for guest lists / tickets
-
-**Edited**
-- `supabase/functions/generate-bnb-qr/index.ts` — `ticketTierId` param + capacity re-check
-- `supabase/functions/check-bnb-payment-status/index.ts` — call `increment_tier_sold`
-- `src/pages/Create.tsx` — replace single price field with `TicketTiersEditor`
-- `src/components/events/EditEventSheet.tsx` — same swap
-- `src/components/events/EventDetailModal.tsx` + `src/pages/EventDetail.tsx` — tier-aware CTA, picker integration
-- `src/components/events/PaymentQRModal.tsx` — accepts `ticketTierId`, shows tier name in header
-- `src/hooks/useEventDetailState.ts` — derive `cheapestTier`, `currentSequentialTier`, `allSoldOut`, route `handleBuyTicket` through tier resolution
-- `src/components/events/GuestlistManagementSheet.tsx` — tier filter + per-tier stats
-- `src/pages/Tickets.tsx` — show tier name on each ticket
-
-## Out of scope (separate features)
-
-- Waitlist (next milestone — already discussed, deferred per your request)
-- Group / bundle tickets ("buy 4 get 1 free")
-- Promo codes / discount tiers
-- Reserved seating maps
-- Time-windowed sales (`sale_start_at` / `sale_end_at`) — easy to add later as a new column
+- Waitlist policy language (feature not built)
+- Refund automation (still manual organizer ↔ buyer per current architecture)
+- English translation (Spanish-only for now)
+- EULA gate copy itself (already compliant with Apple Guideline 1.2)
 
