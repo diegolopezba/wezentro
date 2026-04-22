@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const TermsOfUse = () => {
   const navigate = useNavigate();
-  const lastUpdated = "24 de marzo de 2026";
+  const lastUpdated = "22 de abril de 2026";
 
   return (
     <AppLayout hideNav>
@@ -129,7 +129,7 @@ const TermsOfUse = () => {
               <li>El cumplimiento de las leyes locales aplicables</li>
               <li>La seguridad y conducta en sus eventos presenciales</li>
               <li>La gestión adecuada de su lista de invitados</li>
-              <li>La configuración correcta de precios y la recepción de pagos si utiliza pagos QR</li>
+              <li>La configuración correcta de precios y categorías de entradas, así como la recepción de pagos si utiliza pagos QR</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Los negocios con el sistema de reservaciones habilitado pueden configurar su horario de atención y una ventana horaria específica para aceptar reservas de mesa. Los horarios disponibles para los usuarios se limitan a los establecidos por el negocio. Zentro no es responsable de cancelaciones, no-shows ni disputas derivadas de las reservaciones.
@@ -165,6 +165,26 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground">6c. Múltiples categorías de entradas (Tiers)</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Los organizadores pueden configurar múltiples categorías de entradas dentro de un mismo evento (por ejemplo: "General", "VIP", "Early Bird"), cada una con su propio nombre, precio, capacidad y descripción.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Zentro ofrece dos modalidades de venta:
+            </p>
+            <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
+              <li><strong>Todas a la vez:</strong> todas las categorías están disponibles simultáneamente y el comprador elige cuál adquirir.</li>
+              <li><strong>Por orden:</strong> las categorías se desbloquean secuencialmente — la siguiente solo se habilita cuando la anterior se agota.</li>
+            </ul>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Cada entrada queda asociada a una categoría específica. El nivel de acceso, beneficios y política de reembolso aplicables corresponden a la categoría adquirida. El organizador es responsable de honrar los beneficios y el nivel de acceso asociados a cada categoría.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Una vez que una categoría agota su capacidad, deja de estar disponible para nuevos compradores. Zentro no opera lista de espera (waitlist) para categorías agotadas.
+            </p>
+          </section>
+
+          <section className="space-y-3">
             <h2 className="text-lg font-semibold text-foreground">7. Mensajería y Privacidad de Comunicación</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro permite la comunicación directa entre usuarios registrados. Usted puede controlar quién puede iniciar conversaciones con usted mediante la configuración de privacidad de mensajes:
@@ -188,15 +208,34 @@ const TermsOfUse = () => {
               <li>Autoriza cargos recurrentes según el plan seleccionado</li>
               <li>Acepta que las suscripciones se renuevan automáticamente</li>
               <li>Puede cancelar en cualquier momento desde la configuración de la cuenta</li>
-              <li>No se realizarán reembolsos por períodos parciales</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Los pagos se procesan a través de Stripe. Al realizar un pago, acepta los términos de servicio de Stripe.
+              Los pagos de suscripciones se procesan a través de Stripe. Al realizar un pago, acepta los términos de servicio de Stripe.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">8. Programa de Referidos</h2>
+            <h2 className="text-lg font-semibold text-foreground">9. Política de reembolsos y cancelaciones</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed font-medium">Entradas a eventos (pagos QR mediante BNB):</p>
+            <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
+              <li>Los reembolsos son gestionados <strong>directamente por el negocio organizador</strong>. Zentro no es parte de la transacción y no procesa reembolsos.</li>
+              <li>La política de reembolso aplicable a cada entrada (incluyendo entradas de distintas categorías) es la que defina el organizador del evento.</li>
+              <li>Si un evento es cancelado por el organizador, el organizador es responsable de reembolsar a los compradores afectados.</li>
+              <li>En caso de disputa, el comprador debe contactar primero al negocio organizador. Zentro puede facilitar la comunicación pero no garantiza un resultado específico.</li>
+            </ul>
+            <p className="text-sm text-muted-foreground leading-relaxed font-medium mt-2">Suscripciones (Stripe):</p>
+            <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
+              <li>No se realizan reembolsos por períodos parciales ya consumidos.</li>
+              <li>Puede cancelar la renovación automática en cualquier momento; mantendrá el acceso hasta el final del período pagado.</li>
+            </ul>
+            <p className="text-sm text-muted-foreground leading-relaxed font-medium mt-2">Compras dentro de la aplicación (App Store / Play Store):</p>
+            <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
+              <li>Se rigen por las políticas de reembolso de Apple App Store o Google Play Store, según corresponda.</li>
+            </ul>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground">10. Programa de Referidos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro ofrece un programa de referidos para usuarios con suscripciones Business o Zentro Places. Al participar:
             </p>
@@ -213,14 +252,17 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">9. Compras dentro de la Aplicación</h2>
+            <h2 className="text-lg font-semibold text-foreground">11. Compras dentro de la Aplicación</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Algunas funciones pueden requerir compras dentro de la aplicación. Todas las compras son finales y no reembolsables, excepto cuando lo requiera la ley aplicable o las políticas de la tienda de aplicaciones correspondiente (Apple App Store o Google Play Store).
+              Algunas funciones de suscripción pueden requerir compras dentro de la aplicación procesadas por Apple App Store o Google Play Store. Estas compras son finales y no reembolsables, excepto cuando lo requiera la ley aplicable o las políticas de la tienda correspondiente.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Las compras de entradas a eventos mediante pagos QR (BNB Open Banking) <strong>no</strong> son compras dentro de la aplicación: son transferencias bancarias directas entre el comprador y el negocio organizador, y no se realizan a través de las tiendas de aplicaciones.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">10. Propiedad Intelectual</h2>
+            <h2 className="text-lg font-semibold text-foreground">12. Propiedad Intelectual</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               El Servicio y su contenido original (excluyendo el Contenido del Usuario), características y funcionalidad son propiedad de Zentro y están protegidos por derechos de autor, marcas registradas y otras leyes de propiedad intelectual.
             </p>
@@ -230,17 +272,17 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">11. Terminación</h2>
+            <h2 className="text-lg font-semibold text-foreground">13. Terminación</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Podemos terminar o suspender su acceso al Servicio de inmediato, sin previo aviso, por cualquier motivo, incluyendo, pero no limitado a, violaciones de estos Términos.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Usted puede eliminar su cuenta en cualquier momento desde la sección de Ayuda y Soporte dentro de la aplicación, o contactándonos en hello@zentro.com. La eliminación requiere verificación de contraseña para su seguridad. Tras la terminación, su derecho a usar el Servicio cesará inmediatamente y todos sus datos serán eliminados permanentemente.
+              Usted puede eliminar su cuenta en cualquier momento desde la sección de Ayuda y Soporte dentro de la aplicación, o contactándonos en hello@zentro.com. La eliminación requiere verificación de contraseña para su seguridad. Tras la terminación, su derecho a usar el Servicio cesará inmediatamente y sus datos personales serán eliminados, salvo aquellos registros (como comprobantes de transacciones de entradas) que debamos conservar para cumplir con la normativa fiscal y legal aplicable.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">12. Limitación de Responsabilidad</h2>
+            <h2 className="text-lg font-semibold text-foreground">14. Limitación de Responsabilidad</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               EN LA MÁXIMA MEDIDA PERMITIDA POR LA LEY, ZENTRO NO SERÁ RESPONSABLE POR DAÑOS INDIRECTOS, INCIDENTALES, ESPECIALES, CONSECUENTES O PUNITIVOS, INCLUYENDO PÉRDIDA DE DATOS, BENEFICIOS O INGRESOS, QUE RESULTEN DEL USO O LA IMPOSIBILIDAD DE USAR EL SERVICIO.
             </p>
@@ -250,42 +292,38 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">13. Indemnización</h2>
+            <h2 className="text-lg font-semibold text-foreground">15. Indemnización</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Usted acepta defender, indemnizar y mantener indemne a Zentro y sus afiliados de cualquier reclamación, daño, obligación, pérdida, responsabilidad, costo o deuda que surja de su uso del Servicio o violación de estos Términos.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">14. Disputas</h2>
+            <h2 className="text-lg font-semibold text-foreground">16. Disputas</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Cualquier disputa relacionada con estos Términos se resolverá mediante arbitraje vinculante, excepto cuando la ley lo prohíba. Usted renuncia al derecho de participar en demandas colectivas.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">15. Modificaciones</h2>
+            <h2 className="text-lg font-semibold text-foreground">17. Modificaciones</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Nos reservamos el derecho de modificar estos Términos en cualquier momento. Le notificaremos sobre cambios significativos mediante un aviso en la aplicación o por correo electrónico. El uso continuado del Servicio después de los cambios constituye su aceptación de los nuevos términos.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">16. Ley Aplicable</h2>
+            <h2 className="text-lg font-semibold text-foreground">18. Ley Aplicable y Divisibilidad</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Estos Términos se regirán e interpretarán de acuerdo con las leyes aplicables, sin tener en cuenta las disposiciones sobre conflictos de leyes.
             </p>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">17. Divisibilidad</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Si alguna disposición de estos Términos se considera inválida o inaplicable, las disposiciones restantes continuarán en pleno vigor y efecto.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">18. Contacto</h2>
+            <h2 className="text-lg font-semibold text-foreground">19. Contacto</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Si tiene preguntas sobre estos Términos de Uso, contáctenos en:
             </p>
