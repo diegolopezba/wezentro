@@ -376,11 +376,6 @@ const EventDetailModalInner = () => {
                       <span className="text-sm text-muted-foreground">+{attendeesGoing.length - 5} más</span>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {attendeesGoing.slice(0, 2).map((a) => `@${a.username}`).join(", ")}
-                    {attendeesGoing.length > 2 && ` y ${attendeesGoing.length - 2} más van`}
-                    {attendeesGoing.length <= 2 && attendeesGoing.length > 0 && " van"}
-                  </p>
                 </div>
               )}
 
