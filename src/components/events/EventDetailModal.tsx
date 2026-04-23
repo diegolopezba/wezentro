@@ -364,9 +364,9 @@ const EventDetailModalInner = () => {
                           key={attendee.user_id}
                           src={attendee.avatar_url || DEFAULT_AVATAR}
                           alt={attendee.username}
-                          className={`w-10 h-10 rounded-full border-2 object-cover cursor-pointer transition-transform z-10 ${
+                          className={`w-10 h-10 rounded-full object-cover cursor-pointer transition-transform z-10 ${
                             attendee.isFollowed ? "border-primary" : "border-card"
-                          }`}
+                          } border-0`}
                           style={{ zIndex: 5 - i }}
                           onClick={() => navigate(`/user/${attendee.user_id}`)}
                         />
