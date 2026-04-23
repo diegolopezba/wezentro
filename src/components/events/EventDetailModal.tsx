@@ -353,7 +353,7 @@ const EventDetailModalInner = () => {
                     <Users className="w-4 h-4 text-primary" />
                     <h2 className="font-brand text-lg font-semibold text-foreground">
                       {attendeesGoing.some((a) => a.isFollowed)
-                        ? `Personas que sigues que van (${attendeesGoing.filter((a) => a.isFollowed).length})`
+                        ? `Amigos asistiendo (${attendeesGoing.filter((a) => a.isFollowed).length})`
                         : `Personas que van (${attendeesGoing.length})`}
                     </h2>
                   </div>
