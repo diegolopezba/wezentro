@@ -3,7 +3,7 @@ import { m } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, AtSign, EyeOff, UtensilsCrossed, CalendarCheck, Flag } from "lucide-react";
+import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck, Flag } from "lucide-react";
 import { useState } from "react";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import { isVideoUrl } from "@/lib/mediaUtils";
 import { trackEventView } from "@/lib/analyticsTracking";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
-import { useEventTags, useRemoveTag } from "@/hooks/useEventTags";
+
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 import { MentionText } from "@/components/ui/MentionText";
 import { MenuSheet } from "@/components/menu/MenuSheet";
@@ -75,8 +75,6 @@ const EventDetail = () => {
     handleBuyTicket, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, () => navigate(-1));
 
-  const { data: eventTags } = useEventTags(id);
-  const removeTag = useRemoveTag();
   const { data: commentCount = 0 } = useCommentCount(id);
   const { data: latestComment = null } = useLatestComment(id);
 
@@ -248,44 +246,6 @@ const EventDetail = () => {
               {event.creator?.username || "unknown"}
             </p>
           </div>
-
-          {/* Tagged users */}
-          {eventTags && eventTags.length > 0 &&
-        <div className="flex items-center gap-2 flex-wrap">
-              <AtSign className="w-4 h-4 text-muted-foreground shrink-0" />
-              {eventTags.map((tag) =>
-          <div
-            key={tag.id}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/50 cursor-pointer transition-colors" onClick={() => navigate(`/user/${tag.tagged_user_id}`)}>
-
-                  <img
-              src={tag.tagged_user?.avatar_url || DEFAULT_AVATAR}
-              alt={tag.tagged_user?.username || ""}
-              className="w-5 h-5 rounded-full object-cover" />
-
-                  <span className="text-xs font-medium text-foreground">
-                    @{tag.tagged_user?.username || "user"}
-                  </span>
-                  {tag.status === "pending" &&
-            <span className="text-[10px] text-muted-foreground">(pendiente)</span>
-            }
-                  {(tag.tagged_user_id === user?.id || isOwner) &&
-            <button
-              className="ml-0.5 p-0.5 rounded-full transition-colors" onClick={(e) => {
-                e.stopPropagation();
-                removeTag.mutate(tag.id, {
-                  onSuccess: () => toast.success("Etiqueta eliminada"),
-                  onError: () => toast.error("Error al eliminar etiqueta")
-                });
-              }}>
-
-                      <X className="w-3 h-3 text-muted-foreground " />
-                    </button>
-            }
-                </div>
-          )}
-            </div>
-        }
 
           {/* Details - Only show for events, not posts */}
           {!isPost && <div className="flex items-center gap-2">
