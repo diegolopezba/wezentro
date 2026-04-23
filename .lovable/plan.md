@@ -1,22 +1,34 @@
 
-# Plan: Remove usernames below "People Going" avatars
+
+# Plan: Remove tag pills from event detail, keep tagging as edit-only
 
 ## Goal
-Delete the username text line that appears under the stacked avatars in the "Personas que van / Personas que sigues que van" section on event detail views.
+Eliminate the visible tagged-users pill row from event detail views. All backend tagging mechanics (notifications, accept/decline, profile feed visibility) remain fully intact. Owners continue to manage tags via the edit sheet.
 
 ## Files and changes
 
-### `src/pages/EventDetail.tsx`
-Remove lines 367-371 — the `<p className="text-sm text-muted-foreground mt-2">` block that renders `@username1, @username2 y N más van`.
+### 1. `src/pages/EventDetail.tsx`
+- Remove the horizontal pill row that renders `eventTags` chips with avatar + `@username` + remove button.
+- Remove now-unused imports: `useEventTags`, `useRemoveTag`, and the `eventTags` query call.
 
-### `src/components/events/EventDetailModal.tsx`
-Remove lines 379-383 — the identical `<p>` block in the modal overlay version.
+### 2. `src/components/events/EventDetailModal.tsx`
+- Same removal — strip the matching tagged-users pill block from the overlay version, plus its now-unused imports/hooks.
 
-## What stays
-- The stacked avatar images (up to 5).
-- The `+N más` overflow badge.
-- The section header (`Personas que van...`).
-- The attendee count in the header parenthetical.
+### 3. `src/components/events/EditEventSheet.tsx`
+- Verify the edit sheet already lets the owner add and remove tags. If yes → no change. If a remove control is missing, add a small "Personas etiquetadas" list with an ✕ button per tag using the existing `useEventTags` + `useRemoveTag` hooks.
 
-## Out of scope
-- Any other layout, spacing, or sizing changes to the avatar stack.
+## What stays (unchanged)
+- `event_tags` table, RLS policies, all backend logic.
+- Tag creation flow in event create/edit.
+- `PostTagNotificationItem` — tagged users still get a notification with Aceptar / Rechazar buttons.
+- `useUserTimeline` — accepted tagged posts still appear on the tagged user's profile feed.
+- `MentionText` — `@username` mentions inside the description still render as blue tappable links for everyone.
+
+## What's removed
+- The horizontal pill row showing tagged users on the event detail page (full page + overlay).
+- Public visibility of who is tagged from the event detail view.
+
+## Technical notes
+- Clean up any leftover imports tied only to the removed UI to avoid TS warnings.
+- No DB migration, no edge function changes.
+
