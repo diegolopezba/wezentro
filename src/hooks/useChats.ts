@@ -145,7 +145,8 @@ export const useUserChats = () => {
       });
     },
     enabled: !!user?.id,
-    staleTime: 0,
+    // Realtime subscription on messages keeps unread counts fresh; cache absorbs focus/remount refetches.
+    staleTime: 2 * 60 * 1000,
   });
 };
 
