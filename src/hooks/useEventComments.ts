@@ -81,7 +81,7 @@ export const useEventComments = (eventId: string | undefined) => {
       }));
     },
     enabled: !!eventId,
-    staleTime: 0,
+    staleTime: 60 * 1000,
   });
 };
 
@@ -137,7 +137,7 @@ export const useCommentReplies = (parentId: string | undefined, eventId: string 
       }));
     },
     enabled: !!parentId && !!eventId,
-    staleTime: 0,
+    staleTime: 60 * 1000,
   });
 };
 
@@ -156,7 +156,7 @@ export const useReplyCount = (parentId: string | undefined) => {
       return count ?? 0;
     },
     enabled: !!parentId,
-    staleTime: 0,
+    staleTime: 60 * 1000,
   });
 };
 
@@ -174,7 +174,7 @@ export const useCommentCount = (eventId: string | undefined) => {
       return count ?? 0;
     },
     enabled: !!eventId,
-    staleTime: 0,
+    staleTime: 60 * 1000,
   });
 };
 
@@ -197,7 +197,7 @@ export const useLatestComment = (eventId: string | undefined) => {
       return data as EventComment | null;
     },
     enabled: !!eventId,
-    staleTime: 0,
+    staleTime: 60 * 1000,
   });
 };
 
