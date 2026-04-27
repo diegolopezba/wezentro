@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, lazy, Suspense } from "react";
 import { m, AnimatePresence } from "framer-motion";
-import { Search, SlidersHorizontal, MapPin, X, Users } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, X, Users, Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,8 @@ import { EventCard } from "@/components/events/EventCard";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { FilterSheet } from "@/components/map/FilterSheet";
 import { CategoryFilterBar } from "@/components/map/CategoryFilterBar";
-import MapView from "@/components/map/MapView";
+// Lazy-load Mapbox bundle + tiles so users who never reach Discover don't pay the cost.
+const MapView = lazy(() => import("@/components/map/MapView"));
 import { useEvents } from "@/hooks/useEvents";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { useNearbyEvents, formatDistance, FilterOptions } from "@/hooks/useNearbyEvents";
@@ -234,16 +235,24 @@ const Discover = () => {
       {/* Full screen map container - use fixed height on mobile for PWA compatibility */}
       <div className="relative bg-secondary" style={{ height: 'calc(100dvh - 80px)', minHeight: '400px' }}>
         {/* Mapbox Map - pass original events for markers, filtered for visibility */}
-        <MapView
-          events={showFoodMarkers ? [] : filteredEvents}
-          onMarkerClick={handleMarkerClick}
-          selectedEventId={selectedEvents[currentSlide]?.id}
-          onGeolocationSuccess={handleGeolocationSuccess}
-          onGeolocationError={handleGeolocationError}
-          foodLocations={foodLocations}
-          showFoodMarkers={showFoodMarkers}
-          onFoodMarkerClick={handleFoodMarkerClick}
-        />
+        <Suspense
+          fallback={
+            <div className="absolute inset-0 flex items-center justify-center bg-secondary">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          }
+        >
+          <MapView
+            events={showFoodMarkers ? [] : filteredEvents}
+            onMarkerClick={handleMarkerClick}
+            selectedEventId={selectedEvents[currentSlide]?.id}
+            onGeolocationSuccess={handleGeolocationSuccess}
+            onGeolocationError={handleGeolocationError}
+            foodLocations={foodLocations}
+            showFoodMarkers={showFoodMarkers}
+            onFoodMarkerClick={handleFoodMarkerClick}
+          />
+        </Suspense>
 
         {/* Floating search bar */}
         <div className="absolute top-0 left-0 right-0 z-40 safe-top py-4">
