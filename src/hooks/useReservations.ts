@@ -95,7 +95,7 @@ export const useUserReservations = () => {
 
       const { data, error } = await supabase
         .from("reservations")
-        .select("*")
+        .select("id, business_id, user_id, reservation_date, reservation_time, party_size, notes, status, cancelled_by, created_at, updated_at")
         .eq("user_id", user.id)
         .gte("reservation_date", new Date().toISOString().split("T")[0])
         .order("reservation_date", { ascending: true })
