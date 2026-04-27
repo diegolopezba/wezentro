@@ -322,6 +322,9 @@ const MapView: React.FC<MapViewProps> = ({
       pitch: WORLD_VIEW.pitch,
       bearing: WORLD_VIEW.bearing,
       projection: { name: "globe" } as any,
+      // Cap zoom at 16 — past this, tile counts grow 4× per level
+      // and add no discovery value for nightlife. Major Mapbox cost lever.
+      maxZoom: 16,
     });
 
     map.current.addControl(
