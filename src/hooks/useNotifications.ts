@@ -24,7 +24,7 @@ export const useNotifications = () => {
 
       const { data, error } = await supabase
         .from("notifications")
-        .select("*")
+        .select("id, user_id, type, title, body, entity_type, entity_id, is_read, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -32,7 +32,8 @@ export const useNotifications = () => {
       return data as Notification[];
     },
     enabled: !!user?.id,
-    staleTime: 0,
+    // Realtime subscription patches in new notifications; cache cuts redundant DB reads on focus/remount.
+    staleTime: 2 * 60 * 1000,
   });
 };
 
@@ -54,7 +55,7 @@ export const useUnreadNotificationsCount = () => {
       return count || 0;
     },
     enabled: !!user?.id,
-    staleTime: 0,
+    staleTime: 2 * 60 * 1000,
   });
 };
 
