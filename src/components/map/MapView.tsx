@@ -411,11 +411,16 @@ const MapView: React.FC<MapViewProps> = ({
       }
     });
 
-    // Zoom listener to update marker sizes
+    // Zoom listener — debounced + delta-gated to avoid recreating markers on every frame.
+    // (Marker recreation triggers React work and DOM churn; throttling is a pure CPU win.)
+    let zoomDebounce: number | null = null;
     map.current.on("zoom", () => {
-      if (!map.current) return;
-      const zoom = map.current.getZoom();
-      setCurrentZoom(zoom);
+      if (zoomDebounce !== null) window.clearTimeout(zoomDebounce);
+      zoomDebounce = window.setTimeout(() => {
+        if (!map.current) return;
+        const zoom = map.current.getZoom();
+        setCurrentZoom((prev) => (Math.abs(prev - zoom) < 0.5 ? prev : zoom));
+      }, 150);
     });
 
     return () => {
