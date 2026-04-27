@@ -7,6 +7,7 @@ import { isVideoUrl } from "@/lib/mediaUtils";
 import { useOpenEvent } from "@/hooks/useOpenEvent";
 import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 
 export interface TimelineCardProps {
   id: string;
@@ -122,7 +123,7 @@ export const TimelineCard = ({
             />
           ) : (
             <img
-              src={imageUrl}
+              src={getOptimizedImageUrl(imageUrl, ImageSizes.card)}
               alt={title || "Post"}
               className="w-full h-full object-cover" onLoad={handleImageLoad}
             />
@@ -147,7 +148,7 @@ export const TimelineCard = ({
               <div className="flex -space-x-1.5">
                 {ownerAvatar && (
                   <img
-                    src={ownerAvatar}
+                    src={getOptimizedImageUrl(ownerAvatar, ImageSizes.avatarXs)}
                     alt="Owner" className={cn( "w-5 h-5 rounded-full border-background object-cover border-0",
                       creatorId && "cursor-pointer transition-transform z-10" )}
                     onClick={(e) => {
