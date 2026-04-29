@@ -848,8 +848,8 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                   </div>
                 )}
 
-                {/* ── Step 3: Confirm ── */}
-                {step === 3 && (
+                {/* ── Step 4: Confirm ── */}
+                {step === 4 && (
                   <div className="space-y-4 pt-2">
                     <div>
                       <h2 className="text-2xl font-bold text-foreground">
