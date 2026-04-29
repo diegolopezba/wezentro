@@ -625,8 +625,153 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                   </div>
                 )}
 
-                {/* ── Step 2: Budget ── */}
+                {/* ── Step 2: Schedule ── */}
                 {step === 2 && (
+                  <div className="space-y-5 pt-2">
+                    <div>
+                      <h2 className="text-2xl font-bold text-foreground">¿Cuándo se muestra?</h2>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Tu anuncio no se muestra ni gasta presupuesto fuera de este horario (hora de Bolivia).
+                      </p>
+                    </div>
+
+                    {/* Days of week */}
+                    <div>
+                      <p className="text-sm font-semibold text-foreground mb-2">Días de la semana</p>
+                      <div className="flex gap-1.5">
+                        {DAY_LABELS.map((label, idx) => {
+                          const isOn = selectedDays.includes(idx);
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                setSelectedDays(prev =>
+                                  prev.includes(idx) ? prev.filter(d => d !== idx) : [...prev, idx]
+                                );
+                              }}
+                              className={`flex-1 h-11 rounded-full border-2 text-sm font-semibold transition-all ${
+                                isOn
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border bg-card text-muted-foreground"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDays(ALL_DAYS)}
+                          className="text-xs text-primary font-medium px-2 py-1"
+                        >
+                          Todos
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDays([1, 2, 3, 4, 5])}
+                          className="text-xs text-primary font-medium px-2 py-1"
+                        >
+                          L–V
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDays([0, 6])}
+                          className="text-xs text-primary font-medium px-2 py-1"
+                        >
+                          Fines de semana
+                        </button>
+                      </div>
+                      {selectedDays.length === 0 && (
+                        <p className="text-xs text-destructive mt-2">Selecciona al menos un día.</p>
+                      )}
+                    </div>
+
+                    {/* Hour window */}
+                    <div>
+                      <p className="text-sm font-semibold text-foreground mb-2">Horario del día</p>
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <button
+                          type="button"
+                          onClick={() => setUseCustomHours(false)}
+                          className={`p-3 rounded-2xl border-2 text-sm font-medium transition-all ${
+                            !useCustomHours ? "border-primary bg-primary/5 text-foreground" : "border-border bg-card text-muted-foreground"
+                          }`}
+                        >
+                          Todo el día
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setUseCustomHours(true)}
+                          className={`p-3 rounded-2xl border-2 text-sm font-medium transition-all ${
+                            useCustomHours ? "border-primary bg-primary/5 text-foreground" : "border-border bg-card text-muted-foreground"
+                          }`}
+                        >
+                          Horario específico
+                        </button>
+                      </div>
+
+                      {useCustomHours && (
+                        <m.div
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="grid grid-cols-2 gap-3"
+                        >
+                          <label className="block">
+                            <span className="text-xs text-muted-foreground mb-1 block">Desde</span>
+                            <select
+                              value={hourStart}
+                              onChange={(e) => setHourStart(parseInt(e.target.value, 10))}
+                              className="w-full h-12 rounded-2xl border-2 border-border bg-card px-3 text-base font-semibold text-foreground"
+                            >
+                              {Array.from({ length: 24 }).map((_, h) => (
+                                <option key={h} value={h}>{fmtHour(h)}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="block">
+                            <span className="text-xs text-muted-foreground mb-1 block">Hasta</span>
+                            <select
+                              value={hourEnd}
+                              onChange={(e) => setHourEnd(parseInt(e.target.value, 10))}
+                              className="w-full h-12 rounded-2xl border-2 border-border bg-card px-3 text-base font-semibold text-foreground"
+                            >
+                              {Array.from({ length: 24 }).map((_, h) => (
+                                <option key={h} value={h}>{fmtHour(h)}</option>
+                              ))}
+                            </select>
+                          </label>
+                        </m.div>
+                      )}
+
+                      {useCustomHours && hourStart === hourEnd && (
+                        <p className="text-xs text-destructive mt-2">El inicio y el fin no pueden ser iguales.</p>
+                      )}
+                      {useCustomHours && hourEnd < hourStart && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Horario nocturno: cruza la medianoche ({fmtHour(hourStart)} → {fmtHour(hourEnd)} del día siguiente).
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Summary chip */}
+                    <div className="rounded-2xl bg-primary/8 border border-primary/20 p-3 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-primary shrink-0" />
+                      <p className="text-sm text-foreground">
+                        {formatSchedule(
+                          selectedDays.length === 7 ? null : selectedDays,
+                          useCustomHours ? hourStart : null,
+                          useCustomHours ? hourEnd : null
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Step 3: Budget ── */}
+                {step === 3 && (
                   <div className="space-y-4 pt-2">
                     <div>
                       <h2 className="text-2xl font-bold text-foreground">¿Cuánto quieres invertir?</h2>
