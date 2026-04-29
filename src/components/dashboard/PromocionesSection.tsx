@@ -884,6 +884,20 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                           </div>
                         </div>
                         <div className="h-px bg-border" />
+                        <div className="flex items-start gap-2 text-sm">
+                          <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-xs text-muted-foreground">Horario</p>
+                            <p className="font-medium text-foreground">
+                              {formatSchedule(
+                                selectedDays.length === 7 ? null : selectedDays,
+                                useCustomHours ? hourStart : null,
+                                useCustomHours ? hourEnd : null
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="h-px bg-border" />
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-muted-foreground">Total a pagar</p>
                           <p className="text-2xl font-bold text-foreground">${activeBudget.toFixed(0)}</p>
