@@ -256,6 +256,13 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
   const handleCreate = async () => {
     if (!selectedEventId) return;
     const targetRadiusKm = audiencePreset === "nearby" ? 25 : undefined;
+    // Schedule values to persist (null = no restriction)
+    const daysToSave =
+      selectedDays.length > 0 && selectedDays.length < 7
+        ? [...selectedDays].sort((a, b) => a - b)
+        : null;
+    const hStart = useCustomHours ? hourStart : null;
+    const hEnd = useCustomHours ? hourEnd : null;
     try {
       if (editingPostId) {
         // Update existing draft
@@ -265,7 +272,10 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
             event_id: selectedEventId,
             total_budget: activeBudget,
             target_radius_km: targetRadiusKm ?? null,
-          })
+            target_days_of_week: daysToSave,
+            target_hour_start: hStart,
+            target_hour_end: hEnd,
+          } as any)
           .eq("id", editingPostId);
         if (error) throw error;
         toast.success("Promoción actualizada");
@@ -277,6 +287,9 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
           event_id: selectedEventId,
           total_budget: activeBudget,
           target_radius_km: targetRadiusKm,
+          target_days_of_week: daysToSave,
+          target_hour_start: hStart,
+          target_hour_end: hEnd,
         });
         setShowWizard(false);
         resetWizard();
