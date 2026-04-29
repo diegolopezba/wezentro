@@ -1,50 +1,52 @@
-# QA Plan: Verify Cost Optimizations
+# Advertiser Time & Day Targeting for Sponsored Ads
 
-Purpose: confirm the 4 optimization changes (caching, narrow queries, image optimization, lazy Mapbox) work end-to-end with no regressions.
+Let advertisers control **when** their ads run — specific days of the week and a daily time window — via an "Opciones avanzadas" step in the boost wizard.
 
-## 1. Static checks (fast, no risk)
+## What gets built
 
-- Run `tsc --noEmit` to confirm no type regressions from narrowed `select()` calls and the new `AvatarImage.size` prop.
-- Run `rg` to find any remaining `<AvatarImage>` usages that pass a `size` prop incorrectly or any leftover `staleTime: 0` in high-traffic hooks.
-- Tail `/tmp/dev-server-logs/dev-server.log` for build warnings.
+### New wizard step: "Horario" (between Audiencia and Presupuesto)
+- **Días de la semana**: 7 toggle pills (L M X J V S D). Default: all selected.
+- **Horario del día**: two modes
+  - "Todo el día" (default)
+  - "Horario específico" — two time pickers (Desde / Hasta). Supports overnight windows (e.g., 18:00 → 02:00).
+- Helper note: *"Tu anuncio no se muestra ni consume presupuesto fuera de este horario (hora de Bolivia)."*
+- Skippable — defaults mean "always show".
 
-## 2. Live preview verification (browser tool)
+### Confirm step
+Adds a "Horario" row to the summary card, e.g. `L–V · 18:00–02:00` or `Siempre activo`.
 
-Walk through the 4 user-facing surfaces affected:
+### Campaign card (dashboard)
+Compact schedule chip under the title when a custom schedule is set.
 
-| Surface | What to verify | How |
-|---|---|---|
-| **Home feed** | Cards render, avatars load, no broken images | Navigate `/`, screenshot, scroll |
-| **Notifications** | List loads with correct fields (title, body, is_read), avatars show | Navigate `/notifications` |
-| **Chats list** | Chats render with last message + unread counts | Navigate `/chats` |
-| **Discover map** | Map lazy-loads (Suspense fallback briefly visible), tiles render, zoom capped at 16 | Navigate `/discover`, open map, pinch-zoom |
-| **Event detail** | Comments load, avatars + optimized images appear | Open any event card |
+## Database changes (migration)
 
-## 3. Network verification (browser network panel)
+Add 4 columns to `sponsored_posts`:
+- `target_days_of_week int[]` — 0–6 (Sunday=0). NULL = all days.
+- `target_hour_start int` (0–23, nullable)
+- `target_hour_end int` (0–23, nullable). Both null = all day. If end < start, window crosses midnight.
+- `target_timezone text NOT NULL DEFAULT 'America/La_Paz'`
 
-While on the home feed and Discover:
-- Confirm Supabase storage image requests now include `?width=...&quality=75&resize=cover`.
-- Confirm Mapbox tiles only fire **after** Discover route is opened (not on initial app load).
-- Confirm notifications query payload no longer returns extra columns (push_sent_at, etc.).
+Add a validation **trigger** (not a CHECK — project rule) ensuring the hours are both set or both null and within 0–23, and days are all 0–6.
 
-## 4. Regression watch — known risk areas
+## RPC update: `get_eligible_sponsored_posts`
+Append two filters using `now() AT TIME ZONE sp.target_timezone`:
+- DOW filter via `EXTRACT(DOW FROM ...) = ANY(sp.target_days_of_week)`
+- Hour filter with overnight-window CASE handling
 
-- `AvatarImage` rewrites Supabase Storage URLs only. Lovable-uploads + external URLs must pass through unchanged. Spot-check a profile that uses a non-Storage avatar.
-- `useUserReservations` was narrowed; verify `MyReservations` page still renders all fields it needs.
-- `useNotifications` narrowed columns; verify each notification type renderer (Like, Repost, Comment, Reservation, etc.) still has the data it expects.
-- Discover map: confirm lazy import doesn't break the auto-open behavior on first visit.
+This means **no impressions served outside the window → no budget consumed**. No lifecycle/cron changes required.
 
-## 5. Reporting
+## Frontend changes
+- `src/hooks/useSponsoredPosts.ts` — extend `SponsoredPost` interface; extend `useCreateSponsoredPost` mutation params; persist schedule on the existing edit-update path in `PromocionesSection.tsx`.
+- `src/components/dashboard/PromocionesSection.tsx`
+  - Add wizard state: `selectedDays: number[]`, `useCustomHours: boolean`, `hourStart: string`, `hourEnd: string`.
+  - Insert new step "Horario" between current steps 1 (Audiencia) and 2 (Presupuesto). `STEPS` array becomes 5 entries.
+  - Hydrate state from `sp` on edit (`openEditWizard`).
+  - Persist via both create and update paths in `handleCreate`.
+  - Render schedule summary chip on each campaign card.
+- Helper `formatSchedule(days, hStart, hEnd)` for compact display.
 
-After the run, return a short pass/fail table per surface plus screenshots of:
-- Home feed
-- Notifications
-- Discover map (loaded)
-- Event detail with comments
-
-If any regression is found, I'll diagnose and fix before declaring green.
-
-## Notes
-
-- All checks are read-only on data; no destructive actions on the live DB.
-- Browser tool will be used (you've asked me to test), one short session.
+## Out of scope
+- Different hours per day (single global window only)
+- Multiple windows per day
+- Per-viewer timezone (always advertiser's tz)
+- Lost-impressions reporting

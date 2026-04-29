@@ -1727,8 +1727,12 @@ export type Database = {
           target_age_max: number | null
           target_age_min: number | null
           target_categories: string[] | null
+          target_days_of_week: number[] | null
           target_gender: string | null
+          target_hour_end: number | null
+          target_hour_start: number | null
           target_radius_km: number | null
+          target_timezone: string
           total_budget: number | null
         }
         Insert: {
@@ -1747,8 +1751,12 @@ export type Database = {
           target_age_max?: number | null
           target_age_min?: number | null
           target_categories?: string[] | null
+          target_days_of_week?: number[] | null
           target_gender?: string | null
+          target_hour_end?: number | null
+          target_hour_start?: number | null
           target_radius_km?: number | null
+          target_timezone?: string
           total_budget?: number | null
         }
         Update: {
@@ -1767,8 +1775,12 @@ export type Database = {
           target_age_max?: number | null
           target_age_min?: number | null
           target_categories?: string[] | null
+          target_days_of_week?: number[] | null
           target_gender?: string | null
+          target_hour_end?: number | null
+          target_hour_start?: number | null
           target_radius_km?: number | null
+          target_timezone?: string
           total_budget?: number | null
         }
         Relationships: [
