@@ -424,6 +424,12 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                               <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
                               {cfg.label}
                             </span>
+                            {(sp.target_days_of_week?.length || sp.target_hour_start != null) && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground mt-1 ml-1.5">
+                                <Clock className="w-3 h-3" />
+                                {formatSchedule(sp.target_days_of_week, sp.target_hour_start, sp.target_hour_end)}
+                              </span>
+                            )}
                           </div>
 
                           {sp.status === "draft" ? (
