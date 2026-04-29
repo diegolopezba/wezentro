@@ -23,6 +23,10 @@ export interface SponsoredPost {
   target_gender: string | null;
   target_age_min: number | null;
   target_age_max: number | null;
+  target_days_of_week: number[] | null;
+  target_hour_start: number | null;
+  target_hour_end: number | null;
+  target_timezone: string | null;
 }
 
 export interface SponsoredEventForFeed extends EventWithCreator {
@@ -201,6 +205,9 @@ export const useCreateSponsoredPost = () => {
       target_gender?: string;
       target_age_min?: number;
       target_age_max?: number;
+      target_days_of_week?: number[] | null;
+      target_hour_start?: number | null;
+      target_hour_end?: number | null;
     }) => {
       if (!user?.id) throw new Error("Not authenticated");
 
@@ -217,6 +224,12 @@ export const useCreateSponsoredPost = () => {
           target_gender: params.target_gender && params.target_gender !== "all" ? params.target_gender : null,
           target_age_min: params.target_age_min ?? null,
           target_age_max: params.target_age_max ?? null,
+          target_days_of_week:
+            params.target_days_of_week && params.target_days_of_week.length > 0 && params.target_days_of_week.length < 7
+              ? params.target_days_of_week
+              : null,
+          target_hour_start: params.target_hour_start ?? null,
+          target_hour_end: params.target_hour_end ?? null,
         } as any)
         .select()
         .single();

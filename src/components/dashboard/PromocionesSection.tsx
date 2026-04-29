@@ -5,7 +5,7 @@ import { Browser } from "@capacitor/browser";
 import {
   Megaphone, Plus, Play, Pause, Eye, MousePointerClick, DollarSign,
   Users, Sparkles, ArrowLeft, ArrowRight, Check, MapPin, Tag, Zap,
-  ChevronRight, TrendingUp, Lock, Pencil
+  ChevronRight, TrendingUp, Lock, Pencil, Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -70,7 +70,33 @@ const statusConfig: Record<string, { label: string; dot: string; badge: string }
   completed: { label: "Completado", dot: "bg-muted-foreground", badge: "bg-secondary text-secondary-foreground" },
 };
 
-const STEPS = ["Evento", "Audiencia", "Presupuesto", "Confirmar"];
+const STEPS = ["Evento", "Audiencia", "Horario", "Presupuesto", "Confirmar"];
+
+// Sun=0..Sat=6 to match Postgres EXTRACT(DOW)
+const DAY_LABELS = ["D", "L", "M", "X", "J", "V", "S"];
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
+
+const fmtHour = (h: number) => `${String(h).padStart(2, "0")}:00`;
+
+const formatSchedule = (
+  days: number[] | null | undefined,
+  hStart: number | null | undefined,
+  hEnd: number | null | undefined
+): string => {
+  const isAllDays = !days || days.length === 0 || days.length === 7;
+  const isAllHours = hStart == null || hEnd == null;
+  if (isAllDays && isAllHours) return "Siempre activo";
+
+  let dayPart = "Todos los días";
+  if (!isAllDays) {
+    const sorted = [...days!].sort((a, b) => a - b);
+    if (sorted.length === 5 && sorted.join(",") === "1,2,3,4,5") dayPart = "L–V";
+    else if (sorted.length === 2 && sorted.join(",") === "0,6") dayPart = "S–D";
+    else dayPart = sorted.map(d => DAY_LABELS[d]).join(" ");
+  }
+  const hourPart = isAllHours ? "todo el día" : `${fmtHour(hStart!)}–${fmtHour(hEnd!)}`;
+  return `${dayPart} · ${hourPart}`;
+};
 
 export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: boolean }) => {
   const { user } = useAuth();
@@ -92,6 +118,11 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
   const [selectedBudget, setSelectedBudget] = useState(25);
   const [customBudget, setCustomBudget] = useState("");
   const [useCustomBudget, setUseCustomBudget] = useState(false);
+  // Schedule state
+  const [selectedDays, setSelectedDays] = useState<number[]>(ALL_DAYS);
+  const [useCustomHours, setUseCustomHours] = useState(false);
+  const [hourStart, setHourStart] = useState<number>(18);
+  const [hourEnd, setHourEnd] = useState<number>(2);
 
   // Open wizard automatically when triggered externally
   useEffect(() => {
@@ -115,6 +146,10 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
     setSelectedBudget(25);
     setCustomBudget("");
     setUseCustomBudget(false);
+    setSelectedDays(ALL_DAYS);
+    setUseCustomHours(false);
+    setHourStart(18);
+    setHourEnd(2);
     setEditingPostId(null);
   };
 
@@ -134,6 +169,21 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
     if (sp.target_radius_km) setAudiencePreset("nearby");
     else if (sp.target_categories?.length) setAudiencePreset("interest");
     else setAudiencePreset("auto");
+    // Hydrate schedule
+    setSelectedDays(
+      Array.isArray(sp.target_days_of_week) && sp.target_days_of_week.length > 0
+        ? sp.target_days_of_week
+        : ALL_DAYS
+    );
+    if (sp.target_hour_start != null && sp.target_hour_end != null) {
+      setUseCustomHours(true);
+      setHourStart(Number(sp.target_hour_start));
+      setHourEnd(Number(sp.target_hour_end));
+    } else {
+      setUseCustomHours(false);
+      setHourStart(18);
+      setHourEnd(2);
+    }
     setStep(0);
     setShowWizard(true);
   };
@@ -206,6 +256,13 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
   const handleCreate = async () => {
     if (!selectedEventId) return;
     const targetRadiusKm = audiencePreset === "nearby" ? 25 : undefined;
+    // Schedule values to persist (null = no restriction)
+    const daysToSave =
+      selectedDays.length > 0 && selectedDays.length < 7
+        ? [...selectedDays].sort((a, b) => a - b)
+        : null;
+    const hStart = useCustomHours ? hourStart : null;
+    const hEnd = useCustomHours ? hourEnd : null;
     try {
       if (editingPostId) {
         // Update existing draft
@@ -215,7 +272,10 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
             event_id: selectedEventId,
             total_budget: activeBudget,
             target_radius_km: targetRadiusKm ?? null,
-          })
+            target_days_of_week: daysToSave,
+            target_hour_start: hStart,
+            target_hour_end: hEnd,
+          } as any)
           .eq("id", editingPostId);
         if (error) throw error;
         toast.success("Promoción actualizada");
@@ -227,6 +287,9 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
           event_id: selectedEventId,
           total_budget: activeBudget,
           target_radius_km: targetRadiusKm,
+          target_days_of_week: daysToSave,
+          target_hour_start: hStart,
+          target_hour_end: hEnd,
         });
         setShowWizard(false);
         resetWizard();
@@ -250,7 +313,12 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
 
   const canAdvance = () => {
     if (step === 0) return !!selectedEventId;
-    if (step === 2) return activeBudget >= 5;
+    if (step === 2) {
+      if (selectedDays.length === 0) return false;
+      if (useCustomHours && hourStart === hourEnd) return false;
+      return true;
+    }
+    if (step === 3) return activeBudget >= 5;
     return true;
   };
 
@@ -356,6 +424,12 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                               <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
                               {cfg.label}
                             </span>
+                            {(sp.target_days_of_week?.length || sp.target_hour_start != null) && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground mt-1 ml-1.5">
+                                <Clock className="w-3 h-3" />
+                                {formatSchedule(sp.target_days_of_week, sp.target_hour_start, sp.target_hour_end)}
+                              </span>
+                            )}
                           </div>
 
                           {sp.status === "draft" ? (
@@ -557,8 +631,153 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                   </div>
                 )}
 
-                {/* ── Step 2: Budget ── */}
+                {/* ── Step 2: Schedule ── */}
                 {step === 2 && (
+                  <div className="space-y-5 pt-2">
+                    <div>
+                      <h2 className="text-2xl font-bold text-foreground">¿Cuándo se muestra?</h2>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Tu anuncio no se muestra ni gasta presupuesto fuera de este horario (hora de Bolivia).
+                      </p>
+                    </div>
+
+                    {/* Days of week */}
+                    <div>
+                      <p className="text-sm font-semibold text-foreground mb-2">Días de la semana</p>
+                      <div className="flex gap-1.5">
+                        {DAY_LABELS.map((label, idx) => {
+                          const isOn = selectedDays.includes(idx);
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                setSelectedDays(prev =>
+                                  prev.includes(idx) ? prev.filter(d => d !== idx) : [...prev, idx]
+                                );
+                              }}
+                              className={`flex-1 h-11 rounded-full border-2 text-sm font-semibold transition-all ${
+                                isOn
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border bg-card text-muted-foreground"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDays(ALL_DAYS)}
+                          className="text-xs text-primary font-medium px-2 py-1"
+                        >
+                          Todos
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDays([1, 2, 3, 4, 5])}
+                          className="text-xs text-primary font-medium px-2 py-1"
+                        >
+                          L–V
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDays([0, 6])}
+                          className="text-xs text-primary font-medium px-2 py-1"
+                        >
+                          Fines de semana
+                        </button>
+                      </div>
+                      {selectedDays.length === 0 && (
+                        <p className="text-xs text-destructive mt-2">Selecciona al menos un día.</p>
+                      )}
+                    </div>
+
+                    {/* Hour window */}
+                    <div>
+                      <p className="text-sm font-semibold text-foreground mb-2">Horario del día</p>
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <button
+                          type="button"
+                          onClick={() => setUseCustomHours(false)}
+                          className={`p-3 rounded-2xl border-2 text-sm font-medium transition-all ${
+                            !useCustomHours ? "border-primary bg-primary/5 text-foreground" : "border-border bg-card text-muted-foreground"
+                          }`}
+                        >
+                          Todo el día
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setUseCustomHours(true)}
+                          className={`p-3 rounded-2xl border-2 text-sm font-medium transition-all ${
+                            useCustomHours ? "border-primary bg-primary/5 text-foreground" : "border-border bg-card text-muted-foreground"
+                          }`}
+                        >
+                          Horario específico
+                        </button>
+                      </div>
+
+                      {useCustomHours && (
+                        <m.div
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="grid grid-cols-2 gap-3"
+                        >
+                          <label className="block">
+                            <span className="text-xs text-muted-foreground mb-1 block">Desde</span>
+                            <select
+                              value={hourStart}
+                              onChange={(e) => setHourStart(parseInt(e.target.value, 10))}
+                              className="w-full h-12 rounded-2xl border-2 border-border bg-card px-3 text-base font-semibold text-foreground"
+                            >
+                              {Array.from({ length: 24 }).map((_, h) => (
+                                <option key={h} value={h}>{fmtHour(h)}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="block">
+                            <span className="text-xs text-muted-foreground mb-1 block">Hasta</span>
+                            <select
+                              value={hourEnd}
+                              onChange={(e) => setHourEnd(parseInt(e.target.value, 10))}
+                              className="w-full h-12 rounded-2xl border-2 border-border bg-card px-3 text-base font-semibold text-foreground"
+                            >
+                              {Array.from({ length: 24 }).map((_, h) => (
+                                <option key={h} value={h}>{fmtHour(h)}</option>
+                              ))}
+                            </select>
+                          </label>
+                        </m.div>
+                      )}
+
+                      {useCustomHours && hourStart === hourEnd && (
+                        <p className="text-xs text-destructive mt-2">El inicio y el fin no pueden ser iguales.</p>
+                      )}
+                      {useCustomHours && hourEnd < hourStart && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Horario nocturno: cruza la medianoche ({fmtHour(hourStart)} → {fmtHour(hourEnd)} del día siguiente).
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Summary chip */}
+                    <div className="rounded-2xl bg-primary/8 border border-primary/20 p-3 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-primary shrink-0" />
+                      <p className="text-sm text-foreground">
+                        {formatSchedule(
+                          selectedDays.length === 7 ? null : selectedDays,
+                          useCustomHours ? hourStart : null,
+                          useCustomHours ? hourEnd : null
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Step 3: Budget ── */}
+                {step === 3 && (
                   <div className="space-y-4 pt-2">
                     <div>
                       <h2 className="text-2xl font-bold text-foreground">¿Cuánto quieres invertir?</h2>
@@ -635,8 +854,8 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                   </div>
                 )}
 
-                {/* ── Step 3: Confirm ── */}
-                {step === 3 && (
+                {/* ── Step 4: Confirm ── */}
+                {step === 4 && (
                   <div className="space-y-4 pt-2">
                     <div>
                       <h2 className="text-2xl font-bold text-foreground">
@@ -668,6 +887,20 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                           <div>
                             <p className="text-xs text-muted-foreground">Alcance estimado</p>
                             <p className="font-medium text-foreground">~{formatReach(estimatedReach)} personas</p>
+                          </div>
+                        </div>
+                        <div className="h-px bg-border" />
+                        <div className="flex items-start gap-2 text-sm">
+                          <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-xs text-muted-foreground">Horario</p>
+                            <p className="font-medium text-foreground">
+                              {formatSchedule(
+                                selectedDays.length === 7 ? null : selectedDays,
+                                useCustomHours ? hourStart : null,
+                                useCustomHours ? hourEnd : null
+                              )}
+                            </p>
                           </div>
                         </div>
                         <div className="h-px bg-border" />
@@ -703,10 +936,10 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
             </AnimatePresence>
           </div>
 
-          {/* Sticky footer CTA (steps 0–2) */}
-          {step < 3 && (
+          {/* Sticky footer CTA (steps 0–3) */}
+          {step < 4 && (
             <div className="shrink-0 px-5 pb-6 pt-2 border-t border-border bg-background">
-              {step === 2 && activeBudget >= 5 && (
+              {step === 3 && activeBudget >= 5 && (
                 <p className="text-center text-xs text-muted-foreground mb-2">
                   Llegarás a ~{formatReach(estimatedReach)} personas por ${activeBudget.toFixed(0)}
                 </p>
