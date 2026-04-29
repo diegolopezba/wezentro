@@ -70,7 +70,33 @@ const statusConfig: Record<string, { label: string; dot: string; badge: string }
   completed: { label: "Completado", dot: "bg-muted-foreground", badge: "bg-secondary text-secondary-foreground" },
 };
 
-const STEPS = ["Evento", "Audiencia", "Presupuesto", "Confirmar"];
+const STEPS = ["Evento", "Audiencia", "Horario", "Presupuesto", "Confirmar"];
+
+// Sun=0..Sat=6 to match Postgres EXTRACT(DOW)
+const DAY_LABELS = ["D", "L", "M", "X", "J", "V", "S"];
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
+
+const fmtHour = (h: number) => `${String(h).padStart(2, "0")}:00`;
+
+const formatSchedule = (
+  days: number[] | null | undefined,
+  hStart: number | null | undefined,
+  hEnd: number | null | undefined
+): string => {
+  const isAllDays = !days || days.length === 0 || days.length === 7;
+  const isAllHours = hStart == null || hEnd == null;
+  if (isAllDays && isAllHours) return "Siempre activo";
+
+  let dayPart = "Todos los días";
+  if (!isAllDays) {
+    const sorted = [...days!].sort((a, b) => a - b);
+    if (sorted.length === 5 && sorted.join(",") === "1,2,3,4,5") dayPart = "L–V";
+    else if (sorted.length === 2 && sorted.join(",") === "0,6") dayPart = "S–D";
+    else dayPart = sorted.map(d => DAY_LABELS[d]).join(" ");
+  }
+  const hourPart = isAllHours ? "todo el día" : `${fmtHour(hStart!)}–${fmtHour(hEnd!)}`;
+  return `${dayPart} · ${hourPart}`;
+};
 
 export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: boolean }) => {
   const { user } = useAuth();
