@@ -118,6 +118,11 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
   const [selectedBudget, setSelectedBudget] = useState(25);
   const [customBudget, setCustomBudget] = useState("");
   const [useCustomBudget, setUseCustomBudget] = useState(false);
+  // Schedule state
+  const [selectedDays, setSelectedDays] = useState<number[]>(ALL_DAYS);
+  const [useCustomHours, setUseCustomHours] = useState(false);
+  const [hourStart, setHourStart] = useState<number>(18);
+  const [hourEnd, setHourEnd] = useState<number>(2);
 
   // Open wizard automatically when triggered externally
   useEffect(() => {
