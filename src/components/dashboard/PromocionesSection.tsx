@@ -5,7 +5,7 @@ import { Browser } from "@capacitor/browser";
 import {
   Megaphone, Plus, Play, Pause, Eye, MousePointerClick, DollarSign,
   Users, Sparkles, ArrowLeft, ArrowRight, Check, MapPin, Tag, Zap,
-  ChevronRight, TrendingUp, Lock, Pencil
+  ChevronRight, TrendingUp, Lock, Pencil, Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
