@@ -313,7 +313,12 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
 
   const canAdvance = () => {
     if (step === 0) return !!selectedEventId;
-    if (step === 2) return activeBudget >= 5;
+    if (step === 2) {
+      if (selectedDays.length === 0) return false;
+      if (useCustomHours && hourStart === hourEnd) return false;
+      return true;
+    }
+    if (step === 3) return activeBudget >= 5;
     return true;
   };
 
