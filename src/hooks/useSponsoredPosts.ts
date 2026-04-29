@@ -23,6 +23,10 @@ export interface SponsoredPost {
   target_gender: string | null;
   target_age_min: number | null;
   target_age_max: number | null;
+  target_days_of_week: number[] | null;
+  target_hour_start: number | null;
+  target_hour_end: number | null;
+  target_timezone: string | null;
 }
 
 export interface SponsoredEventForFeed extends EventWithCreator {
