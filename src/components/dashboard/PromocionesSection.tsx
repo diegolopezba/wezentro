@@ -146,6 +146,10 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
     setSelectedBudget(25);
     setCustomBudget("");
     setUseCustomBudget(false);
+    setSelectedDays(ALL_DAYS);
+    setUseCustomHours(false);
+    setHourStart(18);
+    setHourEnd(2);
     setEditingPostId(null);
   };
 
