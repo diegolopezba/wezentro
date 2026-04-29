@@ -169,6 +169,21 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
     if (sp.target_radius_km) setAudiencePreset("nearby");
     else if (sp.target_categories?.length) setAudiencePreset("interest");
     else setAudiencePreset("auto");
+    // Hydrate schedule
+    setSelectedDays(
+      Array.isArray(sp.target_days_of_week) && sp.target_days_of_week.length > 0
+        ? sp.target_days_of_week
+        : ALL_DAYS
+    );
+    if (sp.target_hour_start != null && sp.target_hour_end != null) {
+      setUseCustomHours(true);
+      setHourStart(Number(sp.target_hour_start));
+      setHourEnd(Number(sp.target_hour_end));
+    } else {
+      setUseCustomHours(false);
+      setHourStart(18);
+      setHourEnd(2);
+    }
     setStep(0);
     setShowWizard(true);
   };
