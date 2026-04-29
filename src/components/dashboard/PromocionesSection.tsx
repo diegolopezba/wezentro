@@ -930,10 +930,10 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
             </AnimatePresence>
           </div>
 
-          {/* Sticky footer CTA (steps 0–2) */}
-          {step < 3 && (
+          {/* Sticky footer CTA (steps 0–3) */}
+          {step < 4 && (
             <div className="shrink-0 px-5 pb-6 pt-2 border-t border-border bg-background">
-              {step === 2 && activeBudget >= 5 && (
+              {step === 3 && activeBudget >= 5 && (
                 <p className="text-center text-xs text-muted-foreground mb-2">
                   Llegarás a ~{formatReach(estimatedReach)} personas por ${activeBudget.toFixed(0)}
                 </p>
