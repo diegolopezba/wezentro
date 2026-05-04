@@ -323,7 +323,7 @@ const Auth = () => {
                       )}
                     </div>
                     <span className="text-xs text-muted-foreground leading-relaxed">
-                      Tengo 13 años o más y acepto los{" "}
+                      Tengo 18 años o más y acepto los{" "}
                       <button
                         type="button" className="text-foreground underline underline-offset-2" onClick={(e) => { e.stopPropagation(); navigate("/terms"); }}
                       >
