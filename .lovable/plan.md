@@ -1,52 +1,99 @@
-# Advertiser Time & Day Targeting for Sponsored Ads
+# iOS App Store Readiness — Execution Plan
 
-Let advertisers control **when** their ads run — specific days of the week and a daily time window — via an "Opciones avanzadas" step in the boost wizard.
+Decisions locked in:
+1. **Minimum age: 18+**
+2. **Remove Google Sign-In entirely** → no Sign in with Apple needed
+3. **You provide 1024×1024 app icon** (upload after approval)
+4. **Target: iOS App Store first**
 
-## What gets built
+---
 
-### New wizard step: "Horario" (between Audiencia and Presupuesto)
-- **Días de la semana**: 7 toggle pills (L M X J V S D). Default: all selected.
-- **Horario del día**: two modes
-  - "Todo el día" (default)
-  - "Horario específico" — two time pickers (Desde / Hasta). Supports overnight windows (e.g., 18:00 → 02:00).
-- Helper note: *"Tu anuncio no se muestra ni consume presupuesto fuera de este horario (hora de Bolivia)."*
-- Skippable — defaults mean "always show".
+## Phase A — Code & Compliance Changes (I do these)
 
-### Confirm step
-Adds a "Horario" row to the summary card, e.g. `L–V · 18:00–02:00` or `Siempre activo`.
+### 1. Bump age gate to 18+
+- `src/pages/Onboarding.tsx`: change `age < 13` → `age < 18`, update error copy ("Debes tener al menos 18 años…").
+- Make birth date **required** (currently optional with "Omitir"). Without it we can't enforce the gate.
+- Remove "Omitir por ahora" skip on step 3.
+- Update `index.html` meta `age-restriction` 17+ → 18+.
+- Update privacy/terms copy to state 18+ minimum.
+- Update memory file `mem://auth/authentication-system` (13+ → 18+).
 
-### Campaign card (dashboard)
-Compact schedule chip under the title when a custom schedule is set.
+### 2. Remove Google Sign-In
+- Audit `src/pages/Auth.tsx` and any auth UI for Google buttons → remove.
+- Remove any `signInWithOAuth("google")` calls.
+- Keep email/password only.
+- (Lovable Cloud auth provider toggle is dashboard-side; no code needed there.)
 
-## Database changes (migration)
+### 3. Push notifications — add pre-prompt explainer
+- New small sheet shown ~3s after login explaining *why* we want push (messages, event reminders, replies).
+- Only if user taps "Activar" do we trigger the iOS native prompt via OneSignal.
+- Update `usePushNotificationPrompt.ts` to gate on this user action instead of auto-prompting.
+- Persist dismissal in localStorage so we don't nag.
 
-Add 4 columns to `sponsored_posts`:
-- `target_days_of_week int[]` — 0–6 (Sunday=0). NULL = all days.
-- `target_hour_start int` (0–23, nullable)
-- `target_hour_end int` (0–23, nullable). Both null = all day. If end < start, window crosses midnight.
-- `target_timezone text NOT NULL DEFAULT 'America/La_Paz'`
+### 4. Service worker safety on native
+- In `src/main.tsx`: skip `serviceWorker.register` when `Capacitor.isNativePlatform()`. Service worker is only needed for the PWA web build, not the native WebView.
 
-Add a validation **trigger** (not a CHECK — project rule) ensuring the hours are both set or both null and within 0–23, and days are all 0–6.
+### 5. Capacitor production config hardening
+- `capacitor.config.ts`: keep dev hot-reload behind `isDev`, but add an explicit comment + a `BUILD_NATIVE.md` step requiring `NODE_ENV=production npx cap sync` before any TestFlight build, so the `server.url` block is stripped.
+- Add `NSMicrophoneUsageDescription` to iOS permissions (video uploads can capture audio).
+- Confirm `cleartext: true` only ever appears under the dev guard.
 
-## RPC update: `get_eligible_sponsored_posts`
-Append two filters using `now() AT TIME ZONE sp.target_timezone`:
-- DOW filter via `EXTRACT(DOW FROM ...) = ANY(sp.target_days_of_week)`
-- Hour filter with overnight-window CASE handling
+### 6. Reviewer-note comments (IAP exemption)
+- Add header comments in `PaymentQRModal.tsx` and `charge-boost/index.ts` explaining: physical event tickets + B2B advertising spend = exempt from Apple IAP per Guideline 3.1.3 / 3.1.5.
 
-This means **no impressions served outside the window → no budget consumed**. No lifecycle/cron changes required.
+### 7. Account deletion discoverability
+- Verify "Eliminar cuenta" is reachable in Settings within 2 taps. Move/relabel if buried.
 
-## Frontend changes
-- `src/hooks/useSponsoredPosts.ts` — extend `SponsoredPost` interface; extend `useCreateSponsoredPost` mutation params; persist schedule on the existing edit-update path in `PromocionesSection.tsx`.
-- `src/components/dashboard/PromocionesSection.tsx`
-  - Add wizard state: `selectedDays: number[]`, `useCustomHours: boolean`, `hourStart: string`, `hourEnd: string`.
-  - Insert new step "Horario" between current steps 1 (Audiencia) and 2 (Presupuesto). `STEPS` array becomes 5 entries.
-  - Hydrate state from `sp` on edit (`openEditWizard`).
-  - Persist via both create and update paths in `handleCreate`.
-  - Render schedule summary chip on each campaign card.
-- Helper `formatSchedule(days, hStart, hEnd)` for compact display.
+### 8. iOS Privacy Manifest
+- Create `ios/App/App/PrivacyInfo.xcprivacy` template declaring:
+  - Data collected: email, name, photos, approximate location, device ID (OneSignal), purchase history (Stripe).
+  - Tracking: **No** (we don't share IDs with data brokers).
+  - Required Reason API usage for: `UserDefaults`, `FileTimestamp`, `SystemBootTime`, `DiskSpace` (Capacitor uses these).
+- This file ships in the iOS project after `npx cap add ios`.
 
-## Out of scope
-- Different hours per day (single global window only)
-- Multiple windows per day
-- Per-viewer timezone (always advertiser's tz)
-- Lost-impressions reporting
+### 9. Documentation: `BUILD_NATIVE.md`
+A single doc covering everything you'll need outside the codebase:
+- Production build & sync commands
+- Xcode signing + version/build number bump
+- OneSignal: APNs key upload steps
+- Mapbox: token URL/bundle restriction
+- App Store Connect listing fields (description ES/EN, keywords, age rating answers, IAP exemption reviewer note, privacy questionnaire answers)
+- TestFlight checklist before submission
+
+---
+
+## Phase B — You Do These (outside code)
+
+| Task | Where |
+|---|---|
+| Disable Google provider | Lovable Cloud → Users → Auth Settings |
+| Upload 1024×1024 app icon | Send to me; I'll generate the iOS icon set + splash |
+| Apple Developer account ($99/yr) | developer.apple.com |
+| Create App ID `app.lovable.a812f800384e4a80818ea38ac62424d4` | Apple Developer portal |
+| Generate APNs Auth Key | Apple → upload to OneSignal |
+| Restrict Mapbox token to bundle ID + zentro.today | Mapbox dashboard |
+| App Store Connect: create app record | appstoreconnect.apple.com |
+| Screenshots (3–10 per device size) | Take from real device |
+| App description + keywords (ES + EN) | Draft in BUILD_NATIVE.md |
+| Export project to GitHub → run `npx cap add ios` | Local Mac with Xcode |
+| TestFlight build → internal testing | Xcode |
+| Submit for review | App Store Connect |
+
+---
+
+## Execution Order (after approval)
+
+1. Age gate → 18+
+2. Strip Google sign-in
+3. Push pre-prompt
+4. SW guard on native
+5. Capacitor config hardening + mic permission
+6. IAP reviewer-note comments
+7. Verify account deletion path
+8. Generate `PrivacyInfo.xcprivacy` template
+9. Write `BUILD_NATIVE.md`
+10. Update memory files
+
+After this ships, send me the 1024×1024 icon and I'll generate the full icon set.
+
+Ready to execute on approval.
