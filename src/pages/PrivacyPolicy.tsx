@@ -228,12 +228,9 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">12. Privacidad de Menores</h2>
+            <h2 className="text-lg font-semibold text-foreground">12. Edad Mínima</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Zentro no está dirigido a menores de 13 años. No recopilamos intencionalmente información de niños menores de 13 años. Si descubrimos que hemos recopilado información de un menor, la eliminaremos de inmediato.
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Los usuarios entre 13 y 18 años deben tener el consentimiento de un padre o tutor para usar la aplicación.
+              Zentro es una plataforma de vida nocturna y está restringida a personas mayores de 18 años. No recopilamos intencionalmente información de menores de 18 años. Si descubrimos que hemos recopilado información de un menor, la eliminaremos de inmediato.
             </p>
           </section>
 
