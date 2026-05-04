@@ -95,20 +95,16 @@ const Onboarding = () => {
     if (!user) return;
 
     const birthDate = buildBirthDate();
-    const { birthDay, birthMonth, birthYear } = formData;
-    const hasPartialDate = birthDay || birthMonth || birthYear;
-    if (hasPartialDate && !birthDate) {
-      toast.error("Por favor ingresa una fecha de nacimiento válida.");
+    if (!birthDate) {
+      toast.error("Por favor ingresa tu fecha de nacimiento completa.");
       return;
     }
 
-    // COPPA / store compliance: must be 13+
-    if (birthDate) {
-      const age = getAge(birthDate);
-      if (age < 13) {
-        toast.error("Debes tener al menos 13 años para usar Zentro.");
-        return;
-      }
+    // App Store / Bolivia legal: must be 18+ (alcohol, nightlife)
+    const age = getAge(birthDate);
+    if (age < 18) {
+      toast.error("Debes tener al menos 18 años para usar Zentro.");
+      return;
     }
 
     setIsLoading(true);
@@ -306,17 +302,7 @@ const Onboarding = () => {
         </div>
       </div>
 
-      {/* Skip option */}
-      {step > 1 && (
-        <div className="p-6 text-center relative z-10">
-          <button
-            onClick={handleComplete}
-            className="text-sm text-muted-foreground transition-colors" disabled={isLoading}
-          >
-            Omitir por ahora
-          </button>
-        </div>
-      )}
+      {/* Skip removed: birth date is required for 18+ verification */}
     </div>
   );
 };

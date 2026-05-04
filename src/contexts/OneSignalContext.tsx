@@ -167,7 +167,9 @@ export const OneSignalProvider = ({ children }: Props) => {
       return;
     }
 
-    if ('serviceWorker' in navigator) {
+    // Skip web service worker on native — Capacitor WebView doesn't use SW,
+    // and OneSignal native plugin handles push registration on iOS/Android.
+    if (!isNative() && 'serviceWorker' in navigator) {
       try {
         await navigator.serviceWorker.ready;
         logger.log("[OneSignal] Service worker ready");

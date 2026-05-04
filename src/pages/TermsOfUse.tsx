@@ -75,7 +75,7 @@ const TermsOfUse = () => {
               <li>Mantener la seguridad de su contraseña</li>
               <li>Aceptar la responsabilidad por todas las actividades bajo su cuenta</li>
               <li>Notificarnos inmediatamente sobre cualquier uso no autorizado</li>
-              <li>Tener al menos 13 años de edad (o la edad mínima legal en su jurisdicción)</li>
+              <li>Tener al menos 18 años de edad. Zentro está orientado a la vida nocturna y solo está disponible para personas mayores de edad.</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Nos reservamos el derecho de suspender o terminar su cuenta si se proporciona información falsa o se violan estos Términos.

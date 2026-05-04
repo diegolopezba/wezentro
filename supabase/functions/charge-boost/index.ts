@@ -1,3 +1,11 @@
+/**
+ * APPLE IAP EXEMPTION (App Store Review Note):
+ * This edge function processes B2B advertising spend (sponsored post boosts)
+ * paid by businesses to promote their content. Per App Store Review Guideline
+ * 3.1.3(b) "Multiplatform Services" / 3.1.5(a), advertising platforms and
+ * services consumed outside the app are NOT required to use Apple IAP.
+ * Charged via Stripe.
+ */
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";

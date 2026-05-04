@@ -1,3 +1,10 @@
+/**
+ * APPLE IAP EXEMPTION (App Store Review Note):
+ * This modal sells tickets to PHYSICAL real-world events (clubs, bars, concerts
+ * in Bolivia). Per App Store Review Guideline 3.1.3(e), goods or services
+ * consumed outside the app are NOT required to use Apple In-App Purchase.
+ * Payment is processed via QR through Bolivian banking infrastructure (BNB).
+ */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
