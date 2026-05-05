@@ -142,27 +142,6 @@ export const TimelineCard = ({
             </button>
           )}
 
-          {/* Attendees overlay - top left (only for events, not posts) */}
-          {!isPost && attendees > 0 && (
-            <div className="absolute top-2 left-2 flex items-center gap-1.5">
-              <div className="flex -space-x-1.5">
-                {ownerAvatar && (
-                  <img
-                    src={getOptimizedImageUrl(ownerAvatar, ImageSizes.avatarXs)}
-                    alt="Owner" className={cn( "w-5 h-5 rounded-full border-background object-cover border-0",
-                      creatorId && "cursor-pointer transition-transform z-10" )}
-                    onClick={(e) => {
-                      if (creatorId) {
-                        e.stopPropagation();
-                        navigate(`/user/${creatorId}`);
-                      }
-                    }}
-                  />
-                )}
-              </div>
-              <span className="text-[10px] font-medium text-foreground">{attendees}</span>
-            </div>
-          )}
         </div>
 
         {/* Content */}
@@ -176,6 +155,31 @@ export const TimelineCard = ({
             {dateDisplay && (
               <p className="text-[10px] text-muted-foreground">{dateDisplay}</p>
             )}
+          </div>
+        )}
+
+        {/* Attendees row - below text (only for events, not posts) */}
+        {!isPost && attendees > 0 && (
+          <div className="flex items-center gap-1.5 px-1">
+            <div className="flex -space-x-1.5">
+              {ownerAvatar && (
+                <img
+                  src={getOptimizedImageUrl(ownerAvatar, ImageSizes.avatarXs)}
+                  alt="Owner"
+                  className={cn(
+                    "w-5 h-5 rounded-full border border-background object-cover",
+                    creatorId && "cursor-pointer z-10"
+                  )}
+                  onClick={(e) => {
+                    if (creatorId) {
+                      e.stopPropagation();
+                      navigate(`/user/${creatorId}`);
+                    }
+                  }}
+                />
+              )}
+            </div>
+            <span className="text-[10px] font-medium text-muted-foreground">{attendees}</span>
           </div>
         )}
       </div>
