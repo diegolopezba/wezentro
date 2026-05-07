@@ -1,75 +1,30 @@
-# Carousel Posts (multi-media) for Events & Posts
+## Problem
 
-Add Pinterest/Instagram-style carousels: up to 5 mixed photos/videos per event or post, swipeable directly inside feed cards. Migrate existing single-media content to a unified media array.
+On `/event/:id`, the action button row (like, repost, send, save, comments) appears too high and visually blends into the bottom gradient fade of the hero media. This regressed when the hero was migrated to `<MediaCarousel isHero />`.
 
-## 1. Data model
+## Root Cause
 
-New table `event_media`:
-- `event_id` (FK → events)
-- `media_url` (text)
-- `media_type` ('image' | 'video')
-- `display_order` (int, 0-4)
-- `aspect_ratio` (numeric, optional — used for card sizing)
-- standard id/created_at
+In `src/pages/EventDetail.tsx`:
 
-RLS: public SELECT for media on public events; INSERT/UPDATE/DELETE only by event creator.
+- The content block uses `className="relative -mt-16 px-4 pb-28"` to pull the title/category up over the hero gradient fade (a deliberate Pinterest-style overlap).
+- Previously, the hero `<img>`/`<video>` rendered with its natural intrinsic height plus the gradient sat at the bottom 20%.
+- The new `MediaCarousel` (in `isHero` mode) sets `maxHeight: 70vh` and a `minHeight: 250px` and applies the same 20% bottom gradient (`h-[20%] bg-gradient-to-t from-background`). Because the carousel container is now often shorter (especially for square/portrait media on a 390px viewport, capped at 70vh), the `-mt-16` pulls the title further up into the gradient zone — which means the **action row** (which sits in the same `space-y-6` stack right below the title) lands inside/just under the gradient fade instead of cleanly on the solid background.
 
-Backfill migration:
-- For every existing `events` row with `image_url`, insert one `event_media` row at `display_order = 0`.
-- Keep `events.image_url` as a denormalized "cover" pointing to media #0 (used by share previews, OG tags, sponsored ads, notifications). Updated automatically when media #0 changes.
+## Fix (single file, presentation only)
 
-A trigger keeps `events.image_url` in sync with the first media item.
+Edit `src/pages/EventDetail.tsx`:
 
-## 2. Creation flow (`src/pages/Create.tsx`)
+1. Reduce/remove the negative top margin overlap on the content container so the title and action buttons sit cleanly below the hero gradient.
+   - Change `relative -mt-16 px-4 pb-28` → `relative -mt-8 px-4 pt-2 pb-28` (keeps a subtle Pinterest-like lift for the category/title without dragging the action row into the gradient).
+2. Add a small top margin/padding separator between the title block and the action buttons so the row clearly separates from the hero fade.
+   - Inside the `space-y-6` `<m.div>`, wrap the action-buttons `<div className="flex items-center justify-between">` (line 169) with an extra `pt-1` or move it after a thin divider — keeping the existing gap consistent with `EventDetailModal`.
 
-Replace the single `mediaFile` state with `mediaItems: { file, preview, type, aspect }[]` (max 5).
-- Plus tile at the end of the row to add more (until 5).
-- Each item shows a small × to remove and drag-handle to reorder.
-- Validate each item with existing `validateVideoFile` / `validateImageFile` rules (30s, 20MB, 720p, WebP compression).
-- Upload sequentially with a progress indicator, then insert event row + bulk insert into `event_media`.
+## Verification
 
-## 3. Reusable `<MediaCarousel />` component
+- Reload `/event/4c9c0c16-020a-4241-9fd0-418f8d9e3167` and confirm the action row sits on the solid background, no longer overlapping the gradient fade.
+- Cross-check `EventDetailModal` (sheet variant) to make sure spacing still matches; if the modal had the same regression, apply the same `-mt-*` adjustment there.
+- Test with both a portrait (3/4) post and a landscape (16/9) event to ensure the spacing holds across aspect ratios.
 
-`src/components/events/MediaCarousel.tsx` — used in both feed cards and detail view.
-- Embla carousel (already in deps) with `dragFree: false`, snap per slide.
-- Lazy-loads off-screen items; only the active slide auto-plays video; others pause + mute.
-- Shows dot indicator at the bottom (or `1/5` pill in top-right when >3 items).
-- Preserves the card's dynamic aspect ratio: uses the **first** item's aspect to size the card; subsequent items are object-cover within that frame (Pinterest behavior — feed never reflows).
-- Tap (no swipe) opens the detail view at the current slide.
-- Sound toggle behaves as today, applies to active video.
+## Out of Scope
 
-## 4. Cards & feed integration
-
-Update `EventCard.tsx` and `TimelineCard.tsx`:
-- Replace single `<img>/<video>` block with `<MediaCarousel items={...} />`.
-- Add `media: AttendeeMedia[]` prop fed from the new query (falls back to `[{ url: image_url, type }]` if empty).
-- Memo comparator updated to include `media.length` and first item id.
-
-Sponsored cards keep single-media for now (out of scope unless asked).
-
-## 5. Detail view
-
-`EventDetailModal.tsx` + `EventDetail.tsx` swap their hero media block for the same `<MediaCarousel />`, opened at the index the user tapped from the feed (passed via `useOpenEvent`).
-
-## 6. Queries
-
-- `useEvents`, `useFollowingEventsScored`, `useForYouEvents`, `useUserTimeline`, `useRelatedEvents`, `useNearbyEvents`, etc. join `event_media` (ordered by `display_order`) and return a `media` array per event.
-- Update the `get_for_you_events` SQL function to aggregate `event_media` into a `jsonb` column.
-- Type updates flow through automatically once `event_media` is in the schema.
-
-## 7. Edits
-
-`EditEventSheet.tsx` gains the same multi-item editor (add/remove/reorder), syncing back to `event_media`.
-
-## Out of scope
-
-- Mixing media in sponsored ads (still single).
-- Per-slide alt text or captions.
-- Advanced reorder gestures beyond drag-handle.
-
-## Technical notes
-
-- Use Embla's `selectedScrollSnap()` to drive the active-video logic.
-- Keep `image_url` column for backwards compat & external embeds — never remove it.
-- 5-item cap enforced both client-side and via a CHECK constraint on `display_order BETWEEN 0 AND 4`.
-- Soft-deletes cascade: when an event is soft-deleted, media rows stay (no hard delete) but are filtered by the event's `deleted_at`.
+- No changes to MediaCarousel itself, no changes to data/queries, no changes to other pages.
