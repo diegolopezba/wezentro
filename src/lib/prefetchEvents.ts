@@ -48,5 +48,6 @@ export const fetchForYouEvents = async () => {
       ? row.attendee_avatars.map((a: any) => ({ user: a }))
       : [],
     _attendee_count: Number(row.attendee_count) || 0,
+    media: Array.isArray(row.media) ? row.media : [],
   }));
 };

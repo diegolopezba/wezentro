@@ -91,14 +91,19 @@ export const useEvent = (eventId: string | undefined) => {
             username,
             full_name,
             avatar_url
-          )
+          ),
+          media:event_media(id, media_url, media_type, display_order, aspect_ratio)
         `)
         .eq("id", eventId)
         .maybeSingle();
 
       if (error) throw error;
       if (!data) throw new Error("Event not found");
-      return data as EventWithCreator;
+      // Sort media by display_order
+      if (Array.isArray((data as any).media)) {
+        (data as any).media.sort((a: any, b: any) => a.display_order - b.display_order);
+      }
+      return data as EventWithCreator & { media?: any[] };
     },
     enabled: !!eventId,
   });
