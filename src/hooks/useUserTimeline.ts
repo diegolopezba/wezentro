@@ -43,7 +43,8 @@ export const useUserTimeline = (userId: string | undefined) => {
           full_name,
           avatar_url
         ),
-        guestlist_entries(count)
+        guestlist_entries(count),
+        media:event_media(id, media_url, media_type, display_order, aspect_ratio)
       `;
 
       // Fetch own posts and accepted tagged posts in parallel
