@@ -260,15 +260,15 @@ const EventCardComponent = ({
           {/* Attendees row - below text */}
           {attendees > 0 && (
             <div className="flex items-center gap-1.5 px-1">
-              <div className="flex -space-x-1.5">
+              <div className="flex -space-x-2">
                 {ownerAvatar && (
                   <img
-                    src={getOptimizedImageUrl(ownerAvatar, ImageSizes.avatarXs)}
+                    src={getOptimizedImageUrl(ownerAvatar, ImageSizes.avatarSm)}
                     alt="Owner"
                     loading="lazy"
                     decoding="async"
                     className={cn(
-                      "w-5 h-5 rounded-full border border-background object-cover",
+                      "w-6 h-6 rounded-full border border-background object-cover",
                       creatorId && "cursor-pointer z-10"
                     )}
                     onClick={(e) => {
@@ -285,11 +285,11 @@ const EventCardComponent = ({
                   .map((attendee) => (
                     <img
                       key={attendee.id}
-                      src={attendee.avatar_url ? getOptimizedImageUrl(attendee.avatar_url, ImageSizes.avatarXs) : DEFAULT_AVATAR}
+                      src={attendee.avatar_url ? getOptimizedImageUrl(attendee.avatar_url, ImageSizes.avatarSm) : DEFAULT_AVATAR}
                       alt="Attendee"
                       loading="lazy"
                       decoding="async"
-                      className="w-5 h-5 rounded-full border border-background object-cover"
+                      className="w-6 h-6 rounded-full border border-background object-cover"
                     />
                   ))}
                 {attendeeAvatars.filter((a) => a.id !== creatorId).length < (ownerAvatar ? 2 : 3) &&
@@ -306,11 +306,11 @@ const EventCardComponent = ({
                       alt="Attendee"
                       loading="lazy"
                       decoding="async"
-                      className="w-5 h-5 rounded-full border border-background object-cover"
+                      className="w-6 h-6 rounded-full border border-background object-cover"
                     />
                   ))}
               </div>
-              <span className="text-[10px] font-medium text-muted-foreground">{attendees}</span>
+              <span className="text-xs font-medium text-muted-foreground">{attendees}</span>
             </div>
           )}
         </div>
