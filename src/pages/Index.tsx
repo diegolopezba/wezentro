@@ -112,6 +112,7 @@ const Index = () => {
         creatorId: event.creator_id,
         repostInfo: (event as any).repostInfo,
         isSponsored: false,
+        media: (event as any).media || [],
       };
     });
 
