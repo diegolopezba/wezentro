@@ -26,6 +26,7 @@ export interface TimelineItem {
     avatar_url: string | null;
   };
   guestlist_entries?: { count: number }[];
+  media?: { id: string; media_url: string; media_type: string; display_order: number; aspect_ratio: number | null }[];
 }
 
 export const useUserTimeline = (userId: string | undefined) => {
@@ -42,7 +43,8 @@ export const useUserTimeline = (userId: string | undefined) => {
           full_name,
           avatar_url
         ),
-        guestlist_entries(count)
+        guestlist_entries(count),
+        media:event_media(id, media_url, media_type, display_order, aspect_ratio)
       `;
 
       // Fetch own posts and accepted tagged posts in parallel
@@ -74,6 +76,9 @@ export const useUserTimeline = (userId: string | undefined) => {
       for (const post of [...ownPosts, ...taggedPosts]) {
         if (!seen.has(post.id)) {
           seen.add(post.id);
+          if (Array.isArray((post as any).media)) {
+            (post as any).media.sort((a: any, b: any) => a.display_order - b.display_order);
+          }
           merged.push(post);
         }
       }

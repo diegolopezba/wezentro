@@ -1,13 +1,11 @@
 import { m } from "framer-motion";
-import { Volume2, VolumeX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { isVideoUrl } from "@/lib/mediaUtils";
 import { useOpenEvent } from "@/hooks/useOpenEvent";
 import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
+import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
 
 export interface TimelineCardProps {
   id: string;
@@ -22,6 +20,7 @@ export interface TimelineCardProps {
   index?: number;
   ownerAvatar?: string;
   creatorId?: string;
+  media?: CarouselMediaItem[];
 }
 
 export const TimelineCard = ({
@@ -37,43 +36,19 @@ export const TimelineCard = ({
   index = 0,
   ownerAvatar,
   creatorId,
+  media,
 }: TimelineCardProps) => {
   const navigate = useNavigate();
   const openEvent = useOpenEvent();
 
   const handleCardClick = () => {
-    // Open event-modal-on-top (Pinterest pattern). For posts and events alike.
     openEvent(id);
   };
 
-  const isVideo = isVideoUrl(imageUrl);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = useState(true);
-  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
-
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
-
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    if (img.naturalWidth && img.naturalHeight) {
-      setAspectRatio(img.naturalWidth / img.naturalHeight);
-    }
-  };
-
-  const handleVideoMetadata = () => {
-    if (videoRef.current) {
-      const { videoWidth, videoHeight } = videoRef.current;
-      if (videoWidth && videoHeight) {
-        setAspectRatio(videoWidth / videoHeight);
-      }
-    }
-  };
+  const carouselItems: CarouselMediaItem[] =
+    media && media.length > 0
+      ? media
+      : [{ media_url: imageUrl, media_type: undefined }];
 
   // Format the date/time display
   const getDateDisplay = () => {
@@ -99,50 +74,11 @@ export const TimelineCard = ({
         layout: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
       }}
       whileTap={{ scale: 0.98 }}
-      className="masonry-item cursor-pointer" onClick={handleCardClick}
+      className="masonry-item cursor-pointer"
+      onClick={handleCardClick}
     >
       <div className="space-y-2 px-0">
-        {/* Media */}
-        <div
-          className="relative rounded-xl overflow-hidden bg-secondary" style={{
-            width: "100%",
-            aspectRatio: aspectRatio ? `${aspectRatio}` : "3/4",
-            minHeight: "120px",
-            maxHeight: "350px",
-          }}
-        >
-          {isVideo ? (
-            <video
-              ref={videoRef}
-              src={imageUrl}
-              className="w-full h-full object-cover" autoPlay
-              muted
-              loop
-              playsInline
-              onLoadedMetadata={handleVideoMetadata}
-            />
-          ) : (
-            <img
-              src={getOptimizedImageUrl(imageUrl, ImageSizes.card)}
-              alt={title || "Post"}
-              className="w-full h-full object-cover" onLoad={handleImageLoad}
-            />
-          )}
-
-          {/* Sound toggle button - top right */}
-          {isVideo && (
-            <button
-              onClick={toggleMute}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors z-10" >
-              {isMuted ? (
-                <VolumeX className="w-3.5 h-3.5 text-white" />
-              ) : (
-                <Volume2 className="w-3.5 h-3.5 text-white" />
-              )}
-            </button>
-          )}
-
-        </div>
+        <MediaCarousel items={carouselItems} onTap={handleCardClick} />
 
         {/* Content */}
         {(title || dateDisplay) && (

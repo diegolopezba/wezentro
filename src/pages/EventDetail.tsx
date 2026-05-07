@@ -21,6 +21,7 @@ import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
+import { MediaCarousel } from "@/components/events/MediaCarousel";
 import { trackEventView } from "@/lib/analyticsTracking";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
@@ -115,15 +116,20 @@ const EventDetail = () => {
   }
   const isVideo = isVideoUrl(event.image_url);
   const isPost = !!event.is_post;
+  const mediaArr = ((event as any).media as any[]) || [];
+  const carouselItems = mediaArr.length > 0
+    ? mediaArr.map((m: any) => ({
+        id: m.id,
+        media_url: m.media_url,
+        media_type: m.media_type,
+        aspect_ratio: m.aspect_ratio,
+      }))
+    : [{ media_url: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80", media_type: undefined as any }];
   return <div className="min-h-[100dvh] bg-background">
-      {/* Hero media */}
-      <div className="relative w-full" style={{
-      aspectRatio: aspectRatio ? `${aspectRatio}` : '16/9',
-      minHeight: '250px',
-      maxHeight: '70vh' }}>
-        {isVideo ? <video ref={videoRef} src={event.image_url || ""} className={`w-full h-full object-cover transition-opacity duration-500 cursor-pointer ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`} onLoadedMetadata={handleVideoMetadata} onClick={togglePlayPause} playsInline autoPlay muted loop /> : <img src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} alt={event.title || "Event"} className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? 'opacity-100' : 'opacity-0'}`} onLoad={handleImageLoad} />}
-        <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-background to-transparent pointer-events-none" />
-
+      {/* Hero media carousel */}
+      <div className="relative w-full">
+        <MediaCarousel items={carouselItems} isHero />
+        <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
         {/* Back button */}
         <div className="absolute top-0 left-0 right-0 safe-top z-20">
           <div className="flex items-center justify-between px-4 py-4">
@@ -138,9 +144,6 @@ const EventDetail = () => {
           }}>
               {fromCreate ? <X className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
             </Button>
-            {isVideo && <button onClick={toggleMute} className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors">
-                {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
-              </button>}
           </div>
         </div>
       </div>
