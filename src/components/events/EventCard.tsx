@@ -41,6 +41,7 @@ export interface EventCardProps {
   isSponsored?: boolean;
   sponsoredPostId?: string;
   compact?: boolean;
+  media?: CarouselMediaItem[];
 }
 
 const categoryColors: Record<string, string> = {
