@@ -160,7 +160,7 @@ const EventDetailModalInner = () => {
 
           {/* Content */}
           <m.div
-            className="relative -mt-16 px-4 pb-28"
+            className="relative px-4 pt-4 pb-28"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
