@@ -475,79 +475,107 @@ const Create = () => {
           })}
         </m.div>
 
-        {/* ── Media upload ── */}
+        {/* ── Media upload (carousel up to 5 items) ── */}
         <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <label className="block">
-            {mediaPreview ?
-            <div className="relative rounded-2xl overflow-hidden">
-                {mediaType === "video" ?
-              <video src={mediaPreview} className="w-full object-contain" muted playsInline /> :
-
-              <img src={mediaPreview} alt="Portada" className="w-full object-contain" />
-              }
-                {(isUploading || isCompressing) &&
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    <div className="w-3/4">
-                      {isCompressing ?
-                  <p className="text-xs text-muted-foreground text-center">Optimizando imagen...</p> :
-
-                  <>
-                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                            <m.div
-                        className="h-full bg-primary rounded-full" initial={{ width: 0 }}
-                        animate={{ width: `${uploadProgress}%` }}
-                        transition={{ duration: 0.2 }} />
-                      
-                          </div>
-                          <p className="text-xs text-muted-foreground text-center mt-2">
-                            Subiendo... {uploadProgress}%
-                          </p>
-                        </>
-                  }
-                    </div>
+          {mediaItems.length === 0 ? (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isCompressing || isUploading}
+              className="w-full h-48 rounded-2xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center transition-colors"
+            >
+              {isCompressing ? (
+                <>
+                  <Loader2 className="w-10 h-10 text-primary mb-2 animate-spin" />
+                  <span className="text-sm text-muted-foreground">Optimizando...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-10 h-10 text-muted-foreground mb-2" />
+                  <span className="text-sm text-muted-foreground">
+                    {isPost ? "Sube fotos o videos" : "Portada del evento"}
+                  </span>
+                  <span className="text-xs text-muted-foreground/60 mt-1">
+                    Hasta {MAX_MEDIA} archivos · máx. 30s por video
+                  </span>
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 snap-x">
+                {mediaItems.map((item, i) => (
+                  <div
+                    key={i}
+                    className="relative shrink-0 w-28 h-28 rounded-xl overflow-hidden bg-secondary snap-start"
+                  >
+                    {item.type === "video" ? (
+                      <video src={item.preview} className="w-full h-full object-cover" muted playsInline />
+                    ) : (
+                      <img src={item.preview} alt="" className="w-full h-full object-cover" />
+                    )}
+                    {i === 0 && (
+                      <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/60 text-[9px] text-white font-medium">
+                        Portada
+                      </div>
+                    )}
+                    {item.type === "video" && (
+                      <div className="absolute top-1 left-1 p-1 rounded-full bg-black/60">
+                        <Video className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeMediaAt(i)}
+                      className="absolute top-1 right-1 p-1 rounded-full bg-background/80 backdrop-blur-sm"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
-              }
-                {!isUploading && !isCompressing &&
-              <button
-                type="button" onClick={(e) => {e.preventDefault();removeMedia();}}
-                className="absolute top-3 right-3 p-2 rounded-full bg-background/80 backdrop-blur-sm transition-colors">
-                
-                    <X className="w-4 h-4" />
+                ))}
+                {mediaItems.length < MAX_MEDIA && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isCompressing || isUploading}
+                    className="shrink-0 w-28 h-28 rounded-xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center snap-start"
+                  >
+                    {isCompressing ? (
+                      <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="w-6 h-6 text-muted-foreground mb-1" />
+                        <span className="text-[10px] text-muted-foreground">Añadir</span>
+                      </>
+                    )}
                   </button>
-              }
-                <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm text-xs text-foreground flex items-center gap-2">
-                  {mediaType === "video" ?
-                <><Video className="w-3 h-3" />{videoDuration && formatDuration(videoDuration)}</> :
-
-                <><ImageIcon className="w-3 h-3" />Cambiar imagen</>
-                }
-                </div>
-              </div> :
-
-            <div className="relative h-48 rounded-2xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center cursor-pointer transition-colors">
-                {isCompressing ?
-              <>
-                    <Loader2 className="w-10 h-10 text-primary mb-2 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Optimizando imagen...</span>
-                  </> :
-
-              <>
-                    <Upload className="w-10 h-10 text-muted-foreground mb-2" />
-                    <span className="text-sm text-muted-foreground">
-                      {isPost ? "Sube una foto o video" : "Portada del evento"}
-                    </span>
-                    <span className="text-xs text-muted-foreground/60 mt-1">Máx. 30 segundos para videos</span>
-                  </>
-              }
+                )}
               </div>
-            }
-            <input
-              ref={fileInputRef}
-              type="file" accept="image/*,video/mp4,video/webm,video/quicktime" onChange={handleMediaChange}
-              className="hidden" />
-            
-          </label>
+              <p className="text-[11px] text-muted-foreground px-1">
+                {mediaItems.length}/{MAX_MEDIA} · La primera será la portada
+              </p>
+              {(isUploading) && (
+                <div className="space-y-1">
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <m.div
+                      className="h-full bg-primary rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground text-center">Subiendo... {uploadProgress}%</p>
+                </div>
+              )}
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/mp4,video/webm,video/quicktime"
+            multiple
+            onChange={handleMediaChange}
+            className="hidden"
+          />
         </m.div>
 
         {/* ── Text fields ── */}
