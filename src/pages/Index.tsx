@@ -138,6 +138,7 @@ const Index = () => {
           isSponsored: true,
           sponsoredPostId: sp.sponsoredPostId,
           repostInfo: undefined,
+          media: [],
         };
       });
 
