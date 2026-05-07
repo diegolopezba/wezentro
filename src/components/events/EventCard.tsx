@@ -1,9 +1,8 @@
 import { m } from "framer-motion";
-import { Volume2, VolumeX, Repeat, MoreHorizontal, EyeOff } from "lucide-react";
+import { Repeat, MoreHorizontal, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, memo } from "react";
 import { cn } from "@/lib/utils";
-import { isVideoUrl } from "@/lib/mediaUtils";
 import { useOpenEvent } from "@/hooks/useOpenEvent";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { RepostInfo } from "@/hooks/useFollowingEventsScored";
@@ -12,6 +11,7 @@ import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { useAuth } from "@/contexts/AuthContext";
 import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import { haptic } from "@/lib/haptics";
+import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +41,7 @@ export interface EventCardProps {
   isSponsored?: boolean;
   sponsoredPostId?: string;
   compact?: boolean;
+  media?: CarouselMediaItem[];
 }
 
 const categoryColors: Record<string, string> = {

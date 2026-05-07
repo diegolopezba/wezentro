@@ -409,6 +409,44 @@ export type Database = {
           },
         ]
       }
+      event_media: {
+        Row: {
+          aspect_ratio: number | null
+          created_at: string
+          display_order: number
+          event_id: string
+          id: string
+          media_type: string
+          media_url: string
+        }
+        Insert: {
+          aspect_ratio?: number | null
+          created_at?: string
+          display_order: number
+          event_id: string
+          id?: string
+          media_type: string
+          media_url: string
+        }
+        Update: {
+          aspect_ratio?: number | null
+          created_at?: string
+          display_order?: number
+          event_id?: string
+          id?: string
+          media_type?: string
+          media_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_media_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_tags: {
         Row: {
           created_at: string | null
@@ -2286,6 +2324,7 @@ export type Database = {
           location_name: string
           longitude: number
           max_guestlist_capacity: number
+          media: Json
           payment_qr_url: string
           price: number
           show_menu_button: boolean

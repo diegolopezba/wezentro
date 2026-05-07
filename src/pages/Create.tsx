@@ -82,10 +82,15 @@ const Create = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [mediaFile, setMediaFile] = useState<File | null>(null);
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
-  const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  // Media items (carousel of up to 5)
+  type MediaItem = {
+    file: File;
+    preview: string;
+    type: "image" | "video";
+    duration?: number | null;
+  };
+  const MAX_MEDIA = 5;
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [location, setLocation] = useState({
     address: "",
@@ -129,63 +134,75 @@ const Create = () => {
     }
   };
 
-  const handleMediaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const fileToDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
 
+  const processSingleFile = async (file: File): Promise<MediaItem | null> => {
     if (isVideoFile(file)) {
       const validation = await validateVideoFile(file, 30, 20);
       if (!validation.valid) {
         toast.error(validation.error);
-        return;
+        return null;
       }
       if (validation.warning) toast.info(validation.warning);
-      setMediaType("video");
-      setVideoDuration(validation.duration || null);
-      setMediaFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setMediaPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    } else if (isImageFile(file)) {
+      const preview = await fileToDataUrl(file);
+      return { file, preview, type: "video", duration: validation.duration ?? null };
+    }
+    if (isImageFile(file)) {
       const validation = validateImageFile(file, 10);
       if (!validation.valid) {
         toast.error(validation.error);
-        return;
+        return null;
       }
-      setIsCompressing(true);
       try {
         const result = await compressImage(file, 1920, 0.8);
         const compressedFile = blobToFile(result.blob, file.name);
-        setMediaType("image");
-        setVideoDuration(null);
-        setMediaFile(compressedFile);
-        const reader = new FileReader();
-        reader.onloadend = () => setMediaPreview(reader.result as string);
-        reader.readAsDataURL(compressedFile);
-        if (result.compressionRatio > 20) {
-          toast.success(`Imagen optimizada (${result.compressionRatio}% más pequeña)`);
-        }
+        const preview = await fileToDataUrl(compressedFile);
+        return { file: compressedFile, preview, type: "image" };
       } catch {
-        setMediaType("image");
-        setVideoDuration(null);
-        setMediaFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => setMediaPreview(reader.result as string);
-        reader.readAsDataURL(file);
-      } finally {
-        setIsCompressing(false);
+        const preview = await fileToDataUrl(file);
+        return { file, preview, type: "image" };
       }
-    } else {
-      toast.error("Por favor sube una imagen o video");
+    }
+    toast.error("Por favor sube una imagen o video");
+    return null;
+  };
+
+  const handleMediaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    const remainingSlots = MAX_MEDIA - mediaItems.length;
+    if (remainingSlots <= 0) {
+      toast.error(`Máximo ${MAX_MEDIA} archivos`);
+      return;
+    }
+    const toProcess = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      toast.info(`Solo se añadirán ${remainingSlots} archivo(s) más`);
+    }
+    setIsCompressing(true);
+    try {
+      const processed: MediaItem[] = [];
+      for (const f of toProcess) {
+        const item = await processSingleFile(f);
+        if (item) processed.push(item);
+      }
+      if (processed.length > 0) {
+        setMediaItems((prev) => [...prev, ...processed]);
+      }
+    } finally {
+      setIsCompressing(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  const removeMedia = () => {
-    setMediaFile(null);
-    setMediaPreview(null);
-    setMediaType(null);
-    setVideoDuration(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const removeMediaAt = (index: number) => {
+    setMediaItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   const uploadMedia = async (file: File): Promise<string | null> => {
@@ -235,8 +252,8 @@ const Create = () => {
       navigate("/auth");
       return;
     }
-    if (!mediaFile) {
-      toast.error("Por favor sube una imagen o video");
+    if (mediaItems.length === 0) {
+      toast.error("Por favor sube al menos una imagen o video");
       return;
     }
     if (formData.hasGuestlist && !isBusiness) {
@@ -278,8 +295,15 @@ const Create = () => {
 
     setIsSubmitting(true);
     try {
-      let imageUrl: string | null = null;
-      if (mediaFile) imageUrl = await uploadMedia(mediaFile);
+      // Upload all media items in order
+      const uploadedMedia: { url: string; type: "image" | "video" }[] = [];
+      for (let i = 0; i < mediaItems.length; i++) {
+        const item = mediaItems[i];
+        const url = await uploadMedia(item.file);
+        if (!url) throw new Error("Falló la subida de un archivo");
+        uploadedMedia.push({ url, type: item.type });
+      }
+      const imageUrl = uploadedMedia[0]?.url ?? null;
 
       let startDatetime: string | null = null;
       if (!isPost && formData.date && formData.time) {
@@ -322,6 +346,21 @@ const Create = () => {
       single();
 
       if (error) throw error;
+
+      // Persist event_media rows (carousel of up to 5)
+      if (data?.id && uploadedMedia.length > 0) {
+        const mediaRows = uploadedMedia.map((m, i) => ({
+          event_id: data.id,
+          media_url: m.url,
+          media_type: m.type,
+          display_order: i,
+        }));
+        const { error: mediaErr } = await supabase.from("event_media").insert(mediaRows);
+        if (mediaErr) {
+          console.error("Error saving media:", mediaErr);
+          toast.error("Evento creado, pero hubo problemas al guardar algunas imágenes.");
+        }
+      }
 
       // Persist ticket tiers
       if (useTiers && data?.id && cleanTiers.length > 0) {
@@ -436,79 +475,107 @@ const Create = () => {
           })}
         </m.div>
 
-        {/* ── Media upload ── */}
+        {/* ── Media upload (carousel up to 5 items) ── */}
         <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <label className="block">
-            {mediaPreview ?
-            <div className="relative rounded-2xl overflow-hidden">
-                {mediaType === "video" ?
-              <video src={mediaPreview} className="w-full object-contain" muted playsInline /> :
-
-              <img src={mediaPreview} alt="Portada" className="w-full object-contain" />
-              }
-                {(isUploading || isCompressing) &&
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    <div className="w-3/4">
-                      {isCompressing ?
-                  <p className="text-xs text-muted-foreground text-center">Optimizando imagen...</p> :
-
-                  <>
-                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                            <m.div
-                        className="h-full bg-primary rounded-full" initial={{ width: 0 }}
-                        animate={{ width: `${uploadProgress}%` }}
-                        transition={{ duration: 0.2 }} />
-                      
-                          </div>
-                          <p className="text-xs text-muted-foreground text-center mt-2">
-                            Subiendo... {uploadProgress}%
-                          </p>
-                        </>
-                  }
-                    </div>
+          {mediaItems.length === 0 ? (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isCompressing || isUploading}
+              className="w-full h-48 rounded-2xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center transition-colors"
+            >
+              {isCompressing ? (
+                <>
+                  <Loader2 className="w-10 h-10 text-primary mb-2 animate-spin" />
+                  <span className="text-sm text-muted-foreground">Optimizando...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-10 h-10 text-muted-foreground mb-2" />
+                  <span className="text-sm text-muted-foreground">
+                    {isPost ? "Sube fotos o videos" : "Portada del evento"}
+                  </span>
+                  <span className="text-xs text-muted-foreground/60 mt-1">
+                    Hasta {MAX_MEDIA} archivos · máx. 30s por video
+                  </span>
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 snap-x">
+                {mediaItems.map((item, i) => (
+                  <div
+                    key={i}
+                    className="relative shrink-0 w-28 h-28 rounded-xl overflow-hidden bg-secondary snap-start"
+                  >
+                    {item.type === "video" ? (
+                      <video src={item.preview} className="w-full h-full object-cover" muted playsInline />
+                    ) : (
+                      <img src={item.preview} alt="" className="w-full h-full object-cover" />
+                    )}
+                    {i === 0 && (
+                      <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/60 text-[9px] text-white font-medium">
+                        Portada
+                      </div>
+                    )}
+                    {item.type === "video" && (
+                      <div className="absolute top-1 left-1 p-1 rounded-full bg-black/60">
+                        <Video className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeMediaAt(i)}
+                      className="absolute top-1 right-1 p-1 rounded-full bg-background/80 backdrop-blur-sm"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
-              }
-                {!isUploading && !isCompressing &&
-              <button
-                type="button" onClick={(e) => {e.preventDefault();removeMedia();}}
-                className="absolute top-3 right-3 p-2 rounded-full bg-background/80 backdrop-blur-sm transition-colors">
-                
-                    <X className="w-4 h-4" />
+                ))}
+                {mediaItems.length < MAX_MEDIA && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isCompressing || isUploading}
+                    className="shrink-0 w-28 h-28 rounded-xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center snap-start"
+                  >
+                    {isCompressing ? (
+                      <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="w-6 h-6 text-muted-foreground mb-1" />
+                        <span className="text-[10px] text-muted-foreground">Añadir</span>
+                      </>
+                    )}
                   </button>
-              }
-                <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm text-xs text-foreground flex items-center gap-2">
-                  {mediaType === "video" ?
-                <><Video className="w-3 h-3" />{videoDuration && formatDuration(videoDuration)}</> :
-
-                <><ImageIcon className="w-3 h-3" />Cambiar imagen</>
-                }
-                </div>
-              </div> :
-
-            <div className="relative h-48 rounded-2xl border-2 border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center cursor-pointer transition-colors">
-                {isCompressing ?
-              <>
-                    <Loader2 className="w-10 h-10 text-primary mb-2 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Optimizando imagen...</span>
-                  </> :
-
-              <>
-                    <Upload className="w-10 h-10 text-muted-foreground mb-2" />
-                    <span className="text-sm text-muted-foreground">
-                      {isPost ? "Sube una foto o video" : "Portada del evento"}
-                    </span>
-                    <span className="text-xs text-muted-foreground/60 mt-1">Máx. 30 segundos para videos</span>
-                  </>
-              }
+                )}
               </div>
-            }
-            <input
-              ref={fileInputRef}
-              type="file" accept="image/*,video/mp4,video/webm,video/quicktime" onChange={handleMediaChange}
-              className="hidden" />
-            
-          </label>
+              <p className="text-[11px] text-muted-foreground px-1">
+                {mediaItems.length}/{MAX_MEDIA} · La primera será la portada
+              </p>
+              {(isUploading) && (
+                <div className="space-y-1">
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <m.div
+                      className="h-full bg-primary rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground text-center">Subiendo... {uploadProgress}%</p>
+                </div>
+              )}
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/mp4,video/webm,video/quicktime"
+            multiple
+            onChange={handleMediaChange}
+            className="hidden"
+          />
         </m.div>
 
         {/* ── Text fields ── */}
