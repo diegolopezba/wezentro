@@ -134,63 +134,75 @@ const Create = () => {
     }
   };
 
-  const handleMediaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const fileToDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
 
+  const processSingleFile = async (file: File): Promise<MediaItem | null> => {
     if (isVideoFile(file)) {
       const validation = await validateVideoFile(file, 30, 20);
       if (!validation.valid) {
         toast.error(validation.error);
-        return;
+        return null;
       }
       if (validation.warning) toast.info(validation.warning);
-      setMediaType("video");
-      setVideoDuration(validation.duration || null);
-      setMediaFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setMediaPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    } else if (isImageFile(file)) {
+      const preview = await fileToDataUrl(file);
+      return { file, preview, type: "video", duration: validation.duration ?? null };
+    }
+    if (isImageFile(file)) {
       const validation = validateImageFile(file, 10);
       if (!validation.valid) {
         toast.error(validation.error);
-        return;
+        return null;
       }
-      setIsCompressing(true);
       try {
         const result = await compressImage(file, 1920, 0.8);
         const compressedFile = blobToFile(result.blob, file.name);
-        setMediaType("image");
-        setVideoDuration(null);
-        setMediaFile(compressedFile);
-        const reader = new FileReader();
-        reader.onloadend = () => setMediaPreview(reader.result as string);
-        reader.readAsDataURL(compressedFile);
-        if (result.compressionRatio > 20) {
-          toast.success(`Imagen optimizada (${result.compressionRatio}% más pequeña)`);
-        }
+        const preview = await fileToDataUrl(compressedFile);
+        return { file: compressedFile, preview, type: "image" };
       } catch {
-        setMediaType("image");
-        setVideoDuration(null);
-        setMediaFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => setMediaPreview(reader.result as string);
-        reader.readAsDataURL(file);
-      } finally {
-        setIsCompressing(false);
+        const preview = await fileToDataUrl(file);
+        return { file, preview, type: "image" };
       }
-    } else {
-      toast.error("Por favor sube una imagen o video");
+    }
+    toast.error("Por favor sube una imagen o video");
+    return null;
+  };
+
+  const handleMediaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    const remainingSlots = MAX_MEDIA - mediaItems.length;
+    if (remainingSlots <= 0) {
+      toast.error(`Máximo ${MAX_MEDIA} archivos`);
+      return;
+    }
+    const toProcess = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      toast.info(`Solo se añadirán ${remainingSlots} archivo(s) más`);
+    }
+    setIsCompressing(true);
+    try {
+      const processed: MediaItem[] = [];
+      for (const f of toProcess) {
+        const item = await processSingleFile(f);
+        if (item) processed.push(item);
+      }
+      if (processed.length > 0) {
+        setMediaItems((prev) => [...prev, ...processed]);
+      }
+    } finally {
+      setIsCompressing(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  const removeMedia = () => {
-    setMediaFile(null);
-    setMediaPreview(null);
-    setMediaType(null);
-    setVideoDuration(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const removeMediaAt = (index: number) => {
+    setMediaItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   const uploadMedia = async (file: File): Promise<string | null> => {
