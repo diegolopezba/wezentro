@@ -226,10 +226,6 @@ const MediaCarouselComponent = ({
       {/* Slide indicator */}
       {!compact && safeItems.length > 1 && (
         <>
-          {/* Counter pill (top-left) */}
-          <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-[10px] font-medium pointer-events-none">
-            {activeIndex + 1}/{safeItems.length}
-          </div>
           {/* Dots (bottom center) */}
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-none">
             {safeItems.map((_, i) => (
