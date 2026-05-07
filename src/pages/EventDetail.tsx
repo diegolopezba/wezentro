@@ -148,14 +148,14 @@ const EventDetail = () => {
       </div>
 
       {/* Content */}
-      <div className="relative px-4 pt-4 pb-28">
+      <div className="relative px-4 pt-3 pb-28">
         <m.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
         opacity: 1,
         y: 0
-      }} className="space-y-6">
+      }} className="space-y-3">
           {/* Category & title */}
           <div>
             {event.category && <span className="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-primary mb-3 text-primary">
