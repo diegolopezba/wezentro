@@ -132,33 +132,35 @@ const EventDetailModalInner = () => {
       ) : (
         <>
           {/* Hero media */}
+          {(() => {
+            const mediaArr = ((event as any).media as any[]) || [];
+            const items = mediaArr.length > 0
+              ? mediaArr.map((m: any) => ({
+                  id: m.id,
+                  media_url: m.media_url,
+                  media_type: m.media_type,
+                  aspect_ratio: m.aspect_ratio,
+                }))
+              : [{ media_url: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80", media_type: undefined as any }];
+            return (
+              <div className="relative w-full">
+                <MediaCarousel items={items} isHero />
+                <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
+              </div>
+            );
+          })()}
           <div
-            className="relative w-full"
+            className="relative w-full hidden"
             style={{
               aspectRatio: aspectRatio ? `${aspectRatio}` : "16/9",
               minHeight: "250px",
               maxHeight: "70vh",
             }}
           >
-            {isVideo ? (
-              <video
-                ref={videoRef}
-                src={event.image_url || ""}
-                className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? "opacity-100" : "opacity-0"}`}
-                onLoadedMetadata={handleVideoMetadata}
-                onClick={togglePlayPause}
-                playsInline
-                autoPlay
-                muted
-                loop
-              />
+            {false && isVideo ? (
+              <video ref={videoRef} src="" onLoadedMetadata={handleVideoMetadata} onClick={togglePlayPause} />
             ) : (
-              <img
-                src={event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
-                alt={event.title || "Event"}
-                className={`w-full h-full object-cover transition-opacity duration-500 ${mediaLoaded ? "opacity-100" : "opacity-0"}`}
-                onLoad={handleImageLoad}
-              />
+              <img src="" onLoad={handleImageLoad} alt="" />
             )}
             <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-background to-transparent pointer-events-none" />
 
