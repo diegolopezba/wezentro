@@ -252,8 +252,8 @@ const Create = () => {
       navigate("/auth");
       return;
     }
-    if (!mediaFile) {
-      toast.error("Por favor sube una imagen o video");
+    if (mediaItems.length === 0) {
+      toast.error("Por favor sube al menos una imagen o video");
       return;
     }
     if (formData.hasGuestlist && !isBusiness) {
@@ -295,8 +295,15 @@ const Create = () => {
 
     setIsSubmitting(true);
     try {
-      let imageUrl: string | null = null;
-      if (mediaFile) imageUrl = await uploadMedia(mediaFile);
+      // Upload all media items in order
+      const uploadedMedia: { url: string; type: "image" | "video" }[] = [];
+      for (let i = 0; i < mediaItems.length; i++) {
+        const item = mediaItems[i];
+        const url = await uploadMedia(item.file);
+        if (!url) throw new Error("Falló la subida de un archivo");
+        uploadedMedia.push({ url, type: item.type });
+      }
+      const imageUrl = uploadedMedia[0]?.url ?? null;
 
       let startDatetime: string | null = null;
       if (!isPost && formData.date && formData.time) {
