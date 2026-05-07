@@ -190,7 +190,7 @@ const MediaCarouselComponent = ({
                   <img
                     src={getOptimizedImageUrl(
                       item.media_url,
-                      isHero ? ImageSizes.detail : ImageSizes.card
+                      isHero ? ImageSizes.hero : ImageSizes.card
                     )}
                     alt=""
                     loading={i === 0 ? "eager" : "lazy"}
