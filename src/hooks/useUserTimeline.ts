@@ -76,6 +76,9 @@ export const useUserTimeline = (userId: string | undefined) => {
       for (const post of [...ownPosts, ...taggedPosts]) {
         if (!seen.has(post.id)) {
           seen.add(post.id);
+          if (Array.isArray((post as any).media)) {
+            (post as any).media.sort((a: any, b: any) => a.display_order - b.display_order);
+          }
           merged.push(post);
         }
       }
