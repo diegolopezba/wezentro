@@ -1,20 +1,23 @@
 ## Goal
 
-Match Pinterest's mobile pin layout: hero media is full-bleed at the top and sides but has rounded bottom corners, with no gradient fade. Content sits cleanly below on the solid background.
+Tighten vertical rhythm on the event detail page (and matching sheet modal) so the title, action buttons, host info, about section, comments, etc. sit closer together — a denser, more Pinterest-like detail view.
 
 ## Changes
 
 ### 1. `src/pages/EventDetail.tsx`
-- Remove the bottom gradient overlay: delete the `<div className="absolute bottom-0 ... bg-gradient-to-t from-background to-transparent ..." />` element (line ~132).
-- Add rounded bottom corners to the hero wrapper: change `<div className="relative w-full">` → `<div className="relative w-full overflow-hidden rounded-b-3xl">`.
-- Remove the negative-margin overlap on the content block: change `relative -mt-8 px-4 pt-2 pb-28` → `relative px-4 pt-4 pb-28` so the title and action row sit cleanly below the hero with no overlap.
+- Change the main content stack from `space-y-6` → `space-y-3` (line 158).
+- Tighten the content wrapper top padding: `pt-4` → `pt-3` (line 151).
 
 ### 2. `src/components/events/EventDetailModal.tsx`
-- Apply the same three changes (remove gradient, add `rounded-b-3xl` on the hero wrapper, drop the negative top margin) so the sheet variant matches.
+- Change the main content stack from `space-y-6` → `space-y-3` (line 168).
+- Tighten the content wrapper top padding to match (`pt-4` → `pt-3`, line 163).
 
-### 3. `src/components/events/MediaCarousel.tsx`
-- No structural change needed. The `isHero` branch currently forces no rounding; the parent wrapper handles `rounded-b-3xl` via `overflow-hidden`, so the carousel will be clipped correctly.
+### Notes
+- Keeping `space-y-2` on inner sub-blocks (description block, etc.) since those are already tight.
+- No changes to font sizes or section internals — only the gaps between top-level sections.
+
+## Verification
+- Reload `/event/:id` and the modal sheet; confirm the gaps between title → action row → host → about → comments are visibly tighter while still readable.
 
 ## Out of scope
-- No data, query, or business-logic changes.
-- No changes to other pages or feed cards.
+- No changes to other pages, no font/size changes, no logic changes.
