@@ -148,7 +148,7 @@ const EventDetail = () => {
       </div>
 
       {/* Content */}
-      <div className="relative -mt-8 px-4 pt-2 pb-28">
+      <div className="relative px-4 pt-4 pb-28">
         <m.div initial={{
         opacity: 0,
         y: 20
