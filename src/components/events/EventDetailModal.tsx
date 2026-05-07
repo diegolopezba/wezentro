@@ -20,6 +20,7 @@ import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { isVideoUrl } from "@/lib/mediaUtils";
+import { MediaCarousel } from "@/components/events/MediaCarousel";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
