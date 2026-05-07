@@ -132,7 +132,7 @@ const EventDetailModalInner = () => {
         </div>
       ) : (
         <>
-          {/* Hero media */}
+          {/* Hero media carousel */}
           {(() => {
             const mediaArr = ((event as any).media as any[]) || [];
             const items = mediaArr.length > 0
@@ -147,41 +147,17 @@ const EventDetailModalInner = () => {
               <div className="relative w-full">
                 <MediaCarousel items={items} isHero />
                 <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
+                {/* Close button */}
+                <div className="absolute top-0 left-0 right-0 safe-top z-20">
+                  <div className="flex items-center justify-between px-4 py-4">
+                    <Button variant="glass" size="icon" onClick={close}>
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             );
           })()}
-          <div
-            className="relative w-full hidden"
-            style={{
-              aspectRatio: aspectRatio ? `${aspectRatio}` : "16/9",
-              minHeight: "250px",
-              maxHeight: "70vh",
-            }}
-          >
-            {false && isVideo ? (
-              <video ref={videoRef} src="" onLoadedMetadata={handleVideoMetadata} onClick={togglePlayPause} />
-            ) : (
-              <img src="" onLoad={handleImageLoad} alt="" />
-            )}
-            <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-background to-transparent pointer-events-none" />
-
-            {/* Close button */}
-            <div className="absolute top-0 left-0 right-0 safe-top z-20">
-              <div className="flex items-center justify-between px-4 py-4">
-                <Button variant="glass" size="icon" onClick={close}>
-                  <X className="w-5 h-5" />
-                </Button>
-                {isVideo && (
-                  <button
-                    onClick={toggleMute}
-                    className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors"
-                  >
-                    {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
 
           {/* Content */}
           <m.div
