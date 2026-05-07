@@ -347,6 +347,21 @@ const Create = () => {
 
       if (error) throw error;
 
+      // Persist event_media rows (carousel of up to 5)
+      if (data?.id && uploadedMedia.length > 0) {
+        const mediaRows = uploadedMedia.map((m, i) => ({
+          event_id: data.id,
+          media_url: m.url,
+          media_type: m.type,
+          display_order: i,
+        }));
+        const { error: mediaErr } = await supabase.from("event_media").insert(mediaRows);
+        if (mediaErr) {
+          console.error("Error saving media:", mediaErr);
+          toast.error("Evento creado, pero hubo problemas al guardar algunas imágenes.");
+        }
+      }
+
       // Persist ticket tiers
       if (useTiers && data?.id && cleanTiers.length > 0) {
         try {
