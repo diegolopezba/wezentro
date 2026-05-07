@@ -82,10 +82,15 @@ const Create = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [mediaFile, setMediaFile] = useState<File | null>(null);
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
-  const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  // Media items (carousel of up to 5)
+  type MediaItem = {
+    file: File;
+    preview: string;
+    type: "image" | "video";
+    duration?: number | null;
+  };
+  const MAX_MEDIA = 5;
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [location, setLocation] = useState({
     address: "",
