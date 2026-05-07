@@ -127,9 +127,8 @@ const EventDetail = () => {
     : [{ media_url: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80", media_type: undefined as any }];
   return <div className="min-h-[100dvh] bg-background">
       {/* Hero media carousel */}
-      <div className="relative w-full">
+      <div className="relative w-full overflow-hidden rounded-b-3xl">
         <MediaCarousel items={carouselItems} isHero />
-        <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
         {/* Back button */}
         <div className="absolute top-0 left-0 right-0 safe-top z-20">
           <div className="flex items-center justify-between px-4 py-4">
@@ -149,7 +148,7 @@ const EventDetail = () => {
       </div>
 
       {/* Content */}
-      <div className="relative -mt-8 px-4 pt-2 pb-28">
+      <div className="relative px-4 pt-4 pb-28">
         <m.div initial={{
         opacity: 0,
         y: 20
