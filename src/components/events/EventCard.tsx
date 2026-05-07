@@ -73,7 +73,8 @@ const EventCardComponent = ({
   repostInfo,
   isSponsored = false,
   sponsoredPostId,
-  compact = false
+  compact = false,
+  media,
 }: EventCardProps) => {
   const navigate = useNavigate();
   const openEvent = useOpenEvent();
@@ -81,12 +82,8 @@ const EventCardComponent = ({
   const trackClick = useTrackSponsoredClick();
   const clickedRef = useRef(false);
   const [dismissed, setDismissed] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = useState(true);
-  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
   // Reset click-tracking when this card represents a different event
-  // (e.g. when remounted in a different feed slot).
   useEffect(() => {
     clickedRef.current = false;
   }, [id]);
@@ -97,8 +94,6 @@ const EventCardComponent = ({
       clickedRef.current = true;
       trackClick.mutate(sponsoredPostId);
     }
-    // Always open as a modal-on-top of the current page.
-    // Direct visits to /event/:id (deep links) get the full page automatically.
     openEvent(id);
   };
 
@@ -112,35 +107,10 @@ const EventCardComponent = ({
 
   if (dismissed) return null;
 
-  const isVideo = isVideoUrl(imageUrl);
-
-  const optimizedImageUrl = !isVideo
-    ? getOptimizedImageUrl(imageUrl, ImageSizes.card)
-    : imageUrl;
-
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
-
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    if (img.naturalWidth && img.naturalHeight) {
-      setAspectRatio(img.naturalWidth / img.naturalHeight);
-    }
-  };
-
-  const handleVideoMetadata = () => {
-    if (videoRef.current) {
-      const { videoWidth, videoHeight } = videoRef.current;
-      if (videoWidth && videoHeight) {
-        setAspectRatio(videoWidth / videoHeight);
-      }
-    }
-  };
+  const carouselItems: CarouselMediaItem[] =
+    media && media.length > 0
+      ? media
+      : [{ media_url: imageUrl, media_type: undefined }];
 
   const repostAttribution =
     repostInfo?.repostedBy && repostInfo.repostedBy.length > 0
@@ -180,54 +150,16 @@ const EventCardComponent = ({
         onClick={handleCardClick}
       >
         <div className="space-y-2 px-0">
-          {/* Media */}
-          <div
-            className="relative rounded-xl overflow-hidden bg-secondary"
-            style={{
-              width: "100%",
-              aspectRatio: aspectRatio ? `${aspectRatio}` : compact ? undefined : "3/4",
-              minHeight: compact ? "80px" : "120px",
-              maxHeight: compact ? undefined : "350px"
-            }}
-          >
-            {isVideo ? (
-              <video
-                ref={videoRef}
-                src={imageUrl}
-                className="w-full h-full object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-                onLoadedMetadata={handleVideoMetadata}
-              />
-            ) : (
-              <img
-                src={optimizedImageUrl}
-                alt={title}
-                className="w-full h-full object-cover"
-                onLoad={handleImageLoad}
-                loading="lazy"
-                decoding="async"
-              />
-            )}
+          {/* Media carousel */}
+          <div className="relative">
+            <MediaCarousel
+              items={carouselItems}
+              compact={compact}
+              onTap={handleCardClick}
+            />
 
-            {/* Sound toggle button */}
-            {isVideo && (
-              <button
-                onClick={toggleMute}
-                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors z-10"
-              >
-                {isMuted ? (
-                  <VolumeX className="w-3.5 h-3.5 text-white" />
-                ) : (
-                  <Volume2 className="w-3.5 h-3.5 text-white" />
-                )}
-              </button>
-            )}
-
-            {/* "Not interested" 3-dot menu — top right (only for non-sponsored, logged-in users) */}
-            {!isVideo && !isSponsored && user && (
+            {/* "Not interested" 3-dot menu — only for non-sponsored, logged-in users, single-image cards */}
+            {carouselItems.length === 1 && !isSponsored && user && (
               <DropdownMenu>
                 <DropdownMenuTrigger
                   asChild
@@ -248,7 +180,6 @@ const EventCardComponent = ({
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-
           </div>
 
           {/* Title */}
