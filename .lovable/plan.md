@@ -92,3 +92,11 @@ If the numbers don't move, we revisit before doing Phase B.
 - App returning from background paints the cached shell instantly instead of a white flash
 
 ## Approve and I'll execute Phase A first, then capture mobile metrics before moving to Phase B.
+
+---
+
+## Phase C — Executed
+
+- **EventCard framer-motion → CSS**: `m.div` removed (highest-volume component, 200+ instances on feed). Replaced with plain `<div className="feed-card-enter">`, GPU-only keyframe `feedCardEnter`, `:active { scale(0.98) }` for tap feedback, `prefers-reduced-motion` respected. Staggered enter via CSS var `--enter-delay`. `TimelineCard` kept on framer-motion because its `layoutId` powers the profile timeline overlay transition.
+- **Mapbox confirmed lazy**: only imported by `MapView` (lazy in `Discover`), `LocationPicker` (only in `Create` + `BusinessLocationPicker`). Not in cold-start bundle.
+- **RUM hook**: `web-vitals` package + `src/lib/webVitals.ts`. Reports LCP/INP/CLS/FCP/TTFB into new `web_vitals` table (anon-insert, no client read). Init dynamically imported in `App.tsx` after mount. Tags rows with `is_native` so PWA vs Capacitor metrics are separable.
