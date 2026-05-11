@@ -1,5 +1,6 @@
 import { Suspense, lazy, useState, useEffect } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
+import { Capacitor } from "@capacitor/core";
 
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -86,14 +87,15 @@ const eventDetailImport = () => import("./pages/EventDetail");
 const userProfileImport = () => import("./pages/UserProfile");
 
 // Preload core routes after initial render for instant navigation.
-// Includes EventDetail + UserProfile because they're the most-tapped
-// secondary routes from the feed (avoids waiting for the JS chunk on tap).
+// Mobile-first: only preload the highest-tap secondary routes (EventDetail
+// + UserProfile) so we don't compete with the feed for parse time on 4G.
+// On very slow connections (2G/save-data) skip preload entirely.
 const preloadCoreRoutes = () => {
-  indexImport();
-  discoverImport();
-  createImport();
-  chatsImport();
-  profileImport();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const conn: any = (navigator as any).connection;
+  if (conn?.saveData || conn?.effectiveType === "2g" || conn?.effectiveType === "slow-2g") {
+    return;
+  }
   eventDetailImport();
   userProfileImport();
 };
@@ -135,7 +137,14 @@ const App = () => {
   return (
     <ErrorBoundary>
       <LazyMotion features={domAnimation} strict>
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} minDisplayTime={1200} />}
+      {showSplash && (
+        <SplashScreen
+          onComplete={() => setShowSplash(false)}
+          // On native (Capacitor) the OS splash already covered boot — hide JS splash ASAP.
+          // On web/PWA keep a brief 400ms minimum to avoid flash.
+          minDisplayTime={Capacitor.isNativePlatform() ? 0 : 400}
+        />
+      )}
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />

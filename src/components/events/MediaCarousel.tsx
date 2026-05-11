@@ -182,7 +182,9 @@ const MediaCarouselComponent = ({
                     muted
                     loop
                     playsInline
-                    preload={i === 0 ? "auto" : "metadata"}
+                    // TikTok-style: only the active slide gets metadata; others stay
+                    // at "none" so off-screen videos never decode on mobile.
+                    preload={i === activeIndex ? "metadata" : "none"}
                     autoPlay={i === 0}
                     onLoadedMetadata={() => handleVideoMetadata(i)}
                   />
