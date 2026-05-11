@@ -166,17 +166,28 @@ export const EventFeed = ({
   }
 
   return (
-    <div className="masonry-grid w-full">
-      {events.map((event, index) => (
-        <div
-          key={event.id}
-          ref={observeCard}
-          data-event-id={event.id}
-          className="masonry-item"
-        >
-          <EventCard {...event} index={index} />
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="masonry-grid w-full">
+        {events.map((event, index) => {
+          const isSentinel = index === sentinelIndex;
+          return (
+            <div
+              key={event.id}
+              ref={(node) => {
+                observeCard(node);
+                if (isSentinel) sentinelRef.current = node;
+              }}
+              data-event-id={event.id}
+              className="masonry-item"
+            >
+              <EventCard {...event} index={index} />
+            </div>
+          );
+        })}
+      </div>
+      {isLoadingMore && (
+        <div className="py-6 text-center text-muted-foreground text-sm">Cargando más…</div>
+      )}
+    </>
   );
 };
