@@ -1,18 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const FOR_YOU_EVENTS_KEY = ["for-you-events"];
+export const FOR_YOU_PAGE_SIZE = 20;
 
-/**
- * Fetches the "For You" feed using the optimized server-side RPC.
- * Returns rows shaped to be backwards-compatible with the previous nested-select payload.
- */
-export const fetchForYouEvents = async () => {
-  const { data, error } = await supabase.rpc("get_for_you_events");
-
-  if (error) throw error;
-
-  // Reshape RPC rows to match the previous nested shape consumed by useForYouEvents/EventFeed.
-  return (data || []).map((row: any) => ({
+const reshape = (data: any[] | null) =>
+  (data || []).map((row: any) => ({
     id: row.id,
     title: row.title,
     description: row.description,
@@ -42,12 +34,35 @@ export const fetchForYouEvents = async () => {
       full_name: row.creator_full_name,
       avatar_url: row.creator_avatar_url,
     },
-    // Map the lightweight avatar array back into the shape expected by consumers
-    // (guestlist_entries[].user.{id, avatar_url}).
     guestlist_entries: Array.isArray(row.attendee_avatars)
       ? row.attendee_avatars.map((a: any) => ({ user: a }))
       : [],
     _attendee_count: Number(row.attendee_count) || 0,
     media: Array.isArray(row.media) ? row.media : [],
   }));
+
+/**
+ * Cursor-paginated For You feed (Instagram/TikTok-style).
+ * `cursor` is the `created_at` of the last item from the previous page; first
+ * page passes null. Returns the page of rows plus the next cursor (or null
+ * when no more pages).
+ */
+export const fetchForYouEventsPage = async (
+  cursor: string | null = null,
+  limit: number = FOR_YOU_PAGE_SIZE,
+) => {
+  const { data, error } = await supabase.rpc("get_for_you_events", {
+    _limit: limit,
+    _cursor: cursor,
+  });
+  if (error) throw error;
+  const items = reshape(data as any[]);
+  const nextCursor = items.length === limit ? items[items.length - 1].created_at : null;
+  return { items, nextCursor };
+};
+
+/** Backwards-compatible: fetch first page only. */
+export const fetchForYouEvents = async () => {
+  const { items } = await fetchForYouEventsPage(null, FOR_YOU_PAGE_SIZE);
+  return items;
 };

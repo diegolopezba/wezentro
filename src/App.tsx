@@ -125,11 +125,15 @@ const App = () => {
     }
   }, []);
 
-  // Prefetch event feed data during splash screen so cards appear instantly
+  // Prefetch first page of For You feed during splash for instant first paint.
   useEffect(() => {
-    queryClient.prefetchQuery({
+    queryClient.prefetchInfiniteQuery({
       queryKey: FOR_YOU_EVENTS_KEY,
-      queryFn: fetchForYouEvents,
+      queryFn: () => fetchForYouEvents().then((items) => ({
+        items,
+        nextCursor: items.length ? items[items.length - 1].created_at : null,
+      })),
+      initialPageParam: null as string | null,
       staleTime: 1000 * 60 * 5,
     });
   }, []);

@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocationContext } from "@/contexts/LocationContext";
@@ -11,7 +11,11 @@ import {
   injectExploration,
   ScoringContext,
 } from "@/lib/feedScoring";
-import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
+import {
+  FOR_YOU_EVENTS_KEY,
+  FOR_YOU_PAGE_SIZE,
+  fetchForYouEventsPage,
+} from "@/lib/prefetchEvents";
 
 /**
  * Mobile-first deferral: secondary ranking signals (creator-attendance,
@@ -233,18 +237,32 @@ export const useForYouEvents = () => {
   });
 
   const {
-    data: events,
+    data: pageData,
     isLoading,
     error,
     refetch,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: FOR_YOU_EVENTS_KEY,
-    queryFn: () => fetchForYouEvents() as Promise<(EventWithCreator & { guestlist_entries?: any[] })[]>,
+    queryFn: ({ pageParam }) =>
+      fetchForYouEventsPage(pageParam as string | null, FOR_YOU_PAGE_SIZE),
+    initialPageParam: null as string | null,
+    getNextPageParam: (last) => last.nextCursor,
     staleTime: 2 * 60 * 1000,
   });
 
+  // Flatten cursor pages into a single events array.
+  const events = useMemo(() => {
+    if (!pageData) return [] as (EventWithCreator & { guestlist_entries?: any[] })[];
+    return pageData.pages.flatMap(
+      (p) => p.items as unknown as (EventWithCreator & { guestlist_entries?: any[] })[],
+    );
+  }, [pageData]);
+
   const scoredEvents = useMemo(() => {
-    if (!events) return [];
+    if (!events.length) return [];
 
     const now = new Date();
     const categoryPrefs = learnedPrefs?.categories || {};
@@ -271,7 +289,6 @@ export const useForYouEvents = () => {
     };
 
     const filtered = events.filter((e) => {
-      // Hide content from blocked users (and users who blocked current user)
       if (blockedIds && e.creator_id && blockedIds.has(e.creator_id)) return false;
       if (e.is_post) return true;
       if (!e.start_datetime) return true;
@@ -293,5 +310,8 @@ export const useForYouEvents = () => {
     isLoading,
     error,
     refetch,
+    fetchNextPage,
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage,
   };
 };

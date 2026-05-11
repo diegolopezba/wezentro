@@ -32,7 +32,10 @@ const Index = () => {
   const {
     data: forYouEvents = [],
     isLoading: forYouLoading,
-    refetch: refetchForYou
+    refetch: refetchForYou,
+    fetchNextPage: fetchMoreForYou,
+    hasNextPage: hasMoreForYou,
+    isFetchingNextPage: isFetchingMoreForYou,
   } = useForYouEvents();
   const {
     data: followingEvents = [],
@@ -200,7 +203,14 @@ const Index = () => {
           </m.div>
         </header>
         <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-          <EventFeed events={transformedEvents} isLoading={isLoading} emptyStateType={activeTab} />
+          <EventFeed
+            events={transformedEvents}
+            isLoading={isLoading}
+            emptyStateType={activeTab}
+            onEndReached={activeTab === "for-you" ? fetchMoreForYou : undefined}
+            hasMore={activeTab === "for-you" ? hasMoreForYou : false}
+            isLoadingMore={activeTab === "for-you" ? isFetchingMoreForYou : false}
+          />
         </PullToRefresh>
       </AppLayout>;
 };
