@@ -123,6 +123,8 @@ const App = () => {
     } else {
       setTimeout(preloadCoreRoutes, 100);
     }
+    // Initialize Real User Monitoring (LCP/INP/CLS → Supabase)
+    import("@/lib/webVitals").then((m) => m.initWebVitals()).catch(() => {});
   }, []);
 
   // Prefetch first page of For You feed during splash for instant first paint.

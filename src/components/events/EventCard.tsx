@@ -1,4 +1,3 @@
-import { m } from "framer-motion";
 import { Repeat, MoreHorizontal, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, memo } from "react";
@@ -138,15 +137,16 @@ const EventCardComponent = ({
         </div>
       )}
 
-      <m.div
-        initial={compact ? false : { opacity: 0, y: 20 }}
-        animate={compact ? undefined : { opacity: 1, y: 0 }}
-        transition={compact ? undefined : {
-          delay: Math.min(index, 6) * 0.05,
-          duration: 0.3,
-        }}
-        whileTap={{ scale: 0.98 }}
-        className="cursor-pointer"
+      <div
+        className={cn(
+          "cursor-pointer",
+          !compact && "feed-card-enter"
+        )}
+        style={
+          compact
+            ? undefined
+            : ({ "--enter-delay": `${Math.min(index, 6) * 50}ms` } as React.CSSProperties)
+        }
         onClick={handleCardClick}
       >
         <div className="space-y-2 px-0">
@@ -246,7 +246,7 @@ const EventCardComponent = ({
             </div>
           )}
         </div>
-      </m.div>
+      </div>
     </div>
   );
 };
