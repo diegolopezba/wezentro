@@ -55,27 +55,39 @@ if (precacheManifest && precacheManifest.length > 0) {
     // Only cache GET requests
     if (event.request.method !== 'GET') return;
 
-    // NAVIGATION REQUESTS (HTML pages): NetworkFirst
-    // Always try the network first to avoid serving stale index.html
-    // that references deleted JS chunk hashes after an app update.
+    // NAVIGATION REQUESTS (HTML pages): NetworkFirst with 3s timeout.
+    // On flaky cellular, race the network against a 3s timer — if the
+    // network is still pending, serve the cached shell instantly so the
+    // app paints. Fresh HTML still wins when the network is healthy.
     if (event.request.mode === 'navigate') {
-      event.respondWith(
-        fetch(event.request)
+      const NETWORK_TIMEOUT_MS = 3000;
+      event.respondWith((async () => {
+        const cached = await caches.match('/index.html');
+        const networkFetch = fetch(event.request)
           .then((response) => {
-            // Cache the fresh response for offline fallback
             const clone = response.clone();
             caches.open('precache-v1').then((cache) => {
               cache.put(event.request, clone);
             });
             return response;
-          })
-          .catch(() => {
-            // Offline: fall back to cached index.html
-            return caches.match('/index.html').then((cached) => {
-              return cached || caches.match(event.request);
-            });
-          })
-      );
+          });
+
+        if (!cached) {
+          // No cached shell yet — must wait for network.
+          try { return await networkFetch; }
+          catch { return caches.match(event.request); }
+        }
+
+        // Race network vs timeout; fall back to cache on timeout or failure.
+        return new Promise((resolve) => {
+          let settled = false;
+          const finish = (resp) => { if (!settled) { settled = true; resolve(resp); } };
+          const timer = setTimeout(() => finish(cached), NETWORK_TIMEOUT_MS);
+          networkFetch
+            .then((resp) => { clearTimeout(timer); finish(resp); })
+            .catch(() => { clearTimeout(timer); finish(cached); });
+        });
+      })());
       return;
     }
 

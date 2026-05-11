@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +13,31 @@ import {
 } from "@/lib/feedScoring";
 import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
 
+/**
+ * Mobile-first deferral: secondary ranking signals (creator-attendance,
+ * day-of-week prefs, tag prefs, mutual followers, collaborative boosts)
+ * don't gate first paint. They re-rank the feed in place once idle —
+ * same pattern as Pinterest's "rerank on settle".
+ */
+const useIdleReady = () => {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    const fire = () => { if (!cancelled) setReady(true); };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    if (typeof w.requestIdleCallback === "function") {
+      const handle = w.requestIdleCallback(fire, { timeout: 2000 });
+      return () => { cancelled = true; w.cancelIdleCallback?.(handle); };
+    }
+    const t = setTimeout(fire, 600);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, []);
+  return ready;
+};
+
 export const useForYouEvents = () => {
+  const idleReady = useIdleReady();
   const { user } = useAuth();
   const { location } = useLocationContext();
   const userId = user?.id;
@@ -88,7 +112,7 @@ export const useForYouEvents = () => {
       }
       return counts;
     },
-    enabled: !!userId,
+    enabled: !!userId && idleReady,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -107,7 +131,7 @@ export const useForYouEvents = () => {
       for (const row of data || []) prefs[row.category] = Number(row.score) || 0;
       return prefs;
     },
-    enabled: !!userId,
+    enabled: !!userId && idleReady,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -124,7 +148,7 @@ export const useForYouEvents = () => {
       for (const row of data || []) prefs[row.tag] = Number(row.score) || 0;
       return prefs;
     },
-    enabled: !!userId,
+    enabled: !!userId && idleReady,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -136,7 +160,7 @@ export const useForYouEvents = () => {
       if (error) return [];
       return (data || []).map((u: any) => u.id as string);
     },
-    enabled: !!userId,
+    enabled: !!userId && idleReady,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -204,7 +228,7 @@ export const useForYouEvents = () => {
       }
       return result;
     },
-    enabled: !!userId,
+    enabled: !!userId && idleReady,
     staleTime: 30 * 60 * 1000,
   });
 
