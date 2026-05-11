@@ -32,7 +32,10 @@ const Index = () => {
   const {
     data: forYouEvents = [],
     isLoading: forYouLoading,
-    refetch: refetchForYou
+    refetch: refetchForYou,
+    fetchNextPage: fetchMoreForYou,
+    hasNextPage: hasMoreForYou,
+    isFetchingNextPage: isFetchingMoreForYou,
   } = useForYouEvents();
   const {
     data: followingEvents = [],
