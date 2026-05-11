@@ -1,4 +1,3 @@
-import { m } from "framer-motion";
 import { Repeat, MoreHorizontal, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, memo } from "react";
