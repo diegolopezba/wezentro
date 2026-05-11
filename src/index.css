@@ -146,6 +146,24 @@
     animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
 
+  /* Feed card enter — GPU-only, no JS animation cost (replaces framer-motion on EventCard) */
+  .feed-card-enter {
+    opacity: 0;
+    animation: feedCardEnter 0.3s ease-out forwards;
+    animation-delay: var(--enter-delay, 0ms);
+    will-change: transform, opacity;
+    transition: transform 120ms ease-out;
+  }
+  .feed-card-enter:active {
+    transform: scale(0.98);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .feed-card-enter {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
   .masonry-grid {
     column-count: 2;
     column-gap: 4px;
