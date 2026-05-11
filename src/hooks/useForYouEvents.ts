@@ -112,7 +112,7 @@ export const useForYouEvents = () => {
       }
       return counts;
     },
-    enabled: !!userId,
+    enabled: !!userId && idleReady,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -131,7 +131,7 @@ export const useForYouEvents = () => {
       for (const row of data || []) prefs[row.category] = Number(row.score) || 0;
       return prefs;
     },
-    enabled: !!userId,
+    enabled: !!userId && idleReady,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -148,7 +148,7 @@ export const useForYouEvents = () => {
       for (const row of data || []) prefs[row.tag] = Number(row.score) || 0;
       return prefs;
     },
-    enabled: !!userId,
+    enabled: !!userId && idleReady,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -160,7 +160,7 @@ export const useForYouEvents = () => {
       if (error) return [];
       return (data || []).map((u: any) => u.id as string);
     },
-    enabled: !!userId,
+    enabled: !!userId && idleReady,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -228,7 +228,7 @@ export const useForYouEvents = () => {
       }
       return result;
     },
-    enabled: !!userId,
+    enabled: !!userId && idleReady,
     staleTime: 30 * 60 * 1000,
   });
 
