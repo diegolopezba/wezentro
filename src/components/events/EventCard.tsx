@@ -246,7 +246,7 @@ const EventCardComponent = ({
             </div>
           )}
         </div>
-      </m.div>
+      </div>
     </div>
   );
 };
