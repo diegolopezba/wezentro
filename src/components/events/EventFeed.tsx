@@ -12,6 +12,10 @@ interface EventFeedProps {
   events: EventCardProps[];
   isLoading?: boolean;
   emptyStateType?: "for-you" | "following";
+  /** Called once the user scrolls past ~70% of the rendered feed. */
+  onEndReached?: () => void;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
 }
 
 const useDwellTimeTracker = (userId: string | undefined) => {
