@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocationContext } from "@/contexts/LocationContext";
@@ -11,7 +11,11 @@ import {
   injectExploration,
   ScoringContext,
 } from "@/lib/feedScoring";
-import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
+import {
+  FOR_YOU_EVENTS_KEY,
+  FOR_YOU_PAGE_SIZE,
+  fetchForYouEventsPage,
+} from "@/lib/prefetchEvents";
 
 /**
  * Mobile-first deferral: secondary ranking signals (creator-attendance,
