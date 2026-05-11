@@ -83,12 +83,38 @@ const useDwellTimeTracker = (userId: string | undefined) => {
   return observeRef;
 };
 
-export const EventFeed = ({ events, isLoading = false, emptyStateType = "for-you" }: EventFeedProps) => {
+export const EventFeed = ({
+  events,
+  isLoading = false,
+  emptyStateType = "for-you",
+  onEndReached,
+  hasMore = false,
+  isLoadingMore = false,
+}: EventFeedProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const trackImpression = useTrackSponsoredImpression();
   const trackedIds = useRef<Set<string>>(new Set());
   const observeCard = useDwellTimeTracker(user?.id);
+
+  // Sentinel placed at ~70% of the rendered feed to trigger fetchNextPage
+  // before the user reaches the end (Instagram/TikTok pattern).
+  const sentinelIndex = Math.max(0, Math.floor(events.length * 0.7) - 1);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!onEndReached || !hasMore) return;
+    const node = sentinelRef.current;
+    if (!node) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) onEndReached();
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, [onEndReached, hasMore, sentinelIndex, events.length]);
 
   useEffect(() => {
     const sponsoredEvents = events.filter(e => e.isSponsored && e.sponsoredPostId);
