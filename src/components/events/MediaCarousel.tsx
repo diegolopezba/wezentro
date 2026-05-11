@@ -138,7 +138,7 @@ const MediaCarouselComponent = ({
     ? {
         aspectRatio: aspectRatio ? `${aspectRatio}` : "16/9",
         minHeight: "250px",
-        maxHeight: "70vh",
+        maxHeight: "100vh",
       }
     : {
         width: "100%",
