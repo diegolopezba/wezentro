@@ -80,7 +80,9 @@ const BusinessInfo = () => {
         .update({
           business_hours: serializeSchedule(businessHours),
           business_phone: businessPhone.trim() || null,
-          business_address: businessAddress.trim() || null,
+          business_address: businessLocation.address.trim() || null,
+          business_latitude: businessLocation.latitude,
+          business_longitude: businessLocation.longitude,
         } as any)
         .eq("id", user.id);
       if (error) throw error;
