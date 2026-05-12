@@ -45,7 +45,11 @@ const BusinessInfo = () => {
       const parsed = parseSchedule(raw);
       setBusinessHours(parsed || DEFAULT_SCHEDULE);
       setBusinessPhone((profile as any).business_phone || "");
-      setBusinessAddress((profile as any).business_address || "");
+      setBusinessLocation({
+        address: (profile as any).business_address || "",
+        latitude: (profile as any).business_latitude ?? null,
+        longitude: (profile as any).business_longitude ?? null,
+      });
     }
   }, [profile]);
 
