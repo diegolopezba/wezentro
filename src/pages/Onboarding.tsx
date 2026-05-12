@@ -94,6 +94,11 @@ const Onboarding = () => {
   const handleComplete = async () => {
     if (!user) return;
 
+    if (!formData.gender) {
+      toast.error("Selecciona tu género.");
+      return;
+    }
+
     const birthDate = buildBirthDate();
     if (!birthDate) {
       toast.error("Por favor ingresa tu fecha de nacimiento completa.");
@@ -110,10 +115,10 @@ const Onboarding = () => {
     setIsLoading(true);
     const { error } = await supabase
       .from("profiles")
-      .update({
+        .update({
         username: formData.username.toLowerCase(),
         full_name: formData.fullName || null,
-        gender: formData.gender || null,
+        gender: formData.gender,
         birth_date: birthDate,
       })
       .eq("id", user.id);
@@ -289,7 +294,7 @@ const Onboarding = () => {
 
               <div className="flex gap-3">
                 <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>Atrás</Button>
-                <Button variant="hero" className="flex-1" onClick={handleComplete} disabled={isLoading}>
+                <Button variant="hero" className="flex-1" onClick={handleComplete} disabled={isLoading || !formData.gender || !formData.birthDay || !formData.birthMonth || !formData.birthYear}>
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (

@@ -1,44 +1,32 @@
 ## Goal
-
-- **Feed (EventCard):** show up to **3 attendee avatars** (no owner avatar). Prioritize attendees the viewer follows, ordered by interaction score desc; fill remaining slots with other attendees.
-- **Event details page:** keep up to **5 avatars**, with the same prioritization (followed-by-score first, then others). The existing `useFollowingGoing` hook already does this, just confirm and reuse.
+Treat date of birth and gender as required profile data instead of optional.
 
 ## Changes
 
-### 1. New shared hook: `src/hooks/useViewerFollowGraph.ts`
+### 1. `src/pages/Onboarding.tsx` (step 3)
+- DOB is already required (18+ check).
+- Add a required check for `gender`: if empty, show a toast ("Selecciona tu género") and block completion.
+- Disable the "¡Vamos!" button until both `gender` is selected and the three birth date fields are filled.
 
-Single cached query for the logged-in viewer:
-- `followingIds: Set<string>` — from `follows` where `follower_id = viewer`.
-- `scoreMap: Record<string, number>` — from `user_creator_preferences` where `user_id = viewer`.
+### 2. `src/pages/EditProfile.tsx`
+- Change the "Información Personal" section heading: remove the "(opcional)" chip, add a red asterisk to "Fecha de nacimiento *" and "Género *".
+- Update the info note copy to clarify the data is required (still private).
+- In `handleSave`, validate before submitting:
+  - Gender must be one of the allowed values.
+  - DOB must parse to a valid date and the user must be 18+ (consistent with onboarding/store compliance).
+  - On failure, toast a clear Spanish message and abort the save.
+- Remove the "fall back to null" behavior so an empty/invalid DOB or gender can no longer be saved.
 
-Long `staleTime` (e.g. 5 min). Returns empty data for guests (no avatar prioritization, fallback to current order).
+### 3. `src/components/auth/ProtectedRoute.tsx` (gentle enforcement for legacy accounts)
+- Extend the existing profile-completeness check: if `profile` exists but `birth_date` or `gender` is missing, redirect to `/edit-profile` (with a one-time toast shown there) instead of letting them through.
+- Allow `/edit-profile`, `/settings`, `/auth`, and `/onboarding` themselves to render without the redirect to avoid loops.
+- Existing "Complete your profile" banner on the Profile page stays as a soft prompt for users who somehow bypass it.
 
-### 2. EventCard (`src/components/events/EventCard.tsx`)
+## Out of scope
+- No DB schema changes. The columns stay nullable (legacy rows already have nulls); enforcement is at the app layer, matching how other "required" profile fields work today.
+- No changes to business-only fields, bio, avatar, or username flows.
+- No backfill of existing users — they'll be prompted on next navigation.
 
-- Remove `ownerAvatar` from props/render and from the `memo` comparator.
-- Use `useViewerFollowGraph()` to sort `attendeeAvatars`:
-  1. Followed attendees, sorted by `scoreMap[id]` desc
-  2. Then non-followed attendees (preserving incoming order)
-- Slice to **3** total. Placeholder default avatars fill remaining slots only if `attendees > sortedList.length`.
-- Numeric attendee count stays as-is.
-
-### 3. Index feed (`src/pages/Index.tsx`)
-
-- Stop passing `ownerAvatar` to `EventCard` (both regular events and sponsored).
-- `attendeeAvatars` already includes all approved guestlist users — no fetch change needed.
-
-### 4. Event details page
-
-- `useFollowingGoing` already returns attendees sorted (followed-by-score first, then others). Confirm the details page renders `slice(0, 5)` and "+N más" — leave the cap at **5**.
-- No backend or hook change needed there.
-
-### 5. Out of scope (intentionally untouched)
-
-- `TimelineCard` (profile timeline) keeps its current owner avatar — it's a different surface, user only mentioned feed + details.
-- `RelatedEventsFeed` / `JoinedEvents` still pass `ownerAvatar` but `EventCard` will simply ignore it after the prop is removed (safe — TS may warn, will clean up the prop usage in those two files too).
-
-## Technical notes
-
-- `user_creator_preferences` lookup is filtered by `creator_id IN (...)` only for attendees actually present, but for the feed we fetch all viewer scores once (small per-user table) — simpler and avoids per-card queries.
-- For guests / users with no follows, sort is a no-op and the feed renders the first 3 attendees as today.
-- Memo comparator on EventCard updated: drop `ownerAvatar`, add a hash of the first 3 attendee IDs so re-sorts trigger re-render.
+## Notes
+- Spanish copy stays consistent with the rest of the app.
+- Privacy note remains: "Tu género y edad nunca se muestran públicamente."
