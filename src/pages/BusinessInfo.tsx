@@ -169,16 +169,10 @@ const BusinessInfo = () => {
 
           {/* Address */}
           <div className="space-y-2">
-            <Label htmlFor="business-address" className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Label className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="w-3.5 h-3.5" /> Dirección
             </Label>
-            <Input
-              id="business-address"
-              type="text"
-              value={businessAddress}
-              onChange={(e) => setBusinessAddress(e.target.value)}
-              placeholder="Ej: Av. Arce 2631, La Paz"
-            />
+            <LocationPicker value={businessLocation} onChange={setBusinessLocation} />
           </div>
 
           <Button
