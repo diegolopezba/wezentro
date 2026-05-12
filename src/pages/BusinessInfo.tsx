@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { BusinessHoursEditor, DaySchedule, DEFAULT_SCHEDULE, parseSchedule, serializeSchedule } from "@/components/profile/BusinessHoursEditor";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LocationPicker } from "@/components/map/LocationPicker";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +33,7 @@ const BusinessInfo = () => {
 
   const [businessHours, setBusinessHours] = useState<DaySchedule[]>(DEFAULT_SCHEDULE);
   const [businessPhone, setBusinessPhone] = useState("");
-  const [businessAddress, setBusinessAddress] = useState("");
+  const [businessLocation, setBusinessLocation] = useState<{ address: string; latitude: number | null; longitude: number | null }>({ address: "", latitude: null, longitude: null });
 
   useSwipeBack();
 
@@ -44,7 +45,11 @@ const BusinessInfo = () => {
       const parsed = parseSchedule(raw);
       setBusinessHours(parsed || DEFAULT_SCHEDULE);
       setBusinessPhone((profile as any).business_phone || "");
-      setBusinessAddress((profile as any).business_address || "");
+      setBusinessLocation({
+        address: (profile as any).business_address || "",
+        latitude: (profile as any).business_latitude ?? null,
+        longitude: (profile as any).business_longitude ?? null,
+      });
     }
   }, [profile]);
 
@@ -75,7 +80,9 @@ const BusinessInfo = () => {
         .update({
           business_hours: serializeSchedule(businessHours),
           business_phone: businessPhone.trim() || null,
-          business_address: businessAddress.trim() || null,
+          business_address: businessLocation.address.trim() || null,
+          business_latitude: businessLocation.latitude,
+          business_longitude: businessLocation.longitude,
         } as any)
         .eq("id", user.id);
       if (error) throw error;
@@ -162,16 +169,10 @@ const BusinessInfo = () => {
 
           {/* Address */}
           <div className="space-y-2">
-            <Label htmlFor="business-address" className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Label className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="w-3.5 h-3.5" /> Dirección
             </Label>
-            <Input
-              id="business-address"
-              type="text"
-              value={businessAddress}
-              onChange={(e) => setBusinessAddress(e.target.value)}
-              placeholder="Ej: Av. Arce 2631, La Paz"
-            />
+            <LocationPicker value={businessLocation} onChange={setBusinessLocation} />
           </div>
 
           <Button
