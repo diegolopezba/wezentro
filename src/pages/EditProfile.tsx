@@ -115,21 +115,44 @@ const EditProfile = () => {
         }
       }
 
-      let birthDate: string | null = null;
-      if (formData.birth_day && formData.birth_month && formData.birth_year) {
-        const year = parseInt(formData.birth_year);
-        const month = parseInt(formData.birth_month);
-        const day = parseInt(formData.birth_day);
-        if (
-          year >= 1900 &&
-          year <= new Date().getFullYear() - 13 &&
-          month >= 1 &&
-          month <= 12 &&
-          day >= 1 &&
-          day <= 31
-        ) {
-          birthDate = `${formData.birth_year}-${formData.birth_month.padStart(2, "0")}-${formData.birth_day.padStart(2, "0")}`;
-        }
+      // Validate gender (required)
+      const validGenders = GENDER_OPTIONS.map((g) => g.value);
+      if (!formData.gender || !validGenders.includes(formData.gender)) {
+        toast.error("Selecciona tu género");
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate DOB (required + 18+)
+      if (!formData.birth_day || !formData.birth_month || !formData.birth_year) {
+        toast.error("Ingresa tu fecha de nacimiento completa");
+        setIsLoading(false);
+        return;
+      }
+      const year = parseInt(formData.birth_year);
+      const month = parseInt(formData.birth_month);
+      const day = parseInt(formData.birth_day);
+      const currentYear = new Date().getFullYear();
+      if (
+        isNaN(year) || isNaN(month) || isNaN(day) ||
+        year < 1900 || year > currentYear ||
+        month < 1 || month > 12 ||
+        day < 1 || day > 31
+      ) {
+        toast.error("Fecha de nacimiento inválida");
+        setIsLoading(false);
+        return;
+      }
+      const birthDate = `${formData.birth_year}-${formData.birth_month.padStart(2, "0")}-${formData.birth_day.padStart(2, "0")}`;
+      const birthObj = new Date(birthDate);
+      const today = new Date();
+      let age = today.getFullYear() - birthObj.getFullYear();
+      const mDiff = today.getMonth() - birthObj.getMonth();
+      if (mDiff < 0 || (mDiff === 0 && today.getDate() < birthObj.getDate())) age--;
+      if (age < 18) {
+        toast.error("Debes tener al menos 18 años para usar Zentro");
+        setIsLoading(false);
+        return;
       }
 
       // Build update object
@@ -139,7 +162,7 @@ const EditProfile = () => {
         bio: formData.bio.trim() || null,
         avatar_url: avatarUrl,
         birth_date: birthDate,
-        gender: formData.gender || null,
+        gender: formData.gender,
       };
 
       // Add business location if business account
@@ -334,11 +357,10 @@ const EditProfile = () => {
         >
           <div className="flex items-center gap-2">
             <Label className="text-base font-semibold">Información Personal</Label>
-            <span className="text-xs text-muted-foreground">(opcional)</span>
           </div>
 
           <div className="space-y-2">
-            <Label>Fecha de nacimiento</Label>
+            <Label>Fecha de nacimiento *</Label>
             <div className="flex gap-2">
               <Input
                 type="text"
@@ -380,7 +402,7 @@ const EditProfile = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Género</Label>
+            <Label>Género *</Label>
             <Select
               value={formData.gender}
               onValueChange={(value) =>
@@ -403,8 +425,7 @@ const EditProfile = () => {
           <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
             <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground">
-              Esta información solo se usa para estadísticas agregadas de eventos. Nunca
-              se comparte individualmente.
+              Esta información es requerida pero privada. Tu género y edad nunca se muestran públicamente; solo se usan para personalizar tu experiencia y estadísticas agregadas.
             </p>
           </div>
         </m.div>
