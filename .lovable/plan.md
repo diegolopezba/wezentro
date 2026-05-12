@@ -1,39 +1,40 @@
 ## Goal
 
-Make account deletion fully clean up everything the user owns: database rows (already mostly OK via cascades), **uploaded files in storage**, pending invitation rows that currently have no cascade rule, and **orphan chats** left behind when both 1:1 participants are gone. Today the `delete-account` edge function only calls `auth.admin.deleteUser`, which leaves storage objects, some FKs, and empty chats behind.
+Replace the brief black-screen + spinner that flashes when the four core tabs (Home, Discover, Chats, Profile) lazy-load for the first time, with a route-aware skeleton that already shows the page chrome (bottom nav + header + content placeholders). Matches Instagram/Pinterest/TikTok behavior.
 
-## Changes
+## Why it happens today
 
-### 1. Database migration — close the cascade gaps
+- `src/App.tsx` lazy-loads every page, including the four core routes.
+- `KeepAliveLayout` wraps the outlet in `<Suspense fallback={<PageLoader />}>`.
+- `PageLoader` paints a full-viewport `bg-background` div with a delayed spinner. Since each page provides its own `AppLayout` (which contains `BottomNav`), during the lazy-import window there is no `BottomNav`, no header — just a solid dark fill that reads as a black flash.
 
-- `guestlist_invitations`: drop and re-create the FKs `inviter_id` and `invited_user_id` with `ON DELETE CASCADE` (today they're NO ACTION → they could block deletion if pending invitations exist).
-- Add a small `AFTER DELETE` trigger on `chat_participants` that deletes the parent `chats` row when no participants remain (covers 1:1 chats whose two participants both deleted their accounts).
+## Approach
 
-No data is migrated — only constraint/trigger changes.
+Per-route skeleton fallbacks rendered inside `AppLayout` so `BottomNav` stays visible with the correct active tab. Skeletons match the shape of the destination page so layout doesn't jump when real content arrives.
 
-### 2. Edge function `delete-account` — wipe the user's storage files before deleting the auth user
+### 1. New file: `src/components/skeletons/RouteSkeleton.tsx`
 
-The `event-images` bucket holds avatars + event photos/videos. The function should, before `admin.deleteUser`:
+A small dispatcher used as the Suspense fallback inside `KeepAliveLayout`:
 
-1. List all storage objects in `event-images` whose path starts with `{user.id}/` (the existing upload paths follow this convention) and remove them with the service-role client.
-2. Same sweep for any other buckets the project may add later (today only `event-images`).
-3. Then proceed with the existing `admin.deleteUser` cascade.
+- Reads `useLocation().pathname`.
+- Renders one of: `HomeRouteSkeleton`, `DiscoverRouteSkeleton`, `ChatsRouteSkeleton`, `ProfileRouteSkeleton`.
+- Each variant wraps content in `<AppLayout>` so `BottomNav` is present immediately with the correct active tab highlighted.
+- Composes existing primitives from `src/components/skeletons/index.tsx` (`EventFeedSkeleton`, `ChatListSkeleton`, `ProfileSkeleton`) plus a small per-page header placeholder (logo bar for Home, search pill for Discover, "Chats" title for Chats, avatar/stats row for Profile).
+- Shell renders immediately; inner skeleton blocks fade in after a 150ms delay (same trick `PageLoader` already uses) so instant chunk hits don't flash a skeleton.
 
-Wrap each step in try/catch + log so a single storage hiccup doesn't block the auth deletion (we'd rather fully delete the user than leave them half-deleted; orphan files can be reaped later).
+### 2. Wire it into `KeepAliveLayout`
 
-### 3. Verify
+In `src/components/layout/KeepAliveLayout.tsx`, swap the Suspense fallback to `<RouteSkeleton />`. Single-line change.
 
-After implementing:
-- Create a throwaway test account → upload an avatar + create a post with media → request deletion.
-- Confirm: profile gone, events gone, storage path `event-images/{uid}/...` empty, no rows in `guestlist_invitations` referencing the user, any 1:1 chats they were the sole remaining party in are gone.
+### 3. Keep `PageLoader` for everything else
 
-## Out of scope (deliberately kept)
+Secondary pages (Settings, EventDetail, EditProfile, etc.) keep their existing `<Suspense fallback={<PageLoader />}>`. Scope is strictly the four core tabs.
 
-- **Messages they sent in chats with other people** stay (anonymized via `sender_id → SET NULL`). Standard behavior, prevents holes in other users' chat history.
-- **Anonymous analytics rows** (`event_interactions`, `profile_visits.visitor_id`) stay anonymized. No personal data, useful for businesses.
-- No "soft delete / 30-day grace period" — sticking with the current immediate-delete UX unless you want that added later.
+### 4. Verify
 
-## Files touched
+- Cold-load PWA, tap Profile/Chats/Discover/Home for the first time — bottom nav stays put, skeleton appears in content area, no black flash.
+- Confirm `KeepAlive` cache still kicks in on subsequent visits (instant, no skeleton).
 
-- `supabase/migrations/<new>.sql` — FK + trigger fixes
-- `supabase/functions/delete-account/index.ts` — storage sweep added
+## Out of scope
+
+- No changes to data fetching, `PageLoader`, secondary-route fallbacks, or splash screen.
