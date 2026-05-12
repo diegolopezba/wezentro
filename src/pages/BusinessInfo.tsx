@@ -33,7 +33,7 @@ const BusinessInfo = () => {
 
   const [businessHours, setBusinessHours] = useState<DaySchedule[]>(DEFAULT_SCHEDULE);
   const [businessPhone, setBusinessPhone] = useState("");
-  const [businessAddress, setBusinessAddress] = useState("");
+  const [businessLocation, setBusinessLocation] = useState<{ address: string; latitude: number | null; longitude: number | null }>({ address: "", latitude: null, longitude: null });
 
   useSwipeBack();
 
