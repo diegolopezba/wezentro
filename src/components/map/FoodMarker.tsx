@@ -1,3 +1,4 @@
+import { MapPin } from "lucide-react";
 import { FoodLocation } from "@/hooks/useFoodLocations";
 import defaultAvatar from "@/assets/default-avatar.png";
 
@@ -10,21 +11,23 @@ export const FoodMarker = ({ location, onClick }: FoodMarkerProps) => {
   return (
     <button
       onClick={onClick}
-      className="group relative flex flex-col items-center focus:outline-none" >
+      className="group relative flex flex-col items-center focus:outline-none"
+    >
       {/* Avatar container */}
-      <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-border shadow-lg group-hover:scale-110 transition-transform">
+      <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-border shadow-lg transition-transform">
         <img
           src={location.avatar_url || defaultAvatar}
           alt={location.full_name || location.username}
-          className="w-full h-full object-cover" onError={(e) => {
+          className="w-full h-full object-cover"
+          onError={(e) => {
             e.currentTarget.src = defaultAvatar;
           }}
         />
       </div>
-      
-      {/* Food badge */}
-      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center border-2 border-background">
-        <span className="text-[10px]">🍽️</span>
+
+      {/* Brand pin badge */}
+      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center border-2 border-background">
+        <MapPin className="w-3 h-3 text-primary-foreground" />
       </div>
     </button>
   );
@@ -41,18 +44,20 @@ export const FoodMarkerPopup = ({
   return (
     <button
       onClick={onViewProfile}
-      className="bg-background rounded-xl p-3 shadow-xl border border-border min-w-[200px] text-left transition-colors cursor-pointer" >
+      className="bg-background rounded-xl p-3 shadow-xl border border-border min-w-[220px] max-w-[260px] text-left transition-colors cursor-pointer"
+    >
       <div className="flex items-center gap-3">
         <img
           src={location.avatar_url || defaultAvatar}
           alt={location.full_name || location.username}
-          className="w-12 h-12 rounded-full object-cover border-2 border-border" onError={(e) => {
+          className="w-12 h-12 rounded-full object-cover border-2 border-border"
+          onError={(e) => {
             e.currentTarget.src = defaultAvatar;
           }}
         />
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-foreground truncate">
-            {location.full_name || `@${location.username}`}
+            {location.full_name || location.username}
           </h4>
           {location.full_name && (
             <p className="text-sm text-muted-foreground truncate">
@@ -61,12 +66,14 @@ export const FoodMarkerPopup = ({
           )}
         </div>
       </div>
-      
-      {location.bio && (
-        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-          {location.bio}
+
+      {location.business_address && (
+        <p className="text-xs text-muted-foreground mt-2 line-clamp-2 flex items-start gap-1">
+          <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
+          <span>{location.business_address}</span>
         </p>
       )}
     </button>
   );
 };
+
