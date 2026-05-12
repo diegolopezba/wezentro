@@ -255,7 +255,7 @@ export const EventCard = memo(EventCardComponent, (prev, next) => {
     prev.category === next.category &&
     prev.attendees === next.attendees &&
     prev.hasGuestlist === next.hasGuestlist &&
-    prev.ownerAvatar === next.ownerAvatar &&
+    
     prev.creatorId === next.creatorId &&
     prev.isSponsored === next.isSponsored &&
     prev.sponsoredPostId === next.sponsoredPostId &&
