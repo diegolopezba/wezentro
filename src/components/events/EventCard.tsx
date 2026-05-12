@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import { haptic } from "@/lib/haptics";
 import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
+import { useViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,7 +35,7 @@ export interface EventCardProps {
   attendeeAvatars?: AttendeeAvatar[];
   hasGuestlist?: boolean;
   index?: number;
-  ownerAvatar?: string;
+  ownerAvatar?: string; // deprecated, no longer rendered
   creatorId?: string;
   repostInfo?: RepostInfo;
   isSponsored?: boolean;
@@ -67,7 +68,6 @@ const EventCardComponent = ({
   attendeeAvatars = [],
   hasGuestlist = false,
   index = 0,
-  ownerAvatar,
   creatorId,
   repostInfo,
   isSponsored = false,
@@ -81,6 +81,9 @@ const EventCardComponent = ({
   const trackClick = useTrackSponsoredClick();
   const clickedRef = useRef(false);
   const [dismissed, setDismissed] = useState(false);
+  const { data: followGraph } = useViewerFollowGraph();
+  const followingIds = followGraph?.followingIds ?? new Set<string>();
+  const scoreMap = followGraph?.scoreMap ?? {};
 
   // Reset click-tracking when this card represents a different event
   useEffect(() => {
@@ -190,31 +193,24 @@ const EventCardComponent = ({
           )}
 
           {/* Attendees row - below text */}
-          {attendees > 0 && (
-            <div className="flex items-center gap-1.5 px-1">
-              <div className="flex -space-x-2">
-                {ownerAvatar && (
-                  <img
-                    src={getOptimizedImageUrl(ownerAvatar, ImageSizes.avatarSm)}
-                    alt="Owner"
-                    loading="lazy"
-                    decoding="async"
-                    className={cn(
-                      "w-6 h-6 rounded-full border border-background object-cover",
-                      creatorId && "cursor-pointer z-10"
-                    )}
-                    onClick={(e) => {
-                      if (creatorId) {
-                        e.stopPropagation();
-                        navigate(`/user/${creatorId}`);
-                      }
-                    }}
-                  />
-                )}
-                {attendeeAvatars
-                  .filter((a) => a.id !== creatorId)
-                  .slice(0, ownerAvatar ? 2 : 3)
-                  .map((attendee) => (
+          {attendees > 0 && (() => {
+            const MAX = 3;
+            const sorted = [...attendeeAvatars].sort((a, b) => {
+              const aF = followingIds.has(a.id) ? 1 : 0;
+              const bF = followingIds.has(b.id) ? 1 : 0;
+              if (aF !== bF) return bF - aF;
+              if (aF === 1) return (scoreMap[b.id] || 0) - (scoreMap[a.id] || 0);
+              return 0;
+            });
+            const shown = sorted.slice(0, MAX);
+            const placeholderCount = Math.max(
+              0,
+              Math.min(MAX - shown.length, attendees - shown.length)
+            );
+            return (
+              <div className="flex items-center gap-1.5 px-1">
+                <div className="flex -space-x-2">
+                  {shown.map((attendee) => (
                     <img
                       key={attendee.id}
                       src={attendee.avatar_url ? getOptimizedImageUrl(attendee.avatar_url, ImageSizes.avatarSm) : DEFAULT_AVATAR}
@@ -224,14 +220,7 @@ const EventCardComponent = ({
                       className="w-6 h-6 rounded-full border border-background object-cover"
                     />
                   ))}
-                {attendeeAvatars.filter((a) => a.id !== creatorId).length < (ownerAvatar ? 2 : 3) &&
-                  attendees > attendeeAvatars.filter((a) => a.id !== creatorId).length &&
-                  [...Array(
-                    Math.min(
-                      (ownerAvatar ? 2 : 3) - attendeeAvatars.filter((a) => a.id !== creatorId).length,
-                      attendees - attendeeAvatars.filter((a) => a.id !== creatorId).length
-                    )
-                  )].map((_, i) => (
+                  {[...Array(placeholderCount)].map((_, i) => (
                     <img
                       key={`placeholder-${i}`}
                       src={DEFAULT_AVATAR}
@@ -241,10 +230,11 @@ const EventCardComponent = ({
                       className="w-6 h-6 rounded-full border border-background object-cover"
                     />
                   ))}
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">{attendees}</span>
               </div>
-              <span className="text-xs font-medium text-muted-foreground">{attendees}</span>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </div>
     </div>
@@ -265,7 +255,7 @@ export const EventCard = memo(EventCardComponent, (prev, next) => {
     prev.category === next.category &&
     prev.attendees === next.attendees &&
     prev.hasGuestlist === next.hasGuestlist &&
-    prev.ownerAvatar === next.ownerAvatar &&
+    
     prev.creatorId === next.creatorId &&
     prev.isSponsored === next.isSponsored &&
     prev.sponsoredPostId === next.sponsoredPostId &&
