@@ -10,23 +10,33 @@ export interface FoodLocation {
   business_latitude: number;
   business_longitude: number;
   business_address: string | null;
+  business_type: string | null;
 }
 
-export const useFoodLocations = () => {
+/**
+ * Fetch business profiles whose `business_type` matches one of the given types
+ * AND that have pinned business coordinates. Used to render business pins on
+ * the Discover map when matching category pills are selected.
+ */
+export const useFoodLocations = (types: string[] = []) => {
+  // Stable key: sorted, unique
+  const normalizedTypes = Array.from(new Set(types)).sort();
+
   return useQuery({
-    queryKey: ["food-locations"],
+    queryKey: ["business-locations", normalizedTypes],
+    enabled: normalizedTypes.length > 0,
     queryFn: async () => {
-      // Get profiles that have is_food_business = true and have location set
-      const { data: profiles, error: profilesError } = await supabase
+      const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("id, username, full_name, avatar_url, bio, business_latitude, business_longitude, business_address")
-        .eq("is_food_business", true)
+        .select(
+          "id, username, full_name, avatar_url, bio, business_latitude, business_longitude, business_address, business_type",
+        )
+        .in("business_type", normalizedTypes)
         .not("business_latitude", "is", null)
         .not("business_longitude", "is", null);
 
-      if (profilesError) throw profilesError;
+      if (error) throw error;
 
-      // No subscription check needed - food businesses are free now
       return (profiles || []).map((profile) => ({
         id: profile.id,
         username: profile.username,
@@ -36,8 +46,9 @@ export const useFoodLocations = () => {
         business_latitude: profile.business_latitude!,
         business_longitude: profile.business_longitude!,
         business_address: profile.business_address,
+        business_type: profile.business_type,
       })) as FoodLocation[];
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 };
