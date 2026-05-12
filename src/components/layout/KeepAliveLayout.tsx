@@ -26,7 +26,7 @@ export const KeepAliveLayout = () => {
 
   return (
     <KeepAlive activeCacheKey={currentCacheKey} max={2}>
-      <Suspense fallback={<PageLoader />}>
+      <Suspense fallback={<RouteSkeleton />}>
         {outlet}
       </Suspense>
     </KeepAlive>
