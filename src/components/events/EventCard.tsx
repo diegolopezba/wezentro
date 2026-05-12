@@ -35,7 +35,7 @@ export interface EventCardProps {
   attendeeAvatars?: AttendeeAvatar[];
   hasGuestlist?: boolean;
   index?: number;
-  ownerAvatar?: string;
+  ownerAvatar?: string; // deprecated, no longer rendered
   creatorId?: string;
   repostInfo?: RepostInfo;
   isSponsored?: boolean;
@@ -81,6 +81,9 @@ const EventCardComponent = ({
   const trackClick = useTrackSponsoredClick();
   const clickedRef = useRef(false);
   const [dismissed, setDismissed] = useState(false);
+  const { data: followGraph } = useViewerFollowGraph();
+  const followingIds = followGraph?.followingIds ?? new Set<string>();
+  const scoreMap = followGraph?.scoreMap ?? {};
 
   // Reset click-tracking when this card represents a different event
   useEffect(() => {
