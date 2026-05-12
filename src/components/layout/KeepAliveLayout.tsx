@@ -1,7 +1,7 @@
 import { useMemo, Suspense } from "react";
 import { useLocation, useOutlet } from "react-router-dom";
 import { KeepAlive } from "keepalive-for-react";
-import { PageLoader } from "@/components/PageLoader";
+import { RouteSkeleton } from "@/components/skeletons/RouteSkeleton";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 /**
