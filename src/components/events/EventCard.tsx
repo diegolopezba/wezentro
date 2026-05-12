@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import { haptic } from "@/lib/haptics";
 import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
+import { useViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,7 +68,6 @@ const EventCardComponent = ({
   attendeeAvatars = [],
   hasGuestlist = false,
   index = 0,
-  ownerAvatar,
   creatorId,
   repostInfo,
   isSponsored = false,
