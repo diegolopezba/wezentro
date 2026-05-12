@@ -55,10 +55,31 @@ const Discover = () => {
   const { data: events = [] } = useEvents();
   const { location: userLocation } = useUserLocation();
   const { data: searchedUsers = [], isLoading: isLoadingUsers } = useSearchUsers(searchQuery);
-  const { data: foodLocations = [] } = useFoodLocations();
 
-  // Determine if food filter is active
-  const showFoodMarkers = filters.categories.includes("food");
+  // Map a category pill (CategoryFilterBar value) to the matching profile.business_type values.
+  // Pills without a venue equivalent (concert, festival) are omitted on purpose.
+  const PILL_TO_BUSINESS_TYPES: Record<string, string[]> = {
+    restaurant: ["restaurant"],
+    coffee: ["coffee"],
+    bar: ["bar"],
+    rooftop: ["rooftop"],
+    fitness: ["gym"],
+    culture: ["gallery"],
+    party: ["club"],
+  };
+
+  const businessTypesToShow = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          filters.categories.flatMap((c) => PILL_TO_BUSINESS_TYPES[c] ?? []),
+        ),
+      ),
+    [filters.categories],
+  );
+
+  const showFoodMarkers = businessTypesToShow.length > 0;
+  const { data: foodLocations = [] } = useFoodLocations(businessTypesToShow);
 
   // Fetch user's following list for friends going filter
   const { data: followingIds = [] } = useQuery({

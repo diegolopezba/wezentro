@@ -1,32 +1,46 @@
 ## Goal
-Treat date of birth and gender as required profile data instead of optional.
+
+When a user selects a category pill on the Discover map (e.g. Restaurante, Café, Bar, Rooftop, Fitness, Arte y Cultura), the map should hide events and instead show pinned dots for every business profile whose `business_type` matches that pill — using the address/coordinates each business set on **Información del negocio** (the LocationPicker we just added supports both search and drag-pin, so no UI change is needed there).
+
+Tapping a business pin opens a small popup with avatar/name/address; tapping the popup navigates to `/user/{id}`.
+
+## Pill ↔ business_type mapping
+
+| Pill (value)   | business_type values shown |
+|----------------|----------------------------|
+| `restaurant`   | `restaurant`               |
+| `coffee`       | `coffee`                   |
+| `bar`          | `bar`                      |
+| `rooftop`      | `rooftop`                  |
+| `fitness`      | `gym`                      |
+| `culture`      | `gallery`                  |
+| `party`        | `club`                     |
+| `concert` / `festival` | (no business mapping → events behave as today) |
+
+Multiple pills can be active at once → union of their mapped business_types is shown.
 
 ## Changes
 
-### 1. `src/pages/Onboarding.tsx` (step 3)
-- DOB is already required (18+ check).
-- Add a required check for `gender`: if empty, show a toast ("Selecciona tu género") and block completion.
-- Disable the "¡Vamos!" button until both `gender` is selected and the three birth date fields are filled.
+1. **`src/hooks/useFoodLocations.ts` → rename to `useBusinessLocations`**
+   - Accepts a `types: string[]` argument.
+   - Queries `profiles` filtered by `business_type IN (types)` with non-null `business_latitude`/`business_longitude` (drops the `is_food_business` constraint, which is no longer the gating concept).
+   - Disabled when `types` is empty.
 
-### 2. `src/pages/EditProfile.tsx`
-- Change the "Información Personal" section heading: remove the "(opcional)" chip, add a red asterisk to "Fecha de nacimiento *" and "Género *".
-- Update the info note copy to clarify the data is required (still private).
-- In `handleSave`, validate before submitting:
-  - Gender must be one of the allowed values.
-  - DOB must parse to a valid date and the user must be 18+ (consistent with onboarding/store compliance).
-  - On failure, toast a clear Spanish message and abort the save.
-- Remove the "fall back to null" behavior so an empty/invalid DOB or gender can no longer be saved.
+2. **`src/pages/Discover.tsx`**
+   - Add a `PILL_TO_BUSINESS_TYPES` map.
+   - Compute `businessTypesToShow` from `filters.categories`.
+   - Replace `useFoodLocations()` with `useBusinessLocations(businessTypesToShow)`.
+   - `showBusinessMarkers = businessTypesToShow.length > 0`.
+   - When `showBusinessMarkers` is true: pass `events={[]}` to MapView (only business pins) and pass the fetched locations + `showBusinessMarkers` flag.
 
-### 3. `src/components/auth/ProtectedRoute.tsx` (gentle enforcement for legacy accounts)
-- Extend the existing profile-completeness check: if `profile` exists but `birth_date` or `gender` is missing, redirect to `/edit-profile` (with a one-time toast shown there) instead of letting them through.
-- Allow `/edit-profile`, `/settings`, `/auth`, and `/onboarding` themselves to render without the redirect to avoid loops.
-- Existing "Complete your profile" banner on the Profile page stays as a soft prompt for users who somehow bypass it.
+3. **`src/components/map/FoodMarker.tsx` → rename to `BusinessMarker.tsx`**
+   - Same visual style (red dot with avatar). Popup shows avatar, full_name/username, address, and on tap navigates to `/user/{profile.id}`.
+
+4. **`src/components/map/MapView.tsx`**
+   - Rename internal `foodLocations`/`showFoodMarkers`/`onFoodMarkerClick` props/effects to `businessLocations`/`showBusinessMarkers`/`onBusinessMarkerClick` (behavior identical — same effects that clear/create custom markers and skip event clustering when active).
 
 ## Out of scope
-- No DB schema changes. The columns stay nullable (legacy rows already have nulls); enforcement is at the app layer, matching how other "required" profile fields work today.
-- No changes to business-only fields, bio, avatar, or username flows.
-- No backfill of existing users — they'll be prompted on next navigation.
 
-## Notes
-- Spanish copy stays consistent with the rest of the app.
-- Privacy note remains: "Tu género y edad nunca se muestran públicamente."
+- No DB schema changes (uses existing `business_type`, `business_latitude`, `business_longitude` columns on `profiles`).
+- No changes to BusinessInfo (LocationPicker already supports manual pin drag).
+- Event-only pills (`concert`, `festival`) keep current behavior.
