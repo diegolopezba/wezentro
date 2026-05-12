@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { m } from "framer-motion";
-import { ChevronLeft, Camera, Loader2, Info } from "lucide-react";
+import { ChevronLeft, Camera, Loader2, Info, Lock } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -359,75 +359,102 @@ const EditProfile = () => {
             <Label className="text-base font-semibold">Información Personal</Label>
           </div>
 
-          <div className="space-y-2">
-            <Label>Fecha de nacimiento *</Label>
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder="DD"
-                maxLength={2}
-                value={formData.birth_day}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
-                  setFormData((prev) => ({ ...prev, birth_day: value }));
-                }}
-                className="w-16 text-center"
-              />
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder="MM"
-                maxLength={2}
-                value={formData.birth_month}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
-                  setFormData((prev) => ({ ...prev, birth_month: value }));
-                }}
-                className="w-16 text-center"
-              />
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder="AAAA"
-                maxLength={4}
-                value={formData.birth_year}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
-                  setFormData((prev) => ({ ...prev, birth_year: value }));
-                }}
-                className="w-24 text-center"
-              />
-            </div>
-          </div>
+          {(() => {
+            const dobLocked = !!profile?.birth_date;
+            const genderLocked = !!profile?.gender;
+            const genderLabel = GENDER_OPTIONS.find((g) => g.value === formData.gender)?.label;
+            return (
+              <>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5">
+                    Fecha de nacimiento *
+                    {dobLocked && <Lock className="w-3 h-3 text-muted-foreground" />}
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="DD"
+                      maxLength={2}
+                      value={formData.birth_day}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        setFormData((prev) => ({ ...prev, birth_day: value }));
+                      }}
+                      className="w-16 text-center disabled:opacity-70"
+                      disabled={dobLocked}
+                      readOnly={dobLocked}
+                    />
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="MM"
+                      maxLength={2}
+                      value={formData.birth_month}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        setFormData((prev) => ({ ...prev, birth_month: value }));
+                      }}
+                      className="w-16 text-center disabled:opacity-70"
+                      disabled={dobLocked}
+                      readOnly={dobLocked}
+                    />
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="AAAA"
+                      maxLength={4}
+                      value={formData.birth_year}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        setFormData((prev) => ({ ...prev, birth_year: value }));
+                      }}
+                      className="w-24 text-center disabled:opacity-70"
+                      disabled={dobLocked}
+                      readOnly={dobLocked}
+                    />
+                  </div>
+                </div>
 
-          <div className="space-y-2">
-            <Label>Género *</Label>
-            <Select
-              value={formData.gender}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, gender: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona tu género" />
-              </SelectTrigger>
-              <SelectContent>
-                {GENDER_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5">
+                    Género *
+                    {genderLocked && <Lock className="w-3 h-3 text-muted-foreground" />}
+                  </Label>
+                  {genderLocked ? (
+                    <Input value={genderLabel || ""} disabled readOnly className="disabled:opacity-70" />
+                  ) : (
+                    <Select
+                      value={formData.gender}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({ ...prev, gender: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona tu género" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GENDER_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
 
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
-            <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-            <p className="text-xs text-muted-foreground">
-              Esta información es requerida pero privada. Tu género y edad nunca se muestran públicamente; solo se usan para personalizar tu experiencia y estadísticas agregadas.
-            </p>
-          </div>
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
+                  <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">
+                    {dobLocked && genderLocked
+                      ? "Tu fecha de nacimiento y género no se pueden modificar. Esta información es privada y nunca se muestra públicamente."
+                      : "Esta información es requerida pero privada. Tu género y edad nunca se muestran públicamente; solo se usan para personalizar tu experiencia."}
+                  </p>
+                </div>
+              </>
+            );
+          })()}
         </m.div>
       </div>
     </AppLayout>
