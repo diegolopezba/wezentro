@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { BusinessHoursEditor, DaySchedule, DEFAULT_SCHEDULE, parseSchedule, serializeSchedule } from "@/components/profile/BusinessHoursEditor";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LocationPicker } from "@/components/map/LocationPicker";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
