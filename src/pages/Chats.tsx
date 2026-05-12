@@ -55,11 +55,6 @@ const Chats = () => {
           <h1 className="font-brand text-xl font-bold text-foreground">
             Mensajes
           </h1>
-          <Button
-            size="icon" variant="ghost" onClick={() => setNewChatOpen(true)}
-            className="rounded-full" >
-            <Plus className="w-5 h-5" />
-          </Button>
         </div>
       </header>
 
