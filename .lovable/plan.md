@@ -1,46 +1,39 @@
 ## Goal
 
-When a user selects a category pill on the Discover map (e.g. Restaurante, Café, Bar, Rooftop, Fitness, Arte y Cultura), the map should hide events and instead show pinned dots for every business profile whose `business_type` matches that pill — using the address/coordinates each business set on **Información del negocio** (the LocationPicker we just added supports both search and drag-pin, so no UI change is needed there).
-
-Tapping a business pin opens a small popup with avatar/name/address; tapping the popup navigates to `/user/{id}`.
-
-## Pill ↔ business_type mapping
-
-| Pill (value)   | business_type values shown |
-|----------------|----------------------------|
-| `restaurant`   | `restaurant`               |
-| `coffee`       | `coffee`                   |
-| `bar`          | `bar`                      |
-| `rooftop`      | `rooftop`                  |
-| `fitness`      | `gym`                      |
-| `culture`      | `gallery`                  |
-| `party`        | `club`                     |
-| `concert` / `festival` | (no business mapping → events behave as today) |
-
-Multiple pills can be active at once → union of their mapped business_types is shown.
+Make account deletion fully clean up everything the user owns: database rows (already mostly OK via cascades), **uploaded files in storage**, pending invitation rows that currently have no cascade rule, and **orphan chats** left behind when both 1:1 participants are gone. Today the `delete-account` edge function only calls `auth.admin.deleteUser`, which leaves storage objects, some FKs, and empty chats behind.
 
 ## Changes
 
-1. **`src/hooks/useFoodLocations.ts` → rename to `useBusinessLocations`**
-   - Accepts a `types: string[]` argument.
-   - Queries `profiles` filtered by `business_type IN (types)` with non-null `business_latitude`/`business_longitude` (drops the `is_food_business` constraint, which is no longer the gating concept).
-   - Disabled when `types` is empty.
+### 1. Database migration — close the cascade gaps
 
-2. **`src/pages/Discover.tsx`**
-   - Add a `PILL_TO_BUSINESS_TYPES` map.
-   - Compute `businessTypesToShow` from `filters.categories`.
-   - Replace `useFoodLocations()` with `useBusinessLocations(businessTypesToShow)`.
-   - `showBusinessMarkers = businessTypesToShow.length > 0`.
-   - When `showBusinessMarkers` is true: pass `events={[]}` to MapView (only business pins) and pass the fetched locations + `showBusinessMarkers` flag.
+- `guestlist_invitations`: drop and re-create the FKs `inviter_id` and `invited_user_id` with `ON DELETE CASCADE` (today they're NO ACTION → they could block deletion if pending invitations exist).
+- Add a small `AFTER DELETE` trigger on `chat_participants` that deletes the parent `chats` row when no participants remain (covers 1:1 chats whose two participants both deleted their accounts).
 
-3. **`src/components/map/FoodMarker.tsx` → rename to `BusinessMarker.tsx`**
-   - Same visual style (red dot with avatar). Popup shows avatar, full_name/username, address, and on tap navigates to `/user/{profile.id}`.
+No data is migrated — only constraint/trigger changes.
 
-4. **`src/components/map/MapView.tsx`**
-   - Rename internal `foodLocations`/`showFoodMarkers`/`onFoodMarkerClick` props/effects to `businessLocations`/`showBusinessMarkers`/`onBusinessMarkerClick` (behavior identical — same effects that clear/create custom markers and skip event clustering when active).
+### 2. Edge function `delete-account` — wipe the user's storage files before deleting the auth user
 
-## Out of scope
+The `event-images` bucket holds avatars + event photos/videos. The function should, before `admin.deleteUser`:
 
-- No DB schema changes (uses existing `business_type`, `business_latitude`, `business_longitude` columns on `profiles`).
-- No changes to BusinessInfo (LocationPicker already supports manual pin drag).
-- Event-only pills (`concert`, `festival`) keep current behavior.
+1. List all storage objects in `event-images` whose path starts with `{user.id}/` (the existing upload paths follow this convention) and remove them with the service-role client.
+2. Same sweep for any other buckets the project may add later (today only `event-images`).
+3. Then proceed with the existing `admin.deleteUser` cascade.
+
+Wrap each step in try/catch + log so a single storage hiccup doesn't block the auth deletion (we'd rather fully delete the user than leave them half-deleted; orphan files can be reaped later).
+
+### 3. Verify
+
+After implementing:
+- Create a throwaway test account → upload an avatar + create a post with media → request deletion.
+- Confirm: profile gone, events gone, storage path `event-images/{uid}/...` empty, no rows in `guestlist_invitations` referencing the user, any 1:1 chats they were the sole remaining party in are gone.
+
+## Out of scope (deliberately kept)
+
+- **Messages they sent in chats with other people** stay (anonymized via `sender_id → SET NULL`). Standard behavior, prevents holes in other users' chat history.
+- **Anonymous analytics rows** (`event_interactions`, `profile_visits.visitor_id`) stay anonymized. No personal data, useful for businesses.
+- No "soft delete / 30-day grace period" — sticking with the current immediate-delete UX unless you want that added later.
+
+## Files touched
+
+- `supabase/migrations/<new>.sql` — FK + trigger fixes
+- `supabase/functions/delete-account/index.ts` — storage sweep added

@@ -62,7 +62,46 @@ Deno.serve(async (req) => {
     // Create admin client to delete the user
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Delete the user (cascades will handle related data)
+    // 1) Wipe the user's uploaded files from storage. All uploads use the
+    //    convention `{user.id}/...` (avatars, event media, payment QR images).
+    //    We list and remove in batches; failures are logged but do NOT abort
+    //    the auth deletion — better to fully delete the user and reap orphan
+    //    files later than to leave a half-deleted account.
+    const buckets = ["event-images"];
+    for (const bucket of buckets) {
+      try {
+        let offset = 0;
+        const pageSize = 1000;
+        // Loop until we've listed everything under this user's folder
+        while (true) {
+          const { data: files, error: listError } = await adminClient.storage
+            .from(bucket)
+            .list(user.id, { limit: pageSize, offset });
+
+          if (listError) {
+            console.error(`[delete-account] list error in ${bucket}:`, listError);
+            break;
+          }
+          if (!files || files.length === 0) break;
+
+          const paths = files.map((f) => `${user.id}/${f.name}`);
+          const { error: removeError } = await adminClient.storage
+            .from(bucket)
+            .remove(paths);
+          if (removeError) {
+            console.error(`[delete-account] remove error in ${bucket}:`, removeError);
+          }
+
+          if (files.length < pageSize) break;
+          offset += pageSize;
+        }
+      } catch (storageErr) {
+        console.error(`[delete-account] storage cleanup failed for ${bucket}:`, storageErr);
+      }
+    }
+
+    // 2) Delete the user (cascades handle profile + all related rows;
+    //    chat_participants trigger sweeps any now-empty 1:1 chats).
     const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id);
 
     if (deleteError) {
