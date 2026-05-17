@@ -24,6 +24,8 @@ export interface TimelineCardProps {
   creatorId?: string;
   media?: CarouselMediaItem[];
   viewCount?: number;
+  /** Show the contextual quick-actions menu (business CTA requests). */
+  showCtaActions?: boolean;
 }
 
 export const TimelineCard = ({
