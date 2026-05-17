@@ -43,6 +43,7 @@ export const TimelineCard = ({
   creatorId,
   media,
   viewCount,
+  showCtaActions = false,
 }: TimelineCardProps) => {
   const navigate = useNavigate();
   const openEvent = useOpenEvent();
