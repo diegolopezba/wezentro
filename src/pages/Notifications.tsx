@@ -20,6 +20,7 @@ import { LikeNotificationItem } from "@/components/notifications/LikeNotificatio
 import { RepostNotificationItem } from "@/components/notifications/RepostNotificationItem";
 import { ReferralNotificationItem } from "@/components/notifications/ReferralNotificationItem";
 import { ReservationNotificationItem } from "@/components/notifications/ReservationNotificationItem";
+import { BusinessCtaRequestNotificationItem } from "@/components/notifications/BusinessCtaRequestNotificationItem";
 const getNotificationIcon = (type: string) => {
   switch (type) {
     case "event":
