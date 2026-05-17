@@ -84,7 +84,7 @@ export const TimelineCard = ({
         <div className="relative">
           <MediaCarousel items={carouselItems} onTap={handleCardClick} />
           {typeof viewCount === "number" && viewCount > 0 && (
-            <div className="absolute bottom-2 right-2 z-10 pointer-events-none flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-sm">
+            <div className="absolute bottom-2 left-2 z-10 pointer-events-none flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-sm">
               <Eye className="w-3 h-3 text-white" />
               <span className="text-[11px] font-medium text-white leading-none">
                 {formatCount(viewCount)}
