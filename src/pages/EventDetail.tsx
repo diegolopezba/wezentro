@@ -35,6 +35,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { CommentsSheet } from "@/components/events/CommentsSheet";
 import { useCommentCount, useLatestComment } from "@/hooks/useEventComments";
+import { AttachedBusinessCtas } from "@/components/events/AttachedBusinessCtas";
 
 const EventDetail = () => {
   const { id } = useParams();
