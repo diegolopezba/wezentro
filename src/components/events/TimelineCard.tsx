@@ -22,6 +22,7 @@ export interface TimelineCardProps {
   ownerAvatar?: string;
   creatorId?: string;
   media?: CarouselMediaItem[];
+  viewCount?: number;
 }
 
 export const TimelineCard = ({
