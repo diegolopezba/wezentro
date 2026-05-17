@@ -7,6 +7,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
+import { TimelineCardCtaActions } from "@/components/events/TimelineCardCtaActions";
 
 export interface TimelineCardProps {
   id: string;
@@ -23,6 +24,8 @@ export interface TimelineCardProps {
   creatorId?: string;
   media?: CarouselMediaItem[];
   viewCount?: number;
+  /** Show the contextual quick-actions menu (business CTA requests). */
+  showCtaActions?: boolean;
 }
 
 export const TimelineCard = ({
@@ -40,6 +43,7 @@ export const TimelineCard = ({
   creatorId,
   media,
   viewCount,
+  showCtaActions = false,
 }: TimelineCardProps) => {
   const navigate = useNavigate();
   const openEvent = useOpenEvent();
@@ -83,6 +87,9 @@ export const TimelineCard = ({
       <div className="space-y-2 px-0">
         <div className="relative">
           <MediaCarousel items={carouselItems} onTap={handleCardClick} />
+          {showCtaActions && creatorId && (
+            <TimelineCardCtaActions eventId={id} creatorId={creatorId} />
+          )}
           {typeof viewCount === "number" && viewCount > 0 && (
             <div className="absolute bottom-2 left-2 z-10 pointer-events-none flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-sm">
               <Eye className="w-3 h-3 text-white" />
