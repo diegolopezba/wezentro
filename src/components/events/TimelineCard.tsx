@@ -1,6 +1,7 @@
 import { m } from "framer-motion";
+import { Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { cn, formatCount } from "@/lib/utils";
 import { useOpenEvent } from "@/hooks/useOpenEvent";
 import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
