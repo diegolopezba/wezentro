@@ -410,6 +410,14 @@ const Notifications = () => {
       navigate(`/reservation/${notification.entity_id}`);
     } else if (notification.type === "post_tag" && notification.entity_id) {
       navigate(`/event/${notification.entity_id}`);
+    } else if (
+      (notification.type === "business_cta_request" ||
+        notification.type === "business_cta_accepted" ||
+        notification.type === "business_cta_declined" ||
+        notification.type === "business_cta_revoked") &&
+      notification.entity_id
+    ) {
+      navigate(`/event/${notification.entity_id}`);
     } else if ((notification.entity_type === "profile" || notification.entity_type === "user") && notification.entity_id) {
       navigate(`/user/${notification.entity_id}`);
     } else if (notification.entity_type === "event" && notification.entity_id) {
