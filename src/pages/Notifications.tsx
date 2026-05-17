@@ -453,6 +453,8 @@ const Notifications = () => {
         return <ReservationNotificationItem key={notification.id} {...commonProps} />;
       case "post_tag":
         return <PostTagNotificationItem key={notification.id} {...commonProps} />;
+      case "business_cta_request":
+        return <BusinessCtaRequestNotificationItem key={notification.id} {...commonProps} />;
       case "comment":
         return <CommentNotificationItem key={notification.id} {...commonProps} />;
       default:
