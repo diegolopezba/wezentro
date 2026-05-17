@@ -51,6 +51,26 @@ export const fetchForYouEventsPage = async (
   cursor: string | null = null,
   limit: number = FOR_YOU_PAGE_SIZE,
 ) => {
+  // First page goes through the edge-cached wrapper so guests + cold sessions
+  // share a Cloudflare-cached response instead of hitting Postgres each time.
+  // Cursor pages bypass the cache and hit the RPC directly (per-session state).
+  if (cursor === null) {
+    try {
+      const { data, error } = await supabase.functions.invoke("get-for-you-feed", {
+        method: "GET",
+        // @ts-expect-error supabase-js types don't expose query, but it is forwarded
+        query: { limit: String(limit) },
+      });
+      if (!error && data?.items) {
+        const items = reshape(data.items as any[]);
+        const nextCursor = items.length === limit ? items[items.length - 1].created_at : null;
+        return { items, nextCursor };
+      }
+    } catch {
+      // Fall through to direct RPC on edge function failure
+    }
+  }
+
   const { data, error } = await supabase.rpc("get_for_you_events", {
     _limit: limit,
     _cursor: cursor,
