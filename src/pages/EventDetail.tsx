@@ -448,6 +448,8 @@ const EventDetail = () => {
       </div>
     )}
 
+    {/* Buttons from other tagged businesses (CTA requests accepted by the post owner) */}
+    <AttachedBusinessCtas eventId={id} excludeBusinessId={event.creator_id} />
     {/* Menu Sheet */}
     {event.show_menu_button && event.creator_id && (
       <MenuSheet
