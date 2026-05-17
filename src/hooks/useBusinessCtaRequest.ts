@@ -2,6 +2,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+export interface BusinessProfileLite {
+  id: string;
+  username: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  is_food_business: boolean | null;
+  menu_enabled: boolean | null;
+  reservations_enabled: boolean | null;
+  business_hours: string | null;
+  reservation_start_time: string | null;
+  reservation_end_time: string | null;
+}
+
 export interface BusinessCtaRequest {
   id: string;
   event_id: string;
@@ -11,18 +24,22 @@ export interface BusinessCtaRequest {
   revoked_by: "user" | "business" | null;
   created_at: string;
   responded_at: string | null;
-  business?: {
-    id: string;
-    username: string;
-    full_name: string | null;
-    avatar_url: string | null;
-    is_food_business: boolean | null;
-    menu_enabled: boolean | null;
-    reservations_enabled: boolean | null;
-    business_hours: string | null;
-    reservation_start_time: string | null;
-    reservation_end_time: string | null;
-  };
+  business?: BusinessProfileLite | null;
+}
+
+const BUSINESS_FIELDS =
+  "id, username, full_name, avatar_url, is_food_business, menu_enabled, reservations_enabled, business_hours, reservation_start_time, reservation_end_time";
+
+async function attachBusinessProfiles(rows: any[]): Promise<BusinessCtaRequest[]> {
+  if (!rows.length) return [];
+  const ids = Array.from(new Set(rows.map((r) => r.business_id)));
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select(BUSINESS_FIELDS)
+    .in("id", ids);
+  const map = new Map<string, BusinessProfileLite>();
+  (profiles || []).forEach((p: any) => map.set(p.id, p as BusinessProfileLite));
+  return rows.map((r) => ({ ...r, business: map.get(r.business_id) ?? null }));
 }
 
 /** Accepted CTA requests for a post — public, used to render extra menu/reservation buttons. */
@@ -33,16 +50,11 @@ export const useAcceptedBusinessCtas = (eventId: string | undefined) => {
       if (!eventId) return [];
       const { data, error } = await (supabase as any)
         .from("post_business_cta_requests")
-        .select(
-          `*, business:profiles!post_business_cta_requests_business_id_fkey(
-            id, username, full_name, avatar_url, is_food_business, menu_enabled,
-            reservations_enabled, business_hours, reservation_start_time, reservation_end_time
-          )`
-        )
+        .select("*")
         .eq("event_id", eventId)
         .eq("status", "accepted");
       if (error) throw error;
-      return (data || []) as BusinessCtaRequest[];
+      return attachBusinessProfiles(data || []);
     },
     enabled: !!eventId,
   });
@@ -66,7 +78,7 @@ export const useMyBusinessCtaRequest = (
         .in("status", ["pending", "accepted"])
         .maybeSingle();
       if (error) throw error;
-      return data as BusinessCtaRequest | null;
+      return (data as BusinessCtaRequest | null) ?? null;
     },
     enabled: !!eventId && !!user?.id && enabled,
   });
@@ -75,7 +87,7 @@ export const useMyBusinessCtaRequest = (
 const invalidate = (qc: ReturnType<typeof useQueryClient>, eventId: string) => {
   qc.invalidateQueries({ queryKey: ["business-cta-accepted", eventId] });
   qc.invalidateQueries({ queryKey: ["business-cta-mine", eventId] });
-  qc.invalidateQueries({ queryKey: ["business-cta-pending-for-owner"] });
+  qc.invalidateQueries({ queryKey: ["business-cta-pending-for-owner", eventId] });
 };
 
 export const useRequestBusinessCta = () => {
@@ -144,7 +156,7 @@ export const useRevokeBusinessCta = () => {
   });
 };
 
-/** Pending CTA request for a specific post, visible to the post owner. */
+/** Pending CTA request for a specific post (visible only to post owner via RLS). */
 export const usePendingCtaRequestForOwner = (
   eventId: string | undefined,
   enabled = true
@@ -155,18 +167,16 @@ export const usePendingCtaRequestForOwner = (
       if (!eventId) return null;
       const { data, error } = await (supabase as any)
         .from("post_business_cta_requests")
-        .select(
-          `*, business:profiles!post_business_cta_requests_business_id_fkey(
-            id, username, full_name, avatar_url
-          )`
-        )
+        .select("*")
         .eq("event_id", eventId)
         .eq("status", "pending")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as BusinessCtaRequest | null;
+      if (!data) return null;
+      const [withBiz] = await attachBusinessProfiles([data]);
+      return withBiz;
     },
     enabled: !!eventId && enabled,
   });
