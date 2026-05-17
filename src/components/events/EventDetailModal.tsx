@@ -464,6 +464,9 @@ const EventDetailModalInner = () => {
             </div>
           )}
 
+          {/* Buttons from other tagged businesses (accepted CTA requests) */}
+          <AttachedBusinessCtas eventId={id} excludeBusinessId={event.creator_id} />
+
           {event.show_menu_button && event.creator_id && (
             <MenuSheet
               open={showMenuSheet}
