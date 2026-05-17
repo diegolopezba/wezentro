@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, AtSign, Heart, Repeat2, MessageCircle } from "lucide-react";
+import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, AtSign, Heart, Repeat2, MessageCircle, Sparkles } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,6 +20,7 @@ import { LikeNotificationItem } from "@/components/notifications/LikeNotificatio
 import { RepostNotificationItem } from "@/components/notifications/RepostNotificationItem";
 import { ReferralNotificationItem } from "@/components/notifications/ReferralNotificationItem";
 import { ReservationNotificationItem } from "@/components/notifications/ReservationNotificationItem";
+import { BusinessCtaRequestNotificationItem } from "@/components/notifications/BusinessCtaRequestNotificationItem";
 const getNotificationIcon = (type: string) => {
   switch (type) {
     case "event":
@@ -38,6 +39,11 @@ const getNotificationIcon = (type: string) => {
       return XCircle;
     case "post_tag":
       return AtSign;
+    case "business_cta_request":
+    case "business_cta_accepted":
+    case "business_cta_declined":
+    case "business_cta_revoked":
+      return Sparkles;
     default:
       return Bell;
   }
@@ -404,6 +410,14 @@ const Notifications = () => {
       navigate(`/reservation/${notification.entity_id}`);
     } else if (notification.type === "post_tag" && notification.entity_id) {
       navigate(`/event/${notification.entity_id}`);
+    } else if (
+      (notification.type === "business_cta_request" ||
+        notification.type === "business_cta_accepted" ||
+        notification.type === "business_cta_declined" ||
+        notification.type === "business_cta_revoked") &&
+      notification.entity_id
+    ) {
+      navigate(`/event/${notification.entity_id}`);
     } else if ((notification.entity_type === "profile" || notification.entity_type === "user") && notification.entity_id) {
       navigate(`/user/${notification.entity_id}`);
     } else if (notification.entity_type === "event" && notification.entity_id) {
@@ -439,6 +453,8 @@ const Notifications = () => {
         return <ReservationNotificationItem key={notification.id} {...commonProps} />;
       case "post_tag":
         return <PostTagNotificationItem key={notification.id} {...commonProps} />;
+      case "business_cta_request":
+        return <BusinessCtaRequestNotificationItem key={notification.id} {...commonProps} />;
       case "comment":
         return <CommentNotificationItem key={notification.id} {...commonProps} />;
       default:
