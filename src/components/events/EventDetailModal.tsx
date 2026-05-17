@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { CommentsSheet } from "@/components/events/CommentsSheet";
 import { useCommentCount, useLatestComment } from "@/hooks/useEventComments";
 import { EventDetailSkeleton } from "@/components/skeletons/EventDetailSkeleton";
+import { AttachedBusinessCtas } from "@/components/events/AttachedBusinessCtas";
 
 /**
  * Pinterest-style modal wrapper around the event detail UI.
