@@ -27,6 +27,7 @@ export interface TimelineItem {
   };
   guestlist_entries?: { count: number }[];
   media?: { id: string; media_url: string; media_type: string; display_order: number; aspect_ratio: number | null }[];
+  view_count?: number;
 }
 
 export const useUserTimeline = (userId: string | undefined) => {
@@ -83,6 +84,19 @@ export const useUserTimeline = (userId: string | undefined) => {
         }
       }
       merged.sort((a, b) => new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime());
+
+      // Fetch aggregate view counts for all items (TikTok-style)
+      if (merged.length > 0) {
+        const ids = merged.map((p) => p.id);
+        const { data: viewRows } = await supabase.rpc("get_event_view_counts", {
+          _event_ids: ids,
+        });
+        const viewMap = new Map<string, number>();
+        (viewRows || []).forEach((r: any) => viewMap.set(r.event_id, Number(r.view_count) || 0));
+        for (const post of merged) {
+          post.view_count = viewMap.get(post.id) || 0;
+        }
+      }
 
       return merged;
     },

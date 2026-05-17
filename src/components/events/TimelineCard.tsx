@@ -1,6 +1,7 @@
 import { m } from "framer-motion";
+import { Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { cn, formatCount } from "@/lib/utils";
 import { useOpenEvent } from "@/hooks/useOpenEvent";
 import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -21,6 +22,7 @@ export interface TimelineCardProps {
   ownerAvatar?: string;
   creatorId?: string;
   media?: CarouselMediaItem[];
+  viewCount?: number;
 }
 
 export const TimelineCard = ({
@@ -37,6 +39,7 @@ export const TimelineCard = ({
   ownerAvatar,
   creatorId,
   media,
+  viewCount,
 }: TimelineCardProps) => {
   const navigate = useNavigate();
   const openEvent = useOpenEvent();
@@ -78,7 +81,17 @@ export const TimelineCard = ({
       onClick={handleCardClick}
     >
       <div className="space-y-2 px-0">
-        <MediaCarousel items={carouselItems} onTap={handleCardClick} />
+        <div className="relative">
+          <MediaCarousel items={carouselItems} onTap={handleCardClick} />
+          {typeof viewCount === "number" && viewCount > 0 && (
+            <div className="absolute bottom-2 right-2 z-10 pointer-events-none flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm">
+              <Play className="w-3 h-3 text-white fill-white" />
+              <span className="text-[11px] font-medium text-white leading-none">
+                {formatCount(viewCount)}
+              </span>
+            </div>
+          )}
+        </div>
 
         {/* Content */}
         {(title || dateDisplay) && (
