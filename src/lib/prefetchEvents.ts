@@ -56,15 +56,20 @@ export const fetchForYouEventsPage = async (
   // Cursor pages bypass the cache and hit the RPC directly (per-session state).
   if (cursor === null) {
     try {
-      const { data, error } = await supabase.functions.invoke("get-for-you-feed", {
-        method: "GET",
-        // @ts-expect-error supabase-js types don't expose query, but it is forwarded
-        query: { limit: String(limit) },
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-for-you-feed?limit=${limit}`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
       });
-      if (!error && data?.items) {
-        const items = reshape(data.items as any[]);
-        const nextCursor = items.length === limit ? items[items.length - 1].created_at : null;
-        return { items, nextCursor };
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json?.items)) {
+          const items = reshape(json.items as any[]);
+          const nextCursor = items.length === limit ? items[items.length - 1].created_at : null;
+          return { items, nextCursor };
+        }
       }
     } catch {
       // Fall through to direct RPC on edge function failure
