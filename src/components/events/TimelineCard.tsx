@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { Play } from "lucide-react";
+import { Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn, formatCount } from "@/lib/utils";
 import { useOpenEvent } from "@/hooks/useOpenEvent";
@@ -84,8 +84,8 @@ export const TimelineCard = ({
         <div className="relative">
           <MediaCarousel items={carouselItems} onTap={handleCardClick} />
           {typeof viewCount === "number" && viewCount > 0 && (
-            <div className="absolute bottom-2 right-2 z-10 pointer-events-none flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm">
-              <Play className="w-3 h-3 text-white fill-white" />
+            <div className="absolute bottom-2 right-2 z-10 pointer-events-none flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-sm">
+              <Eye className="w-3 h-3 text-white" />
               <span className="text-[11px] font-medium text-white leading-none">
                 {formatCount(viewCount)}
               </span>
