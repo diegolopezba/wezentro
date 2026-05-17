@@ -27,6 +27,7 @@ export interface TimelineItem {
   };
   guestlist_entries?: { count: number }[];
   media?: { id: string; media_url: string; media_type: string; display_order: number; aspect_ratio: number | null }[];
+  view_count?: number;
 }
 
 export const useUserTimeline = (userId: string | undefined) => {
