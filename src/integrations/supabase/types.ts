@@ -1088,6 +1088,39 @@ export type Database = {
           },
         ]
       }
+      post_business_cta_requests: {
+        Row: {
+          business_id: string
+          created_at: string
+          event_id: string
+          id: string
+          requested_by: string
+          responded_at: string | null
+          revoked_by: string | null
+          status: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          event_id: string
+          id?: string
+          requested_by: string
+          responded_at?: string | null
+          revoked_by?: string | null
+          status?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          requested_by?: string
+          responded_at?: string | null
+          revoked_by?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       profile_photos: {
         Row: {
           created_at: string | null
@@ -2525,6 +2558,10 @@ export type Database = {
       }
       is_chat_participant: {
         Args: { _chat_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_post_owner: {
+        Args: { _event_id: string; _user_id: string }
         Returns: boolean
       }
       refresh_trending_scores_cache: { Args: never; Returns: undefined }
