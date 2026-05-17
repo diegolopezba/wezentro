@@ -7,6 +7,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
+import { TimelineCardCtaActions } from "@/components/events/TimelineCardCtaActions";
 
 export interface TimelineCardProps {
   id: string;
