@@ -1905,6 +1905,27 @@ export type Database = {
           },
         ]
       }
+      trending_scores_cache: {
+        Row: {
+          event_id: string
+          trending_score: number
+          updated_at: string
+          velocity_count: number
+        }
+        Insert: {
+          event_id: string
+          trending_score?: number
+          updated_at?: string
+          velocity_count?: number
+        }
+        Update: {
+          event_id?: string
+          trending_score?: number
+          updated_at?: string
+          velocity_count?: number
+        }
+        Relationships: []
+      }
       user_category_preferences: {
         Row: {
           category: string
@@ -1952,6 +1973,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_collab_boosts_cache: {
+        Row: {
+          boost_count: number
+          event_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          boost_count?: number
+          event_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          boost_count?: number
+          event_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_creator_preferences: {
         Row: {
@@ -2310,6 +2352,10 @@ export type Database = {
         Args: { _reservation_id: string }
         Returns: undefined
       }
+      ensure_collab_boosts_fresh: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
       generate_referral_code: { Args: { _user_id: string }; Returns: string }
       get_chat_list_with_unread: {
         Args: { _user_id: string }
@@ -2325,6 +2371,13 @@ export type Database = {
           unread_count: number
         }[]
       }
+      get_collab_boosts: {
+        Args: { _user_id: string }
+        Returns: {
+          boost_count: number
+          event_id: string
+        }[]
+      }
       get_eligible_sponsored_posts: {
         Args: { _lat?: number; _lng?: number; _user_id?: string }
         Returns: {
@@ -2338,6 +2391,7 @@ export type Database = {
           target_radius_km: number
         }[]
       }
+      get_for_you_context: { Args: { _user_id: string }; Returns: Json }
       get_for_you_events:
         | {
             Args: never
@@ -2465,6 +2519,11 @@ export type Database = {
       is_chat_participant: {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
+      }
+      refresh_trending_scores_cache: { Args: never; Returns: undefined }
+      refresh_user_collab_boosts: {
+        Args: { _user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
