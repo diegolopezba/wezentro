@@ -2391,6 +2391,13 @@ export type Database = {
           target_radius_km: number
         }[]
       }
+      get_event_view_counts: {
+        Args: { _event_ids: string[] }
+        Returns: {
+          event_id: string
+          view_count: number
+        }[]
+      }
       get_for_you_context: { Args: { _user_id: string }; Returns: Json }
       get_for_you_events:
         | {
