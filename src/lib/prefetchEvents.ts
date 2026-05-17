@@ -51,6 +51,31 @@ export const fetchForYouEventsPage = async (
   cursor: string | null = null,
   limit: number = FOR_YOU_PAGE_SIZE,
 ) => {
+  // First page goes through the edge-cached wrapper so guests + cold sessions
+  // share a Cloudflare-cached response instead of hitting Postgres each time.
+  // Cursor pages bypass the cache and hit the RPC directly (per-session state).
+  if (cursor === null) {
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-for-you-feed?limit=${limit}`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json?.items)) {
+          const items = reshape(json.items as any[]);
+          const nextCursor = items.length === limit ? items[items.length - 1].created_at : null;
+          return { items, nextCursor };
+        }
+      }
+    } catch {
+      // Fall through to direct RPC on edge function failure
+    }
+  }
+
   const { data, error } = await supabase.rpc("get_for_you_events", {
     _limit: limit,
     _cursor: cursor,

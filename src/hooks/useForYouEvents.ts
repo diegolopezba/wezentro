@@ -49,39 +49,53 @@ export const useForYouEvents = () => {
   const { data: blockedIds } = useBlockedIds();
   const { data: learnedPrefs } = useUserPreferences(userId);
 
-  const { data: userProfile } = useQuery({
-    queryKey: ["user-interests", user?.id],
+  /**
+   * V7: Consolidated per-user context in ONE round-trip.
+   * Replaces 6 separate queries (interests, following, creator-attendance,
+   * day-of-week prefs, tag prefs, mutual followers) with a single RPC.
+   * Critical for scaling — one DB hit per session instead of six.
+   */
+  const { data: forYouContext } = useQuery({
+    queryKey: ["for-you-context", userId],
     queryFn: async () => {
-      if (!user?.id) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("interests, birth_date, gender")
-        .eq("id", user.id)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("get_for_you_context", {
+        _user_id: userId ?? null,
+      });
       if (error) throw error;
-      return data;
+      return (data ?? {}) as any;
     },
-    enabled: !!user?.id,
+    enabled: !!userId,
     staleTime: 10 * 60 * 1000,
   });
 
-  const { data: following } = useQuery({
-    queryKey: ["user-following-ids", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("follows")
-        .select("following_id")
-        .eq("follower_id", user.id);
-      if (error) throw error;
-      return data.map((f) => f.following_id);
-    },
-    enabled: !!user?.id,
-  });
+  const userProfile = useMemo(
+    () => (forYouContext?.interests ? { interests: forYouContext.interests as string[] } : null),
+    [forYouContext],
+  );
+  const following = useMemo<string[]>(
+    () => (forYouContext?.following_ids as string[]) || [],
+    [forYouContext],
+  );
+  const creatorAttendance = useMemo<Record<string, number>>(
+    () => (forYouContext?.creator_attendance as Record<string, number>) || {},
+    [forYouContext],
+  );
+  const dayOfWeekPrefs = useMemo<Record<string, number>>(
+    () => (forYouContext?.day_of_week_prefs as Record<string, number>) || {},
+    [forYouContext],
+  );
+  const tagPrefs = useMemo<Record<string, number>>(
+    () => (forYouContext?.tag_prefs as Record<string, number>) || {},
+    [forYouContext],
+  );
+  const mutualFollowerIds = useMemo<string[]>(
+    () => (forYouContext?.mutual_follower_ids as string[]) || [],
+    [forYouContext],
+  );
 
   /**
-   * V6: Server-side trending + velocity aggregation via RPC.
-   * Single query replaces two client-side queries, no 1000-row limit.
+   * V7: Trending now reads from a precomputed cache, refreshed every 2 minutes
+   * by pg_cron. Constant-time read regardless of interaction volume.
    */
   const { data: trendingVelocityData } = useQuery({
     queryKey: ["trending-velocity-rpc"],
@@ -99,138 +113,22 @@ export const useForYouEvents = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: creatorAttendance } = useQuery({
-    queryKey: ["creator-attendance", userId],
-    queryFn: async () => {
-      if (!userId) return {};
-      const { data, error } = await supabase
-        .from("guestlist_entries")
-        .select("event_id, events!guestlist_entries_event_id_fkey(creator_id)")
-        .eq("user_id", userId)
-        .eq("status", "approved");
-      if (error) return {};
-      const counts: Record<string, number> = {};
-      for (const row of data || []) {
-        const creatorId = (row as any).events?.creator_id;
-        if (creatorId) counts[creatorId] = (counts[creatorId] || 0) + 1;
-      }
-      return counts;
-    },
-    enabled: !!userId && idleReady,
-    staleTime: 10 * 60 * 1000,
-  });
-
-  const { data: dayOfWeekPrefs } = useQuery({
-    queryKey: ["day-of-week-prefs", userId],
-    queryFn: async () => {
-      if (!userId) return {};
-      const today = new Date().getDay();
-      const { data, error } = await supabase
-        .from("user_day_preferences")
-        .select("category, score")
-        .eq("user_id", userId)
-        .eq("day_of_week", today);
-      if (error) return {};
-      const prefs: Record<string, number> = {};
-      for (const row of data || []) prefs[row.category] = Number(row.score) || 0;
-      return prefs;
-    },
-    enabled: !!userId && idleReady,
-    staleTime: 10 * 60 * 1000,
-  });
-
-  const { data: tagPrefs } = useQuery({
-    queryKey: ["user-tag-prefs", userId],
-    queryFn: async () => {
-      if (!userId) return {};
-      const { data, error } = await supabase
-        .from("user_tag_preferences")
-        .select("tag, score")
-        .eq("user_id", userId);
-      if (error) return {};
-      const prefs: Record<string, number> = {};
-      for (const row of data || []) prefs[row.tag] = Number(row.score) || 0;
-      return prefs;
-    },
-    enabled: !!userId && idleReady,
-    staleTime: 10 * 60 * 1000,
-  });
-
-  const { data: mutualFollowerIds } = useQuery({
-    queryKey: ["mutual-followers-ids", userId],
-    queryFn: async () => {
-      if (!userId) return [];
-      const { data, error } = await supabase.rpc("get_mutual_followers", { _user_id: userId });
-      if (error) return [];
-      return (data || []).map((u: any) => u.id as string);
-    },
-    enabled: !!userId && idleReady,
-    staleTime: 10 * 60 * 1000,
-  });
-
+  /**
+   * V7: Collaborative boosts read from a per-user precomputed cache.
+   * Refreshed lazily (>6h old) via ensure_collab_boosts_fresh, deferred
+   * until idle so it never gates first paint.
+   */
   const { data: collaborativeBoosts } = useQuery({
-    queryKey: ["collaborative-boosts", userId],
+    queryKey: ["collab-boosts-cached", userId],
     queryFn: async () => {
-      if (!userId) return {};
-
-      const { data: myPrefs, error: myError } = await supabase
-        .from("user_category_preferences")
-        .select("category, score")
-        .eq("user_id", userId);
-      if (myError || !myPrefs?.length) return {};
-
-      const myCategories = myPrefs.map((p) => p.category);
-
-      const { data: similarUserPrefs, error: simError } = await supabase
-        .from("user_category_preferences")
-        .select("user_id, category, score")
-        .in("category", myCategories)
-        .neq("user_id", userId)
-        .gte("score", 20)
-        .order("score", { ascending: false })
-        .limit(100);
-
-      if (simError || !similarUserPrefs?.length) return {};
-
-      const myScoreMap: Record<string, number> = {};
-      for (const p of myPrefs) myScoreMap[p.category] = Number(p.score) || 0;
-
-      const userScores: Record<string, number> = {};
-      for (const row of similarUserPrefs) {
-        const overlap = myScoreMap[row.category];
-        if (overlap) {
-          const similarity = Math.min(overlap, Number(row.score) || 0);
-          userScores[row.user_id] = (userScores[row.user_id] || 0) + similarity;
-        }
-      }
-
-      const topUsers = Object.entries(userScores)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([uid]) => uid);
-
-      if (!topUsers.length) return {};
-
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      const { data: interactions, error: intError } = await supabase
-        .from("event_interactions")
-        .select("event_id, user_id")
-        .in("user_id", topUsers)
-        .in("type", ["join", "save", "like", "click"])
-        .gte("created_at", sevenDaysAgo);
-
-      if (intError || !interactions?.length) return {};
-
-      const eventUsers: Record<string, Set<string>> = {};
-      for (const row of interactions) {
-        if (!eventUsers[row.event_id]) eventUsers[row.event_id] = new Set();
-        eventUsers[row.event_id].add(row.user_id!);
-      }
-      const result: Record<string, number> = {};
-      for (const [eid, users] of Object.entries(eventUsers)) {
-        result[eid] = users.size;
-      }
-      return result;
+      if (!userId) return {} as Record<string, number>;
+      // Fire-and-forget freshness check; cached read returns immediately.
+      supabase.rpc("ensure_collab_boosts_fresh", { _user_id: userId }).then(() => {});
+      const { data, error } = await supabase.rpc("get_collab_boosts", { _user_id: userId });
+      if (error) return {} as Record<string, number>;
+      const map: Record<string, number> = {};
+      for (const row of data || []) map[row.event_id] = Number(row.boost_count) || 0;
+      return map;
     },
     enabled: !!userId && idleReady,
     staleTime: 30 * 60 * 1000,

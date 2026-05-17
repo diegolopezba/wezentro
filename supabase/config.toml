@@ -27,3 +27,6 @@ verify_jwt = false
 
 [functions.send-reservation-reminders]
 verify_jwt = false
+
+[functions.get-for-you-feed]
+verify_jwt = false
