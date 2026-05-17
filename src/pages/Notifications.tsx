@@ -39,6 +39,11 @@ const getNotificationIcon = (type: string) => {
       return XCircle;
     case "post_tag":
       return AtSign;
+    case "business_cta_request":
+    case "business_cta_accepted":
+    case "business_cta_declined":
+    case "business_cta_revoked":
+      return Sparkles;
     default:
       return Bell;
   }
