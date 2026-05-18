@@ -1,35 +1,19 @@
-# Tier A Cleanup
+## Goal
 
-Targeted fixes from the 360° audit. No feature changes, no schema changes.
+Make the menu icon button on user profiles look identical to the menu icon shown inside the MenuSheet header (solid brand red circle, white icon).
 
-## 1. Hide legacy `guestlist_join_request` notifications
-- In `src/hooks/useNotifications.ts`, filter out notifications whose `type = 'guestlist_join_request'` at the query level so stale rows for the removed self-join feature never render.
-- Leave existing rows in DB (no destructive deletion) — just hidden from UI.
+## Current state
 
-## 2. Hide event-type group chats
-- In `src/pages/Chats.tsx`, filter `chats` to exclude `chat.type === 'event'` before rendering the list.
-- In `src/hooks/useChats.ts`, also exclude event chats from `useUserChats` results and from the unread-count aggregation so the bottom-nav badge stays accurate.
-- In `src/pages/ChatDetail.tsx`, if a user lands on an event chat via deep link, redirect to `/chats` (event chats are no longer user-facing).
-- Keep DB rows and edge-function logic intact — only the user-facing surface is hidden, matching the prior group-chat removal pattern.
+- **MenuSheet header** (`src/components/menu/MenuSheet.tsx:82-83`): solid filled circle — `bg-destructive` with white `UtensilsCrossed` icon. This is the look the user likes.
+- **UserProfile menu button** (`src/pages/UserProfile.tsx`, in the food-business actions row): tinted/outline style — `variant="secondary"` with `bg-destructive/15 border-destructive/30` and `text-destructive` icon. This is the one that should change.
 
-## 3. Fix `MyReservations.tsx:134` short-circuit navigation
-- Replace `condition && navigate(...)` with a proper `if (condition) navigate(...)` block to clear the lint warning and avoid accidental render-time side effects.
+## Change
 
-## 4. Convert `tailwind.config.ts` to ESM
-- Replace `require("tailwindcss-animate")` with a top-level `import tailwindcssAnimate from "tailwindcss-animate"` and reference it in the `plugins` array.
+In `src/pages/UserProfile.tsx`, update the menu icon `Button` so it visually matches the sheet:
 
-## 5. Fix `useEffect` dependency warnings
-- `src/pages/ChatDetail.tsx:36` — add `markAsRead` to the deps array (or wrap the mutation call so it's stable) for the "mark as read on open" effect.
-- `src/pages/Discover.tsx:78` — add missing deps flagged by the linter (will read the file to confirm exact set).
-- `src/pages/EventDetail.tsx:96` — same: add missing deps or memoize the callback being depended on.
+- Use a solid `bg-destructive` background (keep `size="icon"` and `shrink-0` for layout)
+- Use `text-white` (or `text-destructive-foreground`) on the `UtensilsCrossed` icon
+- Remove the `/15` tint and `/30` border classes
+- Preserve the existing `onClick`, `active:` feedback, and surrounding flex layout — no behavior changes
 
-## Out of scope (intentionally)
-- Public storage bucket review (`event-images`) — needs product decision, will surface separately.
-- `SECURITY DEFINER` linter warnings — expected for `has_role` / RLS helpers, no change.
-- 200+ `no-explicit-any` ESLint warnings — codebase-wide cleanup, not Tier A.
-- Lighthouse run on production URL — separate pass.
-
-## Verification
-- TypeScript compile after edits.
-- Manually confirm `/chats` no longer shows event group chats and `/notifications` no longer shows `guestlist_join_request` entries.
-- Spot-check ESLint output on the four touched files.
+No other files change. The own-profile "Editar Menú" button in `Profile.tsx` is a labeled outline button in a different context and is out of scope unless you want it included.
