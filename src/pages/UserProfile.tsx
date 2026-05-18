@@ -248,8 +248,8 @@ const UserProfile = () => {
           }
 
                 {menuEnabled &&
-          <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-destructive/15 border-destructive/30 shrink-0">
-                    <UtensilsCrossed className="w-4 h-4 text-destructive" />
+          <Button variant="secondary" size="icon" onClick={() => setMenuSheetOpen(true)} className="bg-destructive border-0 shrink-0 rounded-full">
+                    <UtensilsCrossed className="w-4 h-4 text-white" />
                   </Button>
           }
               </> :
