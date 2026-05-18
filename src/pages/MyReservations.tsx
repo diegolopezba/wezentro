@@ -131,9 +131,12 @@ const ReservationCard = ({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            reservation.business && navigate(`/user/${reservation.business.id}`);
+            if (reservation.business) {
+              navigate(`/user/${reservation.business.id}`);
+            }
           }}
           className="flex items-center gap-2" >
+
           <img
             src={reservation.business?.avatar_url || DEFAULT_AVATAR}
             alt="" className="w-8 h-8 rounded-full object-cover bg-secondary" />

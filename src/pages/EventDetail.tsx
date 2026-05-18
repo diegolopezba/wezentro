@@ -95,13 +95,16 @@ const EventDetail = () => {
     }
   }, [openGuestlistOnMount]);
 
-  // Track event view for analytics
+  // Track event view for analytics. trackEventView / trackPreferenceSignal are imported
+  // module-level functions and stable; only re-fire when the viewed event or user changes.
   useEffect(() => {
     if (id && user?.id) {
       trackEventView(id, user.id);
       trackPreferenceSignal(user.id, id, "click");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.id]);
+
 
   if (isLoading) {
     return <div className="min-h-[100dvh] bg-background flex items-center justify-center">

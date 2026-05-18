@@ -28,12 +28,22 @@ const ChatDetail = () => {
   const sendMessage = useSendMessage();
   const markAsRead = useMarkChatAsRead();
 
-  // Mark chat as read when opening
+  // Mark chat as read when opening. markAsRead.mutate is stable; we only want to fire when
+  // the chat id or details change, not on every mutation re-render.
   useEffect(() => {
     if (chatId && chatDetails) {
       markAsRead.mutate(chatId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId, chatDetails]);
+
+  // Redirect away from removed event group chats if a stale deep link lands here.
+  useEffect(() => {
+    if (chatDetails && chatDetails.type === "event") {
+      navigate("/chats", { replace: true });
+    }
+  }, [chatDetails, navigate]);
+
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
