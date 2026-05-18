@@ -138,11 +138,13 @@ export const useUserChats = () => {
         };
       });
 
-      // Filter out private chats with no messages
+      // Event-type group chats were removed from the product surface.
+      // Only show private 1:1 chats that have at least one message.
       return chatsWithDetails.filter((chat) => {
-        if (chat.type === "event") return true;
+        if (chat.type === "event") return false;
         return chat.lastMessage !== null;
       });
+
     },
     enabled: !!user?.id,
     // Realtime subscription on messages keeps unread counts fresh; cache absorbs focus/remount refetches.

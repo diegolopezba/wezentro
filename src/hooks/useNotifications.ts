@@ -14,6 +14,10 @@ export interface Notification {
   created_at: string;
 }
 
+// Notification types that have been removed from the product and should never render.
+// Stale rows are kept in the DB for audit but filtered out of all UI surfaces.
+const HIDDEN_NOTIFICATION_TYPES = ["guestlist_join_request"] as const;
+
 export const useNotifications = () => {
   const { user } = useAuth();
 
@@ -26,6 +30,7 @@ export const useNotifications = () => {
         .from("notifications")
         .select("id, user_id, type, title, body, entity_type, entity_id, is_read, created_at")
         .eq("user_id", user.id)
+        .not("type", "in", `(${HIDDEN_NOTIFICATION_TYPES.join(",")})`)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -49,7 +54,8 @@ export const useUnreadNotificationsCount = () => {
         .from("notifications")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .eq("is_read", false);
+        .eq("is_read", false)
+        .not("type", "in", `(${HIDDEN_NOTIFICATION_TYPES.join(",")})`);
 
       if (error) throw error;
       return count || 0;
@@ -58,6 +64,7 @@ export const useUnreadNotificationsCount = () => {
     staleTime: 2 * 60 * 1000,
   });
 };
+
 
 export const useMarkNotificationRead = () => {
   const queryClient = useQueryClient();
