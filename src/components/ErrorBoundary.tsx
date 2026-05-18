@@ -1,4 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
+import errorMascot from "@/assets/error-mascot.png";
+
 
 interface Props {
   children: ReactNode;
