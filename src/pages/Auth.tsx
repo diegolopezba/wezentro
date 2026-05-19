@@ -119,13 +119,27 @@ const Auth = () => {
       }
       toast.success("¡Bienvenido de vuelta!");
     } else {
-      const { error } = await signUp(formData.email, formData.password);
+      const { data, error } = await signUp(formData.email, formData.password);
       if (error) {
         if (error.message.includes("already registered")) {
           toast.error("Ya existe una cuenta con este correo");
         } else {
           toast.error(error.message);
         }
+        setIsLoading(false);
+        return;
+      }
+      // Supabase returns success with an empty identities array when the
+      // email is already registered (to prevent email enumeration). Detect
+      // this and guide the user to login instead of sending them to onboarding.
+      const isDuplicateEmail =
+        !!data?.user &&
+        Array.isArray(data.user.identities) &&
+        data.user.identities.length === 0;
+      if (isDuplicateEmail) {
+        toast.error("Ya existe una cuenta con este correo. Inicia sesión o recupera tu contraseña.");
+        setMode("login");
+        setFormData((prev) => ({ ...prev, password: "" }));
         setIsLoading(false);
         return;
       }
