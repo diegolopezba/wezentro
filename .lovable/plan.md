@@ -1,19 +1,30 @@
-## Goal
+## Problem
 
-Make the menu icon button on user profiles look identical to the menu icon shown inside the MenuSheet header (solid brand red circle, white icon).
+The logs confirm what happened: Supabase received `user_repeated_signup` on `/signup` (status 200, no error). To prevent email enumeration attacks, Supabase **does not return an error** when an existing email signs up again — it returns success with a fake/obfuscated user object whose `identities` array is empty.
 
-## Current state
+Our current code in `src/pages/Auth.tsx` (line 122) only checks `error.message`. Since there is no error, we show "¡Cuenta creada!" and push the user to `/onboarding`. But no real session exists, so when they try to log in with the password they just typed, it fails — because that password was never saved (the original account keeps its old password).
 
-- **MenuSheet header** (`src/components/menu/MenuSheet.tsx:82-83`): solid filled circle — `bg-destructive` with white `UtensilsCrossed` icon. This is the look the user likes.
-- **UserProfile menu button** (`src/pages/UserProfile.tsx`, in the food-business actions row): tinted/outline style — `variant="secondary"` with `bg-destructive/15 border-destructive/30` and `text-destructive` icon. This is the one that should change.
+This is a common, confusing failure mode and worth fixing properly.
 
-## Change
+## Fix
 
-In `src/pages/UserProfile.tsx`, update the menu icon `Button` so it visually matches the sheet:
+**1. `src/contexts/AuthContext.tsx` — `signUp`**
+- Return the full `{ data, error }` from `supabase.auth.signUp` (not just `error`), so the caller can inspect `data.user.identities`.
+- Update the `AuthContextType` signature accordingly.
 
-- Use a solid `bg-destructive` background (keep `size="icon"` and `shrink-0` for layout)
-- Use `text-white` (or `text-destructive-foreground`) on the `UtensilsCrossed` icon
-- Remove the `/15` tint and `/30` border classes
-- Preserve the existing `onClick`, `active:` feedback, and surrounding flex layout — no behavior changes
+**2. `src/pages/Auth.tsx` — `handleAuth` signup branch**
+- After signUp, detect duplicate email:
+  - `data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0` → email already exists.
+- When detected:
+  - Show toast: `"Ya existe una cuenta con este correo. Inicia sesión o recupera tu contraseña."`
+  - Switch the form to login mode (`setMode("login")`), keep the email pre-filled, clear the password field.
+  - Do NOT navigate to `/onboarding`.
+- Also auto-detect "session is null but no user identities" as the same case (defensive).
+- Keep the existing `"already registered"` error-string check as a fallback for older SDKs.
 
-No other files change. The own-profile "Editar Menú" button in `Profile.tsx` is a labeled outline button in a different context and is out of scope unless you want it included.
+**3. No DB / RLS / edge function changes needed.** This is purely a client-side detection fix.
+
+## Out of scope
+- No change to email confirmation flow.
+- No change to onboarding logic.
+- Not touching the menu icon work from earlier turns.
