@@ -40,6 +40,7 @@ import { useMyMenu } from "@/hooks/useMenu";
 import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
+import { PaymentsComingSoonSheet } from "@/components/events/PaymentsComingSoonSheet";
 import { useReplaceTicketTiers } from "@/hooks/useTicketTiers";
 
 type ContentType = "post" | "event";
