@@ -62,6 +62,7 @@ const PrivacySettings = lazyWithRetry(() => import("./pages/PrivacySettings"));
 const EditProfile = lazyWithRetry(() => import("./pages/EditProfile"));
 const EventDetail = lazyWithRetry(() => import("./pages/EventDetail"));
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const Onboarding = lazyWithRetry(() => import("./pages/Onboarding"));
 const UserProfile = lazyWithRetry(() => import("./pages/UserProfile"));
 const Tickets = lazyWithRetry(() => import("./pages/Tickets"));
