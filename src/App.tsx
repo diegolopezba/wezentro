@@ -204,6 +204,7 @@ const AppRoutes = () => {
     <>
       <Routes location={backgroundLocation || location}>
         <Route path="/auth" element={<Suspense fallback={<PageLoader />}><Auth /></Suspense>} />
+        <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
         <Route path="/onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Onboarding /></Suspense></ProtectedRoute>} />
 
         {/* Keep-alive enabled routes - 4 core navigation pages */}
