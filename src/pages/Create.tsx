@@ -116,6 +116,7 @@ const Create = () => {
   const [tierSaleMode, setTierSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const replaceTiers = useReplaceTicketTiers();
+  const [showPaymentsSoon, setShowPaymentsSoon] = useState(false);
 
   const handleTypeChange = (type: ContentType) => {
     setContentType(type);
