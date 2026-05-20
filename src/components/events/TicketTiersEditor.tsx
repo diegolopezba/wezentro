@@ -94,10 +94,11 @@ export function TicketTiersEditor({
         </button>
         <button
           type="button"
-          onClick={() => onModeChange("tiers")}
+          onClick={() => (locked ? triggerLock() : onModeChange("tiers"))}
           className={cn(
             "flex-1 py-2 text-sm rounded-lg transition-colors",
-            mode === "tiers" ? "bg-background text-foreground font-medium" : "text-muted-foreground"
+            mode === "tiers" ? "bg-background text-foreground font-medium" : "text-muted-foreground",
+            locked && "opacity-60"
           )}
         >
           Múltiples entradas
@@ -112,9 +113,12 @@ export function TicketTiersEditor({
             type="number"
             min="0"
             step="0.01"
-            placeholder="0 (Gratis)"
-            value={singlePrice}
-            onChange={(e) => onSinglePriceChange(e.target.value)}
+            placeholder={locked ? "Gratis — pagos disponibles pronto" : "0 (Gratis)"}
+            value={locked ? "" : singlePrice}
+            readOnly={locked}
+            onFocus={locked ? triggerLock : undefined}
+            onClick={locked ? triggerLock : undefined}
+            onChange={(e) => !locked && onSinglePriceChange(e.target.value)}
           />
         </div>
       ) : (
