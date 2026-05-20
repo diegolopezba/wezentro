@@ -48,7 +48,15 @@ export function TicketTiersEditor({
   onTiersChange,
   saleMode,
   onSaleModeChange,
+  onAttemptPaidAction,
 }: Props) {
+  const locked = Boolean(onAttemptPaidAction);
+  const triggerLock = () => {
+    onAttemptPaidAction?.();
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
   const updateTier = (key: string, patch: Partial<DraftTier>) => {
