@@ -1,43 +1,29 @@
-## Quick fix: Disable paid tickets, show explainer bottomsheet
+## Add `/reset-password` page
 
-**Goal:** For the first 2 weeks (until the new payment system ships), users cannot set a price on event tickets. When they try, a friendly Spanish bottomsheet explains why and tells them they can still publish free events.
-
-### Scope
-Frontend only. No DB changes, no backend changes. BNB QR flow is left in code untouched (just not reachable since no paid events can be created).
+**Problem:** The reset email redirects users to the homepage with a recovery token, but there's no page to actually set a new password.
 
 ### Changes
 
-**1. New component** `src/components/events/PaymentsComingSoonSheet.tsx`
-- shadcn `Sheet` with `side="bottom"`, rounded top, brand-red accent.
-- Copy (Spanish):
-  - Title: "Pagos disponibles muy pronto"
-  - Body: "Estamos puliendo el sistema de pagos para que vender entradas sea súper fácil y seguro. Estará disponible en aproximadamente 2 semanas. Mientras tanto, podés publicar tu evento como gratis (sin entradas) y empezar a generar comunidad desde ya."
-  - Single CTA pill button: "Entendido"
-- Controlled via `open` / `onOpenChange` props.
+**1. New page** `src/pages/ResetPassword.tsx`
+- Standalone public route (no auth required).
+- On mount, Supabase auto-exchanges the recovery token in the URL hash → user becomes temporarily authenticated for password update.
+- Listen via `supabase.auth.onAuthStateChange` for `PASSWORD_RECOVERY` event to confirm we're in recovery flow; if no session and no recovery event after mount, show "Enlace inválido o expirado" with a button back to `/auth`.
+- Form: new password + confirm password. Validate min 6 chars and matching.
+- On submit: `supabase.auth.updateUser({ password })` → toast success → sign out → navigate to `/auth` with mode=login so user logs in with new password.
+- Brand styling (dark, red CTA, rounded-full button, Poppins).
 
-**2. `src/pages/Create.tsx`**
-- Add `const [showPaymentsSoon, setShowPaymentsSoon] = useState(false);`
-- On the single-price `<Input type="number">` (line ~729):
-  - Set `readOnly`, `value=""`, `placeholder="Gratis — pagos disponibles pronto"`.
-  - `onFocus` and `onClick` → `setShowPaymentsSoon(true)` and blur.
-- Force `formData.price = ""` on submit (already treated as 0 / Gratis downstream).
-- Render `<PaymentsComingSoonSheet open={showPaymentsSoon} onOpenChange={setShowPaymentsSoon} />`.
+**2. `src/contexts/AuthContext.tsx`**
+- Change `resetPassword` `redirectUrl` from `/auth` to `${window.location.origin}/reset-password`.
 
-**3. `src/components/events/TicketTiersEditor.tsx`**
-- Add optional `onAttemptPaidAction?: () => void` prop.
-- Hide / disable the "tiers" mode toggle button (only "single" / Gratis available for now). Tapping it triggers `onAttemptPaidAction`.
-- Disable the per-tier price input the same way as single price.
-- In `Create.tsx`, pass `onAttemptPaidAction={() => setShowPaymentsSoon(true)}`.
-
-**4. Submit guard in `Create.tsx`**
-- If somehow `insertPrice > 0` or `cleanTiers.length > 0`, abort and open the sheet instead of inserting. Defensive only.
+**3. `src/App.tsx`**
+- Add `<Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />` near the `/auth` route (public, before protected routes).
+- Lazy-import `ResetPassword` like the other lazy pages.
 
 ### Out of scope
-- Removing BNB code, edge functions, payment_config table, or existing paid events already in DB.
-- Buyer-side ticket purchase UI (no new events will have prices, so it won't trigger).
-- Any backend/RLS change.
+- Email template changes (Lovable default emails work fine — they include the `{{ .ConfirmationURL }}` redirecting to our `redirectTo`).
+- Any auth method changes.
 
 ### Verification
-- Open Create → toggle to Event → tap price field → bottomsheet appears, field stays empty.
-- Tap "Tiers" mode → bottomsheet appears, mode does not switch.
-- Submit a free event → publishes normally with `price = 0` (shows as "Gratis" in feed).
+1. On `/auth`, request recovery email for `gerdilopez@gmail.com`.
+2. Click link → lands on `/reset-password` with hash containing `type=recovery`.
+3. Enter new password twice → success toast → redirected to `/auth` → log in with new password.
