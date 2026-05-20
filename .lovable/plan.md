@@ -1,23 +1,43 @@
-# Fix signup → can't log in (email confirmation flow)
+## Quick fix: Disable paid tickets, show explainer bottomsheet
 
-## Root cause
+**Goal:** For the first 2 weeks (until the new payment system ships), users cannot set a price on event tickets. When they try, a friendly Spanish bottomsheet explains why and tells them they can still publish free events.
 
-Signup actually succeeded (logs show a fresh user `6803ae33-…` created, `identities` length 1, `confirmation_sent_at` set). Because email confirmation is enabled, Supabase returned the user with **no session**. Our code still showed "¡Cuenta creada!" and pushed to `/onboarding`. `ProtectedRoute` saw no user and bounced back to `/auth`, so it looked like nothing happened. The user then tried to log in and got "Invalid login credentials" (the account isn't confirmed yet, plus there was a password typo on retry).
+### Scope
+Frontend only. No DB changes, no backend changes. BNB QR flow is left in code untouched (just not reachable since no paid events can be created).
 
-## Change
+### Changes
 
-Single edit in `src/pages/Auth.tsx`, signup branch of `handleAuth` (right after the existing duplicate-email check):
+**1. New component** `src/components/events/PaymentsComingSoonSheet.tsx`
+- shadcn `Sheet` with `side="bottom"`, rounded top, brand-red accent.
+- Copy (Spanish):
+  - Title: "Pagos disponibles muy pronto"
+  - Body: "Estamos puliendo el sistema de pagos para que vender entradas sea súper fácil y seguro. Estará disponible en aproximadamente 2 semanas. Mientras tanto, podés publicar tu evento como gratis (sin entradas) y empezar a generar comunidad desde ya."
+  - Single CTA pill button: "Entendido"
+- Controlled via `open` / `onOpenChange` props.
 
-- If `data.user` exists but `data.session` is `null` → confirmation email was sent.
-  - Show a clear success toast: "Te enviamos un correo de verificación a {email}. Confírmalo para iniciar sesión." (duration 8s)
-  - `setMode("login")`, clear the password, keep email pre-filled.
-  - Do **not** navigate to `/onboarding`.
-- If `data.session` exists (auto-confirm on, future-proof) → keep current behavior and navigate to `/onboarding`.
+**2. `src/pages/Create.tsx`**
+- Add `const [showPaymentsSoon, setShowPaymentsSoon] = useState(false);`
+- On the single-price `<Input type="number">` (line ~729):
+  - Set `readOnly`, `value=""`, `placeholder="Gratis — pagos disponibles pronto"`.
+  - `onFocus` and `onClick` → `setShowPaymentsSoon(true)` and blur.
+- Force `formData.price = ""` on submit (already treated as 0 / Gratis downstream).
+- Render `<PaymentsComingSoonSheet open={showPaymentsSoon} onOpenChange={setShowPaymentsSoon} />`.
 
-Keep the existing duplicate-email and `"already registered"` checks unchanged.
+**3. `src/components/events/TicketTiersEditor.tsx`**
+- Add optional `onAttemptPaidAction?: () => void` prop.
+- Hide / disable the "tiers" mode toggle button (only "single" / Gratis available for now). Tapping it triggers `onAttemptPaidAction`.
+- Disable the per-tier price input the same way as single price.
+- In `Create.tsx`, pass `onAttemptPaidAction={() => setShowPaymentsSoon(true)}`.
 
-## Out of scope
+**4. Submit guard in `Create.tsx`**
+- If somehow `insertPrice > 0` or `cleanTiers.length > 0`, abort and open the sheet instead of inserting. Defensive only.
 
-- AuthContext, ProtectedRoute, Onboarding — no changes.
-- No auth config change (email confirmation stays ON as requested).
-- No edge functions or DB changes.
+### Out of scope
+- Removing BNB code, edge functions, payment_config table, or existing paid events already in DB.
+- Buyer-side ticket purchase UI (no new events will have prices, so it won't trigger).
+- Any backend/RLS change.
+
+### Verification
+- Open Create → toggle to Event → tap price field → bottomsheet appears, field stays empty.
+- Tap "Tiers" mode → bottomsheet appears, mode does not switch.
+- Submit a free event → publishes normally with `price = 0` (shows as "Gratis" in feed).
