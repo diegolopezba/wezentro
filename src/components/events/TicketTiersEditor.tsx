@@ -189,10 +189,14 @@ export function TicketTiersEditor({
                           type="number"
                           min="0"
                           step="0.01"
-                          value={t.price}
-                          onChange={(e) => updateTier(t.key, { price: e.target.value })}
-                          placeholder="0"
+                          value={locked ? "" : t.price}
+                          readOnly={locked}
+                          onFocus={locked ? triggerLock : undefined}
+                          onClick={locked ? triggerLock : undefined}
+                          onChange={(e) => !locked && updateTier(t.key, { price: e.target.value })}
+                          placeholder={locked ? "Gratis" : "0"}
                         />
+
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Cupos</Label>
