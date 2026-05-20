@@ -878,6 +878,7 @@ const Create = () => {
         </div>
       </div>
 
+      <PaymentsComingSoonSheet open={showPaymentsSoon} onOpenChange={setShowPaymentsSoon} />
     </AppLayout>);
 
 };
