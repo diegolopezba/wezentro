@@ -729,8 +729,14 @@ const Create = () => {
                     <div className="relative">
                       <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
-                        type="number" placeholder="0 (Gratis)" className="pl-10" value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        type="number"
+                        placeholder="Gratis — pagos disponibles pronto"
+                        className="pl-10"
+                        value=""
+                        readOnly
+                        onFocus={(e) => { e.target.blur(); setShowPaymentsSoon(true); }}
+                        onClick={() => setShowPaymentsSoon(true)}
+                        onChange={() => {}}
                         min="0" step="0.01" />
                     </div>
                   </div>
