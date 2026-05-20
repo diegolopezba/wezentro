@@ -27,6 +27,8 @@ interface Props {
   onTiersChange: (tiers: DraftTier[]) => void;
   saleMode: TierSaleMode;
   onSaleModeChange: (m: TierSaleMode) => void;
+  /** When provided, all paid-pricing affordances are locked and trigger this callback */
+  onAttemptPaidAction?: () => void;
 }
 
 const blankTier = (): DraftTier => ({
@@ -46,7 +48,15 @@ export function TicketTiersEditor({
   onTiersChange,
   saleMode,
   onSaleModeChange,
+  onAttemptPaidAction,
 }: Props) {
+  const locked = Boolean(onAttemptPaidAction);
+  const triggerLock = () => {
+    onAttemptPaidAction?.();
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
   const updateTier = (key: string, patch: Partial<DraftTier>) => {
@@ -84,10 +94,11 @@ export function TicketTiersEditor({
         </button>
         <button
           type="button"
-          onClick={() => onModeChange("tiers")}
+          onClick={() => (locked ? triggerLock() : onModeChange("tiers"))}
           className={cn(
             "flex-1 py-2 text-sm rounded-lg transition-colors",
-            mode === "tiers" ? "bg-background text-foreground font-medium" : "text-muted-foreground"
+            mode === "tiers" ? "bg-background text-foreground font-medium" : "text-muted-foreground",
+            locked && "opacity-60"
           )}
         >
           Múltiples entradas
@@ -102,9 +113,12 @@ export function TicketTiersEditor({
             type="number"
             min="0"
             step="0.01"
-            placeholder="0 (Gratis)"
-            value={singlePrice}
-            onChange={(e) => onSinglePriceChange(e.target.value)}
+            placeholder={locked ? "Gratis — pagos disponibles pronto" : "0 (Gratis)"}
+            value={locked ? "" : singlePrice}
+            readOnly={locked}
+            onFocus={locked ? triggerLock : undefined}
+            onClick={locked ? triggerLock : undefined}
+            onChange={(e) => !locked && onSinglePriceChange(e.target.value)}
           />
         </div>
       ) : (
@@ -175,10 +189,14 @@ export function TicketTiersEditor({
                           type="number"
                           min="0"
                           step="0.01"
-                          value={t.price}
-                          onChange={(e) => updateTier(t.key, { price: e.target.value })}
-                          placeholder="0"
+                          value={locked ? "" : t.price}
+                          readOnly={locked}
+                          onFocus={locked ? triggerLock : undefined}
+                          onClick={locked ? triggerLock : undefined}
+                          onChange={(e) => !locked && updateTier(t.key, { price: e.target.value })}
+                          placeholder={locked ? "Gratis" : "0"}
                         />
+
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Cupos</Label>

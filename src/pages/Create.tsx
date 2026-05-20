@@ -40,6 +40,7 @@ import { useMyMenu } from "@/hooks/useMenu";
 import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
+import { PaymentsComingSoonSheet } from "@/components/events/PaymentsComingSoonSheet";
 import { useReplaceTicketTiers } from "@/hooks/useTicketTiers";
 
 type ContentType = "post" | "event";
@@ -116,6 +117,7 @@ const Create = () => {
   const [tierSaleMode, setTierSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const replaceTiers = useReplaceTicketTiers();
+  const [showPaymentsSoon, setShowPaymentsSoon] = useState(false);
 
   const handleTypeChange = (type: ContentType) => {
     setContentType(type);
@@ -262,6 +264,14 @@ const Create = () => {
     }
     if (!isPost && (!formData.date || !formData.time)) {
       toast.error("Por favor ingresa la fecha y hora del evento");
+      return;
+    }
+
+    // Defensive guard: paid tickets are temporarily disabled
+    const attemptedPrice = !isPost && formData.price && parseFloat(formData.price) > 0;
+    const attemptedTiers = !isPost && isBusiness && pricingMode === "tiers";
+    if (attemptedPrice || attemptedTiers) {
+      setShowPaymentsSoon(true);
       return;
     }
 
@@ -706,6 +716,7 @@ const Create = () => {
                       onTiersChange={setDraftTiers}
                       saleMode={tierSaleMode}
                       onSaleModeChange={setTierSaleMode}
+                      onAttemptPaidAction={() => setShowPaymentsSoon(true)}
                     />
                   </div>
                   <div>
@@ -726,8 +737,14 @@ const Create = () => {
                     <div className="relative">
                       <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
-                        type="number" placeholder="0 (Gratis)" className="pl-10" value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        type="number"
+                        placeholder="Gratis — pagos disponibles pronto"
+                        className="pl-10"
+                        value=""
+                        readOnly
+                        onFocus={(e) => { e.target.blur(); setShowPaymentsSoon(true); }}
+                        onClick={() => setShowPaymentsSoon(true)}
+                        onChange={() => {}}
                         min="0" step="0.01" />
                     </div>
                   </div>
@@ -869,6 +886,7 @@ const Create = () => {
         </div>
       </div>
 
+      <PaymentsComingSoonSheet open={showPaymentsSoon} onOpenChange={setShowPaymentsSoon} />
     </AppLayout>);
 
 };
