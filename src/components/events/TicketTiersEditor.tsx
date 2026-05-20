@@ -27,6 +27,8 @@ interface Props {
   onTiersChange: (tiers: DraftTier[]) => void;
   saleMode: TierSaleMode;
   onSaleModeChange: (m: TierSaleMode) => void;
+  /** When provided, all paid-pricing affordances are locked and trigger this callback */
+  onAttemptPaidAction?: () => void;
 }
 
 const blankTier = (): DraftTier => ({
