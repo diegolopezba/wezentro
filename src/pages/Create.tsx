@@ -267,6 +267,14 @@ const Create = () => {
       return;
     }
 
+    // Defensive guard: paid tickets are temporarily disabled
+    const attemptedPrice = !isPost && formData.price && parseFloat(formData.price) > 0;
+    const attemptedTiers = !isPost && isBusiness && pricingMode === "tiers";
+    if (attemptedPrice || attemptedTiers) {
+      setShowPaymentsSoon(true);
+      return;
+    }
+
     // Validate ticket tiers (events only, business + tiers mode)
     const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
     const useTiers = !isPost && isBusiness && pricingMode === "tiers";
