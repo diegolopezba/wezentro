@@ -143,6 +143,19 @@ const Auth = () => {
         setIsLoading(false);
         return;
       }
+      // Email confirmation is enabled: signUp returns a user but no session.
+      // Do NOT navigate to /onboarding (ProtectedRoute would bounce back to /auth
+      // and the user would think nothing happened). Tell them to check their inbox.
+      if (data?.user && !data.session) {
+        toast.success(
+          `Te enviamos un correo de verificación a ${formData.email}. Confírmalo para iniciar sesión.`,
+          { duration: 8000 }
+        );
+        setMode("login");
+        setFormData((prev) => ({ ...prev, password: "" }));
+        setIsLoading(false);
+        return;
+      }
       toast.success("¡Cuenta creada! Configurando tu perfil...");
       navigate("/onboarding");
     }
