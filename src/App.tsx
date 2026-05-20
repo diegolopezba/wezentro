@@ -62,6 +62,7 @@ const PrivacySettings = lazyWithRetry(() => import("./pages/PrivacySettings"));
 const EditProfile = lazyWithRetry(() => import("./pages/EditProfile"));
 const EventDetail = lazyWithRetry(() => import("./pages/EventDetail"));
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const Onboarding = lazyWithRetry(() => import("./pages/Onboarding"));
 const UserProfile = lazyWithRetry(() => import("./pages/UserProfile"));
 const Tickets = lazyWithRetry(() => import("./pages/Tickets"));
@@ -203,6 +204,7 @@ const AppRoutes = () => {
     <>
       <Routes location={backgroundLocation || location}>
         <Route path="/auth" element={<Suspense fallback={<PageLoader />}><Auth /></Suspense>} />
+        <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
         <Route path="/onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Onboarding /></Suspense></ProtectedRoute>} />
 
         {/* Keep-alive enabled routes - 4 core navigation pages */}
