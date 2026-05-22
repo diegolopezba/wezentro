@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { Eye, MousePointerClick, TrendingUp, UserCheck, UsersRound, FileText } from "lucide-react";
+import { Eye, MousePointerClick, TrendingUp, UserCheck, UsersRound, FileText, MousePointer2 } from "lucide-react";
 import { StatsCard } from "./StatsCard";
 import { PeriodSelector, Period } from "./PeriodSelector";
 import { useAccountsReached, useInteractionSummary, useProfileVisits } from "@/hooks/useBusinessAnalytics";
@@ -86,7 +86,7 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
         .from("event_interactions")
         .select("user_id, created_at")
         .in("event_id", eventIds)
-        .eq("type", "view")
+        .eq("type", "impression")
         .gte("created_at", start.toISOString());
 
       // Group by day, count unique users

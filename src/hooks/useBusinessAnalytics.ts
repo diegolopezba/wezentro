@@ -224,10 +224,10 @@ export const useAccountsReached = (period: Period) => {
       const start = periodStartISO(period);
       const prevStart = new Date(Date.now() - periodToMs(period) * 2).toISOString();
 
-      const { data: current } = await supabase.from("event_interactions").select("user_id").in("event_id", eventIds).eq("type", "view").gte("created_at", start);
+      const { data: current } = await supabase.from("event_interactions").select("user_id").in("event_id", eventIds).eq("type", "impression").gte("created_at", start);
       const uniqueCurrent = new Set((current || []).map((r) => r.user_id).filter(Boolean)).size;
 
-      const { data: prev } = await supabase.from("event_interactions").select("user_id").in("event_id", eventIds).eq("type", "view").gte("created_at", prevStart).lt("created_at", start);
+      const { data: prev } = await supabase.from("event_interactions").select("user_id").in("event_id", eventIds).eq("type", "impression").gte("created_at", prevStart).lt("created_at", start);
       const uniquePrev = new Set((prev || []).map((r) => r.user_id).filter(Boolean)).size;
 
       let trend: { value: number; isPositive: boolean } | null = null;
