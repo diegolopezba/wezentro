@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
 import { format } from "date-fns";
-import { Eye, Heart, Users, UserCheck, CheckCircle2 } from "lucide-react";
+import { Eye, Heart, Users, UserCheck, CheckCircle2, MousePointer2 } from "lucide-react";
 import { EventPerformance } from "@/hooks/useBusinessAnalytics";
 
 interface EventsPerformanceTableProps {
