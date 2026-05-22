@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { isFoodBusinessType } from "@/lib/businessTypes";
 
 const BUSINESS_TYPES = [
   { value: "bar", label: "Bar", emoji: "🍸" },
@@ -57,7 +58,7 @@ const BusinessInfo = () => {
     if (!user) return;
     setSavingType(true);
     try {
-      const isFood = ["restaurant", "coffee", "bar"].includes(value);
+      const isFood = isFoodBusinessType(value);
       const { error } = await supabase
         .from("profiles")
         .update({ business_type: value, is_food_business: isFood } as any)

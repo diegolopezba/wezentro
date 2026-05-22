@@ -24,6 +24,7 @@ import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
+import { isFoodBusinessType } from "@/lib/businessTypes";
 
 const UserProfile = () => {
   const {
@@ -70,7 +71,7 @@ const UserProfile = () => {
     data: canMessageData,
     isLoading: canMessageLoading
   } = useCanMessageUser(id);
-  const isFoodBusiness = userProfile?.is_food_business === true;
+  const isFoodBusiness = isFoodBusinessType((userProfile as any)?.business_type);
   const isBusiness = userProfile?.is_business === true;
   const menuEnabled = (userProfile as any)?.menu_enabled !== false;
   const reservationsEnabled = (userProfile as any)?.reservations_enabled !== false;
