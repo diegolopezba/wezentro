@@ -251,14 +251,15 @@ export const useInteractionSummary = (period: Period) => {
     queryFn: async () => {
       if (!user?.id) throw new Error("No user");
       const eventIds = await getUserEventIds(user.id);
-      if (eventIds.length === 0) return { views: 0, shares: 0, likes: 0, guestlistJoins: 0 };
+      if (eventIds.length === 0) return { views: 0, impressions: 0, shares: 0, likes: 0, guestlistJoins: 0 };
 
       const start = periodStartISO(period);
       const { data } = await supabase.from("event_interactions").select("type").in("event_id", eventIds).gte("created_at", start);
 
-      const summary = { views: 0, shares: 0, likes: 0, guestlistJoins: 0 };
+      const summary = { views: 0, impressions: 0, shares: 0, likes: 0, guestlistJoins: 0 };
       (data || []).forEach((r) => {
         if (r.type === "view") summary.views++;
+        else if (r.type === "impression") summary.impressions++;
         else if (r.type === "share") summary.shares++;
       });
 
