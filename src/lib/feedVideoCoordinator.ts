@@ -126,10 +126,12 @@ class Coordinator {
     return this.audioUnlocked && this.currentAudioId === id;
   }
 
-  subscribe(cb: () => void) {
+  subscribe = (cb: () => void) => {
     this.listeners.add(cb);
-    return () => this.listeners.delete(cb);
-  }
+    return () => {
+      this.listeners.delete(cb);
+    };
+  };
 
   private emit() {
     for (const cb of this.listeners) cb();
