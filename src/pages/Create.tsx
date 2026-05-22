@@ -232,18 +232,29 @@ const Create = () => {
           const { data } = supabase.storage.from("event-images").getPublicUrl(fileName);
           resolve(data.publicUrl);
         } else {
-          reject(new Error("Error al subir"));
+          let msg = `Error al subir (${xhr.status})`;
+          try {
+            const parsed = JSON.parse(xhr.responseText);
+            const detail = parsed.message || parsed.error;
+            if (detail) msg = `${msg}: ${detail}`;
+          } catch {
+            if (xhr.responseText) msg = `${msg}: ${xhr.responseText.slice(0, 200)}`;
+          }
+          console.error("[uploadMedia] failed:", xhr.status, xhr.responseText);
+          reject(new Error(msg));
         }
       });
       xhr.addEventListener("error", () => {
         setIsUploading(false);
-        reject(new Error("Error al subir"));
+        console.error("[uploadMedia] network error");
+        reject(new Error("Error de red al subir"));
       });
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const uploadUrl = `${supabaseUrl}/storage/v1/object/event-images/${fileName}`;
-      xhr.open("POST", uploadUrl);
+      xhr.open("PUT", uploadUrl);
       xhr.setRequestHeader("Authorization", `Bearer ${session.access_token}`);
       xhr.setRequestHeader("x-upsert", "true");
+      xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
       xhr.send(file);
     });
   };
