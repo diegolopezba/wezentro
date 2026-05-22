@@ -85,16 +85,18 @@ export const useUserTimeline = (userId: string | undefined) => {
       }
       merged.sort((a, b) => new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime());
 
-      // Fetch aggregate view counts for all items (TikTok-style)
+      // Fetch impression counts (passive card views) for all items
       if (merged.length > 0) {
         const ids = merged.map((p) => p.id);
-        const { data: viewRows } = await supabase.rpc("get_event_view_counts", {
+        const { data: countRows } = await supabase.rpc("get_event_card_counts", {
           _event_ids: ids,
         });
-        const viewMap = new Map<string, number>();
-        (viewRows || []).forEach((r: any) => viewMap.set(r.event_id, Number(r.view_count) || 0));
+        const impressionMap = new Map<string, number>();
+        (countRows || []).forEach((r: any) =>
+          impressionMap.set(r.event_id, Number(r.impression_count) || 0)
+        );
         for (const post of merged) {
-          post.view_count = viewMap.get(post.id) || 0;
+          post.view_count = impressionMap.get(post.id) || 0;
         }
       }
 

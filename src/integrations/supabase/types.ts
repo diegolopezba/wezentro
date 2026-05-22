@@ -2424,6 +2424,14 @@ export type Database = {
           target_radius_km: number
         }[]
       }
+      get_event_card_counts: {
+        Args: { _event_ids: string[] }
+        Returns: {
+          event_id: string
+          impression_count: number
+          view_count: number
+        }[]
+      }
       get_event_view_counts: {
         Args: { _event_ids: string[] }
         Returns: {

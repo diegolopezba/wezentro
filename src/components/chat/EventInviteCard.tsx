@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Calendar, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { isVideoUrl } from "@/lib/mediaUtils";
+import { useImpressionTracker } from "@/hooks/useImpressionTracker";
 
 interface EventInviteCardProps {
   event: {
@@ -16,6 +17,7 @@ interface EventInviteCardProps {
 const EventInviteCard = ({ event }: EventInviteCardProps) => {
   const navigate = useNavigate();
   const isVideo = isVideoUrl(event.image_url);
+  const impressionRef = useImpressionTracker(event.id);
 
   const handleClick = () => {
     navigate(`/event/${event.id}`);
@@ -23,6 +25,7 @@ const EventInviteCard = ({ event }: EventInviteCardProps) => {
 
   return (
     <div
+      ref={impressionRef}
       onClick={handleClick}
       className="cursor-pointer rounded-xl overflow-hidden bg-card border border-border transition-colors max-w-[280px]" >
       {event.image_url && (

@@ -12,6 +12,7 @@ import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import { haptic } from "@/lib/haptics";
 import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
 import { useViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
+import { useImpressionTracker } from "@/hooks/useImpressionTracker";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,6 +85,7 @@ const EventCardComponent = ({
   const { data: followGraph } = useViewerFollowGraph();
   const followingIds = followGraph?.followingIds ?? new Set<string>();
   const scoreMap = followGraph?.scoreMap ?? {};
+  const impressionRef = useImpressionTracker(id);
 
   // Reset click-tracking when this card represents a different event
   useEffect(() => {
@@ -124,7 +126,7 @@ const EventCardComponent = ({
       : null;
 
   return (
-    <div className="masonry-item">
+    <div ref={impressionRef} className="masonry-item">
       {/* Sponsored badge */}
       {isSponsored && (
         <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">

@@ -13,6 +13,7 @@ export interface EventPerformance {
   checked_in: number;
   likes_count: number;
   views_count: number;
+  impressions_count: number;
 }
 
 export interface OverviewStats {
@@ -115,18 +116,30 @@ export const useEventPerformance = () => {
       if (error) throw error;
       const eventIds = events?.map((e) => e.id) || [];
       let viewsMap: Record<string, number> = {};
+      let impressionsMap: Record<string, number> = {};
       if (eventIds.length > 0) {
-        const { data: interactions } = await supabase.from("event_interactions").select("event_id").in("event_id", eventIds).eq("type", "view");
-        if (interactions) {
-          viewsMap = interactions.reduce((acc, curr) => { acc[curr.event_id] = (acc[curr.event_id] || 0) + 1; return acc; }, {} as Record<string, number>);
-        }
+        const { data: interactions } = await supabase
+          .from("event_interactions")
+          .select("event_id, type")
+          .in("event_id", eventIds)
+          .in("type", ["view", "impression"]);
+        (interactions || []).forEach((curr) => {
+          if (curr.type === "view") {
+            viewsMap[curr.event_id] = (viewsMap[curr.event_id] || 0) + 1;
+          } else if (curr.type === "impression") {
+            impressionsMap[curr.event_id] = (impressionsMap[curr.event_id] || 0) + 1;
+          }
+        });
       }
       return (events || []).map((event) => {
         const entries = event.guestlist_entries || [];
         return {
           id: event.id, title: event.title || "Untitled Event", image_url: event.image_url, start_datetime: event.start_datetime,
           guestlist_requests: entries.length, approved_guests: entries.filter((e: any) => e.status === "approved").length,
-          checked_in: entries.filter((e: any) => e.checked_in_at !== null).length, likes_count: event.event_likes?.length || 0, views_count: viewsMap[event.id] || 0,
+          checked_in: entries.filter((e: any) => e.checked_in_at !== null).length,
+          likes_count: event.event_likes?.length || 0,
+          views_count: viewsMap[event.id] || 0,
+          impressions_count: impressionsMap[event.id] || 0,
         };
       });
     },
@@ -211,10 +224,10 @@ export const useAccountsReached = (period: Period) => {
       const start = periodStartISO(period);
       const prevStart = new Date(Date.now() - periodToMs(period) * 2).toISOString();
 
-      const { data: current } = await supabase.from("event_interactions").select("user_id").in("event_id", eventIds).eq("type", "view").gte("created_at", start);
+      const { data: current } = await supabase.from("event_interactions").select("user_id").in("event_id", eventIds).eq("type", "impression").gte("created_at", start);
       const uniqueCurrent = new Set((current || []).map((r) => r.user_id).filter(Boolean)).size;
 
-      const { data: prev } = await supabase.from("event_interactions").select("user_id").in("event_id", eventIds).eq("type", "view").gte("created_at", prevStart).lt("created_at", start);
+      const { data: prev } = await supabase.from("event_interactions").select("user_id").in("event_id", eventIds).eq("type", "impression").gte("created_at", prevStart).lt("created_at", start);
       const uniquePrev = new Set((prev || []).map((r) => r.user_id).filter(Boolean)).size;
 
       let trend: { value: number; isPositive: boolean } | null = null;
@@ -238,14 +251,15 @@ export const useInteractionSummary = (period: Period) => {
     queryFn: async () => {
       if (!user?.id) throw new Error("No user");
       const eventIds = await getUserEventIds(user.id);
-      if (eventIds.length === 0) return { views: 0, shares: 0, likes: 0, guestlistJoins: 0 };
+      if (eventIds.length === 0) return { views: 0, impressions: 0, shares: 0, likes: 0, guestlistJoins: 0 };
 
       const start = periodStartISO(period);
       const { data } = await supabase.from("event_interactions").select("type").in("event_id", eventIds).gte("created_at", start);
 
-      const summary = { views: 0, shares: 0, likes: 0, guestlistJoins: 0 };
+      const summary = { views: 0, impressions: 0, shares: 0, likes: 0, guestlistJoins: 0 };
       (data || []).forEach((r) => {
         if (r.type === "view") summary.views++;
+        else if (r.type === "impression") summary.impressions++;
         else if (r.type === "share") summary.shares++;
       });
 
