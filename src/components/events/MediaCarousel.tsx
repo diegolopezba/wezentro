@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, useCallback, memo } from "react";
+import { useEffect, useRef, useState, useCallback, memo, useSyncExternalStore } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { Volume2, VolumeX } from "lucide-react";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import { cn } from "@/lib/utils";
+import { feedVideoCoordinator } from "@/lib/feedVideoCoordinator";
 
 export interface CarouselMediaItem {
   id?: string;
@@ -14,21 +15,13 @@ export interface CarouselMediaItem {
 
 interface MediaCarouselProps {
   items: CarouselMediaItem[];
-  /** Use first item's aspect ratio to size the card frame; subsequent items use object-cover */
   initialIndex?: number;
-  /** Compact mode for small thumbnails (no sound toggle, no indicators) */
   compact?: boolean;
-  /** Override aspect ratio (e.g. for hero) */
   aspectRatioOverride?: string;
-  /** Fixed aspect for full-bleed hero (detail view) */
   isHero?: boolean;
-  /** Tap callback (when user taps a slide without swiping) */
   onTap?: (index: number) => void;
-  /** Notify parent when active index changes */
   onIndexChange?: (index: number) => void;
-  /** className applied to outer container */
   className?: string;
-  /** Lazy: skip embla and render single image (used when only 1 item) */
   rounded?: boolean;
 }
 
@@ -54,8 +47,16 @@ const MediaCarouselComponent = ({
   const [aspectRatio, setAspectRatio] = useState<number | null>(
     safeItems[0]?.aspect_ratio ?? null
   );
-  const [isMuted, setIsMuted] = useState(true);
+  // Hero-only local mute (feed videos are coordinator-driven)
+  const [heroMuted, setHeroMuted] = useState(true);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
+  // Subscribe to coordinator so audio-icon state on feed videos re-renders
+  const coordinatorTick = useSyncExternalStore(
+    (cb) => feedVideoCoordinator.subscribe(cb),
+    () => feedVideoCoordinator,
+    () => feedVideoCoordinator
+  );
 
   // Track active slide
   useEffect(() => {
@@ -72,19 +73,44 @@ const MediaCarouselComponent = ({
     };
   }, [emblaApi, onIndexChange]);
 
-  // Pause off-screen videos, play active one
+  // Hero: play active, pause others, drive mute locally
   useEffect(() => {
+    if (!isHero) return;
     videoRefs.current.forEach((v, i) => {
       if (!v) return;
       if (i === activeIndex) {
-        v.muted = isMuted;
+        v.muted = heroMuted;
         v.play().catch(() => {});
       } else {
         v.pause();
         v.currentTime = 0;
       }
     });
-  }, [activeIndex, isMuted]);
+  }, [activeIndex, heroMuted, isHero]);
+
+  // Feed: register the ACTIVE video slide with the coordinator
+  useEffect(() => {
+    if (isHero) return;
+    const activeItem = safeItems[activeIndex];
+    if (!activeItem) return;
+    const isVideo =
+      activeItem.media_type === "video" || isVideoUrl(activeItem.media_url);
+    if (!isVideo) return;
+    const el = videoRefs.current[activeIndex];
+    if (!el) return;
+    const id = `${activeItem.id ?? activeItem.media_url}#${activeIndex}`;
+    feedVideoCoordinator.register(id, el);
+    // Pause any non-active video in the same carousel
+    videoRefs.current.forEach((v, i) => {
+      if (v && i !== activeIndex) {
+        try {
+          v.pause();
+          v.currentTime = 0;
+        } catch {}
+      }
+    });
+    return () => feedVideoCoordinator.unregister(id);
+  }, [activeIndex, safeItems, isHero]);
 
   const handleImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>, index: number) => {
@@ -110,7 +136,14 @@ const MediaCarouselComponent = ({
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsMuted((m) => !m);
+    if (isHero) {
+      setHeroMuted((m) => !m);
+      return;
+    }
+    const activeItem = safeItems[activeIndex];
+    if (!activeItem) return;
+    const id = `${activeItem.id ?? activeItem.media_url}#${activeIndex}`;
+    feedVideoCoordinator.toggleUserMute(id);
   };
 
   const dragStart = useRef<{ x: number; y: number } | null>(null);
@@ -122,7 +155,6 @@ const MediaCarouselComponent = ({
     const dx = Math.abs(e.clientX - dragStart.current.x);
     const dy = Math.abs(e.clientY - dragStart.current.y);
     dragStart.current = null;
-    // Treat as a tap if movement < 8px in any direction
     if (dx < 8 && dy < 8) {
       onTap?.(activeIndex);
     }
@@ -133,6 +165,15 @@ const MediaCarouselComponent = ({
   const activeItem = safeItems[activeIndex];
   const activeIsVideo =
     activeItem?.media_type === "video" || isVideoUrl(activeItem?.media_url);
+
+  // Compute mute icon state for active video
+  const activeFeedId = activeItem
+    ? `${activeItem.id ?? activeItem.media_url}#${activeIndex}`
+    : null;
+  const showMuted = isHero
+    ? heroMuted
+    : !(activeFeedId && feedVideoCoordinator.isAudioActive(activeFeedId));
+  void coordinatorTick; // ensure re-render on coordinator changes
 
   const containerStyle: React.CSSProperties = isHero
     ? {
@@ -177,7 +218,6 @@ const MediaCarouselComponent = ({
                 key={item.id ?? `${item.media_url}-${i}`}
                 className="relative flex-[0_0_100%] min-w-0 h-full"
               >
-                {/* Hero blurred backdrop — fills letterbox bars with a soft, brand-tinted blur of the same media */}
                 {isHero && heroPoster && (
                   <div
                     aria-hidden
@@ -199,10 +239,7 @@ const MediaCarouselComponent = ({
                     muted
                     loop
                     playsInline
-                    // TikTok-style: only the active slide gets metadata; others stay
-                    // at "none" so off-screen videos never decode on mobile.
                     preload={i === activeIndex ? "metadata" : "none"}
-                    autoPlay={i === 0}
                     onLoadedMetadata={() => handleVideoMetadata(i)}
                   />
                 ) : (
@@ -237,7 +274,7 @@ const MediaCarouselComponent = ({
           )}
           style={isHero ? { top: "max(1rem, env(safe-area-inset-top))" } : undefined}
         >
-          {isMuted ? (
+          {showMuted ? (
             <VolumeX className={cn("text-white", isHero ? "w-5 h-5" : "w-3.5 h-3.5")} />
           ) : (
             <Volume2 className={cn("text-white", isHero ? "w-5 h-5" : "w-3.5 h-3.5")} />
@@ -247,22 +284,19 @@ const MediaCarouselComponent = ({
 
       {/* Slide indicator */}
       {!compact && safeItems.length > 1 && (
-        <>
-          {/* Dots (bottom center) */}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-none">
-            {safeItems.map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "rounded-full transition-all",
-                  i === activeIndex
-                    ? "w-1.5 h-1.5 bg-white"
-                    : "w-1 h-1 bg-white/50"
-                )}
-              />
-            ))}
-          </div>
-        </>
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-none">
+          {safeItems.map((_, i) => (
+            <div
+              key={i}
+              className={cn(
+                "rounded-full transition-all",
+                i === activeIndex
+                  ? "w-1.5 h-1.5 bg-white"
+                  : "w-1 h-1 bg-white/50"
+              )}
+            />
+          ))}
+        </div>
       )}
     </div>
   );
