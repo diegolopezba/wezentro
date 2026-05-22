@@ -57,9 +57,10 @@ const BusinessInfo = () => {
     if (!user) return;
     setSavingType(true);
     try {
+      const isFood = ["restaurant", "coffee", "bar"].includes(value);
       const { error } = await supabase
         .from("profiles")
-        .update({ business_type: value } as any)
+        .update({ business_type: value, is_food_business: isFood } as any)
         .eq("id", user.id);
       if (error) throw error;
       await refreshProfile();
