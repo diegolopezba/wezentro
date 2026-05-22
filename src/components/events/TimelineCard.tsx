@@ -71,8 +71,11 @@ export const TimelineCard = ({
 
   const dateDisplay = getDateDisplay();
 
+  const impressionRef = useImpressionTracker(id);
+
   return (
     <m.div
+      ref={impressionRef}
       layoutId={`timeline-card-${id}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
