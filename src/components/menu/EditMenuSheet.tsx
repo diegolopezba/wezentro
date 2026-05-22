@@ -14,13 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+// Edit forms use nested Sheets (not Dialog) to avoid Radix focus-trap conflicts inside the parent Sheet.
+
 import {
   UtensilsCrossed,
   Plus,
@@ -533,88 +528,90 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
         </SheetContent>
       </Sheet>
 
-      {/* Add/Edit Item Dialog */}
-      <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
+      {/* Add/Edit Item Sheet */}
+      <Sheet open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
+        <SheetContent side="bottom" className="h-auto max-h-[90vh] rounded-t-3xl flex flex-col">
+          <SheetHeader className="pb-2">
+            <SheetTitle>
               {editingItem ? "Editar Item" : "Agregar Item"}
-            </DialogTitle>
-          </DialogHeader>
+            </SheetTitle>
+          </SheetHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="item-name">Nombre *</Label>
-              <Input
-                id="item-name"
-                value={itemForm.name}
-                onChange={(e) =>
-                  setItemForm((prev) => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="Ej: Hamburguesa clásica"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="item-description">Descripción</Label>
-              <Textarea
-                id="item-description"
-                value={itemForm.description}
-                onChange={(e) =>
-                  setItemForm((prev) => ({ ...prev, description: e.target.value }))
-                }
-                placeholder="Descripción del item..."
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="item-price">Precio (Bs.)</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  Bs.
-                </span>
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="item-name">Nombre *</Label>
                 <Input
-                  id="item-price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={itemForm.price}
+                  id="item-name"
+                  value={itemForm.name}
                   onChange={(e) =>
-                    setItemForm((prev) => ({ ...prev, price: e.target.value }))
+                    setItemForm((prev) => ({ ...prev, name: e.target.value }))
                   }
-                  placeholder="0.00"
-                  className="pl-10"
+                  placeholder="Ej: Hamburguesa clásica"
                 />
               </div>
-            </div>
 
-            {menu && menu.categories && menu.categories.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="item-category">Categoría</Label>
-                <Select
-                  value={itemForm.categoryId}
-                  onValueChange={(value) =>
-                    setItemForm((prev) => ({ ...prev, categoryId: value === "none" ? "" : value }))
+                <Label htmlFor="item-description">Descripción</Label>
+                <Textarea
+                  id="item-description"
+                  value={itemForm.description}
+                  onChange={(e) =>
+                    setItemForm((prev) => ({ ...prev, description: e.target.value }))
                   }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sin categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sin categoría</SelectItem>
-                    {menu.categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Descripción del item..."
+                  rows={3}
+                />
               </div>
-            )}
-          </div>
 
-          <DialogFooter>
+              <div className="space-y-2">
+                <Label htmlFor="item-price">Precio (Bs.)</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    Bs.
+                  </span>
+                  <Input
+                    id="item-price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={itemForm.price}
+                    onChange={(e) =>
+                      setItemForm((prev) => ({ ...prev, price: e.target.value }))
+                    }
+                    placeholder="0.00"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {menu && menu.categories && menu.categories.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="item-category">Categoría</Label>
+                  <Select
+                    value={itemForm.categoryId || "none"}
+                    onValueChange={(value) =>
+                      setItemForm((prev) => ({ ...prev, categoryId: value === "none" ? "" : value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sin categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin categoría</SelectItem>
+                      {menu.categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-border">
             <Button variant="outline" onClick={() => setIsItemDialogOpen(false)}>
               Cancelar
             </Button>
@@ -627,18 +624,18 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
               )}
               {editingItem ? "Guardar" : "Agregar"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </SheetContent>
+      </Sheet>
 
-      {/* Add/Edit Category Dialog */}
-      <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
+      {/* Add/Edit Category Sheet */}
+      <Sheet open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+        <SheetContent side="bottom" className="h-auto rounded-t-3xl flex flex-col">
+          <SheetHeader className="pb-2">
+            <SheetTitle>
               {editingCategory ? "Editar Categoría" : "Agregar Categoría"}
-            </DialogTitle>
-          </DialogHeader>
+            </SheetTitle>
+          </SheetHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -646,15 +643,13 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
               <Input
                 id="category-name"
                 value={categoryForm.name}
-                onChange={(e) =>
-                  setCategoryForm({ name: e.target.value })
-                }
+                onChange={(e) => setCategoryForm({ name: e.target.value })}
                 placeholder="Ej: Bebidas, Entradas, Platos principales..."
               />
             </div>
           </div>
 
-          <DialogFooter>
+          <div className="flex justify-end gap-2 pt-4 border-t border-border">
             <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>
               Cancelar
             </Button>
@@ -667,9 +662,10 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
               )}
               {editingCategory ? "Guardar" : "Agregar"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </SheetContent>
+      </Sheet>
+
     </>
   );
 };

@@ -1,26 +1,20 @@
-## Arreglar visibilidad de "Editar Menú" para food businesses
+## Arreglar edición de items del menú
 
 ### Causa
-`is_food_business` quedó desincronizado en la cuenta `cortado.scz` (type=`coffee` pero flag=`false`). El botón "Editar Menú" depende de ese flag cacheado en lugar de derivarlo del tipo.
+`EditMenuSheet` ya tiene botones de lápiz que llaman `handleOpenItemDialog(item)` y abren un `<Dialog>` con el formulario prellenado. El problema es que ese `Dialog` se monta **dentro** de un `Sheet` abierto (ambos Radix, z-50, con focus trap). En móvil el Dialog queda detrás del overlay del Sheet / con focus trap robado, así que los taps no llegan al input y parece que "no se puede editar".
 
-### 1. Data fix (insert)
-`UPDATE profiles SET is_food_business = true WHERE business_type IN ('restaurant','coffee','bar') AND is_food_business IS DISTINCT FROM true` — resincroniza esta cuenta y cualquier otra futura con el mismo desfase.
+### Fix
+Convertir los dos diálogos internos (item y categoría) en `Sheet` apilables encima del sheet padre, que es el patrón ya usado en el resto de la app (ej. `ReservationSheet`, `BusinessInfoSheet`).
 
-### 2. Helper único
-Nuevo `src/lib/businessTypes.ts`:
-```ts
-export const FOOD_BUSINESS_TYPES = ["restaurant", "coffee", "bar"] as const;
-export const isFoodBusinessType = (t?: string | null) =>
-  !!t && (FOOD_BUSINESS_TYPES as readonly string[]).includes(t);
-```
-
-### 3. Derivar UI desde `business_type`
-- `src/pages/Profile.tsx` → `const isFoodBusiness = isFoodBusinessType(profile?.business_type)`
-- `src/pages/UserProfile.tsx` → mismo cambio (línea 73)
-- `src/components/events/AttachedBusinessCtas.tsx` → usa el helper en vez de `biz.is_food_business`
-- `src/pages/BusinessInfo.tsx` → consume el helper para calcular `isFood` (sigue escribiendo `is_food_business` en DB para que `useFoodLocations` no se rompa)
+- `src/components/menu/EditMenuSheet.tsx`
+  - Reemplazar `<Dialog>` → `<Sheet side="bottom">` para "Agregar/Editar Item".
+  - Reemplazar `<Dialog>` → `<Sheet side="bottom">` para "Agregar/Editar Categoría".
+  - Mantener exactamente el mismo estado (`isItemDialogOpen`, `editingItem`, `itemForm`, etc.) y los mismos handlers (`handleSaveItem`, `handleSaveCategory`).
+  - Conservar el botón ✏️ por fila (`MenuItemRow` → `onEdit`) — ya está cableado.
+  - Footer con Cancelar / Guardar dentro del nuevo `SheetContent`.
 
 ### No cambia
-- Schema, RLS.
-- `useFoodLocations` (sigue filtrando por `business_type` en DB).
-- `menu_enabled` / `reservations_enabled` siguen sin gate-ear los botones de edición en el perfil propio.
+- Hooks (`useUpdateMenuItem`, `useUpdateMenuCategory`) — ya funcionan.
+- Schema / RLS.
+- Estructura del menú, categorías, reordenar, switch de disponibilidad.
+- El sheet principal de "Editar Menú" sigue igual.
