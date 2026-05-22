@@ -110,7 +110,8 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
   });
 
   const totalInteractions = interactions ? interactions.views + interactions.shares + interactions.likes + interactions.guestlistJoins : 0;
-  const engagementRate = interactions && interactions.views > 0 ? Math.round((totalInteractions / interactions.views) * 100) : 0;
+  const engagementRate = interactions && interactions.impressions > 0 ? Math.round((totalInteractions / interactions.impressions) * 100) : 0;
+  const ctr = interactions && interactions.impressions > 0 ? Math.round((interactions.views / interactions.impressions) * 100) : 0;
 
   return (
     <div className="space-y-5">
@@ -120,12 +121,12 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <StatsCard title="Alcance" value={reachedLoading ? "..." : reached?.count || 0} icon={Eye} delay={0} trend={reached?.trend || undefined} />
-        <StatsCard title="Interacciones" value={interactionsLoading ? "..." : totalInteractions} icon={MousePointerClick} delay={0.05} />
-        <StatsCard title="Engagement" value={interactionsLoading ? "..." : `${engagementRate}%`} icon={TrendingUp} delay={0.1} />
-        <StatsCard title="Visitas perfil" value={visitsLoading ? "..." : profileVisits?.count || 0} icon={UserCheck} delay={0.15} trend={profileVisits?.trend || undefined} />
-        <StatsCard title="Seguidores" value={followerLoading ? "..." : followerData?.total || 0} icon={UsersRound} delay={0.2} trend={followerData?.trend || undefined} />
-        <StatsCard title="Publicado" value={contentLoading ? "..." : contentCount || 0} icon={FileText} delay={0.25} />
+        <StatsCard title="Impresiones" value={interactionsLoading ? "..." : interactions?.impressions || 0} icon={Eye} delay={0} />
+        <StatsCard title="Views" value={interactionsLoading ? "..." : interactions?.views || 0} icon={MousePointer2} delay={0.05} />
+        <StatsCard title="CTR" value={interactionsLoading ? "..." : `${ctr}%`} icon={TrendingUp} delay={0.1} />
+        <StatsCard title="Alcance" value={reachedLoading ? "..." : reached?.count || 0} icon={UsersRound} delay={0.15} trend={reached?.trend || undefined} />
+        <StatsCard title="Visitas perfil" value={visitsLoading ? "..." : profileVisits?.count || 0} icon={UserCheck} delay={0.2} trend={profileVisits?.trend || undefined} />
+        <StatsCard title="Seguidores" value={followerLoading ? "..." : followerData?.total || 0} icon={MousePointerClick} delay={0.25} trend={followerData?.trend || undefined} />
       </div>
 
       {/* Mini chart */}
