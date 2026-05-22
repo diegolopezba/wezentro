@@ -115,3 +115,39 @@ export const trackReserveTap = async (eventId: string, userId: string | null) =>
     console.error("Failed to track reserve tap:", error);
   }
 };
+
+/**
+ * Track when a card was actually seen in a feed/profile/chat (passive impression).
+ * - In-memory session dedupe avoids spamming on scroll re-entries.
+ * - Daily DB dedupe avoids inflating counts across reloads.
+ */
+const impressionSessionCache = new Set<string>();
+
+export const trackEventImpression = async (eventId: string, userId: string | null) => {
+  if (!userId) return;
+  const key = `${eventId}:${userId}`;
+  if (impressionSessionCache.has(key)) return;
+  impressionSessionCache.add(key);
+
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const { data: existing } = await supabase
+      .from("event_interactions")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("user_id", userId)
+      .eq("type", "impression")
+      .gte("created_at", today)
+      .maybeSingle();
+
+    if (existing) return;
+
+    await supabase.from("event_interactions").insert({
+      event_id: eventId,
+      user_id: userId,
+      type: "impression",
+    });
+  } catch (error) {
+    console.error("Failed to track event impression:", error);
+  }
+};
