@@ -14,13 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+// Edit forms use nested Sheets (not Dialog) to avoid Radix focus-trap conflicts inside the parent Sheet.
+
 import {
   UtensilsCrossed,
   Plus,
