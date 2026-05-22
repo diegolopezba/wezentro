@@ -116,18 +116,30 @@ export const useEventPerformance = () => {
       if (error) throw error;
       const eventIds = events?.map((e) => e.id) || [];
       let viewsMap: Record<string, number> = {};
+      let impressionsMap: Record<string, number> = {};
       if (eventIds.length > 0) {
-        const { data: interactions } = await supabase.from("event_interactions").select("event_id").in("event_id", eventIds).eq("type", "view");
-        if (interactions) {
-          viewsMap = interactions.reduce((acc, curr) => { acc[curr.event_id] = (acc[curr.event_id] || 0) + 1; return acc; }, {} as Record<string, number>);
-        }
+        const { data: interactions } = await supabase
+          .from("event_interactions")
+          .select("event_id, type")
+          .in("event_id", eventIds)
+          .in("type", ["view", "impression"]);
+        (interactions || []).forEach((curr) => {
+          if (curr.type === "view") {
+            viewsMap[curr.event_id] = (viewsMap[curr.event_id] || 0) + 1;
+          } else if (curr.type === "impression") {
+            impressionsMap[curr.event_id] = (impressionsMap[curr.event_id] || 0) + 1;
+          }
+        });
       }
       return (events || []).map((event) => {
         const entries = event.guestlist_entries || [];
         return {
           id: event.id, title: event.title || "Untitled Event", image_url: event.image_url, start_datetime: event.start_datetime,
           guestlist_requests: entries.length, approved_guests: entries.filter((e: any) => e.status === "approved").length,
-          checked_in: entries.filter((e: any) => e.checked_in_at !== null).length, likes_count: event.event_likes?.length || 0, views_count: viewsMap[event.id] || 0,
+          checked_in: entries.filter((e: any) => e.checked_in_at !== null).length,
+          likes_count: event.event_likes?.length || 0,
+          views_count: viewsMap[event.id] || 0,
+          impressions_count: impressionsMap[event.id] || 0,
         };
       });
     },
