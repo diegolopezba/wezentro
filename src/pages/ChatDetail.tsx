@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, MoreVertical, Plus, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, MoreVertical, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useChatDetails, useChatMessages, useSendMessage, useMarkChatAsRead } from "@/hooks/useChats";
@@ -231,14 +231,6 @@ const ChatDetail = () => {
       {/* Input */}
       <div className={`shrink-0 p-4 glass-strong ${isKeyboardVisible ? "pb-2" : "safe-bottom"}`}>
         <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setEventPickerOpen(true)}
-            className="flex-shrink-0"
-          >
-            <Plus className="w-5 h-5" />
-          </Button>
           <Input
             placeholder="Escribe un mensaje..."
             value={message}
