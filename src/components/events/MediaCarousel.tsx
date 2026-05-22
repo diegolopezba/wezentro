@@ -270,7 +270,7 @@ const MediaCarouselComponent = ({
           onClick={toggleMute}
           className={cn(
             "absolute rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center z-10",
-            isHero ? "top-4 right-4 w-10 h-10 safe-top" : "top-2 right-2 w-7 h-7"
+            isHero ? "top-4 right-4 w-10 h-10 safe-top" : "bottom-2 right-2 w-7 h-7"
           )}
           style={isHero ? { top: "max(1rem, env(safe-area-inset-top))" } : undefined}
         >
