@@ -124,7 +124,7 @@ const EventCardComponent = ({
       : null;
 
   return (
-    <div className="masonry-item">
+    <div ref={impressionRef} className="masonry-item">
       {/* Sponsored badge */}
       {isSponsored && (
         <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
