@@ -68,8 +68,12 @@ export const EventsPerformanceTable = ({
 
             {/* Stats */}
             <div className="flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1 text-muted-foreground">
+              <div className="flex items-center gap-1 text-muted-foreground" title="Impresiones (vistas pasivas en feed)">
                 <Eye className="w-3.5 h-3.5" />
+                <span>{event.impressions_count}</span>
+              </div>
+              <div className="flex items-center gap-1 text-muted-foreground" title="Views (clicks al detalle)">
+                <MousePointer2 className="w-3.5 h-3.5" />
                 <span>{event.views_count}</span>
               </div>
               <div className="flex items-center gap-1 text-muted-foreground">
