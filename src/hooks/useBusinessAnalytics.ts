@@ -13,6 +13,7 @@ export interface EventPerformance {
   checked_in: number;
   likes_count: number;
   views_count: number;
+  impressions_count: number;
 }
 
 export interface OverviewStats {
