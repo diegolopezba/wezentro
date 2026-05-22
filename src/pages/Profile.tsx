@@ -125,12 +125,12 @@ const Profile = () => {
           {/* Edit Menu button for food businesses */}
           {isBusiness && isFoodBusiness &&
         <div className="flex gap-2 mt-3">
-              <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 ">
-                <UtensilsCrossed className="w-4 h-4 text-orange-500" />
+              <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
+                <UtensilsCrossed className="w-4 h-4 text-primary" />
                 Editar Menú
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 ">
-                <CalendarCheck className="w-4 h-4 text-orange-500" />
+              <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
+                <CalendarCheck className="w-4 h-4 text-primary" />
                 Reservas
               </Button>
             </div>
