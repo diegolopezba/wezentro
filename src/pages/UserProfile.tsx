@@ -24,6 +24,7 @@ import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
+import { isFoodBusinessType } from "@/lib/businessTypes";
 
 const UserProfile = () => {
   const {

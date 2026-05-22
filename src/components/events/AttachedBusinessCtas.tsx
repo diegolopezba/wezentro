@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { useAcceptedBusinessCtas, type BusinessCtaRequest } from "@/hooks/useBusinessCtaRequest";
+import { isFoodBusinessType } from "@/lib/businessTypes";
 
 interface Props {
   eventId: string | undefined;
@@ -17,8 +18,9 @@ const BusinessCtaRow = ({ req }: { req: BusinessCtaRequest }) => {
   const biz = req.business;
   if (!biz) return null;
   const name = biz.full_name || biz.username;
-  const showMenu = !!biz.is_food_business && biz.menu_enabled !== false;
-  const showRes = !!biz.is_food_business && biz.reservations_enabled !== false;
+  const isFood = isFoodBusinessType((biz as any).business_type) || !!biz.is_food_business;
+  const showMenu = isFood && biz.menu_enabled !== false;
+  const showRes = isFood && biz.reservations_enabled !== false;
   if (!showMenu && !showRes) return null;
 
   return (
