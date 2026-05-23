@@ -134,9 +134,9 @@ const EventDetail = () => {
       <div className="relative w-full overflow-hidden rounded-b-3xl">
         <MediaCarousel items={carouselItems} isHero />
         {/* Back button */}
-        <div className="absolute top-0 left-0 right-0 safe-top z-20">
+        <div className="absolute top-0 left-0 right-0 safe-top z-20 pointer-events-none">
           <div className="flex items-center justify-between px-4 py-4">
-            <Button variant="glass" size="icon" onClick={() => {
+            <Button variant="glass" size="icon" className="pointer-events-auto" onClick={() => {
             if (fromCreate) {
               navigate("/", { replace: true });
             } else if (window.history.length > 1) {
