@@ -178,10 +178,9 @@ const MediaCarouselComponent = ({
   const containerStyle: React.CSSProperties = isHero
     ? {
         width: "100%",
-        height: aspectRatio
-          ? `min(calc(100vw / ${aspectRatio}), 70vh)`
-          : `min(calc(100vw * 9 / 16), 70vh)`,
+        aspectRatio: "3/4",
         minHeight: "250px",
+        maxHeight: "70vh",
       }
     : {
         width: "100%",
