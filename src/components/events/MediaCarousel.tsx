@@ -178,10 +178,9 @@ const MediaCarouselComponent = ({
   const containerStyle: React.CSSProperties = isHero
     ? {
         width: "100%",
-        height: aspectRatio
-          ? `min(calc(100vw / ${aspectRatio}), 70vh)`
-          : `min(calc(100vw * 9 / 16), 70vh)`,
+        aspectRatio: "3/4",
         minHeight: "250px",
+        maxHeight: "70vh",
       }
     : {
         width: "100%",
@@ -212,32 +211,16 @@ const MediaCarouselComponent = ({
           {safeItems.map((item, i) => {
             const isVideo =
               item.media_type === "video" || isVideoUrl(item.media_url);
-            const heroPoster = isHero
-              ? getOptimizedImageUrl(item.media_url, ImageSizes.card)
-              : null;
             return (
               <div
                 key={item.id ?? `${item.media_url}-${i}`}
                 className="relative flex-[0_0_100%] min-w-0 h-full"
               >
-                {isHero && heroPoster && (
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 bg-cover bg-center scale-110"
-                    style={{
-                      backgroundImage: `url(${heroPoster})`,
-                      filter: "blur(28px) brightness(0.55) saturate(1.1)",
-                    }}
-                  />
-                )}
                 {isVideo ? (
                   <video
                     ref={(el) => (videoRefs.current[i] = el)}
                     src={item.media_url}
-                    className={cn(
-                      "relative w-full h-full",
-                      isHero ? "object-contain" : "object-cover"
-                    )}
+                    className="relative w-full h-full object-cover"
                     muted
                     loop
                     playsInline
@@ -253,10 +236,7 @@ const MediaCarouselComponent = ({
                     alt=""
                     loading={i === 0 ? "eager" : "lazy"}
                     decoding="async"
-                    className={cn(
-                      "relative w-full h-full",
-                      isHero ? "object-contain" : "object-cover"
-                    )}
+                    className="relative w-full h-full object-cover"
                     onLoad={(e) => handleImageLoad(e, i)}
                   />
                 )}
