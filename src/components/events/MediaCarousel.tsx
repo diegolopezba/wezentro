@@ -251,10 +251,10 @@ const MediaCarouselComponent = ({
         <button
           onClick={toggleMute}
           className={cn(
-            "absolute rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center z-10",
-            isHero ? "top-4 right-4 w-10 h-10 safe-top" : "bottom-2 right-2 w-7 h-7"
+            "absolute rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center",
+            isHero ? "right-4 w-10 h-10 z-30" : "bottom-2 right-2 w-7 h-7 z-10"
           )}
-          style={isHero ? { top: "max(1rem, env(safe-area-inset-top))" } : undefined}
+          style={isHero ? { top: "calc(env(safe-area-inset-top, 0px) + 1rem)" } : undefined}
         >
           {showMuted ? (
             <VolumeX className={cn("text-white", isHero ? "w-5 h-5" : "w-3.5 h-3.5")} />
