@@ -250,6 +250,8 @@ const MediaCarouselComponent = ({
       {!compact && activeIsVideo && (
         <button
           onClick={toggleMute}
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
           className={cn(
             "absolute rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center",
             isHero ? "right-4 w-10 h-10 z-30" : "bottom-2 right-2 w-7 h-7 z-10"
