@@ -236,10 +236,7 @@ const MediaCarouselComponent = ({
                     alt=""
                     loading={i === 0 ? "eager" : "lazy"}
                     decoding="async"
-                    className={cn(
-                      "relative w-full h-full",
-                      isHero ? "object-contain" : "object-cover"
-                    )}
+                    className="relative w-full h-full object-cover"
                     onLoad={(e) => handleImageLoad(e, i)}
                   />
                 )}
