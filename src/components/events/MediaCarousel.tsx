@@ -211,32 +211,16 @@ const MediaCarouselComponent = ({
           {safeItems.map((item, i) => {
             const isVideo =
               item.media_type === "video" || isVideoUrl(item.media_url);
-            const heroPoster = isHero
-              ? getOptimizedImageUrl(item.media_url, ImageSizes.card)
-              : null;
             return (
               <div
                 key={item.id ?? `${item.media_url}-${i}`}
                 className="relative flex-[0_0_100%] min-w-0 h-full"
               >
-                {isHero && heroPoster && (
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 bg-cover bg-center scale-110"
-                    style={{
-                      backgroundImage: `url(${heroPoster})`,
-                      filter: "blur(28px) brightness(0.55) saturate(1.1)",
-                    }}
-                  />
-                )}
                 {isVideo ? (
                   <video
                     ref={(el) => (videoRefs.current[i] = el)}
                     src={item.media_url}
-                    className={cn(
-                      "relative w-full h-full",
-                      isHero ? "object-contain" : "object-cover"
-                    )}
+                    className="relative w-full h-full object-cover"
                     muted
                     loop
                     playsInline
