@@ -191,9 +191,9 @@ const Profile = () => {
       {/* Followers/Following Sheet */}
       {user && <FollowersSheet userId={user.id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={(open) => !open && setFollowSheetType(null)} />}
       {/* Edit Menu Sheet for food businesses */}
-      {isBusiness && isFoodBusiness && <EditMenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} />}
+      {isBusiness && isFoodBusiness && menuEnabled && <EditMenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} />}
       {/* Reservations Management Sheet for food businesses */}
-      {isBusiness && isFoodBusiness && user && <ReservationsManagementSheet open={reservationsSheetOpen} onOpenChange={setReservationsSheetOpen} businessId={user.id} />}
+      {isBusiness && isFoodBusiness && reservationsEnabled && user && <ReservationsManagementSheet open={reservationsSheetOpen} onOpenChange={setReservationsSheetOpen} businessId={user.id} />}
       {/* Business Info Sheet */}
       <BusinessInfoSheet
       open={businessInfoOpen}
