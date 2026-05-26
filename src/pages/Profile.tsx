@@ -38,6 +38,8 @@ const Profile = () => {
   } = useUserTimeline(user?.id);
   const isBusiness = profile?.is_business === true;
   const isFoodBusiness = isFoodBusinessType(profile?.business_type);
+  const menuEnabled = (profile as any)?.menu_enabled !== false;
+  const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
 
   // Check if user has business info to show
   const hasBusinessInfo = profile?.business_address || profile?.business_hours || profile?.business_phone;
@@ -123,17 +125,17 @@ const Profile = () => {
           {profile?.bio && <MentionText text={profile.bio} className="text-sm text-foreground/80" />}
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
           
-          {/* Edit Menu button for food businesses */}
-          {isBusiness && isFoodBusiness &&
+          {/* Edit Menu / Reservations buttons for food businesses */}
+          {isBusiness && isFoodBusiness && (menuEnabled || reservationsEnabled) &&
         <div className="flex gap-2 mt-3">
-              <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
+              {menuEnabled && <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
                 <UtensilsCrossed className="w-4 h-4 text-primary" />
                 Editar Menú
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
+              </Button>}
+              {reservationsEnabled && <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
                 <CalendarCheck className="w-4 h-4 text-primary" />
                 Reservas
-              </Button>
+              </Button>}
             </div>
         }
         </m.div>
@@ -189,9 +191,9 @@ const Profile = () => {
       {/* Followers/Following Sheet */}
       {user && <FollowersSheet userId={user.id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={(open) => !open && setFollowSheetType(null)} />}
       {/* Edit Menu Sheet for food businesses */}
-      {isBusiness && isFoodBusiness && <EditMenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} />}
+      {isBusiness && isFoodBusiness && menuEnabled && <EditMenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} />}
       {/* Reservations Management Sheet for food businesses */}
-      {isBusiness && isFoodBusiness && user && <ReservationsManagementSheet open={reservationsSheetOpen} onOpenChange={setReservationsSheetOpen} businessId={user.id} />}
+      {isBusiness && isFoodBusiness && reservationsEnabled && user && <ReservationsManagementSheet open={reservationsSheetOpen} onOpenChange={setReservationsSheetOpen} businessId={user.id} />}
       {/* Business Info Sheet */}
       <BusinessInfoSheet
       open={businessInfoOpen}
