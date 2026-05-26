@@ -1,22 +1,19 @@
-## Goal
+## Quick Fix: Profile buttons ignore menu/reservations toggles
 
-On the event details page, the hero media currently uses a fixed 3:4 portrait container, which crops/zooms horizontal (panoramic) images and videos. Restore the old behavior: container height adapts to the media's natural aspect ratio, with sensible bounds — no cropping, no black/blurred bars.
+**Problem:** On `Profile.tsx` (own profile view), the "Editar Menú" and "Reservas" buttons are visible for all food businesses unconditionally, ignoring the `menu_enabled` and `reservations_enabled` toggles set in Business Settings.
 
-## Change (single file: `src/components/events/MediaCarousel.tsx`)
+**UserProfile.tsx already handles this correctly:** it checks `menu_enabled !== false` and `reservations_enabled !== false` before showing those buttons/sheets. `Profile.tsx` does not.
 
-The component already detects the first item's natural aspect ratio (`handleImageLoad` / `handleVideoMetadata`) and stores it in `aspectRatio` state. It's just ignored in the hero `containerStyle`. Update the hero branch to use it:
+**Fix:**
 
-- Use the detected `aspectRatio` (fallback to `3/4` while loading, so layout doesn't jump for the common portrait case).
-- Clamp height with CSS bounds so extreme media stays reasonable:
-  - `minHeight: 250px` (unchanged)
-  - `maxHeight: 70vh` (unchanged — prevents very tall portraits from dominating the screen)
-  - For panoramic media, the computed aspect-ratio height will naturally be short; that's fine and matches the pre-carousel feel. We can add a `minHeight` floor (already 250px) so ultra-wide media still has presence.
-- Width stays `100%`.
+1. In `Profile.tsx`, read `menu_enabled` and `reservations_enabled` from the `profile` object (same pattern as `BusinessSettings.tsx` and `UserProfile.tsx`):
+   - `const menuEnabled = (profile as any)?.menu_enabled !== false;`
+   - `const reservationsEnabled = (profile as any)?.reservations_enabled !== false;`
 
-For multi-item carousels where slides have different aspect ratios, the container locks to the first slide's ratio (same as the old single-media behavior and what the feed cards do). Subsequent slides use `object-cover` within that box — acceptable since the user is opting in by swiping.
+2. Wrap the "Editar Menú" button in `menuEnabled` condition.
 
-## Out of scope
+3. Wrap the "Reservas" button in `reservationsEnabled` condition.
 
-- Feed card sizing (unchanged).
-- Header/back-button layout (unchanged).
-- Any business logic.
+4. Also gate the bottom-sheet renders (`EditMenuSheet`, `ReservationsManagementSheet`) with the same toggles so they don't mount unnecessarily.
+
+This is a 2-file change with no architectural impact.
