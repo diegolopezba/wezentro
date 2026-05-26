@@ -125,17 +125,17 @@ const Profile = () => {
           {profile?.bio && <MentionText text={profile.bio} className="text-sm text-foreground/80" />}
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
           
-          {/* Edit Menu button for food businesses */}
-          {isBusiness && isFoodBusiness &&
+          {/* Edit Menu / Reservations buttons for food businesses */}
+          {isBusiness && isFoodBusiness && (menuEnabled || reservationsEnabled) &&
         <div className="flex gap-2 mt-3">
-              <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
+              {menuEnabled && <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
                 <UtensilsCrossed className="w-4 h-4 text-primary" />
                 Editar Menú
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
+              </Button>}
+              {reservationsEnabled && <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
                 <CalendarCheck className="w-4 h-4 text-primary" />
                 Reservas
-              </Button>
+              </Button>}
             </div>
         }
         </m.div>
