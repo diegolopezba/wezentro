@@ -125,7 +125,7 @@ const Profile = () => {
             {/* Stats */}
             <div className="flex gap-6 mt-2">
               {stats.map((stat) => <div key={stat.label} className={`text-center ${stat.onClick ? "cursor-pointer transition-opacity" : ""}`} onClick={stat.onClick}>
-                  <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>
+                  {stat.node ? stat.node : <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>}
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </div>)}
             </div>
