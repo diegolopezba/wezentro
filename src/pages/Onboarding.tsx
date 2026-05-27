@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { m } from "framer-motion";
-import { ArrowRight, User, Check, Lock } from "lucide-react";
+import { ArrowRight, User, Check, Lock, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useProcessReferral } from "@/hooks/useReferrals";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
+import { ExperienceGoalPicker } from "@/components/profile/ExperienceGoalPicker";
 
 const genderOptions = [
   { value: "male", label: "Masculino" },
@@ -32,6 +33,7 @@ const Onboarding = () => {
     birthDay: "",
     birthMonth: "",
     birthYear: "",
+    experienceGoal: 25,
   });
 
   const validateUsername = (username: string) => {
