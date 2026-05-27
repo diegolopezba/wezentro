@@ -5,7 +5,8 @@ interface ExperienceStatRingProps {
 }
 
 export const ExperienceStatRing = ({ percent, pace, size = 36 }: ExperienceStatRingProps) => {
-  const stroke = 3;
+  const stroke = Math.max(3, Math.round(size / 14));
+  const textClass = size >= 80 ? "text-3xl" : "text-[11px]";
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const offset = c - (Math.min(percent, 100) / 100) * c;
