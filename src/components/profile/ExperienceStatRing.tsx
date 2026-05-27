@@ -10,7 +10,7 @@ export const ExperienceStatRing = ({ percent, pace, size = 36 }: ExperienceStatR
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const offset = c - (Math.min(percent, 100) / 100) * c;
-  const isActive = pace === "ahead" || pace === "on_track" || pace === "complete";
+  
   return (
     <div className="relative mx-auto" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
@@ -26,7 +26,7 @@ export const ExperienceStatRing = ({ percent, pace, size = 36 }: ExperienceStatR
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={isActive ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))"}
+          stroke="hsl(var(--primary))"
           strokeWidth={stroke}
           fill="none"
           strokeLinecap="round"

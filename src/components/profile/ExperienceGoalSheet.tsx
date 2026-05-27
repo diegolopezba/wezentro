@@ -108,12 +108,17 @@ export const ExperienceGoalSheet = ({ open, onOpenChange }: Props) => {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-secondary/60 p-3 text-xs text-muted-foreground leading-relaxed">
-              Cuenta cada check-in verificado a eventos, reservas confirmadas pasadas (una por lugar/día) y publicaciones que creaste este año.
+            <div className="rounded-2xl bg-secondary/60 p-3 text-xs text-muted-foreground leading-relaxed space-y-2">
+              <p>
+                A diferencia de otras apps sociales que solo buscan mantenerte pegado a la pantalla, en Zentro queremos lo contrario: que salgas, pruebes cosas nuevas, conozcas gente y le metas más vida a tu vida.
+              </p>
+              <p>
+                Este anillo representa tu meta del año. Cada lugar que visitas, cada reserva confirmada y cada evento al que haces check-in suma a tu progreso.
+              </p>
             </div>
 
-            <Button variant="outline" className="w-full rounded-full" onClick={() => setEditMode(true)}>
-              Editar meta
+            <Button variant="hero" className="w-full rounded-full" onClick={() => onOpenChange(false)}>
+              Entendido
             </Button>
           </div>
         ) : (
