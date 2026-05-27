@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import { haptic } from "@/lib/haptics";
 import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
+import { CardLikeButton } from "@/components/events/CardLikeButton";
 import { useViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 import { useImpressionTracker } from "@/hooks/useImpressionTracker";
 import {
