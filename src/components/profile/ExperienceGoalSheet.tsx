@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Ticket, MapPin, PenLine } from "lucide-react";
+import { ExperienceStatRing } from "./ExperienceStatRing";
 
 interface Props {
   open: boolean;
