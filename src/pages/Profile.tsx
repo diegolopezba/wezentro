@@ -19,6 +19,8 @@ import { formatCount as formatCountUtil } from "@/lib/utils";
 import { isFoodBusinessType } from "@/lib/businessTypes";
 
 import { ExperienceGoalSheet } from "@/components/profile/ExperienceGoalSheet";
+import { ExperienceStatRing } from "@/components/profile/ExperienceStatRing";
+import { useExperienceProgress } from "@/hooks/useExperienceProgress";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -36,6 +38,10 @@ const Profile = () => {
     data: userStats,
     isLoading: statsLoading
   } = useUserStats(user?.id);
+  const experienceGoal = (profile as any)?.experience_goal as number | null | undefined;
+  const experienceGoalYear = (profile as any)?.experience_goal_year as number | null | undefined;
+  const hasActiveGoal = !!experienceGoal && experienceGoal > 0;
+  const { data: experienceProgress } = useExperienceProgress(user?.id, experienceGoal, experienceGoalYear);
   const {
     data: timeline,
     isLoading: timelineLoading
@@ -83,6 +89,19 @@ const Profile = () => {
               </Button>
           }
             {user && <ShareProfileMenu userId={user.id} username={profile?.username || ""} />}
+            {hasActiveGoal && experienceProgress && (
+              <button
+                onClick={() => setGoalSheetOpen(true)}
+                className="mr-1 active:opacity-70 transition-opacity"
+                aria-label="Ver progreso de experiencias"
+              >
+                <ExperienceStatRing
+                  percent={experienceProgress.percent}
+                  pace={experienceProgress.pace}
+                  size={28}
+                />
+              </button>
+            )}
             <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
               <Settings className="w-5 h-5" />
             </Button>
