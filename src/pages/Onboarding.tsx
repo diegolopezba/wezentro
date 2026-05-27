@@ -299,7 +299,32 @@ const Onboarding = () => {
 
               <div className="flex gap-3">
                 <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>Atrás</Button>
-                <Button variant="hero" className="flex-1" onClick={handleComplete} disabled={isLoading || !formData.gender || !formData.birthDay || !formData.birthMonth || !formData.birthYear}>
+                <Button variant="hero" className="flex-1" onClick={handleNextStep} disabled={isLoading || !formData.gender || !formData.birthDay || !formData.birthMonth || !formData.birthYear}>
+                  Continuar <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
+            </m.div>
+          )}
+
+          {/* Step 4: Experience goal */}
+          {step === 4 && (
+            <m.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+              <div className="rounded-2xl bg-secondary/40 p-4">
+                <div className="flex items-start gap-2.5 mb-3">
+                  <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Vamos a llevar la cuenta de cuántas experiencias nuevas vives este año: eventos, lugares y publicaciones que crees. Solo tú lo verás en tu perfil.
+                  </p>
+                </div>
+                <ExperienceGoalPicker
+                  value={formData.experienceGoal}
+                  onChange={(v) => setFormData({ ...formData, experienceGoal: v })}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button variant="secondary" className="flex-1" onClick={() => setStep(3)} disabled={isLoading}>Atrás</Button>
+                <Button variant="hero" className="flex-1" onClick={() => handleComplete()} disabled={isLoading}>
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
@@ -307,6 +332,14 @@ const Onboarding = () => {
                   )}
                 </Button>
               </div>
+              <button
+                type="button"
+                onClick={() => handleComplete({ skipGoal: true })}
+                disabled={isLoading}
+                className="w-full text-center text-xs text-muted-foreground py-2"
+              >
+                Saltar por ahora
+              </button>
             </m.div>
           )}
         </div>
