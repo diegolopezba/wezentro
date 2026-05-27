@@ -36,7 +36,7 @@ export const ExperienceStatRing = ({ percent, pace, size = 36 }: ExperienceStatR
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="font-brand text-[11px] font-bold text-foreground leading-none">
+        <span className={`font-brand ${textClass} font-bold text-foreground leading-none`}>
           {percent}%
         </span>
       </div>
