@@ -19,6 +19,8 @@ import { formatCount as formatCountUtil } from "@/lib/utils";
 import { isFoodBusinessType } from "@/lib/businessTypes";
 
 import { ExperienceGoalSheet } from "@/components/profile/ExperienceGoalSheet";
+import { ExperienceStatRing } from "@/components/profile/ExperienceStatRing";
+import { useExperienceProgress } from "@/hooks/useExperienceProgress";
 
 const Profile = () => {
   const navigate = useNavigate();
