@@ -60,18 +60,29 @@ const Profile = () => {
   // Check if profile is incomplete (missing birth_date or gender)
   const isProfileIncomplete = profile && (!profile.birth_date || !profile.gender);
   const formatCount = (count: number) => formatCountUtil(count);
-  const stats = [{
-    label: "Eventos",
-    value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0)
-  }, {
-    label: "Seguidores",
-    value: statsLoading ? "..." : formatCount(userStats?.followersCount || 0),
-    onClick: () => setFollowSheetType("followers")
-  }, {
-    label: "Siguiendo",
-    value: statsLoading ? "..." : formatCount(userStats?.followingCount || 0),
-    onClick: () => setFollowSheetType("following")
-  }];
+  const eventsStat = hasActiveGoal && experienceProgress
+    ? {
+        label: "Exp",
+        node: <ExperienceStatRing percent={experienceProgress.percent} pace={experienceProgress.pace} />,
+        onClick: () => setGoalSheetOpen(true),
+      }
+    : {
+        label: "Eventos",
+        value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0),
+      };
+  const stats: Array<{ label: string; value?: string; node?: JSX.Element; onClick?: () => void }> = [
+    eventsStat,
+    {
+      label: "Seguidores",
+      value: statsLoading ? "..." : formatCount(userStats?.followersCount || 0),
+      onClick: () => setFollowSheetType("followers"),
+    },
+    {
+      label: "Siguiendo",
+      value: statsLoading ? "..." : formatCount(userStats?.followingCount || 0),
+      onClick: () => setFollowSheetType("following"),
+    },
+  ];
   const renderTimelineCard = (item: any, index: number) => <TimelineCard key={item.id} id={item.id} title={item.title} imageUrl={item.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} startDatetime={item.start_datetime} location={item.location_name} category={item.category} attendees={item.guestlist_entries?.[0]?.count || 0} isPost={item.is_post || false} createdAt={item.created_at} ownerAvatar={item.creator?.avatar_url} creatorId={item.creator_id} index={index} media={item.media} viewCount={item.view_count} showCtaActions />;
   return <AppLayout>
       {/* Header */}
