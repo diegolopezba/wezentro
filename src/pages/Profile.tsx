@@ -31,6 +31,16 @@ const Profile = () => {
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [reservationsSheetOpen, setReservationsSheetOpen] = useState(false);
+  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
+  const experienceGoal = (profile as any)?.experience_goal as number | null | undefined;
+  const experienceGoalYear = (profile as any)?.experience_goal_year as number | null | undefined;
+  const currentYear = new Date().getFullYear();
+  const hasActiveGoal = !!experienceGoal && experienceGoalYear === currentYear;
+  const { data: experienceProgress } = useExperienceProgress(
+    user?.id,
+    experienceGoal,
+    experienceGoalYear
+  );
   const {
     data: userStats,
     isLoading: statsLoading
