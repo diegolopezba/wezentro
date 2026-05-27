@@ -19,7 +19,7 @@ import { formatCount as formatCountUtil } from "@/lib/utils";
 import { isFoodBusinessType } from "@/lib/businessTypes";
 
 import { ExperienceGoalSheet } from "@/components/profile/ExperienceGoalSheet";
-import { useExperienceProgress } from "@/hooks/useExperienceProgress";
+
 const Profile = () => {
   const navigate = useNavigate();
   const {
@@ -32,15 +32,6 @@ const Profile = () => {
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [reservationsSheetOpen, setReservationsSheetOpen] = useState(false);
   const [goalSheetOpen, setGoalSheetOpen] = useState(false);
-  const experienceGoal = (profile as any)?.experience_goal as number | null | undefined;
-  const experienceGoalYear = (profile as any)?.experience_goal_year as number | null | undefined;
-  const currentYear = new Date().getFullYear();
-  const hasActiveGoal = !!experienceGoal && experienceGoalYear === currentYear;
-  const { data: experienceProgress } = useExperienceProgress(
-    user?.id,
-    experienceGoal,
-    experienceGoalYear
-  );
   const {
     data: userStats,
     isLoading: statsLoading
@@ -60,16 +51,10 @@ const Profile = () => {
   // Check if profile is incomplete (missing birth_date or gender)
   const isProfileIncomplete = profile && (!profile.birth_date || !profile.gender);
   const formatCount = (count: number) => formatCountUtil(count);
-  const eventsStat = hasActiveGoal && experienceProgress
-    ? {
-        label: "Exp",
-        value: `${experienceProgress.percent}%`,
-        onClick: () => setGoalSheetOpen(true),
-      }
-    : {
-        label: "Eventos",
-        value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0),
-      };
+  const eventsStat = {
+    label: "Eventos",
+    value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0),
+  };
   const stats: Array<{ label: string; value?: string; node?: JSX.Element; onClick?: () => void }> = [
     eventsStat,
     {
