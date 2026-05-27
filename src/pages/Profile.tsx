@@ -38,6 +38,10 @@ const Profile = () => {
     data: userStats,
     isLoading: statsLoading
   } = useUserStats(user?.id);
+  const experienceGoal = (profile as any)?.experience_goal as number | null | undefined;
+  const experienceGoalYear = (profile as any)?.experience_goal_year as number | null | undefined;
+  const hasActiveGoal = !!experienceGoal && experienceGoal > 0;
+  const experienceProgress = useExperienceProgress(user?.id, experienceGoal, experienceGoalYear);
   const {
     data: timeline,
     isLoading: timelineLoading
