@@ -89,6 +89,19 @@ const Profile = () => {
               </Button>
           }
             {user && <ShareProfileMenu userId={user.id} username={profile?.username || ""} />}
+            {hasActiveGoal && experienceProgress && (
+              <button
+                onClick={() => setGoalSheetOpen(true)}
+                className="mr-1 active:opacity-70 transition-opacity"
+                aria-label="Ver progreso de experiencias"
+              >
+                <ExperienceStatRing
+                  percent={experienceProgress.percent}
+                  pace={experienceProgress.pace}
+                  size={28}
+                />
+              </button>
+            )}
             <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
               <Settings className="w-5 h-5" />
             </Button>
