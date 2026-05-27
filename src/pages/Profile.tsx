@@ -17,6 +17,7 @@ import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
 import { isFoodBusinessType } from "@/lib/businessTypes";
+import { ExperienceGoalCard } from "@/components/profile/ExperienceGoalCard";
 const Profile = () => {
   const navigate = useNavigate();
   const {
@@ -171,6 +172,9 @@ const Profile = () => {
               </div>
             </m.div>}
         </AnimatePresence>
+
+        {/* Experience Goal — owner-only */}
+        <ExperienceGoalCard />
 
       </div>
 

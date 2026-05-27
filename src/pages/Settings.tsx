@@ -1,9 +1,11 @@
 import { m } from "framer-motion";
-import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase, Ban } from "lucide-react";
+import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase, Ban, Sparkles } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useState } from "react";
+import { ExperienceGoalSheet } from "@/components/profile/ExperienceGoalSheet";
 
 interface SettingsItem {
   icon: React.ElementType;
@@ -20,6 +22,7 @@ interface SettingsSection {
 const Settings = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
 
   const sections: SettingsSection[] = [
     {
@@ -35,6 +38,7 @@ const Settings = () => {
       title: "Personal",
       items: [
         { icon: User, label: "Editar Perfil", path: "/edit-profile" },
+        { icon: Sparkles, label: "Meta del año", path: "__experience_goal__" },
         { icon: Shield, label: "Privacidad", path: "/settings/privacy" },
         { icon: Ban, label: "Usuarios Bloqueados", path: "/settings/blocks" },
         { icon: Gift, label: "Invitar Amigos", path: "/settings/referrals" },
@@ -86,7 +90,10 @@ const Settings = () => {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.04 }}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => {
+                      if (item.path === "__experience_goal__") setGoalSheetOpen(true);
+                      else navigate(item.path);
+                    }}
                     className="w-full flex items-center gap-4 py-3.5 px-4"
                   >
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.highlight ? "bg-primary/15" : "bg-secondary"}`}>
@@ -116,6 +123,7 @@ const Settings = () => {
           </m.button>
         </div>
       </div>
+      <ExperienceGoalSheet open={goalSheetOpen} onOpenChange={setGoalSheetOpen} />
     </AppLayout>
   );
 };

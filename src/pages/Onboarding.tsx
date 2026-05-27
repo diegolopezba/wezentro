@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { m } from "framer-motion";
-import { ArrowRight, User, Check, Lock } from "lucide-react";
+import { ArrowRight, User, Check, Lock, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useProcessReferral } from "@/hooks/useReferrals";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
+import { ExperienceGoalPicker } from "@/components/profile/ExperienceGoalPicker";
 
 const genderOptions = [
   { value: "male", label: "Masculino" },
@@ -32,6 +33,7 @@ const Onboarding = () => {
     birthDay: "",
     birthMonth: "",
     birthYear: "",
+    experienceGoal: 25,
   });
 
   const validateUsername = (username: string) => {
@@ -70,6 +72,13 @@ const Onboarding = () => {
       setStep(2);
     } else if (step === 2) {
       setStep(3);
+    } else if (step === 3) {
+      if (!formData.gender) { toast.error("Selecciona tu género."); return; }
+      const birthDate = buildBirthDate();
+      if (!birthDate) { toast.error("Por favor ingresa tu fecha de nacimiento completa."); return; }
+      const age = getAge(birthDate);
+      if (age < 18) { toast.error("Debes tener al menos 18 años para usar Zentro."); return; }
+      setStep(4);
     }
   };
 
@@ -91,36 +100,30 @@ const Onboarding = () => {
     return age;
   };
 
-  const handleComplete = async () => {
+  const handleComplete = async (opts?: { skipGoal?: boolean }) => {
     if (!user) return;
 
-    if (!formData.gender) {
-      toast.error("Selecciona tu género.");
-      return;
-    }
-
     const birthDate = buildBirthDate();
-    if (!birthDate) {
-      toast.error("Por favor ingresa tu fecha de nacimiento completa.");
-      return;
-    }
-
-    // App Store / Bolivia legal: must be 18+ (alcohol, nightlife)
-    const age = getAge(birthDate);
-    if (age < 18) {
-      toast.error("Debes tener al menos 18 años para usar Zentro.");
+    if (!formData.gender || !birthDate) {
+      toast.error("Faltan datos del paso anterior.");
       return;
     }
 
     setIsLoading(true);
+    const currentYear = new Date().getFullYear();
+    const updatePayload: any = {
+      username: formData.username.toLowerCase(),
+      full_name: formData.fullName || null,
+      gender: formData.gender,
+      birth_date: birthDate,
+    };
+    if (!opts?.skipGoal) {
+      updatePayload.experience_goal = formData.experienceGoal;
+      updatePayload.experience_goal_year = currentYear;
+    }
     const { error } = await supabase
       .from("profiles")
-        .update({
-        username: formData.username.toLowerCase(),
-        full_name: formData.fullName || null,
-        gender: formData.gender,
-        birth_date: birthDate,
-      })
+      .update(updatePayload)
       .eq("id", user.id);
 
     if (error) {
@@ -146,8 +149,8 @@ const Onboarding = () => {
       {/* Progress bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-secondary z-20">
         <m.div
-          className="h-full bg-foreground" initial={{ width: "33%" }}
-          animate={{ width: `${(step / 3) * 100}%` }}
+          className="h-full bg-foreground" initial={{ width: "25%" }}
+          animate={{ width: `${(step / 4) * 100}%` }}
           transition={{ duration: 0.3 }}
         />
       </div>
@@ -167,11 +170,13 @@ const Onboarding = () => {
           {step === 1 && "Elige tu nombre de usuario"}
           {step === 2 && "Cuéntanos sobre ti"}
           {step === 3 && "Un poco más sobre ti"}
+          {step === 4 && "Una última cosa"}
         </h1>
         <p className="text-muted-foreground text-sm">
           {step === 1 && "Así te encontrarán los demás"}
           {step === 2 && "Ayúdanos a personalizar tu experiencia"}
           {step === 3 && "Esta info es privada y mejora tus recomendaciones"}
+          {step === 4 && "¿Cuántas experiencias nuevas quieres vivir este año?"}
         </p>
       </m.div>
 
@@ -294,7 +299,32 @@ const Onboarding = () => {
 
               <div className="flex gap-3">
                 <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>Atrás</Button>
-                <Button variant="hero" className="flex-1" onClick={handleComplete} disabled={isLoading || !formData.gender || !formData.birthDay || !formData.birthMonth || !formData.birthYear}>
+                <Button variant="hero" className="flex-1" onClick={handleNextStep} disabled={isLoading || !formData.gender || !formData.birthDay || !formData.birthMonth || !formData.birthYear}>
+                  Continuar <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
+            </m.div>
+          )}
+
+          {/* Step 4: Experience goal */}
+          {step === 4 && (
+            <m.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+              <div className="rounded-2xl bg-secondary/40 p-4">
+                <div className="flex items-start gap-2.5 mb-3">
+                  <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Vamos a llevar la cuenta de cuántas experiencias nuevas vives este año: eventos, lugares y publicaciones que crees. Solo tú lo verás en tu perfil.
+                  </p>
+                </div>
+                <ExperienceGoalPicker
+                  value={formData.experienceGoal}
+                  onChange={(v) => setFormData({ ...formData, experienceGoal: v })}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button variant="secondary" className="flex-1" onClick={() => setStep(3)} disabled={isLoading}>Atrás</Button>
+                <Button variant="hero" className="flex-1" onClick={() => handleComplete()} disabled={isLoading}>
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
@@ -302,6 +332,14 @@ const Onboarding = () => {
                   )}
                 </Button>
               </div>
+              <button
+                type="button"
+                onClick={() => handleComplete({ skipGoal: true })}
+                disabled={isLoading}
+                className="w-full text-center text-xs text-muted-foreground py-2"
+              >
+                Saltar por ahora
+              </button>
             </m.div>
           )}
         </div>
