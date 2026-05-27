@@ -63,7 +63,7 @@ const Profile = () => {
   const eventsStat = hasActiveGoal && experienceProgress
     ? {
         label: "Exp",
-        node: <ExperienceStatRing percent={experienceProgress.percent} pace={experienceProgress.pace} />,
+        value: `${experienceProgress.percent}%`,
         onClick: () => setGoalSheetOpen(true),
       }
     : {
