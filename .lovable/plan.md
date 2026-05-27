@@ -1,18 +1,28 @@
-# Plan: Simplify stats row, keep ring inside bottom sheet
+## Changes
 
-## 1. `src/pages/Profile.tsx`
-- Remove `ExperienceStatRing` import.
-- In `eventsStat`, replace the `node: <ExperienceStatRing .../>` with plain `value: \`${experienceProgress.percent}%\``.
-- Keep `label: "Exp"`, `onClick: () => setGoalSheetOpen(true)`, and `ExperienceGoalSheet` unchanged.
-- Fallback to `Eventos` count when no active goal — unchanged.
+### 1. Remove background of 3-dot menu (top right)
+**File:** `src/components/events/EventCard.tsx`
 
-## 2. `src/components/profile/ExperienceGoalSheet.tsx`
-- Import `ExperienceStatRing`.
-- In the read-only view (`!editMode && data && data.goal`), replace the big `{count} / {goal}` number block with a centered `ExperienceStatRing` (size ~140) showing `percent`, with the `{count} / {goal}` and pace line below it.
+The 3-dot button currently has `backdrop-blur-sm` + `bg-transparent`. Remove the `backdrop-blur-sm` class so only the icon shows (no blur background). Keep position, tap target, and stopPropagation behavior intact.
 
-## 3. `src/components/profile/ExperienceStatRing.tsx`
-- Scale stroke with size (`stroke = Math.max(3, Math.round(size / 14))`) so it looks right at 140px.
-- Scale inner percent text based on size (e.g. `size >= 80 ? "text-2xl" : "text-[11px]"`).
+### 2. Add minimal like button (bottom left of card)
+A small heart icon overlaid on the bottom-left of the media, mirroring the existing view-count pill style (`absolute bottom-2 left-2`, subtle black/30 backdrop or fully transparent — going **fully transparent** to match the minimal/clean direction of the 3-dot change).
 
-## Result
-Stats row reads cleanly: `25%` / `Exp`, matching `Seguidores` and `Siguiendo`. Tap still opens the bottom sheet, which now features a prominent ring at the top.
+**New component:** `src/components/events/CardLikeButton.tsx`
+- Props: `eventId: string`
+- Uses `useIsEventLiked`, `useEventLikes`, `useLikeEvent`, `useUnlikeEvent` (already exist).
+- Renders a `Heart` icon (lucide) — filled red (`fill-primary text-primary`) when liked, outline white when not.
+- Beside it: like count via `formatCount`, hidden when 0.
+- `onClick` calls `e.stopPropagation()` then toggles like/unlike. Triggers haptic (already inside the mutation hook).
+- Guests: tap shows `useAuthPrompt` modal (consistent with rest of app).
+- Styling: `text-[11px] font-medium text-white leading-none`, drop-shadow for legibility against any media. No pill background — pure icon + number.
+
+**Integrate into:**
+- `src/components/events/EventCard.tsx` — inside the `<MediaCarousel>` wrapper div, absolute bottom-2 left-2, z-10.
+- `src/components/events/TimelineCard.tsx` — same placement, so profile/timeline cards also get the like control.
+
+### Technical notes
+- Reuses existing `event_likes` table + hooks; no DB changes.
+- Optimistic updates and haptics already handled in the like/unlike mutations.
+- `stopPropagation` on the button prevents the card's `openEvent` from firing when liking.
+- Heart fill uses semantic token `--primary` (Pinterest red, already the brand).

@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import { haptic } from "@/lib/haptics";
 import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
+import { CardLikeButton } from "@/components/events/CardLikeButton";
 import { useViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 import { useImpressionTracker } from "@/hooks/useImpressionTracker";
 import {
@@ -170,8 +171,8 @@ const EventCardComponent = ({
                   asChild
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <button className="absolute top-2 right-2 w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors z-10 bg-transparent">
-                    <MoreHorizontal className="w-3.5 h-3.5 text-white" />
+                  <button className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center z-10 bg-transparent [-webkit-tap-highlight-color:transparent]">
+                    <MoreHorizontal className="w-3.5 h-3.5 text-white" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))" }} />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="z-50">
@@ -185,6 +186,8 @@ const EventCardComponent = ({
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+
+            <CardLikeButton eventId={id} />
           </div>
 
           {/* Title */}
