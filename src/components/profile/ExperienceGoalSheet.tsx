@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Ticket, MapPin, PenLine } from "lucide-react";
+import { ExperienceStatRing } from "./ExperienceStatRing";
 
 interface Props {
   open: boolean;
@@ -79,13 +80,13 @@ export const ExperienceGoalSheet = ({ open, onOpenChange }: Props) => {
 
         {!editMode && data && data.goal ? (
           <div className="space-y-6 pb-6">
-            <div className="text-center py-4">
-              <div className="font-brand text-5xl font-bold text-foreground">
-                {data.count}
-                <span className="text-xl text-muted-foreground"> / {data.goal}</span>
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                {data.percent}% de tu meta · año al {Math.round(data.yearProgressPercent)}%
+            <div className="flex flex-col items-center py-4">
+              <ExperienceStatRing percent={data.percent} pace={data.pace} size={140} />
+              <p className="font-brand text-base text-foreground mt-4">
+                {data.count} <span className="text-muted-foreground">/ {data.goal}</span>
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                año al {Math.round(data.yearProgressPercent)}%
               </p>
             </div>
 
