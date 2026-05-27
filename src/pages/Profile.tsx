@@ -185,10 +185,8 @@ const Profile = () => {
             </m.div>}
         </AnimatePresence>
 
-        {/* Experience Goal — owner-only */}
-        <ExperienceGoalCard />
-
       </div>
+
 
       {/* Timeline Content */}
       <div className="py-4">
