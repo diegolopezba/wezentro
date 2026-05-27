@@ -17,7 +17,9 @@ import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
 import { isFoodBusinessType } from "@/lib/businessTypes";
-import { ExperienceGoalCard } from "@/components/profile/ExperienceGoalCard";
+import { ExperienceStatRing } from "@/components/profile/ExperienceStatRing";
+import { ExperienceGoalSheet } from "@/components/profile/ExperienceGoalSheet";
+import { useExperienceProgress } from "@/hooks/useExperienceProgress";
 const Profile = () => {
   const navigate = useNavigate();
   const {
@@ -29,6 +31,16 @@ const Profile = () => {
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [reservationsSheetOpen, setReservationsSheetOpen] = useState(false);
+  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
+  const experienceGoal = (profile as any)?.experience_goal as number | null | undefined;
+  const experienceGoalYear = (profile as any)?.experience_goal_year as number | null | undefined;
+  const currentYear = new Date().getFullYear();
+  const hasActiveGoal = !!experienceGoal && experienceGoalYear === currentYear;
+  const { data: experienceProgress } = useExperienceProgress(
+    user?.id,
+    experienceGoal,
+    experienceGoalYear
+  );
   const {
     data: userStats,
     isLoading: statsLoading
@@ -48,18 +60,29 @@ const Profile = () => {
   // Check if profile is incomplete (missing birth_date or gender)
   const isProfileIncomplete = profile && (!profile.birth_date || !profile.gender);
   const formatCount = (count: number) => formatCountUtil(count);
-  const stats = [{
-    label: "Eventos",
-    value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0)
-  }, {
-    label: "Seguidores",
-    value: statsLoading ? "..." : formatCount(userStats?.followersCount || 0),
-    onClick: () => setFollowSheetType("followers")
-  }, {
-    label: "Siguiendo",
-    value: statsLoading ? "..." : formatCount(userStats?.followingCount || 0),
-    onClick: () => setFollowSheetType("following")
-  }];
+  const eventsStat = hasActiveGoal && experienceProgress
+    ? {
+        label: "Exp",
+        node: <ExperienceStatRing percent={experienceProgress.percent} pace={experienceProgress.pace} />,
+        onClick: () => setGoalSheetOpen(true),
+      }
+    : {
+        label: "Eventos",
+        value: statsLoading ? "..." : formatCount(userStats?.eventsCount || 0),
+      };
+  const stats: Array<{ label: string; value?: string; node?: JSX.Element; onClick?: () => void }> = [
+    eventsStat,
+    {
+      label: "Seguidores",
+      value: statsLoading ? "..." : formatCount(userStats?.followersCount || 0),
+      onClick: () => setFollowSheetType("followers"),
+    },
+    {
+      label: "Siguiendo",
+      value: statsLoading ? "..." : formatCount(userStats?.followingCount || 0),
+      onClick: () => setFollowSheetType("following"),
+    },
+  ];
   const renderTimelineCard = (item: any, index: number) => <TimelineCard key={item.id} id={item.id} title={item.title} imageUrl={item.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"} startDatetime={item.start_datetime} location={item.location_name} category={item.category} attendees={item.guestlist_entries?.[0]?.count || 0} isPost={item.is_post || false} createdAt={item.created_at} ownerAvatar={item.creator?.avatar_url} creatorId={item.creator_id} index={index} media={item.media} viewCount={item.view_count} showCtaActions />;
   return <AppLayout>
       {/* Header */}
@@ -102,7 +125,7 @@ const Profile = () => {
             {/* Stats */}
             <div className="flex gap-6 mt-2">
               {stats.map((stat) => <div key={stat.label} className={`text-center ${stat.onClick ? "cursor-pointer transition-opacity" : ""}`} onClick={stat.onClick}>
-                  <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>
+                  {stat.node ? stat.node : <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>}
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </div>)}
             </div>
@@ -173,10 +196,8 @@ const Profile = () => {
             </m.div>}
         </AnimatePresence>
 
-        {/* Experience Goal — owner-only */}
-        <ExperienceGoalCard />
-
       </div>
+
 
       {/* Timeline Content */}
       <div className="py-4">
@@ -206,6 +227,8 @@ const Profile = () => {
       address={profile?.business_address}
       hours={profile?.business_hours}
       phone={profile?.business_phone} />
+      {/* Experience Goal Sheet */}
+      <ExperienceGoalSheet open={goalSheetOpen} onOpenChange={setGoalSheetOpen} />
     
     </AppLayout>;
 };
