@@ -1,26 +1,20 @@
-## Compact Experience Goal ring in profile stats
+# Plan: Replace stats-row ring with plain text, add ring inside bottom sheet
 
-Replace the large `ExperienceGoalCard` below the bio with a small inline ring that lives inside the existing stats row, replacing the "Eventos" stat.
+## Changes
 
-### Changes
+### 1. `src/pages/Profile.tsx`
+- Remove `ExperienceStatRing` import.
+- In `eventsStat`, replace `node: <ExperienceStatRing .../>` with plain `value: \`${experienceProgress.percent}%\``.
+- Keep `label: "Exp"`, `onClick`, and `ExperienceGoalSheet` unchanged.
+- Fallback to `Eventos` count when no active goal — unchanged.
 
-**`src/pages/Profile.tsx`**
-- Remove `<ExperienceGoalCard />` from below the banner.
-- Remove the `ExperienceGoalCard` import.
-- Import `useExperienceProgress` and a new tiny `ExperienceStatRing` component.
-- Replace the first stat (`Eventos`) with conditional rendering:
-  - **Goal set for current year** → render `ExperienceStatRing` (small ~36px ring with % inside), label `"Exp"`, tap opens `ExperienceGoalSheet`.
-  - **No goal / stale year** → render the normal events count (current behavior), label stays `"Eventos"`. No extra indicator.
-- Keep `Seguidores` and `Siguiendo` stats unchanged.
+### 2. `src/components/profile/ExperienceGoalSheet.tsx`
+- Import `ExperienceStatRing`.
+- In the read-only view (`!editMode && data && data.goal`), replace the big `{count} / {goal}` number block with a centered `ExperienceStatRing` (size ~140, stroke ~8) showing `percent`, with the `{count} / {goal}` text and pace line below it.
 
-**New `src/components/profile/ExperienceStatRing.tsx`**
-- Small SVG ring (size ~36, stroke 3).
-- Shows `{percent}%` centered in `font-brand text-base font-bold`.
-- Brand red stroke when `ahead | on_track | complete`, muted otherwise.
-- Receives `percent` and `pace` props; pure presentational.
+### 3. `src/components/profile/ExperienceStatRing.tsx`
+- Make stroke scale with size (e.g. `stroke = Math.max(3, Math.round(size / 14))`) so it looks good both at 36px (not used anymore but kept available) and at 140px in the sheet.
+- Scale the inner percent text size based on `size` (e.g. `size >= 80 ? "text-2xl" : "text-[11px]"`).
 
-**No changes** to `useExperienceProgress`, `ExperienceGoalSheet`, `ExperienceGoalPicker`, onboarding, settings, or DB.
-
-### UX detail
-
-The ring sits where the "Eventos" number used to, same vertical rhythm as the other two stats. Tapping the ring/label area opens the existing bottom sheet (same as before). When the user hasn't set a goal yet, the row looks exactly like it does today — discovery of the feature happens via Onboarding step 4 and Settings → Meta del año.
+## Result
+Stats row shows clean text `25%` / `Exp` matching `Seguidores` / `Siguiendo` style. Tap still opens the bottom sheet, which now features a prominent circular progress ring at the top.
