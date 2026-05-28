@@ -40,14 +40,10 @@ const FollowButton = ({
     }
   };
   const isPending = followMutation.isPending || unfollowMutation.isPending;
-  return <Button variant={isFollowing ? "secondary" : "hero"} size="sm" onClick={handleClick} disabled={isLoading || isPending} className="min-w-[80px] text-xs">
-      {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? <>
-          
-          Siguiendo
-        </> : <>
-          <UserPlus className="w-3 h-3 mr-1" />
-          {isFollowedBy ? "Seguir de vuelta" : "Seguir"}
-        </>}
+  return <Button variant={isFollowing ? "secondary" : "hero"} size="sm" onClick={handleClick} disabled={isLoading || isPending} className="min-w-[100px] px-2 text-xs">
+      {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="truncate">
+          {isFollowing ? "Siguiendo" : isFollowedBy ? "Seguir de vuelta" : "Seguir"}
+        </span>}
     </Button>;
 };
 const UserItem = ({
