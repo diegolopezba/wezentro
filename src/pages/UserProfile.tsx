@@ -8,7 +8,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
-import { useUserProfile, useIsFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useUserProfile";
+import { useUserProfile, useIsFollowing, useIsFollowedBy, useFollowUser, useUnfollowUser } from "@/hooks/useUserProfile";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useUserTimeline } from "@/hooks/useUserTimeline";
 import { useCanMessageUser } from "@/hooks/useUserSettings";
