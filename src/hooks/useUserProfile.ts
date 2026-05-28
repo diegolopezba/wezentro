@@ -137,6 +137,28 @@ export const useIsFollowing = (targetUserId: string | undefined) => {
   });
 };
 
+export const useIsFollowedBy = (targetUserId: string | undefined) => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["is-followed-by", user?.id, targetUserId],
+    queryFn: async () => {
+      if (!user?.id || !targetUserId || user.id === targetUserId) return false;
+
+      const { data, error } = await supabase
+        .from("follows")
+        .select("id")
+        .eq("follower_id", targetUserId)
+        .eq("following_id", user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return !!data;
+    },
+    enabled: !!user?.id && !!targetUserId,
+  });
+};
+
 export const useFollowUser = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
