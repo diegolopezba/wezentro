@@ -220,7 +220,7 @@ const UserProfile = () => {
         delay: 0.1
       }} className="flex gap-2 mt-4">
             <Button variant={isFollowing ? "secondary" : "hero"} className="flex-1 min-w-0" onClick={handleFollowToggle} disabled={followStatusLoading || isFollowPending}>
-              {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? "Siguiendo" : "Seguir"}
+              {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? "Siguiendo" : isFollowedBy ? "Seguir de vuelta" : "Seguir"}
             </Button>
 
             {/* For food businesses: Message pill + Reserve pill + Menu icon */}
