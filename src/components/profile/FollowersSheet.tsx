@@ -4,7 +4,7 @@ import { m } from "framer-motion";
 import { Loader2, UserPlus } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useUserFollowers, useUserFollowing, useIsFollowing, useFollowUser, useUnfollowUser, FollowUser } from "@/hooks/useUserProfile";
+import { useUserFollowers, useUserFollowing, useIsFollowing, useIsFollowedBy, useFollowUser, useUnfollowUser, FollowUser } from "@/hooks/useUserProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { haptic } from "@/lib/haptics";
@@ -26,6 +26,7 @@ const FollowButton = ({
     data: isFollowing,
     isLoading
   } = useIsFollowing(targetUserId);
+  const { data: isFollowedBy } = useIsFollowedBy(targetUserId);
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
   if (user?.id === targetUserId) return null;
@@ -45,7 +46,7 @@ const FollowButton = ({
           Siguiendo
         </> : <>
           <UserPlus className="w-3 h-3 mr-1" />
-          Seguir
+          {isFollowedBy ? "Seguir de vuelta" : "Seguir"}
         </>}
     </Button>;
 };

@@ -8,7 +8,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
-import { useUserProfile, useIsFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useUserProfile";
+import { useUserProfile, useIsFollowing, useIsFollowedBy, useFollowUser, useUnfollowUser } from "@/hooks/useUserProfile";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useUserTimeline } from "@/hooks/useUserTimeline";
 import { useCanMessageUser } from "@/hooks/useUserSettings";
@@ -63,6 +63,7 @@ const UserProfile = () => {
     data: isFollowing,
     isLoading: followStatusLoading
   } = useIsFollowing(id);
+  const { data: isFollowedBy } = useIsFollowedBy(id);
   const {
     data: timeline,
     isLoading: timelineLoading
@@ -219,7 +220,7 @@ const UserProfile = () => {
         delay: 0.1
       }} className="flex gap-2 mt-4">
             <Button variant={isFollowing ? "secondary" : "hero"} className="flex-1 min-w-0" onClick={handleFollowToggle} disabled={followStatusLoading || isFollowPending}>
-              {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? "Siguiendo" : "Seguir"}
+              {isFollowPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? "Siguiendo" : isFollowedBy ? "Seguir de vuelta" : "Seguir"}
             </Button>
 
             {/* For food businesses: Message pill + Reserve pill + Menu icon */}
