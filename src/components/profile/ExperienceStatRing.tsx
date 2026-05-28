@@ -26,7 +26,7 @@ export const ExperienceStatRing = ({ percent, pace, size = 36 }: ExperienceStatR
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="hsl(var(--accent-red))"
+          stroke="hsl(var(--primary))"
           strokeWidth={stroke}
           fill="none"
           strokeLinecap="round"
