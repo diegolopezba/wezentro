@@ -63,6 +63,7 @@ const UserProfile = () => {
     data: isFollowing,
     isLoading: followStatusLoading
   } = useIsFollowing(id);
+  const { data: isFollowedBy } = useIsFollowedBy(id);
   const {
     data: timeline,
     isLoading: timelineLoading
