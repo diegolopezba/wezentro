@@ -41,7 +41,7 @@ export const CardLikeButton = ({ eventId }: CardLikeButtonProps) => {
       <Heart
         className={cn(
           "w-4 h-4 transition-colors",
-          liked ? "fill-primary text-primary" : "text-white"
+        liked ? "fill-red-500 text-red-500" : "text-white"
         )}
       />
       {count > 0 && (
