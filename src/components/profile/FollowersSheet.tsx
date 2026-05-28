@@ -4,7 +4,7 @@ import { m } from "framer-motion";
 import { Loader2, UserPlus } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useUserFollowers, useUserFollowing, useIsFollowing, useFollowUser, useUnfollowUser, FollowUser } from "@/hooks/useUserProfile";
+import { useUserFollowers, useUserFollowing, useIsFollowing, useIsFollowedBy, useFollowUser, useUnfollowUser, FollowUser } from "@/hooks/useUserProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { haptic } from "@/lib/haptics";
