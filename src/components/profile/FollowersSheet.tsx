@@ -26,6 +26,7 @@ const FollowButton = ({
     data: isFollowing,
     isLoading
   } = useIsFollowing(targetUserId);
+  const { data: isFollowedBy } = useIsFollowedBy(targetUserId);
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
   if (user?.id === targetUserId) return null;
@@ -45,7 +46,7 @@ const FollowButton = ({
           Siguiendo
         </> : <>
           <UserPlus className="w-3 h-3 mr-1" />
-          Seguir
+          {isFollowedBy ? "Seguir de vuelta" : "Seguir"}
         </>}
     </Button>;
 };
