@@ -83,9 +83,9 @@ export const TimelineCardCtaActions = ({ eventId, creatorId }: Props) => {
       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
         <button
           aria-label="Acciones"
-          className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center"
+          className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-transparent flex items-center justify-center [-webkit-tap-highlight-color:transparent]"
         >
-          <MoreHorizontal className="w-3.5 h-3.5 text-white" />
+          <MoreHorizontal className="w-3.5 h-3.5 text-white" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))" }} />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
