@@ -1,35 +1,27 @@
 project_id = "fipdpcitsjpqivljrktj"
 
-[functions.get-mapbox-token]
-verify_jwt = false
-
-[functions.stripe-webhook]
-verify_jwt = false
-
-[functions.send-push-notification]
-verify_jwt = true
-
-
-[functions.activate-ad-campaign]
-verify_jwt = false
-
-[functions.charge-boost]
-verify_jwt = false
-
-[functions.generate-bnb-qr]
-verify_jwt = false
-
-[functions.check-bnb-payment-status]
-verify_jwt = false
-
-[functions.check-in-guest]
-verify_jwt = false
-
-[functions.send-reservation-reminders]
-verify_jwt = false
-
-[functions.get-for-you-feed]
-verify_jwt = false
-
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.activate-ad-campaign]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.charge-boost]
+    verify_jwt = false
+  [functions.check-bnb-payment-status]
+    verify_jwt = false
+  [functions.check-in-guest]
+    verify_jwt = false
+  [functions.generate-bnb-qr]
+    verify_jwt = false
+  [functions.get-for-you-feed]
+    verify_jwt = false
+  [functions.get-mapbox-token]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
+  [functions.send-push-notification]
+    verify_jwt = true
+  [functions.send-reservation-reminders]
+    verify_jwt = false
+  [functions.stripe-webhook]
+    verify_jwt = false
