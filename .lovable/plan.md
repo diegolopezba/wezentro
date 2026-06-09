@@ -1,37 +1,26 @@
-# Fix signup rate limits for 5K user surge
-
 ## Root cause
 
-Auth email domain `hello.zentro.today` is verified, and shared email infrastructure (queues, cron, send log) is already provisioned. However, `supabase/functions/auth-email-hook/index.ts` is still on the **old synchronous pattern** — it imports `@lovable.dev/email-js` and sends every confirmation email inline via `callback_url`.
+Even though our custom `auth-email-hook` is healthy and queuing emails through `hello.zentro.today` at ~120/min, Supabase Auth enforces its **own project-level email rate limit** (default ~30 emails/hour) on `/signup` and `/recover` *before* the hook is invoked. The auth logs from the last few minutes confirm this — multiple users (caryto_98, davidcorona.business, vidalmar2004, nataliariveroma, etc.) are getting `429 over_email_send_rate_limit`, and the test email (zoe.e.sweaney@slu.edu) never reached `email_send_log` because Supabase rejected the request upstream.
 
-That path is capped by Supabase's built-in auth email sender at roughly **30 emails/hour project-wide and 1 email/60s per address**. That is exactly what the logs show: every `/signup` is returning `429 over_email_send_rate_limit`. Real users see "algo salió mal" and bounce.
-
-The new queued pattern enqueues into pgmq `auth_emails`, then `process-email-queue` drains it at ~120 emails/min using your own verified domain — well above 5K signups in a day.
+This is why custom-hook users *think* they removed the rate limit but didn't — the hook bypasses Supabase's *sender*, not its *rate counter*.
 
 ## Plan
 
-1. **Upgrade the auth email hook to the queued pipeline**
-   - Re-scaffold the six auth templates + `auth-email-hook` with overwrite enabled. This replaces the old `@lovable.dev/email-js` direct-send code with the new `enqueue_email` version that uses pgmq + the existing `process-email-queue` cron.
-   - Re-apply Zentro brand styling (dark theme, Pinterest red `#E60023`, Poppins) to the regenerated templates, keeping email body background white per email best practice.
-   - Deploy `auth-email-hook` so Supabase Auth starts handing emails to the queue immediately.
-
-2. **Verify the live pipeline**
-   - Confirm `process-email-queue` cron is active on Live (this is what makes prod actually drain the queue — separate from dev).
-   - Check `email_send_log` after first real signup to confirm rows land as `pending` → `sent`.
-
-3. **No frontend changes needed**
-   - The friendly-error mapping + 60s "Reenviar correo" cooldown shipped last turn already covers the residual per-address gate.
-   - Onboarding 13+ age gate and duplicate-username handling already in place.
+1. **Raise the Supabase Auth email rate limit** to a level that supports 5K signups/day (target: 1000/hr or higher). This is a single config change in `auth.rate_limit_email_sent`.
+2. **Verify** by:
+   - Re-checking auth logs for `over_email_send_rate_limit` — should drop to zero.
+   - Asking the user to retry signup with the same email and confirming a new row appears in `email_send_log` going `pending → sent`.
+3. **No code changes needed.** The hook, queue, templates, and frontend cooldown all stay as-is.
 
 ## Technical details
 
-- File touched by scaffolder: `supabase/functions/auth-email-hook/index.ts` and templates under `supabase/functions/_shared/email-templates/*.tsx`.
-- Deploy target: `auth-email-hook` (process-email-queue is already deployed).
-- No DB migration required — `enqueue_email`, `read_email_batch`, `delete_email`, `move_to_dlq` RPCs and pgmq queues already exist.
-- No env changes required — `SENDER_DOMAIN = hello.zentro.today` is correct.
-- If Live cron is missing post-publish, re-publish triggers the OnPublish hook to provision prod cron + Vault secret.
+- The setting lives in Supabase Auth's GoTrue config under `RATE_LIMIT_EMAIL_SENT` (hourly cap on emails sent via auth flows: signup confirm, recovery, magic link, email change).
+- We'll raise it from the default (30/hr) to **1000/hr**, which covers the 5K/day surge with healthy margin.
+- This is a runtime config change applied via the Supabase Management API — no migration, no redeploy.
+- The per-address 60s cooldown (Supabase's `EMAIL_RESEND_INTERVAL`) is separate and stays at default; that's fine for the "Reenviar" UX we already shipped.
 
 ## Out of scope
 
-- Switching to a third-party email provider (would conflict with NS delegation, slower to ship).
-- Touching Supabase auto-confirm or disabling email confirmation (security regression, not asked for).
+- Switching email providers.
+- Disabling email confirmation (security regression, not requested).
+- Touching templates or the hook (both verified working).
