@@ -45,6 +45,7 @@ export const useEventDetailState = (
   const [showReservationSheet, setShowReservationSheet] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showTierPicker, setShowTierPicker] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [selectedTier, setSelectedTier] = useState<TicketTier | null>(null);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
@@ -167,6 +168,7 @@ export const useEventDetailState = (
     setShowReservationSheet(false);
     setShowComments(false);
     setShowTierPicker(false);
+    setShowLeaveConfirm(false);
     setSelectedTier(null);
     setMediaLoaded(false);
     // NOTE: deliberately NOT resetting aspectRatio here. Letting the previous
@@ -308,6 +310,7 @@ export const useEventDetailState = (
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
     showTierPicker, setShowTierPicker,
+    showLeaveConfirm, setShowLeaveConfirm,
     // Tiers
     ticketTiers, hasTiers, isSequential, allTiersSoldOut,
     purchasableTiers, cheapestPurchasableTier,
