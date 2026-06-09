@@ -411,7 +411,7 @@ const Auth = () => {
                   variant="hero"
                   className="w-full"
                   onClick={handleVerifyCode}
-                  disabled={isLoading || otpCode.length !== 6}
+                  disabled={isLoading || otpCode.length < 6}
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
