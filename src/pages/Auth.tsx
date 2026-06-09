@@ -209,13 +209,13 @@ const Auth = () => {
       // Email confirmation is enabled: signUp returns a user but no session.
       if (data?.user && !data.session) {
         toast.success(
-          `Te enviamos un correo de verificación a ${formData.email}. Confírmalo para iniciar sesión.`,
-          { duration: 8000 }
+          `Te enviamos un código de verificación a ${formData.email}.`,
+          { duration: 6000 }
         );
         setNeedsConfirmation(true);
+        setAwaitingCode(true);
+        setOtpCode("");
         startResendCooldown();
-        setMode("login");
-        setFormData((prev) => ({ ...prev, password: "" }));
         setIsLoading(false);
         return;
       }
@@ -223,6 +223,32 @@ const Auth = () => {
       navigate("/onboarding");
     }
     setIsLoading(false);
+  };
+
+  const handleVerifyCode = async () => {
+    const code = otpCode.trim();
+    if (!/^\d{6}$/.test(code)) {
+      setErrors({ otp: "Ingresa el código de 6 dígitos." });
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await verifySignupOtp(formData.email, code);
+    setIsLoading(false);
+    if (error) {
+      const raw = (error?.message || "").toString();
+      if (/expired/i.test(raw)) {
+        setErrors({ otp: "El código expiró. Reenvía uno nuevo." });
+      } else if (/invalid|incorrect/i.test(raw)) {
+        setErrors({ otp: "Código incorrecto. Verifica e intenta de nuevo." });
+      } else {
+        setErrors({ otp: friendlyAuthError(error) });
+      }
+      return;
+    }
+    toast.success("¡Correo verificado! Configurando tu perfil...");
+    setAwaitingCode(false);
+    setNeedsConfirmation(false);
+    navigate("/onboarding");
   };
 
   const handleResetPassword = async () => {
