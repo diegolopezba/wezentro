@@ -390,14 +390,14 @@ const Auth = () => {
                     type="text"
                     inputMode="numeric"
                     autoComplete="one-time-code"
-                    placeholder="Código de 6 dígitos"
+                    placeholder="Código de verificación"
                     value={otpCode}
                     onChange={(e) => {
-                      const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 10);
                       setOtpCode(v);
                       if (errors.otp) setErrors({ ...errors, otp: undefined });
                     }}
-                    maxLength={6}
+                    maxLength={10}
                     className={`text-center text-2xl tracking-[0.5em] ${errors.otp ? "border-destructive" : ""}`}
                   />
                   {errors.otp && (
