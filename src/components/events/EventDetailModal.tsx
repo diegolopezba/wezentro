@@ -72,6 +72,7 @@ const EventDetailModalInner = () => {
     attendeesGoing,
     isOnGuestlist, isPending,
     isOwner,
+    approvedCount, maxGuestlistCapacity, isGuestlistFull,
     hasPaidTickets, hasPaymentQr,
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
@@ -413,7 +414,14 @@ const EventDetailModalInner = () => {
           {!isPost && (
             <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
               <div className="flex items-center justify-between px-4 py-3">
-                <span className="font-brand text-lg font-semibold text-foreground">{formattedPrice}</span>
+                <div className="flex flex-col">
+                  <span className="font-brand text-lg font-semibold text-foreground">{formattedPrice}</span>
+                  {maxGuestlistCapacity != null && (
+                    <span className="text-xs text-muted-foreground">
+                      {approvedCount}/{maxGuestlistCapacity}
+                    </span>
+                  )}
+                </div>
                 {isOwner ? (
                   <Button variant="hero" size="default" onClick={() => setShowManagement(true)}>
                     Gestionar
@@ -437,6 +445,10 @@ const EventDetailModalInner = () => {
                       )}
                     </Button>
                   )
+                ) : isGuestlistFull ? (
+                  <Button variant="outline" size="default" disabled>
+                    Agotado
+                  </Button>
                 ) : (
                   <Button variant="hero" size="default" onClick={handleBuyTicket} disabled={buyTicketPending}>
                     {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? (
