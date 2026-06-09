@@ -1,27 +1,17 @@
-## Goal
+## Problem
 
-On the Tickets page (`/settings/tickets`):
-- Only show tickets for entries the user was actually **approved** for (hide `pending` ones).
-- For **approved free events**, show a clear "Ver QR" action directly on the ticket row so the user can pull up their entrance QR without leaving the page.
-- Paid tickets keep their current behavior (badge + tap-through to `/going/:id`).
+For zoeesweaney's approved entry to "Evento pop-up de zentro", the DB row has `price = 0` (free event), `status = "approved"`, a valid `qr_code_token`, but `payment_status = "pending"` (a stale default). The Tickets page renders the "Pago Pendiente" badge based purely on `payment_status` and gates QR access via `paymentOk`, so a free approved ticket looks unpaid and the QR can't open.
 
-## Changes — `src/pages/Tickets.tsx`
+## Fix — `src/pages/Tickets.tsx` only
 
-1. **Query filter**: change `.in("status", ["approved", "pending"])` to `.eq("status", "approved")`. Pending guestlist requests will no longer appear in Entradas.
+Make free events bypass the `payment_status` check entirely. Price is the source of truth for whether payment matters.
 
-2. **Per-row classification**: for each ticket, derive:
-   - `isFree = !event.price || event.price === 0` (paired with `payment_status` being `none`/null).
-   - `qrToken = ticket.qr_code_token`.
+1. **`canShowQr`**: change to `canShowQr = !!ticket.qr_code_token && (isFree || paymentOk)`. Free + approved + has token → always allowed.
+2. **Badge**: pass `isFree` into `getPaymentStatusBadge` (or branch inline). When `isFree`, always render the green **"Confirmado"** pill and skip the pending/rejected branches.
+3. Leave paid-ticket logic untouched: paid tickets still show pending/rejected/confirmed based on `payment_status` and still tap-through to `/going/:id`.
 
-3. **UI on the row**:
-   - Keep the existing row layout (image, title, host, date, badge).
-   - For **free approved tickets**, replace the `ChevronRight` with a small pill button **"Ver QR"** (brand-red, `rounded-full`, `active:` feedback per native-first rule). Tapping it opens an inline `Dialog` showing the QR (reuse the same `QRCodeSVG` block from `YouAreGoing.tsx`) — no navigation away.
-   - For **paid approved tickets** (payment confirmed), keep the current tap-through to `/going/:id` and the `ChevronRight`.
+No DB changes, no changes to `YouAreGoing.tsx` or backend.
 
-4. **QR Dialog** (local to Tickets page): minimal dialog with event title, white-bg QR square (`QRCodeSVG` value = `qr_code_token`, size 200, level "H"), and helper text "Muestra esto en la entrada". Mirror the styling already used in `YouAreGoing`.
+## Result
 
-## Out of scope
-
-- No DB or RLS changes.
-- No changes to `YouAreGoing.tsx`, guestlist approval flow, or event detail capacity logic.
-- Paid-ticket flow stays exactly as it is.
+Zoe's row will show **Confirmado** + working **Ver QR** dialog. Any other free approved ticket with a lingering `payment_status = "pending"` is also corrected client-side.
