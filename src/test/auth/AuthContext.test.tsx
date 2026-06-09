@@ -13,10 +13,10 @@ const onAuthStateChangeMock = vi.fn(() => ({
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
-      signUp: (...args: any[]) => signUpMock(...args),
-      signInWithPassword: (...args: any[]) => signInMock(...args),
-      verifyOtp: (...args: any[]) => verifyOtpMock(...args),
-      onAuthStateChange: (...args: any[]) => onAuthStateChangeMock(...args),
+      signUp: signUpMock,
+      signInWithPassword: signInMock,
+      verifyOtp: verifyOtpMock,
+      onAuthStateChange: onAuthStateChangeMock,
       signOut: vi.fn().mockResolvedValue({ error: null }),
       resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null }),
       resend: vi.fn().mockResolvedValue({ error: null }),
