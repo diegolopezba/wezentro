@@ -45,6 +45,7 @@ export const useEventDetailState = (
   const [showReservationSheet, setShowReservationSheet] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showTierPicker, setShowTierPicker] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [selectedTier, setSelectedTier] = useState<TicketTier | null>(null);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);

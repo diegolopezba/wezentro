@@ -1,17 +1,36 @@
 ## Problem
+When a user already joined an event (the CTA shows **Unido**), tapping it immediately removes them from the guestlist via `handleLeaveGuestlist` with no confirmation. This can cause accidental un-joins.
 
-For zoeesweaney's approved entry to "Evento pop-up de zentro", the DB row has `price = 0` (free event), `status = "approved"`, a valid `qr_code_token`, but `payment_status = "pending"` (a stale default). The Tickets page renders the "Pago Pendiente" badge based purely on `payment_status` and gates QR access via `paymentOk`, so a free approved ticket looks unpaid and the QR can't open.
+## Goal
+Show a native-style confirmation **bottomsheet** (Drawer from vaul) before actually leaving the guestlist.
 
-## Fix — `src/pages/Tickets.tsx` only
+## Changes
 
-Make free events bypass the `payment_status` check entirely. Price is the source of truth for whether payment matters.
+### 1. `src/hooks/useEventDetailState.ts`
+Add `showLeaveConfirm` / `setShowLeaveConfirm` boolean state and expose it from the hook.
 
-1. **`canShowQr`**: change to `canShowQr = !!ticket.qr_code_token && (isFree || paymentOk)`. Free + approved + has token → always allowed.
-2. **Badge**: pass `isFree` into `getPaymentStatusBadge` (or branch inline). When `isFree`, always render the green **"Confirmado"** pill and skip the pending/rejected branches.
-3. Leave paid-ticket logic untouched: paid tickets still show pending/rejected/confirmed based on `payment_status` and still tap-through to `/going/:id`.
+### 2. New component: `src/components/events/LeaveGuestlistDrawer.tsx`
+A reusable bottomsheet using the project's existing `<Drawer>` (vaul) primitives:
+- Title: "¿Salir de la lista?"
+- Description: "Si abandonas la lista perderás tu lugar en este evento."
+- Footer with two pill (`rounded-full`) buttons:
+  - **Cancelar** (ghost variant) → closes drawer
+  - **Salir de la lista** (destructive variant, brand-red `#E60023` background per project tokens) → calls `onConfirm` and closes drawer
 
-No DB changes, no changes to `YouAreGoing.tsx` or backend.
+### 3. `src/pages/EventDetail.tsx` & `src/components/events/EventDetailModal.tsx`
+- In both files, locate the **Unido** button (`variant="ghost"` with `<Check /> Unido`).
+- Change its `onClick` from `handleLeaveGuestlist` to `() => setShowLeaveConfirm(true)`.
+- Render `<LeaveGuestlistDrawer>` below the floating CTA bar, passing:
+  - `open={showLeaveConfirm}`
+  - `onOpenChange={setShowLeaveConfirm}`
+  - `onConfirm={handleLeaveGuestlist}`
+  - `isPending={leaveGuestlistPending}`
 
-## Result
+### 4. No backend or mutation changes
+`handleLeaveGuestlist` stays exactly the same; we only gate it behind the drawer.
 
-Zoe's row will show **Confirmado** + working **Ver QR** dialog. Any other free approved ticket with a lingering `payment_status = "pending"` is also corrected client-side.
+## Files touched
+- `src/hooks/useEventDetailState.ts`
+- `src/components/events/LeaveGuestlistDrawer.tsx` (new)
+- `src/pages/EventDetail.tsx`
+- `src/components/events/EventDetailModal.tsx`
