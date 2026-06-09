@@ -3,24 +3,28 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 
-// ---- Mocks ----
-const navigateMock = vi.fn();
+const mocks = vi.hoisted(() => ({
+  navigateMock: vi.fn(),
+  signInMock: vi.fn(),
+  signUpMock: vi.fn(),
+  verifySignupOtpMock: vi.fn(),
+  resetPasswordMock: vi.fn(),
+  resendConfirmationMock: vi.fn(),
+}));
+
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>(
     "react-router-dom"
   );
   return {
     ...actual,
-    useNavigate: () => navigateMock,
+    useNavigate: () => mocks.navigateMock,
     useLocation: () => ({ state: null, pathname: "/auth" }),
   };
 });
 
 vi.mock("sonner", () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
+  toast: { success: vi.fn(), error: vi.fn() },
 }));
 
 vi.mock("@/hooks/useKeyboardAdjust", () => ({
@@ -40,25 +44,21 @@ vi.mock("framer-motion", async () => {
   };
 });
 
-const signInMock = vi.fn();
-const signUpMock = vi.fn();
-const verifySignupOtpMock = vi.fn();
-const resetPasswordMock = vi.fn();
-const resendConfirmationMock = vi.fn();
-
 vi.mock("@/contexts/AuthContext", () => ({
   useAuth: () => ({
     user: null,
     isLoading: false,
-    signIn: signInMock,
-    signUp: signUpMock,
-    verifySignupOtp: verifySignupOtpMock,
-    resetPassword: resetPasswordMock,
-    resendConfirmation: resendConfirmationMock,
+    signIn: mocks.signInMock,
+    signUp: mocks.signUpMock,
+    verifySignupOtp: mocks.verifySignupOtpMock,
+    resetPassword: mocks.resetPasswordMock,
+    resendConfirmation: mocks.resendConfirmationMock,
   }),
 }));
 
 import Auth from "@/pages/Auth";
+
+const { navigateMock, signInMock, signUpMock, verifySignupOtpMock } = mocks;
 
 const renderAuth = () =>
   render(
@@ -66,6 +66,36 @@ const renderAuth = () =>
       <Auth />
     </MemoryRouter>
   );
+
+const switchToSignup = async (user: ReturnType<typeof userEvent.setup>) => {
+  // The mode toggle has buttons "Iniciar Sesión" and "Registrarse".
+  // "Registrarse" only appears in the toggle, so it's unambiguous.
+  const toggleBtn = screen
+    .getAllByRole("button")
+    .find((b) => b.textContent?.trim() === "Registrarse");
+  if (!toggleBtn) throw new Error("Signup toggle not found");
+  await user.click(toggleBtn);
+};
+
+const submitSignup = async (user: ReturnType<typeof userEvent.setup>) => {
+  const btn = await screen.findByRole("button", { name: /crear cuenta/i });
+  await user.click(btn);
+};
+
+const submitLogin = async (user: ReturnType<typeof userEvent.setup>) => {
+  // The "Iniciar Sesión" submit is the LAST button with that text
+  // (the first is the mode toggle).
+  const all = screen.getAllByRole("button", { name: /iniciar sesión/i });
+  await user.click(all[all.length - 1]);
+};
+
+const fillSignupForm = async (user: ReturnType<typeof userEvent.setup>) => {
+  await switchToSignup(user);
+  await user.type(screen.getByPlaceholderText(/correo/i), "zoe@test.com");
+  await user.type(screen.getByPlaceholderText(/contraseña/i), "password123");
+  const checkbox = screen.getByRole("checkbox");
+  await user.click(checkbox);
+};
 
 describe("Auth page - signup → code → verify flow", () => {
   beforeEach(() => {
@@ -86,35 +116,16 @@ describe("Auth page - signup → code → verify flow", () => {
     });
 
     renderAuth();
-
-    // Switch to signup mode
-    await user.click(screen.getByRole("button", { name: /registrarse/i }));
-
-    await user.type(screen.getByPlaceholderText(/correo/i), "zoe@test.com");
-    await user.type(screen.getByPlaceholderText(/contraseña/i), "password123");
-
-    // Accept terms checkbox - find by role
-    const termsCheckbox = screen.getByRole("checkbox");
-    await user.click(termsCheckbox);
-
-    // Submit
-    const submitBtn = screen
-      .getAllByRole("button")
-      .find((b) => /crear cuenta|registrarse|continuar/i.test(b.textContent || ""));
-    expect(submitBtn).toBeTruthy();
-    await user.click(submitBtn!);
+    await fillSignupForm(user);
+    await submitSignup(user);
 
     await waitFor(() => {
       expect(signUpMock).toHaveBeenCalledWith("zoe@test.com", "password123");
     });
-
-    // OTP screen appears
-    await waitFor(() => {
-      expect(screen.getByText(/verifica tu correo/i)).toBeInTheDocument();
-      expect(
-        screen.getByPlaceholderText(/código de 6 dígitos/i)
-      ).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/verifica tu correo/i)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/código de 6 dígitos/i)
+    ).toBeInTheDocument();
   });
 
   it("entering a valid 6-digit code calls verifySignupOtp and navigates to /onboarding", async () => {
@@ -129,24 +140,18 @@ describe("Auth page - signup → code → verify flow", () => {
     verifySignupOtpMock.mockResolvedValue({ error: null });
 
     renderAuth();
-
-    await user.click(screen.getByRole("button", { name: /registrarse/i }));
-    await user.type(screen.getByPlaceholderText(/correo/i), "zoe@test.com");
-    await user.type(screen.getByPlaceholderText(/contraseña/i), "password123");
-    await user.click(screen.getByRole("checkbox"));
-    const submitBtn = screen
-      .getAllByRole("button")
-      .find((b) => /crear cuenta|registrarse|continuar/i.test(b.textContent || ""));
-    await user.click(submitBtn!);
+    await fillSignupForm(user);
+    await submitSignup(user);
 
     const codeInput = await screen.findByPlaceholderText(/código de 6 dígitos/i);
     await user.type(codeInput, "123456");
-
-    const verifyBtn = screen.getByRole("button", { name: /verificar/i });
-    await user.click(verifyBtn);
+    await user.click(screen.getByRole("button", { name: /verificar/i }));
 
     await waitFor(() => {
-      expect(verifySignupOtpMock).toHaveBeenCalledWith("zoe@test.com", "123456");
+      expect(verifySignupOtpMock).toHaveBeenCalledWith(
+        "zoe@test.com",
+        "123456"
+      );
       expect(navigateMock).toHaveBeenCalledWith("/onboarding");
     });
   });
@@ -165,14 +170,8 @@ describe("Auth page - signup → code → verify flow", () => {
     });
 
     renderAuth();
-    await user.click(screen.getByRole("button", { name: /registrarse/i }));
-    await user.type(screen.getByPlaceholderText(/correo/i), "zoe@test.com");
-    await user.type(screen.getByPlaceholderText(/contraseña/i), "password123");
-    await user.click(screen.getByRole("checkbox"));
-    const submitBtn = screen
-      .getAllByRole("button")
-      .find((b) => /crear cuenta|registrarse|continuar/i.test(b.textContent || ""));
-    await user.click(submitBtn!);
+    await fillSignupForm(user);
+    await submitSignup(user);
 
     const codeInput = await screen.findByPlaceholderText(/código de 6 dígitos/i);
     await user.type(codeInput, "000000");
@@ -199,18 +198,15 @@ describe("Auth page - signup → code → verify flow", () => {
     // Default mode is login
     await user.type(screen.getByPlaceholderText(/correo/i), "zoe@test.com");
     await user.type(screen.getByPlaceholderText(/contraseña/i), "password123");
-    const loginBtn = screen
-      .getAllByRole("button")
-      .find((b) => /iniciar sesión|entrar|continuar/i.test(b.textContent || ""));
-    await user.click(loginBtn!);
+    await submitLogin(user);
 
     await waitFor(() => {
       expect(signInMock).toHaveBeenCalledWith("zoe@test.com", "password123");
-      expect(screen.getByText(/verifica tu correo/i)).toBeInTheDocument();
-      expect(
-        screen.getByPlaceholderText(/código de 6 dígitos/i)
-      ).toBeInTheDocument();
     });
+    expect(await screen.findByText(/verifica tu correo/i)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/código de 6 dígitos/i)
+    ).toBeInTheDocument();
     expect(navigateMock).not.toHaveBeenCalledWith("/onboarding");
   });
 });
