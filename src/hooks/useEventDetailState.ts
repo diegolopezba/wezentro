@@ -99,6 +99,10 @@ export const useEventDetailState = (
   const isApproved = guestlistStatus?.status === "approved";
   const isOwner = !!(user && user.id === event?.creator_id);
 
+  const approvedCount = guestlist.length;
+  const maxGuestlistCapacity = event?.max_guestlist_capacity ?? null;
+  const isGuestlistFull = maxGuestlistCapacity != null && approvedCount >= maxGuestlistCapacity;
+
   const pendingCount = pendingRequests.length + pendingPayments.length;
   const legacyHasPaid = (event?.price ?? 0) > 0;
   const hasPaidTickets = hasTiers
@@ -278,6 +282,7 @@ export const useEventDetailState = (
     // Derived
     isOnGuestlist, isPending, isApproved,
     isOwner,
+    approvedCount, maxGuestlistCapacity, isGuestlistFull,
     hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
     isGuest, isAuthenticated: !isGuest,
     formattedDate, formattedPrice,
