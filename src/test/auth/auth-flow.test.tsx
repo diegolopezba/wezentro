@@ -33,13 +33,21 @@ vi.mock("@/hooks/useKeyboardAdjust", () => ({
 
 vi.mock("framer-motion", async () => {
   const React = await import("react");
-  const passthrough = (tag: string) =>
-    React.forwardRef(({ children, ...props }: any, ref: any) =>
-      React.createElement(tag, { ...props, ref }, children)
+  const cache: Record<string, any> = {};
+  const passthrough = (tag: string) => {
+    if (cache[tag]) return cache[tag];
+    const comp = React.forwardRef<any, any>(
+      ({ children, initial, animate, exit, transition, variants, whileTap, whileHover, layout, layoutId, ...props }, ref) =>
+        React.createElement(tag, { ...props, ref }, children)
     );
+    comp.displayName = `motion.${tag}`;
+    cache[tag] = comp;
+    return comp;
+  };
+  const proxy = new Proxy({}, { get: (_t, key: string) => passthrough(key) });
   return {
-    m: new Proxy({}, { get: (_t, key: string) => passthrough(key) }),
-    motion: new Proxy({}, { get: (_t, key: string) => passthrough(key) }),
+    m: proxy,
+    motion: proxy,
     AnimatePresence: ({ children }: any) => children,
   };
 });
