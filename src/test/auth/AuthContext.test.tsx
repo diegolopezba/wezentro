@@ -2,21 +2,23 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 
-// Mock the supabase client BEFORE importing the context
-const signUpMock = vi.fn();
-const signInMock = vi.fn();
-const verifyOtpMock = vi.fn();
-const onAuthStateChangeMock = vi.fn(() => ({
-  data: { subscription: { unsubscribe: vi.fn() } },
+const mocks = vi.hoisted(() => ({
+  signUpMock: vi.fn(),
+  signInMock: vi.fn(),
+  verifyOtpMock: vi.fn(),
+  onAuthStateChangeMock: vi.fn(() => ({
+    data: { subscription: { unsubscribe: vi.fn() } },
+  })),
 }));
+const { signUpMock, signInMock, verifyOtpMock } = mocks;
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
-      signUp: signUpMock,
-      signInWithPassword: signInMock,
-      verifyOtp: verifyOtpMock,
-      onAuthStateChange: onAuthStateChangeMock,
+      signUp: mocks.signUpMock,
+      signInWithPassword: mocks.signInMock,
+      verifyOtp: mocks.verifyOtpMock,
+      onAuthStateChange: mocks.onAuthStateChangeMock,
       signOut: vi.fn().mockResolvedValue({ error: null }),
       resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null }),
       resend: vi.fn().mockResolvedValue({ error: null }),
