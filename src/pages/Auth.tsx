@@ -164,24 +164,26 @@ const Auth = () => {
     if (mode === "login") {
       const { error } = await signIn(formData.email, formData.password);
       if (error) {
-        if (error.message.includes("Invalid login credentials")) {
-          toast.error("Correo o contraseña incorrectos");
-        } else if (error.message.includes("Email not confirmed")) {
-          toast.error("Por favor verifica tu correo primero");
-        } else {
-          toast.error(error.message);
+        const msg = friendlyAuthError(error);
+        const isUnconfirmed =
+          (error as any)?.code === "email_not_confirmed" ||
+          /Email not confirmed/i.test(error.message);
+        if (isUnconfirmed) {
+          setNeedsConfirmation(true);
         }
+        toast.error(msg);
         setIsLoading(false);
         return;
       }
+      setNeedsConfirmation(false);
       toast.success("¡Bienvenido de vuelta!");
     } else {
       const { data, error } = await signUp(formData.email, formData.password);
       if (error) {
-        if (error.message.includes("already registered")) {
-          toast.error("Ya existe una cuenta con este correo");
-        } else {
-          toast.error(error.message);
+        toast.error(friendlyAuthError(error));
+        // If we hit the email rate limit, start cooldown so the user can resend later
+        if ((error as any)?.status === 429 || /rate limit/i.test(error.message)) {
+          startResendCooldown();
         }
         setIsLoading(false);
         return;
@@ -201,13 +203,13 @@ const Auth = () => {
         return;
       }
       // Email confirmation is enabled: signUp returns a user but no session.
-      // Do NOT navigate to /onboarding (ProtectedRoute would bounce back to /auth
-      // and the user would think nothing happened). Tell them to check their inbox.
       if (data?.user && !data.session) {
         toast.success(
           `Te enviamos un correo de verificación a ${formData.email}. Confírmalo para iniciar sesión.`,
           { duration: 8000 }
         );
+        setNeedsConfirmation(true);
+        startResendCooldown();
         setMode("login");
         setFormData((prev) => ({ ...prev, password: "" }));
         setIsLoading(false);
