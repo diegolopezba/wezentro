@@ -1,43 +1,45 @@
-## Why no preview shows up
+## What I found
 
-WhatsApp, iMessage, Telegram, etc. **follow `<meta http-equiv="refresh">` redirects** before reading OG tags. Our `event-share` function returns the right OG tags but also includes:
+Zoe's account is currently marked as confirmed, but the logs show why this felt wrong:
 
-```html
-<meta http-equiv="refresh" content="0; url=https://zentro.today/event/...">
-<script>window.location.replace(...)</script>
-```
+- The confirmation email was accepted by the email system at `17:53:17`.
+- Her account was confirmed at `17:53:25` through a `/verify` request.
+- That `/verify` request came from a different IP address than her signup/login activity.
 
-So the crawler instantly bounces to `zentro.today/event/:id`, which is the React SPA whose `index.html` only has the generic Zentro OG tags. End result: no per-event preview (or a generic Zentro card at best).
+That pattern is consistent with a university/security email scanner opening the confirmation link automatically. The backend treats any valid visit to the confirmation link as confirmation, so the scanner can confirm the account before the human sees the email.
 
-Native sharing makes this worse because some OS share sheets pre-resolve the URL through the same redirect before handing it to the target app.
+## Goal
 
-## Fix
+Make signup confirmation require a real user action, not just an automated scanner opening a link.
 
-Change `supabase/functions/event-share/index.ts` so crawlers see only the OG tags, and humans get redirected via JS:
+## Plan
 
-1. **Detect crawler user-agents** (`facebookexternalhit`, `WhatsApp`, `Twitterbot`, `Slackbot`, `Discordbot`, `TelegramBot`, `LinkedInBot`, `iMessagePreview`/`Applebot`, `SkypeUriPreview`, `redditbot`, `embedly`, `quora link preview`, etc.). For these:
-   - Return the per-event HTML **without** `<meta http-equiv="refresh">` and **without** any redirect script.
-   - Keep `og:*` and `twitter:*` tags, canonical link, `Cache-Control: public, max-age=300`.
-2. **Humans (everyone else)**:
-   - Respond with an HTTP `302` redirect straight to `https://zentro.today/event/:eventId` (faster + avoids the white flash, no JS required, works inside in-app browsers).
-   - This also fixes the case where the native share sheet pre-resolves the URL — it just lands on the real page.
+1. **Switch signup emails to an OTP-style confirmation flow**
+   - Update the signup email so it shows a short verification code instead of relying only on a one-click confirmation link.
+   - This prevents link scanners from completing signup just by visiting a URL.
 
-No other code changes needed. `ShareEventModal` keeps pointing at the edge-function URL.
+2. **Add a verification-code screen after signup**
+   - After the user creates an account, show a screen asking for the confirmation code sent to their email.
+   - The user enters the code in the app to finish confirmation.
+   - Include a resend button with the existing cooldown/error handling.
 
-## Validation
+3. **Confirm signup with the code, not scanner clicks**
+   - Use the auth provider's email OTP verification method for `signup`.
+   - On success, continue the normal logged-in/onboarding flow.
+   - On failure, show a clear Spanish error message.
 
-After deploy, verify with curl (these should return full OG HTML, no redirect):
+4. **Keep login blocked for unconfirmed users**
+   - Preserve the current backend enforcement: email/password login must still fail until the account is confirmed.
+   - Improve the UI message for `Email not confirmed` so users know to enter or resend the code.
 
-```text
-curl -A "facebookexternalhit/1.1" .../event-share/<id>
-curl -A "WhatsApp/2.23" .../event-share/<id>
-curl -A "Twitterbot/1.0" .../event-share/<id>
-```
+5. **Verify the fix**
+   - Check the signup email log for a fresh test account.
+   - Confirm that merely opening/scanning the email link does not complete login.
+   - Confirm that entering the code does complete signup.
 
-And a plain browser UA should return `302 Location: https://zentro.today/event/<id>`.
+## Technical details
 
-Then re-test by pasting a fresh share link into WhatsApp Web / iMessage (note: WhatsApp caches by URL for ~7 days, so test with an event you haven't shared yet, or add a `?v=2` query). Confirm event name + image render.
-
-## Out of scope
-
-- SSR migration, profile/guestlist unfurls, custom-domain rewrite from `zentro.today/s/event/:id` → edge function (can be added later if you want to hide the `supabase.co` URL).
+- The root problem is not that email confirmation is disabled. It is enabled.
+- The weak point is one-click confirmation links: automated security software can consume them.
+- The fix is to move the user-facing signup path to manual code verification using the existing auth email system.
+- No database schema change should be needed.

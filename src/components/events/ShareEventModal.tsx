@@ -82,11 +82,7 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
   };
 
   const handleNativeShare = async () => {
-    // Use the edge-function unfurl URL so external link previews
-    // (WhatsApp, iMessage, Twitter, Slack, etc.) show the event's
-    // name and image instead of the generic Zentro card.
-    const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-    const shareUrl = `https://${projectRef}.supabase.co/functions/v1/event-share/${eventId}`;
+    const shareUrl = `${window.location.origin}/event/${eventId}`;
 
     if (navigator.share) {
       try {
