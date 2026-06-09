@@ -29,6 +29,7 @@ const Auth = () => {
     signIn,
     signUp,
     resetPassword,
+    resendConfirmation,
     isLoading: authLoading
   } = useAuth();
   
