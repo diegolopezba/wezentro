@@ -151,7 +151,7 @@ describe("Auth page - signup → code → verify flow", () => {
     await fillSignupForm(user);
     await submitSignup(user);
 
-    const codeInput = await screen.findByPlaceholderText(/código de 6 dígitos/i);
+    const codeInput = await screen.findByPlaceholderText(/código de verificación/i);
     await user.type(codeInput, "123456");
     await user.click(screen.getByRole("button", { name: /verificar/i }));
 
