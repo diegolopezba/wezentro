@@ -309,6 +309,7 @@ export const useEventDetailState = (
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
     showTierPicker, setShowTierPicker,
+    showLeaveConfirm, setShowLeaveConfirm,
     // Tiers
     ticketTiers, hasTiers, isSequential, allTiersSoldOut,
     purchasableTiers, cheapestPurchasableTier,
