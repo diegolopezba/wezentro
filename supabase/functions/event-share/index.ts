@@ -30,6 +30,8 @@ function escapeHtml(s: string): string {
 
 function optimizeImage(url: string | null | undefined): string {
   if (!url) return DEFAULT_IMAGE;
+  // Videos (mp4/mov/webm) can't be used as og:image — fall back.
+  if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(url)) return DEFAULT_IMAGE;
   if (!url.includes("/storage/v1/object/public/")) return url;
   const base = url.split("?")[0];
   return `${base}?width=1200&quality=80&resize=cover`;
