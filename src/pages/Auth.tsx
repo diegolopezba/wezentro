@@ -29,6 +29,7 @@ const Auth = () => {
     signIn,
     signUp,
     resetPassword,
+    resendConfirmation,
     isLoading: authLoading
   } = useAuth();
   
@@ -41,6 +42,8 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -49,6 +52,60 @@ const Auth = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "" });
+
+  // Countdown for resend cooldown
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
+
+  const startResendCooldown = () => setResendCooldown(60);
+
+  const friendlyAuthError = (err: any): string => {
+    const raw = (err?.message || "").toString();
+    const code = (err?.code || err?.error_code || "").toString();
+    const status = err?.status;
+    if (code === "over_email_send_rate_limit" || status === 429 || /rate limit/i.test(raw)) {
+      return "Ya enviamos un correo recientemente. Espera unos segundos antes de reintentar.";
+    }
+    if (code === "email_not_confirmed" || /Email not confirmed/i.test(raw)) {
+      return "Confirma tu correo antes de iniciar sesión. Revisa tu bandeja y carpeta de spam.";
+    }
+    if (code === "user_already_exists" || /already registered|already exists/i.test(raw)) {
+      return "Ya existe una cuenta con este correo. Inicia sesión o recupera tu contraseña.";
+    }
+    if (/Invalid login credentials/i.test(raw)) {
+      return "Correo o contraseña incorrectos.";
+    }
+    if (/Password should be/i.test(raw)) {
+      return "La contraseña no cumple los requisitos mínimos.";
+    }
+    return raw || "Algo no salió bien. Intenta de nuevo.";
+  };
+
+  const handleResend = async () => {
+    if (resendCooldown > 0 || !formData.email) return;
+    try {
+      emailSchema.parse(formData.email);
+    } catch {
+      setErrors({ email: "Ingresa un correo válido para reenviar" });
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await resendConfirmation(formData.email);
+    setIsLoading(false);
+    if (error) {
+      toast.error(friendlyAuthError(error));
+      // Even on rate limit, start cooldown so user doesn't keep tapping
+      if ((error as any)?.status === 429 || /rate limit/i.test(error.message)) {
+        startResendCooldown();
+      }
+      return;
+    }
+    toast.success("Te reenviamos el correo de verificación.");
+    startResendCooldown();
+  };
 
   // Capture referral code from URL and store in localStorage
   useEffect(() => {
@@ -107,24 +164,26 @@ const Auth = () => {
     if (mode === "login") {
       const { error } = await signIn(formData.email, formData.password);
       if (error) {
-        if (error.message.includes("Invalid login credentials")) {
-          toast.error("Correo o contraseña incorrectos");
-        } else if (error.message.includes("Email not confirmed")) {
-          toast.error("Por favor verifica tu correo primero");
-        } else {
-          toast.error(error.message);
+        const msg = friendlyAuthError(error);
+        const isUnconfirmed =
+          (error as any)?.code === "email_not_confirmed" ||
+          /Email not confirmed/i.test(error.message);
+        if (isUnconfirmed) {
+          setNeedsConfirmation(true);
         }
+        toast.error(msg);
         setIsLoading(false);
         return;
       }
+      setNeedsConfirmation(false);
       toast.success("¡Bienvenido de vuelta!");
     } else {
       const { data, error } = await signUp(formData.email, formData.password);
       if (error) {
-        if (error.message.includes("already registered")) {
-          toast.error("Ya existe una cuenta con este correo");
-        } else {
-          toast.error(error.message);
+        toast.error(friendlyAuthError(error));
+        // If we hit the email rate limit, start cooldown so the user can resend later
+        if ((error as any)?.status === 429 || /rate limit/i.test(error.message)) {
+          startResendCooldown();
         }
         setIsLoading(false);
         return;
@@ -144,13 +203,13 @@ const Auth = () => {
         return;
       }
       // Email confirmation is enabled: signUp returns a user but no session.
-      // Do NOT navigate to /onboarding (ProtectedRoute would bounce back to /auth
-      // and the user would think nothing happened). Tell them to check their inbox.
       if (data?.user && !data.session) {
         toast.success(
           `Te enviamos un correo de verificación a ${formData.email}. Confírmalo para iniciar sesión.`,
           { duration: 8000 }
         );
+        setNeedsConfirmation(true);
+        startResendCooldown();
         setMode("login");
         setFormData((prev) => ({ ...prev, password: "" }));
         setIsLoading(false);
@@ -350,7 +409,7 @@ const Auth = () => {
                       )}
                     </div>
                     <span className="text-xs text-muted-foreground leading-relaxed">
-                      Tengo 18 años o más y acepto los{" "}
+                      Tengo 13 años o más y acepto los{" "}
                       <button
                         type="button" className="text-foreground underline underline-offset-2" onClick={(e) => { e.stopPropagation(); navigate("/terms"); }}
                       >
@@ -388,6 +447,23 @@ const Auth = () => {
                 )}
               </Button>
             </div>
+
+            {/* Resend confirmation (after signup or email_not_confirmed login) */}
+            {mode !== "reset" && needsConfirmation && (
+              <div className="text-center text-sm text-muted-foreground">
+                ¿No te llegó el correo?{" "}
+                <button
+                  type="button"
+                  className="text-foreground underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
+                  onClick={handleResend}
+                  disabled={isLoading || resendCooldown > 0}
+                >
+                  {resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : "Reenviar correo"}
+                </button>
+              </div>
+            )}
+
+
 
 
             {mode === "login" && (
