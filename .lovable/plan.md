@@ -1,26 +1,45 @@
-## Root cause
+## What I found
 
-Even though our custom `auth-email-hook` is healthy and queuing emails through `hello.zentro.today` at ~120/min, Supabase Auth enforces its **own project-level email rate limit** (default ~30 emails/hour) on `/signup` and `/recover` *before* the hook is invoked. The auth logs from the last few minutes confirm this — multiple users (caryto_98, davidcorona.business, vidalmar2004, nataliariveroma, etc.) are getting `429 over_email_send_rate_limit`, and the test email (zoe.e.sweaney@slu.edu) never reached `email_send_log` because Supabase rejected the request upstream.
+Zoe's account is currently marked as confirmed, but the logs show why this felt wrong:
 
-This is why custom-hook users *think* they removed the rate limit but didn't — the hook bypasses Supabase's *sender*, not its *rate counter*.
+- The confirmation email was accepted by the email system at `17:53:17`.
+- Her account was confirmed at `17:53:25` through a `/verify` request.
+- That `/verify` request came from a different IP address than her signup/login activity.
+
+That pattern is consistent with a university/security email scanner opening the confirmation link automatically. The backend treats any valid visit to the confirmation link as confirmation, so the scanner can confirm the account before the human sees the email.
+
+## Goal
+
+Make signup confirmation require a real user action, not just an automated scanner opening a link.
 
 ## Plan
 
-1. **Raise the Supabase Auth email rate limit** to a level that supports 5K signups/day (target: 1000/hr or higher). This is a single config change in `auth.rate_limit_email_sent`.
-2. **Verify** by:
-   - Re-checking auth logs for `over_email_send_rate_limit` — should drop to zero.
-   - Asking the user to retry signup with the same email and confirming a new row appears in `email_send_log` going `pending → sent`.
-3. **No code changes needed.** The hook, queue, templates, and frontend cooldown all stay as-is.
+1. **Switch signup emails to an OTP-style confirmation flow**
+   - Update the signup email so it shows a short verification code instead of relying only on a one-click confirmation link.
+   - This prevents link scanners from completing signup just by visiting a URL.
+
+2. **Add a verification-code screen after signup**
+   - After the user creates an account, show a screen asking for the confirmation code sent to their email.
+   - The user enters the code in the app to finish confirmation.
+   - Include a resend button with the existing cooldown/error handling.
+
+3. **Confirm signup with the code, not scanner clicks**
+   - Use the auth provider's email OTP verification method for `signup`.
+   - On success, continue the normal logged-in/onboarding flow.
+   - On failure, show a clear Spanish error message.
+
+4. **Keep login blocked for unconfirmed users**
+   - Preserve the current backend enforcement: email/password login must still fail until the account is confirmed.
+   - Improve the UI message for `Email not confirmed` so users know to enter or resend the code.
+
+5. **Verify the fix**
+   - Check the signup email log for a fresh test account.
+   - Confirm that merely opening/scanning the email link does not complete login.
+   - Confirm that entering the code does complete signup.
 
 ## Technical details
 
-- The setting lives in Supabase Auth's GoTrue config under `RATE_LIMIT_EMAIL_SENT` (hourly cap on emails sent via auth flows: signup confirm, recovery, magic link, email change).
-- We'll raise it from the default (30/hr) to **1000/hr**, which covers the 5K/day surge with healthy margin.
-- This is a runtime config change applied via the Supabase Management API — no migration, no redeploy.
-- The per-address 60s cooldown (Supabase's `EMAIL_RESEND_INTERVAL`) is separate and stays at default; that's fine for the "Reenviar" UX we already shipped.
-
-## Out of scope
-
-- Switching email providers.
-- Disabling email confirmation (security regression, not requested).
-- Touching templates or the hook (both verified working).
+- The root problem is not that email confirmation is disabled. It is enabled.
+- The weak point is one-click confirmation links: automated security software can consume them.
+- The fix is to move the user-facing signup path to manual code verification using the existing auth email system.
+- No database schema change should be needed.

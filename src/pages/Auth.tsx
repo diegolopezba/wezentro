@@ -30,6 +30,7 @@ const Auth = () => {
     signUp,
     resetPassword,
     resendConfirmation,
+    verifySignupOtp,
     isLoading: authLoading
   } = useAuth();
   
@@ -43,11 +44,14 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [awaitingCode, setAwaitingCode] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
     terms?: string;
+    otp?: string;
   }>({});
   const [formData, setFormData] = useState({
     email: "",
@@ -170,6 +174,8 @@ const Auth = () => {
           /Email not confirmed/i.test(error.message);
         if (isUnconfirmed) {
           setNeedsConfirmation(true);
+          setAwaitingCode(true);
+          setOtpCode("");
         }
         toast.error(msg);
         setIsLoading(false);
@@ -205,13 +211,13 @@ const Auth = () => {
       // Email confirmation is enabled: signUp returns a user but no session.
       if (data?.user && !data.session) {
         toast.success(
-          `Te enviamos un correo de verificación a ${formData.email}. Confírmalo para iniciar sesión.`,
-          { duration: 8000 }
+          `Te enviamos un código de verificación a ${formData.email}.`,
+          { duration: 6000 }
         );
         setNeedsConfirmation(true);
+        setAwaitingCode(true);
+        setOtpCode("");
         startResendCooldown();
-        setMode("login");
-        setFormData((prev) => ({ ...prev, password: "" }));
         setIsLoading(false);
         return;
       }
@@ -219,6 +225,32 @@ const Auth = () => {
       navigate("/onboarding");
     }
     setIsLoading(false);
+  };
+
+  const handleVerifyCode = async () => {
+    const code = otpCode.trim();
+    if (!/^\d{6}$/.test(code)) {
+      setErrors({ otp: "Ingresa el código de 6 dígitos." });
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await verifySignupOtp(formData.email, code);
+    setIsLoading(false);
+    if (error) {
+      const raw = (error?.message || "").toString();
+      if (/expired/i.test(raw)) {
+        setErrors({ otp: "El código expiró. Reenvía uno nuevo." });
+      } else if (/invalid|incorrect/i.test(raw)) {
+        setErrors({ otp: "Código incorrecto. Verifica e intenta de nuevo." });
+      } else {
+        setErrors({ otp: friendlyAuthError(error) });
+      }
+      return;
+    }
+    toast.success("¡Correo verificado! Configurando tu perfil...");
+    setAwaitingCode(false);
+    setNeedsConfirmation(false);
+    navigate("/onboarding");
   };
 
   const handleResetPassword = async () => {
@@ -308,7 +340,7 @@ const Auth = () => {
             exit={{ opacity: 0, x: -20 }}
             className="max-w-sm mx-auto space-y-6" >
             {/* Toggle */}
-            {mode !== "reset" && (
+            {mode !== "reset" && !awaitingCode && (
               <div className="flex p-1 rounded-xl bg-secondary">
                 <button
                   onClick={() => {
@@ -333,6 +365,16 @@ const Auth = () => {
               </div>
             )}
 
+            {awaitingCode && (
+              <div className="text-center">
+                <h2 className="text-xl font-semibold text-foreground mb-2">Verifica tu correo</h2>
+                <p className="text-sm text-muted-foreground">
+                  Ingresa el código de 6 dígitos que enviamos a{" "}
+                  <span className="text-foreground">{formData.email}</span>
+                </p>
+              </div>
+            )}
+
             {mode === "reset" && (
               <div className="text-center">
                 <h2 className="text-xl font-semibold text-foreground mb-2">Recuperar Contraseña</h2>
@@ -341,124 +383,177 @@ const Auth = () => {
             )}
 
             {/* Form */}
-            <div className="space-y-4">
-              <div>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    type="email" inputMode="email" autoComplete="email" autoCapitalize="none" placeholder="Correo electrónico" value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className={`pl-12 ${errors.email ? "border-destructive" : ""}`}
-                  />
-                </div>
-                {errors.email && (
-                  <p className="text-destructive text-xs mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {errors.email}
-                  </p>
-                )}
-              </div>
-
-              {mode !== "reset" && (
+            {awaitingCode ? (
+              <div className="space-y-4">
                 <div>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Contraseña" value={formData.password}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
-                      className={`pl-12 pr-12 ${errors.password ? "border-destructive" : ""}`}
-                    />
-                    <button
-                      type="button" onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors" >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                  {errors.password && (
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    placeholder="Código de 6 dígitos"
+                    value={otpCode}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                      setOtpCode(v);
+                      if (errors.otp) setErrors({ ...errors, otp: undefined });
+                    }}
+                    maxLength={6}
+                    className={`text-center text-2xl tracking-[0.5em] ${errors.otp ? "border-destructive" : ""}`}
+                  />
+                  {errors.otp && (
                     <p className="text-destructive text-xs mt-1 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
-                      {errors.password}
+                      {errors.otp}
                     </p>
                   )}
                 </div>
-              )}
+                <Button
+                  variant="hero"
+                  className="w-full"
+                  onClick={handleVerifyCode}
+                  disabled={isLoading || otpCode.length !== 6}
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      Verificar
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </>
+                  )}
+                </Button>
+                <button
+                  type="button"
+                  className="w-full text-center text-sm text-muted-foreground"
+                  onClick={() => {
+                    setAwaitingCode(false);
+                    setOtpCode("");
+                    setErrors({});
+                  }}
+                >
+                  Usar otro correo
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      type="email" inputMode="email" autoComplete="email" autoCapitalize="none" placeholder="Correo electrónico" value={formData.email}
+                      onChange={(e) => handleInputChange("email", e.target.value)}
+                      className={`pl-12 ${errors.email ? "border-destructive" : ""}`}
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-destructive text-xs mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
 
-              {/* Terms checkbox — only shown on signup (store compliance) */}
-              {mode === "signup" && (
-                <div className="space-y-1">
-                  <label
-                    className="flex items-start gap-3 cursor-pointer select-none" onClick={(e) => {
-                      e.preventDefault();
-                      setTermsAccepted((prev) => !prev);
-                      setErrors((prev) => ({ ...prev, terms: undefined }));
-                    }}
-                  >
-                    <div
-                      role="checkbox" aria-checked={termsAccepted}
-                      tabIndex={0}
-                      onKeyDown={(e) => { if (e.key === " ") { e.preventDefault(); setTermsAccepted((prev) => !prev); } }}
-                      className={`mt-0.5 w-5 h-5 rounded shrink-0 border-2 flex items-center justify-center transition-all ${
-                        termsAccepted
-                          ? "gradient-red border-transparent" : "border-muted-foreground/40 bg-secondary" }`}
-                    >
-                      {termsAccepted && (
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
+                {mode !== "reset" && (
+                  <div>
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Contraseña" value={formData.password}
+                        onChange={(e) => handleInputChange("password", e.target.value)}
+                        className={`pl-12 pr-12 ${errors.password ? "border-destructive" : ""}`}
+                      />
+                      <button
+                        type="button" onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors" >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
                     </div>
-                    <span className="text-xs text-muted-foreground leading-relaxed">
-                      Tengo 13 años o más y acepto los{" "}
-                      <button
-                        type="button" className="text-foreground underline underline-offset-2" onClick={(e) => { e.stopPropagation(); navigate("/terms"); }}
-                      >
-                        Términos de Uso
-                      </button>
-                      {" "}y la{" "}
-                      <button
-                        type="button" className="text-foreground underline underline-offset-2" onClick={(e) => { e.stopPropagation(); navigate("/privacy-policy"); }}
-                      >
-                        Política de Privacidad
-                      </button>
-                      , incluyendo el uso de mis datos para personalizar mi experiencia.
-                    </span>
-                  </label>
-                  {errors.terms && (
-                    <p className="text-destructive text-xs flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3 shrink-0" />
-                      {errors.terms}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <Button
-                variant="hero" className="w-full" onClick={mode === "reset" ? handleResetPassword : handleAuth}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    {mode === "login" ? "Iniciar Sesión" : mode === "signup" ? "Crear Cuenta" : "Enviar Enlace"}
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </>
+                    {errors.password && (
+                      <p className="text-destructive text-xs mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.password}
+                      </p>
+                    )}
+                  </div>
                 )}
-              </Button>
-            </div>
+
+                {/* Terms checkbox — only shown on signup (store compliance) */}
+                {mode === "signup" && (
+                  <div className="space-y-1">
+                    <label
+                      className="flex items-start gap-3 cursor-pointer select-none" onClick={(e) => {
+                        e.preventDefault();
+                        setTermsAccepted((prev) => !prev);
+                        setErrors((prev) => ({ ...prev, terms: undefined }));
+                      }}
+                    >
+                      <div
+                        role="checkbox" aria-checked={termsAccepted}
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === " ") { e.preventDefault(); setTermsAccepted((prev) => !prev); } }}
+                        className={`mt-0.5 w-5 h-5 rounded shrink-0 border-2 flex items-center justify-center transition-all ${
+                          termsAccepted
+                            ? "gradient-red border-transparent" : "border-muted-foreground/40 bg-secondary" }`}
+                      >
+                        {termsAccepted && (
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground leading-relaxed">
+                        Tengo 13 años o más y acepto los{" "}
+                        <button
+                          type="button" className="text-foreground underline underline-offset-2" onClick={(e) => { e.stopPropagation(); navigate("/terms"); }}
+                        >
+                          Términos de Uso
+                        </button>
+                        {" "}y la{" "}
+                        <button
+                          type="button" className="text-foreground underline underline-offset-2" onClick={(e) => { e.stopPropagation(); navigate("/privacy-policy"); }}
+                        >
+                          Política de Privacidad
+                        </button>
+                        , incluyendo el uso de mis datos para personalizar mi experiencia.
+                      </span>
+                    </label>
+                    {errors.terms && (
+                      <p className="text-destructive text-xs flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3 shrink-0" />
+                        {errors.terms}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <Button
+                  variant="hero" className="w-full" onClick={mode === "reset" ? handleResetPassword : handleAuth}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      {mode === "login" ? "Iniciar Sesión" : mode === "signup" ? "Crear Cuenta" : "Enviar Enlace"}
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
 
             {/* Resend confirmation (after signup or email_not_confirmed login) */}
             {mode !== "reset" && needsConfirmation && (
               <div className="text-center text-sm text-muted-foreground">
-                ¿No te llegó el correo?{" "}
+                ¿No te llegó el código?{" "}
                 <button
                   type="button"
                   className="text-foreground underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
                   onClick={handleResend}
                   disabled={isLoading || resendCooldown > 0}
                 >
-                  {resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : "Reenviar correo"}
+                  {resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : "Reenviar código"}
                 </button>
               </div>
             )}
