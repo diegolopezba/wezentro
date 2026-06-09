@@ -15,6 +15,7 @@ import { ShareEventModal } from "@/components/events/ShareEventModal";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
+import { LeaveGuestlistDrawer } from "@/components/events/LeaveGuestlistDrawer";
 
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
@@ -73,6 +74,7 @@ const EventDetail = () => {
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
     showTierPicker, setShowTierPicker,
+    showLeaveConfirm, setShowLeaveConfirm,
     ticketTiers, hasTiers, isSequential, selectedTier, openPaymentForTier,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleBuyTicket, handlePaymentSubmitted, handleLeaveGuestlist,
@@ -433,7 +435,7 @@ const EventDetail = () => {
         <Button variant="ghost" size="default" disabled>
                   <Clock className="w-4 h-4 mr-1" /> Pendiente
                 </Button> :
-        <Button variant="ghost" size="default" onClick={handleLeaveGuestlist} disabled={leaveGuestlistPending}>
+        <Button variant="ghost" size="default" onClick={() => setShowLeaveConfirm(true)} disabled={leaveGuestlistPending}>
                   {leaveGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
                 </Button> :
         isGuestlistFull ?
