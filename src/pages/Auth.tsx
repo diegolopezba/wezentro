@@ -229,8 +229,8 @@ const Auth = () => {
 
   const handleVerifyCode = async () => {
     const code = otpCode.trim();
-    if (!/^\d{6}$/.test(code)) {
-      setErrors({ otp: "Ingresa el código de 6 dígitos." });
+    if (!/^\d{6,10}$/.test(code)) {
+      setErrors({ otp: "Ingresa el código de verificación." });
       return;
     }
     setIsLoading(true);
