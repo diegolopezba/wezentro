@@ -1,59 +1,43 @@
-## Goal
+## Why no preview shows up
 
-When a user shares an event link outside the app (WhatsApp, iMessage, Instagram DM, Twitter, Slack, etc.), the link unfurls with the event's name, image, date and location — like shotgun.live and dice.fm.
+WhatsApp, iMessage, Telegram, etc. **follow `<meta http-equiv="refresh">` redirects** before reading OG tags. Our `event-share` function returns the right OG tags but also includes:
 
-## The core problem
+```html
+<meta http-equiv="refresh" content="0; url=https://zentro.today/event/...">
+<script>window.location.replace(...)</script>
+```
 
-Zentro is a Vite + React SPA. Social crawlers (WhatsApp, Facebook, Twitter, iMessage, LinkedIn, Slack, Discord) do **not** execute JavaScript. They only read the static `index.html`, which today carries generic Zentro tags. That's why every event link currently previews as "Zentro - El pinterest de la vida social" with the default og-image.
+So the crawler instantly bounces to `zentro.today/event/:id`, which is the React SPA whose `index.html` only has the generic Zentro OG tags. End result: no per-event preview (or a generic Zentro card at best).
 
-`react-helmet-async` (client-side) does NOT fix this — it mutates the head after JS runs, which crawlers never see.
+Native sharing makes this worse because some OS share sheets pre-resolve the URL through the same redirect before handing it to the target app.
 
-The fix has to run on the server and return per-event HTML before any JS.
+## Fix
 
-## Approach: share-link edge function
+Change `supabase/functions/event-share/index.ts` so crawlers see only the OG tags, and humans get redirected via JS:
 
-Add a public edge function `event-share` that:
+1. **Detect crawler user-agents** (`facebookexternalhit`, `WhatsApp`, `Twitterbot`, `Slackbot`, `Discordbot`, `TelegramBot`, `LinkedInBot`, `iMessagePreview`/`Applebot`, `SkypeUriPreview`, `redditbot`, `embedly`, `quora link preview`, etc.). For these:
+   - Return the per-event HTML **without** `<meta http-equiv="refresh">` and **without** any redirect script.
+   - Keep `og:*` and `twitter:*` tags, canonical link, `Cache-Control: public, max-age=300`.
+2. **Humans (everyone else)**:
+   - Respond with an HTTP `302` redirect straight to `https://zentro.today/event/:eventId` (faster + avoids the white flash, no JS required, works inside in-app browsers).
+   - This also fixes the case where the native share sheet pre-resolves the URL — it just lands on the real page.
 
-1. Receives `/functions/v1/event-share/:eventId` (or `?id=...`).
-2. Queries the event from the database (title, image_url, location_name, start_datetime, description).
-3. Returns a tiny HTML document whose `<head>` contains the per-event OG / Twitter tags pointing at the real image.
-4. The HTML body contains a `<meta http-equiv="refresh">` + JS redirect to `https://zentro.today/event/:eventId` so humans land in the app immediately, while crawlers stop at the head and grab the preview.
-
-Change every "Share event" surface to share that edge function URL instead of `/event/:id`:
-
-- `src/components/events/ShareEventModal.tsx` (`handleNativeShare`)
-- Any other share buttons (Profile share, copy-link buttons, etc. — to be located during build).
-
-Deep links inside the native app keep using `/event/:id` via `useDeepLinks` because the redirect lands there.
-
-## What each link preview will show
-
-- og:title → event title
-- og:description → location + formatted start date (fallback to event description)
-- og:image → event `image_url` (already hosted on Supabase storage, public)
-- og:url → canonical `https://zentro.today/event/:id`
-- twitter:card → `summary_large_image`
-- Same tags duplicated for Twitter
-
-If the event is missing or unpublished, the function returns the generic Zentro OG tags (current behavior) so broken links don't look weird.
-
-## Technical details
-
-- New file: `supabase/functions/event-share/index.ts`. Public (no JWT). Reads `events` row via service role. Escapes title/description for safe HTML insertion. Caches response with `Cache-Control: public, max-age=300` so repeat unfurls are fast.
-- Image URL passed through existing `getOptimizedImageUrl` at ~1200px wide for ideal social-preview size.
-- Share URL format: `https://fipdpcitsjpqivljrktj.supabase.co/functions/v1/event-share/<eventId>` (the function URL is stable). Alternatively expose it on the custom domain via a small redirect — not needed for v1.
-- Edit `ShareEventModal.handleNativeShare` to build that URL.
-- No change to `index.html` (it stays as the homepage default).
-- No SSR framework migration needed.
-
-## Out of scope
-
-- Per-route OG for non-event pages (profiles, guestlists). Same pattern can be applied later.
-- Replacing the full app with SSR / Next.js.
+No other code changes needed. `ShareEventModal` keeps pointing at the edge-function URL.
 
 ## Validation
 
-After build, test with:
-- https://www.opengraph.xyz/ on a sample share URL
-- Facebook Sharing Debugger
-- Paste link into WhatsApp Web / iMessage to confirm the unfurl
+After deploy, verify with curl (these should return full OG HTML, no redirect):
+
+```text
+curl -A "facebookexternalhit/1.1" .../event-share/<id>
+curl -A "WhatsApp/2.23" .../event-share/<id>
+curl -A "Twitterbot/1.0" .../event-share/<id>
+```
+
+And a plain browser UA should return `302 Location: https://zentro.today/event/<id>`.
+
+Then re-test by pasting a fresh share link into WhatsApp Web / iMessage (note: WhatsApp caches by URL for ~7 days, so test with an event you haven't shared yet, or add a `?v=2` query). Confirm event name + image render.
+
+## Out of scope
+
+- SSR migration, profile/guestlist unfurls, custom-domain rewrite from `zentro.today/s/event/:id` → edge function (can be added later if you want to hide the `supabase.co` URL).

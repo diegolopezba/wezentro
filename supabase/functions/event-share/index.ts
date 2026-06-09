@@ -1,6 +1,6 @@
-// Public unfurl endpoint: returns per-event OG/Twitter meta HTML for social
-// crawlers (WhatsApp, iMessage, Twitter, FB, Slack, Discord, LinkedIn) and
-// instantly redirects human browsers to the real app route.
+// Public unfurl endpoint: serves per-event OG/Twitter meta HTML to social
+// crawlers (WhatsApp, iMessage, Twitter, FB, Slack, Discord, LinkedIn, etc.)
+// and 302-redirects normal browsers straight to the real app route.
 //
 // URL shape: /functions/v1/event-share/<eventId>
 // No JWT required.
@@ -30,7 +30,6 @@ function escapeHtml(s: string): string {
 
 function optimizeImage(url: string | null | undefined): string {
   if (!url) return DEFAULT_IMAGE;
-  // Videos (mp4/mov/webm) can't be used as og:image — fall back.
   if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(url)) return DEFAULT_IMAGE;
   if (!url.includes("/storage/v1/object/public/")) return url;
   const base = url.split("?")[0];
@@ -42,14 +41,12 @@ function buildHtml(opts: {
   description: string;
   image: string;
   url: string;
-  redirectTo: string;
 }): string {
-  const { title, description, image, url, redirectTo } = opts;
+  const { title, description, image, url } = opts;
   const t = escapeHtml(title);
   const d = escapeHtml(description);
   const img = escapeHtml(image);
   const u = escapeHtml(url);
-  const r = escapeHtml(redirectTo);
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -70,16 +67,12 @@ function buildHtml(opts: {
 <meta property="og:image:height" content="630" />
 
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:site" content="@Zentro" />
 <meta name="twitter:title" content="${t}" />
 <meta name="twitter:description" content="${d}" />
 <meta name="twitter:image" content="${img}" />
-
-<meta http-equiv="refresh" content="0; url=${r}" />
-<script>window.location.replace(${JSON.stringify(redirectTo)});</script>
 </head>
 <body>
-<p>Abriendo <a href="${r}">${t}</a>…</p>
+<p><a href="${u}">${t}</a></p>
 </body>
 </html>`;
 }
@@ -100,20 +93,32 @@ function formatWhen(iso: string | null): string {
   }
 }
 
-function defaultResponse(redirectTo: string, status = 200) {
-  const html = buildHtml({
-    title: DEFAULT_TITLE,
-    description: DEFAULT_DESC,
-    image: DEFAULT_IMAGE,
-    url: redirectTo,
-    redirectTo,
-  });
+const BOT_RE =
+  /(facebookexternalhit|facebookcatalog|Facebot|WhatsApp|Twitterbot|Slackbot|Slack-ImgProxy|Discordbot|TelegramBot|LinkedInBot|Applebot|iMessagePreview|SkypeUriPreview|redditbot|Embedly|quora link preview|Pinterest|Snapchat|vkShare|W3C_Validator|Googlebot|bingbot|DuckDuckBot|YandexBot|baiduspider|Mastodon|Bluesky|Threads|Iframely|preview|bot|crawler|spider)/i;
+
+function isBot(ua: string | null): boolean {
+  if (!ua) return true; // no UA = treat as crawler (safer for unfurls)
+  return BOT_RE.test(ua);
+}
+
+function htmlResponse(html: string, status = 200) {
   return new Response(html, {
     status,
     headers: {
       ...corsHeaders,
       "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "public, max-age=120",
+      "Cache-Control": "public, max-age=300",
+    },
+  });
+}
+
+function redirectResponse(to: string) {
+  return new Response(null, {
+    status: 302,
+    headers: {
+      ...corsHeaders,
+      Location: to,
+      "Cache-Control": "no-store",
     },
   });
 }
@@ -127,16 +132,28 @@ Deno.serve(async (req) => {
   }
 
   const url = new URL(req.url);
-  // path may be /event-share/<id> or /event-share?id=<id>
   const fromPath = url.pathname.match(UUID_RE)?.[0];
   const fromQuery = url.searchParams.get("id");
   const eventId = (fromPath || fromQuery || "").toLowerCase();
+  const ua = req.headers.get("user-agent");
+  const bot = isBot(ua);
 
   if (!eventId || !UUID_RE.test(eventId)) {
-    return defaultResponse(APP_ORIGIN, 200);
+    if (!bot) return redirectResponse(APP_ORIGIN);
+    return htmlResponse(
+      buildHtml({
+        title: DEFAULT_TITLE,
+        description: DEFAULT_DESC,
+        image: DEFAULT_IMAGE,
+        url: APP_ORIGIN,
+      }),
+    );
   }
 
   const redirectTo = `${APP_ORIGIN}/event/${eventId}`;
+
+  // Humans: skip the DB hit, redirect straight to the SPA.
+  if (!bot) return redirectResponse(redirectTo);
 
   try {
     const { data, error } = await supabase
@@ -148,7 +165,14 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (error || !data || data.deleted_at || data.is_public === false) {
-      return defaultResponse(redirectTo, 200);
+      return htmlResponse(
+        buildHtml({
+          title: DEFAULT_TITLE,
+          description: DEFAULT_DESC,
+          image: DEFAULT_IMAGE,
+          url: redirectTo,
+        }),
+      );
     }
 
     const title = (data.title || "Evento en Zentro").trim();
@@ -159,23 +183,22 @@ Deno.serve(async (req) => {
       descBits ||
       (data.description ? data.description.slice(0, 160) : DEFAULT_DESC);
 
-    const html = buildHtml({
-      title,
-      description,
-      image: optimizeImage(data.image_url),
-      url: redirectTo,
-      redirectTo,
-    });
-
-    return new Response(html, {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "public, max-age=300",
-      },
-    });
+    return htmlResponse(
+      buildHtml({
+        title,
+        description,
+        image: optimizeImage(data.image_url),
+        url: redirectTo,
+      }),
+    );
   } catch {
-    return defaultResponse(redirectTo, 200);
+    return htmlResponse(
+      buildHtml({
+        title: DEFAULT_TITLE,
+        description: DEFAULT_DESC,
+        image: DEFAULT_IMAGE,
+        url: redirectTo,
+      }),
+    );
   }
 });
