@@ -148,6 +148,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return { error: error as Error | null };
+  };
+
   const resendConfirmation = async (email: string) => {
     const { error } = await supabase.auth.resend({
       type: "signup",
@@ -157,8 +159,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
     });
     return { error: error as Error | null };
-  };
-
   };
 
   return (
