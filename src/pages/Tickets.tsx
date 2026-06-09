@@ -58,15 +58,15 @@ const Tickets = () => {
     enabled: !!user,
   });
 
-  const getPaymentStatusBadge = (paymentStatus: string | null) => {
-    if (paymentStatus === "pending") {
+  const getPaymentStatusBadge = (paymentStatus: string | null, isFree: boolean) => {
+    if (!isFree && paymentStatus === "pending") {
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning">
           Pago Pendiente
         </span>
       );
     }
-    if (paymentStatus === "rejected") {
+    if (!isFree && paymentStatus === "rejected") {
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive">
           Pago Rechazado
