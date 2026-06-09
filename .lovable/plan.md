@@ -1,55 +1,37 @@
-## Goal
-Make account creation safe for the launch surge so new users can sign up, confirm email, finish onboarding, and enter the app without hitting the generic “Algo salió mal” page.
+# Fix signup rate limits for 5K user surge
 
-## Current findings
-- Backend health is good: database is up, no restarts, 40% memory used, disk is low, connection usage is moderate but acceptable.
-- Email sender domain `hello.zentro.today` is verified and ready to send.
-- Recent auth failures are mostly email-related:
-  - `429 email rate limit exceeded` during signup confirmation sends.
-  - `400 Email not confirmed` when users try logging in before confirming.
-  - Some `422` signup responses.
-- App-side issue found: `src/contexts/AuthContext.tsx` has `resendConfirmation` accidentally declared inside `resetPassword`, but still exported in the provider value. That can trigger the generic “Algo salió mal” page because the provider references a variable that is out of scope.
-- Onboarding currently blocks users under 18, while project rules say the app is 13+.
-- Profile creation trigger exists and creates `profiles` + default user role automatically when the auth user is created.
-- Profile username is initially auto-generated as `user_xxxxxxxx`, then onboarding replaces it.
+## Root cause
+
+Auth email domain `hello.zentro.today` is verified, and shared email infrastructure (queues, cron, send log) is already provisioned. However, `supabase/functions/auth-email-hook/index.ts` is still on the **old synchronous pattern** — it imports `@lovable.dev/email-js` and sends every confirmation email inline via `callback_url`.
+
+That path is capped by Supabase's built-in auth email sender at roughly **30 emails/hour project-wide and 1 email/60s per address**. That is exactly what the logs show: every `/signup` is returning `429 over_email_send_rate_limit`. Real users see "algo salió mal" and bounce.
+
+The new queued pattern enqueues into pgmq `auth_emails`, then `process-email-queue` drains it at ~120 emails/min using your own verified domain — well above 5K signups in a day.
 
 ## Plan
 
-### 1. Fix the auth provider crash
-- Move `resendConfirmation` out of `resetPassword` so it exists at provider scope.
-- Keep reset-password behavior unchanged.
-- This directly reduces risk of the generic “Algo salió mal” page during auth flows.
+1. **Upgrade the auth email hook to the queued pipeline**
+   - Re-scaffold the six auth templates + `auth-email-hook` with overwrite enabled. This replaces the old `@lovable.dev/email-js` direct-send code with the new `enqueue_email` version that uses pgmq + the existing `process-email-queue` cron.
+   - Re-apply Zentro brand styling (dark theme, Pinterest red `#E60023`, Poppins) to the regenerated templates, keeping email body background white per email best practice.
+   - Deploy `auth-email-hook` so Supabase Auth starts handing emails to the queue immediately.
 
-### 2. Harden signup/login error handling
-Update the auth page so users see clear Spanish guidance instead of raw backend errors:
-- Signup `429` / `over_email_send_rate_limit`: tell them the verification email was already sent and to wait before trying again.
-- Login `email_not_confirmed`: tell them to confirm their email and show a resend-confirmation action.
-- Signup duplicate / `user_already_exists` / `422`: guide them to log in or recover password.
-- Keep successful signup on the login screen with clear “check your inbox/spam” messaging.
+2. **Verify the live pipeline**
+   - Confirm `process-email-queue` cron is active on Live (this is what makes prod actually drain the queue — separate from dev).
+   - Check `email_send_log` after first real signup to confirm rows land as `pending` → `sent`.
 
-### 3. Add resend confirmation UX with cooldown
-- Add a “Reenviar correo” action when email confirmation is needed.
-- Disable resend for 60 seconds after use to avoid repeatedly hitting email limits.
-- Show friendly success/failure toasts.
+3. **No frontend changes needed**
+   - The friendly-error mapping + 60s "Reenviar correo" cooldown shipped last turn already covers the residual per-address gate.
+   - Onboarding 13+ age gate and duplicate-username handling already in place.
 
-### 4. Align onboarding with the 13+ requirement
-- Change onboarding age gate from 18+ to 13+.
-- Update the message to “Debes tener al menos 13 años para usar Zentro.”
+## Technical details
 
-### 5. Make onboarding completion safer
-- Handle profile update failures with clearer messages for username conflicts or temporary backend issues.
-- Prevent duplicate submit taps while the profile is being saved.
-- Keep users on onboarding if profile completion fails, instead of navigating away.
+- File touched by scaffolder: `supabase/functions/auth-email-hook/index.ts` and templates under `supabase/functions/_shared/email-templates/*.tsx`.
+- Deploy target: `auth-email-hook` (process-email-queue is already deployed).
+- No DB migration required — `enqueue_email`, `read_email_batch`, `delete_email`, `move_to_dlq` RPCs and pgmq queues already exist.
+- No env changes required — `SENDER_DOMAIN = hello.zentro.today` is correct.
+- If Live cron is missing post-publish, re-publish triggers the OnPublish hook to provision prod cron + Vault secret.
 
-### 6. Operational launch checks
-After implementation:
-- Re-check recent auth logs for `/signup`, `/token`, and `/verify` failures.
-- Re-check email send status for the last 24 hours.
-- Re-check backend health.
-- If 429s continue despite the verified email domain, raise the auth email rate limit in Cloud auth settings rather than disabling email confirmation.
+## Out of scope
 
-## What this does not change
-- It does not auto-confirm signups.
-- It does not remove email verification.
-- It does not change the database schema unless a new issue appears during validation.
-- It does not add any paywall, self-join guestlist flow, or mock data.
+- Switching to a third-party email provider (would conflict with NS delegation, slower to ship).
+- Touching Supabase auto-confirm or disabling email confirmation (security regression, not asked for).
