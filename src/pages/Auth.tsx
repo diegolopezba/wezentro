@@ -229,8 +229,8 @@ const Auth = () => {
 
   const handleVerifyCode = async () => {
     const code = otpCode.trim();
-    if (!/^\d{6}$/.test(code)) {
-      setErrors({ otp: "Ingresa el código de 6 dígitos." });
+    if (!/^\d{6,10}$/.test(code)) {
+      setErrors({ otp: "Ingresa el código de verificación." });
       return;
     }
     setIsLoading(true);
@@ -369,7 +369,7 @@ const Auth = () => {
               <div className="text-center">
                 <h2 className="text-xl font-semibold text-foreground mb-2">Verifica tu correo</h2>
                 <p className="text-sm text-muted-foreground">
-                  Ingresa el código de 6 dígitos que enviamos a{" "}
+                  Ingresa el código de verificación que enviamos a{" "}
                   <span className="text-foreground">{formData.email}</span>
                 </p>
               </div>
@@ -390,14 +390,14 @@ const Auth = () => {
                     type="text"
                     inputMode="numeric"
                     autoComplete="one-time-code"
-                    placeholder="Código de 6 dígitos"
+                    placeholder="Código de verificación"
                     value={otpCode}
                     onChange={(e) => {
-                      const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 10);
                       setOtpCode(v);
                       if (errors.otp) setErrors({ ...errors, otp: undefined });
                     }}
-                    maxLength={6}
+                    maxLength={10}
                     className={`text-center text-2xl tracking-[0.5em] ${errors.otp ? "border-destructive" : ""}`}
                   />
                   {errors.otp && (
@@ -411,7 +411,7 @@ const Auth = () => {
                   variant="hero"
                   className="w-full"
                   onClick={handleVerifyCode}
-                  disabled={isLoading || otpCode.length !== 6}
+                  disabled={isLoading || otpCode.length < 6}
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
