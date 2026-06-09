@@ -101,7 +101,7 @@ const Onboarding = () => {
   };
 
   const handleComplete = async (opts?: { skipGoal?: boolean }) => {
-    if (!user) return;
+    if (!user || isLoading) return;
 
     const birthDate = buildBirthDate();
     if (!formData.gender || !birthDate) {
@@ -128,19 +128,31 @@ const Onboarding = () => {
 
     if (error) {
       console.error("Error updating profile:", error);
-      toast.error("Error al actualizar perfil. Intenta de nuevo.");
+      const code = (error as any)?.code;
+      if (code === "23505" || /duplicate|unique/i.test(error.message)) {
+        toast.error("Ese nombre de usuario ya está en uso. Elige otro.");
+        setUsernameError("Este usuario ya está en uso");
+        setStep(1);
+      } else {
+        toast.error("No pudimos guardar tu perfil. Intenta de nuevo.");
+      }
       setIsLoading(false);
       return;
     }
 
     const referralCode = localStorage.getItem("zentro_referral_code");
     if (referralCode) {
-      await processReferral.mutateAsync(referralCode);
+      try {
+        await processReferral.mutateAsync(referralCode);
+      } catch (e) {
+        console.warn("Referral processing failed:", e);
+      }
       localStorage.removeItem("zentro_referral_code");
     }
 
     await refreshProfile();
     toast.success("¡Bienvenido a Zentro!");
+    setIsLoading(false);
     navigate("/");
   };
 
