@@ -166,7 +166,7 @@ const Tickets = () => {
                         <Calendar className="w-3 h-3" />
                         <span>{formattedDate}</span>
                       </div>
-                      {getPaymentStatusBadge(ticket.payment_status)}
+                      {getPaymentStatusBadge(ticket.payment_status, isFree)}
                     </div>
                   </button>
 
