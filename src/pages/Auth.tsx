@@ -42,6 +42,8 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -50,6 +52,60 @@ const Auth = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "" });
+
+  // Countdown for resend cooldown
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
+
+  const startResendCooldown = () => setResendCooldown(60);
+
+  const friendlyAuthError = (err: any): string => {
+    const raw = (err?.message || "").toString();
+    const code = (err?.code || err?.error_code || "").toString();
+    const status = err?.status;
+    if (code === "over_email_send_rate_limit" || status === 429 || /rate limit/i.test(raw)) {
+      return "Ya enviamos un correo recientemente. Espera unos segundos antes de reintentar.";
+    }
+    if (code === "email_not_confirmed" || /Email not confirmed/i.test(raw)) {
+      return "Confirma tu correo antes de iniciar sesión. Revisa tu bandeja y carpeta de spam.";
+    }
+    if (code === "user_already_exists" || /already registered|already exists/i.test(raw)) {
+      return "Ya existe una cuenta con este correo. Inicia sesión o recupera tu contraseña.";
+    }
+    if (/Invalid login credentials/i.test(raw)) {
+      return "Correo o contraseña incorrectos.";
+    }
+    if (/Password should be/i.test(raw)) {
+      return "La contraseña no cumple los requisitos mínimos.";
+    }
+    return raw || "Algo no salió bien. Intenta de nuevo.";
+  };
+
+  const handleResend = async () => {
+    if (resendCooldown > 0 || !formData.email) return;
+    try {
+      emailSchema.parse(formData.email);
+    } catch {
+      setErrors({ email: "Ingresa un correo válido para reenviar" });
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await resendConfirmation(formData.email);
+    setIsLoading(false);
+    if (error) {
+      toast.error(friendlyAuthError(error));
+      // Even on rate limit, start cooldown so user doesn't keep tapping
+      if ((error as any)?.status === 429 || /rate limit/i.test(error.message)) {
+        startResendCooldown();
+      }
+      return;
+    }
+    toast.success("Te reenviamos el correo de verificación.");
+    startResendCooldown();
+  };
 
   // Capture referral code from URL and store in localStorage
   useEffect(() => {
