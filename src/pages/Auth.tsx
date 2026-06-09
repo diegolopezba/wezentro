@@ -174,6 +174,8 @@ const Auth = () => {
           /Email not confirmed/i.test(error.message);
         if (isUnconfirmed) {
           setNeedsConfirmation(true);
+          setAwaitingCode(true);
+          setOtpCode("");
         }
         toast.error(msg);
         setIsLoading(false);
