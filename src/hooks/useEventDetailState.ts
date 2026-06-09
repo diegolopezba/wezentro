@@ -168,6 +168,7 @@ export const useEventDetailState = (
     setShowReservationSheet(false);
     setShowComments(false);
     setShowTierPicker(false);
+    setShowLeaveConfirm(false);
     setSelectedTier(null);
     setMediaLoaded(false);
     // NOTE: deliberately NOT resetting aspectRatio here. Letting the previous
