@@ -213,7 +213,7 @@ describe("Auth page - signup → code → verify flow", () => {
     });
     expect(await screen.findByText(/verifica tu correo/i)).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText(/código de 6 dígitos/i)
+      screen.getByPlaceholderText(/código de verificación/i)
     ).toBeInTheDocument();
     expect(navigateMock).not.toHaveBeenCalledWith("/onboarding");
   });
