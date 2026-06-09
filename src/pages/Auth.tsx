@@ -30,6 +30,7 @@ const Auth = () => {
     signUp,
     resetPassword,
     resendConfirmation,
+    verifySignupOtp,
     isLoading: authLoading
   } = useAuth();
   
@@ -43,11 +44,14 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [awaitingCode, setAwaitingCode] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
     terms?: string;
+    otp?: string;
   }>({});
   const [formData, setFormData] = useState({
     email: "",
