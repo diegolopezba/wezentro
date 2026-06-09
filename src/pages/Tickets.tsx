@@ -115,7 +115,7 @@ const Tickets = () => {
                 ticket.payment_status === "none" ||
                 ticket.payment_status === "confirmed" ||
                 !ticket.payment_status;
-              const canShowQr = paymentOk && !!ticket.qr_code_token;
+              const canShowQr = !!ticket.qr_code_token && (isFree || paymentOk);
 
               const handleRowClick = () => {
                 if (isFree && canShowQr) {
