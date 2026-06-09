@@ -369,7 +369,7 @@ const Auth = () => {
               <div className="text-center">
                 <h2 className="text-xl font-semibold text-foreground mb-2">Verifica tu correo</h2>
                 <p className="text-sm text-muted-foreground">
-                  Ingresa el código de 6 dígitos que enviamos a{" "}
+                  Ingresa el código de verificación que enviamos a{" "}
                   <span className="text-foreground">{formData.email}</span>
                 </p>
               </div>
