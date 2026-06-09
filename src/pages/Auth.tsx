@@ -448,6 +448,23 @@ const Auth = () => {
               </Button>
             </div>
 
+            {/* Resend confirmation (after signup or email_not_confirmed login) */}
+            {mode !== "reset" && needsConfirmation && (
+              <div className="text-center text-sm text-muted-foreground">
+                ¿No te llegó el correo?{" "}
+                <button
+                  type="button"
+                  className="text-foreground underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
+                  onClick={handleResend}
+                  disabled={isLoading || resendCooldown > 0}
+                >
+                  {resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : "Reenviar correo"}
+                </button>
+              </div>
+            )}
+
+
+
 
             {mode === "login" && (
               <p className="text-center text-sm text-muted-foreground">
