@@ -21,6 +21,7 @@ import {
   useConfirmPayment,
   useRejectPayment,
 } from "@/hooks/useGuestlist";
+import { useEventGuestlist } from "@/hooks/useEvents";
 import { toast } from "sonner";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { supabase } from "@/integrations/supabase/client";
