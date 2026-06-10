@@ -173,11 +173,52 @@ export const GuestlistManagementSheet = ({
   const rejectEntry = useRejectGuestlistEntry();
   const confirmPayment = useConfirmPayment();
   const rejectPayment = useRejectPayment();
+  const { data: approvedGuests = [], isLoading: loadingApproved } = useEventGuestlist(open ? eventId : undefined);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
 
   // Filter pending requests that don't have pending payments (for non-payment events)
   const nonPaymentPendingRequests = pendingRequests.filter(
     (r: any) => r.payment_status !== "pending" );
+
+  const matchesSearch = (entry: any, q: string) => {
+    if (!q.trim()) return true;
+    const needle = q.trim().toLowerCase();
+    const u = entry.user;
+    return (
+      (u?.username || "").toLowerCase().includes(needle) ||
+      (u?.full_name || "").toLowerCase().includes(needle)
+    );
+  };
+
+  const filteredPendingRequests = useMemo(
+    () => pendingRequests.filter((r: any) => matchesSearch(r, search)),
+    [pendingRequests, search]
+  );
+  const filteredNonPaymentPending = useMemo(
+    () => nonPaymentPendingRequests.filter((r: any) => matchesSearch(r, search)),
+    [nonPaymentPendingRequests, search]
+  );
+  const filteredPendingPayments = useMemo(
+    () => pendingPayments.filter((r: any) => matchesSearch(r, search)),
+    [pendingPayments, search]
+  );
+  const filteredApproved = useMemo(
+    () => approvedGuests.filter((r: any) => matchesSearch(r, search)),
+    [approvedGuests, search]
+  );
+
+  const SearchBar = (
+    <div className="relative mb-3">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+      <Input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Buscar por nombre o usuario"
+        className="pl-9 rounded-full bg-secondary/50 border-border"
+      />
+    </div>
+  );
 
   const handleApprove = async (entryId: string, userId: string) => {
     setProcessingIds((prev) => new Set(prev).add(entryId));
