@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
-import { X, Check, Loader2, Users, DollarSign, Clock, QrCode, Copy, RotateCcw, Share2 } from "lucide-react";
+import { X, Check, Loader2, Users, DollarSign, Clock, QrCode, Copy, RotateCcw, Share2, UserCheck, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Sheet,
