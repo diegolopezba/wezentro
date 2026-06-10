@@ -218,6 +218,7 @@ export const usePendingPayments = (eventId: string | undefined) => {
         `)
         .eq("event_id", eventId)
         .eq("payment_status", "pending")
+        .neq("status", "approved")
         .order("joined_at", { ascending: true });
 
       if (error) throw error;
