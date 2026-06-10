@@ -343,7 +343,42 @@ export const GuestlistManagementSheet = ({
     );
   };
 
-  // ── Event has payment QR → show 3 tabs ────────────────────────────────────
+  const renderApprovedTabContent = () => (
+    <TabsContent value="approved" className="overflow-y-auto h-[calc(100%-60px)] -mx-6 px-6">
+      {loadingApproved ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : approvedGuests.length === 0 ? (
+        renderEmptyState(
+          <UserCheck className="w-8 h-8 text-muted-foreground" />,
+          "Aún sin aceptados",
+          "Las personas que aceptes aparecerán aquí"
+        )
+      ) : filteredApproved.length === 0 ? (
+        renderEmptyState(
+          <Search className="w-8 h-8 text-muted-foreground" />,
+          "Sin resultados",
+          "Prueba con otro nombre o usuario"
+        )
+      ) : (
+        <div className="space-y-3">
+          {filteredApproved.map((entry: any, index: number) =>
+            renderUserRow(
+              entry,
+              index,
+              <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
+                <Check className="w-3 h-3 mr-1" />
+                Aceptado
+              </Badge>
+            )
+          )}
+        </div>
+      )}
+    </TabsContent>
+  );
+
+  // ── Event has payment QR → show 4 tabs ────────────────────────────────────
   if (eventHasPaymentQr) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -352,7 +387,9 @@ export const GuestlistManagementSheet = ({
             <SheetTitle className="font-brand text-lg">Gestionar Lista</SheetTitle>
           </SheetHeader>
 
-          <Tabs defaultValue="payments" className="h-[calc(100%-50px)]">
+          {SearchBar}
+
+          <Tabs defaultValue="payments" className="h-[calc(100%-110px)]">
             <TabsList className="w-full mb-4">
               <TabsTrigger value="payments" className="flex-1 gap-1.5 text-xs">
                 <DollarSign className="w-3.5 h-3.5" />
@@ -361,6 +398,10 @@ export const GuestlistManagementSheet = ({
               <TabsTrigger value="requests" className="flex-1 gap-1.5 text-xs">
                 <Users className="w-3.5 h-3.5" />
                 Solicitudes ({nonPaymentPendingRequests.length})
+              </TabsTrigger>
+              <TabsTrigger value="approved" className="flex-1 gap-1.5 text-xs">
+                <UserCheck className="w-3.5 h-3.5" />
+                Aceptados ({approvedGuests.length})
               </TabsTrigger>
               <TabsTrigger value="scanner" className="flex-1 gap-1.5 text-xs">
                 <QrCode className="w-3.5 h-3.5" />
@@ -376,10 +417,13 @@ export const GuestlistManagementSheet = ({
               ) : pendingPayments.length === 0 ? (
                 renderEmptyState(
                   <DollarSign className="w-8 h-8 text-muted-foreground" />, "Sin pagos pendientes", "Los pagos registrados aparecerán aquí" )
+              ) : filteredPendingPayments.length === 0 ? (
+                renderEmptyState(
+                  <Search className="w-8 h-8 text-muted-foreground" />, "Sin resultados", "Prueba con otro nombre o usuario" )
               ) : (
                 <div className="space-y-3">
                   <AnimatePresence mode="popLayout">
-                    {pendingPayments.map((request: any, index: number) => {
+                    {filteredPendingPayments.map((request: any, index: number) => {
                       const isProcessing = processingIds.has(request.id);
                       return renderUserRow(
                         request,
@@ -425,10 +469,13 @@ export const GuestlistManagementSheet = ({
               ) : nonPaymentPendingRequests.length === 0 ? (
                 renderEmptyState(
                   <Users className="w-8 h-8 text-muted-foreground" />, "Sin solicitudes pendientes", "Las nuevas solicitudes aparecerán aquí" )
+              ) : filteredNonPaymentPending.length === 0 ? (
+                renderEmptyState(
+                  <Search className="w-8 h-8 text-muted-foreground" />, "Sin resultados", "Prueba con otro nombre o usuario" )
               ) : (
                 <div className="space-y-3">
                   <AnimatePresence mode="popLayout">
-                    {nonPaymentPendingRequests.map((request: any, index: number) => {
+                    {filteredNonPaymentPending.map((request: any, index: number) => {
                       const isProcessing = processingIds.has(request.id);
                       return renderUserRow(
                         request,
@@ -462,6 +509,8 @@ export const GuestlistManagementSheet = ({
               )}
             </TabsContent>
 
+            {renderApprovedTabContent()}
+
             <TabsContent value="scanner" className="overflow-y-auto h-[calc(100%-60px)] -mx-6 px-6">
               <ScannerPanel eventId={eventId} />
             </TabsContent>
@@ -471,7 +520,7 @@ export const GuestlistManagementSheet = ({
     );
   }
 
-  // ── Original view for events without payment QR → 2 tabs ─────────────────
+  // ── Original view for events without payment QR → 3 tabs ─────────────────
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl">
@@ -479,11 +528,17 @@ export const GuestlistManagementSheet = ({
           <SheetTitle className="font-brand text-lg">Gestionar Lista</SheetTitle>
         </SheetHeader>
 
-        <Tabs defaultValue="requests" className="h-[calc(100%-50px)]">
+        {SearchBar}
+
+        <Tabs defaultValue="requests" className="h-[calc(100%-110px)]">
           <TabsList className="w-full mb-4">
             <TabsTrigger value="requests" className="flex-1 gap-1.5 text-xs">
               <Users className="w-3.5 h-3.5" />
               Solicitudes ({pendingRequests.length})
+            </TabsTrigger>
+            <TabsTrigger value="approved" className="flex-1 gap-1.5 text-xs">
+              <UserCheck className="w-3.5 h-3.5" />
+              Aceptados ({approvedGuests.length})
             </TabsTrigger>
             <TabsTrigger value="scanner" className="flex-1 gap-1.5 text-xs">
               <QrCode className="w-3.5 h-3.5" />
@@ -499,10 +554,13 @@ export const GuestlistManagementSheet = ({
             ) : pendingRequests.length === 0 ? (
               renderEmptyState(
                 <Users className="w-8 h-8 text-muted-foreground" />, "Sin solicitudes pendientes", "Las nuevas solicitudes aparecerán aquí" )
+            ) : filteredPendingRequests.length === 0 ? (
+              renderEmptyState(
+                <Search className="w-8 h-8 text-muted-foreground" />, "Sin resultados", "Prueba con otro nombre o usuario" )
             ) : (
               <div className="space-y-3">
                 <AnimatePresence mode="popLayout">
-                  {pendingRequests.map((request: any, index: number) => {
+                  {filteredPendingRequests.map((request: any, index: number) => {
                     const isProcessing = processingIds.has(request.id);
                     return renderUserRow(
                       request,
@@ -535,6 +593,8 @@ export const GuestlistManagementSheet = ({
               </div>
             )}
           </TabsContent>
+
+          {renderApprovedTabContent()}
 
           <TabsContent value="scanner" className="overflow-y-auto h-[calc(100%-60px)] -mx-6 px-6">
             <ScannerPanel eventId={eventId} />
