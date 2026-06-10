@@ -106,12 +106,13 @@ export const useEventDetailState = (
   const maxGuestlistCapacity = event?.max_guestlist_capacity ?? null;
   const isGuestlistFull = maxGuestlistCapacity != null && approvedCount >= maxGuestlistCapacity;
 
-  const pendingCount = pendingRequests.length + pendingPayments.length;
   const legacyHasPaid = (event?.price ?? 0) > 0;
   const hasPaidTickets = hasTiers
     ? ticketTiers.some((t) => Number(t.price) > 0)
     : legacyHasPaid;
   const hasPaymentQr = !!(event?.payment_qr_url && hasPaidTickets);
+  // Badge should only sum payments when the event actually uses the payment flow.
+  const pendingCount = pendingRequests.length + (hasPaymentQr ? pendingPayments.length : 0);
   const isInviteOnlyGuestlist = !!(hasPaidTickets && event?.has_guestlist);
   const formattedDate = event?.start_datetime
     ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")
