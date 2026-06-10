@@ -56,7 +56,9 @@ export const useEventDetailState = (
   const { data: event, isLoading, error } = useEvent(eventId);
   const { data: guestlistStatus } = useIsOnGuestlist(eventId);
   const { data: pendingRequests = [] } = usePendingGuestlistRequests(event ? eventId : undefined);
-  const { data: pendingPayments = [] } = usePendingPayments(event ? eventId : undefined);
+  // Only query pending payments for events that actually use a QR payment flow.
+  const _eventHasQr = !!event?.payment_qr_url;
+  const { data: pendingPayments = [] } = usePendingPayments(event && _eventHasQr ? eventId : undefined);
   const { data: guestlist = [] } = useEventGuestlist(eventId);
   const { data: isSaved } = useIsEventSaved(eventId);
   const { data: isLiked } = useIsEventLiked(eventId!);
@@ -104,12 +106,13 @@ export const useEventDetailState = (
   const maxGuestlistCapacity = event?.max_guestlist_capacity ?? null;
   const isGuestlistFull = maxGuestlistCapacity != null && approvedCount >= maxGuestlistCapacity;
 
-  const pendingCount = pendingRequests.length + pendingPayments.length;
   const legacyHasPaid = (event?.price ?? 0) > 0;
   const hasPaidTickets = hasTiers
     ? ticketTiers.some((t) => Number(t.price) > 0)
     : legacyHasPaid;
   const hasPaymentQr = !!(event?.payment_qr_url && hasPaidTickets);
+  // Badge should only sum payments when the event actually uses the payment flow.
+  const pendingCount = pendingRequests.length + (hasPaymentQr ? pendingPayments.length : 0);
   const isInviteOnlyGuestlist = !!(hasPaidTickets && event?.has_guestlist);
   const formattedDate = event?.start_datetime
     ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")
