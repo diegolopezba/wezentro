@@ -16,6 +16,7 @@ interface UpdateEventData {
   payment_qr_url?: string | null;
   show_menu_button?: boolean;
   show_reservation_button?: boolean;
+  is_location_secret?: boolean;
 }
 
 export function useUpdateEvent() {
