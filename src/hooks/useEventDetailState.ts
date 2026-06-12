@@ -293,6 +293,7 @@ export const useEventDetailState = (
     isOwner,
     approvedCount, maxGuestlistCapacity, isGuestlistFull,
     hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
+    isLocationSecret, canSeeLocation,
     isGuest, isAuthenticated: !isGuest,
     formattedDate, formattedPrice,
     // Media
