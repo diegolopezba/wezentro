@@ -14,8 +14,10 @@ import {
   UtensilsCrossed,
   CalendarCheck,
   Sparkles,
-  PartyPopper } from
+  PartyPopper,
+  Lock } from
 "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
