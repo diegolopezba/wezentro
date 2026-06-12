@@ -64,6 +64,7 @@ const EventDetailModalInner = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [showReportSheet, setShowReportSheet] = useState(false);
+  const [showLocationSheet, setShowLocationSheet] = useState(false);
 
   const close = () => navigate(-1);
 
