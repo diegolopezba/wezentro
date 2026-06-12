@@ -17,6 +17,7 @@ import { MentionTextarea } from "@/components/ui/MentionTextarea";
 import { useMyMenu } from "@/hooks/useMenu";
 import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
 import { useTicketTiers, useReplaceTicketTiers } from "@/hooks/useTicketTiers";
+import { LocationPicker } from "@/components/map/LocationPicker";
 
 interface EditEventSheetProps {
   event: {
@@ -27,6 +28,8 @@ interface EditEventSheetProps {
     start_datetime: string;
     end_datetime?: string | null;
     location_name?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
     price?: number | null;
     max_guestlist_capacity?: number | null;
     has_guestlist?: boolean | null;
@@ -64,6 +67,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
     category: event.category || "",
     start_datetime: format(new Date(event.start_datetime), "yyyy-MM-dd'T'HH:mm"),
     location_name: event.location_name || "",
+    latitude: event.latitude ?? null,
+    longitude: event.longitude ?? null,
     price: event.price?.toString() || "0",
     max_guestlist_capacity: event.max_guestlist_capacity?.toString() || "",
     has_guestlist: event.has_guestlist || false,
@@ -81,6 +86,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
         category: event.category || "",
         start_datetime: format(new Date(event.start_datetime), "yyyy-MM-dd'T'HH:mm"),
         location_name: event.location_name || "",
+        latitude: event.latitude ?? null,
+        longitude: event.longitude ?? null,
         price: event.price?.toString() || "0",
         max_guestlist_capacity: event.max_guestlist_capacity?.toString() || "",
         has_guestlist: event.has_guestlist || false,
@@ -209,6 +216,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
           category: formData.category || null,
           start_datetime: formData.start_datetime ? new Date(formData.start_datetime).toISOString() : null,
           location_name: formData.location_name || null,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
           price: legacyPrice,
           max_guestlist_capacity: formData.max_guestlist_capacity ? parseInt(formData.max_guestlist_capacity) : null,
           has_guestlist: formData.has_guestlist,
@@ -337,14 +346,23 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Ubicación</Label>
-                <Input
-                  id="location"
-                  value={formData.location_name}
-                  onChange={(e) => setFormData({ ...formData, location_name: e.target.value })}
-                  placeholder="Ubicación del evento"
+                <LocationPicker
+                  value={{
+                    address: formData.location_name,
+                    latitude: formData.latitude,
+                    longitude: formData.longitude,
+                  }}
+                  onChange={(loc) =>
+                    setFormData({
+                      ...formData,
+                      location_name: loc.address,
+                      latitude: loc.latitude,
+                      longitude: loc.longitude,
+                    })
+                  }
                 />
               </div>
+
 
               {isBusiness ? (
                 <div className="space-y-2">
