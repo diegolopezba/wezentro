@@ -67,6 +67,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
     category: event.category || "",
     start_datetime: format(new Date(event.start_datetime), "yyyy-MM-dd'T'HH:mm"),
     location_name: event.location_name || "",
+    latitude: event.latitude ?? null,
+    longitude: event.longitude ?? null,
     price: event.price?.toString() || "0",
     max_guestlist_capacity: event.max_guestlist_capacity?.toString() || "",
     has_guestlist: event.has_guestlist || false,
