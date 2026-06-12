@@ -216,6 +216,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
           category: formData.category || null,
           start_datetime: formData.start_datetime ? new Date(formData.start_datetime).toISOString() : null,
           location_name: formData.location_name || null,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
           price: legacyPrice,
           max_guestlist_capacity: formData.max_guestlist_capacity ? parseInt(formData.max_guestlist_capacity) : null,
           has_guestlist: formData.has_guestlist,
