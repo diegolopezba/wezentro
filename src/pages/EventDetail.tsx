@@ -13,6 +13,7 @@ import { GuestlistManagementSheet } from "@/components/events/GuestlistManagemen
 import { ShareEventModal } from "@/components/events/ShareEventModal";
 
 import { EditEventSheet } from "@/components/events/EditEventSheet";
+import { LocationSheet } from "@/components/events/LocationSheet";
 import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { LeaveGuestlistDrawer } from "@/components/events/LeaveGuestlistDrawer";
@@ -46,6 +47,7 @@ const EventDetail = () => {
   const openGuestlistOnMount = (location.state as { openGuestlist?: boolean })?.openGuestlist;
   const { user } = useAuth();
   const [showReportSheet, setShowReportSheet] = useState(false);
+  const [showLocationSheet, setShowLocationSheet] = useState(false);
 
   const {
     event, isLoading, error,
@@ -275,15 +277,19 @@ const EventDetail = () => {
               </div>
             </div>
           ) : (
-            event.location_name && <div className="flex items-center gap-2">
+            event.location_name && <button
+                type="button"
+                onClick={() => setShowLocationSheet(true)}
+                className="flex items-center gap-2 w-full text-left active:opacity-70"
+              >
                 <MapPin className="w-4 h-4 text-muted-foreground" />
-                <p className="text-sm text-foreground">{event.location_name}</p>
+                <p className="text-sm text-foreground underline-offset-2 underline decoration-muted-foreground/40">{event.location_name}</p>
                 {isLocationSecret && (
                   <span className="text-[10px] uppercase tracking-wide text-muted-foreground px-1.5 py-0.5 rounded-full border border-border">
                     Secreta
                   </span>
                 )}
-              </div>
+              </button>
           )}
 
           {/* Description */}
@@ -388,6 +394,14 @@ const EventDetail = () => {
 
       {/* Edit Event Sheet - Owner only */}
       {isOwner && <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} isPost={!!event.is_post} />}
+      <LocationSheet
+        open={showLocationSheet}
+        onOpenChange={setShowLocationSheet}
+        locationName={event.location_name}
+        latitude={event.latitude}
+        longitude={event.longitude}
+        isSecret={isLocationSecret}
+      />
 
       {/* Delete Event Dialog - Owner only */}
       {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} isPost={isPost} />}
