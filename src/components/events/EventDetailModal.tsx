@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
+import { LocationSheet } from "@/components/events/LocationSheet";
 import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { LeaveGuestlistDrawer } from "@/components/events/LeaveGuestlistDrawer";
