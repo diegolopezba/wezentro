@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, AtSign, Heart, Repeat2, MessageCircle, Sparkles } from "lucide-react";
+import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, AtSign, Heart, Repeat2, MessageCircle, Sparkles, MapPin } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,6 +44,8 @@ const getNotificationIcon = (type: string) => {
     case "business_cta_declined":
     case "business_cta_revoked":
       return Sparkles;
+    case "secret_location_changed":
+      return MapPin;
     default:
       return Bell;
   }
@@ -417,6 +419,8 @@ const Notifications = () => {
         notification.type === "business_cta_revoked") &&
       notification.entity_id
     ) {
+      navigate(`/event/${notification.entity_id}`);
+    } else if (notification.type === "secret_location_changed" && notification.entity_id) {
       navigate(`/event/${notification.entity_id}`);
     } else if ((notification.entity_type === "profile" || notification.entity_type === "user") && notification.entity_id) {
       navigate(`/user/${notification.entity_id}`);

@@ -14,8 +14,10 @@ import {
   UtensilsCrossed,
   CalendarCheck,
   Sparkles,
-  PartyPopper } from
+  PartyPopper,
+  Lock } from
 "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -109,7 +111,8 @@ const Create = () => {
     capacity: "",
     hasGuestlist: false,
     showMenuButton: false,
-    showReservationButton: false
+    showReservationButton: false,
+    isLocationSecret: false
   });
 
   // Ticket tier state (events only, business accounts)
@@ -361,7 +364,8 @@ const Create = () => {
         is_post: isPost,
         description_tags: descriptionTags.length > 0 ? descriptionTags : null,
         show_menu_button: isBusiness && hasMenuItems ? formData.showMenuButton : false,
-        show_reservation_button: isBusiness && reservationsEnabled && isPost ? formData.showReservationButton : false
+        show_reservation_button: isBusiness && reservationsEnabled && isPost ? formData.showReservationButton : false,
+        is_location_secret: !isPost && formData.isLocationSecret
       }).
       select().
       single();
@@ -880,6 +884,43 @@ const Create = () => {
             </Card>
           </m.div>
         }
+
+        {/* ── Opciones avanzadas (events only) ── */}
+        {!isPost && (
+          <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26 }}>
+            <Card className="glass border-white/10 p-0 overflow-hidden">
+              <Collapsible>
+                <CollapsibleTrigger className="w-full flex items-center justify-between p-4 [&[data-state=open]>svg]:rotate-180">
+                  <span className="font-semibold text-foreground">Opciones avanzadas</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="px-4 pb-4 pt-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                        <Lock className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">Ubicación secreta</h3>
+                        <p className="text-xs text-muted-foreground">
+                          Solo las personas que apruebes verán la dirección. Si la cambias, les llegará una notificación.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, isLocationSecret: !formData.isLocationSecret })}
+                      className={`relative w-12 h-7 rounded-full transition-colors shrink-0 ${formData.isLocationSecret ? "bg-primary" : "bg-secondary"}`}>
+                      <m.div
+                        animate={{ x: formData.isLocationSecret ? 22 : 2 }}
+                        className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
+                    </button>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </Card>
+          </m.div>
+        )}
 
         {/* ── Publish button ── */}
         <div className="pt-2">

@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Upload, X, QrCode, UtensilsCrossed, CalendarCheck } from "lucide-react";
+import { Loader2, Upload, X, QrCode, UtensilsCrossed, CalendarCheck, ChevronDown, Lock } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -32,6 +33,7 @@ interface EditEventSheetProps {
     payment_qr_url?: string | null;
     show_menu_button?: boolean | null;
     show_reservation_button?: boolean | null;
+    is_location_secret?: boolean | null;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -68,6 +70,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
     payment_qr_url: event.payment_qr_url || "",
     show_menu_button: event.show_menu_button ?? false,
     show_reservation_button: event.show_reservation_button ?? false,
+    is_location_secret: event.is_location_secret ?? false,
   });
 
   useEffect(() => {
@@ -84,6 +87,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
         payment_qr_url: event.payment_qr_url || "",
         show_menu_button: event.show_menu_button ?? false,
         show_reservation_button: event.show_reservation_button ?? false,
+        is_location_secret: event.is_location_secret ?? false,
       });
     }
   }, [open, event]);
@@ -211,6 +215,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
           payment_qr_url: formData.payment_qr_url || null,
           show_menu_button: formData.show_menu_button,
           show_reservation_button: formData.show_reservation_button,
+          is_location_secret: formData.is_location_secret,
         },
       });
 
@@ -500,7 +505,36 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
               />
             </div>
           )}
+
+          {/* Opciones avanzadas */}
+          {!isPost && (
+            <Collapsible className="rounded-xl border border-border bg-secondary/30">
+              <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-3 [&[data-state=open]>svg]:rotate-180">
+                <span className="text-sm font-medium">Opciones avanzadas</span>
+                <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="px-4 pb-4 pt-1">
+                <div className="flex items-start justify-between gap-3 py-2">
+                  <div className="flex items-start gap-2 flex-1">
+                    <Lock className="w-4 h-4 text-primary mt-0.5" />
+                    <div className="flex flex-col">
+                      <Label htmlFor="secret-location">Ubicación secreta</Label>
+                      <span className="text-xs text-muted-foreground">
+                        Solo las personas que apruebes verán la dirección. Si la cambias, les llegará una notificación.
+                      </span>
+                    </div>
+                  </div>
+                  <Switch
+                    id="secret-location"
+                    checked={formData.is_location_secret}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_location_secret: checked })}
+                  />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
         </div>
+
 
         <div className="shrink-0 pt-4 border-t safe-bottom">
           <Button
