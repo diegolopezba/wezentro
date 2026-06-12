@@ -215,6 +215,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
           payment_qr_url: formData.payment_qr_url || null,
           show_menu_button: formData.show_menu_button,
           show_reservation_button: formData.show_reservation_button,
+          is_location_secret: formData.is_location_secret,
         },
       });
 
