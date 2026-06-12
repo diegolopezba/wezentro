@@ -295,15 +295,19 @@ const EventDetailModalInner = () => {
                 </div>
               ) : (
                 event.location_name && (
-                  <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowLocationSheet(true)}
+                    className="flex items-center gap-2 w-full text-left active:opacity-70"
+                  >
                     <MapPin className="w-4 h-4 text-muted-foreground" />
-                    <p className="text-sm text-foreground">{event.location_name}</p>
+                    <p className="text-sm text-foreground underline-offset-2 underline decoration-muted-foreground/40">{event.location_name}</p>
                     {isLocationSecret && (
                       <span className="text-[10px] uppercase tracking-wide text-muted-foreground px-1.5 py-0.5 rounded-full border border-border">
                         Secreta
                       </span>
                     )}
-                  </div>
+                  </button>
                 )
               )}
 
