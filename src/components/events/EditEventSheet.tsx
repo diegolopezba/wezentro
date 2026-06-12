@@ -33,6 +33,7 @@ interface EditEventSheetProps {
     payment_qr_url?: string | null;
     show_menu_button?: boolean | null;
     show_reservation_button?: boolean | null;
+    is_location_secret?: boolean | null;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
