@@ -614,6 +614,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_business_event: boolean | null
+          is_location_secret: boolean
           is_post: boolean | null
           is_public: boolean | null
           latitude: number | null
@@ -641,6 +642,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_business_event?: boolean | null
+          is_location_secret?: boolean
           is_post?: boolean | null
           is_public?: boolean | null
           latitude?: number | null
@@ -668,6 +670,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_business_event?: boolean | null
+          is_location_secret?: boolean
           is_post?: boolean | null
           is_public?: boolean | null
           latitude?: number | null
@@ -2494,6 +2497,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_see_event_location: {
+        Args: { _event: string; _user: string }
+        Returns: boolean
+      }
       can_view_full_guestlist_entry: {
         Args: { _entry_user_id: string; _event_id: string; _user_id: string }
         Returns: boolean
