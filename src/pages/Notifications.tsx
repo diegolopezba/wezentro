@@ -44,6 +44,8 @@ const getNotificationIcon = (type: string) => {
     case "business_cta_declined":
     case "business_cta_revoked":
       return Sparkles;
+    case "secret_location_changed":
+      return MapPin;
     default:
       return Bell;
   }
