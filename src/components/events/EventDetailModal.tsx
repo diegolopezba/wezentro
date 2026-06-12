@@ -5,7 +5,7 @@ import { ModalErrorBoundary } from "@/components/events/ModalErrorBoundary";
 import {
   Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock,
   Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, X, Bookmark, Repeat,
-  EyeOff, UtensilsCrossed, CalendarCheck, Flag,
+  EyeOff, UtensilsCrossed, CalendarCheck, Flag, Lock,
 } from "lucide-react";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
@@ -75,6 +75,7 @@ const EventDetailModalInner = () => {
     isOwner,
     approvedCount, maxGuestlistCapacity, isGuestlistFull,
     hasPaidTickets, hasPaymentQr,
+    isLocationSecret, canSeeLocation,
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
@@ -280,11 +281,28 @@ const EventDetailModalInner = () => {
                 </div>
               )}
 
-              {event.location_name && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                  <p className="text-sm text-foreground">{event.location_name}</p>
+              {isLocationSecret && !canSeeLocation ? (
+                <div className="flex items-start gap-2 p-3 rounded-2xl bg-secondary/40 border border-border">
+                  <Lock className="w-4 h-4 text-muted-foreground mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">Ubicación secreta</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      La verás cuando el organizador te apruebe.
+                    </p>
+                  </div>
                 </div>
+              ) : (
+                event.location_name && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                    <p className="text-sm text-foreground">{event.location_name}</p>
+                    {isLocationSecret && (
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground px-1.5 py-0.5 rounded-full border border-border">
+                        Secreta
+                      </span>
+                    )}
+                  </div>
+                )
               )}
 
               {event.description && (
