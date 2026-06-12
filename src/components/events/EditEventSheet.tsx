@@ -87,6 +87,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
         payment_qr_url: event.payment_qr_url || "",
         show_menu_button: event.show_menu_button ?? false,
         show_reservation_button: event.show_reservation_button ?? false,
+        is_location_secret: event.is_location_secret ?? false,
       });
     }
   }, [open, event]);
