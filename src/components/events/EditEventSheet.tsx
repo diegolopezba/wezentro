@@ -505,7 +505,36 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
               />
             </div>
           )}
+
+          {/* Opciones avanzadas */}
+          {!isPost && (
+            <Collapsible className="rounded-xl border border-border bg-secondary/30">
+              <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-3 [&[data-state=open]>svg]:rotate-180">
+                <span className="text-sm font-medium">Opciones avanzadas</span>
+                <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="px-4 pb-4 pt-1">
+                <div className="flex items-start justify-between gap-3 py-2">
+                  <div className="flex items-start gap-2 flex-1">
+                    <Lock className="w-4 h-4 text-primary mt-0.5" />
+                    <div className="flex flex-col">
+                      <Label htmlFor="secret-location">Ubicación secreta</Label>
+                      <span className="text-xs text-muted-foreground">
+                        Solo las personas que apruebes verán la dirección. Si la cambias, les llegará una notificación.
+                      </span>
+                    </div>
+                  </div>
+                  <Switch
+                    id="secret-location"
+                    checked={formData.is_location_secret}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_location_secret: checked })}
+                  />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
         </div>
+
 
         <div className="shrink-0 pt-4 border-t safe-bottom">
           <Button
