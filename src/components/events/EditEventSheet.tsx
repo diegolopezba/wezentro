@@ -344,14 +344,23 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Ubicación</Label>
-                <Input
-                  id="location"
-                  value={formData.location_name}
-                  onChange={(e) => setFormData({ ...formData, location_name: e.target.value })}
-                  placeholder="Ubicación del evento"
+                <LocationPicker
+                  value={{
+                    address: formData.location_name,
+                    latitude: formData.latitude,
+                    longitude: formData.longitude,
+                  }}
+                  onChange={(loc) =>
+                    setFormData({
+                      ...formData,
+                      location_name: loc.address,
+                      latitude: loc.latitude,
+                      longitude: loc.longitude,
+                    })
+                  }
                 />
               </div>
+
 
               {isBusiness ? (
                 <div className="space-y-2">
