@@ -57,6 +57,7 @@ const EventDetail = () => {
     isOwner,
     approvedCount, maxGuestlistCapacity, isGuestlistFull,
     hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
+    isLocationSecret, canSeeLocation,
     isAuthenticated,
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
