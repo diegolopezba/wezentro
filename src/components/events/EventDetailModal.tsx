@@ -395,6 +395,14 @@ const EventDetailModalInner = () => {
           <GuestlistManagementSheet eventId={id!} open={showManagement} onOpenChange={setShowManagement} />
           <ShareEventModal open={showShareModal} onOpenChange={setShowShareModal} eventId={id!} />
           <EditEventSheet open={showEditSheet} onOpenChange={setShowEditSheet} event={event} isPost={!!event.is_post} />
+          <LocationSheet
+            open={showLocationSheet}
+            onOpenChange={setShowLocationSheet}
+            locationName={event.location_name}
+            latitude={event.latitude}
+            longitude={event.longitude}
+            isSecret={isLocationSecret}
+          />
           <DeleteEventDialog
             open={showDeleteDialog}
             onOpenChange={(open) => {
