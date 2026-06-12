@@ -102,6 +102,10 @@ export const useEventDetailState = (
   const isApproved = guestlistStatus?.status === "approved";
   const isOwner = !!(user && user.id === event?.creator_id);
 
+  // Secret-location gating: only creator and approved guests can see the address/map.
+  const isLocationSecret = !!(event as any)?.is_location_secret;
+  const canSeeLocation = !isLocationSecret || isOwner || isApproved;
+
   const approvedCount = guestlist.length;
   const maxGuestlistCapacity = event?.max_guestlist_capacity ?? null;
   const isGuestlistFull = maxGuestlistCapacity != null && approvedCount >= maxGuestlistCapacity;
