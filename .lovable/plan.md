@@ -1,34 +1,21 @@
 ## Problem
-In `EditEventSheet.tsx` the "Ubicación" field is just a plain `<Input>` bound to `location_name`. There's no geocoding search dropdown and no map — that's why typing a new address doesn't show suggestions or a map, and selecting a new spot is impossible. The Create page uses the proper `LocationPicker` component (search + draggable pin); the Edit sheet was never wired up to it.
 
-A secondary consequence: even if the user typed a new address string, `latitude` / `longitude` were never updated, so the map pin on the event detail page would still point to the old coordinates and the secret-location notification would not fire correctly.
+Saving a new location on an event with secret location enabled fails with:
+`new row for relation "notifications" violates check constraint "notifications_type_check"`
+
+The `notifications.type` column has a CHECK constraint with a hardcoded list of allowed values. When the trigger `notify_secret_location_change` tries to insert a `secret_location_changed` notification, the constraint rejects it because that type was never added to the list.
+
+The same list is also missing the `business_cta_request`, `business_cta_accepted`, `business_cta_declined`, and `business_cta_revoked` types that already exist in the codebase and triggers — those are latent bugs that will hit users next.
 
 ## Fix
 
-**`src/components/events/EditEventSheet.tsx`**
-- Import `LocationPicker` from `@/components/map/LocationPicker`.
-- Extend the `event` prop type and `formData` state with `latitude: number | null` and `longitude: number | null`, hydrated from the event (both on mount and in the `useEffect` reset when the sheet opens).
-- Replace the current `<Label htmlFor="location">` + `<Input id="location">` block with:
-  ```tsx
-  <LocationPicker
-    value={{
-      address: formData.location_name,
-      latitude: formData.latitude,
-      longitude: formData.longitude,
-    }}
-    onChange={(loc) =>
-      setFormData({
-        ...formData,
-        location_name: loc.address,
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-      })
-    }
-  />
-  ```
-- Include `latitude` and `longitude` in the `updateEvent` mutation payload (alongside `location_name`).
+Run one migration that drops and recreates `notifications_type_check` to include all currently used notification types:
 
-**`src/pages/EventDetail.tsx`**
-- When opening `EditEventSheet`, pass `latitude` and `longitude` from the loaded event so the picker hydrates with the existing pin (small prop addition; no logic change).
+- existing: `follow`, `guestlist_request`, `guestlist_approved`, `guestlist_rejected`, `guestlist_invitation`, `repost`, `collaboration_request`, `collaboration_accepted`, `referral_signup`, `new_reservation`, `reservation_cancelled`, `reservation_tagged`, `post_tag`, `like`, `comment`
+- add: `secret_location_changed`, `business_cta_request`, `business_cta_accepted`, `business_cta_declined`, `business_cta_revoked`
 
-No DB/migration work — `useEventMutations.UpdateEventData` already accepts `latitude` / `longitude`, and the secret-location change trigger we shipped already watches those columns, so editing the location on a secret event will continue to notify approved guests automatically.
+No frontend changes required — `Notifications.tsx` already handles `secret_location_changed`.
+
+## Verification
+
+After the migration, edit a secret-location event's address in the Edit sheet. Saving should succeed, and approved guests should receive a "Nueva ubicación secreta" notification that links to the event detail.
