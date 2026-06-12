@@ -28,6 +28,8 @@ interface EditEventSheetProps {
     start_datetime: string;
     end_datetime?: string | null;
     location_name?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
     price?: number | null;
     max_guestlist_capacity?: number | null;
     has_guestlist?: boolean | null;
