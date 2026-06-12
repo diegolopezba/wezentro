@@ -394,6 +394,14 @@ const EventDetail = () => {
 
       {/* Edit Event Sheet - Owner only */}
       {isOwner && <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} isPost={!!event.is_post} />}
+      <LocationSheet
+        open={showLocationSheet}
+        onOpenChange={setShowLocationSheet}
+        locationName={event.location_name}
+        latitude={event.latitude}
+        longitude={event.longitude}
+        isSecret={isLocationSecret}
+      />
 
       {/* Delete Event Dialog - Owner only */}
       {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} isPost={isPost} />}
