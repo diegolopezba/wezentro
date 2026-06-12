@@ -1,81 +1,48 @@
-## Problem
-When a user already joined an event (the CTA shows **Unido**), tapping it immediately removes them from the guestlist via `handleLeaveGuestlist` with no confirmation. This can cause accidental un-joins.
-
 ## Goal
-Show a native-style confirmation **bottomsheet** (Drawer from vaul) before actually leaving the guestlist.
+Add an **"Opciones avanzadas"** collapsible to the Create and Edit event screens with a **"Ubicación secreta"** toggle that any owner can flip independently of guestlist/price. Approved guests see the real address; everyone else sees a locked teaser. Reveal + change notifications use the existing in-app notifications system (no DMs).
 
-## Changes
+## UX
 
-### 1. `src/hooks/useEventDetailState.ts`
-Add `showLeaveConfirm` / `setShowLeaveConfirm` boolean state and expose it from the hook.
+**Create page** — new collapsible **"Opciones avanzadas"** at the bottom, collapsed by default. First option inside: `Ubicación secreta` switch with helper text *"Solo verán la dirección las personas que apruebes."*
 
-### 2. New component: `src/components/events/LeaveGuestlistDrawer.tsx`
-A reusable bottomsheet using the project's existing `<Drawer>` (vaul) primitives:
-- Title: "¿Salir de la lista?"
-- Description: "Si abandonas la lista perderás tu lugar en este evento."
-- Footer with two pill (`rounded-full`) buttons:
-  - **Cancelar** (ghost variant) → closes drawer
-  - **Salir de la lista** (destructive variant, brand-red `#E60023` background per project tokens) → calls `onConfirm` and closes drawer
+**Edit event sheet** — same collapsible + toggle, so existing public events (like the user's current one) can be switched to secret afterwards.
 
-### 3. `src/pages/EventDetail.tsx` & `src/components/events/EventDetailModal.tsx`
-- In both files, locate the **Unido** button (`variant="ghost"` with `<Check /> Unido`).
-- Change its `onClick` from `handleLeaveGuestlist` to `() => setShowLeaveConfirm(true)`.
-- Render `<LeaveGuestlistDrawer>` below the floating CTA bar, passing:
-  - `open={showLeaveConfirm}`
-  - `onOpenChange={setShowLeaveConfirm}`
-  - `onConfirm={handleLeaveGuestlist}`
-  - `isPending={leaveGuestlistPending}`
+**Viewing a secret-location event**
+- Creator and approved guestlist members → see the real address + map, plus a small "Ubicación secreta" badge.
+- Everyone else → address/map replaced by a locked card: lock icon, "Ubicación secreta", subtext *"La verás cuando el organizador te apruebe"*.
+- Event cards / feed / map markers → show "Ubicación secreta" chip instead of `location_name` and skip the map pin for non-approved viewers.
 
-### 4. No backend or mutation changes
-`handleLeaveGuestlist` stays exactly the same; we only gate it behind the drawer.
+**Notifications (no DMs)**
+- **Approval on a secret event** → reuse the existing `guestlist_approved` notification. Tapping it opens the event detail page, where the location is now visible. No new notification type for this case.
+- **Owner changes location on a secret event** → new notification type `secret_location_changed` sent to every currently approved guest. Title: *"Nueva ubicación secreta"*, body: *"{evento} cambió de ubicación"*. Tapping it opens the event detail page.
 
-## Files touched
+Both flow into the existing Notifications page; no chat/DM involvement.
+
+## Technical
+
+### Database migration
+- `ALTER TABLE events ADD COLUMN is_location_secret boolean NOT NULL DEFAULT false`.
+- `public.can_see_event_location(_user uuid, _event uuid) returns boolean` (SECURITY DEFINER, STABLE): true if event isn't secret, viewer is the creator, or viewer has an `approved` row in `guestlist_entries`.
+- Trigger `trg_notify_secret_location_change` on `events` AFTER UPDATE: when `is_location_secret = true` AND (`location_name`, `latitude`, or `longitude` changed), insert one `secret_location_changed` notification per approved guest (`entity_type='event'`, `entity_id=event.id`).
+- Update `public.get_for_you_events` (both overloads) to NULL out `location_name`, `latitude`, `longitude` when `e.is_location_secret` and `auth.uid()` isn't allowed by `can_see_event_location`.
+
+### Frontend
+- `src/pages/Create.tsx` — add `<Collapsible>` "Opciones avanzadas" with the `is_location_secret` switch; include the field in the event insert payload.
+- `src/components/events/EditEventSheet.tsx` — same collapsible + toggle, hydrate from `event.is_location_secret`, include in save payload.
+- `src/hooks/useEventMutations.ts` — add `is_location_secret?: boolean` to `UpdateEventData`.
+- `src/hooks/useEventDetailState.ts` — expose `canSeeLocation` (creator OR approved guestlist row OR `!is_location_secret`).
+- `src/pages/EventDetail.tsx` — when `!canSeeLocation`, render a small `LockedLocationCard` in place of the address row + map; show "Ubicación secreta" badge for the creator/approved viewer.
+- `src/components/events/EventCard.tsx`, `TimelineCard.tsx`, `src/components/map/MiniEventMarker.tsx` / `MapView.tsx` — when `is_location_secret && !canSeeLocation`, show "Ubicación secreta" chip and skip the map pin.
+- `src/hooks/useNotifications.ts` + notifications page item renderer — add icon/label for `secret_location_changed`, route tap to `/event/{id}`.
+- `src/integrations/supabase/types.ts` regenerates after the migration.
+
+### Files likely touched
+- migration (column + helper function + trigger + `get_for_you_events` update)
+- `src/pages/Create.tsx`
+- `src/components/events/EditEventSheet.tsx`
+- `src/hooks/useEventMutations.ts`
 - `src/hooks/useEventDetailState.ts`
-- `src/components/events/LeaveGuestlistDrawer.tsx` (new)
-- `src/pages/EventDetail.tsx`
-- `src/components/events/EventDetailModal.tsx`
-
----
-
-# 🔔 PENDING: Performance Audit — June 10, 2026
-**Continue by June 12.** User asked to come back in 2 days.
-
-## Real production data (last 7 days)
-- 1,191 visitors, 11,505 pageviews, 96%+ mobile, 85% Bolivia
-- Bounce rate 39-48%, 13.1 pageviews/visit, ~8.7 min sessions
-
-## Key bottlenecks (ranked by impact)
-1. **Write storm on preference tables** — 26,704 event_interactions inserts (105s DB time), 19,939 creator pref updates, 9,002 category pref updates. Every impression fires 6+ DB round trips.
-2. **Cold start bundle** — FCP 6.5s, full load 7.1s, 1.86MB JS, 211 script requests. lucide-react 157KB untreeshaken, framer-motion 79KB loaded upfront.
-3. **get_for_you_events RPC variance** — p50 53ms but p99 180-254ms.
-4. **Web-vitals self-DDoS** — 4,967 inserts / 14.7s DB time.
-5. **N+1 per-card** — 32k+ event_likes lookups, 5.3k eula_acceptances.
-6. **Image pipeline** — No srcset/AVIF/aspect-ratio → 513 layout passes, 8s cumulative layout.
-7. **DOM weight** — 5,959 nodes, 1,327 listeners. No feed virtualization.
-
-## Three-phase improvement plan
-**Phase 1** (highest ROI, lowest risk):
-- Batch impression telemetry via client-side buffer + edge function
-- Sample web-vitals to 10%
-- Cache eula_acceptances in localStorage
-- Tree-shake lucide-react (per-icon imports)
-- Lazy-load framer-motion
-
-**Phase 2**:
-- Hydrate liked/saved/joined inside feed RPC
-- Edge-cache nearby/trending first pages
-- srcset + width/height + AVIF for images
-
-**Phase 3**:
-- Virtualize masonry feed
-- Service-worker SWR for feed endpoint
-- Materialized view for get_for_you_events
-
-## Industry parallels
-- IG/TikTok: batch telemetry every 5-10s, never on hot path
-- Pinterest: AVIF + srcset + explicit aspect-ratio + masonry virtualization
-- Shotgun: code-split per route, lazy icon packs
-- All: sample RUM at 5-10%
-
-## Next step
-Remind user and ask which phase to start. Recommend Phase 1.
+- `src/pages/EventDetail.tsx` (+ small `LockedLocationCard`)
+- `src/components/events/EventCard.tsx`, `TimelineCard.tsx`
+- `src/components/map/MiniEventMarker.tsx`, `src/components/map/MapView.tsx`
+- `src/pages/Notifications.tsx` (or relevant notification item map)
