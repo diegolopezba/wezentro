@@ -5,7 +5,7 @@ import { ModalErrorBoundary } from "@/components/events/ModalErrorBoundary";
 import {
   Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock,
   Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, X, Bookmark, Repeat,
-  EyeOff, UtensilsCrossed, CalendarCheck, Flag,
+  EyeOff, UtensilsCrossed, CalendarCheck, Flag, Lock,
 } from "lucide-react";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
