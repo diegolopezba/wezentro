@@ -420,6 +420,8 @@ const Notifications = () => {
       notification.entity_id
     ) {
       navigate(`/event/${notification.entity_id}`);
+    } else if (notification.type === "secret_location_changed" && notification.entity_id) {
+      navigate(`/event/${notification.entity_id}`);
     } else if ((notification.entity_type === "profile" || notification.entity_type === "user") && notification.entity_id) {
       navigate(`/user/${notification.entity_id}`);
     } else if (notification.entity_type === "event" && notification.entity_id) {
