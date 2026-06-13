@@ -414,16 +414,16 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
                 />
               </div>
 
-              {formData.has_guestlist && (
+              {(isBusiness || formData.has_guestlist) && (
                 <div className="space-y-2">
-                  <Label htmlFor="capacity">Capacidad máxima (opcional)</Label>
+                  <Label htmlFor="capacity">Capacidad total (opcional)</Label>
                   <Input
                     id="capacity"
                     type="number"
                     min="1"
                     value={formData.max_guestlist_capacity}
                     onChange={(e) => setFormData({ ...formData, max_guestlist_capacity: e.target.value })}
-                    placeholder="Dejar vacío para ilimitado"
+                    placeholder="Ilimitada"
                   />
                 </div>
               )}
