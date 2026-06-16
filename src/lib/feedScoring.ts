@@ -90,8 +90,8 @@ export const getInterestScore = (
   return 20;
 };
 
-export const getRecencyScore = (createdAt: string): number => {
-  const h = (Date.now() - new Date(createdAt).getTime()) / 3.6e6;
+export const getRecencyScore = (createdAt: string, nowMs: number = Date.now()): number => {
+  const h = (nowMs - new Date(createdAt).getTime()) / 3.6e6;
   if (h <= 6) return 100;   // V6: extra boost for very fresh content
   if (h <= 24) return 90;
   if (h <= 72) return 70;
@@ -100,9 +100,9 @@ export const getRecencyScore = (createdAt: string): number => {
   return 15;
 };
 
-export const getTimingScore = (startDatetime: string | null): number => {
+export const getTimingScore = (startDatetime: string | null, nowMs: number = Date.now()): number => {
   if (!startDatetime) return 50;
-  const h = (new Date(startDatetime).getTime() - Date.now()) / 3.6e6;
+  const h = (new Date(startDatetime).getTime() - nowMs) / 3.6e6;
   if (h < 0) return 0;
   if (h <= 24) return 100;
   if (h <= 48) return 80;
