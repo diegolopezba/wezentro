@@ -200,9 +200,9 @@ const getTimePeriod = (hour: number): string => {
   return "night";
 };
 
-export const getTimeOfDayScore = (category: string | null): number => {
+export const getTimeOfDayScore = (category: string | null, nowMs: number = Date.now()): number => {
   if (!category) return 50;
-  const period = getTimePeriod(new Date().getHours());
+  const period = getTimePeriod(new Date(nowMs).getHours());
   const relevantCats = TIME_CATEGORY_MAP[period] || [];
   const cat = category.toLowerCase();
   if (relevantCats.some((c) => cat.includes(c) || c.includes(cat))) return 100;
