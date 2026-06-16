@@ -298,6 +298,8 @@ export interface ScoringContext {
   velocityCounts: Record<string, number>;
   /** V6: true when user has no learned preferences yet (cold start) */
   isNewUser?: boolean;
+  /** Snapshot of "now" used for time-based scores (recency/timing/timeOfDay). Stabilizes ordering across re-renders. */
+  nowMs?: number;
 }
 
 export interface ScoredEvent {
