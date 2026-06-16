@@ -165,9 +165,8 @@ export const useForYouEvents = () => {
   const processedPageCount = useRef(0);
   const seenIds = useRef<Set<string>>(new Set());
 
-  // Reset frozen state when the query key data resets (refetch / pull-to-refresh).
-  // useInfiniteQuery replaces `pages` on refetch — detect by checking if page 0's
-  // first item changed identity while we had already processed pages.
+  // Refetch detection: when page 0's first item id changes after we've
+  // already processed pages, treat it as a fresh feed and reset freeze state.
   const firstItemIdRef = useRef<string | null>(null);
   useEffect(() => {
     const firstPageFirstId = pageData?.pages?.[0]?.items?.[0]?.id ?? null;
@@ -176,11 +175,8 @@ export const useForYouEvents = () => {
       processedPageCount.current > 0 &&
       firstPageFirstId &&
       prev &&
-      firstPageFirstId !== prev &&
-      // detect "fresh data" via cursor reset: page 0 is the entry point
-      pageData?.pages?.length === 1
+      firstPageFirstId !== prev
     ) {
-      // Refetch happened — reset freeze.
       processedPageCount.current = 0;
       seenIds.current = new Set();
       seedRef.current = hashSeed(`${userId ?? "guest"}-${Date.now()}`);
