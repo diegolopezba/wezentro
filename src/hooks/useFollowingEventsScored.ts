@@ -277,24 +277,29 @@ export const useFollowingEventsScored = () => {
     enabled: repostedEventIds.length > 0,
   });
 
+  /**
+   * Freeze-on-render order (Pinterest/Instagram pattern).
+   * Tracks the position (index) each event was first shown at. On every
+   * recompute, items keep their original slot — only brand-new items get
+   * appended at the end (sorted among themselves by score). Stops the feed
+   * from reshuffling when reposts / followers / mutuals resolve at different
+   * times after first paint.
+   */
+  const positionRef = useRef<Map<string, number>>(new Map());
+  const nextPosRef = useRef(0);
+
   // Merge and score events
   const scoredEvents = useMemo(() => {
     const eventMap = new Map<string, FeedEventWithRepost>();
     const now = new Date();
 
-    // Add direct events from followed users
     directEvents?.forEach((event) => {
-      // Filter: include posts (no start_datetime) OR future events
       if (event.start_datetime && new Date(event.start_datetime) < now) return;
-      // Hide blocked users' content
       if (blockedIds && blockedIds.has(event.creator_id)) return;
-
       eventMap.set(event.id, { ...event });
     });
 
-    // Add reposted events and build repost info
     if (reposts && repostedEvents) {
-      // Group reposts by event_id
       const repostsByEvent = new Map<string, typeof reposts>();
       reposts.forEach((repost) => {
         const existing = repostsByEvent.get(repost.event_id) || [];
@@ -303,9 +308,7 @@ export const useFollowingEventsScored = () => {
       });
 
       repostedEvents.forEach((event) => {
-        // Filter: include posts (no start_datetime) OR future events
         if (event.start_datetime && new Date(event.start_datetime) < now) return;
-        // Hide blocked users' content (creator or reposter)
         if (blockedIds && blockedIds.has(event.creator_id)) return;
 
         const eventReposts = (repostsByEvent.get(event.id) || []).filter(
@@ -322,22 +325,38 @@ export const useFollowingEventsScored = () => {
 
         const existing = eventMap.get(event.id);
         if (existing) {
-          // Merge repost info with existing event
           existing.repostInfo = repostInfo;
         } else {
-          // Add new event from repost (creator not followed directly)
           eventMap.set(event.id, { ...event, repostInfo });
         }
       });
     }
 
-    // Score and sort
-    return Array.from(eventMap.values())
-      .map((event) => ({
-        ...event,
-        _score: calculateFollowingEventScore(event, mutualFollowIds, followingIds || []),
-      }))
-      .sort((a, b) => b._score - a._score);
+    const allScored = Array.from(eventMap.values()).map((event) => ({
+      ...event,
+      _score: calculateFollowingEventScore(event, mutualFollowIds, followingIds || []),
+    }));
+
+    // Split into already-seen vs new. Already-seen keep their original index;
+    // new items are sorted by score and appended at the end.
+    const existing: { item: FeedEventWithRepost; pos: number }[] = [];
+    const fresh: FeedEventWithRepost[] = [];
+    for (const item of allScored) {
+      const pos = positionRef.current.get(item.id);
+      if (pos !== undefined) {
+        existing.push({ item, pos });
+      } else {
+        fresh.push(item);
+      }
+    }
+    fresh.sort((a, b) => (b._score || 0) - (a._score || 0));
+    existing.sort((a, b) => a.pos - b.pos);
+
+    for (const item of fresh) {
+      positionRef.current.set(item.id, nextPosRef.current++);
+    }
+
+    return [...existing.map((e) => e.item), ...fresh];
   }, [directEvents, reposts, repostedEvents, mutualFollowIds, followingIds, blockedIds]);
 
   return {
