@@ -90,8 +90,8 @@ export const getInterestScore = (
   return 20;
 };
 
-export const getRecencyScore = (createdAt: string): number => {
-  const h = (Date.now() - new Date(createdAt).getTime()) / 3.6e6;
+export const getRecencyScore = (createdAt: string, nowMs: number = Date.now()): number => {
+  const h = (nowMs - new Date(createdAt).getTime()) / 3.6e6;
   if (h <= 6) return 100;   // V6: extra boost for very fresh content
   if (h <= 24) return 90;
   if (h <= 72) return 70;
@@ -100,9 +100,9 @@ export const getRecencyScore = (createdAt: string): number => {
   return 15;
 };
 
-export const getTimingScore = (startDatetime: string | null): number => {
+export const getTimingScore = (startDatetime: string | null, nowMs: number = Date.now()): number => {
   if (!startDatetime) return 50;
-  const h = (new Date(startDatetime).getTime() - Date.now()) / 3.6e6;
+  const h = (new Date(startDatetime).getTime() - nowMs) / 3.6e6;
   if (h < 0) return 0;
   if (h <= 24) return 100;
   if (h <= 48) return 80;
@@ -200,9 +200,9 @@ const getTimePeriod = (hour: number): string => {
   return "night";
 };
 
-export const getTimeOfDayScore = (category: string | null): number => {
+export const getTimeOfDayScore = (category: string | null, nowMs: number = Date.now()): number => {
   if (!category) return 50;
-  const period = getTimePeriod(new Date().getHours());
+  const period = getTimePeriod(new Date(nowMs).getHours());
   const relevantCats = TIME_CATEGORY_MAP[period] || [];
   const cat = category.toLowerCase();
   if (relevantCats.some((c) => cat.includes(c) || c.includes(cat))) return 100;
@@ -298,6 +298,8 @@ export interface ScoringContext {
   velocityCounts: Record<string, number>;
   /** V6: true when user has no learned preferences yet (cold start) */
   isNewUser?: boolean;
+  /** Snapshot of "now" used for time-based scores (recency/timing/timeOfDay). Stabilizes ordering across re-renders. */
+  nowMs?: number;
 }
 
 export interface ScoredEvent {
@@ -322,14 +324,15 @@ export const calculateEventScore = (
 ): number => {
   const attendees = event.guestlist_entries?.length || 0;
   const isPost = !!event.is_post;
+  const nowMs = ctx.nowMs ?? Date.now();
 
   const proximity      = getProximityScore(event.latitude, event.longitude, ctx.userLat, ctx.userLon);
   const friends        = getFriendsGoingScore(event.guestlist_entries, ctx.followingIds, ctx.mutualFollowerIds);
   const trending       = getTrendingScore(ctx.trendingCounts[event.id] || 0);
   const learned        = getLearnedPreferenceScore(event.category, event.creator_id, ctx.categoryPrefs, ctx.creatorPrefs);
-  const recency        = getRecencyScore(event.created_at);
-  const timeOfDay      = getTimeOfDayScore(event.category);
-  const timing         = getTimingScore(event.start_datetime);
+  const recency        = getRecencyScore(event.created_at, nowMs);
+  const timeOfDay      = getTimeOfDayScore(event.category, nowMs);
+  const timing         = getTimingScore(event.start_datetime, nowMs);
   const creatorLoyalty = getCreatorLoyaltyScore(event.creator_id, ctx.creatorAttendance);
   const dayOfWeek      = getDayOfWeekScore(event.category, ctx.dayOfWeekPrefs);
   const descTags       = getDescriptionTagScore(event.description_tags || null, ctx.tagPrefs);
@@ -380,10 +383,33 @@ export const calculateEventScore = (
   );
 };
 
+// Seeded PRNG (mulberry32) — deterministic shuffle so exploration cards
+// don't jump around on re-renders. Pinterest/Instagram-style stable order.
+const mulberry32 = (seed: number) => {
+  let s = seed >>> 0;
+  return () => {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+};
+
+export const hashSeed = (input: string): number => {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+};
+
 // ───────── Diversity / Exploration injection ─────────
 export const injectExploration = <T extends { _score: number; category?: string | null }>(
   scored: T[],
-  categoryPrefs: Record<string, number>
+  categoryPrefs: Record<string, number>,
+  seed: number = 1,
 ): (T & { _isExploration?: boolean })[] => {
   if (scored.length < 6) return scored;
 
@@ -400,7 +426,13 @@ export const injectExploration = <T extends { _score: number; category?: string 
 
   if (explorationPool.length === 0) return scored;
 
-  const shuffled = [...explorationPool].sort(() => Math.random() - 0.5);
+  const rand = mulberry32(seed);
+  // Deterministic Fisher-Yates with seeded PRNG
+  const shuffled = [...explorationPool];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
   const picks = shuffled.slice(0, explorationSlots);
   const pickIds = new Set(picks.map((p) => (p as any).id));
 

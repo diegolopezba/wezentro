@@ -86,79 +86,145 @@ const Index = () => {
     }
   }, [lastScrollY]);
 
+  // Cache transformed organic cards by id so prop identity is stable across
+  // re-renders. Prevents EventCard from re-rendering when the array changes
+  // only at the tail (new page appended).
+  const organicCardCacheRef = useRef<Map<string, any>>(new Map());
+
+  // Cache where each sponsored card has been placed so it doesn't jump slots
+  // when the organic feed grows. Once placed at index N, it stays at index N.
+  const sponsoredPlacementRef = useRef<Map<string, number>>(new Map());
+
   const transformedEvents = useMemo(() => {
     const sponsoredEventIds = new Set(sponsoredPosts.map(sp => sp.id));
+    const q = searchQuery.toLowerCase();
 
-    const organic = events.filter(event => {
-      if (activeTab === "for-you" && sponsoredEventIds.has(event.id)) return false;
-      const matchesSearch = event.title?.toLowerCase().includes(searchQuery.toLowerCase()) || (event.location_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
-      return searchQuery === "" || matchesSearch;
-    }).map(event => {
-      const guestlistEntries = (event as any).guestlist_entries || [];
-      const attendeeAvatars = guestlistEntries.map((entry: any) => entry.user).filter(Boolean).map((user: any) => ({
-        id: user.id,
-        avatar_url: user.avatar_url
-      }));
-      // Prefer the server-side total from the optimized RPC; fall back to entries length.
-      const attendeeTotal = (event as any)._attendee_count ?? guestlistEntries.length;
+    const organic = events
+      .filter(event => {
+        if (activeTab === "for-you" && sponsoredEventIds.has(event.id)) return false;
+        if (searchQuery === "") return true;
+        const t = event.title?.toLowerCase().includes(q);
+        const l = event.location_name?.toLowerCase().includes(q) ?? false;
+        return t || l;
+      })
+      .map(event => {
+        const cached = organicCardCacheRef.current.get(event.id);
+        const guestlistEntries = (event as any).guestlist_entries || [];
+        const attendeeTotal = (event as any)._attendee_count ?? guestlistEntries.length;
+        const repostInfo = (event as any).repostInfo;
+
+        // Reuse cached object when the underlying data hasn't materially changed.
+        if (
+          cached &&
+          cached._attendeeTotal === attendeeTotal &&
+          cached._guestlistLen === guestlistEntries.length &&
+          cached._repostStamp === (repostInfo?.mostRecentRepostAt ?? null)
+        ) {
+          return cached;
+        }
+
+        const attendeeAvatars = guestlistEntries
+          .map((entry: any) => entry.user)
+          .filter(Boolean)
+          .map((user: any) => ({ id: user.id, avatar_url: user.avatar_url }));
+
+        const card = {
+          id: event.id,
+          title: event.title || undefined,
+          imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
+          date: event.start_datetime ? format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", { locale: es }) : "",
+          location: event.location_name || "Ubicación por confirmar",
+          category: event.category || "party",
+          attendees: attendeeTotal,
+          attendeeAvatars,
+          hasGuestlist: event.has_guestlist || false,
+          ownerAvatar: event.creator?.avatar_url || undefined,
+          creatorId: event.creator_id,
+          repostInfo,
+          isSponsored: false,
+          media: (event as any).media || [],
+          // Identity-check sentinels (not used by EventCard).
+          _attendeeTotal: attendeeTotal,
+          _guestlistLen: guestlistEntries.length,
+          _repostStamp: repostInfo?.mostRecentRepostAt ?? null,
+        };
+        organicCardCacheRef.current.set(event.id, card);
+        return card;
+      });
+
+    if (sponsoredPosts.length === 0 || searchQuery !== "") return organic;
+
+    // Stable sponsored placement: once a sponsored card is placed at a given
+    // index, lock it there. New sponsored cards get appended into the next
+    // available slot in the unfrozen tail. Prevents the feed from re-splicing
+    // ads into already-rendered positions when organic data grows.
+    const sponsoredCards = sponsoredPosts.map(sp => {
+      const guestlistEntries = sp.guestlist_entries || [];
+      const attendeeAvatars = guestlistEntries
+        .map((entry: any) => entry.user)
+        .filter(Boolean)
+        .map((user: any) => ({ id: user.id, avatar_url: user.avatar_url }));
       return {
-        id: event.id,
-        title: event.title || undefined,
-        imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
-        date: event.start_datetime ? format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", { locale: es }) : "",
-        location: event.location_name || "Ubicación por confirmar",
-        category: event.category || "party",
-        attendees: attendeeTotal,
+        id: sp.id,
+        title: sp.title || undefined,
+        imageUrl: sp.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
+        date: sp.start_datetime ? format(new Date(sp.start_datetime), "EEE, d MMM • h:mm a", { locale: es }) : "",
+        location: sp.location_name || "Ubicación por confirmar",
+        category: sp.category || "party",
+        attendees: guestlistEntries.length,
         attendeeAvatars,
-        hasGuestlist: event.has_guestlist || false,
-        ownerAvatar: event.creator?.avatar_url || undefined,
-        creatorId: event.creator_id,
-        repostInfo: (event as any).repostInfo,
-        isSponsored: false,
-        media: (event as any).media || [],
+        hasGuestlist: sp.has_guestlist || false,
+        ownerAvatar: sp.creator?.avatar_url || undefined,
+        creatorId: sp.creator_id,
+        isSponsored: true,
+        sponsoredPostId: sp.sponsoredPostId,
+        repostInfo: undefined,
+        media: [],
       };
     });
 
-    if (sponsoredPosts.length > 0 && searchQuery === "") {
-      const sponsoredCards = sponsoredPosts.map(sp => {
-        const guestlistEntries = sp.guestlist_entries || [];
-        const attendeeAvatars = guestlistEntries.map((entry: any) => entry.user).filter(Boolean).map((user: any) => ({
-          id: user.id,
-          avatar_url: user.avatar_url,
-        }));
-        return {
-          id: sp.id,
-          title: sp.title || undefined,
-          imageUrl: sp.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
-          date: sp.start_datetime ? format(new Date(sp.start_datetime), "EEE, d MMM • h:mm a", { locale: es }) : "",
-          location: sp.location_name || "Ubicación por confirmar",
-          category: sp.category || "party",
-          attendees: guestlistEntries.length,
-          attendeeAvatars,
-          hasGuestlist: sp.has_guestlist || false,
-          ownerAvatar: sp.creator?.avatar_url || undefined,
-          creatorId: sp.creator_id,
-          isSponsored: true,
-          sponsoredPostId: sp.sponsoredPostId,
-          repostInfo: undefined,
-          media: [],
-        };
-      });
-
-      const result = [...organic];
-      // First sponsored at index 1, then every 9 positions (8 organic + 1 sponsored slot)
-      let insertAt = 1;
-      const interval = 9;
-      for (let s = 0; s < sponsoredCards.length; s++) {
-        if (insertAt <= result.length) {
-          result.splice(insertAt, 0, sponsoredCards[s]);
-          insertAt += interval;
-        }
+    // Determine each sponsored card's locked index. First sponsored at 1,
+    // then every 9 positions thereafter (8 organic + 1 sponsored slot).
+    const interval = 9;
+    let nextIdx = 1;
+    for (const sp of sponsoredCards) {
+      if (!sponsoredPlacementRef.current.has(sp.id)) {
+        sponsoredPlacementRef.current.set(sp.id, nextIdx);
+        nextIdx += interval;
+      } else {
+        // Keep nextIdx walking forward past existing placements.
+        const placed = sponsoredPlacementRef.current.get(sp.id)!;
+        if (placed + interval > nextIdx) nextIdx = placed + interval;
       }
-      return result;
     }
 
-    return organic;
+    // Assemble final list: walk organic; insert sponsored at their locked index.
+    const placements = sponsoredCards
+      .map(sp => ({ sp, idx: sponsoredPlacementRef.current.get(sp.id)! }))
+      .sort((a, b) => a.idx - b.idx);
+
+    const result: any[] = [];
+    let organicCursor = 0;
+    let placementCursor = 0;
+    while (organicCursor < organic.length || placementCursor < placements.length) {
+      const targetIdx = result.length;
+      const nextPlacement = placements[placementCursor];
+      if (nextPlacement && nextPlacement.idx === targetIdx) {
+        result.push(nextPlacement.sp);
+        placementCursor++;
+        continue;
+      }
+      if (organicCursor < organic.length) {
+        result.push(organic[organicCursor++]);
+      } else if (nextPlacement) {
+        // Out of organic — append remaining sponsored at the tail.
+        result.push(nextPlacement.sp);
+        placementCursor++;
+      } else {
+        break;
+      }
+    }
+    return result;
   }, [events, searchQuery, activeTab, sponsoredPosts]);
 
   return <AppLayout ref={scrollContainerRef}>
