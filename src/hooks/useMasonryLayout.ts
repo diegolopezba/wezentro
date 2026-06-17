@@ -16,7 +16,8 @@ interface UseMasonryLayoutArgs {
   items: MasonryItem[];
   containerWidth: number;
   columnCount: number;
-  gap: number;
+  horizontalGap: number;
+  verticalGap: number;
   defaultAspectRatio?: number;
 }
 
@@ -41,7 +42,8 @@ export function useMasonryLayout({
   items,
   containerWidth,
   columnCount,
-  gap,
+  horizontalGap,
+  verticalGap,
   defaultAspectRatio = 0.8,
 }: UseMasonryLayoutArgs): UseMasonryLayoutResult {
   // Measured heights cache. Keyed by id. Invalidated when columnWidth changes.
@@ -52,8 +54,8 @@ export function useMasonryLayout({
 
   const columnWidth = useMemo(() => {
     if (containerWidth <= 0 || columnCount <= 0) return 0;
-    return (containerWidth - gap * (columnCount - 1)) / columnCount;
-  }, [containerWidth, columnCount, gap]);
+    return (containerWidth - horizontalGap * (columnCount - 1)) / columnCount;
+  }, [containerWidth, columnCount, horizontalGap]);
 
   // Invalidate measurement cache if column width changed (different layout).
   if (columnWidth !== lastColumnWidth.current && columnWidth > 0) {
@@ -87,17 +89,17 @@ export function useMasonryLayout({
       const height = measured ?? columnWidth / ratio;
 
       const top = colHeights[colIdx];
-      const left = colIdx * (columnWidth + gap);
+      const left = colIdx * (columnWidth + horizontalGap);
 
       map.set(item.id, { top, left, width: columnWidth, height });
-      colHeights[colIdx] = top + height + gap;
+      colHeights[colIdx] = top + height + verticalGap;
     }
 
-    const containerHeight = Math.max(0, ...colHeights) - gap;
+    const containerHeight = Math.max(0, ...colHeights) - verticalGap;
     return { positions: map, containerHeight };
     // measureTick triggers re-run after measurements come in
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, columnWidth, columnCount, gap, defaultAspectRatio, measureTick]);
+  }, [items, columnWidth, columnCount, horizontalGap, verticalGap, defaultAspectRatio, measureTick]);
 
   // Schedule a single re-layout per frame when measurements arrive.
   const measureScheduled = useRef(false);
