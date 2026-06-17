@@ -39,7 +39,9 @@ const useFeedTracker = (userId: string | undefined) => {
           const eventId = (entry.target as HTMLElement).dataset.eventId;
           if (!eventId) continue;
 
-          if (entry.isIntersecting) {
+          const isMeaningfullyVisible = entry.isIntersecting && entry.intersectionRatio >= 0.5;
+
+          if (isMeaningfullyVisible) {
             // Dwell & ScrollPast tracking
             entryTimestamps.current.set(eventId, Date.now());
             if (!trackedDwells.current.has(eventId)) {
@@ -51,7 +53,7 @@ const useFeedTracker = (userId: string | undefined) => {
             }
 
             // Impression tracking (50% visible for 500ms)
-            if (entry.intersectionRatio >= 0.5 && !trackedImpressions.current.has(eventId)) {
+            if (!trackedImpressions.current.has(eventId)) {
               if (!impressionTimers.current.has(eventId)) {
                 const timer = setTimeout(() => {
                   if (!trackedImpressions.current.has(eventId)) {
@@ -259,30 +261,18 @@ const MasonryGrid = ({ events, followGraph, observeCard, sentinelRef, isLoadingM
         {events.map((event, index) => {
           const pos = positions.get(event.id);
           if (!pos) return null;
-          const measured = isMeasured(event.id);
           return (
-            <div
+            <MasonryCardItem
               key={event.id}
-              ref={(node) => {
-                observeCard(node);
-                measureElement(event.id, node);
-              }}
-              data-event-id={event.id}
-              style={{
-                position: "absolute",
-                top: pos.top,
-                left: pos.left + HORIZONTAL_PADDING,
-                width: pos.width,
-                visibility: measured ? "visible" : "hidden",
-                zIndex: events.length - index, // ensure earlier items are on top if they overlap during shifts
-              }}
-            >
-              <EventCard 
-                {...event} 
-                index={index} 
-                followGraph={followGraph}
-              />
-            </div>
+              event={event}
+              index={index}
+              position={pos}
+              isMeasured={isMeasured(event.id)}
+              followGraph={followGraph}
+              observeCard={observeCard}
+              measureElement={measureElement}
+              zIndex={events.length - index}
+            />
           );
         })}
       </div>
@@ -291,6 +281,54 @@ const MasonryGrid = ({ events, followGraph, observeCard, sentinelRef, isLoadingM
         <div className="py-6 text-center text-muted-foreground text-sm">Cargando más…</div>
       )}
     </>
+  );
+};
+
+interface MasonryCardItemProps {
+  event: EventCardProps;
+  index: number;
+  position: import("@/hooks/useMasonryLayout").MasonryPosition;
+  isMeasured: boolean;
+  followGraph?: ViewerFollowGraph;
+  observeCard: (node: HTMLElement | null) => void;
+  measureElement: (id: string, node: HTMLElement | null) => void;
+  zIndex: number;
+}
+
+const MasonryCardItem = ({
+  event,
+  index,
+  position,
+  isMeasured,
+  followGraph,
+  observeCard,
+  measureElement,
+  zIndex,
+}: MasonryCardItemProps) => {
+  const setRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!node) return;
+      observeCard(node);
+      measureElement(event.id, node);
+    },
+    [event.id, measureElement, observeCard]
+  );
+
+  return (
+    <div
+      ref={setRef}
+      data-event-id={event.id}
+      style={{
+        position: "absolute",
+        top: position.top,
+        left: position.left + HORIZONTAL_PADDING,
+        width: position.width,
+        visibility: isMeasured ? "visible" : "hidden",
+        zIndex,
+      }}
+    >
+      <EventCard {...event} index={index} followGraph={followGraph} />
+    </div>
   );
 };
 
