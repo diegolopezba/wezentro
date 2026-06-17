@@ -21,6 +21,8 @@ interface MediaCarouselProps {
   isHero?: boolean;
   onTap?: (index: number) => void;
   onIndexChange?: (index: number) => void;
+  /** Fires the first time any video in the carousel reports `playing`. */
+  onFirstPlay?: () => void;
   className?: string;
   rounded?: boolean;
 }
