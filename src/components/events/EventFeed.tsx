@@ -176,7 +176,8 @@ export const EventFeed = ({
   );
 };
 
-const GAP = 4;
+const HORIZONTAL_GAP = 4;
+const VERTICAL_GAP = 12;
 const HORIZONTAL_PADDING = 4; // matches old .masonry-grid padding
 
 interface MasonryGridProps {
@@ -210,7 +211,8 @@ const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: Masonr
     items,
     containerWidth: Math.max(0, containerWidth - HORIZONTAL_PADDING * 2),
     columnCount,
-    gap: GAP,
+    horizontalGap: HORIZONTAL_GAP,
+    verticalGap: VERTICAL_GAP,
   });
 
   return (
@@ -223,6 +225,7 @@ const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: Masonr
           height: containerHeight,
           paddingLeft: HORIZONTAL_PADDING,
           paddingRight: HORIZONTAL_PADDING,
+          paddingBottom: 88, // clears floating BottomNav (~64px + safe-area)
         }}
       >
         {events.map((event, index) => {
