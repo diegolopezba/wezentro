@@ -26,7 +26,9 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
+  const headerVisibleRef = useRef(true);
   const lastScrollY = useRef(0);
+  const scrollRafRef = useRef<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -70,20 +72,27 @@ const Index = () => {
   useEffect(() => {
     const handleScroll = (e: Event) => {
       const container = e.target as HTMLDivElement;
-      const currentScrollY = container.scrollTop;
-      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
-        setHeaderVisible(false);
-      } else if (currentScrollY < lastScrollY.current) {
-        setHeaderVisible(true);
-      }
-      lastScrollY.current = currentScrollY;
+      if (scrollRafRef.current !== null) return;
+      scrollRafRef.current = requestAnimationFrame(() => {
+        scrollRafRef.current = null;
+        const currentScrollY = container.scrollTop;
+        const shouldShow = currentScrollY < lastScrollY.current || currentScrollY <= 50;
+        if (shouldShow !== headerVisibleRef.current) {
+          headerVisibleRef.current = shouldShow;
+          setHeaderVisible(shouldShow);
+        }
+        lastScrollY.current = currentScrollY;
+      });
     };
     const container = scrollContainerRef.current;
     if (container) {
-      container.addEventListener("scroll", handleScroll);
-      return () => container.removeEventListener("scroll", handleScroll);
+      container.addEventListener("scroll", handleScroll, { passive: true });
+      return () => {
+        container.removeEventListener("scroll", handleScroll);
+        if (scrollRafRef.current !== null) cancelAnimationFrame(scrollRafRef.current);
+      };
     }
-  }, [lastScrollY]);
+  }, []);
 
   // Cache transformed cards by id so prop identity is stable across re-renders.
   // Sponsored cards now arrive pre-merged from the server at fixed slots —
