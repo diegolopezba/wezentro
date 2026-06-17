@@ -210,6 +210,12 @@ const MediaCarouselComponent = ({
                     playsInline
                     preload={i === activeIndex ? "metadata" : "none"}
                     onLoadedMetadata={() => handleVideoMetadata(i)}
+                    onPlaying={() => {
+                      if (onFirstPlay && !firstPlayFiredRef.current) {
+                        firstPlayFiredRef.current = true;
+                        onFirstPlay();
+                      }
+                    }}
                   />
                 ) : (
                   <img
