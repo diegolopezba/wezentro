@@ -151,7 +151,11 @@ export function useElementWidth<T extends HTMLElement>() {
     setWidth(node.clientWidth);
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const w = entry.contentRect.width;
+        // Use clientWidth (includes padding) for consistency with the
+        // initial setWidth above and with consumers that subtract their
+        // own horizontal padding. contentRect.width excludes padding and
+        // would cause a double-subtraction → extra gap on the right.
+        const w = (entry.target as HTMLElement).clientWidth;
         setWidth((prev) => (Math.abs(prev - w) < 0.5 ? prev : w));
       }
     });
