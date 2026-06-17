@@ -28,6 +28,7 @@ const useFeedTracker = (userId: string | undefined) => {
   const trackedImpressions = useRef<Set<string>>(new Set());
   const dwellTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const impressionTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const observedNodes = useRef<Set<HTMLElement>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
@@ -96,6 +97,8 @@ const useFeedTracker = (userId: string | undefined) => {
       { threshold: [0, 0.5, 1] }
     );
 
+    observedNodes.current.forEach((node) => observerRef.current?.observe(node));
+
     return () => {
       observerRef.current?.disconnect();
       dwellTimers.current.forEach((t) => clearTimeout(t));
@@ -107,9 +110,9 @@ const useFeedTracker = (userId: string | undefined) => {
 
   const observeRef = useCallback(
     (node: HTMLElement | null) => {
-      if (node && observerRef.current) {
-        observerRef.current.observe(node);
-      }
+      if (!node) return;
+      observedNodes.current.add(node);
+      observerRef.current?.observe(node);
     },
     []
   );
