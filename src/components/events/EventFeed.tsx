@@ -1,5 +1,6 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { EventCard, EventCardProps } from "./EventCard";
+import { useMasonryLayout, useElementWidth } from "@/hooks/useMasonryLayout";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -166,21 +167,87 @@ export const EventFeed = ({
   }
 
   return (
+    <MasonryGrid
+      events={events}
+      observeCard={observeCard}
+      sentinelRef={sentinelRef}
+      isLoadingMore={isLoadingMore}
+    />
+  );
+};
+
+const GAP = 4;
+const HORIZONTAL_PADDING = 4; // matches old .masonry-grid padding
+
+interface MasonryGridProps {
+  events: EventCardProps[];
+  observeCard: (node: HTMLElement | null) => void;
+  sentinelRef: React.MutableRefObject<HTMLDivElement | null>;
+  isLoadingMore: boolean;
+}
+
+const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: MasonryGridProps) => {
+  const [containerRef, containerWidth] = useElementWidth<HTMLDivElement>();
+  const [columnCount, setColumnCount] = useState(() => getColumnCount(typeof window !== "undefined" ? window.innerWidth : 390));
+
+  useEffect(() => {
+    const update = () => setColumnCount(getColumnCount(window.innerWidth));
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const items = useMemo(
+    () =>
+      events.map((e) => ({
+        id: e.id,
+        aspectRatio: e.media?.[0]?.aspect_ratio ?? null,
+      })),
+    [events]
+  );
+
+  const { positions, containerHeight, measureRef } = useMasonryLayout({
+    items,
+    containerWidth: Math.max(0, containerWidth - HORIZONTAL_PADDING * 2),
+    columnCount,
+    gap: GAP,
+  });
+
+  return (
     <>
-      <div className="masonry-grid w-full">
-        {events.map((event, index) => (
-          <div
-            key={event.id}
-            ref={observeCard}
-            data-event-id={event.id}
-            className="masonry-item"
-          >
-            <EventCard {...event} index={index} />
-          </div>
-        ))}
+      <div
+        ref={containerRef}
+        className="w-full"
+        style={{
+          position: "relative",
+          height: containerHeight,
+          paddingLeft: HORIZONTAL_PADDING,
+          paddingRight: HORIZONTAL_PADDING,
+        }}
+      >
+        {events.map((event, index) => {
+          const pos = positions.get(event.id);
+          if (!pos) return null;
+          return (
+            <div
+              key={event.id}
+              ref={(node) => {
+                observeCard(node);
+                measureRef(event.id)(node);
+              }}
+              data-event-id={event.id}
+              style={{
+                position: "absolute",
+                top: pos.top,
+                left: pos.left + HORIZONTAL_PADDING,
+                width: pos.width,
+              }}
+            >
+              <EventCard {...event} index={index} />
+            </div>
+          );
+        })}
       </div>
-      {/* Dedicated sentinel — placed after the grid so it doesn't share a ref
-          with any card. IntersectionObserver triggers fetchNextPage when in view. */}
       <div ref={sentinelRef} aria-hidden style={{ height: 1 }} />
       {isLoadingMore && (
         <div className="py-6 text-center text-muted-foreground text-sm">Cargando más…</div>
@@ -188,3 +255,9 @@ export const EventFeed = ({
     </>
   );
 };
+
+function getColumnCount(width: number): number {
+  if (width >= 1024) return 4;
+  if (width >= 640) return 3;
+  return 2;
+}
