@@ -1,5 +1,4 @@
 import { Repeat, MoreHorizontal, EyeOff } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, memo, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useOpenEvent } from "@/hooks/useOpenEvent";
@@ -50,14 +49,9 @@ const EventCardComponent = ({
   id,
   title,
   imageUrl,
-  date,
-  location: locationName,
-  category,
   attendees = 0,
   attendeeAvatars = [],
-  hasGuestlist = false,
   index = 0,
-  creatorId,
   repostInfo,
   isSponsored = false,
   sponsoredPostId,
