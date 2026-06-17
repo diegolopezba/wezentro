@@ -1,121 +1,70 @@
-## Revised: do Phase 2 now (server-assembled slate)
+# Pinterest-Style Masonry for the Feed
 
-You're right. Fixing this before the surge — while the blast radius is small — is the safer call. We'll still keep the client freeze as a safety net, but the real fix is moving slate assembly to the server. This is how Instagram and Pinterest actually do it.
+Replace the current CSS `column-count` masonry (which rebalances and re-mounts cards on every page append — the cause of the right-column glitch) with **absolute-positioned JS masonry**, the same technique Pinterest's open-source `gestalt` Masonry component uses.
 
----
+## How Pinterest actually does it (verified pattern)
 
-## What we build
+Pinterest's Masonry (`gestalt/packages/gestalt/src/Masonry`) works like this:
 
-### 1. New edge function: `assemble-for-you-slate`
+1. Container is `position: relative` with an explicit pixel `height` equal to the tallest column.
+2. Every item is `position: absolute` with computed `top` and `left`.
+3. Layout walks items **in array order**. For each item, it picks the column with the smallest current `height`, places the item at `{ top: colHeight, left: colIndex * (colWidth + gap) }`, then adds the item's height to that column.
+4. On append (infinite scroll): only the new items get positions computed; existing items' `top`/`left` never change → no reflow, no repaint, no `<video>` re-init, no animation replay.
+5. Item heights come from either (a) a known `aspectRatio` from the data, or (b) measurement after first mount, cached by item id.
+6. A `ResizeObserver` on the container recomputes positions only when container width changes (rotation, resize).
 
-Single endpoint that returns a ready-to-render, ordered, deduped, ad-injected page.
+This gives true top-to-bottom, left-to-right reading order: item 0 → top-left, item 1 → top of next column (or below item 0 if it's shorter), item 2 → next shortest column, etc. Ads injected at index 1 and interval 9 land at deterministic visual rows.
 
-**Inputs (query params):**
-- `cursor` — opaque string (created_at of last item from prior page), null on first page
-- `limit` — default 20, max 50
-- `session_seed` — client-generated UUID per app session, used for deterministic exploration shuffle
-- `lat`, `lng` — optional, for distance scoring + ad geo-targeting
+## Files to change
 
-**Auth:** uses the caller's JWT (or anon for guests). `verify_jwt = false` so guests work; user id pulled from JWT when present.
+### 1. New: `src/hooks/useMasonryLayout.ts`
 
-**Internally it does, in one round trip:**
-1. Fetch candidate events via `get_for_you_events(_limit: limit * 3, _cursor)` (overfetch for ranking headroom).
-2. Pull context: `get_for_you_context`, `get_trending_scores`, `get_collab_boosts` — in parallel.
-3. Score using the same logic currently in `src/lib/feedScoring.ts` — we port it to Deno (pure functions, easy).
-4. Apply session-scoped dedupe via a new `session_feed_state` table (see schema below).
-5. Inject sponsored slots at fixed positions (1, 9, 19) using `get_eligible_sponsored_posts`.
-6. Return `{ items: [...], next_cursor, session_id }`.
+A single hook that owns layout math. Inputs: `items: { id, aspectRatio? }[]`, `containerWidth`, `columnCount`, `gap`. Outputs: `positions: Map<id, { top, left, width, height }>`, `containerHeight`, `measureRef(id)` callback for late height correction.
 
-**Caching:**
-- Guest + cold-start first page: `Cache-Control: public, s-maxage=60, stale-while-revalidate=180` at the CDN.
-- Authenticated pages: `Cache-Control: private, no-store` (per-user state).
+Behavior:
+- Computes `columnWidth = (containerWidth - gap * (columnCount - 1)) / columnCount`.
+- For each item in order: estimated height = `columnWidth / aspectRatio` (default `aspectRatio = 0.8` → portrait, matches current card feel). Place in shortest column, append height + gap.
+- `containerHeight = max(columnHeights)`.
+- After mount, `measureRef` reads real DOM height; if it differs from estimate by > 2px, store the real height in a ref keyed by item id and re-run layout for items at that index and after (existing items above stay put because their heights are already known).
+- Memoize by `[items, containerWidth, columnCount]`. Incremental: keep `lastLaidOutIndex`; on append, resume from there using cached column heights.
 
-### 2. New table: `session_feed_state`
+### 2. `src/components/events/EventFeed.tsx`
 
-Server-side seen-set so client never has to dedupe.
+- Wrap grid in a `<div ref={containerRef} style={{ position: 'relative', height: containerHeight }}>`.
+- `useResizeObserver` (or a small inline one) to track `containerRef.current.clientWidth`.
+- `columnCount`: 2 below 640px, 3 at 640–1024, 4 above 1024 (same breakpoints as today's CSS).
+- Pass `events` (with `aspectRatio` derived from first media item — fall back to 0.8) into `useMasonryLayout`.
+- Render each event inside a `<div style={{ position: 'absolute', top, left, width }}>` wrapper. Apply `observeCard` ref and `data-event-id` on this wrapper (preserves dwell tracking).
+- Keep the dedicated `<div ref={sentinelRef}>` after the container — unchanged behavior.
 
-```text
-session_feed_state
-  session_id    uuid          PK part 1
-  user_id       uuid nullable PK part 2  (null for guests; keyed by session only)
-  seen_event_ids uuid[]       (capped at last 500)
-  created_at    timestamptz
-  updated_at    timestamptz
-```
+### 3. `src/components/events/EventCard.tsx`
 
-TTL cleanup: nightly cron deletes rows older than 24h. RLS: service_role only (edge function writes); no client access.
+- Remove `masonry-item` class from the root `<div>` (width/margin now come from the absolute wrapper).
+- Otherwise unchanged. The `memo` comparator and `useImpressionTracker` stay as-is.
 
-### 3. Client becomes a dumb renderer
+### 4. `src/index.css`
 
-- `useForYouEvents` shrinks to: call `assemble-for-you-slate`, append pages, render in order.
-- Delete client-side: scoring loops, `frozenItems` reconciliation, sponsored splice, dedupe set, exploration shuffle, all the context queries (`for-you-context`, `trending-velocity-rpc`, `collab-boosts-cached`).
-- Keep: `useInfiniteQuery`, pull-to-refresh resets cursor + generates new `session_seed`.
-- Same change for `useFollowingEventsScored` → new `assemble-following-slate` function with the same shape.
+- Delete the `.masonry-grid` (column-count), `@media` column rules, and `.masonry-item` rules.
+- That's it — no replacement CSS needed; positioning is inline style on the absolute wrappers.
 
-### 4. EventFeed stability (kept from Phase 1)
+## Edge cases handled
 
-Even with server ordering, we still want:
-- Memoized per-card refs via a `Map`.
-- Dedicated `<div ref={sentinelRef} />` sibling for infinite scroll.
-- `EventCard` memo fast-path.
+- **Late media height correction**: estimate uses `aspectRatio` so first paint is correct for items whose ratio we know. For items without a ratio, estimate at 0.8 and let `measureRef` correct after mount — only items at or below that index shift, never above.
+- **Viewport rotation / resize**: `ResizeObserver` recomputes from index 0 with the new `columnWidth`. Existing height cache stays valid (height was measured per column width — invalidate cache when width changes).
+- **Append (infinite scroll)**: new items resume from cached column heights → O(new items), not O(all items). Existing wrappers' inline `top`/`left` are unchanged → React reconciliation does nothing → no DOM mutation, no repaint.
+- **Ad slots at index 1 and interval 9**: placement is by array index, so ads land at predictable visual rows (top of column 2 for index 1 on mobile, etc.). Matches the existing sponsored-post delivery contract.
+- **`feed-card-enter` animation**: keep on first paint; absolute positioning doesn't break it.
 
-These are cheap and make the render path bulletproof regardless of data source.
+## Out of scope
 
-### 5. Rollout safety
+- No new dependencies (no `react-masonry-css`, no `gestalt`). ~120 lines of hook code total.
+- No changes to scoring, slate assembly, sponsored-post delivery, dwell tracking, or `useForYouEvents`.
+- No virtualization — the existing 200-item cap keeps DOM size bounded.
+- `RelatedEventsFeed` and any other grid using `.masonry-grid` will be migrated in a follow-up if needed (will check during build; if it uses the same CSS classes, the same hook can be applied — but only if you confirm).
 
-- Feature flag `useServerSlate` (env var, default true on preview, gradual on prod):
-  - `true` → call edge function
-  - `false` → fall back to current client path
-- The current `get-for-you-feed` edge function stays deployed as the fallback.
-- If anything goes wrong post-launch, flip the flag — no redeploy needed.
+## Verification
 
-### 6. Observability
-
-- Edge function logs latency per stage (candidates, context, scoring, ads) so we can see where time goes under load.
-- Add a `feed_slate_served` event to `event_interactions` with cursor + count, so we can audit dedupe and ad-injection in production.
-
----
-
-## What changes, file by file
-
-- **NEW** `supabase/functions/assemble-for-you-slate/index.ts`
-- **NEW** `supabase/functions/assemble-following-slate/index.ts`
-- **NEW** `supabase/functions/_shared/feedScoring.ts` — Deno port of `src/lib/feedScoring.ts`
-- **MIGRATION** create `session_feed_state` table + grants + RLS + nightly cleanup function
-- **EDIT** `src/lib/prefetchEvents.ts` — point to new edge function, pass `session_seed`
-- **EDIT** `src/hooks/useForYouEvents.ts` — strip scoring, keep `useInfiniteQuery` + freeze-on-render safety
-- **EDIT** `src/hooks/useFollowingEventsScored.ts` — same treatment
-- **EDIT** `src/components/events/EventFeed.tsx` — stable refs + dedicated sentinel
-- **EDIT** `src/components/events/EventCard.tsx` — memo fast-path
-- **EDIT** `src/pages/Index.tsx` — remove client-side sponsored injection
-- **KEEP** `supabase/functions/get-for-you-feed/index.ts` as fallback
-
-No changes to RLS on existing tables. No changes to `feedScoring` math — same algorithm, just moved.
-
----
-
-## Risks and mitigations
-
-| Risk | Mitigation |
-|---|---|
-| Edge function cold start adds latency on first request | Edge cache the guest first page; warm with a 5-min cron ping |
-| Scoring port has a behavior drift vs client | Add a Deno test that scores a fixed fixture and asserts identical output to the TS version |
-| `session_feed_state` grows unbounded | Cap `seen_event_ids` at 500 entries (FIFO) + nightly TTL cleanup |
-| Bug in slate assembly breaks the feed | Feature flag fallback to existing client path |
-| Sponsored injection logic regression | Port unit tests for slot positions; verify impression tracking still fires |
-
----
-
-## Order of work
-
-1. Migration: `session_feed_state` + cleanup function.
-2. Port `feedScoring` to Deno + tests.
-3. Build `assemble-for-you-slate` + tests.
-4. Wire feature flag in client; verify parity in preview.
-5. Build `assemble-following-slate`.
-6. Apply EventFeed/EventCard stability fixes.
-7. Remove client scoring code once flag is permanently on.
-
-Roughly a day of focused work end-to-end. After this lands, the feed cannot reshuffle on the client because the client doesn't rank anymore — same architecture as the real apps.
-
-Approve and I'll start with the migration.
+- Load `/` on 390×677 mobile viewport. Confirm: item 0 top-left, item 1 top of column 2.
+- Scroll to trigger `onEndReached`. Confirm: existing cards' `top`/`left` inline styles do NOT change in DevTools; new cards appear at the bottom of whichever column is shorter.
+- Confirm right-column videos no longer re-init / flicker on append.
+- Rotate / resize to ≥640px width. Confirm layout reflows to 3 columns and reading order is preserved.
