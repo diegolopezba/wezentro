@@ -47,18 +47,21 @@ const MediaCarouselComponent = ({
   const [aspectRatio, setAspectRatio] = useState<number | null>(
     safeItems[0]?.aspect_ratio ?? null
   );
-  // Hero-only local mute (feed videos are coordinator-driven)
   const [heroMuted, setHeroMuted] = useState(true);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
-  // Subscribe to coordinator so audio-icon state on feed videos re-renders
-  const coordinatorTick = useSyncExternalStore(
-    (cb) => feedVideoCoordinator.subscribe(cb),
-    () => feedVideoCoordinator,
-    () => feedVideoCoordinator
+  const activeItem = safeItems[activeIndex];
+  const activeFeedId = !isHero && activeItem 
+    ? `${activeItem.id ?? activeItem.media_url}#${activeIndex}`
+    : null;
+
+  // Optimized subscription: only re-render if this specific video's audio state changes
+  const isAudioActive = useSyncExternalStore(
+    useCallback((cb) => feedVideoCoordinator.subscribe(cb), []),
+    useCallback(() => activeFeedId ? feedVideoCoordinator.isAudioActive(activeFeedId) : false, [activeFeedId]),
+    useCallback(() => false, [])
   );
 
-  // Track active slide
   useEffect(() => {
     if (!emblaApi) return;
     const onSelect = () => {
@@ -73,7 +76,6 @@ const MediaCarouselComponent = ({
     };
   }, [emblaApi, onIndexChange]);
 
-  // Hero: play active, pause others, drive mute locally
   useEffect(() => {
     if (!isHero) return;
     videoRefs.current.forEach((v, i) => {
@@ -88,25 +90,21 @@ const MediaCarouselComponent = ({
     });
   }, [activeIndex, heroMuted, isHero]);
 
-  // Feed: register the ACTIVE video slide with the coordinator
   useEffect(() => {
     if (isHero) return;
-    const activeItem = safeItems[activeIndex];
-    if (!activeItem) return;
-    const isVideo =
-      activeItem.media_type === "video" || isVideoUrl(activeItem.media_url);
+    const item = safeItems[activeIndex];
+    if (!item) return;
+    const isVideo = item.media_type === "video" || isVideoUrl(item.media_url);
     if (!isVideo) return;
     const el = videoRefs.current[activeIndex];
     if (!el) return;
-    const id = `${activeItem.id ?? activeItem.media_url}#${activeIndex}`;
+    const id = `${item.id ?? item.media_url}#${activeIndex}`;
     feedVideoCoordinator.register(id, el);
-    // Pause any non-active video in the same carousel
+    
+    // Pause other videos in same carousel
     videoRefs.current.forEach((v, i) => {
       if (v && i !== activeIndex) {
-        try {
-          v.pause();
-          v.currentTime = 0;
-        } catch {}
+        try { v.pause(); v.currentTime = 0; } catch {}
       }
     });
     return () => feedVideoCoordinator.unregister(id);
@@ -114,9 +112,9 @@ const MediaCarouselComponent = ({
 
   const handleImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>, index: number) => {
-      if (index !== 0) return;
+      if (index !== 0 || aspectRatio) return;
       const img = e.currentTarget;
-      if (img.naturalWidth && img.naturalHeight && !aspectRatio) {
+      if (img.naturalWidth && img.naturalHeight) {
         setAspectRatio(img.naturalWidth / img.naturalHeight);
       }
     },
@@ -125,9 +123,9 @@ const MediaCarouselComponent = ({
 
   const handleVideoMetadata = useCallback(
     (index: number) => {
-      if (index !== 0) return;
+      if (index !== 0 || aspectRatio) return;
       const v = videoRefs.current[0];
-      if (v && v.videoWidth && v.videoHeight && !aspectRatio) {
+      if (v && v.videoWidth && v.videoHeight) {
         setAspectRatio(v.videoWidth / v.videoHeight);
       }
     },
@@ -140,10 +138,9 @@ const MediaCarouselComponent = ({
       setHeroMuted((m) => !m);
       return;
     }
-    const activeItem = safeItems[activeIndex];
-    if (!activeItem) return;
-    const id = `${activeItem.id ?? activeItem.media_url}#${activeIndex}`;
-    feedVideoCoordinator.toggleUserMute(id);
+    if (activeFeedId) {
+      feedVideoCoordinator.toggleUserMute(activeFeedId);
+    }
   };
 
   const dragStart = useRef<{ x: number; y: number } | null>(null);
@@ -162,18 +159,8 @@ const MediaCarouselComponent = ({
 
   if (safeItems.length === 0) return null;
 
-  const activeItem = safeItems[activeIndex];
-  const activeIsVideo =
-    activeItem?.media_type === "video" || isVideoUrl(activeItem?.media_url);
-
-  // Compute mute icon state for active video
-  const activeFeedId = activeItem
-    ? `${activeItem.id ?? activeItem.media_url}#${activeIndex}`
-    : null;
-  const showMuted = isHero
-    ? heroMuted
-    : !(activeFeedId && feedVideoCoordinator.isAudioActive(activeFeedId));
-  void coordinatorTick; // ensure re-render on coordinator changes
+  const activeIsVideo = activeItem?.media_type === "video" || isVideoUrl(activeItem?.media_url);
+  const showMuted = isHero ? heroMuted : !isAudioActive;
 
   const containerStyle: React.CSSProperties = isHero
     ? {
@@ -182,16 +169,9 @@ const MediaCarouselComponent = ({
         minHeight: "250px",
         maxHeight: "70vh",
       }
-
     : {
         width: "100%",
-        aspectRatio: aspectRatioOverride
-          ? aspectRatioOverride
-          : aspectRatio
-          ? `${aspectRatio}`
-          : compact
-          ? undefined
-          : "3/4",
+        aspectRatio: aspectRatioOverride || (aspectRatio ? `${aspectRatio}` : (compact ? undefined : "3/4")),
         minHeight: compact ? "80px" : "120px",
         maxHeight: compact ? undefined : "350px",
       };
@@ -210,8 +190,7 @@ const MediaCarouselComponent = ({
       <div className="overflow-hidden h-full" ref={emblaRef}>
         <div className="flex h-full">
           {safeItems.map((item, i) => {
-            const isVideo =
-              item.media_type === "video" || isVideoUrl(item.media_url);
+            const isVideo = item.media_type === "video" || isVideoUrl(item.media_url);
             return (
               <div
                 key={item.id ?? `${item.media_url}-${i}`}
@@ -248,7 +227,6 @@ const MediaCarouselComponent = ({
         </div>
       </div>
 
-      {/* Sound toggle for active video */}
       {!compact && activeIsVideo && (
         <button
           onClick={toggleMute}
@@ -268,7 +246,6 @@ const MediaCarouselComponent = ({
         </button>
       )}
 
-      {/* Slide indicator */}
       {!compact && safeItems.length > 1 && (
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-none">
           {safeItems.map((_, i) => (

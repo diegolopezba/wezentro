@@ -24,22 +24,12 @@ interface UseMasonryLayoutArgs {
 interface UseMasonryLayoutResult {
   positions: Map<string, MasonryPosition>;
   containerHeight: number;
-  /** Ref callback for each item — measures real height post-mount. */
-  measureRef: (id: string) => (node: HTMLDivElement | null) => void;
+  /** Stable ref callback — measures real height post-mount. */
+  measureElement: (id: string, node: HTMLElement | null) => void;
   /** Whether the item's real DOM height has been measured at the current column width. */
   isMeasured: (id: string) => boolean;
 }
 
-/**
- * Pinterest-style absolute-positioned masonry.
- *
- * - Items placed in array order into the currently shortest column.
- * - Heights come from item.aspectRatio (width/height); fall back to defaultAspectRatio.
- * - After mount, real DOM heights are measured per item and cached per
- *   (columnWidth, id). Layout re-runs only when something actually shifts.
- * - Existing items' positions never change on append → no reflow, no
- *   <video> remount, no animation replay (fixes right-column glitch).
- */
 export function useMasonryLayout({
   items,
   containerWidth,
@@ -48,10 +38,8 @@ export function useMasonryLayout({
   verticalGap,
   defaultAspectRatio = 0.8,
 }: UseMasonryLayoutArgs): UseMasonryLayoutResult {
-  // Measured heights cache. Keyed by id. Invalidated when columnWidth changes.
   const measuredHeights = useRef<Map<string, number>>(new Map());
   const lastColumnWidth = useRef<number>(0);
-  // Bump to trigger re-layout when measured heights change.
   const [measureTick, setMeasureTick] = useState(0);
 
   const columnWidth = useMemo(() => {
@@ -59,7 +47,6 @@ export function useMasonryLayout({
     return (containerWidth - horizontalGap * (columnCount - 1)) / columnCount;
   }, [containerWidth, columnCount, horizontalGap]);
 
-  // Invalidate measurement cache if column width changed (different layout).
   if (columnWidth !== lastColumnWidth.current && columnWidth > 0) {
     measuredHeights.current = new Map();
     lastColumnWidth.current = columnWidth;
@@ -73,7 +60,6 @@ export function useMasonryLayout({
     const colHeights = new Array(columnCount).fill(0);
 
     for (const item of items) {
-      // Pick shortest column.
       let colIdx = 0;
       let minH = colHeights[0];
       for (let i = 1; i < columnCount; i++) {
@@ -97,13 +83,10 @@ export function useMasonryLayout({
       colHeights[colIdx] = top + height + verticalGap;
     }
 
-    const containerHeight = Math.max(0, ...colHeights) - verticalGap;
+    const containerHeight = Math.max(0, ...colHeights) - (colHeights.length ? verticalGap : 0);
     return { positions: map, containerHeight };
-    // measureTick triggers re-run after measurements come in
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, columnWidth, columnCount, horizontalGap, verticalGap, defaultAspectRatio, measureTick]);
 
-  // Schedule a single re-layout per frame when measurements arrive.
   const measureScheduled = useRef(false);
   const scheduleRelayout = useCallback(() => {
     if (measureScheduled.current) return;
@@ -114,13 +97,13 @@ export function useMasonryLayout({
     });
   }, []);
 
-  const measureRef = useCallback(
-    (id: string) => (node: HTMLDivElement | null) => {
+  const measureElement = useCallback(
+    (id: string, node: HTMLElement | null) => {
       if (!node) return;
       const real = node.getBoundingClientRect().height;
       if (real <= 0) return;
       const prev = measuredHeights.current.get(id);
-      if (prev !== undefined && Math.abs(prev - real) < 2) return;
+      if (prev !== undefined && Math.abs(prev - real) < 1) return;
       measuredHeights.current.set(id, real);
       scheduleRelayout();
     },
@@ -129,17 +112,12 @@ export function useMasonryLayout({
 
   const isMeasured = useCallback(
     (id: string) => measuredHeights.current.has(id),
-    // measureTick ensures consumers re-evaluate after new measurements land
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [measureTick]
   );
 
-  return { positions, containerHeight, measureRef, isMeasured };
+  return { positions, containerHeight, measureElement, isMeasured };
 }
 
-/**
- * Track an element's clientWidth via ResizeObserver. Returns the latest width.
- */
 export function useElementWidth<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
   const [width, setWidth] = useState(0);
@@ -147,16 +125,13 @@ export function useElementWidth<T extends HTMLElement>() {
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
-    // Initial
     setWidth(node.clientWidth);
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        // Use clientWidth (includes padding) for consistency with the
-        // initial setWidth above and with consumers that subtract their
-        // own horizontal padding. contentRect.width excludes padding and
-        // would cause a double-subtraction → extra gap on the right.
         const w = (entry.target as HTMLElement).clientWidth;
-        setWidth((prev) => (Math.abs(prev - w) < 0.5 ? prev : w));
+        if (w > 0) {
+          setWidth((prev) => (Math.abs(prev - w) < 1 ? prev : w));
+        }
       }
     });
     ro.observe(node);

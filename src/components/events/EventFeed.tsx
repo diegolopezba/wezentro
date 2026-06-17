@@ -235,7 +235,7 @@ const MasonryGrid = ({ events, followGraph, observeCard, sentinelRef, isLoadingM
     [events]
   );
 
-  const { positions, containerHeight, measureRef, isMeasured } = useMasonryLayout({
+  const { positions, containerHeight, measureElement, isMeasured } = useMasonryLayout({
     items,
     containerWidth: Math.max(0, containerWidth - HORIZONTAL_PADDING * 2),
     columnCount,
@@ -265,7 +265,7 @@ const MasonryGrid = ({ events, followGraph, observeCard, sentinelRef, isLoadingM
               key={event.id}
               ref={(node) => {
                 observeCard(node);
-                measureRef(event.id)(node);
+                measureElement(event.id, node);
               }}
               data-event-id={event.id}
               style={{
