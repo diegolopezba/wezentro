@@ -207,7 +207,7 @@ const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: Masonr
     [events]
   );
 
-  const { positions, containerHeight, measureRef } = useMasonryLayout({
+  const { positions, containerHeight, measureRef, isMeasured } = useMasonryLayout({
     items,
     containerWidth: Math.max(0, containerWidth - HORIZONTAL_PADDING * 2),
     columnCount,
@@ -231,6 +231,7 @@ const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: Masonr
         {events.map((event, index) => {
           const pos = positions.get(event.id);
           if (!pos) return null;
+          const measured = isMeasured(event.id);
           return (
             <div
               key={event.id}
@@ -244,6 +245,7 @@ const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: Masonr
                 top: pos.top,
                 left: pos.left + HORIZONTAL_PADDING,
                 width: pos.width,
+                visibility: measured ? "visible" : "hidden",
               }}
             >
               <EventCard {...event} index={index} />

@@ -26,6 +26,8 @@ interface UseMasonryLayoutResult {
   containerHeight: number;
   /** Ref callback for each item — measures real height post-mount. */
   measureRef: (id: string) => (node: HTMLDivElement | null) => void;
+  /** Whether the item's real DOM height has been measured at the current column width. */
+  isMeasured: (id: string) => boolean;
 }
 
 /**
@@ -125,7 +127,14 @@ export function useMasonryLayout({
     [scheduleRelayout]
   );
 
-  return { positions, containerHeight, measureRef };
+  const isMeasured = useCallback(
+    (id: string) => measuredHeights.current.has(id),
+    // measureTick ensures consumers re-evaluate after new measurements land
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [measureTick]
+  );
+
+  return { positions, containerHeight, measureRef, isMeasured };
 }
 
 /**
