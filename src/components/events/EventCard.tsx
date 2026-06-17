@@ -125,7 +125,7 @@ const EventCardComponent = ({
       : null;
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={impressionRef}>
       {isSponsored && (
         <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
           <span>Patrocinado</span>
@@ -157,6 +157,7 @@ const EventCardComponent = ({
               items={carouselItems}
               compact={compact}
               onTap={handleCardClick}
+              onFirstPlay={notifyPlay}
             />
 
             {carouselItems.length === 1 && !isSponsored && user && (
