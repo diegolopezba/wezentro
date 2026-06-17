@@ -1,6 +1,13 @@
-// Server-assembled "Para Ti" slate (Instagram/Pinterest pattern).
-// Returns a fully-ranked, deduped, ad-injected page so the client never
-// has to re-rank. Same algorithm as src/lib/feedScoring.ts (V6) ported to Deno.
+// Server-assembled "Para Ti" slate (Pinterest/Instagram pattern).
+//
+// Contract:
+//   - Cursor is opaque, base64url({seed, page}).
+//   - Same cursor → same response, byte-for-byte. No mutable server-side
+//     "seen-set" feeds into the serving path → no self-poisoning on
+//     duplicate/refetched first-page calls.
+//   - Ranking is deterministic given a (userId, seed): stable score + id tiebreak.
+//   - Recirculation: page 0 is NEVER empty if the database has any events.
+//   - session_feed_state is no longer touched by serving.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -159,6 +166,18 @@ const socialProofScore = (entries: any[], mutuals: Set<string>) => {
   return n >= 4 ? 100 : n >= 3 ? 80 : n >= 2 ? 60 : n >= 1 ? 40 : 0;
 };
 
+// Tiny deterministic hash → [0,1). Used as a stable per-seed jitter so
+// different sessions get different orderings without random() shuffling.
+const hashJitter = (seed: string, id: string): number => {
+  let h = 2166136261;
+  const s = seed + ":" + id;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return ((h >>> 0) % 100000) / 100000;
+};
+
 const calculateScore = (event: any, ctx: any, nowMs: number): number => {
   const entries = event.attendee_avatars || [];
   const isPost = !!event.is_post;
@@ -182,43 +201,72 @@ const calculateScore = (event: any, ctx: any, nowMs: number): number => {
   const interestRaw = interestScore(event.category, ctx.userInterests);
   const interest = ctx.isNewUser || !hasLearned ? Math.min(100, interestRaw * 1.4) : interestRaw;
 
+  let base: number;
   if (isPost) {
-    return (
+    base =
       recency * 0.30 + friends * 0.14 + trending * 0.12 + learned * 0.10 +
       interest * 0.10 + descTags * 0.08 + velocity * 0.06 +
-      collab * 0.06 + socialProof * 0.02 + proximity * 0.02
-    );
+      collab * 0.06 + socialProof * 0.02 + proximity * 0.02;
+  } else {
+    base =
+      friends * 0.14 + proximity * 0.12 + learned * 0.08 + interest * 0.08 +
+      trending * 0.09 + creatorLoyalty * 0.07 + descTags * 0.07 + collab * 0.06 +
+      recency * 0.06 + popularityScore(entries.length) * 0.07 +
+      timeOfDay * 0.05 + dayOfWeek * 0.05 + socialProof * 0.03 + timing * 0.03;
   }
-  return (
-    friends * 0.14 + proximity * 0.12 + learned * 0.08 + interest * 0.08 +
-    trending * 0.09 + creatorLoyalty * 0.07 + descTags * 0.07 + collab * 0.06 +
-    recency * 0.06 + popularityScore(entries.length) * 0.07 +
-    timeOfDay * 0.05 + dayOfWeek * 0.05 + socialProof * 0.03 + timing * 0.03
-  );
+
+  // Tiny per-seed jitter (<2 pts) so different sessions get different orderings
+  // for ties without sacrificing determinism within a session.
+  return base + hashJitter(ctx.sessionSeed, event.id) * 2;
+};
+
+// ──────────────── cursor codec ────────────────
+
+type Cursor = { seed: string; page: number };
+
+const encodeCursor = (c: Cursor): string => {
+  const json = JSON.stringify(c);
+  // base64url
+  return btoa(json).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+};
+
+const decodeCursor = (raw: string | null, fallbackSeed: string): Cursor => {
+  if (!raw) return { seed: fallbackSeed, page: 0 };
+  try {
+    const b64 = raw.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const parsed = JSON.parse(atob(padded));
+    if (typeof parsed?.seed === "string" && Number.isInteger(parsed?.page) && parsed.page >= 0) {
+      return { seed: parsed.seed, page: parsed.page };
+    }
+  } catch { /* fall through */ }
+  return { seed: fallbackSeed, page: 0 };
 };
 
 // ──────────────── handler ────────────────
 
-const SPONSORED_SLOTS = [1, 9, 19]; // positions within each returned page
+const SPONSORED_SLOTS = [1, 9, 19];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     const url = new URL(req.url);
-    const cursor = url.searchParams.get("cursor");
+    const rawCursor = url.searchParams.get("cursor");
     const limit = Math.max(1, Math.min(50, Number(url.searchParams.get("limit") ?? "20")));
     const sessionSeed = url.searchParams.get("session_seed") || crypto.randomUUID();
     const lat = url.searchParams.get("lat") ? Number(url.searchParams.get("lat")) : null;
     const lng = url.searchParams.get("lng") ? Number(url.searchParams.get("lng")) : null;
+
+    const cursor = decodeCursor(rawCursor, sessionSeed);
+    const seed = cursor.seed;
+    const page = cursor.page;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Extract user id from JWT if present (no signature check needed —
-    // service-role client doesn't enforce RLS, we just use it for context).
     let userId: string | null = null;
     const auth = req.headers.get("authorization") || "";
     const token = auth.replace(/^Bearer\s+/i, "");
@@ -229,20 +277,16 @@ Deno.serve(async (req) => {
       } catch { /* ignore */ }
     }
 
-    // Overfetch candidates for ranking headroom.
-    const candidatesPromise = supabase.rpc("get_for_you_events", {
-      _limit: limit * 3,
-      _cursor: cursor,
-    });
+    // Pull the FULL candidate pool (capped 200 by the RPC). Same pool every
+    // call within a session → deterministic slicing by page index.
+    const candidatesPromise = supabase.rpc("get_for_you_events");
 
-    // Pull context in parallel.
     const contextPromise = userId
       ? supabase.rpc("get_for_you_context", { _user_id: userId })
       : Promise.resolve({ data: {} as any, error: null });
     const trendingPromise = supabase.rpc("get_trending_scores");
     const collabPromise = userId
       ? (async () => {
-          // fire-and-forget refresh, then read cache
           supabase.rpc("ensure_collab_boosts_fresh", { _user_id: userId }).then(() => {});
           return supabase.rpc("get_collab_boosts", { _user_id: userId });
         })()
@@ -259,18 +303,10 @@ Deno.serve(async (req) => {
       ? supabase.from("user_creator_preferences").select("creator_id, score").eq("user_id", userId)
       : Promise.resolve({ data: [], error: null });
 
-    // Session seen-set
-    const seenPromise = supabase
-      .from("session_feed_state")
-      .select("seen_event_ids")
-      .eq("session_id", sessionSeed)
-      .eq("feed_kind", "for_you")
-      .maybeSingle();
-
-    const [candidatesRes, contextRes, trendingRes, collabRes, sponsoredRes, prefsRes, creatorPrefsRes, seenRes] =
+    const [candidatesRes, contextRes, trendingRes, collabRes, sponsoredRes, prefsRes, creatorPrefsRes] =
       await Promise.all([
         candidatesPromise, contextPromise, trendingPromise, collabPromise,
-        sponsoredPromise, prefsPromise, creatorPrefsPromise, seenPromise,
+        sponsoredPromise, prefsPromise, creatorPrefsPromise,
       ]);
 
     if (candidatesRes.error) throw candidatesRes.error;
@@ -294,7 +330,6 @@ Deno.serve(async (req) => {
     for (const row of (creatorPrefsRes.data || []) as any[]) creatorPrefs[row.creator_id] = Number(row.score) || 0;
 
     const mutualSet = new Set<string>((ctxData.mutual_follower_ids as string[]) || []);
-    const seenIds = new Set<string>((seenRes.data?.seen_event_ids as string[]) || []);
 
     const isNewUser = !userId ||
       (Object.keys(categoryPrefs).length === 0 && Object.keys(creatorPrefs).length === 0);
@@ -313,23 +348,42 @@ Deno.serve(async (req) => {
       tagPrefs: (ctxData.tag_prefs as Record<string, number>) || {},
       collabBoosts,
       isNewUser,
+      sessionSeed: seed,
       _mutualSet: mutualSet,
     };
 
     const nowMs = Date.now();
     const sponsoredEventIds = new Set<string>(((sponsoredRes.data || []) as any[]).map((s) => s.event_id));
+    const allCandidates = (candidatesRes.data || []) as any[];
 
-    const candidates = ((candidatesRes.data || []) as any[])
-      .filter((e) => !seenIds.has(e.id))
-      .filter((e) => !sponsoredEventIds.has(e.id)) // never duplicate ad event in organic
+    // Rank the FULL pool deterministically (score DESC, id ASC tiebreak).
+    const ranked = allCandidates
+      .filter((e) => !sponsoredEventIds.has(e.id))
       .map((e) => ({ ...e, _score: calculateScore(e, ctx, nowMs) }))
-      .sort((a, b) => b._score - a._score)
-      .slice(0, limit);
+      .sort((a, b) => {
+        if (b._score !== a._score) return b._score - a._score;
+        return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+      });
 
-    // Hydrate sponsored cards: fetch their event payloads via the same shape.
+    // Slice by page.
+    const offset = page * limit;
+    let pageCandidates = ranked.slice(offset, offset + limit);
+
+    // Recirculation: if page 0 came back empty (rare — implies zero events
+    // exist in the visible pool), serve the raw pool ordered by recency so
+    // the home feed is never blank.
+    if (page === 0 && pageCandidates.length === 0 && allCandidates.length > 0) {
+      pageCandidates = [...allCandidates]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, limit);
+    }
+
+    // Hydrate sponsored items only for page 0 (ads live in the first page slots).
     const sponsoredItems: any[] = [];
-    if ((sponsoredRes.data || []).length > 0) {
-      const idsToHydrate = ((sponsoredRes.data || []) as any[]).slice(0, SPONSORED_SLOTS.length).map((s) => s.event_id);
+    if (page === 0 && (sponsoredRes.data || []).length > 0) {
+      const idsToHydrate = ((sponsoredRes.data || []) as any[])
+        .slice(0, SPONSORED_SLOTS.length)
+        .map((s) => s.event_id);
       if (idsToHydrate.length > 0) {
         const { data: spEvents } = await supabase
           .from("events")
@@ -365,41 +419,22 @@ Deno.serve(async (req) => {
     // Inject sponsored at fixed slots within this page.
     const merged: any[] = [];
     let oi = 0, si = 0;
-    for (let i = 0; merged.length < candidates.length + sponsoredItems.length; i++) {
+    for (let i = 0; merged.length < pageCandidates.length + sponsoredItems.length; i++) {
       if (SPONSORED_SLOTS.includes(i) && si < sponsoredItems.length) {
         merged.push(sponsoredItems[si++]);
-      } else if (oi < candidates.length) {
-        merged.push(candidates[oi++]);
+      } else if (oi < pageCandidates.length) {
+        merged.push(pageCandidates[oi++]);
       } else if (si < sponsoredItems.length) {
         merged.push(sponsoredItems[si++]);
       } else break;
     }
 
-    // Persist new seen-set (capped at 500, FIFO).
-    const newSeen = [...seenIds, ...merged.map((m) => m.id)];
-    const capped = newSeen.slice(Math.max(0, newSeen.length - 500));
-    if (userId !== null || true) {
-      // upsert keyed on (session_id, feed_kind)
-      await supabase
-        .from("session_feed_state")
-        .upsert(
-          {
-            session_id: sessionSeed,
-            user_id: userId,
-            seen_event_ids: capped,
-            feed_kind: "for_you",
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "session_id,feed_kind" },
-        );
-    }
-
-    const nextCursor = candidates.length === limit
-      ? candidates[candidates.length - 1].created_at
-      : null;
+    // nextCursor: null only when the next slice would be empty.
+    const hasMore = ranked.length > offset + limit;
+    const nextCursor = hasMore ? encodeCursor({ seed, page: page + 1 }) : null;
 
     return new Response(
-      JSON.stringify({ items: merged, next_cursor: nextCursor, session_id: sessionSeed }),
+      JSON.stringify({ items: merged, next_cursor: nextCursor, session_id: seed }),
       {
         status: 200,
         headers: {
