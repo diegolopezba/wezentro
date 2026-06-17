@@ -1,80 +1,121 @@
-## The problem
+## Revised: do Phase 2 now (server-assembled slate)
 
-Cards on the Para Ti / Siguiendo feed keep moving while users scroll. After investigating the code, there are **5 distinct causes**, all hitting at the same time:
+You're right. Fixing this before the surge — while the blast radius is small — is the safer call. We'll still keep the client freeze as a safety net, but the real fix is moving slate assembly to the server. This is how Instagram and Pinterest actually do it.
 
-1. **`injectExploration` calls `Math.random()`** on every recompute (`src/lib/feedScoring.ts:403`), so exploration cards land in different slots each time anything changes.
-2. **Scores depend on `Date.now()`** (`getRecencyScore`, `getTimingScore`, `getTimeOfDayScore`, `getVelocityScore`). Time keeps moving, so scores keep changing.
-3. **Six async context queries resolve at different moments** in `useForYouEvents` (`for-you-context`, `trending-velocity-rpc`, `collab-boosts-cached`, blocked IDs, learned prefs, plus the deferred "idle" collab boost). Each one that resolves re-runs the `scoredEvents` memo and **re-sorts the entire concatenated list, including cards already on screen.**
-4. **Infinite scroll re-sorts globally.** When page 2 arrives, every item from every page is scored and re-sorted together, so a page-2 item with a higher score can shove page-1 cards down — exactly the "I was looking at this post and it disappeared" behavior.
-5. **Sponsored-post injection in `Index.tsx`** re-runs on every events reference change and re-splices, shifting positions.
+---
 
-## How Instagram & Pinterest avoid this
+## What we build
 
-Both apps use a **"freeze on render, append on paginate"** model:
+### 1. New edge function: `assemble-for-you-slate`
 
-- The first page is scored and ordered once, then **locked**. Items never move once they've been shown.
-- New pages are scored only against themselves, then **appended** to the end. Existing items keep their slot and index.
-- Sponsored / exploration injections happen on the page being assembled, not retroactively on items already rendered.
-- Randomized signals (exploration, A/B jitter) use a **session-stable seed** (per-user, per-session) so reloads within a session produce the same order.
-- Score inputs that change over time (recency, "trending now") are **snapshotted at fetch time**, not recomputed on every render.
+Single endpoint that returns a ready-to-render, ordered, deduped, ad-injected page.
 
-This is sometimes called "stable ranking with append-only pagination" — it preserves a personalized feed while guaranteeing visual stability.
+**Inputs (query params):**
+- `cursor` — opaque string (created_at of last item from prior page), null on first page
+- `limit` — default 20, max 50
+- `session_seed` — client-generated UUID per app session, used for deterministic exploration shuffle
+- `lat`, `lng` — optional, for distance scoring + ad geo-targeting
 
-## What I'll change
+**Auth:** uses the caller's JWT (or anon for guests). `verify_jwt = false` so guests work; user id pulled from JWT when present.
 
-### 1. Score & order each page once at fetch time, then freeze
+**Internally it does, in one round trip:**
+1. Fetch candidate events via `get_for_you_events(_limit: limit * 3, _cursor)` (overfetch for ranking headroom).
+2. Pull context: `get_for_you_context`, `get_trending_scores`, `get_collab_boosts` — in parallel.
+3. Score using the same logic currently in `src/lib/feedScoring.ts` — we port it to Deno (pure functions, easy).
+4. Apply session-scoped dedupe via a new `session_feed_state` table (see schema below).
+5. Inject sponsored slots at fixed positions (1, 9, 19) using `get_eligible_sponsored_posts`.
+6. Return `{ items: [...], next_cursor, session_id }`.
 
-In `useForYouEvents`:
-- Move the scoring + `injectExploration` step out of the global `useMemo` over `events`.
-- Track a `frozenOrder` ref (a `Map<eventId, { order: number; item: ScoredEvent }>`) that holds the final, locked sequence the UI renders.
-- When a **new page** arrives from `useInfiniteQuery`:
-  - Filter out items already in `frozenOrder` (dedupe).
-  - Score only the new items using the **current snapshot** of context (whatever has resolved so far is fine — it's locked in for these items forever).
-  - Run `injectExploration` over just the new page.
-  - Append the result to `frozenOrder` with monotonically increasing order numbers.
-- Late-arriving context queries (collab boosts, trending, etc.) **do not** retrigger re-sorting of frozen items. They'll affect *future* pages only.
-- `refetch` / pull-to-refresh resets `frozenOrder` (intentional — user asked for fresh content).
+**Caching:**
+- Guest + cold-start first page: `Cache-Control: public, s-maxage=60, stale-while-revalidate=180` at the CDN.
+- Authenticated pages: `Cache-Control: private, no-store` (per-user state).
 
-### 2. Make exploration deterministic per session
+### 2. New table: `session_feed_state`
 
-- Replace `Math.random()` in `injectExploration` with a small seeded PRNG (mulberry32 or similar).
-- Seed = hash of `userId + sessionStartTimestamp` (stored in a ref). Same session ⇒ same shuffle ⇒ stable order across re-renders.
+Server-side seen-set so client never has to dedupe.
 
-### 3. Snapshot time-sensitive scores at page-fetch time
+```text
+session_feed_state
+  session_id    uuid          PK part 1
+  user_id       uuid nullable PK part 2  (null for guests; keyed by session only)
+  seen_event_ids uuid[]       (capped at last 500)
+  created_at    timestamptz
+  updated_at    timestamptz
+```
 
-- Pass a `nowMs` parameter into `calculateEventScore` (default `Date.now()`).
-- When scoring a page, capture `nowMs` once for the whole batch and reuse it. Frozen items keep their original `nowMs`, so their recency/timing scores never drift.
+TTL cleanup: nightly cron deletes rows older than 24h. RLS: service_role only (edge function writes); no client access.
 
-### 4. Stop sponsored-post re-splicing from shifting cards
+### 3. Client becomes a dumb renderer
 
-In `Index.tsx` `transformedEvents`:
-- Once a sponsored card has been placed at a given index, keep it there. Track placed sponsored IDs + their indices in a ref keyed by feed length buckets.
-- Only insert *new* sponsored cards into *new* organic positions (the unfrozen tail), never re-splice into the already-rendered prefix.
+- `useForYouEvents` shrinks to: call `assemble-for-you-slate`, append pages, render in order.
+- Delete client-side: scoring loops, `frozenItems` reconciliation, sponsored splice, dedupe set, exploration shuffle, all the context queries (`for-you-context`, `trending-velocity-rpc`, `collab-boosts-cached`).
+- Keep: `useInfiniteQuery`, pull-to-refresh resets cursor + generates new `session_seed`.
+- Same change for `useFollowingEventsScored` → new `assemble-following-slate` function with the same shape.
 
-### 5. Apply the same freeze to "Siguiendo"
+### 4. EventFeed stability (kept from Phase 1)
 
-`useFollowingEventsScored` has the same re-sort-on-every-dep-change pattern. Same fix: score once on first load, dedupe + append on refresh, never reorder already-shown items.
+Even with server ordering, we still want:
+- Memoized per-card refs via a `Map`.
+- Dedicated `<div ref={sentinelRef} />` sibling for infinite scroll.
+- `EventCard` memo fast-path.
 
-### 6. Stabilize card props identity
+These are cheap and make the render path bulletproof regardless of data source.
 
-In `Index.tsx`, memoize the per-event transform (`organic.map(...)`) keyed by event id so card prop objects keep referential identity across renders. Combined with the existing `key={event.id}` in `EventFeed`, this avoids unnecessary `EventCard` re-renders even when the array changes at the tail.
+### 5. Rollout safety
 
-## Files touched
+- Feature flag `useServerSlate` (env var, default true on preview, gradual on prod):
+  - `true` → call edge function
+  - `false` → fall back to current client path
+- The current `get-for-you-feed` edge function stays deployed as the fallback.
+- If anything goes wrong post-launch, flip the flag — no redeploy needed.
 
-- `src/hooks/useForYouEvents.ts` — freeze-on-render order, per-page scoring, snapshot time
-- `src/hooks/useFollowingEventsScored.ts` — same freeze pattern
-- `src/lib/feedScoring.ts` — seeded PRNG for `injectExploration`, accept `nowMs` parameter
-- `src/pages/Index.tsx` — stable sponsored-post placement, memoized per-event transform
+### 6. Observability
 
-## Out of scope (intentionally)
+- Edge function logs latency per stage (candidates, context, scoring, ads) so we can see where time goes under load.
+- Add a `feed_slate_served` event to `event_interactions` with cursor + count, so we can audit dedupe and ad-injection in production.
 
-- The ranking algorithm itself stays exactly the same. Different users still see different feeds.
-- No backend / RPC changes. This is purely a client-side rendering-stability fix.
-- Discover page, map, profile feeds — not reported as glitchy, leaving alone.
+---
 
-## Expected result
+## What changes, file by file
 
-- Once a card appears, it stays in the same slot until the user pulls to refresh.
-- Scrolling fetches more cards that get appended to the bottom — no items above ever move.
-- Late-resolving signals (trending, collab boosts) influence future pages but never reshuffle the visible feed.
-- Matches the Pinterest/Instagram feel the user described.
+- **NEW** `supabase/functions/assemble-for-you-slate/index.ts`
+- **NEW** `supabase/functions/assemble-following-slate/index.ts`
+- **NEW** `supabase/functions/_shared/feedScoring.ts` — Deno port of `src/lib/feedScoring.ts`
+- **MIGRATION** create `session_feed_state` table + grants + RLS + nightly cleanup function
+- **EDIT** `src/lib/prefetchEvents.ts` — point to new edge function, pass `session_seed`
+- **EDIT** `src/hooks/useForYouEvents.ts` — strip scoring, keep `useInfiniteQuery` + freeze-on-render safety
+- **EDIT** `src/hooks/useFollowingEventsScored.ts` — same treatment
+- **EDIT** `src/components/events/EventFeed.tsx` — stable refs + dedicated sentinel
+- **EDIT** `src/components/events/EventCard.tsx` — memo fast-path
+- **EDIT** `src/pages/Index.tsx` — remove client-side sponsored injection
+- **KEEP** `supabase/functions/get-for-you-feed/index.ts` as fallback
+
+No changes to RLS on existing tables. No changes to `feedScoring` math — same algorithm, just moved.
+
+---
+
+## Risks and mitigations
+
+| Risk | Mitigation |
+|---|---|
+| Edge function cold start adds latency on first request | Edge cache the guest first page; warm with a 5-min cron ping |
+| Scoring port has a behavior drift vs client | Add a Deno test that scores a fixed fixture and asserts identical output to the TS version |
+| `session_feed_state` grows unbounded | Cap `seen_event_ids` at 500 entries (FIFO) + nightly TTL cleanup |
+| Bug in slate assembly breaks the feed | Feature flag fallback to existing client path |
+| Sponsored injection logic regression | Port unit tests for slot positions; verify impression tracking still fires |
+
+---
+
+## Order of work
+
+1. Migration: `session_feed_state` + cleanup function.
+2. Port `feedScoring` to Deno + tests.
+3. Build `assemble-for-you-slate` + tests.
+4. Wire feature flag in client; verify parity in preview.
+5. Build `assemble-following-slate`.
+6. Apply EventFeed/EventCard stability fixes.
+7. Remove client scoring code once flag is permanently on.
+
+Roughly a day of focused work end-to-end. After this lands, the feed cannot reshuffle on the client because the client doesn't rank anymore — same architecture as the real apps.
+
+Approve and I'll start with the migration.
