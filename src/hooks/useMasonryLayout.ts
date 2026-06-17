@@ -127,7 +127,14 @@ export function useMasonryLayout({
     [scheduleRelayout]
   );
 
-  return { positions, containerHeight, measureRef };
+  const isMeasured = useCallback(
+    (id: string) => measuredHeights.current.has(id),
+    // measureTick ensures consumers re-evaluate after new measurements land
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [measureTick]
+  );
+
+  return { positions, containerHeight, measureRef, isMeasured };
 }
 
 /**
