@@ -19,14 +19,14 @@ import {
  * updates — same architecture Instagram and Pinterest use.
  */
 export const useForYouEvents = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { location } = useLocationContext();
   const userId = user?.id;
   const { data: blockedIds } = useBlockedIds();
 
   const {
     data: pageData,
-    isLoading,
+    isLoading: queryLoading,
     error,
     refetch: rawRefetch,
     fetchNextPage,
@@ -42,7 +42,15 @@ export const useForYouEvents = () => {
     initialPageParam: null as string | null,
     getNextPageParam: (last) => last.nextCursor,
     staleTime: 2 * 60 * 1000,
+    // Wait until auth has finished restoring the session. Otherwise the
+    // first request fires as a guest, persists those IDs into
+    // session_feed_state, and the authenticated refetch comes back empty
+    // because the server filters out everything it just sent.
+    enabled: !authLoading,
   });
+
+  const isLoading = authLoading || queryLoading;
+
 
   // Flatten pages and apply client-side block filter (server doesn't know
   // about blocks between the viewer and creators; cheap to filter here).
