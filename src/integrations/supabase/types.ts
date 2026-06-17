@@ -1826,6 +1826,33 @@ export type Database = {
           },
         ]
       }
+      session_feed_state: {
+        Row: {
+          created_at: string
+          feed_kind: string
+          seen_event_ids: string[]
+          session_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feed_kind?: string
+          seen_event_ids?: string[]
+          session_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feed_kind?: string
+          seen_event_ids?: string[]
+          session_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       sponsored_clicks: {
         Row: {
           created_at: string
@@ -2505,6 +2532,7 @@ export type Database = {
         Args: { _entry_user_id: string; _event_id: string; _user_id: string }
         Returns: boolean
       }
+      cleanup_session_feed_state: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
