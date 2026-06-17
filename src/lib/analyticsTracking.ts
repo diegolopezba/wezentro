@@ -124,23 +124,26 @@ export const trackReserveTap = async (eventId: string, userId: string | null) =>
 const impressionSessionCache = new Set<string>();
 
 export const trackEventImpression = async (eventId: string, userId: string | null) => {
-  if (!userId) return;
-  const key = `${eventId}:${userId}`;
+  // Session-level dedupe key: per-event for anon, per-user-per-event for logged-in.
+  const key = `${eventId}:${userId ?? "anon"}`;
   if (impressionSessionCache.has(key)) return;
   impressionSessionCache.add(key);
 
   try {
-    const today = new Date().toISOString().split("T")[0];
-    const { data: existing } = await supabase
-      .from("event_interactions")
-      .select("id")
-      .eq("event_id", eventId)
-      .eq("user_id", userId)
-      .eq("type", "impression")
-      .gte("created_at", today)
-      .maybeSingle();
+    // Daily DB dedupe only applies to logged-in users (anon rows have null user_id).
+    if (userId) {
+      const today = new Date().toISOString().split("T")[0];
+      const { data: existing } = await supabase
+        .from("event_interactions")
+        .select("id")
+        .eq("event_id", eventId)
+        .eq("user_id", userId)
+        .eq("type", "impression")
+        .gte("created_at", today)
+        .maybeSingle();
 
-    if (existing) return;
+      if (existing) return;
+    }
 
     await supabase.from("event_interactions").insert({
       event_id: eventId,

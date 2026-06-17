@@ -17,7 +17,7 @@ interface EventInviteCardProps {
 const EventInviteCard = ({ event }: EventInviteCardProps) => {
   const navigate = useNavigate();
   const isVideo = isVideoUrl(event.image_url);
-  const impressionRef = useImpressionTracker(event.id);
+  const { ref: impressionRef } = useImpressionTracker(event.id);
 
   const handleClick = () => {
     navigate(`/event/${event.id}`);

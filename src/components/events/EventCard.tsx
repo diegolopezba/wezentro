@@ -11,6 +11,7 @@ import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import { haptic } from "@/lib/haptics";
 import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
 import { CardLikeButton } from "@/components/events/CardLikeButton";
+import { useImpressionTracker } from "@/hooks/useImpressionTracker";
 import type { ViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 import {
   DropdownMenu,
@@ -52,6 +53,7 @@ const EventCardComponent = ({
   attendees = 0,
   attendeeAvatars = [],
   index = 0,
+  creatorId,
   repostInfo,
   isSponsored = false,
   sponsoredPostId,
@@ -64,6 +66,12 @@ const EventCardComponent = ({
   const trackClick = useTrackSponsoredClick();
   const clickedRef = useRef(false);
   const [dismissed, setDismissed] = useState(false);
+  const hasVideo = (media ?? []).some((m) => m.media_type === "video");
+  const { ref: impressionRef, notifyPlay } = useImpressionTracker(id, {
+    creatorId,
+    mediaType: hasVideo ? "video" : "image",
+    disabled: isSponsored,
+  });
 
   useEffect(() => {
     clickedRef.current = false;
@@ -117,7 +125,7 @@ const EventCardComponent = ({
       : null;
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={impressionRef}>
       {isSponsored && (
         <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
           <span>Patrocinado</span>
@@ -149,6 +157,7 @@ const EventCardComponent = ({
               items={carouselItems}
               compact={compact}
               onTap={handleCardClick}
+              onFirstPlay={notifyPlay}
             />
 
             {carouselItems.length === 1 && !isSponsored && user && (

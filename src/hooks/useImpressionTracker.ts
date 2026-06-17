@@ -1,23 +1,56 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackEventImpression } from "@/lib/analyticsTracking";
 
+interface ImpressionOptions {
+  /** Creator of the post — used to exclude self-views (IG/TikTok behavior). */
+  creatorId?: string | null;
+  /** Media type. Video fires on playback start; image fires on 50%/500ms visibility. */
+  mediaType?: "image" | "video";
+  /** Disable tracking (e.g. sponsored posts handled elsewhere). */
+  disabled?: boolean;
+}
+
+/** Min ms between re-fires within a single mount to avoid loop-spam on autoplaying videos. */
+const REPEAT_THROTTLE_MS = 30_000;
+
 /**
- * Returns a ref to attach to a card element. When the element is at least
- * 50% visible for 500ms, fires a single impression event for the given eventId.
+ * Mirrors Instagram/TikTok view counting:
+ * - Video: fires on playback start (call returned `notifyPlay`).
+ * - Image/carousel: fires when ≥50% visible for 500ms.
+ * - Excludes the creator's own views.
+ * - Counts logged-out viewers (user_id null).
+ * - Repeats allowed across mounts; throttled to 30s within a single mount.
  */
-export const useImpressionTracker = (eventId: string | undefined) => {
+export const useImpressionTracker = (
+  eventId: string | undefined,
+  options: ImpressionOptions = {}
+) => {
+  const { creatorId, mediaType = "image", disabled = false } = options;
   const ref = useRef<HTMLDivElement | null>(null);
   const { user } = useAuth();
-  const firedRef = useRef(false);
+  const lastFiredAtRef = useRef(0);
 
+  const isSelfView = !!user?.id && !!creatorId && user.id === creatorId;
+  const skip = disabled || !eventId || isSelfView;
+
+  const fire = useCallback(() => {
+    if (!eventId) return;
+    const now = Date.now();
+    if (now - lastFiredAtRef.current < REPEAT_THROTTLE_MS) return;
+    lastFiredAtRef.current = now;
+    trackEventImpression(eventId, user?.id ?? null);
+  }, [eventId, user?.id]);
+
+  // Reset throttle when card identity changes.
   useEffect(() => {
-    firedRef.current = false;
+    lastFiredAtRef.current = 0;
   }, [eventId]);
 
+  // Image / carousel path: visibility-based.
   useEffect(() => {
-    if (!eventId || !user?.id || !ref.current) return;
-    if (typeof IntersectionObserver === "undefined") return;
+    if (skip || mediaType === "video") return;
+    if (!ref.current || typeof IntersectionObserver === "undefined") return;
 
     let timer: ReturnType<typeof setTimeout> | null = null;
     const el = ref.current;
@@ -26,13 +59,9 @@ export const useImpressionTracker = (eventId: string | undefined) => {
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-            if (firedRef.current || timer) continue;
+            if (timer) continue;
             timer = setTimeout(() => {
-              if (!firedRef.current) {
-                firedRef.current = true;
-                trackEventImpression(eventId, user.id);
-                observer.disconnect();
-              }
+              fire();
               timer = null;
             }, 500);
           } else if (timer) {
@@ -49,7 +78,13 @@ export const useImpressionTracker = (eventId: string | undefined) => {
       if (timer) clearTimeout(timer);
       observer.disconnect();
     };
-  }, [eventId, user?.id]);
+  }, [skip, mediaType, fire]);
 
-  return ref;
+  /** Call this when the active video starts playing. */
+  const notifyPlay = useCallback(() => {
+    if (skip) return;
+    fire();
+  }, [skip, fire]);
+
+  return { ref, notifyPlay };
 };

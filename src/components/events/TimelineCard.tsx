@@ -72,7 +72,11 @@ export const TimelineCard = ({
 
   const dateDisplay = getDateDisplay();
 
-  const impressionRef = useImpressionTracker(id);
+  const hasVideo = (media ?? []).some((m) => m.media_type === "video");
+  const { ref: impressionRef, notifyPlay } = useImpressionTracker(id, {
+    creatorId,
+    mediaType: hasVideo ? "video" : "image",
+  });
 
   return (
     <m.div
@@ -91,7 +95,7 @@ export const TimelineCard = ({
     >
       <div className="space-y-2 px-0">
         <div className="relative">
-          <MediaCarousel items={carouselItems} onTap={handleCardClick} />
+          <MediaCarousel items={carouselItems} onTap={handleCardClick} onFirstPlay={notifyPlay} />
           {showCtaActions && creatorId && (
             <TimelineCardCtaActions eventId={id} creatorId={creatorId} />
           )}
