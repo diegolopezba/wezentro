@@ -40,15 +40,14 @@ const Index = () => {
   const {
     data: followingEvents = [],
     isLoading: followingLoading,
-    refetch: refetchFollowing
+    refetch: refetchFollowing,
+    fetchNextPage: fetchMoreFollowing,
+    hasNextPage: hasMoreFollowing,
+    isFetchingNextPage: isFetchingMoreFollowing,
   } = useFollowingEventsScored();
   const {
     data: unreadCount = 0
   } = useUnreadNotificationsCount();
-
-  // Server-side targeted + ranked sponsored posts
-  const { data: sponsoredPosts = [] } = useActiveSponsoredPosts();
-  const trackImpression = useTrackSponsoredImpression();
 
   const handleNotificationClick = () => {
     if (isGuest) {
