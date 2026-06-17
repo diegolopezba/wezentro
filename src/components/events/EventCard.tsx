@@ -86,7 +86,7 @@ const EventCardComponent = ({
   const { data: followGraph } = useViewerFollowGraph();
   const followingIds = followGraph?.followingIds ?? new Set<string>();
   const scoreMap = followGraph?.scoreMap ?? {};
-  const impressionRef = useImpressionTracker(id);
+  const impressionRef = null;
 
   // Reset click-tracking when this card represents a different event
   useEffect(() => {
