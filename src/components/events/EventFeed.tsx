@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { EventCard, EventCardProps } from "./EventCard";
-import { useMasonryLayout, useElementWidth } from "@/hooks/useMasonryLayout";
+import { useMasonryLayout, useElementWidth, type MasonryPosition } from "@/hooks/useMasonryLayout";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -290,7 +290,7 @@ const MasonryGrid = ({ events, followGraph, observeCard, sentinelRef, isLoadingM
 interface MasonryCardItemProps {
   event: EventCardProps;
   index: number;
-  position: import("@/hooks/useMasonryLayout").MasonryPosition;
+  position: MasonryPosition;
   isMeasured: boolean;
   followGraph?: ViewerFollowGraph;
   observeCard: (node: HTMLElement | null) => void;
