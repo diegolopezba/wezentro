@@ -8,7 +8,7 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { useForYouEvents } from "@/hooks/useForYouEvents";
 import { useFollowingEventsScored } from "@/hooks/useFollowingEventsScored";
 import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
-import { useActiveSponsoredPosts, useTrackSponsoredImpression } from "@/hooks/useSponsoredPosts";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { Button } from "@/components/ui/button";
@@ -191,9 +191,9 @@ const Index = () => {
             events={transformedEvents}
             isLoading={isLoading}
             emptyStateType={activeTab}
-            onEndReached={activeTab === "for-you" ? fetchMoreForYou : undefined}
-            hasMore={activeTab === "for-you" ? hasMoreForYou : false}
-            isLoadingMore={activeTab === "for-you" ? isFetchingMoreForYou : false}
+            onEndReached={activeTab === "for-you" ? fetchMoreForYou : fetchMoreFollowing}
+            hasMore={activeTab === "for-you" ? hasMoreForYou : hasMoreFollowing}
+            isLoadingMore={activeTab === "for-you" ? isFetchingMoreForYou : isFetchingMoreFollowing}
           />
         </PullToRefresh>
       </AppLayout>;
