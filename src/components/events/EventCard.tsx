@@ -182,7 +182,7 @@ const EventCardComponent = ({
             </div>
           )}
 
-          {attendees > 0 && sortedAttendees.length > 0 && (() => {
+          {attendees > 0 && (() => {
             const MAX = 3;
             const shown = sortedAttendees.slice(0, MAX);
             const placeholderCount = Math.max(
