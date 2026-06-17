@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 export interface MasonryItem {
   id: string;
@@ -39,7 +39,6 @@ export function useMasonryLayout({
   defaultAspectRatio = 0.8,
 }: UseMasonryLayoutArgs): UseMasonryLayoutResult {
   const measuredHeights = useRef<Map<string, number>>(new Map());
-  const lastColumnWidth = useRef<number>(0);
   const [measureTick, setMeasureTick] = useState(0);
 
   const columnWidth = useMemo(() => {
@@ -47,10 +46,14 @@ export function useMasonryLayout({
     return (containerWidth - horizontalGap * (columnCount - 1)) / columnCount;
   }, [containerWidth, columnCount, horizontalGap]);
 
-  if (columnWidth !== lastColumnWidth.current && columnWidth > 0) {
-    measuredHeights.current = new Map();
-    lastColumnWidth.current = columnWidth;
-  }
+  // Clear measured heights when column width changes (e.g. window resize).
+  // Must run as layout effect, not during render, to avoid side-effects
+  // during render which can break React Strict Mode / concurrent rendering.
+  useLayoutEffect(() => {
+    if (columnWidth > 0) {
+      measuredHeights.current = new Map();
+    }
+  }, [columnWidth]);
 
   const { positions, containerHeight } = useMemo(() => {
     const map = new Map<string, MasonryPosition>();
