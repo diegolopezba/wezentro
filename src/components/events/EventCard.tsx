@@ -53,6 +53,7 @@ const EventCardComponent = ({
   attendees = 0,
   attendeeAvatars = [],
   index = 0,
+  creatorId,
   repostInfo,
   isSponsored = false,
   sponsoredPostId,
@@ -65,6 +66,12 @@ const EventCardComponent = ({
   const trackClick = useTrackSponsoredClick();
   const clickedRef = useRef(false);
   const [dismissed, setDismissed] = useState(false);
+  const hasVideo = (media ?? []).some((m) => m.media_type === "video");
+  const { ref: impressionRef, notifyPlay } = useImpressionTracker(id, {
+    creatorId,
+    mediaType: hasVideo ? "video" : "image",
+    disabled: isSponsored,
+  });
 
   useEffect(() => {
     clickedRef.current = false;
