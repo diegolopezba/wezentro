@@ -97,9 +97,9 @@ export const EventFeed = ({
   const trackedIds = useRef<Set<string>>(new Set());
   const observeCard = useDwellTimeTracker(user?.id);
 
-  // Sentinel placed at ~70% of the rendered feed to trigger fetchNextPage
-  // before the user reaches the end (Instagram/TikTok pattern).
-  const sentinelIndex = Math.max(0, Math.floor(events.length * 0.7) - 1);
+  // Dedicated sentinel element for infinite-scroll triggering. Sits as a
+  // sibling of the grid so card refs never get reassigned mid-render —
+  // same pattern Pinterest's MasonryInfinite uses.
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -110,11 +110,11 @@ export const EventFeed = ({
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) onEndReached();
       },
-      { rootMargin: "600px 0px" },
+      { rootMargin: "800px 0px" },
     );
     io.observe(node);
     return () => io.disconnect();
-  }, [onEndReached, hasMore, sentinelIndex, events.length]);
+  }, [onEndReached, hasMore, events.length]);
 
   useEffect(() => {
     const sponsoredEvents = events.filter(e => e.isSponsored && e.sponsoredPostId);
@@ -165,26 +165,26 @@ export const EventFeed = ({
     );
   }
 
+  // Trigger fetchNextPage when ~70% of the grid has scrolled past.
+  const sentinelInsertIndex = Math.max(0, Math.floor(events.length * 0.7));
+
   return (
     <>
       <div className="masonry-grid w-full">
-        {events.map((event, index) => {
-          const isSentinel = index === sentinelIndex;
-          return (
-            <div
-              key={event.id}
-              ref={(node) => {
-                observeCard(node);
-                if (isSentinel) sentinelRef.current = node;
-              }}
-              data-event-id={event.id}
-              className="masonry-item"
-            >
-              <EventCard {...event} index={index} />
-            </div>
-          );
-        })}
+        {events.map((event, index) => (
+          <div
+            key={event.id}
+            ref={observeCard}
+            data-event-id={event.id}
+            className="masonry-item"
+          >
+            <EventCard {...event} index={index} />
+          </div>
+        ))}
       </div>
+      {/* Dedicated sentinel — placed after the grid so it doesn't share a ref
+          with any card. IntersectionObserver triggers fetchNextPage when in view. */}
+      <div ref={sentinelRef} aria-hidden style={{ height: 1 }} />
       {isLoadingMore && (
         <div className="py-6 text-center text-muted-foreground text-sm">Cargando más…</div>
       )}
