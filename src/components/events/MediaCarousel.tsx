@@ -235,8 +235,9 @@ const MediaCarouselComponent = ({
                       isHero ? ImageSizes.hero : ImageSizes.card
                     )}
                     alt=""
-                    loading={i === 0 ? "eager" : "lazy"}
+                    loading={isHero && i === 0 ? "eager" : "lazy"}
                     decoding="async"
+                    fetchPriority={isHero && i === 0 ? "high" : "low"}
                     className="relative w-full h-full object-cover"
                     onLoad={(e) => handleImageLoad(e, i)}
                   />
