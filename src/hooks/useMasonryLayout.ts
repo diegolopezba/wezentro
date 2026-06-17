@@ -97,10 +97,14 @@ export function useMasonryLayout({
     });
   }, []);
 
-  const measureElement = useCallback(
-    (id: string, node: HTMLElement | null) => {
-      if (!node) return;
-      const real = node.getBoundingClientRect().height;
+  // Per-card ResizeObservers: card heights change as images/videos load,
+  // so a one-shot ref measurement is not enough — without this, late-loading
+  // media causes overlaps and gaps. We keep one observer per id and detach
+  // it when the node is replaced/unmounted.
+  const observers = useRef<Map<string, { observer: ResizeObserver; node: HTMLElement }>>(new Map());
+
+  const recordHeight = useCallback(
+    (id: string, real: number) => {
       if (real <= 0) return;
       const prev = measuredHeights.current.get(id);
       if (prev !== undefined && Math.abs(prev - real) < 1) return;
@@ -109,6 +113,53 @@ export function useMasonryLayout({
     },
     [scheduleRelayout]
   );
+
+  const measureElement = useCallback(
+    (id: string, node: HTMLElement | null) => {
+      const existing = observers.current.get(id);
+      if (existing && existing.node !== node) {
+        existing.observer.disconnect();
+        observers.current.delete(id);
+      }
+      if (!node) return;
+      if (observers.current.has(id)) {
+        // Same node: just refresh the measurement.
+        recordHeight(id, node.getBoundingClientRect().height);
+        return;
+      }
+      recordHeight(id, node.getBoundingClientRect().height);
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const h = entry.contentRect.height;
+          // Ignore zero readings (happens during unmount / display:none).
+          if (h > 0) recordHeight(id, h);
+        }
+      });
+      observer.observe(node);
+      observers.current.set(id, { observer, node });
+    },
+    [recordHeight]
+  );
+
+  // Drop observers for ids that fell out of the items list (recycled).
+  useEffect(() => {
+    const live = new Set(items.map((it) => it.id));
+    for (const [id, entry] of observers.current.entries()) {
+      if (!live.has(id)) {
+        entry.observer.disconnect();
+        observers.current.delete(id);
+        measuredHeights.current.delete(id);
+      }
+    }
+  }, [items]);
+
+  // Cleanup on unmount.
+  useEffect(() => {
+    return () => {
+      for (const entry of observers.current.values()) entry.observer.disconnect();
+      observers.current.clear();
+    };
+  }, []);
 
   const isMeasured = useCallback(
     (id: string) => measuredHeights.current.has(id),
