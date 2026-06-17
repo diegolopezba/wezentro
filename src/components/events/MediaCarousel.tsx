@@ -35,10 +35,12 @@ const MediaCarouselComponent = ({
   isHero = false,
   onTap,
   onIndexChange,
+  onFirstPlay,
   className,
   rounded = true,
 }: MediaCarouselProps) => {
   const safeItems = items?.length ? items : [];
+  const firstPlayFiredRef = useRef(false);
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
     align: "start",
