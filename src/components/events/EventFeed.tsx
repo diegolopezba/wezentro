@@ -9,7 +9,7 @@ import { useTrackSponsoredImpression } from "@/hooks/useSponsoredPosts";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { trackEventImpression } from "@/lib/analyticsTracking";
-import { useViewerFollowGraph, ViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
+import { useViewerFollowGraph, type ViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 
 interface EventFeedProps {
   events: EventCardProps[];
@@ -117,7 +117,13 @@ const useFeedTracker = (userId: string | undefined) => {
     []
   );
 
-  return observeRef;
+  const unobserveRef = useCallback((node: HTMLElement | null) => {
+    if (!node) return;
+    observerRef.current?.unobserve(node);
+    observedNodes.current.delete(node);
+  }, []);
+
+  return { observeCard: observeRef, unobserveCard: unobserveRef };
 };
 
 export const EventFeed = ({
@@ -133,7 +139,7 @@ export const EventFeed = ({
   const { data: followGraph } = useViewerFollowGraph();
   const trackSponsoredImpression = useTrackSponsoredImpression();
   const trackedSponsoredIds = useRef<Set<string>>(new Set());
-  const observeCard = useFeedTracker(user?.id);
+  const { observeCard, unobserveCard } = useFeedTracker(user?.id);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -205,6 +211,7 @@ export const EventFeed = ({
       events={events}
       followGraph={followGraph}
       observeCard={observeCard}
+      unobserveCard={unobserveCard}
       sentinelRef={sentinelRef}
       isLoadingMore={isLoadingMore}
     />
@@ -219,11 +226,12 @@ interface MasonryGridProps {
   events: EventCardProps[];
   followGraph?: ViewerFollowGraph;
   observeCard: (node: HTMLElement | null) => void;
+  unobserveCard: (node: HTMLElement | null) => void;
   sentinelRef: React.MutableRefObject<HTMLDivElement | null>;
   isLoadingMore: boolean;
 }
 
-const MasonryGrid = ({ events, followGraph, observeCard, sentinelRef, isLoadingMore }: MasonryGridProps) => {
+const MasonryGrid = ({ events, followGraph, observeCard, unobserveCard, sentinelRef, isLoadingMore }: MasonryGridProps) => {
   const [containerRef, containerWidth] = useElementWidth<HTMLDivElement>();
   const [columnCount, setColumnCount] = useState(() => getColumnCount(typeof window !== "undefined" ? window.innerWidth : 390));
 
@@ -276,6 +284,7 @@ const MasonryGrid = ({ events, followGraph, observeCard, sentinelRef, isLoadingM
               isMeasured={isMeasured(event.id)}
               followGraph={followGraph}
               observeCard={observeCard}
+              unobserveCard={unobserveCard}
               measureElement={measureElement}
               zIndex={events.length - index}
             />
@@ -297,6 +306,7 @@ interface MasonryCardItemProps {
   isMeasured: boolean;
   followGraph?: ViewerFollowGraph;
   observeCard: (node: HTMLElement | null) => void;
+  unobserveCard: (node: HTMLElement | null) => void;
   measureElement: (id: string, node: HTMLElement | null) => void;
   zIndex: number;
 }
@@ -308,16 +318,22 @@ const MasonryCardItem = ({
   isMeasured,
   followGraph,
   observeCard,
+  unobserveCard,
   measureElement,
   zIndex,
 }: MasonryCardItemProps) => {
+  const nodeRef = useRef<HTMLDivElement | null>(null);
   const setRef = useCallback(
     (node: HTMLDivElement | null) => {
+      if (nodeRef.current && nodeRef.current !== node) {
+        unobserveCard(nodeRef.current);
+      }
+      nodeRef.current = node;
       if (!node) return;
       observeCard(node);
       measureElement(event.id, node);
     },
-    [event.id, measureElement, observeCard]
+    [event.id, measureElement, observeCard, unobserveCard]
   );
 
   return (
