@@ -1,6 +1,5 @@
 import { Repeat, MoreHorizontal, EyeOff } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect, memo } from "react";
+import { useState, useRef, useEffect, memo, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useOpenEvent } from "@/hooks/useOpenEvent";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
@@ -12,8 +11,7 @@ import { getOptimizedImageUrl, ImageSizes } from "@/lib/imageOptimization";
 import { haptic } from "@/lib/haptics";
 import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
 import { CardLikeButton } from "@/components/events/CardLikeButton";
-import { useViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
-import { useImpressionTracker } from "@/hooks/useImpressionTracker";
+import type { ViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,58 +35,36 @@ export interface EventCardProps {
   attendeeAvatars?: AttendeeAvatar[];
   hasGuestlist?: boolean;
   index?: number;
-  ownerAvatar?: string; // deprecated, no longer rendered
+  ownerAvatar?: string;
   creatorId?: string;
   repostInfo?: RepostInfo;
   isSponsored?: boolean;
   sponsoredPostId?: string;
   compact?: boolean;
   media?: CarouselMediaItem[];
+  followGraph?: ViewerFollowGraph;
 }
-
-const categoryColors: Record<string, string> = {
-  party: "from-[hsl(var(--accent-red))] to-pink-500",
-  bar: "from-amber-500 to-orange-500",
-  concert: "from-blue-500 to-cyan-500",
-  festival: "from-green-500 to-emerald-500",
-  rooftop: "from-sky-500 to-blue-500",
-  restaurant: "from-rose-500 to-pink-500",
-  coffee: "from-amber-600 to-yellow-500",
-  fitness: "from-green-600 to-lime-500",
-  culture: "from-violet-500 to-indigo-500",
-  default: "from-[hsl(var(--primary))] to-[hsl(var(--accent))]"
-};
 
 const EventCardComponent = ({
   id,
   title,
   imageUrl,
-  date,
-  location: locationName,
-  category,
   attendees = 0,
   attendeeAvatars = [],
-  hasGuestlist = false,
   index = 0,
-  creatorId,
   repostInfo,
   isSponsored = false,
   sponsoredPostId,
   compact = false,
   media,
+  followGraph,
 }: EventCardProps) => {
-  const navigate = useNavigate();
   const openEvent = useOpenEvent();
   const { user } = useAuth();
   const trackClick = useTrackSponsoredClick();
   const clickedRef = useRef(false);
   const [dismissed, setDismissed] = useState(false);
-  const { data: followGraph } = useViewerFollowGraph();
-  const followingIds = followGraph?.followingIds ?? new Set<string>();
-  const scoreMap = followGraph?.scoreMap ?? {};
-  const impressionRef = useImpressionTracker(id);
 
-  // Reset click-tracking when this card represents a different event
   useEffect(() => {
     clickedRef.current = false;
   }, [id]);
@@ -110,6 +86,20 @@ const EventCardComponent = ({
     }
   };
 
+  const sortedAttendees = useMemo(() => {
+    if (attendees === 0 || !attendeeAvatars.length) return [];
+    const followingIds = followGraph?.followingIds ?? new Set<string>();
+    const scoreMap = followGraph?.scoreMap ?? {};
+    
+    return [...attendeeAvatars].sort((a, b) => {
+      const aF = followingIds.has(a.id) ? 1 : 0;
+      const bF = followingIds.has(b.id) ? 1 : 0;
+      if (aF !== bF) return bF - aF;
+      if (aF === 1) return (scoreMap[b.id] || 0) - (scoreMap[a.id] || 0);
+      return 0;
+    });
+  }, [attendeeAvatars, attendees, followGraph]);
+
   if (dismissed) return null;
 
   const carouselItems: CarouselMediaItem[] =
@@ -127,15 +117,13 @@ const EventCardComponent = ({
       : null;
 
   return (
-    <div ref={impressionRef} className="w-full">
-      {/* Sponsored badge */}
+    <div className="w-full">
       {isSponsored && (
         <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
           <span>Patrocinado</span>
         </div>
       )}
 
-      {/* Repost attribution */}
       {!isSponsored && repostAttribution && (
         <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] text-muted-foreground">
           <Repeat className="w-3 h-3" />
@@ -156,7 +144,6 @@ const EventCardComponent = ({
         onClick={handleCardClick}
       >
         <div className="space-y-2 px-0">
-          {/* Media carousel */}
           <div className="relative">
             <MediaCarousel
               items={carouselItems}
@@ -164,7 +151,6 @@ const EventCardComponent = ({
               onTap={handleCardClick}
             />
 
-            {/* "Not interested" 3-dot menu — only for non-sponsored, logged-in users, single-image cards */}
             {carouselItems.length === 1 && !isSponsored && user && (
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -190,24 +176,15 @@ const EventCardComponent = ({
             <CardLikeButton eventId={id} />
           </div>
 
-          {/* Title */}
           {title && (
             <div className="space-y-1 px-1">
               <h3 className="font-brand text-foreground line-clamp-2 text-xs font-normal">{title}</h3>
             </div>
           )}
 
-          {/* Attendees row - below text */}
           {attendees > 0 && (() => {
             const MAX = 3;
-            const sorted = [...attendeeAvatars].sort((a, b) => {
-              const aF = followingIds.has(a.id) ? 1 : 0;
-              const bF = followingIds.has(b.id) ? 1 : 0;
-              if (aF !== bF) return bF - aF;
-              if (aF === 1) return (scoreMap[b.id] || 0) - (scoreMap[a.id] || 0);
-              return 0;
-            });
-            const shown = sorted.slice(0, MAX);
+            const shown = sortedAttendees.slice(0, MAX);
             const placeholderCount = Math.max(
               0,
               Math.min(MAX - shown.length, attendees - shown.length)
@@ -246,10 +223,6 @@ const EventCardComponent = ({
   );
 };
 
-/**
- * React.memo with a shallow comparator on the props that actually drive rendering.
- * Prevents 200-card re-render storms when the parent updates unrelated state.
- */
 export const EventCard = memo(EventCardComponent, (prev, next) => {
   return (
     prev.id === next.id &&
@@ -260,12 +233,13 @@ export const EventCard = memo(EventCardComponent, (prev, next) => {
     prev.category === next.category &&
     prev.attendees === next.attendees &&
     prev.hasGuestlist === next.hasGuestlist &&
-    
     prev.creatorId === next.creatorId &&
     prev.isSponsored === next.isSponsored &&
     prev.sponsoredPostId === next.sponsoredPostId &&
     prev.compact === next.compact &&
     prev.index === next.index &&
+    prev.followGraph === next.followGraph && // followGraph is usually stable due to react-query's structural sharing
+    (prev.media?.length || 0) === (next.media?.length || 0) &&
     (prev.attendeeAvatars?.length || 0) === (next.attendeeAvatars?.length || 0) &&
     prev.repostInfo?.repostedBy?.length === next.repostInfo?.repostedBy?.length
   );

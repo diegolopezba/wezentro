@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { EventCard, EventCardProps } from "./EventCard";
-import { useMasonryLayout, useElementWidth } from "@/hooks/useMasonryLayout";
+import { useMasonryLayout, useElementWidth, type MasonryPosition } from "@/hooks/useMasonryLayout";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,8 @@ import { EventFeedSkeleton } from "@/components/skeletons";
 import { useTrackSponsoredImpression } from "@/hooks/useSponsoredPosts";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
+import { trackEventImpression } from "@/lib/analyticsTracking";
+import { useViewerFollowGraph, type ViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 
 interface EventFeedProps {
   events: EventCardProps[];
@@ -19,11 +21,14 @@ interface EventFeedProps {
   isLoadingMore?: boolean;
 }
 
-const useDwellTimeTracker = (userId: string | undefined) => {
+const useFeedTracker = (userId: string | undefined) => {
   const entryTimestamps = useRef<Map<string, number>>(new Map());
   const trackedScrollPasts = useRef<Set<string>>(new Set());
   const trackedDwells = useRef<Set<string>>(new Set());
+  const trackedImpressions = useRef<Set<string>>(new Set());
   const dwellTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const impressionTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const observedNodes = useRef<Set<HTMLElement>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
@@ -35,19 +40,39 @@ const useDwellTimeTracker = (userId: string | undefined) => {
           const eventId = (entry.target as HTMLElement).dataset.eventId;
           if (!eventId) continue;
 
-          if (entry.isIntersecting) {
-            entryTimestamps.current.set(eventId, Date.now());
-            if (!trackedDwells.current.has(eventId)) {
+          const isMeaningfullyVisible = entry.isIntersecting && entry.intersectionRatio >= 0.5;
+
+          if (isMeaningfullyVisible) {
+            // Dwell & ScrollPast tracking
+            if (!entryTimestamps.current.has(eventId)) {
+              entryTimestamps.current.set(eventId, Date.now());
+            }
+            if (!trackedDwells.current.has(eventId) && !dwellTimers.current.has(eventId)) {
               const timer = setTimeout(() => {
                 trackedDwells.current.add(eventId);
+                dwellTimers.current.delete(eventId);
                 trackPreferenceSignal(userId, eventId, "dwell");
               }, 3000);
               dwellTimers.current.set(eventId, timer);
             }
+
+            // Impression tracking (50% visible for 500ms)
+            if (!trackedImpressions.current.has(eventId)) {
+              if (!impressionTimers.current.has(eventId)) {
+                const timer = setTimeout(() => {
+                  if (!trackedImpressions.current.has(eventId)) {
+                    trackedImpressions.current.add(eventId);
+                    trackEventImpression(eventId, userId);
+                  }
+                }, 500);
+                impressionTimers.current.set(eventId, timer);
+              }
+            }
           } else {
-            const timer = dwellTimers.current.get(eventId);
-            if (timer) {
-              clearTimeout(timer);
+            // Cleanup dwell
+            const dTimer = dwellTimers.current.get(eventId);
+            if (dTimer) {
+              clearTimeout(dTimer);
               dwellTimers.current.delete(eventId);
             }
             const enterTime = entryTimestamps.current.get(eventId);
@@ -59,29 +84,46 @@ const useDwellTimeTracker = (userId: string | undefined) => {
                 trackPreferenceSignal(userId, eventId, "scroll_past");
               }
             }
+
+            // Cleanup impression
+            const iTimer = impressionTimers.current.get(eventId);
+            if (iTimer) {
+              clearTimeout(iTimer);
+              impressionTimers.current.delete(eventId);
+            }
           }
         }
       },
-      { threshold: 0.5 }
+      { threshold: [0, 0.5, 1] }
     );
+
+    observedNodes.current.forEach((node) => observerRef.current?.observe(node));
 
     return () => {
       observerRef.current?.disconnect();
       dwellTimers.current.forEach((t) => clearTimeout(t));
       dwellTimers.current.clear();
+      impressionTimers.current.forEach((t) => clearTimeout(t));
+      impressionTimers.current.clear();
     };
   }, [userId]);
 
   const observeRef = useCallback(
     (node: HTMLElement | null) => {
-      if (node && observerRef.current) {
-        observerRef.current.observe(node);
-      }
+      if (!node) return;
+      observedNodes.current.add(node);
+      observerRef.current?.observe(node);
     },
     []
   );
 
-  return observeRef;
+  const unobserveRef = useCallback((node: HTMLElement | null) => {
+    if (!node) return;
+    observerRef.current?.unobserve(node);
+    observedNodes.current.delete(node);
+  }, []);
+
+  return { observeCard: observeRef, unobserveCard: unobserveRef };
 };
 
 export const EventFeed = ({
@@ -94,13 +136,11 @@ export const EventFeed = ({
 }: EventFeedProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const trackImpression = useTrackSponsoredImpression();
-  const trackedIds = useRef<Set<string>>(new Set());
-  const observeCard = useDwellTimeTracker(user?.id);
+  const { data: followGraph } = useViewerFollowGraph();
+  const trackSponsoredImpression = useTrackSponsoredImpression();
+  const trackedSponsoredIds = useRef<Set<string>>(new Set());
+  const { observeCard, unobserveCard } = useFeedTracker(user?.id);
 
-  // Dedicated sentinel element for infinite-scroll triggering. Sits as a
-  // sibling of the grid so card refs never get reassigned mid-render —
-  // same pattern Pinterest's MasonryInfinite uses.
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -120,9 +160,9 @@ export const EventFeed = ({
   useEffect(() => {
     const sponsoredEvents = events.filter(e => e.isSponsored && e.sponsoredPostId);
     sponsoredEvents.forEach(e => {
-      if (e.sponsoredPostId && !trackedIds.current.has(e.sponsoredPostId)) {
-        trackedIds.current.add(e.sponsoredPostId);
-        trackImpression.mutate(e.sponsoredPostId);
+      if (e.sponsoredPostId && !trackedSponsoredIds.current.has(e.sponsoredPostId)) {
+        trackedSponsoredIds.current.add(e.sponsoredPostId);
+        trackSponsoredImpression.mutate(e.sponsoredPostId);
       }
     });
   }, [events]);
@@ -169,7 +209,9 @@ export const EventFeed = ({
   return (
     <MasonryGrid
       events={events}
+      followGraph={followGraph}
       observeCard={observeCard}
+      unobserveCard={unobserveCard}
       sentinelRef={sentinelRef}
       isLoadingMore={isLoadingMore}
     />
@@ -178,16 +220,18 @@ export const EventFeed = ({
 
 const HORIZONTAL_GAP = 4;
 const VERTICAL_GAP = 12;
-const HORIZONTAL_PADDING = 4; // matches old .masonry-grid padding
+const HORIZONTAL_PADDING = 4;
 
 interface MasonryGridProps {
   events: EventCardProps[];
+  followGraph?: ViewerFollowGraph;
   observeCard: (node: HTMLElement | null) => void;
+  unobserveCard: (node: HTMLElement | null) => void;
   sentinelRef: React.MutableRefObject<HTMLDivElement | null>;
   isLoadingMore: boolean;
 }
 
-const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: MasonryGridProps) => {
+const MasonryGrid = ({ events, followGraph, observeCard, unobserveCard, sentinelRef, isLoadingMore }: MasonryGridProps) => {
   const [containerRef, containerWidth] = useElementWidth<HTMLDivElement>();
   const [columnCount, setColumnCount] = useState(() => getColumnCount(typeof window !== "undefined" ? window.innerWidth : 390));
 
@@ -207,7 +251,7 @@ const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: Masonr
     [events]
   );
 
-  const { positions, containerHeight, measureRef, isMeasured } = useMasonryLayout({
+  const { positions, containerHeight, measureElement, isMeasured } = useMasonryLayout({
     items,
     containerWidth: Math.max(0, containerWidth - HORIZONTAL_PADDING * 2),
     columnCount,
@@ -225,31 +269,25 @@ const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: Masonr
           height: containerHeight,
           paddingLeft: HORIZONTAL_PADDING,
           paddingRight: HORIZONTAL_PADDING,
-          paddingBottom: 88, // clears floating BottomNav (~64px + safe-area)
+          paddingBottom: 88,
         }}
       >
         {events.map((event, index) => {
           const pos = positions.get(event.id);
           if (!pos) return null;
-          const measured = isMeasured(event.id);
           return (
-            <div
+            <MasonryCardItem
               key={event.id}
-              ref={(node) => {
-                observeCard(node);
-                measureRef(event.id)(node);
-              }}
-              data-event-id={event.id}
-              style={{
-                position: "absolute",
-                top: pos.top,
-                left: pos.left + HORIZONTAL_PADDING,
-                width: pos.width,
-                visibility: measured ? "visible" : "hidden",
-              }}
-            >
-              <EventCard {...event} index={index} />
-            </div>
+              event={event}
+              index={index}
+              position={pos}
+              isMeasured={isMeasured(event.id)}
+              followGraph={followGraph}
+              observeCard={observeCard}
+              unobserveCard={unobserveCard}
+              measureElement={measureElement}
+              zIndex={events.length - index}
+            />
           );
         })}
       </div>
@@ -258,6 +296,61 @@ const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: Masonr
         <div className="py-6 text-center text-muted-foreground text-sm">Cargando más…</div>
       )}
     </>
+  );
+};
+
+interface MasonryCardItemProps {
+  event: EventCardProps;
+  index: number;
+  position: MasonryPosition;
+  isMeasured: boolean;
+  followGraph?: ViewerFollowGraph;
+  observeCard: (node: HTMLElement | null) => void;
+  unobserveCard: (node: HTMLElement | null) => void;
+  measureElement: (id: string, node: HTMLElement | null) => void;
+  zIndex: number;
+}
+
+const MasonryCardItem = ({
+  event,
+  index,
+  position,
+  isMeasured,
+  followGraph,
+  observeCard,
+  unobserveCard,
+  measureElement,
+  zIndex,
+}: MasonryCardItemProps) => {
+  const nodeRef = useRef<HTMLDivElement | null>(null);
+  const setRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (nodeRef.current && nodeRef.current !== node) {
+        unobserveCard(nodeRef.current);
+      }
+      nodeRef.current = node;
+      if (!node) return;
+      observeCard(node);
+      measureElement(event.id, node);
+    },
+    [event.id, measureElement, observeCard, unobserveCard]
+  );
+
+  return (
+    <div
+      ref={setRef}
+      data-event-id={event.id}
+      style={{
+        position: "absolute",
+        top: position.top,
+        left: position.left + HORIZONTAL_PADDING,
+        width: position.width,
+        visibility: isMeasured ? "visible" : "hidden",
+        zIndex,
+      }}
+    >
+      <EventCard {...event} index={index} followGraph={followGraph} />
+    </div>
   );
 };
 
