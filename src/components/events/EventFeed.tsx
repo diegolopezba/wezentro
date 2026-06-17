@@ -8,6 +8,8 @@ import { EventFeedSkeleton } from "@/components/skeletons";
 import { useTrackSponsoredImpression } from "@/hooks/useSponsoredPosts";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
+import { trackEventImpression } from "@/lib/analyticsTracking";
+import { useViewerFollowGraph, ViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 
 interface EventFeedProps {
   events: EventCardProps[];
@@ -19,11 +21,13 @@ interface EventFeedProps {
   isLoadingMore?: boolean;
 }
 
-const useDwellTimeTracker = (userId: string | undefined) => {
+const useFeedTracker = (userId: string | undefined) => {
   const entryTimestamps = useRef<Map<string, number>>(new Map());
   const trackedScrollPasts = useRef<Set<string>>(new Set());
   const trackedDwells = useRef<Set<string>>(new Set());
+  const trackedImpressions = useRef<Set<string>>(new Set());
   const dwellTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const impressionTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
@@ -36,6 +40,7 @@ const useDwellTimeTracker = (userId: string | undefined) => {
           if (!eventId) continue;
 
           if (entry.isIntersecting) {
+            // Dwell & ScrollPast tracking
             entryTimestamps.current.set(eventId, Date.now());
             if (!trackedDwells.current.has(eventId)) {
               const timer = setTimeout(() => {
@@ -44,10 +49,24 @@ const useDwellTimeTracker = (userId: string | undefined) => {
               }, 3000);
               dwellTimers.current.set(eventId, timer);
             }
+
+            // Impression tracking (50% visible for 500ms)
+            if (entry.intersectionRatio >= 0.5 && !trackedImpressions.current.has(eventId)) {
+              if (!impressionTimers.current.has(eventId)) {
+                const timer = setTimeout(() => {
+                  if (!trackedImpressions.current.has(eventId)) {
+                    trackedImpressions.current.add(eventId);
+                    trackEventImpression(eventId, userId);
+                  }
+                }, 500);
+                impressionTimers.current.set(eventId, timer);
+              }
+            }
           } else {
-            const timer = dwellTimers.current.get(eventId);
-            if (timer) {
-              clearTimeout(timer);
+            // Cleanup dwell
+            const dTimer = dwellTimers.current.get(eventId);
+            if (dTimer) {
+              clearTimeout(dTimer);
               dwellTimers.current.delete(eventId);
             }
             const enterTime = entryTimestamps.current.get(eventId);
@@ -59,16 +78,25 @@ const useDwellTimeTracker = (userId: string | undefined) => {
                 trackPreferenceSignal(userId, eventId, "scroll_past");
               }
             }
+
+            // Cleanup impression
+            const iTimer = impressionTimers.current.get(eventId);
+            if (iTimer) {
+              clearTimeout(iTimer);
+              impressionTimers.current.delete(eventId);
+            }
           }
         }
       },
-      { threshold: 0.5 }
+      { threshold: [0, 0.5, 1] }
     );
 
     return () => {
       observerRef.current?.disconnect();
       dwellTimers.current.forEach((t) => clearTimeout(t));
       dwellTimers.current.clear();
+      impressionTimers.current.forEach((t) => clearTimeout(t));
+      impressionTimers.current.clear();
     };
   }, [userId]);
 
@@ -94,13 +122,11 @@ export const EventFeed = ({
 }: EventFeedProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const trackImpression = useTrackSponsoredImpression();
-  const trackedIds = useRef<Set<string>>(new Set());
-  const observeCard = useDwellTimeTracker(user?.id);
+  const { data: followGraph } = useViewerFollowGraph();
+  const trackSponsoredImpression = useTrackSponsoredImpression();
+  const trackedSponsoredIds = useRef<Set<string>>(new Set());
+  const observeCard = useFeedTracker(user?.id);
 
-  // Dedicated sentinel element for infinite-scroll triggering. Sits as a
-  // sibling of the grid so card refs never get reassigned mid-render —
-  // same pattern Pinterest's MasonryInfinite uses.
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -120,9 +146,9 @@ export const EventFeed = ({
   useEffect(() => {
     const sponsoredEvents = events.filter(e => e.isSponsored && e.sponsoredPostId);
     sponsoredEvents.forEach(e => {
-      if (e.sponsoredPostId && !trackedIds.current.has(e.sponsoredPostId)) {
-        trackedIds.current.add(e.sponsoredPostId);
-        trackImpression.mutate(e.sponsoredPostId);
+      if (e.sponsoredPostId && !trackedSponsoredIds.current.has(e.sponsoredPostId)) {
+        trackedSponsoredIds.current.add(e.sponsoredPostId);
+        trackSponsoredImpression.mutate(e.sponsoredPostId);
       }
     });
   }, [events]);
@@ -169,6 +195,7 @@ export const EventFeed = ({
   return (
     <MasonryGrid
       events={events}
+      followGraph={followGraph}
       observeCard={observeCard}
       sentinelRef={sentinelRef}
       isLoadingMore={isLoadingMore}
@@ -178,16 +205,17 @@ export const EventFeed = ({
 
 const HORIZONTAL_GAP = 4;
 const VERTICAL_GAP = 12;
-const HORIZONTAL_PADDING = 4; // matches old .masonry-grid padding
+const HORIZONTAL_PADDING = 4;
 
 interface MasonryGridProps {
   events: EventCardProps[];
+  followGraph?: ViewerFollowGraph;
   observeCard: (node: HTMLElement | null) => void;
   sentinelRef: React.MutableRefObject<HTMLDivElement | null>;
   isLoadingMore: boolean;
 }
 
-const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: MasonryGridProps) => {
+const MasonryGrid = ({ events, followGraph, observeCard, sentinelRef, isLoadingMore }: MasonryGridProps) => {
   const [containerRef, containerWidth] = useElementWidth<HTMLDivElement>();
   const [columnCount, setColumnCount] = useState(() => getColumnCount(typeof window !== "undefined" ? window.innerWidth : 390));
 
@@ -225,7 +253,7 @@ const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: Masonr
           height: containerHeight,
           paddingLeft: HORIZONTAL_PADDING,
           paddingRight: HORIZONTAL_PADDING,
-          paddingBottom: 88, // clears floating BottomNav (~64px + safe-area)
+          paddingBottom: 88,
         }}
       >
         {events.map((event, index) => {
@@ -246,9 +274,14 @@ const MasonryGrid = ({ events, observeCard, sentinelRef, isLoadingMore }: Masonr
                 left: pos.left + HORIZONTAL_PADDING,
                 width: pos.width,
                 visibility: measured ? "visible" : "hidden",
+                zIndex: events.length - index, // ensure earlier items are on top if they overlap during shifts
               }}
             >
-              <EventCard {...event} index={index} />
+              <EventCard 
+                {...event} 
+                index={index} 
+                followGraph={followGraph}
+              />
             </div>
           );
         })}
