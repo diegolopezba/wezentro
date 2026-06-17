@@ -3,6 +3,34 @@ import { supabase } from "@/integrations/supabase/client";
 export const FOR_YOU_EVENTS_KEY = ["for-you-events"];
 export const FOR_YOU_PAGE_SIZE = 20;
 
+// Feature flag: server-assembled slate (Instagram/Pinterest pattern).
+// Default ON. Flip to "false" in env to fall back to legacy client ranking.
+export const USE_SERVER_SLATE =
+  (import.meta.env.VITE_USE_SERVER_SLATE ?? "true") !== "false";
+
+// Per-app-session UUID — gives the server a stable key for the seen-set
+// so pagination is dedup'd and order is locked across the whole session.
+const SESSION_SEED_KEY = "zentro_feed_session_seed";
+export const getSessionSeed = (): string => {
+  try {
+    let s = sessionStorage.getItem(SESSION_SEED_KEY);
+    if (!s) {
+      s = crypto.randomUUID();
+      sessionStorage.setItem(SESSION_SEED_KEY, s);
+    }
+    return s;
+  } catch {
+    return crypto.randomUUID();
+  }
+};
+
+/** Generate a new session seed (call on pull-to-refresh to get a fresh slate). */
+export const resetSessionSeed = (): string => {
+  const s = crypto.randomUUID();
+  try { sessionStorage.setItem(SESSION_SEED_KEY, s); } catch { /* noop */ }
+  return s;
+};
+
 const reshape = (data: any[] | null) =>
   (data || []).map((row: any) => ({
     id: row.id,
@@ -39,21 +67,57 @@ const reshape = (data: any[] | null) =>
       : [],
     _attendee_count: Number(row.attendee_count) || 0,
     media: Array.isArray(row.media) ? row.media : [],
+    _isSponsored: !!row._isSponsored,
+    _sponsoredPostId: row._sponsoredPostId ?? null,
+    _repostInfo: row._repostInfo ?? undefined,
   }));
 
 /**
- * Cursor-paginated For You feed (Instagram/TikTok-style).
- * `cursor` is the `created_at` of the last item from the previous page; first
- * page passes null. Returns the page of rows plus the next cursor (or null
- * when no more pages).
+ * Cursor-paginated For You feed.
+ * When USE_SERVER_SLATE is on, calls `assemble-for-you-slate` which returns
+ * a fully-ranked, deduped, ad-injected page. Otherwise falls back to the
+ * legacy client-ranked path through `get-for-you-feed` + RPC.
  */
 export const fetchForYouEventsPage = async (
   cursor: string | null = null,
   limit: number = FOR_YOU_PAGE_SIZE,
+  opts?: { lat?: number | null; lng?: number | null; sessionSeed?: string },
 ) => {
-  // First page goes through the edge-cached wrapper so guests + cold sessions
-  // share a Cloudflare-cached response instead of hitting Postgres each time.
-  // Cursor pages bypass the cache and hit the RPC directly (per-session state).
+  if (USE_SERVER_SLATE) {
+    try {
+      const seed = opts?.sessionSeed ?? getSessionSeed();
+      const params = new URLSearchParams({
+        limit: String(limit),
+        session_seed: seed,
+      });
+      if (cursor) params.set("cursor", cursor);
+      if (opts?.lat != null) params.set("lat", String(opts.lat));
+      if (opts?.lng != null) params.set("lng", String(opts.lng));
+
+      // Forward the user's JWT so the edge function can scope context.
+      const { data: { session } } = await supabase.auth.getSession();
+      const bearer = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assemble-for-you-slate?${params}`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${bearer}`,
+        },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return {
+          items: reshape(json?.items as any[]),
+          nextCursor: (json?.next_cursor as string | null) ?? null,
+        };
+      }
+    } catch {
+      // fall through to legacy path
+    }
+  }
+
+  // Legacy fallback: edge-cached first page or direct RPC for cursor pages.
   if (cursor === null) {
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-for-you-feed?limit=${limit}`;
@@ -71,9 +135,7 @@ export const fetchForYouEventsPage = async (
           return { items, nextCursor };
         }
       }
-    } catch {
-      // Fall through to direct RPC on edge function failure
-    }
+    } catch { /* noop */ }
   }
 
   const { data, error } = await supabase.rpc("get_for_you_events", {
@@ -86,8 +148,36 @@ export const fetchForYouEventsPage = async (
   return { items, nextCursor };
 };
 
-/** Backwards-compatible: fetch first page only. */
 export const fetchForYouEvents = async () => {
   const { items } = await fetchForYouEventsPage(null, FOR_YOU_PAGE_SIZE);
   return items;
+};
+
+/** Following feed via server-assembled slate. */
+export const FOLLOWING_EVENTS_KEY = ["following-events"];
+export const fetchFollowingEventsPage = async (
+  cursor: string | null = null,
+  limit: number = FOR_YOU_PAGE_SIZE,
+  opts?: { sessionSeed?: string },
+) => {
+  const seed = opts?.sessionSeed ?? getSessionSeed();
+  const params = new URLSearchParams({ limit: String(limit), session_seed: seed });
+  if (cursor) params.set("cursor", cursor);
+
+  const { data: { session } } = await supabase.auth.getSession();
+  const bearer = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assemble-following-slate?${params}`;
+  const res = await fetch(url, {
+    headers: {
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${bearer}`,
+    },
+  });
+  if (!res.ok) throw new Error(`Following slate fetch failed: ${res.status}`);
+  const json = await res.json();
+  return {
+    items: reshape(json?.items as any[]),
+    nextCursor: (json?.next_cursor as string | null) ?? null,
+  };
 };
