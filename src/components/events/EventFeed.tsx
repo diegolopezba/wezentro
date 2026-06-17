@@ -43,10 +43,13 @@ const useFeedTracker = (userId: string | undefined) => {
 
           if (isMeaningfullyVisible) {
             // Dwell & ScrollPast tracking
-            entryTimestamps.current.set(eventId, Date.now());
-            if (!trackedDwells.current.has(eventId)) {
+            if (!entryTimestamps.current.has(eventId)) {
+              entryTimestamps.current.set(eventId, Date.now());
+            }
+            if (!trackedDwells.current.has(eventId) && !dwellTimers.current.has(eventId)) {
               const timer = setTimeout(() => {
                 trackedDwells.current.add(eventId);
+                dwellTimers.current.delete(eventId);
                 trackPreferenceSignal(userId, eventId, "dwell");
               }, 3000);
               dwellTimers.current.set(eventId, timer);
