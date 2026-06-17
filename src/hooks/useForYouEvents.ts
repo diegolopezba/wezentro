@@ -42,10 +42,12 @@ export const useForYouEvents = () => {
     initialPageParam: null as string | null,
     getNextPageParam: (last) => last.nextCursor,
     staleTime: 2 * 60 * 1000,
-    // Wait until auth has finished restoring the session. Otherwise the
-    // first request fires as a guest, persists those IDs into
-    // session_feed_state, and the authenticated refetch comes back empty
-    // because the server filters out everything it just sent.
+    // Pinterest-style: feed is paginated and stable inside a session.
+    // Don't refetch page 0 on focus/mount — it would discard loaded pages.
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    // Wait until auth has finished restoring the session.
     enabled: !authLoading,
   });
 

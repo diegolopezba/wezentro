@@ -1,6 +1,9 @@
-// Server-assembled "Siguiendo" slate.
-// Returns events from people the user follows + reposts by people they follow,
-// ranked server-side. Same response shape as assemble-for-you-slate.
+// Server-assembled "Siguiendo" slate (Pinterest/Instagram pattern).
+//
+// Same contract as assemble-for-you-slate: opaque cursor {seed, page},
+// deterministic ranking, no mutable seen-set in the serving path,
+// recirculation on page 0 so the feed never goes empty for users who
+// follow people who have content.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -43,14 +46,45 @@ const creatorRelationScore = (creatorId: string, mutuals: Set<string>, following
   return mutuals.has(creatorId) ? 120 : 100;
 };
 
+const hashJitter = (seed: string, id: string): number => {
+  let h = 2166136261;
+  const s = seed + ":" + id;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return ((h >>> 0) % 100000) / 100000;
+};
+
+type Cursor = { seed: string; page: number };
+
+const encodeCursor = (c: Cursor): string =>
+  btoa(JSON.stringify(c)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
+const decodeCursor = (raw: string | null, fallbackSeed: string): Cursor => {
+  if (!raw) return { seed: fallbackSeed, page: 0 };
+  try {
+    const b64 = raw.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const parsed = JSON.parse(atob(padded));
+    if (typeof parsed?.seed === "string" && Number.isInteger(parsed?.page) && parsed.page >= 0) {
+      return { seed: parsed.seed, page: parsed.page };
+    }
+  } catch { /* fall through */ }
+  return { seed: fallbackSeed, page: 0 };
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     const url = new URL(req.url);
-    const cursor = url.searchParams.get("cursor");
+    const rawCursor = url.searchParams.get("cursor");
     const limit = Math.max(1, Math.min(50, Number(url.searchParams.get("limit") ?? "20")));
     const sessionSeed = url.searchParams.get("session_seed") || crypto.randomUUID();
+    const cursor = decodeCursor(rawCursor, sessionSeed);
+    const seed = cursor.seed;
+    const page = cursor.page;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -68,39 +102,34 @@ Deno.serve(async (req) => {
     }
 
     if (!userId) {
-      return new Response(JSON.stringify({ items: [], next_cursor: null, session_id: sessionSeed }), {
+      return new Response(JSON.stringify({ items: [], next_cursor: null, session_id: seed }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const [followingRes, followersRes, seenRes] = await Promise.all([
+    const [followingRes, followersRes] = await Promise.all([
       supabase.from("follows").select("following_id").eq("follower_id", userId),
       supabase.from("follows").select("follower_id").eq("following_id", userId),
-      supabase.from("session_feed_state")
-        .select("seen_event_ids")
-        .eq("session_id", sessionSeed)
-        .eq("feed_kind", "following")
-        .maybeSingle(),
     ]);
 
     const followingIds = (followingRes.data || []).map((r: any) => r.following_id);
     const followerIds = new Set((followersRes.data || []).map((r: any) => r.follower_id));
     const followingSet = new Set(followingIds);
     const mutuals = new Set(followingIds.filter((id: string) => followerIds.has(id)));
-    const seenIds = new Set<string>((seenRes.data?.seen_event_ids as string[]) || []);
 
     if (followingIds.length === 0) {
-      return new Response(JSON.stringify({ items: [], next_cursor: null, session_id: sessionSeed }), {
+      return new Response(JSON.stringify({ items: [], next_cursor: null, session_id: seed }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const cursorClause = cursor ? `lt.${cursor}` : null;
+    // Pull a large, fixed-size pool deterministically. We cap at 200 to keep
+    // payload bounded; slicing by page makes pagination idempotent.
+    const POOL_CAP = 200;
 
-    // Direct events from followed users + reposts of any event by followed users (parallel).
-    let directQuery = supabase
+    const directQuery = supabase
       .from("events")
       .select(`
         id, title, description, description_tags, image_url, category,
@@ -114,8 +143,7 @@ Deno.serve(async (req) => {
       .eq("is_public", true)
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
-      .limit(limit * 3);
-    if (cursor) directQuery = directQuery.lt("created_at", cursor);
+      .limit(POOL_CAP);
 
     const repostsQuery = supabase
       .from("reposts")
@@ -133,7 +161,7 @@ Deno.serve(async (req) => {
       `)
       .in("user_id", followingIds)
       .order("created_at", { ascending: false })
-      .limit(limit * 5);
+      .limit(POOL_CAP);
 
     const [directRes, repostRes] = await Promise.all([directQuery, repostsQuery]);
 
@@ -142,7 +170,6 @@ Deno.serve(async (req) => {
     const map = new Map<string, any>();
 
     for (const e of (directRes.data || []) as any[]) {
-      if (seenIds.has(e.id)) continue;
       if (e.start_datetime && new Date(e.start_datetime) < now) continue;
       map.set(e.id, { ...e, _repostInfo: null });
     }
@@ -151,7 +178,6 @@ Deno.serve(async (req) => {
     for (const r of (repostRes.data || []) as any[]) {
       if (!r.event || r.event.deleted_at || !r.event.is_public) continue;
       if (r.event.start_datetime && new Date(r.event.start_datetime) < now) continue;
-      if (seenIds.has(r.event_id)) continue;
       const arr = repostsByEvent.get(r.event_id) || [];
       arr.push(r);
       repostsByEvent.set(r.event_id, arr);
@@ -173,7 +199,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    const scored = Array.from(map.values())
+    // Deterministic ranking (score DESC, id ASC) over the full pool.
+    const ranked = Array.from(map.values())
       .map((e: any) => {
         const recencyDate = e._repostInfo?.mostRecentRepostAt || e.created_at;
         const repostCount = e._repostInfo?.totalRepostsByFollowing || 0;
@@ -182,14 +209,19 @@ Deno.serve(async (req) => {
           creatorRelationScore(e.creator_id, mutuals as Set<string>, followingSet) * 0.35 +
           recencyScore(recencyDate, nowMs) * 0.25 +
           timingScore(e.start_datetime, nowMs) * 0.10 +
-          repostScore(repostCount, mutualRepostCount) * 0.20;
+          repostScore(repostCount, mutualRepostCount) * 0.20 +
+          hashJitter(seed, e.id) * 2;
         return { ...e, _score: score };
       })
-      .sort((a, b) => b._score - a._score)
-      .slice(0, limit);
+      .sort((a, b) => {
+        if (b._score !== a._score) return b._score - a._score;
+        return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+      });
 
-    // Hydrate to common response shape.
-    const items = scored.map((e: any) => ({
+    const offset = page * limit;
+    const slice = ranked.slice(offset, offset + limit);
+
+    const items = slice.map((e: any) => ({
       id: e.id,
       title: e.title,
       description: e.description,
@@ -222,23 +254,11 @@ Deno.serve(async (req) => {
       _repostInfo: e._repostInfo,
     }));
 
-    const newSeen = [...seenIds, ...items.map((m) => m.id)];
-    const capped = newSeen.slice(Math.max(0, newSeen.length - 500));
-    await supabase.from("session_feed_state").upsert(
-      {
-        session_id: sessionSeed,
-        user_id: userId,
-        seen_event_ids: capped,
-        feed_kind: "following",
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "session_id,feed_kind" },
-    );
-
-    const nextCursor = items.length === limit ? items[items.length - 1].created_at : null;
+    const hasMore = ranked.length > offset + limit;
+    const nextCursor = hasMore ? encodeCursor({ seed, page: page + 1 }) : null;
 
     return new Response(
-      JSON.stringify({ items, next_cursor: nextCursor, session_id: sessionSeed }),
+      JSON.stringify({ items, next_cursor: nextCursor, session_id: seed }),
       {
         status: 200,
         headers: {

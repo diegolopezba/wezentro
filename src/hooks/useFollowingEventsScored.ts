@@ -46,6 +46,9 @@ export const useFollowingEventsScored = () => {
     getNextPageParam: (last) => last.nextCursor,
     enabled: !!user?.id,
     staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   const flat = (pageData?.pages || []).flatMap((p) =>
