@@ -165,9 +165,6 @@ export const EventFeed = ({
     );
   }
 
-  // Trigger fetchNextPage when ~70% of the grid has scrolled past.
-  const sentinelInsertIndex = Math.max(0, Math.floor(events.length * 0.7));
-
   return (
     <>
       <div className="masonry-grid w-full">
