@@ -277,9 +277,12 @@ Deno.serve(async (req) => {
       } catch { /* ignore */ }
     }
 
-    // Pull the FULL candidate pool (capped 200 by the RPC). Same pool every
-    // call within a session → deterministic slicing by page index.
-    const candidatesPromise = supabase.rpc("get_for_you_events");
+    // Pull the FULL candidate pool. Pass explicit args to resolve the
+    // overloaded RPC (two get_for_you_events overloads exist).
+    const candidatesPromise = supabase.rpc("get_for_you_events", {
+      _limit: 200,
+      _cursor: null,
+    });
 
     const contextPromise = userId
       ? supabase.rpc("get_for_you_context", { _user_id: userId })
