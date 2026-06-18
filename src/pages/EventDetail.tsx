@@ -24,7 +24,7 @@ import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { MediaCarousel } from "@/components/events/MediaCarousel";
-import { trackEventView } from "@/lib/analyticsTracking";
+import { trackEventView, trackEventImpression } from "@/lib/analyticsTracking";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
@@ -93,6 +93,13 @@ const EventDetail = () => {
   useLayoutEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [id]);
+
+  // Track impression for the open event (IG/TikTok-style; helper handles self-view & dedupe)
+  useEffect(() => {
+    if (!id || !event) return;
+    if (user?.id && event.creator_id === user.id) return;
+    trackEventImpression(id, user?.id ?? null);
+  }, [id, event, user?.id]);
 
   // Auto-open guestlist management sheet if navigated from a guestlist_request notification
   useEffect(() => {
