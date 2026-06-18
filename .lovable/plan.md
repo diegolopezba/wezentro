@@ -1,39 +1,21 @@
 ## Goal
-Extend impression tracking (IG/TikTok-style) to every place an event/post is meaningfully shown, so view counts reflect real reach.
 
-## Already tracked
-- Main feed (`EventCard` + `EventFeed`)
-- Profile/timeline grids (`TimelineCard`)
-- "Más como esto" (uses `TimelineCard` — already covered)
-- Chat invite cards (`EventInviteCard`)
+Match IG Reels / TikTok behavior: the eye-icon view count pill appears on the bottom-right of each card **only on profile timeline grids** — both the logged-in user's own `/profile` and any other user's `/user/{userId}`. It stays hidden everywhere else (main feed, Más como esto, map, chat, saved, joined, search).
 
-## Gaps to fill
+## Current state
 
-### 1. Event Detail page (and modal)
-When a user opens an event — full-page `EventDetail.tsx` or the `EventDetailModal` overlay — that's the strongest impression signal of all (deeper than a feed scroll). Fire one impression per open.
+- The pill is already implemented in `TimelineCard` and renders only when a `viewCount` prop is passed.
+- `Profile.tsx` already passes `viewCount` (via `useUserTimeline`, which calls the `get_event_card_counts` RPC).
+- `UserProfile.tsx` (other users' profiles) does **not** pass it — its data hook doesn't fetch impression counts.
 
-- Call `trackEventImpression(id, user?.id ?? null)` once on mount in both `src/pages/EventDetail.tsx` and `src/components/events/EventDetailModal.tsx`.
-- Use `useEventDetailState`'s `creatorId` to skip self-views (mirrors existing IG/TikTok rule).
-- Session-level dedupe in `analyticsTracking.ts` already prevents double-counting if the user opens the modal then the full page.
+## Changes
 
-### 2. Map popup on Discover
-When a user taps a map marker and the event popup is rendered (`MapView.tsx` → `FoodMarkerPopup`), that's a visible impression of that event card.
+1. **`src/hooks/useUserProfile.ts`** (or whichever hook `UserProfile.tsx` uses to fetch the other-user timeline — confirm during implementation): after fetching the timeline items, batch-call the existing `get_event_card_counts` RPC with all event ids and attach `view_count` to each item, mirroring the logic already in `useUserTimeline.ts`.
 
-- Fire `trackEventImpression` when the popup mounts for an event. Either:
-  - inside `FoodMarkerPopup` on mount, or
-  - in `MapView.tsx` right after `popupRoot.render(...)`.
-- Skip if viewer is the creator.
+2. **`src/pages/UserProfile.tsx`**: pass `viewCount={item.view_count}` into each `TimelineCard`, same as `Profile.tsx` does.
 
-### 3. No change needed
-- "Más como esto" already renders `TimelineCard`, which uses `useImpressionTracker`. Verified — no code change.
-- `EventInviteCard` in chat already uses `useImpressionTracker`. Verified — no code change.
+No other call sites change. No DB schema changes. No edits to `EventCard`, `RelatedEventsFeed`, map, chat, saved, joined, or search — they continue to render `TimelineCard` / `EventCard` without `viewCount`, so the pill stays hidden.
 
-## Technical notes
-- All new call sites reuse the existing `trackEventImpression` helper, which already handles: session-level dedupe, daily DB dedupe for logged-in users, and the `'impression'` interaction type (allowed by the recent CHECK constraint migration).
-- Self-view exclusion is enforced at each call site (skip when `user?.id === creatorId`), matching the rule in `useImpressionTracker`.
-- No schema changes. No new hooks needed — direct calls inside `useEffect` for detail pages, mount-time call for the map popup.
+## Privacy note
 
-## Files to change
-- `src/pages/EventDetail.tsx` — add `useEffect` impression call
-- `src/components/events/EventDetailModal.tsx` — add `useEffect` impression call
-- `src/components/map/FoodMarkerPopup` (in `src/components/map/FoodMarker.tsx`) — add mount-time impression call, with creator-id check
+`get_event_card_counts` already returns aggregate impression totals and is safe to expose publicly (counts only, no per-viewer identity), matching IG/TikTok where anyone visiting a profile sees the same public view count the creator sees.
