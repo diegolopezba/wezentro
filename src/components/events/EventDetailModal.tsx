@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
+import { trackEventImpression } from "@/lib/analyticsTracking";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
@@ -120,6 +121,13 @@ const EventDetailModalInner = () => {
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, hasPaymentQr, isOnGuestlist, setSearchParams, setShowPaymentModal]);
+
+  // Track impression for the open event (IG/TikTok-style; helper handles self-view & dedupe)
+  useEffect(() => {
+    if (!id || !event) return;
+    if (user?.id && event.creator_id === user.id) return;
+    trackEventImpression(id, user?.id ?? null);
+  }, [id, event, user?.id]);
 
   return (
     <m.div
