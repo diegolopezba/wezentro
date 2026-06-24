@@ -215,6 +215,11 @@ const calculateScore = (event: any, ctx: any, nowMs: number): number => {
   const isPost = !!event.is_post;
   const mutuals: Set<string> = ctx._mutualSet;
 
+  const likes = Number(event.like_count) || 0;
+  const saves = Number(event.save_count) || 0;
+  const joins = Number(event.attendee_count) || entries.length || 0;
+  const impressions = Number(event.impression_count) || 0;
+
   const proximity = proximityScore(event.latitude, event.longitude, ctx.userLat, ctx.userLon);
   const friends = friendsScore(entries, ctx.followingIds, mutuals);
   const trending = trendingScore(ctx.trendingCounts[event.id] || 0);
@@ -228,28 +233,51 @@ const calculateScore = (event: any, ctx: any, nowMs: number): number => {
   const collab = collabScore(event.id, ctx.collabBoosts);
   const socialProof = socialProofScore(entries, mutuals);
   const velocity = velocityScore(ctx.velocityCounts[event.id] || 0);
+  const engagement = engagementScore(likes, saves, joins, impressions);
 
   const hasLearned = Object.keys(ctx.categoryPrefs).length > 0 || Object.keys(ctx.creatorPrefs).length > 0;
   const interestRaw = interestScore(event.category, ctx.userInterests);
   const interest = ctx.isNewUser || !hasLearned ? Math.min(100, interestRaw * 1.4) : interestRaw;
 
+  // V7 weights — quality dominates, recency demoted.
   let base: number;
   if (isPost) {
     base =
-      recency * 0.30 + friends * 0.14 + trending * 0.12 + learned * 0.10 +
-      interest * 0.10 + descTags * 0.08 + velocity * 0.06 +
-      collab * 0.06 + socialProof * 0.02 + proximity * 0.02;
+      trending      * 0.22 +
+      engagement    * 0.12 +
+      recency       * 0.14 +
+      friends       * 0.12 +
+      learned       * 0.08 +
+      interest      * 0.08 +
+      velocity      * 0.08 +
+      descTags      * 0.06 +
+      collab        * 0.05 +
+      socialProof   * 0.03 +
+      proximity     * 0.02;
   } else {
     base =
-      friends * 0.14 + proximity * 0.12 + learned * 0.08 + interest * 0.08 +
-      trending * 0.09 + creatorLoyalty * 0.07 + descTags * 0.07 + collab * 0.06 +
-      recency * 0.06 + popularityScore(entries.length) * 0.07 +
-      timeOfDay * 0.05 + dayOfWeek * 0.05 + socialProof * 0.03 + timing * 0.03;
+      trending             * 0.14 +
+      friends              * 0.12 +
+      proximity            * 0.10 +
+      popularityScore(joins) * 0.10 +
+      engagement           * 0.08 +
+      learned              * 0.07 +
+      interest             * 0.07 +
+      creatorLoyalty       * 0.06 +
+      descTags             * 0.05 +
+      collab               * 0.05 +
+      recency              * 0.05 +
+      timeOfDay            * 0.04 +
+      dayOfWeek            * 0.03 +
+      socialProof          * 0.02 +
+      timing               * 0.02;
   }
 
-  // Tiny per-seed jitter (<2 pts) so different sessions get different orderings
-  // for ties without sacrificing determinism within a session.
-  return base + hashJitter(ctx.sessionSeed, event.id) * 2;
+  // V7: multiplicative quality penalty for dead content.
+  const qm = qualityMultiplier(likes, saves, joins, impressions, event.created_at, nowMs);
+
+  // Tiny per-seed jitter (<2 pts) for stable per-session tiebreaks.
+  return base * qm + hashJitter(ctx.sessionSeed, event.id) * 2;
 };
 
 // ──────────────── cursor codec ────────────────
