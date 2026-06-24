@@ -2533,6 +2533,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_session_feed_state: { Args: never; Returns: undefined }
+      cleanup_web_vitals: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2698,6 +2699,12 @@ export type Database = {
           event_id: string
           trending_score: number
           velocity_count: number
+        }[]
+      }
+      get_viewer_liked_events: {
+        Args: { _event_ids: string[] }
+        Returns: {
+          event_id: string
         }[]
       }
       has_role: {
