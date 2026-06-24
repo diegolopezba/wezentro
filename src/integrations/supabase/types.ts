@@ -534,6 +534,35 @@ export type Database = {
           },
         ]
       }
+      event_stats: {
+        Row: {
+          event_id: string
+          impression_count: number
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          event_id: string
+          impression_count?: number
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          event_id?: string
+          impression_count?: number
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_stats_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_tags: {
         Row: {
           created_at: string | null
@@ -2566,6 +2595,10 @@ export type Database = {
       }
     }
     Functions: {
+      bump_event_stats: {
+        Args: { _event_id: string; _impressions?: number; _views?: number }
+        Returns: undefined
+      }
       can_see_event_location: {
         Args: { _event: string; _user: string }
         Returns: boolean
@@ -2575,6 +2608,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_interaction_events_log: { Args: never; Returns: undefined }
+      cleanup_old_event_interactions: { Args: never; Returns: undefined }
       cleanup_session_feed_state: { Args: never; Returns: undefined }
       cleanup_web_vitals: { Args: never; Returns: undefined }
       delete_email: {
