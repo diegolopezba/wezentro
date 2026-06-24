@@ -17,6 +17,13 @@ export function useEventLikes(eventId: string) {
       return count || 0;
     },
     enabled: !!eventId,
+    // Big-tech pattern: feeds prime this cache via useHydrateLikeSummary.
+    // Stay fresh for 1 min and never refetch on mount/focus so primed data
+    // is reused across page transitions.
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -39,10 +46,15 @@ export function useIsEventLiked(eventId: string) {
       if (error) throw error;
       return !!data;
     },
-    // Enable for guests too - will return false
     enabled: !!eventId,
+    // Feeds prime this cache via useHydrateLikeSummary — avoid per-card refetches.
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 }
+
 
 export function useLikeEvent() {
   const queryClient = useQueryClient();

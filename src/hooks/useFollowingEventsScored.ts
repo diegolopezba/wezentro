@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBlockedIds } from "./useBlockedUsers";
+import { useHydrateLikeSummary } from "./useHydrateLikeSummary";
 import {
   FOLLOWING_EVENTS_KEY,
   FOR_YOU_PAGE_SIZE,
@@ -9,6 +10,7 @@ import {
   resetSessionSeed,
 } from "@/lib/prefetchEvents";
 import { EventWithCreator } from "./useEvents";
+
 
 export interface RepostInfo {
   repostedBy: { id: string; username: string; avatar_url: string | null }[];
@@ -57,6 +59,9 @@ export const useFollowingEventsScored = () => {
   const filtered = blockedIds
     ? flat.filter((e: any) => !blockedIds.has(e.creator_id))
     : flat;
+
+  useHydrateLikeSummary(filtered.map((e: any) => e.id));
+
 
   const refetch = useCallback(async () => {
     resetSessionSeed();

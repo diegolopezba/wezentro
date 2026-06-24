@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { EventWithCreator } from "@/hooks/useEvents";
 import { useBlockedIds } from "@/hooks/useBlockedUsers";
+import { useHydrateLikeSummary } from "@/hooks/useHydrateLikeSummary";
 
 export const useRelatedEvents = (
   eventId: string | undefined,
@@ -10,7 +11,7 @@ export const useRelatedEvents = (
 ) => {
   const { data: blockedIds } = useBlockedIds();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ["related-events", eventId, category, creatorId, blockedIds?.size ?? 0],
     queryFn: async () => {
       if (!eventId) return [];
@@ -55,4 +56,9 @@ export const useRelatedEvents = (
     enabled: !!eventId && (!!category || !!creatorId),
     staleTime: 5 * 60 * 1000,
   });
+
+  useHydrateLikeSummary((query.data ?? []).map((e) => e.id));
+
+  return query;
 };
+
