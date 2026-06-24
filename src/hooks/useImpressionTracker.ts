@@ -11,8 +11,11 @@ interface ImpressionOptions {
   disabled?: boolean;
 }
 
-/** Min ms between re-fires within a single mount to avoid loop-spam on autoplaying videos. */
-const REPEAT_THROTTLE_MS = 30_000;
+/** Min ms between re-fires within a single mount. Bumped to 5min — the
+ *  persistent client queue already dedupes per day, so anything tighter is
+ *  wasted work. */
+const REPEAT_THROTTLE_MS = 5 * 60_000;
+
 
 /**
  * Mirrors Instagram/TikTok view counting:

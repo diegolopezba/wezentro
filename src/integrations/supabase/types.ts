@@ -534,6 +534,35 @@ export type Database = {
           },
         ]
       }
+      event_stats: {
+        Row: {
+          event_id: string
+          impression_count: number
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          event_id: string
+          impression_count?: number
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          event_id?: string
+          impression_count?: number
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_stats_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_tags: {
         Row: {
           created_at: string | null
@@ -888,6 +917,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      interaction_events_log: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: number
+          signal_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: number
+          signal_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: number
+          signal_type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       menu_categories: {
         Row: {
@@ -2381,6 +2434,24 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_cursors: {
+        Row: {
+          last_processed_id: number
+          last_run_at: string
+          name: string
+        }
+        Insert: {
+          last_processed_id?: number
+          last_run_at?: string
+          name: string
+        }
+        Update: {
+          last_processed_id?: number
+          last_run_at?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       guestlist_entries_public: {
@@ -2524,6 +2595,10 @@ export type Database = {
       }
     }
     Functions: {
+      bump_event_stats: {
+        Args: { _event_id: string; _impressions?: number; _views?: number }
+        Returns: undefined
+      }
       can_see_event_location: {
         Args: { _event: string; _user: string }
         Returns: boolean
@@ -2532,6 +2607,8 @@ export type Database = {
         Args: { _entry_user_id: string; _event_id: string; _user_id: string }
         Returns: boolean
       }
+      cleanup_interaction_events_log: { Args: never; Returns: undefined }
+      cleanup_old_event_interactions: { Args: never; Returns: undefined }
       cleanup_session_feed_state: { Args: never; Returns: undefined }
       cleanup_web_vitals: { Args: never; Returns: undefined }
       delete_email: {
@@ -2746,6 +2823,10 @@ export type Database = {
       is_post_owner: {
         Args: { _event_id: string; _user_id: string }
         Returns: boolean
+      }
+      log_interaction: {
+        Args: { _event_id: string; _signal_type: string }
+        Returns: undefined
       }
       move_to_dlq: {
         Args: {
