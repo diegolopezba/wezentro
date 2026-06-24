@@ -68,16 +68,18 @@ export const useOverviewStats = () => {
       const eventIds = await getUserEventIds(user.id);
       let totalGuestlistSignups = 0, totalCheckIns = 0, totalLikes = 0, totalViews = 0;
       if (eventIds.length > 0) {
-        const [signupsRes, checkInsRes, likesRes, viewsRes] = await Promise.all([
+        const [signupsRes, checkInsRes, likesRes, statsRes] = await Promise.all([
           supabase.from("guestlist_entries").select("*", { count: "exact", head: true }).in("event_id", eventIds),
           supabase.from("guestlist_entries").select("*", { count: "exact", head: true }).in("event_id", eventIds).not("checked_in_at", "is", null),
           supabase.from("event_likes").select("*", { count: "exact", head: true }).in("event_id", eventIds),
-          supabase.from("event_interactions").select("*", { count: "exact", head: true }).in("event_id", eventIds).eq("type", "view"),
+          // Read from denormalized counter (TikTok/Pinterest pattern) instead
+          // of aggregating raw event_interactions rows.
+          supabase.from("event_stats").select("view_count").in("event_id", eventIds),
         ]);
         totalGuestlistSignups = signupsRes.count || 0;
         totalCheckIns = checkInsRes.count || 0;
         totalLikes = likesRes.count || 0;
-        totalViews = viewsRes.count || 0;
+        totalViews = (statsRes.data || []).reduce((sum, row) => sum + (row.view_count || 0), 0);
       }
       const now = new Date();
       const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000).toISOString();
@@ -118,17 +120,14 @@ export const useEventPerformance = () => {
       let viewsMap: Record<string, number> = {};
       let impressionsMap: Record<string, number> = {};
       if (eventIds.length > 0) {
-        const { data: interactions } = await supabase
-          .from("event_interactions")
-          .select("event_id, type")
-          .in("event_id", eventIds)
-          .in("type", ["view", "impression"]);
-        (interactions || []).forEach((curr) => {
-          if (curr.type === "view") {
-            viewsMap[curr.event_id] = (viewsMap[curr.event_id] || 0) + 1;
-          } else if (curr.type === "impression") {
-            impressionsMap[curr.event_id] = (impressionsMap[curr.event_id] || 0) + 1;
-          }
+        // Read denormalized counters instead of scanning raw event_interactions.
+        const { data: stats } = await supabase
+          .from("event_stats")
+          .select("event_id, view_count, impression_count")
+          .in("event_id", eventIds);
+        (stats || []).forEach((row) => {
+          viewsMap[row.event_id] = row.view_count || 0;
+          impressionsMap[row.event_id] = row.impression_count || 0;
         });
       }
       return (events || []).map((event) => {
