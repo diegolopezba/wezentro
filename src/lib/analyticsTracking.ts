@@ -118,39 +118,14 @@ export const trackReserveTap = async (eventId: string, userId: string | null) =>
 
 /**
  * Track when a card was actually seen in a feed/profile/chat (passive impression).
- * - In-memory session dedupe avoids spamming on scroll re-entries.
- * - Daily DB dedupe avoids inflating counts across reloads.
+ *
+ * Batched + persisted via `impressionQueue` (TikTok/Pinterest SDK pattern).
+ * Replaces per-row DB inserts with a 15s / 50-event flush against the
+ * `ingest-impressions` edge function, which bumps a denormalized counter.
  */
-const impressionSessionCache = new Set<string>();
+import { enqueueImpression } from "./impressionQueue";
 
-export const trackEventImpression = async (eventId: string, userId: string | null) => {
-  // Session-level dedupe key: per-event for anon, per-user-per-event for logged-in.
-  const key = `${eventId}:${userId ?? "anon"}`;
-  if (impressionSessionCache.has(key)) return;
-  impressionSessionCache.add(key);
-
-  try {
-    // Daily DB dedupe only applies to logged-in users (anon rows have null user_id).
-    if (userId) {
-      const today = new Date().toISOString().split("T")[0];
-      const { data: existing } = await supabase
-        .from("event_interactions")
-        .select("id")
-        .eq("event_id", eventId)
-        .eq("user_id", userId)
-        .eq("type", "impression")
-        .gte("created_at", today)
-        .maybeSingle();
-
-      if (existing) return;
-    }
-
-    await supabase.from("event_interactions").insert({
-      event_id: eventId,
-      user_id: userId,
-      type: "impression",
-    });
-  } catch (error) {
-    console.error("Failed to track event impression:", error);
-  }
+export const trackEventImpression = async (eventId: string, _userId: string | null) => {
+  enqueueImpression(eventId, "impression");
 };
+
