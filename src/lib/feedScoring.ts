@@ -357,12 +357,20 @@ export const calculateEventScore = (
     start_datetime: string | null;
     description_tags?: string[] | null;
     guestlist_entries?: { user: { id: string } }[];
+    like_count?: number | null;
+    save_count?: number | null;
+    impression_count?: number | null;
   },
   ctx: ScoringContext
 ): number => {
   const attendees = event.guestlist_entries?.length || 0;
   const isPost = !!event.is_post;
   const nowMs = ctx.nowMs ?? Date.now();
+
+  const likes       = Number(event.like_count) || 0;
+  const saves       = Number(event.save_count) || 0;
+  const joins       = attendees;
+  const impressions = Number(event.impression_count) || 0;
 
   const proximity      = getProximityScore(event.latitude, event.longitude, ctx.userLat, ctx.userLon);
   const friends        = getFriendsGoingScore(event.guestlist_entries, ctx.followingIds, ctx.mutualFollowerIds);
@@ -377,48 +385,50 @@ export const calculateEventScore = (
   const collaborative  = getCollaborativeScore(event.id, ctx.collaborativeBoosts);
   const socialProof    = getSocialProofScore(event.guestlist_entries, ctx.mutualFollowerIds);
   const velocity       = getVelocityScore(event.id, ctx.velocityCounts);
+  const engagement     = getEngagementScore(likes, saves, joins, impressions);
 
-  // V6: Cold-start boost — amplify interest score for new users with no learned prefs
   const hasLearnedData = Object.keys(ctx.categoryPrefs).length > 0 || Object.keys(ctx.creatorPrefs).length > 0;
   const interestRaw    = getInterestScore(event.category, ctx.userInterests);
-  // For new users, interest weight triples so onboarding selections dominate the feed
   const interest       = ctx.isNewUser || !hasLearnedData
     ? Math.min(100, interestRaw * 1.4)
     : interestRaw;
 
+  // V7 weights — quality dominates, recency demoted.
+  let base: number;
   if (isPost) {
-    // ── POST scoring: virality-first ──
-    return (
-      recency       * 0.30 +
-      friends       * 0.14 +
-      trending      * 0.12 +
-      learned       * 0.10 +
-      interest      * 0.10 +
-      descTags      * 0.08 +
-      velocity      * 0.06 +
-      collaborative * 0.06 +
-      socialProof   * 0.02 +
-      proximity     * 0.02
-    );
+    base =
+      trending      * 0.22 +
+      engagement    * 0.12 +
+      recency       * 0.14 +
+      friends       * 0.12 +
+      learned       * 0.08 +
+      interest      * 0.08 +
+      velocity      * 0.08 +
+      descTags      * 0.06 +
+      collaborative * 0.05 +
+      socialProof   * 0.03 +
+      proximity     * 0.02;
+  } else {
+    base =
+      trending                       * 0.14 +
+      friends                        * 0.12 +
+      proximity                      * 0.10 +
+      getPopularityScore(attendees)  * 0.10 +
+      engagement                     * 0.08 +
+      learned                        * 0.07 +
+      interest                       * 0.07 +
+      creatorLoyalty                 * 0.06 +
+      descTags                       * 0.05 +
+      collaborative                  * 0.05 +
+      recency                        * 0.05 +
+      timeOfDay                      * 0.04 +
+      dayOfWeek                      * 0.03 +
+      socialProof                    * 0.02 +
+      timing                         * 0.02;
   }
 
-  // ── EVENT scoring: location + timing-first ──
-  return (
-    friends        * 0.14 +
-    proximity      * 0.12 +
-    learned        * 0.08 +
-    interest       * 0.08 +
-    trending       * 0.09 +
-    creatorLoyalty * 0.07 +
-    descTags       * 0.07 +
-    collaborative  * 0.06 +
-    recency        * 0.06 +
-    getPopularityScore(attendees) * 0.07 +
-    timeOfDay      * 0.05 +
-    dayOfWeek      * 0.05 +
-    socialProof    * 0.03 +
-    timing         * 0.03
-  );
+  // V7: multiplicative quality penalty for dead content.
+  return base * getQualityMultiplier(likes, saves, joins, impressions, event.created_at, nowMs);
 };
 
 // Seeded PRNG (mulberry32) — deterministic shuffle so exploration cards
