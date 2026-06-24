@@ -1,59 +1,33 @@
 import { supabase } from "@/integrations/supabase/client";
+import { enqueueImpression } from "./impressionQueue";
 
 /**
- * Track when a user views an event
- * Only tracks once per user per event (using upsert behavior)
+ * Track when a user opens an event detail page.
+ *
+ * Routed through the impression queue (TikTok/Pinterest SDK pattern): the
+ * client buffers events in localStorage and the `ingest-impressions` edge
+ * function bumps the denormalized `event_stats.view_count`. No per-call DB
+ * round-trip, no SELECT-then-INSERT.
  */
 export const trackEventView = async (eventId: string, userId: string | null) => {
   if (!userId) return;
-
-  try {
-    // Check if already tracked today to avoid spam
-    const today = new Date().toISOString().split("T")[0];
-    const { data: existing } = await supabase
-      .from("event_interactions")
-      .select("id")
-      .eq("event_id", eventId)
-      .eq("user_id", userId)
-      .eq("type", "view")
-      .gte("created_at", today)
-      .maybeSingle();
-
-    if (existing) {
-      // Already tracked today
-      return;
-    }
-
-    await supabase.from("event_interactions").insert({
-      event_id: eventId,
-      user_id: userId,
-      type: "view",
-    });
-  } catch (error) {
-    // Silently fail - analytics should not break the app
-    console.error("Failed to track event view:", error);
-  }
+  enqueueImpression(eventId, "view");
 };
 
 /**
- * Track when a user shares an event
+ * Track when a user shares an event.
+ *
+ * Currently a no-op: the social-graph signal is already captured by
+ * `reposts` and `event_likes`, and a dedicated share counter is not surfaced
+ * anywhere. Kept as a stable export so call sites don't need to change.
  */
-export const trackEventShare = async (eventId: string, userId: string | null) => {
-  if (!userId) return;
-
-  try {
-    await supabase.from("event_interactions").insert({
-      event_id: eventId,
-      user_id: userId,
-      type: "share",
-    });
-  } catch (error) {
-    console.error("Failed to track event share:", error);
-  }
+export const trackEventShare = async (_eventId: string, _userId: string | null) => {
+  // no-op
 };
 
 /**
- * Track when a user visits a business profile
+ * Track when a user visits a business profile (kept — low volume, used by
+ * profile-visit analytics and the daily unique index dedupes).
  */
 export const trackProfileVisit = async (profileId: string, visitorId: string | null) => {
   if (!visitorId || visitorId === profileId) return;
@@ -75,7 +49,6 @@ export const trackProfileVisit = async (profileId: string, visitorId: string | n
       visitor_id: visitorId,
     });
 
-    // Silently ignore duplicate-key violations from the daily unique index
     if (insertError && insertError.code !== "23505") {
       console.error("Failed to track profile visit:", insertError);
     }
@@ -85,7 +58,7 @@ export const trackProfileVisit = async (profileId: string, visitorId: string | n
 };
 
 /**
- * Track when a user views a menu
+ * Track an explicit menu-button tap (kept — rare, used by business dashboard).
  */
 export const trackMenuView = async (eventId: string, userId: string | null) => {
   if (!userId) return;
@@ -101,7 +74,7 @@ export const trackMenuView = async (eventId: string, userId: string | null) => {
 };
 
 /**
- * Track when a user taps the reserve button
+ * Track an explicit reserve-button tap (kept — rare, used by business dashboard).
  */
 export const trackReserveTap = async (eventId: string, userId: string | null) => {
   if (!userId) return;
@@ -120,12 +93,7 @@ export const trackReserveTap = async (eventId: string, userId: string | null) =>
  * Track when a card was actually seen in a feed/profile/chat (passive impression).
  *
  * Batched + persisted via `impressionQueue` (TikTok/Pinterest SDK pattern).
- * Replaces per-row DB inserts with a 15s / 50-event flush against the
- * `ingest-impressions` edge function, which bumps a denormalized counter.
  */
-import { enqueueImpression } from "./impressionQueue";
-
 export const trackEventImpression = async (eventId: string, _userId: string | null) => {
   enqueueImpression(eventId, "impression");
 };
-

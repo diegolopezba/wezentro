@@ -1,8 +1,9 @@
 // Batched impression ingest. Replicates the TikTok/Pinterest SDK pattern:
 // the client buffers events in localStorage and flushes batches every 15s,
 // at 100 events, or on tab hide. This endpoint atomically bumps the
-// denormalized event_stats counters and stores a raw row in
-// event_interactions for any historical aggregation/analytics.
+// denormalized event_stats counters. Raw rows are NOT written to
+// event_interactions — the denormalized counter is the source of truth.
+
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
@@ -53,8 +54,8 @@ Deno.serve(async (req) => {
     // Server-side dedupe + validation. Aggregate per event so we issue at
     // most one counter bump per event_id.
     const perEvent = new Map<string, { impressions: number; views: number }>();
-    const interactionRows: { event_id: string; user_id: string | null; type: string }[] = [];
     const seen = new Set<string>();
+    let accepted = 0;
 
     for (const e of events) {
       if (!e?.eventId || !UUID_RE.test(e.eventId)) continue;
@@ -66,17 +67,19 @@ Deno.serve(async (req) => {
       const cur = perEvent.get(e.eventId) ?? { impressions: 0, views: 0 };
       if (e.type === "impression") cur.impressions++; else cur.views++;
       perEvent.set(e.eventId, cur);
-
-      interactionRows.push({ event_id: e.eventId, user_id: userId, type: e.type });
+      accepted++;
     }
 
+    void userId; // userId resolved for future per-user dedupe; not persisted
+
     if (perEvent.size === 0) {
-      return new Response(JSON.stringify({ accepted: 0 }), {
+      return new Response(JSON.stringify({ accepted: 0, events: 0 }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Bump denormalized counters (one RPC per event — small batches are cheap)
+    // Bump denormalized counters (one RPC per event — small batches are cheap).
+    // This is the ONLY write — no raw rows in event_interactions.
     await Promise.all(
       Array.from(perEvent.entries()).map(([eventId, c]) =>
         admin.rpc("bump_event_stats", {
@@ -87,13 +90,8 @@ Deno.serve(async (req) => {
       ),
     );
 
-    // Append raw rows for historical analytics
-    if (interactionRows.length > 0) {
-      await admin.from("event_interactions").insert(interactionRows);
-    }
-
     return new Response(
-      JSON.stringify({ accepted: interactionRows.length, events: perEvent.size }),
+      JSON.stringify({ accepted, events: perEvent.size }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
