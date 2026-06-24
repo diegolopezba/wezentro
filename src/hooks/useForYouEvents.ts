@@ -3,12 +3,14 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocationContext } from "@/contexts/LocationContext";
 import { useBlockedIds } from "./useBlockedUsers";
+import { useHydrateLikeSummary } from "./useHydrateLikeSummary";
 import {
   FOR_YOU_EVENTS_KEY,
   FOR_YOU_PAGE_SIZE,
   fetchForYouEventsPage,
   resetSessionSeed,
 } from "@/lib/prefetchEvents";
+
 
 /**
  * For You feed — server-assembled slate.
@@ -60,6 +62,10 @@ export const useForYouEvents = () => {
   const filtered = blockedIds
     ? flat.filter((e: any) => !blockedIds.has(e.creator_id))
     : flat;
+
+  // Batched like prefetch — one RPC per page, primes per-card caches.
+  useHydrateLikeSummary(filtered.map((e: any) => e.id));
+
 
   // Pull-to-refresh: reset the session seed so the server starts a fresh
   // ordered slate (no carried-over seen-set).
