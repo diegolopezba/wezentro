@@ -420,13 +420,30 @@ Deno.serve(async (req) => {
     const allCandidates = (candidatesRes.data || []) as any[];
 
     // Rank the FULL pool deterministically (score DESC, id ASC tiebreak).
-    const ranked = allCandidates
+    const sorted = allCandidates
       .filter((e) => !sponsoredEventIds.has(e.id))
       .map((e) => ({ ...e, _score: calculateScore(e, ctx, nowMs) }))
       .sort((a, b) => {
         if (b._score !== a._score) return b._score - a._score;
         return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
       });
+
+    // V7: Creator de-duplication — prevent the same creator from occupying
+    // consecutive slots (Pinterest/IG style). Push offenders down a few spots.
+    const ranked: any[] = [];
+    const pending = [...sorted];
+    while (pending.length > 0) {
+      let pickedIdx = 0;
+      for (let i = 0; i < pending.length; i++) {
+        const cid = pending[i].creator_id;
+        const last1 = ranked[ranked.length - 1]?.creator_id;
+        const last2 = ranked[ranked.length - 2]?.creator_id;
+        if (cid !== last1 || cid !== last2) { pickedIdx = i; break; }
+        // Otherwise keep looking; if we exhaust, fall back to the head.
+      }
+      ranked.push(pending.splice(pickedIdx, 1)[0]);
+    }
+
 
     // Slice by page.
     const offset = page * limit;
