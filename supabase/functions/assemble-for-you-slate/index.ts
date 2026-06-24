@@ -112,6 +112,38 @@ const trendingScore = (w: number) =>
 const velocityScore = (v: number) =>
   v >= 10 ? 100 : v >= 6 ? 85 : v >= 3 ? 65 : v >= 1 ? 40 : 0;
 
+// V7: engagement-rate score (per impression). The "good content rises" rule.
+const engagementScore = (
+  likes: number, saves: number, joins: number, impressions: number
+): number => {
+  const weighted = likes + 2 * saves + 3 * joins;
+  if (weighted <= 0) return 0;
+  const ratio = weighted / Math.max(impressions, 20);
+  if (ratio >= 0.30) return 100;
+  if (ratio >= 0.20) return 85;
+  if (ratio >= 0.10) return 70;
+  if (ratio >= 0.05) return 55;
+  if (ratio >= 0.02) return 35;
+  if (ratio >= 0.01) return 20;
+  return 10;
+};
+
+// V7: multiplicative quality penalty. The "dead content sinks" rule.
+const qualityMultiplier = (
+  likes: number, saves: number, joins: number, impressions: number,
+  createdAt: string, nowMs: number
+): number => {
+  const ageH = (nowMs - new Date(createdAt).getTime()) / 3.6e6;
+  if (ageH < 6 && impressions < 20) return 1.0; // cold-start exemption
+  const totalEng = likes + saves + joins;
+  if (impressions >= 50 && totalEng === 0) return 0.55;
+  if (impressions >= 100) {
+    const ratio = (likes + 2 * saves + 3 * joins) / Math.max(impressions, 1);
+    if (ratio < 0.01) return 0.7;
+  }
+  return 1.0;
+};
+
 const TIME_MAP: Record<string, string[]> = {
   morning: ["brunch", "fitness", "wellness", "networking", "yoga", "café", "cafe", "desayuno", "culture"],
   afternoon: ["shopping", "culture", "food", "sports", "arte", "museo", "deporte", "comida"],
@@ -183,6 +215,11 @@ const calculateScore = (event: any, ctx: any, nowMs: number): number => {
   const isPost = !!event.is_post;
   const mutuals: Set<string> = ctx._mutualSet;
 
+  const likes = Number(event.like_count) || 0;
+  const saves = Number(event.save_count) || 0;
+  const joins = Number(event.attendee_count) || entries.length || 0;
+  const impressions = Number(event.impression_count) || 0;
+
   const proximity = proximityScore(event.latitude, event.longitude, ctx.userLat, ctx.userLon);
   const friends = friendsScore(entries, ctx.followingIds, mutuals);
   const trending = trendingScore(ctx.trendingCounts[event.id] || 0);
@@ -196,28 +233,51 @@ const calculateScore = (event: any, ctx: any, nowMs: number): number => {
   const collab = collabScore(event.id, ctx.collabBoosts);
   const socialProof = socialProofScore(entries, mutuals);
   const velocity = velocityScore(ctx.velocityCounts[event.id] || 0);
+  const engagement = engagementScore(likes, saves, joins, impressions);
 
   const hasLearned = Object.keys(ctx.categoryPrefs).length > 0 || Object.keys(ctx.creatorPrefs).length > 0;
   const interestRaw = interestScore(event.category, ctx.userInterests);
   const interest = ctx.isNewUser || !hasLearned ? Math.min(100, interestRaw * 1.4) : interestRaw;
 
+  // V7 weights — quality dominates, recency demoted.
   let base: number;
   if (isPost) {
     base =
-      recency * 0.30 + friends * 0.14 + trending * 0.12 + learned * 0.10 +
-      interest * 0.10 + descTags * 0.08 + velocity * 0.06 +
-      collab * 0.06 + socialProof * 0.02 + proximity * 0.02;
+      trending      * 0.22 +
+      engagement    * 0.12 +
+      recency       * 0.14 +
+      friends       * 0.12 +
+      learned       * 0.08 +
+      interest      * 0.08 +
+      velocity      * 0.08 +
+      descTags      * 0.06 +
+      collab        * 0.05 +
+      socialProof   * 0.03 +
+      proximity     * 0.02;
   } else {
     base =
-      friends * 0.14 + proximity * 0.12 + learned * 0.08 + interest * 0.08 +
-      trending * 0.09 + creatorLoyalty * 0.07 + descTags * 0.07 + collab * 0.06 +
-      recency * 0.06 + popularityScore(entries.length) * 0.07 +
-      timeOfDay * 0.05 + dayOfWeek * 0.05 + socialProof * 0.03 + timing * 0.03;
+      trending             * 0.14 +
+      friends              * 0.12 +
+      proximity            * 0.10 +
+      popularityScore(joins) * 0.10 +
+      engagement           * 0.08 +
+      learned              * 0.07 +
+      interest             * 0.07 +
+      creatorLoyalty       * 0.06 +
+      descTags             * 0.05 +
+      collab               * 0.05 +
+      recency              * 0.05 +
+      timeOfDay            * 0.04 +
+      dayOfWeek            * 0.03 +
+      socialProof          * 0.02 +
+      timing               * 0.02;
   }
 
-  // Tiny per-seed jitter (<2 pts) so different sessions get different orderings
-  // for ties without sacrificing determinism within a session.
-  return base + hashJitter(ctx.sessionSeed, event.id) * 2;
+  // V7: multiplicative quality penalty for dead content.
+  const qm = qualityMultiplier(likes, saves, joins, impressions, event.created_at, nowMs);
+
+  // Tiny per-seed jitter (<2 pts) for stable per-session tiebreaks.
+  return base * qm + hashJitter(ctx.sessionSeed, event.id) * 2;
 };
 
 // ──────────────── cursor codec ────────────────
@@ -360,13 +420,30 @@ Deno.serve(async (req) => {
     const allCandidates = (candidatesRes.data || []) as any[];
 
     // Rank the FULL pool deterministically (score DESC, id ASC tiebreak).
-    const ranked = allCandidates
+    const sorted = allCandidates
       .filter((e) => !sponsoredEventIds.has(e.id))
       .map((e) => ({ ...e, _score: calculateScore(e, ctx, nowMs) }))
       .sort((a, b) => {
         if (b._score !== a._score) return b._score - a._score;
         return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
       });
+
+    // V7: Creator de-duplication — prevent the same creator from occupying
+    // consecutive slots (Pinterest/IG style). Push offenders down a few spots.
+    const ranked: any[] = [];
+    const pending = [...sorted];
+    while (pending.length > 0) {
+      let pickedIdx = 0;
+      for (let i = 0; i < pending.length; i++) {
+        const cid = pending[i].creator_id;
+        const last1 = ranked[ranked.length - 1]?.creator_id;
+        const last2 = ranked[ranked.length - 2]?.creator_id;
+        if (cid !== last1 || cid !== last2) { pickedIdx = i; break; }
+        // Otherwise keep looking; if we exhaust, fall back to the head.
+      }
+      ranked.push(pending.splice(pickedIdx, 1)[0]);
+    }
+
 
     // Slice by page.
     const offset = page * limit;
