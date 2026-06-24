@@ -112,6 +112,38 @@ const trendingScore = (w: number) =>
 const velocityScore = (v: number) =>
   v >= 10 ? 100 : v >= 6 ? 85 : v >= 3 ? 65 : v >= 1 ? 40 : 0;
 
+// V7: engagement-rate score (per impression). The "good content rises" rule.
+const engagementScore = (
+  likes: number, saves: number, joins: number, impressions: number
+): number => {
+  const weighted = likes + 2 * saves + 3 * joins;
+  if (weighted <= 0) return 0;
+  const ratio = weighted / Math.max(impressions, 20);
+  if (ratio >= 0.30) return 100;
+  if (ratio >= 0.20) return 85;
+  if (ratio >= 0.10) return 70;
+  if (ratio >= 0.05) return 55;
+  if (ratio >= 0.02) return 35;
+  if (ratio >= 0.01) return 20;
+  return 10;
+};
+
+// V7: multiplicative quality penalty. The "dead content sinks" rule.
+const qualityMultiplier = (
+  likes: number, saves: number, joins: number, impressions: number,
+  createdAt: string, nowMs: number
+): number => {
+  const ageH = (nowMs - new Date(createdAt).getTime()) / 3.6e6;
+  if (ageH < 6 && impressions < 20) return 1.0; // cold-start exemption
+  const totalEng = likes + saves + joins;
+  if (impressions >= 50 && totalEng === 0) return 0.55;
+  if (impressions >= 100) {
+    const ratio = (likes + 2 * saves + 3 * joins) / Math.max(impressions, 1);
+    if (ratio < 0.01) return 0.7;
+  }
+  return 1.0;
+};
+
 const TIME_MAP: Record<string, string[]> = {
   morning: ["brunch", "fitness", "wellness", "networking", "yoga", "café", "cafe", "desayuno", "culture"],
   afternoon: ["shopping", "culture", "food", "sports", "arte", "museo", "deporte", "comida"],
