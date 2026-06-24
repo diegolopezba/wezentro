@@ -2593,6 +2593,14 @@ export type Database = {
           view_count: number
         }[]
       }
+      get_event_like_summary: {
+        Args: { _event_ids: string[] }
+        Returns: {
+          event_id: string
+          like_count: number
+          viewer_liked: boolean
+        }[]
+      }
       get_event_view_counts: {
         Args: { _event_ids: string[] }
         Returns: {
