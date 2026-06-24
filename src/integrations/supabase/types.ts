@@ -889,6 +889,30 @@ export type Database = {
           },
         ]
       }
+      interaction_events_log: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: number
+          signal_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: number
+          signal_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: number
+          signal_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       menu_categories: {
         Row: {
           created_at: string | null
@@ -2381,6 +2405,24 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_cursors: {
+        Row: {
+          last_processed_id: number
+          last_run_at: string
+          name: string
+        }
+        Insert: {
+          last_processed_id?: number
+          last_run_at?: string
+          name: string
+        }
+        Update: {
+          last_processed_id?: number
+          last_run_at?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       guestlist_entries_public: {
@@ -2532,6 +2574,7 @@ export type Database = {
         Args: { _entry_user_id: string; _event_id: string; _user_id: string }
         Returns: boolean
       }
+      cleanup_interaction_events_log: { Args: never; Returns: undefined }
       cleanup_session_feed_state: { Args: never; Returns: undefined }
       cleanup_web_vitals: { Args: never; Returns: undefined }
       delete_email: {
@@ -2746,6 +2789,10 @@ export type Database = {
       is_post_owner: {
         Args: { _event_id: string; _user_id: string }
         Returns: boolean
+      }
+      log_interaction: {
+        Args: { _event_id: string; _signal_type: string }
+        Returns: undefined
       }
       move_to_dlq: {
         Args: {
