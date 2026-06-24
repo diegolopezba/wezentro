@@ -13,14 +13,10 @@ export const SIGNAL_WEIGHTS = {
   not_interested: -100,
 } as const;
 
-// Legacy signal types kept in the type union so existing call sites compile,
-// but `view`, `dwell`, and `scroll_past` are dropped on the client (Pinterest
-// discards these too — the cost/benefit isn't there for sub-second signals).
-export type SignalType =
-  | keyof typeof SIGNAL_WEIGHTS
-  | "view"
-  | "dwell"
-  | "scroll_past";
+// Only high-signal types are accepted. View/dwell/scroll_past were dropped
+// (Pinterest discards these too — the cost/benefit isn't there for
+// sub-second signals). Any caller passing them is a compile error.
+export type SignalType = keyof typeof SIGNAL_WEIGHTS;
 
 const ACCEPTED: ReadonlySet<string> = new Set([
   "join",

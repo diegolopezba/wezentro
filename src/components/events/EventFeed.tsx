@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { EventFeedSkeleton } from "@/components/skeletons";
 import { useTrackSponsoredImpression } from "@/hooks/useSponsoredPosts";
 import { useAuth } from "@/contexts/AuthContext";
-import { trackPreferenceSignal } from "@/lib/preferenceTracking";
+
 import { trackEventImpression } from "@/lib/analyticsTracking";
 import { useViewerFollowGraph, type ViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 
@@ -21,12 +21,11 @@ interface EventFeedProps {
   isLoadingMore?: boolean;
 }
 
+// Feed-level impression tracker. Dwell/scroll_past signals were removed
+// (Pinterest/TikTok drop them too — sub-second signals don't justify the
+// cost). Only batched impressions are tracked, via `impressionQueue`.
 const useFeedTracker = (userId: string | undefined) => {
-  const entryTimestamps = useRef<Map<string, number>>(new Map());
-  const trackedScrollPasts = useRef<Set<string>>(new Set());
-  const trackedDwells = useRef<Set<string>>(new Set());
   const trackedImpressions = useRef<Set<string>>(new Set());
-  const dwellTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const impressionTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const observedNodes = useRef<Set<HTMLElement>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -43,49 +42,16 @@ const useFeedTracker = (userId: string | undefined) => {
           const isMeaningfullyVisible = entry.isIntersecting && entry.intersectionRatio >= 0.5;
 
           if (isMeaningfullyVisible) {
-            // Dwell & ScrollPast tracking
-            if (!entryTimestamps.current.has(eventId)) {
-              entryTimestamps.current.set(eventId, Date.now());
-            }
-            if (!trackedDwells.current.has(eventId) && !dwellTimers.current.has(eventId)) {
+            if (!trackedImpressions.current.has(eventId) && !impressionTimers.current.has(eventId)) {
               const timer = setTimeout(() => {
-                trackedDwells.current.add(eventId);
-                dwellTimers.current.delete(eventId);
-                trackPreferenceSignal(userId, eventId, "dwell");
-              }, 3000);
-              dwellTimers.current.set(eventId, timer);
-            }
-
-            // Impression tracking (50% visible for 500ms)
-            if (!trackedImpressions.current.has(eventId)) {
-              if (!impressionTimers.current.has(eventId)) {
-                const timer = setTimeout(() => {
-                  if (!trackedImpressions.current.has(eventId)) {
-                    trackedImpressions.current.add(eventId);
-                    trackEventImpression(eventId, userId);
-                  }
-                }, 500);
-                impressionTimers.current.set(eventId, timer);
-              }
+                if (!trackedImpressions.current.has(eventId)) {
+                  trackedImpressions.current.add(eventId);
+                  trackEventImpression(eventId, userId);
+                }
+              }, 500);
+              impressionTimers.current.set(eventId, timer);
             }
           } else {
-            // Cleanup dwell
-            const dTimer = dwellTimers.current.get(eventId);
-            if (dTimer) {
-              clearTimeout(dTimer);
-              dwellTimers.current.delete(eventId);
-            }
-            const enterTime = entryTimestamps.current.get(eventId);
-            if (enterTime) {
-              const dwellMs = Date.now() - enterTime;
-              entryTimestamps.current.delete(eventId);
-              if (dwellMs < 1000 && !trackedScrollPasts.current.has(eventId)) {
-                trackedScrollPasts.current.add(eventId);
-                trackPreferenceSignal(userId, eventId, "scroll_past");
-              }
-            }
-
-            // Cleanup impression
             const iTimer = impressionTimers.current.get(eventId);
             if (iTimer) {
               clearTimeout(iTimer);
@@ -101,8 +67,6 @@ const useFeedTracker = (userId: string | undefined) => {
 
     return () => {
       observerRef.current?.disconnect();
-      dwellTimers.current.forEach((t) => clearTimeout(t));
-      dwellTimers.current.clear();
       impressionTimers.current.forEach((t) => clearTimeout(t));
       impressionTimers.current.clear();
     };
