@@ -1,10 +1,13 @@
 import { Suspense, lazy, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
-import { ChevronDown, ChevronUp, Eye, Heart, Share2, Users, UserCheck } from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, Heart, Share2, Users, UserCheck, Megaphone } from "lucide-react";
 import { EventPerformance, useEventPerformance } from "@/hooks/useBusinessAnalytics";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const EngagementChart = lazy(() => import("@/components/dashboard/EngagementChart").then(m => ({ default: m.EngagementChart })));
 
