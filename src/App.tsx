@@ -82,6 +82,7 @@ const ReservationConfirmation = lazyWithRetry(() => import("./pages/ReservationC
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
 const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
+const EventPromoterDashboard = lazyWithRetry(() => import("./pages/EventPromoterDashboard"));
 
 // Lazily-imported, but pre-loadable for instant tap response
 const eventDetailImport = () => import("./pages/EventDetail");
