@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { CommentsSheet } from "@/components/events/CommentsSheet";
 import { useCommentCount, useLatestComment } from "@/hooks/useEventComments";
 import { AttachedBusinessCtas } from "@/components/events/AttachedBusinessCtas";
+import { captureFromUrl } from "@/lib/promoterAttribution";
 
 const EventDetail = () => {
   const { id } = useParams();
