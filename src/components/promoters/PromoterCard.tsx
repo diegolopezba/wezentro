@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { buildPromoterLink } from "@/lib/promoterAttribution";
 import { useTogglePromoter, useDeletePromoter, type PromoterStats } from "@/hooks/usePromoters";
-import { formatBs } from "@/lib/currency";
+const formatBs = (n: number) => `Bs. ${Math.round(Number(n) || 0)}`;
 
 interface Props {
   eventId: string;
