@@ -65,7 +65,7 @@ export const BottomNav = () => {
         </DrawerContent>
       </Drawer>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong safe-bottom">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 glass-strong safe-bottom">
         <div className="flex items-center justify-around px-2 py-3 max-w-lg mx-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;

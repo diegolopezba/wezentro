@@ -155,7 +155,7 @@ const Index = () => {
   }, [events, searchQuery]);
 
   return <AppLayout ref={scrollContainerRef}>
-        <header className="sticky top-0 z-40 safe-top bg-background">
+        <header className="sticky top-0 z-30 safe-top bg-background">
           <div className="flex items-center justify-between px-4 py-4">
             <m.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
               <h1 className="font-brand text-2xl text-foreground font-semibold">zentro</h1>
