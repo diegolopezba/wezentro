@@ -97,8 +97,10 @@ export function PaymentQRModal({
     if (!isActiveRef.current) return;
     setStep("loading");
     try {
+      const { getAttribution } = await import("@/lib/promoterAttribution");
+      const promoterId = eventId ? getAttribution(eventId) : null;
       const { data, error } = await supabase.functions.invoke("generate-bnb-qr", {
-        body: { eventId, ticketTierId: ticketTierId ?? null },
+        body: { eventId, ticketTierId: ticketTierId ?? null, promoterId },
       });
 
       if (error || !data) {
