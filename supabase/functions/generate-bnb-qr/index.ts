@@ -207,6 +207,7 @@ Deno.serve(async (req) => {
         amount: effectivePrice,
         status: "pending",
         ticket_tier_id: tier?.id ?? null,
+        promoter_id: promoterId ?? null,
       })
       .select("id")
       .single();
