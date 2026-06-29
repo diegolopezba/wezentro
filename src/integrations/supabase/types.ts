@@ -534,6 +534,58 @@ export type Database = {
           },
         ]
       }
+      event_promoters: {
+        Row: {
+          created_at: string
+          created_by: string
+          event_id: string
+          id: string
+          is_active: boolean
+          name: string
+          short_code: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          event_id: string
+          id?: string
+          is_active?: boolean
+          name: string
+          short_code: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          event_id?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          short_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_promoters_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_promoters_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_promoters_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_stats: {
         Row: {
           event_id: string
@@ -790,6 +842,7 @@ export type Database = {
           joined_at: string | null
           payment_confirmed_at: string | null
           payment_status: string | null
+          promoter_id: string | null
           qr_code_token: string | null
           status: string | null
           ticket_tier_id: string | null
@@ -803,6 +856,7 @@ export type Database = {
           joined_at?: string | null
           payment_confirmed_at?: string | null
           payment_status?: string | null
+          promoter_id?: string | null
           qr_code_token?: string | null
           status?: string | null
           ticket_tier_id?: string | null
@@ -816,6 +870,7 @@ export type Database = {
           joined_at?: string | null
           payment_confirmed_at?: string | null
           payment_status?: string | null
+          promoter_id?: string | null
           qr_code_token?: string | null
           status?: string | null
           ticket_tier_id?: string | null
@@ -827,6 +882,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guestlist_entries_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "event_promoters"
             referencedColumns: ["id"]
           },
           {
@@ -1187,6 +1249,7 @@ export type Database = {
           created_at: string
           event_id: string
           id: string
+          promoter_id: string | null
           status: string
           ticket_tier_id: string | null
         }
@@ -1199,6 +1262,7 @@ export type Database = {
           created_at?: string
           event_id: string
           id?: string
+          promoter_id?: string | null
           status?: string
           ticket_tier_id?: string | null
         }
@@ -1211,6 +1275,7 @@ export type Database = {
           created_at?: string
           event_id?: string
           id?: string
+          promoter_id?: string | null
           status?: string
           ticket_tier_id?: string | null
         }
@@ -1220,6 +1285,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "event_promoters"
             referencedColumns: ["id"]
           },
           {
@@ -1448,6 +1520,51 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      promoter_clicks: {
+        Row: {
+          click_day: string
+          created_at: string
+          event_id: string
+          id: string
+          promoter_id: string
+          viewer_fingerprint: string | null
+          viewer_id: string | null
+        }
+        Insert: {
+          click_day?: string
+          created_at?: string
+          event_id: string
+          id?: string
+          promoter_id: string
+          viewer_fingerprint?: string | null
+          viewer_id?: string | null
+        }
+        Update: {
+          click_day?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          promoter_id?: string
+          viewer_fingerprint?: string | null
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promoter_clicks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promoter_clicks_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "event_promoters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_subscriptions: {
         Row: {
@@ -2678,6 +2795,43 @@ export type Database = {
           viewer_liked: boolean
         }[]
       }
+      get_event_promoter_stats: {
+        Args: { _event_id: string }
+        Returns: {
+          checked_in: number
+          clicks: number
+          gl_approved: number
+          gl_requests: number
+          is_active: boolean
+          name: string
+          promoter_id: string
+          revenue_bs: number
+          short_code: string
+          tickets_sold: number
+        }[]
+      }
+      get_event_promoter_totals: {
+        Args: { _event_id: string }
+        Returns: {
+          attributed_gl: number
+          attributed_revenue: number
+          attributed_tickets: number
+          total_gl: number
+          total_revenue: number
+          total_tickets: number
+        }[]
+      }
+      get_event_ticket_breakdown: {
+        Args: { _event_id: string }
+        Returns: {
+          capacity: number
+          name: string
+          price: number
+          revenue_bs: number
+          sold: number
+          tier_id: string
+        }[]
+      }
       get_event_view_counts: {
         Args: { _event_ids: string[] }
         Returns: {
@@ -2796,6 +2950,10 @@ export type Database = {
         Args: { _event_id: string; _signal_type: string }
         Returns: undefined
       }
+      log_promoter_click: {
+        Args: { _fingerprint: string; _promoter_id: string }
+        Returns: undefined
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -2817,6 +2975,10 @@ export type Database = {
       refresh_user_collab_boosts: {
         Args: { _user_id: string }
         Returns: undefined
+      }
+      resolve_promoter: {
+        Args: { _code: string; _event_id: string }
+        Returns: string
       }
     }
     Enums: {
