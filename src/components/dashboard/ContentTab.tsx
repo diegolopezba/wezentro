@@ -49,12 +49,24 @@ const EventCard = ({ event }: { event: EventPerformance }) => {
       <AnimatePresence>
         {expanded && (
           <m.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-            <div className="px-3 pb-3 grid grid-cols-2 gap-2">
-              <Stat label="Alcance" value={reach} icon={Eye} />
-              <Stat label="Likes" value={event.likes_count} icon={Heart} />
-              <Stat label="Guestlist" value={event.guestlist_requests} icon={Users} />
-              <Stat label="Check-ins" value={event.checked_in} icon={UserCheck} />
-              <Stat label="Aprobados" value={event.approved_guests} icon={UserCheck} />
+            <div className="px-3 pb-3 space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <Stat label="Alcance" value={reach} icon={Eye} />
+                <Stat label="Likes" value={event.likes_count} icon={Heart} />
+                <Stat label="Guestlist" value={event.guestlist_requests} icon={Users} />
+                <Stat label="Check-ins" value={event.checked_in} icon={UserCheck} />
+                <Stat label="Aprobados" value={event.approved_guests} icon={UserCheck} />
+              </div>
+              {isBusiness && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full rounded-full gap-2"
+                  onClick={() => navigate(`/business/event/${event.id}/promoters`)}
+                >
+                  <Megaphone className="w-4 h-4" /> Promotores y ventas
+                </Button>
+              )}
             </div>
           </m.div>
         )}
