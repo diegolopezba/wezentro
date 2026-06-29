@@ -1,87 +1,53 @@
+## The bug
 
-# Promoter Tracking System (v1)
+`EventFeed.tsx` assigns each card an inline `zIndex={events.length - index}`. With ~50–200 cards in the feed, cards get `z-index: 50, 51, … 200+`.
 
-Business accounts get a per-event dashboard where they create named promoter links, share them, and watch sales + funnel stats attributed to each promoter. No promoter accounts, no commissions — pure tracking.
+Their parent (the masonry `<div>` with `position: relative`) has no `z-index` and no `isolation`, so it does **not** create a new stacking context. The card z-indexes leak up to the root and compete directly with:
 
-## What the user gets
+- `EventDetailModal` — `fixed inset-0 z-50`
+- `BottomNav` — `fixed bottom-0 z-50`
+- `Index` header — `sticky z-40`
 
-1. **"Promotores" button** on every event the business owns → opens the per-event dashboard.
-2. **Create a promoter** by typing a name (e.g. "Carlos"). System generates a short code like `c7k2`.
-3. **Shareable link** per promoter: `zentro.today/e/{eventId}?p=c7k2` with copy / WhatsApp / share-sheet buttons.
-4. **Per-event dashboard** showing:
-   - Tickets sold & revenue by tier (sold / capacity / Bs. total)
-   - Promoter leaderboard ranked by tickets sold
-   - Funnel per promoter: link clicks → event views → guestlist requests → approved → checked-in → tickets sold
-   - Organic vs promoter-attributed split
-5. **Gated to business accounts** (`profile.is_business = true`). Non-business owners see nothing.
+Result: top cards (z ≥ 50) paint on top of the modal and nav. Exactly what you're seeing — modal opens, feed and nav stay visible above it, you can even scroll the feed through the overlay.
 
-## How attribution works
+## How Instagram / Pinterest handle this
 
-- Visiting `?p=<code>` stores `{ eventId, promoterCode, ts }` in `localStorage` under `zentro_attr_{eventId}` for 7 days.
-- Same hit fires a `promoter_clicks` insert (deduped per day per fingerprint, mirroring `sponsored_clicks`).
-- On any downstream conversion for that event in that session (guestlist join, ticket purchase, save, like), we read the attribution and attach `promoter_id` to the row.
-- After conversion, attribution is **not** consumed — last-touch wins for 7 days, like Instagram/Shopify defaults.
+Both isolate every feed tile inside a container that owns its own stacking context (Pinterest uses an `isolation: isolate` wrapper around the masonry grid; Instagram portals overlays to `document.body` at a fixed top tier — `z-index: 1000+` for modals, `100` for the tab bar). Cards never compete with chrome because they're trapped inside a child stacking context, and overlays live on a documented z-scale.
 
-## Technical details
+We'll do the same — minimal, no behavior change.
 
-### New tables
-```text
-event_promoters
-  id, event_id, created_by (business uuid), name, short_code (unique per event),
-  is_active, created_at
+## Plan
 
-promoter_clicks
-  id, promoter_id, event_id, viewer_id (nullable), viewer_fingerprint,
-  created_at
-  UNIQUE (promoter_id, COALESCE(viewer_id, fingerprint), day)  -- dedupe
+### 1. Trap card z-indexes inside the masonry grid
+`src/components/events/EventFeed.tsx` — on the masonry container (`MasonryGrid`'s outer `<div>`), add `isolation: isolate` (or `zIndex: 0, position: relative` which we already have). This creates a stacking context, so card `zIndex` values (1…N) are scoped to the grid and can never exceed the parent's `z-index: auto` against siblings like the modal/nav.
+
+### 2. Adopt a clear app-wide z-scale
+Define and apply one tier system, matching Instagram's pattern:
+
+```
+content / cards         : auto (scoped inside grid)
+sticky page headers     : 30
+bottom nav              : 40
+sheets / dropdowns      : 50  (shadcn default)
+full-screen modals      : 60  (EventDetailModal, AuthPromptModal, etc.)
+toasts                  : 70  (already handled by sonner)
 ```
 
-### Existing tables — add nullable `promoter_id uuid` to:
-- `guestlist_entries`
-- `payment_sessions` (ticket sales)
-- `event_likes`, `saved_events` (optional, low priority — can defer)
+- `src/components/events/EventDetailModal.tsx`: `z-50` → `z-[60]`
+- `src/components/layout/BottomNav.tsx`: keep `z-50` → drop to `z-40` so the modal cleanly covers it
+- `src/pages/Index.tsx` header: `z-40` → `z-30` (still above feed content; below nav, which is the existing visual order)
 
-All new columns are nullable so existing flows are untouched.
+### 3. Verify
+Use Playwright against `http://localhost:8080`:
+1. Sign in (managed session injected), land on `/`.
+2. Scroll feed ~3 screens, click a card → assert modal `[role]` visible, screenshot.
+3. Read computed `z-index` for `BottomNav`, modal, and the highest-z card → confirm modal > nav > cards.
+4. Repeat from `/user/:id` profile grid (same masonry) to confirm `TimelineCard` taps don't show the same leak.
 
-### RLS
-- `event_promoters`: SELECT/INSERT/UPDATE only by the event's `creator_id` (and that creator must be a business). Public can `SELECT` minimal fields (id, short_code) via a security-definer RPC `resolve_promoter(event_id, short_code)` used by the attribution capture — no list exposure.
-- `promoter_clicks`: INSERT via security-definer RPC `log_promoter_click`; SELECT only by event creator.
+### Files touched
+- `src/components/events/EventFeed.tsx` (add `isolation: isolate`)
+- `src/components/events/EventDetailModal.tsx` (bump to z-60)
+- `src/components/layout/BottomNav.tsx` (drop to z-40)
+- `src/pages/Index.tsx` (drop sticky header to z-30)
 
-### RPCs
-- `resolve_promoter(_event_id, _code)` → returns `promoter_id` if active, else null.
-- `log_promoter_click(_promoter_id, _fingerprint)` → dedupes, inserts, bumps an aggregate.
-- `get_event_promoter_stats(_event_id)` → returns rows of `{ promoter_id, name, clicks, views, gl_requests, gl_approved, checked_in, tickets_sold, revenue_bs }`. Heavy joins, server-side, business-only.
-- `get_event_ticket_breakdown(_event_id)` → per `ticket_tier`: sold, capacity, revenue.
-
-### Frontend
-- New page `src/pages/EventPromoterDashboard.tsx` at route `/business/event/:eventId/promoters`.
-- New hook `src/hooks/usePromoters.ts` (list/create/toggle promoters, fetch stats).
-- New component `src/components/promoters/PromoterCard.tsx` — name, short link, copy/share, mini-stats.
-- New component `src/components/promoters/PromoterLeaderboard.tsx` — sorted by tickets sold.
-- New component `src/components/promoters/FunnelByPromoter.tsx` — reuses the funnel pattern from `ActionsTab`.
-- New util `src/lib/promoterAttribution.ts` — `captureFromUrl()`, `getAttribution(eventId)`, `clearExpired()`.
-- Wire `captureFromUrl()` into `src/pages/EventDetail.tsx` mount.
-- Wire `getAttribution(eventId)` into:
-  - `useGuestlist.ts` join mutation
-  - ticket purchase flow (`TicketTierPicker` / payment session creation)
-- Add **"Promotores"** entry to the event owner action menu (component already exists for owner actions).
-- Entry point: a **"Promotores"** quick action on `BusinessDashboard` and on each event card the business owns.
-
-### Gating
-- Route guard: redirect to `/` if `!profile.is_business` or `event.creator_id !== user.id`.
-- Hide UI entry points for non-business or non-owner viewers.
-
-## Out of scope for v1 (explicit)
-- Commission %, owed amounts, payouts.
-- Promoter user accounts / promoter login.
-- Dedicated short-link domain (`/p/{code}`) — using `?p=` query param only.
-- Time-series chart (can add in v2 once data accumulates).
-- Attributing likes/saves (low signal; revisit if needed).
-
-## Rollout order
-1. Migration: tables, columns, RLS, RPCs.
-2. Attribution util + capture on EventDetail.
-3. Wire attribution into guestlist + ticket purchase.
-4. Dashboard page + hook + components.
-5. Entry points (event owner menu, business dashboard quick action).
-6. Verify with a smoke test: create promoter → open link in incognito → join guestlist → confirm row attributes to promoter.
+No business logic, no data, no router changes.

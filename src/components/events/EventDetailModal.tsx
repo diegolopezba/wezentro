@@ -132,7 +132,7 @@ const EventDetailModalInner = () => {
   return (
     <m.div
       ref={scrollRef}
-      className="fixed inset-0 z-50 bg-background overflow-auto"
+      className="fixed inset-0 z-[60] bg-background overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}

@@ -230,6 +230,7 @@ const MasonryGrid = ({ events, followGraph, observeCard, unobserveCard, sentinel
         className="w-full"
         style={{
           position: "relative",
+          isolation: "isolate",
           height: containerHeight,
           paddingLeft: HORIZONTAL_PADDING,
           paddingRight: HORIZONTAL_PADDING,
