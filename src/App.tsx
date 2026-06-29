@@ -245,6 +245,7 @@ const AppRoutes = () => {
         {/* Public QR scanner route — no auth required, validated by ?key= param */}
         <Route path="/scan/:eventId" element={<Suspense fallback={<PageLoader />}><ScanQR /></Suspense>} />
         <Route path="/settings/blocks" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BlockedUsers /></Suspense></ProtectedRoute>} />
+        <Route path="/business/event/:eventId/promoters" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><EventPromoterDashboard /></Suspense></ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFound /></Suspense>} />
       </Routes>
