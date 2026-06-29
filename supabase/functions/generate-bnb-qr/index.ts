@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { eventId, ticketTierId } = await req.json();
+    const { eventId, ticketTierId, promoterId } = await req.json();
     if (!eventId) {
       return new Response(JSON.stringify({ error: "eventId required" }), {
         status: 400,
