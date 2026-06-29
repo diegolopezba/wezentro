@@ -13,6 +13,9 @@ const EngagementChart = lazy(() => import("@/components/dashboard/EngagementChar
 
 const EventCard = ({ event }: { event: EventPerformance }) => {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
+  const { profile } = useAuth();
+  const isBusiness = profile?.is_business === true;
   const reach = event.views_count; // unique in future, for now total
   const engagementActions = event.likes_count + event.guestlist_requests + (event as any).shares_count || 0;
   const engagementRate = reach > 0 ? Math.round((engagementActions / reach) * 100) : 0;
