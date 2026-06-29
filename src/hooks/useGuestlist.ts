@@ -42,6 +42,9 @@ export const useJoinGuestlist = () => {
         supabase.from("events").select("creator_id, title").eq("id", eventId).single(),
       ]);
 
+      const { getAttribution } = await import("@/lib/promoterAttribution");
+      const promoterId = getAttribution(eventId);
+
       // Insert guestlist entry
       const { data: entry, error: entryError } = await supabase
         .from("guestlist_entries")
@@ -49,7 +52,8 @@ export const useJoinGuestlist = () => {
           event_id: eventId,
           user_id: user.id,
           status: "pending",
-        })
+          promoter_id: promoterId,
+        } as any)
         .select()
         .single();
 

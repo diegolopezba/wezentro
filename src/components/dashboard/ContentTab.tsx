@@ -1,15 +1,21 @@
 import { Suspense, lazy, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
-import { ChevronDown, ChevronUp, Eye, Heart, Share2, Users, UserCheck } from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, Heart, Share2, Users, UserCheck, Megaphone } from "lucide-react";
 import { EventPerformance, useEventPerformance } from "@/hooks/useBusinessAnalytics";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const EngagementChart = lazy(() => import("@/components/dashboard/EngagementChart").then(m => ({ default: m.EngagementChart })));
 
 const EventCard = ({ event }: { event: EventPerformance }) => {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
+  const { profile } = useAuth();
+  const isBusiness = profile?.is_business === true;
   const reach = event.views_count; // unique in future, for now total
   const engagementActions = event.likes_count + event.guestlist_requests + (event as any).shares_count || 0;
   const engagementRate = reach > 0 ? Math.round((engagementActions / reach) * 100) : 0;
@@ -43,12 +49,24 @@ const EventCard = ({ event }: { event: EventPerformance }) => {
       <AnimatePresence>
         {expanded && (
           <m.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-            <div className="px-3 pb-3 grid grid-cols-2 gap-2">
-              <Stat label="Alcance" value={reach} icon={Eye} />
-              <Stat label="Likes" value={event.likes_count} icon={Heart} />
-              <Stat label="Guestlist" value={event.guestlist_requests} icon={Users} />
-              <Stat label="Check-ins" value={event.checked_in} icon={UserCheck} />
-              <Stat label="Aprobados" value={event.approved_guests} icon={UserCheck} />
+            <div className="px-3 pb-3 space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <Stat label="Alcance" value={reach} icon={Eye} />
+                <Stat label="Likes" value={event.likes_count} icon={Heart} />
+                <Stat label="Guestlist" value={event.guestlist_requests} icon={Users} />
+                <Stat label="Check-ins" value={event.checked_in} icon={UserCheck} />
+                <Stat label="Aprobados" value={event.approved_guests} icon={UserCheck} />
+              </div>
+              {isBusiness && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full rounded-full gap-2"
+                  onClick={() => navigate(`/business/event/${event.id}/promoters`)}
+                >
+                  <Megaphone className="w-4 h-4" /> Promotores y ventas
+                </Button>
+              )}
             </div>
           </m.div>
         )}

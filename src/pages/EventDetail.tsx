@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { CommentsSheet } from "@/components/events/CommentsSheet";
 import { useCommentCount, useLatestComment } from "@/hooks/useEventComments";
 import { AttachedBusinessCtas } from "@/components/events/AttachedBusinessCtas";
+import { captureFromUrl } from "@/lib/promoterAttribution";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -117,6 +118,13 @@ const EventDetail = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.id]);
+
+  // Capture ?p=<code> promoter attribution into localStorage + log click
+  useEffect(() => {
+    if (!id) return;
+    captureFromUrl(id, location.search);
+  }, [id, location.search]);
+
 
 
   if (isLoading) {

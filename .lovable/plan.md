@@ -1,111 +1,87 @@
 
-# Better Home Feed — V7 "Quality-First"
+# Promoter Tracking System (v1)
 
-## The problem (what you're seeing)
+Business accounts get a per-event dashboard where they create named promoter links, share them, and watch sales + funnel stats attributed to each promoter. No promoter accounts, no commissions — pure tracking.
 
-Right now a brand-new post with **zero likes, zero attendees, zero relevance to you** can outrank a popular post from yesterday. Two real causes:
+## What the user gets
 
-### 1. Recency dominates posts (30%)
-A fresh post gets `recency=100 × 0.30 = 30 pts` for free, before any quality signal is measured. A 1-day-old post with lots of likes loses that head start. The current weights reward "newest" more than "best" — the opposite of what Instagram/TikTok/Pinterest do.
+1. **"Promotores" button** on every event the business owns → opens the per-event dashboard.
+2. **Create a promoter** by typing a name (e.g. "Carlos"). System generates a short code like `c7k2`.
+3. **Shareable link** per promoter: `zentro.today/e/{eventId}?p=c7k2` with copy / WhatsApp / share-sheet buttons.
+4. **Per-event dashboard** showing:
+   - Tickets sold & revenue by tier (sold / capacity / Bs. total)
+   - Promoter leaderboard ranked by tickets sold
+   - Funnel per promoter: link clicks → event views → guestlist requests → approved → checked-in → tickets sold
+   - Organic vs promoter-attributed split
+5. **Gated to business accounts** (`profile.is_business = true`). Non-business owners see nothing.
 
-### 2. Our trending signal is broken
-We recently routed likes/saves/joins through a new `interaction_events_log` table. But the trending score (`refresh_trending_scores_cache`) still reads from the old `event_interactions` table, which barely receives writes anymore. So **almost every post has `trending=0` right now**, which is why the trending+velocity weights aren't doing their job and recency wins everything.
+## How attribution works
 
-### 3. No engagement-rate floor
-TikTok/IG/Pinterest demote content that's been shown a lot but no one engages with it (low CTR = bad content). We have impression counts in `event_stats` but never compare them to likes/saves. A post with 200 impressions and 0 likes should sink, not float.
-
-## The fix — V7 weight & signal overhaul
-
-### Server changes (`assemble-for-you-slate` + `feedScoring.ts` mirror)
-
-**New POST weights — virality-first instead of recency-first:**
-
-```text
-                V6 (now)   V7 (proposed)
-  trending        12%   →   22%   ← quality dominates
-  engagement       0%   →   12%   ← NEW: likes+saves vs impressions
-  recency         30%   →   14%   ← still matters, no longer king
-  friends         14%   →   12%
-  learned         10%   →    8%
-  interest        10%   →    8%
-  velocity         6%   →    8%   ← early burst still rewarded
-  descTags         8%   →    6%
-  collaborative    6%   →    5%
-  socialProof      2%   →    3%
-  proximity        2%   →    2%
-  quality penalty               ← multiplicative, see below
-```
-
-**New EVENT weights — small rebalance toward quality:**
-
-```text
-  popularity       7%   →  10%
-  trending         9%   →  14%
-  engagement       0%   →   8%   ← NEW
-  friends         14%   →  12%
-  proximity       12%   →  10%
-  (others trimmed proportionally)
-```
-
-**New signals introduced**
-
-1. **`engagementScore`** — uses `event_stats` we already denormalize:
-   ```
-   ratio = (likes + 2*saves + 3*joins) / max(impressions, 20)
-   ```
-   Floor of 20 impressions prevents tiny-sample noise. Scored 0–100.
-
-2. **Quality multiplier (penalty)** — applied to the final composite:
-   - Post with ≥50 impressions and 0 likes/saves/joins → ×0.55
-   - Post with ≥100 impressions and engagement ratio < 1% → ×0.7
-   - Otherwise → ×1.0
-   This is exactly the "dead content sinks" rule IG/TikTok use.
-
-3. **Cold-start exemption** — posts <6h old with <20 impressions skip the penalty so brand-new content gets a fair shot (the recency score still rewards them, just less than before).
-
-### Fix the broken trending signal
-
-The trending cache must read from the live signal stores, not the dead `event_interactions` table.
-
-Rewrite `refresh_trending_scores_cache` to union from the actual source-of-truth tables:
-- `event_likes` (last 24h) — weight 3
-- `saved_events` (last 24h) — weight 5
-- `guestlist_entries` (joined last 24h, status=approved) — weight 5
-- `reposts` (last 24h) — weight 3
-- `interaction_events_log` where `signal_type='click'` (last 24h) — weight 1
-
-Velocity (2h window) uses the same tables filtered to the last 2 hours.
-
-This restores trending to its V6 strength **and** keeps it accurate going forward as we phase out `event_interactions` writes.
-
-### Diversity guardrail (creator de-duplication)
-
-Right now a single creator can occupy 3–4 consecutive cards at the top. Add a soft constraint in the ranker:
-- After sorting, walk the list and push any item to position +3 if the previous 2 cards share its `creator_id`.
-- Pinterest/IG do this exactly; it costs nothing and stops "feed monopolization."
+- Visiting `?p=<code>` stores `{ eventId, promoterCode, ts }` in `localStorage` under `zentro_attr_{eventId}` for 7 days.
+- Same hit fires a `promoter_clicks` insert (deduped per day per fingerprint, mirroring `sponsored_clicks`).
+- On any downstream conversion for that event in that session (guestlist join, ticket purchase, save, like), we read the attribution and attach `promoter_id` to the row.
+- After conversion, attribution is **not** consumed — last-touch wins for 7 days, like Instagram/Shopify defaults.
 
 ## Technical details
 
-**Files changed**
+### New tables
+```text
+event_promoters
+  id, event_id, created_by (business uuid), name, short_code (unique per event),
+  is_active, created_at
 
-- `supabase/migrations/<new>.sql` — replace `refresh_trending_scores_cache` body with the union-from-source-tables version. No schema change, function-body only.
-- `supabase/functions/assemble-for-you-slate/index.ts` — new weights, `engagementScore`, quality multiplier, creator de-dup pass. Add `like_count, save_count, attendee_count, impression_count` to the candidate projection (read from `event_stats` + a small join).
-- `src/lib/feedScoring.ts` — mirror the V7 weights/penalty so client-side scoring used by `useFollowingEventsScored` and `useRelatedEvents` stays in lockstep.
-- `supabase/migrations/<new2>.sql` — extend `get_for_you_events` RPC to return `like_count`, `save_count`, `impression_count` from `event_stats` so the edge function doesn't need an extra query.
+promoter_clicks
+  id, promoter_id, event_id, viewer_id (nullable), viewer_fingerprint,
+  created_at
+  UNIQUE (promoter_id, COALESCE(viewer_id, fingerprint), day)  -- dedupe
+```
 
-**Determinism preserved** — the per-seed jitter (`hashJitter`) stays, so pagination remains stable within a session.
+### Existing tables — add nullable `promoter_id uuid` to:
+- `guestlist_entries`
+- `payment_sessions` (ticket sales)
+- `event_likes`, `saved_events` (optional, low priority — can defer)
 
-**No client-visible breakage** — same response shape, same card components, only ordering changes.
+All new columns are nullable so existing flows are untouched.
 
-## What you'll notice
+### RLS
+- `event_promoters`: SELECT/INSERT/UPDATE only by the event's `creator_id` (and that creator must be a business). Public can `SELECT` minimal fields (id, short_code) via a security-definer RPC `resolve_promoter(event_id, short_code)` used by the attribution capture — no list exposure.
+- `promoter_clicks`: INSERT via security-definer RPC `log_promoter_click`; SELECT only by event creator.
 
-- Posts with real engagement (likes/saves/attendees) move up.
-- Brand-new posts still appear, but only in the top section if they're also relevant to you; otherwise they're spaced out.
-- Posts with lots of impressions but no engagement sink (the "I don't like this and no one else does either" cases).
-- Same creator stops dominating consecutive slots.
+### RPCs
+- `resolve_promoter(_event_id, _code)` → returns `promoter_id` if active, else null.
+- `log_promoter_click(_promoter_id, _fingerprint)` → dedupes, inserts, bumps an aggregate.
+- `get_event_promoter_stats(_event_id)` → returns rows of `{ promoter_id, name, clicks, views, gl_requests, gl_approved, checked_in, tickets_sold, revenue_bs }`. Heavy joins, server-side, business-only.
+- `get_event_ticket_breakdown(_event_id)` → per `ticket_tier`: sold, capacity, revenue.
 
-## Out of scope
+### Frontend
+- New page `src/pages/EventPromoterDashboard.tsx` at route `/business/event/:eventId/promoters`.
+- New hook `src/hooks/usePromoters.ts` (list/create/toggle promoters, fetch stats).
+- New component `src/components/promoters/PromoterCard.tsx` — name, short link, copy/share, mini-stats.
+- New component `src/components/promoters/PromoterLeaderboard.tsx` — sorted by tickets sold.
+- New component `src/components/promoters/FunnelByPromoter.tsx` — reuses the funnel pattern from `ActionsTab`.
+- New util `src/lib/promoterAttribution.ts` — `captureFromUrl()`, `getAttribution(eventId)`, `clearExpired()`.
+- Wire `captureFromUrl()` into `src/pages/EventDetail.tsx` mount.
+- Wire `getAttribution(eventId)` into:
+  - `useGuestlist.ts` join mutation
+  - ticket purchase flow (`TicketTierPicker` / payment session creation)
+- Add **"Promotores"** entry to the event owner action menu (component already exists for owner actions).
+- Entry point: a **"Promotores"** quick action on `BusinessDashboard` and on each event card the business owns.
 
-- No ML model / embeddings (still rule-based, runs in <50ms).
-- No changes to "Siguiendo" tab logic, sponsored slot positions, or ad targeting.
-- Not touching impressions/likes write paths — we already cleaned those up.
+### Gating
+- Route guard: redirect to `/` if `!profile.is_business` or `event.creator_id !== user.id`.
+- Hide UI entry points for non-business or non-owner viewers.
+
+## Out of scope for v1 (explicit)
+- Commission %, owed amounts, payouts.
+- Promoter user accounts / promoter login.
+- Dedicated short-link domain (`/p/{code}`) — using `?p=` query param only.
+- Time-series chart (can add in v2 once data accumulates).
+- Attributing likes/saves (low signal; revisit if needed).
+
+## Rollout order
+1. Migration: tables, columns, RLS, RPCs.
+2. Attribution util + capture on EventDetail.
+3. Wire attribution into guestlist + ticket purchase.
+4. Dashboard page + hook + components.
+5. Entry points (event owner menu, business dashboard quick action).
+6. Verify with a smoke test: create promoter → open link in incognito → join guestlist → confirm row attributes to promoter.

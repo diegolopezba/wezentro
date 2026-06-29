@@ -82,6 +82,7 @@ const ReservationConfirmation = lazyWithRetry(() => import("./pages/ReservationC
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
 const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
+const EventPromoterDashboard = lazyWithRetry(() => import("./pages/EventPromoterDashboard"));
 
 // Lazily-imported, but pre-loadable for instant tap response
 const eventDetailImport = () => import("./pages/EventDetail");
@@ -244,6 +245,7 @@ const AppRoutes = () => {
         {/* Public QR scanner route — no auth required, validated by ?key= param */}
         <Route path="/scan/:eventId" element={<Suspense fallback={<PageLoader />}><ScanQR /></Suspense>} />
         <Route path="/settings/blocks" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BlockedUsers /></Suspense></ProtectedRoute>} />
+        <Route path="/business/event/:eventId/promoters" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><EventPromoterDashboard /></Suspense></ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFound /></Suspense>} />
       </Routes>
