@@ -119,6 +119,13 @@ const EventDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.id]);
 
+  // Capture ?p=<code> promoter attribution into localStorage + log click
+  useEffect(() => {
+    if (!id) return;
+    captureFromUrl(id, location.search);
+  }, [id, location.search]);
+
+
 
   if (isLoading) {
     return <div className="min-h-[100dvh] bg-background flex items-center justify-center">
