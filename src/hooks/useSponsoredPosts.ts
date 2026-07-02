@@ -282,17 +282,19 @@ export const useUpdateSponsoredStatus = () => {
   });
 };
 
-// Track impression
+// Track impression — batched client-side (see src/lib/sponsoredImpressionQueue.ts).
+// One flush = one grouped RPC = one UPDATE per campaign instead of one per view.
 export const useTrackSponsoredImpression = () => {
   return useMutation({
     mutationFn: async (sponsoredPostId: string) => {
-      const { error } = await supabase.rpc("increment_sponsored_impressions" as any, {
-        _post_id: sponsoredPostId,
-      });
-      if (error) console.warn("Failed to track impression:", error);
+      const { queueSponsoredImpression } = await import(
+        "@/lib/sponsoredImpressionQueue"
+      );
+      queueSponsoredImpression(sponsoredPostId);
     },
   });
 };
+
 
 // Track click on sponsored post (deduped server-side per viewer per day)
 export const useTrackSponsoredClick = () => {

@@ -2951,6 +2951,10 @@ export type Database = {
         Args: { _post_id: string }
         Returns: undefined
       }
+      increment_sponsored_impressions_batch: {
+        Args: { _counts: Json }
+        Returns: undefined
+      }
       increment_tier_sold: { Args: { _tier_id: string }; Returns: boolean }
       is_blocked: {
         Args: { _target: string; _viewer: string }
