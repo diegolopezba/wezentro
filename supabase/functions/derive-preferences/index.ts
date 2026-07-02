@@ -142,118 +142,55 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 5. Apply aggregates with incremental averaging (same math as the old
-    // sync path, but batched: read existing row, compute new score, upsert).
-    const applyScore = (current: number, avgWeight: number, isNegative: boolean) =>
-      isNegative
-        ? Math.max(0, current - 30)
-        : Math.min(100, Math.max(0, current * 0.7 + avgWeight * 0.3));
+    // 5. Bulk-upsert all four dimensions via server-side RPCs. Each RPC
+    //    performs a single INSERT ... ON CONFLICT DO UPDATE over the batch,
+    //    so a run touches Postgres 4 times instead of 4 × N times
+    //    (Pinterest/TikTok pattern: aggregate in the worker, write once).
+    const categoryRecords = Array.from(categoryAgg.values()).map((a) => ({
+      user_id: a.userId,
+      category: a.category,
+      avg_weight: a.sumWeight / a.count,
+      count: a.count,
+      latest: a.latest,
+      is_negative: a.isNegative,
+    }));
+    const creatorRecords = Array.from(creatorAgg.values()).map((a) => ({
+      user_id: a.userId,
+      creator_id: a.creatorId,
+      avg_weight: a.sumWeight / a.count,
+      count: a.count,
+      latest: a.latest,
+      is_negative: a.isNegative,
+    }));
+    const dayRecords = Array.from(dayAgg.values()).map((a) => ({
+      user_id: a.userId,
+      day_of_week: a.dow,
+      category: a.category,
+      avg_weight: a.sumWeight / a.count,
+      count: a.count,
+      latest: a.latest,
+    }));
+    const tagRecords = Array.from(tagAgg.values()).map((a) => ({
+      user_id: a.userId,
+      tag: a.tag,
+      avg_weight: a.sumWeight / a.count,
+      count: a.count,
+      latest: a.latest,
+    }));
 
-    // Categories
-    for (const agg of categoryAgg.values()) {
-      const avgW = agg.sumWeight / agg.count;
-      const { data: existing } = await supabase
-        .from("user_category_preferences")
-        .select("id, score, interaction_count")
-        .eq("user_id", agg.userId)
-        .eq("category", agg.category)
-        .maybeSingle();
-      if (existing) {
-        await supabase.from("user_category_preferences").update({
-          score: applyScore(Number(existing.score) || 0, avgW, agg.isNegative),
-          interaction_count: (existing.interaction_count || 0) + agg.count,
-          last_interaction: agg.latest,
-        }).eq("id", existing.id);
-      } else {
-        await supabase.from("user_category_preferences").insert({
-          user_id: agg.userId,
-          category: agg.category,
-          score: agg.isNegative ? 0 : Math.min(100, Math.max(0, avgW)),
-          interaction_count: agg.count,
-          last_interaction: agg.latest,
-        });
-      }
+    if (categoryRecords.length) {
+      await supabase.rpc("bulk_upsert_category_preferences", { _records: categoryRecords });
+    }
+    if (creatorRecords.length) {
+      await supabase.rpc("bulk_upsert_creator_preferences", { _records: creatorRecords });
+    }
+    if (dayRecords.length) {
+      await supabase.rpc("bulk_upsert_day_preferences", { _records: dayRecords });
+    }
+    if (tagRecords.length) {
+      await supabase.rpc("bulk_upsert_tag_preferences", { _records: tagRecords });
     }
 
-    // Creators
-    for (const agg of creatorAgg.values()) {
-      const avgW = agg.sumWeight / agg.count;
-      const { data: existing } = await supabase
-        .from("user_creator_preferences")
-        .select("id, score, interaction_count")
-        .eq("user_id", agg.userId)
-        .eq("creator_id", agg.creatorId)
-        .maybeSingle();
-      if (existing) {
-        await supabase.from("user_creator_preferences").update({
-          score: applyScore(Number(existing.score) || 0, avgW, agg.isNegative),
-          interaction_count: (existing.interaction_count || 0) + agg.count,
-          last_interaction: agg.latest,
-        }).eq("id", existing.id);
-      } else {
-        await supabase.from("user_creator_preferences").insert({
-          user_id: agg.userId,
-          creator_id: agg.creatorId,
-          score: agg.isNegative ? 0 : Math.min(100, Math.max(0, avgW)),
-          interaction_count: agg.count,
-          last_interaction: agg.latest,
-        });
-      }
-    }
-
-    // Day-of-week
-    for (const agg of dayAgg.values()) {
-      const avgW = agg.sumWeight / agg.count;
-      const { data: existing } = await supabase
-        .from("user_day_preferences")
-        .select("id, score, interaction_count")
-        .eq("user_id", agg.userId)
-        .eq("day_of_week", agg.dow)
-        .eq("category", agg.category)
-        .maybeSingle();
-      if (existing) {
-        await supabase.from("user_day_preferences").update({
-          score: applyScore(Number(existing.score) || 0, avgW, false),
-          interaction_count: (existing.interaction_count || 0) + agg.count,
-          last_interaction: agg.latest,
-        }).eq("id", existing.id);
-      } else {
-        await supabase.from("user_day_preferences").insert({
-          user_id: agg.userId,
-          day_of_week: agg.dow,
-          category: agg.category,
-          score: Math.min(100, Math.max(0, avgW)),
-          interaction_count: agg.count,
-          last_interaction: agg.latest,
-        });
-      }
-    }
-
-    // Tags
-    for (const agg of tagAgg.values()) {
-      const avgW = agg.sumWeight / agg.count;
-      const { data: existing } = await supabase
-        .from("user_tag_preferences")
-        .select("id, score, interaction_count")
-        .eq("user_id", agg.userId)
-        .eq("tag", agg.tag)
-        .maybeSingle();
-      if (existing) {
-        await supabase.from("user_tag_preferences").update({
-          score: applyScore(Number(existing.score) || 0, avgW, false),
-          interaction_count: (existing.interaction_count || 0) + agg.count,
-          last_interaction: agg.latest,
-        }).eq("id", existing.id);
-      } else {
-        await supabase.from("user_tag_preferences").insert({
-          user_id: agg.userId,
-          tag: agg.tag,
-          score: Math.min(100, Math.max(0, avgW)),
-          interaction_count: agg.count,
-          last_interaction: agg.latest,
-        });
-      }
-    }
 
     // 6. Advance cursor
     const newCursor = (rows[rows.length - 1] as any).id as number;

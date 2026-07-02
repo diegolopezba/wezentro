@@ -2712,6 +2712,22 @@ export type Database = {
       }
     }
     Functions: {
+      bulk_upsert_category_preferences: {
+        Args: { _records: Json }
+        Returns: undefined
+      }
+      bulk_upsert_creator_preferences: {
+        Args: { _records: Json }
+        Returns: undefined
+      }
+      bulk_upsert_day_preferences: {
+        Args: { _records: Json }
+        Returns: undefined
+      }
+      bulk_upsert_tag_preferences: {
+        Args: { _records: Json }
+        Returns: undefined
+      }
       bump_event_stats: {
         Args: { _event_id: string; _impressions?: number; _views?: number }
         Returns: undefined
@@ -2724,6 +2740,7 @@ export type Database = {
         Args: { _entry_user_id: string; _event_id: string; _user_id: string }
         Returns: boolean
       }
+      cleanup_infra_logs: { Args: never; Returns: undefined }
       cleanup_interaction_events_log: { Args: never; Returns: undefined }
       cleanup_old_event_interactions: { Args: never; Returns: undefined }
       cleanup_session_feed_state: { Args: never; Returns: undefined }

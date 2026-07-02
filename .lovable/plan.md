@@ -1,53 +1,74 @@
-## The bug
+## What I found
 
-`EventFeed.tsx` assigns each card an inline `zIndex={events.length - index}`. With ~50–200 cards in the feed, cards get `z-index: 50, 51, … 200+`.
+I pulled 24h of DB stats + slow-query stats + cron history. The problem is **not user traffic** — it's **background write amplification**. Even with ~0 sessions, we're generating tens of thousands of writes/hour because our own jobs and hot-path inserts are misbehaving.
 
-Their parent (the masonry `<div>` with `position: relative`) has no `z-index` and no `isolation`, so it does **not** create a new stacking context. The card z-indexes leak up to the root and compete directly with:
+Top offenders in the last ~24h:
 
-- `EventDetailModal` — `fixed inset-0 z-50`
-- `BottomNav` — `fixed bottom-0 z-50`
-- `Index` header — `sticky z-40`
+| Table | Writes | Cause |
+|---|---|---|
+| `trending_scores_cache` | 174,516 ins + 174,516 del | `refresh_trending_scores_cache` runs every 15 min and **TRUNCATE+re-INSERTs every row**. |
+| `event_interactions` | 42,377 inserts | Still receiving direct inserts despite our "queue only" refactor. |
+| `user_creator_preferences` | 30,670 UPDATEs | `derive-preferences` cron does **one UPDATE per (user, creator)** every 15 min. |
+| `user_tag/category/day_preferences` | ~33,000 UPDATEs | Same N+1 pattern from `derive-preferences`. |
+| `net.http_request_queue` | 27,535 inserts | pg_net queue churn from crons + webhooks. |
+| `web_vitals` | 14,193 inserts | 6,903 pgrst calls for a supposedly 10%-sampled metric — not actually sampled, or sampling only in one entrypoint. |
+| `sponsored_posts` | 3,296 UPDATEs on ~4 rows | Lifecycle cron re-touches every row every 15 min. |
+| `sponsored_daily_spend` | 2,549 UPDATEs on 78 rows | Same. |
+| `cron.job_run_details` | 141,956 UPDATEs | Every cron heartbeat writes here. |
 
-Result: top cards (z ≥ 50) paint on top of the modal and nav. Exactly what you're seeing — modal opens, feed and nav stay visible above it, you can even scroll the feed through the overlay.
+WAL is 304MB on a 992MB DB — ~30% of the disk is write-log bloat from these churny updates. Rolled-back transactions since boot: **735,832** — likely retries on the `event_interactions` inserts that hit the type CHECK constraint before we widened it. That churn is billed as compute too.
 
-## How Instagram / Pinterest handle this
+## What Instagram / Pinterest / TikTok do (and we don't)
 
-Both isolate every feed tile inside a container that owns its own stacking context (Pinterest uses an `isolation: isolate` wrapper around the masonry grid; Instagram portals overlays to `document.body` at a fixed top tier — `z-index: 1000+` for modals, `100` for the tab bar). Cards never compete with chrome because they're trapped inside a child stacking context, and overlays live on a documented z-scale.
+1. **Trending / feed rankings**: kept in **Redis / Memcached** (or a materialized view refreshed `CONCURRENTLY`) — never TRUNCATE+INSERT into a hot table. Pinterest's Pixie/Terrapin serve rankings from an in-memory KV; the DB never sees the churn.
+2. **Preference derivation**: runs as a **stream job (Kafka → Flink)** that emits ONE bulk upsert per user, not per (user, creator) pair. Cadence is **hourly or daily**, not every 15 min. Pinterest's user embeddings refresh nightly.
+3. **Metrics (Web Vitals, impressions)**: heavy sampling (**1% for RUM, 10% for impressions on cold users**), and shipped to a **cold analytics store** (Snowflake / BigQuery), never OLTP.
+4. **Ad lifecycle**: event-driven (state machine flips only when balance / date crosses a threshold) — not "touch every row every 15 min".
+5. **Adaptive cadence**: if DAU on a shard = 0, the workers **skip entirely**. IG "sleeps" cold shards.
 
-We'll do the same — minimal, no behavior change.
+## Plan (4 phases, biggest wins first)
 
-## Plan
+### Phase 1 — kill idle-time write amplification (biggest $/effort)
 
-### 1. Trap card z-indexes inside the masonry grid
-`src/components/events/EventFeed.tsx` — on the masonry container (`MasonryGrid`'s outer `<div>`), add `isolation: isolate` (or `zIndex: 0, position: relative` which we already have). This creates a stacking context, so card `zIndex` values (1…N) are scoped to the grid and can never exceed the parent's `z-index: auto` against siblings like the modal/nav.
+1. **`refresh_trending_scores_cache`**: rewrite the RPC to `INSERT … ON CONFLICT DO UPDATE` only rows whose score changed by more than a threshold (or use `MERGE`). Drop cadence to **every 60 min** (from 15). Skip entirely when there were 0 impressions in the last hour.
+2. **`derive-preferences`**: 
+   - Skip run when `interaction_events_log` has 0 new rows since last watermark (currently the function runs unconditionally).
+   - Replace per-row UPDATE with **one `INSERT … ON CONFLICT DO UPDATE`** per preference table (batched by unnest). Cuts 30k statements → ~5.
+   - Cadence: every 60 min instead of 15.
+3. **`sponsored-posts-lifecycle`**: only UPDATE rows where a state transition actually applies (`WHERE status = 'active' AND end_at < now()` etc.). Cadence: every 60 min.
+4. **`event_interactions` direct inserts**: audit and remove the 40k/day source. `menu_view` / `reserve_tap` still insert directly — route through `bump_event_stats` (denormalized counter) like impressions. Delete the `event_interactions` insert paths.
+5. **Web Vitals**: enforce the 10% sample rate at the source (currently 6.9k inserts/24h with zero traffic means it's not sampling). Drop to 1% and cap at 100 events / session.
 
-### 2. Adopt a clear app-wide z-scale
-Define and apply one tier system, matching Instagram's pattern:
+Expected result: **>85% reduction in daily write volume** and matching WAL/backup cost.
 
-```
-content / cards         : auto (scoped inside grid)
-sticky page headers     : 30
-bottom nav              : 40
-sheets / dropdowns      : 50  (shadcn default)
-full-screen modals      : 60  (EventDetailModal, AuthPromptModal, etc.)
-toasts                  : 70  (already handled by sonner)
-```
+### Phase 2 — reduce cron heartbeat cost
 
-- `src/components/events/EventDetailModal.tsx`: `z-50` → `z-[60]`
-- `src/components/layout/BottomNav.tsx`: keep `z-50` → drop to `z-40` so the modal cleanly covers it
-- `src/pages/Index.tsx` header: `z-40` → `z-30` (still above feed content; below nav, which is the existing visual order)
+6. Merge the 4 nightly cleanup crons into a **single nightly maintenance job** — one `job_run_details` row per night instead of four.
+7. Add a `cleanup_cron_job_run_details` step that keeps only the last 7 days (currently unbounded — 141k rows).
+8. Add a `pg_net._http_response` TTL (7 days).
 
-### 3. Verify
-Use Playwright against `http://localhost:8080`:
-1. Sign in (managed session injected), land on `/`.
-2. Scroll feed ~3 screens, click a card → assert modal `[role]` visible, screenshot.
-3. Read computed `z-index` for `BottomNav`, modal, and the highest-z card → confirm modal > nav > cards.
-4. Repeat from `/user/:id` profile grid (same masonry) to confirm `TimelineCard` taps don't show the same leak.
+### Phase 3 — adopt hot/cold split for analytics
 
-### Files touched
-- `src/components/events/EventFeed.tsx` (add `isolation: isolate`)
-- `src/components/events/EventDetailModal.tsx` (bump to z-60)
-- `src/components/layout/BottomNav.tsx` (drop to z-40)
-- `src/pages/Index.tsx` (drop sticky header to z-30)
+9. Move `web_vitals` and raw `interaction_events_log` to a **rolling 7-day partitioned table**, drop old partitions with `DETACH+DROP` (O(1)), instead of `DELETE`ing rows nightly (which is what generates most WAL).
+10. Long-term (not this phase, flag for later): ship raw analytics to a cold store; keep only aggregates in Postgres.
 
-No business logic, no data, no router changes.
+### Phase 4 — right-size the instance once writes drop
+
+11. After Phase 1 lands, re-check `db_health`. If memory stays < 40% and disk < 25%, we're on an oversized instance and can downgrade in **Backend → Advanced settings → Instance size** for a further cost cut.
+
+### Files/objects touched (Phase 1)
+
+- `supabase/migrations/*` — rewrite `refresh_trending_scores_cache`, add bulk-upsert helpers for `user_*_preferences`.
+- `supabase/functions/derive-preferences/index.ts` — batched upsert + watermark short-circuit + cron cadence.
+- `supabase/functions/sponsored-posts-lifecycle/index.ts` — filtered update + cadence.
+- `src/lib/analyticsTracking.ts` — route `trackMenuView`/`trackReserveTap` through the impression queue (or a similar `bump_event_stats` counter).
+- `src/lib/webVitals.ts` — enforce sampling, cap per session.
+- `cron.job` — update schedules for jobids 3, 7, 2.
+
+### Verification
+
+- Re-run `pg_stat_user_tables` after 24h; target: `event_interactions` inserts < 500/day, `trending_scores_cache` writes < 5k/day, `user_creator_preferences` updates < 2k/day.
+- `db_health`: WAL should drop below 100MB within 48h after autovacuum catches up.
+- Confirm `Cloud & AI balance` free-balance-used grows more slowly than the current $1.33/day.
+
+Want me to proceed with Phase 1 first, or all four phases in sequence?

@@ -9,11 +9,13 @@ import { Capacitor } from "@capacitor/core";
 
 let initialized = false;
 
-// 10% session sampling — decided once per session, then reused for every metric
-// so a given session is either fully captured or fully skipped.
-const SAMPLE_RATE = 0.1;
+// 1% session sampling — Pinterest/Instagram cap RUM writes aggressively
+// because Core Web Vitals only need statistical significance, not full
+// fidelity. 1% of sessions × 5 metrics is more than enough for trends.
+const SAMPLE_RATE = 0.01;
 const sessionSampled =
   typeof window !== "undefined" ? Math.random() < SAMPLE_RATE : false;
+
 
 async function report(metric: Metric) {
   try {
