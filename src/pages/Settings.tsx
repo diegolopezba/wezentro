@@ -47,7 +47,7 @@ const Settings = () => {
     {
       title: "Business",
       items: [
-        { icon: Briefcase, label: "Dashboard Business", path: "/settings/business", highlight: true },
+        { icon: Briefcase, label: "Business", path: "/settings/business", highlight: true },
       ],
     },
     {
