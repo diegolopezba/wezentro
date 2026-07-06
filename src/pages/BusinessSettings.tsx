@@ -106,7 +106,7 @@ const BusinessSettings = () => {
               </div>
               <div className="flex-1 text-left">
                 <span className="text-foreground font-semibold block">Business Dashboard</span>
-                <span className="text-xs text-muted-foreground">Analytics e insights</span>
+                <span className="text-xs text-muted-foreground">Analíticas y perspectivas</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </m.button>
