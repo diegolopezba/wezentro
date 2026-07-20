@@ -222,6 +222,29 @@ const Create = () => {
     setIsUploading(true);
     setUploadProgress(0);
 
+    // Videos (and any file >6MB) go through TUS resumable uploads for
+    // reliability on mobile networks and to bypass the single-PUT size limits.
+    const isVideo = file.type.startsWith("video/");
+    const useResumable = isVideo || file.size > 6 * 1024 * 1024;
+
+    if (useResumable) {
+      try {
+        const { resumableUpload } = await import("@/lib/resumableUpload");
+        const url = await resumableUpload({
+          bucket: "event-images",
+          objectPath: fileName,
+          file,
+          onProgress: (p) => setUploadProgress(p),
+        });
+        setIsUploading(false);
+        return url;
+      } catch (err: any) {
+        setIsUploading(false);
+        console.error("[uploadMedia] resumable failed:", err);
+        throw new Error(err?.message || "Error al subir el archivo");
+      }
+    }
+
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.upload.addEventListener("progress", (event) => {
