@@ -1004,7 +1004,7 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20260629: {
+      interaction_events_log_20260713: {
         Row: {
           created_at: string
           event_id: string
@@ -1028,7 +1028,7 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20260630: {
+      interaction_events_log_20260714: {
         Row: {
           created_at: string
           event_id: string
@@ -1052,7 +1052,7 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20260701: {
+      interaction_events_log_20260715: {
         Row: {
           created_at: string
           event_id: string
@@ -1076,7 +1076,7 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20260702: {
+      interaction_events_log_20260716: {
         Row: {
           created_at: string
           event_id: string
@@ -1100,7 +1100,7 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20260703: {
+      interaction_events_log_20260717: {
         Row: {
           created_at: string
           event_id: string
@@ -1124,7 +1124,7 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20260704: {
+      interaction_events_log_20260718: {
         Row: {
           created_at: string
           event_id: string
@@ -1148,7 +1148,7 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20260705: {
+      interaction_events_log_20260719: {
         Row: {
           created_at: string
           event_id: string
@@ -1172,7 +1172,7 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20260706: {
+      interaction_events_log_20260720: {
         Row: {
           created_at: string
           event_id: string
@@ -1196,7 +1196,7 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20260707: {
+      interaction_events_log_20260721: {
         Row: {
           created_at: string
           event_id: string
@@ -1220,7 +1220,7 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20260708: {
+      interaction_events_log_20260722: {
         Row: {
           created_at: string
           event_id: string
@@ -2791,7 +2791,7 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20260629: {
+      web_vitals_20260713: {
         Row: {
           created_at: string
           id: string
@@ -2830,7 +2830,7 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20260630: {
+      web_vitals_20260714: {
         Row: {
           created_at: string
           id: string
@@ -2869,7 +2869,7 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20260701: {
+      web_vitals_20260715: {
         Row: {
           created_at: string
           id: string
@@ -2908,7 +2908,7 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20260702: {
+      web_vitals_20260716: {
         Row: {
           created_at: string
           id: string
@@ -2947,7 +2947,7 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20260703: {
+      web_vitals_20260717: {
         Row: {
           created_at: string
           id: string
@@ -2986,7 +2986,7 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20260704: {
+      web_vitals_20260718: {
         Row: {
           created_at: string
           id: string
@@ -3025,7 +3025,7 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20260705: {
+      web_vitals_20260719: {
         Row: {
           created_at: string
           id: string
@@ -3064,7 +3064,7 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20260706: {
+      web_vitals_20260720: {
         Row: {
           created_at: string
           id: string
@@ -3103,7 +3103,7 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20260707: {
+      web_vitals_20260721: {
         Row: {
           created_at: string
           id: string
@@ -3142,7 +3142,7 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20260708: {
+      web_vitals_20260722: {
         Row: {
           created_at: string
           id: string
