@@ -149,7 +149,7 @@ const Create = () => {
 
   const processSingleFile = async (file: File): Promise<MediaItem | null> => {
     if (isVideoFile(file)) {
-      const validation = await validateVideoFile(file, 30, 20);
+      const validation = await validateVideoFile(file, 60, 50);
       if (!validation.valid) {
         toast.error(validation.error);
         return null;
@@ -221,6 +221,29 @@ const Create = () => {
     const fileName = `${user.id}/${Date.now()}.${fileExt}`;
     setIsUploading(true);
     setUploadProgress(0);
+
+    // Videos (and any file >6MB) go through TUS resumable uploads for
+    // reliability on mobile networks and to bypass the single-PUT size limits.
+    const isVideo = file.type.startsWith("video/");
+    const useResumable = isVideo || file.size > 6 * 1024 * 1024;
+
+    if (useResumable) {
+      try {
+        const { resumableUpload } = await import("@/lib/resumableUpload");
+        const url = await resumableUpload({
+          bucket: "event-images",
+          objectPath: fileName,
+          file,
+          onProgress: (p) => setUploadProgress(p),
+        });
+        setIsUploading(false);
+        return url;
+      } catch (err: any) {
+        setIsUploading(false);
+        console.error("[uploadMedia] resumable failed:", err);
+        throw new Error(err?.message || "Error al subir el archivo");
+      }
+    }
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
