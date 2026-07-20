@@ -115,7 +115,7 @@ const PrivacySettings = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg safe-top">
         <div className="flex items-center gap-3 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
           <h1 className="font-brand text-xl font-bold text-foreground">Privacidad</h1>

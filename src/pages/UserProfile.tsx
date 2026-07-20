@@ -128,7 +128,7 @@ const UserProfile = () => {
   if (!userProfile) {
     return <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4">
         <h1 className="font-brand text-xl font-bold text-foreground mb-2">Usuario no encontrado</h1>
-        <Button onClick={() => navigate(-1)}>Volver</Button>
+        <Button onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>Volver</Button>
       </div>;
   }
   const stats = [{
@@ -150,7 +150,7 @@ const UserProfile = () => {
       <header className="sticky top-0 z-40 safe-top bg-background">
         <div className="flex items-center justify-between px-4 py-0">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <h1 className="font-brand text-xl text-foreground font-semibold">{userProfile.username}</h1>

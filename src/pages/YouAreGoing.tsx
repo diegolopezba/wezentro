@@ -83,7 +83,7 @@ const YouAreGoing = () => {
       {/* Close button - Top right */}
       <div className="absolute top-0 right-0 safe-top z-20 p-4">
         <Button
-          onClick={() => navigate(-1)}
+          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
           variant="ghost" size="icon" className="bg-black/30 backdrop-blur-sm text-white rounded-full" >
           <X className="w-5 h-5" />
         </Button>

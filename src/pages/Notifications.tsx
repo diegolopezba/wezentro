@@ -388,7 +388,7 @@ const Notifications = () => {
   const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
   const handleBack = () => {
     if (window.history.length > 1) {
-      navigate(-1);
+      (window.history.length > 1 ? navigate(-1) : navigate("/"));
     } else {
       navigate("/");
     }

@@ -54,7 +54,7 @@ const EventPromoterDashboard = () => {
         <p className="text-muted-foreground mb-4">
           Solo cuentas business pueden gestionar promotores de sus eventos.
         </p>
-        <Button onClick={() => navigate(-1)} variant="secondary" className="rounded-full">
+        <Button onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))} variant="secondary" className="rounded-full">
           Volver
         </Button>
       </div>
@@ -74,7 +74,7 @@ const EventPromoterDashboard = () => {
     <div className="min-h-[100dvh] bg-background pb-24">
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="min-w-0">

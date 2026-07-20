@@ -82,7 +82,7 @@ const EventDetail = () => {
     ticketTiers, hasTiers, isSequential, selectedTier, openPaymentForTier,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleBuyTicket, handlePaymentSubmitted, handleLeaveGuestlist,
-  } = useEventDetailState(id, () => navigate(-1));
+  } = useEventDetailState(id, () => (window.history.length > 1 ? navigate(-1) : navigate("/")));
 
   const { data: commentCount = 0 } = useCommentCount(id);
   const { data: latestComment = null } = useLatestComment(id);
@@ -161,7 +161,7 @@ const EventDetail = () => {
             if (fromCreate) {
               navigate("/", { replace: true });
             } else if (window.history.length > 1) {
-              navigate(-1);
+              (window.history.length > 1 ? navigate(-1) : navigate("/"));
             } else {
               navigate("/");
             }
@@ -251,7 +251,7 @@ const EventDetail = () => {
                 <DropdownMenuItem onClick={() => {
                   trackPreferenceSignal(user.id, id!, "not_interested");
                   toast("Se mostrará menos contenido como este", { duration: 2000 });
-                  navigate(-1);
+                  (window.history.length > 1 ? navigate(-1) : navigate("/"));
                 }}>
                         <EyeOff className="w-4 h-4 mr-2" />
                         No me interesa
