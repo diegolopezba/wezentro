@@ -120,7 +120,7 @@ const ReservationConfirmation = () => {
       {
         onSuccess: () => {
           setCancelOpen(false);
-          navigate(-1);
+          (window.history.length > 1 ? navigate(-1) : navigate("/"));
         },
       }
     );
@@ -144,7 +144,7 @@ const ReservationConfirmation = () => {
       {/* Header */}
       <div className="relative z-20 flex items-center justify-between p-4 safe-top">
         <Button
-          onClick={() => navigate(-1)}
+          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
           variant="ghost" size="icon" className="bg-card/60 backdrop-blur-md text-foreground rounded-full border border-border/50" >
           <X className="w-5 h-5" />
         </Button>

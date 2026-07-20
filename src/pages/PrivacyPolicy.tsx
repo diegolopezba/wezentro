@@ -17,7 +17,7 @@ const PrivacyPolicy = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(-1)}
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
             className="shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
