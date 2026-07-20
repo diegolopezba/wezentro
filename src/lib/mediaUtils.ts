@@ -6,7 +6,7 @@ const VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'quicktime'];
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
 // Video constraints for native app optimization
-const MAX_VIDEO_SIZE_MB = 20; // Lowered from 50MB
+const MAX_VIDEO_SIZE_MB = 50; // Allows ~60s at 720p with headroom
 const MAX_VIDEO_RESOLUTION = 720; // 720p max
 
 /**
