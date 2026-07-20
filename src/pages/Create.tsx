@@ -149,7 +149,7 @@ const Create = () => {
 
   const processSingleFile = async (file: File): Promise<MediaItem | null> => {
     if (isVideoFile(file)) {
-      const validation = await validateVideoFile(file, 30, 20);
+      const validation = await validateVideoFile(file, 60, 50);
       if (!validation.valid) {
         toast.error(validation.error);
         return null;
