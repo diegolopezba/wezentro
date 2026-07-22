@@ -53,6 +53,65 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://fipdpcitsjpqivljrktj.supabase.co" crossorigin>
     <link rel="dns-prefetch" href="https://fipdpcitsjpqivljrktj.supabase.co">
+
+    <!-- Preload brand font (Poppins Semi Bold) to avoid FOUT on first paint -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+    />
+
+    <!-- Critical CSS: paint the app shell before JS/CSS bundles arrive -->
+    <style>
+      :root { color-scheme: dark; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #0A0A0B;
+        color: #FAFAFA;
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior-y: none;
+      }
+      #root { min-height: 100dvh; background: #0A0A0B; }
+      /* Splash shown until React mounts and removes #app-splash */
+      #app-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0A0A0B;
+        z-index: 9999;
+        transition: opacity 260ms ease;
+      }
+      #app-splash.is-hiding { opacity: 0; pointer-events: none; }
+      #app-splash .splash-mark {
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-weight: 600;
+        font-size: 28px;
+        letter-spacing: -0.02em;
+        color: #FAFAFA;
+        opacity: 0;
+        animation: splash-in 400ms ease 80ms forwards;
+      }
+      #app-splash .splash-dot {
+        color: #E60023;
+      }
+      @keyframes splash-in {
+        from { opacity: 0; transform: translateY(4px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #app-splash, #app-splash .splash-mark { transition: none; animation: none; opacity: 1; }
+      }
+    </style>
+
   
   
   
@@ -72,6 +131,10 @@
 
   <body>
     <div id="root"></div>
+    <div id="app-splash" aria-hidden="true">
+      <div class="splash-mark">zentro<span class="splash-dot">.</span></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+
