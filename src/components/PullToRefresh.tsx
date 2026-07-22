@@ -27,7 +27,8 @@ export const PullToRefresh = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const currentY = useRef(0);
-  
+  const thresholdReached = useRef(false);
+
   const pullDistance = useMotionValue(0);
   const pullProgress = useTransform(pullDistance, [0, threshold], [0, 1]);
   const rotation = useTransform(pullDistance, [0, threshold], [0, 180]);
@@ -35,20 +36,20 @@ export const PullToRefresh = ({
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (disabled || isRefreshing) return;
-    
+
     const container = containerRef.current;
     if (!container) return;
-    
-    // Only enable pull-to-refresh when scrolled to top
+
     if (container.scrollTop > 0) return;
-    
+
     startY.current = e.touches[0].clientY;
+    thresholdReached.current = false;
     setIsPulling(true);
   }, [disabled, isRefreshing]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isPulling || disabled || isRefreshing) return;
-    
+
     const container = containerRef.current;
     if (!container || container.scrollTop > 0) {
       setIsPulling(false);
@@ -58,14 +59,20 @@ export const PullToRefresh = ({
 
     currentY.current = e.touches[0].clientY;
     const diff = currentY.current - startY.current;
-    
+
     if (diff > 0) {
-      // Apply resistance to pull
       const resistance = 0.5;
       const distance = Math.min(diff * resistance, threshold * 1.5);
       pullDistance.set(distance);
-      
-      // Prevent default scrolling while pulling
+
+      // Fire a subtle haptic once when the user crosses the trigger threshold.
+      if (!thresholdReached.current && distance >= threshold) {
+        haptic("light");
+        thresholdReached.current = true;
+      } else if (thresholdReached.current && distance < threshold) {
+        thresholdReached.current = false;
+      }
+
       if (diff > 10) {
         e.preventDefault();
       }
@@ -99,6 +106,7 @@ export const PullToRefresh = ({
     <div
       ref={containerRef}
       className={`relative overflow-auto ${className}`}
+      style={{ overscrollBehaviorY: "contain" }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
