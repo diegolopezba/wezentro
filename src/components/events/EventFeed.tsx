@@ -195,6 +195,11 @@ interface MasonryGridProps {
   isLoadingMore: boolean;
 }
 
+// Overscan window above/below viewport (in px). ~1.5 viewports keeps scroll
+// buttery on flings while capping mounted DOM to a small constant, à la
+// Pinterest/Instagram virtualized feeds.
+const OVERSCAN_PX = 1200;
+
 const MasonryGrid = ({ events, followGraph, observeCard, unobserveCard, sentinelRef, isLoadingMore }: MasonryGridProps) => {
   const [containerRef, containerWidth] = useElementWidth<HTMLDivElement>();
   const [columnCount, setColumnCount] = useState(() => getColumnCount(typeof window !== "undefined" ? window.innerWidth : 390));
@@ -223,6 +228,75 @@ const MasonryGrid = ({ events, followGraph, observeCard, unobserveCard, sentinel
     verticalGap: VERTICAL_GAP,
   });
 
+  // Virtualization window: [visibleTop, visibleBottom] in container-local px.
+  // Recomputed on scroll of the nearest scrollable ancestor + on resize.
+  const [visible, setVisible] = useState<{ top: number; bottom: number }>({
+    top: 0,
+    bottom: typeof window !== "undefined" ? window.innerHeight * 2 : 2000,
+  });
+
+  useEffect(() => {
+    const containerEl = containerRef.current;
+    if (!containerEl) return;
+
+    // Find nearest scrollable ancestor.
+    const findScrollParent = (el: HTMLElement): HTMLElement | Window => {
+      let node: HTMLElement | null = el.parentElement;
+      while (node) {
+        const style = getComputedStyle(node);
+        const oy = style.overflowY;
+        if ((oy === "auto" || oy === "scroll") && node.scrollHeight > node.clientHeight) {
+          return node;
+        }
+        node = node.parentElement;
+      }
+      return window;
+    };
+
+    const scroller = findScrollParent(containerEl);
+    let raf: number | null = null;
+
+    const compute = () => {
+      raf = null;
+      const rect = containerEl.getBoundingClientRect();
+      const viewportH =
+        scroller === window
+          ? window.innerHeight
+          : (scroller as HTMLElement).clientHeight;
+      const scrollerTop =
+        scroller === window ? 0 : (scroller as HTMLElement).getBoundingClientRect().top;
+      // container-local coord: 0 = top of container.
+      const top = scrollerTop - rect.top;
+      const bottom = top + viewportH;
+      setVisible((prev) => {
+        if (
+          Math.abs(prev.top - top) < 50 &&
+          Math.abs(prev.bottom - bottom) < 50
+        ) {
+          return prev;
+        }
+        return { top, bottom };
+      });
+    };
+
+    const onScroll = () => {
+      if (raf !== null) return;
+      raf = requestAnimationFrame(compute);
+    };
+
+    compute();
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      scroller.removeEventListener("scroll", onScroll as EventListener);
+      window.removeEventListener("resize", onScroll);
+      if (raf !== null) cancelAnimationFrame(raf);
+    };
+  }, [containerRef, containerHeight]);
+
+  const windowTop = visible.top - OVERSCAN_PX;
+  const windowBottom = visible.bottom + OVERSCAN_PX;
+
   return (
     <>
       <div
@@ -240,13 +314,23 @@ const MasonryGrid = ({ events, followGraph, observeCard, unobserveCard, sentinel
         {events.map((event, index) => {
           const pos = positions.get(event.id);
           if (!pos) return null;
+          // Skip cards fully outside the overscan window. Unmeasured cards
+          // must still render so ResizeObserver can measure their height —
+          // otherwise the layout never converges.
+          const measured = isMeasured(event.id);
+          if (measured) {
+            const cardBottom = pos.top + pos.height;
+            if (cardBottom < windowTop || pos.top > windowBottom) {
+              return null;
+            }
+          }
           return (
             <MasonryCardItem
               key={event.id}
               event={event}
               index={index}
               position={pos}
-              isMeasured={isMeasured(event.id)}
+              isMeasured={measured}
               followGraph={followGraph}
               observeCard={observeCard}
               unobserveCard={unobserveCard}
