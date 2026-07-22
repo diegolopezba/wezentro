@@ -106,6 +106,7 @@ export const PullToRefresh = ({
     <div
       ref={containerRef}
       className={`relative overflow-auto ${className}`}
+      style={{ overscrollBehaviorY: "contain" }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
