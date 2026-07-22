@@ -10,7 +10,6 @@
  */
 import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
-import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -74,8 +73,6 @@ interface SheetContentProps
   extends React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> {
   /** Kept for API parity with shadcn sheet. Ignored — always bottom. */
   side?: "top" | "right" | "bottom" | "left";
-  /** Hide the top-right X close button. */
-  hideCloseButton?: boolean;
   /** Hide the drag handle. */
   hideHandle?: boolean;
 }
@@ -83,7 +80,7 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   SheetContentProps
->(({ className, children, hideCloseButton, hideHandle, side: _side, ...props }, ref) => (
+>(({ className, children, hideHandle, side: _side, ...props }, ref) => (
   <SheetPortal>
     <SheetOverlay />
     <DrawerPrimitive.Content
