@@ -11,6 +11,7 @@ import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
+import { useOpenNotifications } from "@/hooks/useOpenOverlay";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -18,6 +19,7 @@ import { es } from "date-fns/locale";
 
 const Index = () => {
   const navigate = useNavigate();
+  const openNotifications = useOpenNotifications();
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
   const isGuest = !user;
@@ -56,7 +58,7 @@ const Index = () => {
       promptAuth({ action: "ver tus notificaciones" });
       return;
     }
-    navigate("/notifications");
+    openNotifications();
   };
   const events = activeTab === "for-you" ? forYouEvents : followingEvents;
   const isLoading = activeTab === "for-you" ? forYouLoading : followingLoading;

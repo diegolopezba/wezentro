@@ -39,6 +39,7 @@ import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
 import { KeepAliveLayout } from "@/components/layout/KeepAliveLayout";
 import { EulaGate } from "@/components/moderation/EulaGate";
 import { EventDetailModal } from "@/components/events/EventDetailModal";
+import { PageModal } from "@/components/layout/PageModal";
 import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
 
 // Core navigation pages - preloaded for instant navigation (native app feel)
@@ -251,10 +252,12 @@ const AppRoutes = () => {
         <Route path="*" element={<LazyRoute><NotFound /></LazyRoute>} />
       </Routes>
 
-      {/* Modal route — only renders on top when opened from the feed */}
+      {/* Modal routes — render on top when opened from the persistent shell */}
       {backgroundLocation && (
         <Routes>
           <Route path="/event/:id" element={<EventDetailModal />} />
+          <Route path="/user/:id" element={<PageModal><LazyRoute><UserProfile /></LazyRoute></PageModal>} />
+          <Route path="/notifications" element={<PageModal><LazyRoute><Notifications /></LazyRoute></PageModal>} />
         </Routes>
       )}
     </>
