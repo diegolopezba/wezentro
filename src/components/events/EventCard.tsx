@@ -65,8 +65,10 @@ const EventCardComponent = ({
 }: EventCardProps) => {
   const openEvent = useOpenEvent();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const trackClick = useTrackSponsoredClick();
   const clickedRef = useRef(false);
+  const prefetchedRef = useRef(false);
   const [dismissed, setDismissed] = useState(false);
   const hasVideo = (media ?? []).some((m) => m.media_type === "video");
   const { ref: impressionRef, notifyPlay } = useImpressionTracker(id, {
@@ -77,7 +79,14 @@ const EventCardComponent = ({
 
   useEffect(() => {
     clickedRef.current = false;
+    prefetchedRef.current = false;
   }, [id]);
+
+  const handlePointerDown = useCallback(() => {
+    if (prefetchedRef.current) return;
+    prefetchedRef.current = true;
+    prefetchEventDetail(queryClient, id);
+  }, [queryClient, id]);
 
   const handleCardClick = () => {
     haptic("light");
