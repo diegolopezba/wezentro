@@ -1,5 +1,6 @@
 import { Repeat, MoreHorizontal, EyeOff } from "lucide-react";
-import { useState, useRef, useEffect, memo, useMemo } from "react";
+import { useState, useRef, useEffect, memo, useMemo, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { useOpenEvent } from "@/hooks/useOpenEvent";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
@@ -12,6 +13,7 @@ import { haptic } from "@/lib/haptics";
 import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
 import { CardLikeButton } from "@/components/events/CardLikeButton";
 import { useImpressionTracker } from "@/hooks/useImpressionTracker";
+import { prefetchEventDetail } from "@/lib/prefetchEvents";
 import type { ViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 import {
   DropdownMenu,
