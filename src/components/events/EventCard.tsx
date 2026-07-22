@@ -161,6 +161,7 @@ const EventCardComponent = ({
             : ({ "--enter-delay": `${Math.min(index, 6) * 50}ms` } as React.CSSProperties)
         }
         onClick={handleCardClick}
+        onPointerDown={handlePointerDown}
       >
         <div className="space-y-2 px-0">
           <div className="relative">
