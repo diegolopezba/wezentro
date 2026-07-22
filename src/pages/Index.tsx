@@ -56,7 +56,7 @@ const Index = () => {
       promptAuth({ action: "ver tus notificaciones" });
       return;
     }
-    navigate("/notifications");
+    openNotifications();
   };
   const events = activeTab === "for-you" ? forYouEvents : followingEvents;
   const isLoading = activeTab === "for-you" ? forYouLoading : followingLoading;
