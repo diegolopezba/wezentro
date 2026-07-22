@@ -51,6 +51,7 @@ const MediaCarouselComponent = ({
   const [aspectRatio, setAspectRatio] = useState<number | null>(
     safeItems[0]?.aspect_ratio ?? null
   );
+  const [loadedIndexes, setLoadedIndexes] = useState<Set<number>>(() => new Set());
   const [heroMuted, setHeroMuted] = useState(true);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
