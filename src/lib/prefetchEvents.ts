@@ -1,4 +1,41 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { QueryClient } from "@tanstack/react-query";
+
+/**
+ * Intent-based prefetch: call on `pointerdown` of an event card so the
+ * detail query is already warm by the time navigation resolves (~100-200ms
+ * head start). Pinterest/Instagram both prefetch on pointerdown for the same
+ * perceived-instant feel. Cheap: react-query dedupes and caches.
+ */
+export const prefetchEventDetail = (
+  queryClient: QueryClient,
+  eventId: string,
+) => {
+  if (!eventId) return;
+  queryClient.prefetchQuery({
+    queryKey: ["event", eventId],
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select(
+          `*,
+          creator:profiles!events_creator_id_fkey(id, username, full_name, avatar_url),
+          media:event_media(id, media_url, media_type, display_order, aspect_ratio)`,
+        )
+        .eq("id", eventId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) throw new Error("Event not found");
+      if (Array.isArray((data as any).media)) {
+        (data as any).media.sort(
+          (a: any, b: any) => a.display_order - b.display_order,
+        );
+      }
+      return data;
+    },
+  });
+};
 
 export const FOR_YOU_EVENTS_KEY = ["for-you-events"];
 export const FOR_YOU_PAGE_SIZE = 20;
