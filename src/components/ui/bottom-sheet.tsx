@@ -10,7 +10,6 @@
  */
 import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
-import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -74,8 +73,6 @@ interface SheetContentProps
   extends React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> {
   /** Kept for API parity with shadcn sheet. Ignored — always bottom. */
   side?: "top" | "right" | "bottom" | "left";
-  /** Hide the top-right X close button. */
-  hideCloseButton?: boolean;
   /** Hide the drag handle. */
   hideHandle?: boolean;
 }
@@ -83,7 +80,7 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   SheetContentProps
->(({ className, children, hideCloseButton, hideHandle, side: _side, ...props }, ref) => (
+>(({ className, children, hideHandle, side: _side, ...props }, ref) => (
   <SheetPortal>
     <SheetOverlay />
     <DrawerPrimitive.Content
@@ -105,15 +102,6 @@ const SheetContent = React.forwardRef<
         <div className="mx-auto mt-2 mb-1 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
       )}
       {children}
-      {!hideCloseButton && (
-        <DrawerPrimitive.Close
-          aria-label="Close"
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 active:opacity-100"
-        >
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </DrawerPrimitive.Close>
-      )}
     </DrawerPrimitive.Content>
   </SheetPortal>
 ));
