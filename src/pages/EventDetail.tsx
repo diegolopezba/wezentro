@@ -401,7 +401,7 @@ const EventDetail = () => {
 
 
       {/* Guestlist Management Sheet */}
-      {isOwner && event.has_guestlist && <GuestlistManagementSheet eventId={id!} eventHasPaymentQr={hasPaymentQr} open={showManagement} onOpenChange={setShowManagement} />}
+      {isOwner && <GuestlistManagementSheet eventId={id!} eventHasPaymentQr={hasPaymentQr} open={showManagement} onOpenChange={setShowManagement} />}
 
       {/* Share Event Modal */}
       <ShareEventModal eventId={id!} open={showShareModal} onOpenChange={setShowShareModal} />

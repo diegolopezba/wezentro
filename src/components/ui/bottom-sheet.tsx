@@ -56,13 +56,15 @@ const SheetTrigger = DrawerPrimitive.Trigger;
 const SheetPortal = DrawerPrimitive.Portal;
 const SheetClose = DrawerPrimitive.Close;
 
+const SHEET_STACK_CLASS = "z-[80]";
+
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-black/80", className)}
+    className={cn("fixed inset-0 bg-black/80", SHEET_STACK_CLASS, className)}
     {...props}
   />
 ));
@@ -87,7 +89,11 @@ const SheetContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 flex flex-col border-t border-border/50 bg-background outline-none",
+        "fixed inset-x-0 bottom-0 flex flex-col border-t border-border/50 bg-background outline-none",
+        // Event detail modals and their floating CTA bars sit at z-[60].
+        // The sheet portal must stack above them or it appears to freeze taps
+        // while rendering invisibly behind the modal route.
+        SHEET_STACK_CLASS,
         // Consumers usually pass their own rounded-t-* + height; defaults are
         // conservative so bare usage still looks right.
         "rounded-t-3xl",
