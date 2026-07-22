@@ -6,6 +6,7 @@ import { useAuthPromptSafe } from "@/hooks/useAuthPrompt";
 import { m } from "framer-motion";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useState } from "react";
+import { haptic } from "@/lib/haptics";
 
 const navItems = [
   { icon: Home, label: "Inicio", path: "/", requiresAuth: false },
@@ -24,6 +25,7 @@ export const BottomNav = () => {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const handleNavClick = (e: React.MouseEvent, item: typeof navItems[0]) => {
+    void haptic("light");
     if (item.isCenter) {
       e.preventDefault();
       if (isGuest && authPrompt) {
@@ -75,7 +77,7 @@ export const BottomNav = () => {
               return (
                 <button
                   key={item.path}
-                  className="relative flex items-center justify-center px-4 py-2 no-select"
+                  className="relative flex items-center justify-center px-4 py-2 no-select [-webkit-tap-highlight-color:transparent] active:scale-90 transition-transform duration-100"
                   onClick={(e) => handleNavClick(e, item)}
                 >
                   <m.div
@@ -97,7 +99,7 @@ export const BottomNav = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="relative flex items-center justify-center px-4 py-2 no-select"
+                className="relative flex items-center justify-center px-4 py-2 no-select [-webkit-tap-highlight-color:transparent] active:scale-90 transition-transform duration-100"
                 onClick={(e) => handleNavClick(e, item)}
               >
                 <Icon
