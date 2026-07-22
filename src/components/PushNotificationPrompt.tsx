@@ -1,6 +1,6 @@
 import { Bell } from "lucide-react";
 import { usePushNotificationPrompt } from "@/hooks/usePushNotificationPrompt";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 
 interface Props {

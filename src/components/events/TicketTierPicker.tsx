@@ -1,4 +1,4 @@
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Ticket, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { computeTierAvailability, type TicketTier } from "@/hooks/useTicketTiers";
