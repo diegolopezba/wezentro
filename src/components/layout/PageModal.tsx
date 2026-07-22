@@ -32,7 +32,7 @@ export const PageModal = ({ children }: { children: ReactNode }) => {
     const past = info.offset.x > width * DISMISS_DISTANCE_RATIO;
     const flick = info.velocity.x > DISMISS_VELOCITY;
     if (past || flick) {
-      triggerHaptic("light");
+      haptic("light");
       navigate(-1);
     }
   };
