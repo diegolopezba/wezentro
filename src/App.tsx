@@ -33,6 +33,7 @@ import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { SplashScreen } from "@/components/SplashScreen";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { PageLoader } from "@/components/PageLoader";
+import { LazyRoute } from "@/components/layout/LazyRoute";
 import { AuthPromptProvider } from "@/hooks/useAuthPrompt";
 import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
 import { KeepAliveLayout } from "@/components/layout/KeepAliveLayout";
@@ -204,9 +205,9 @@ const AppRoutes = () => {
   return (
     <>
       <Routes location={backgroundLocation || location}>
-        <Route path="/auth" element={<Suspense fallback={<PageLoader />}><Auth /></Suspense>} />
-        <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
-        <Route path="/onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Onboarding /></Suspense></ProtectedRoute>} />
+        <Route path="/auth" element={<LazyRoute><Auth /></LazyRoute>} />
+        <Route path="/reset-password" element={<LazyRoute><ResetPassword /></LazyRoute>} />
+        <Route path="/onboarding" element={<ProtectedRoute><LazyRoute><Onboarding /></LazyRoute></ProtectedRoute>} />
 
         {/* Keep-alive enabled routes - 4 core navigation pages */}
         <Route element={<KeepAliveLayout />}>
@@ -216,38 +217,38 @@ const AppRoutes = () => {
           <Route path="/profile" element={<ProtectedRoute requireProfile><Profile /></ProtectedRoute>} />
         </Route>
 
-        <Route path="/create" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Create /></Suspense></ProtectedRoute>} />
-        <Route path="/chats/:id" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><ChatDetail /></Suspense></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Settings /></Suspense></ProtectedRoute>} />
-        <Route path="/saved" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Saved /></Suspense></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Notifications /></Suspense></ProtectedRoute>} />
-        <Route path="/settings/privacy" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><PrivacySettings /></Suspense></ProtectedRoute>} />
-        <Route path="/edit-profile" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><EditProfile /></Suspense></ProtectedRoute>} />
+        <Route path="/create" element={<ProtectedRoute requireProfile><LazyRoute><Create /></LazyRoute></ProtectedRoute>} />
+        <Route path="/chats/:id" element={<ProtectedRoute requireProfile><LazyRoute><ChatDetail /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute requireProfile><LazyRoute><Settings /></LazyRoute></ProtectedRoute>} />
+        <Route path="/saved" element={<ProtectedRoute requireProfile><LazyRoute><Saved /></LazyRoute></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute requireProfile><LazyRoute><Notifications /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/privacy" element={<ProtectedRoute requireProfile><LazyRoute><PrivacySettings /></LazyRoute></ProtectedRoute>} />
+        <Route path="/edit-profile" element={<ProtectedRoute requireProfile><LazyRoute><EditProfile /></LazyRoute></ProtectedRoute>} />
 
         {/* Public event preview route (full page — used for deep links) */}
-        <Route path="/event/:id" element={<Suspense fallback={<PageLoader />}><EventDetail /></Suspense>} />
+        <Route path="/event/:id" element={<LazyRoute><EventDetail /></LazyRoute>} />
 
-        <Route path="/user/:id" element={<GuestAllowedRoute><Suspense fallback={<PageLoader />}><UserProfile /></Suspense></GuestAllowedRoute>} />
-        <Route path="/settings/tickets" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Tickets /></Suspense></ProtectedRoute>} />
-        <Route path="/going/:id" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><YouAreGoing /></Suspense></ProtectedRoute>} />
-        <Route path="/dashboard" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BusinessDashboard /></Suspense></ProtectedRoute>} />
-        <Route path="/settings/business" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BusinessSettings /></Suspense></ProtectedRoute>} />
-        <Route path="/settings/business/payments" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BusinessPaymentSettings /></Suspense></ProtectedRoute>} />
-        <Route path="/settings/business/reservations" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BusinessReservations /></Suspense></ProtectedRoute>} />
-        <Route path="/settings/business/info" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BusinessInfo /></Suspense></ProtectedRoute>} />
-        <Route path="/settings/joined-events" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><JoinedEvents /></Suspense></ProtectedRoute>} />
-        <Route path="/settings/help" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Help /></Suspense></ProtectedRoute>} />
-        <Route path="/settings/referrals" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><Referrals /></Suspense></ProtectedRoute>} />
-        <Route path="/settings/reservations" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><MyReservations /></Suspense></ProtectedRoute>} />
-        <Route path="/reservation/:id" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><ReservationConfirmation /></Suspense></ProtectedRoute>} />
-        <Route path="/privacy-policy" element={<Suspense fallback={<PageLoader />}><PrivacyPolicy /></Suspense>} />
-        <Route path="/terms" element={<Suspense fallback={<PageLoader />}><TermsOfUse /></Suspense>} />
+        <Route path="/user/:id" element={<GuestAllowedRoute><LazyRoute><UserProfile /></LazyRoute></GuestAllowedRoute>} />
+        <Route path="/settings/tickets" element={<ProtectedRoute requireProfile><LazyRoute><Tickets /></LazyRoute></ProtectedRoute>} />
+        <Route path="/going/:id" element={<ProtectedRoute requireProfile><LazyRoute><YouAreGoing /></LazyRoute></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute requireProfile><LazyRoute><BusinessDashboard /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/business" element={<ProtectedRoute requireProfile><LazyRoute><BusinessSettings /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/business/payments" element={<ProtectedRoute requireProfile><LazyRoute><BusinessPaymentSettings /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/business/reservations" element={<ProtectedRoute requireProfile><LazyRoute><BusinessReservations /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/business/info" element={<ProtectedRoute requireProfile><LazyRoute><BusinessInfo /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/joined-events" element={<ProtectedRoute requireProfile><LazyRoute><JoinedEvents /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/help" element={<ProtectedRoute requireProfile><LazyRoute><Help /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/referrals" element={<ProtectedRoute requireProfile><LazyRoute><Referrals /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/reservations" element={<ProtectedRoute requireProfile><LazyRoute><MyReservations /></LazyRoute></ProtectedRoute>} />
+        <Route path="/reservation/:id" element={<ProtectedRoute><LazyRoute><ReservationConfirmation /></LazyRoute></ProtectedRoute>} />
+        <Route path="/privacy-policy" element={<LazyRoute><PrivacyPolicy /></LazyRoute>} />
+        <Route path="/terms" element={<LazyRoute><TermsOfUse /></LazyRoute>} />
         {/* Public QR scanner route — no auth required, validated by ?key= param */}
-        <Route path="/scan/:eventId" element={<Suspense fallback={<PageLoader />}><ScanQR /></Suspense>} />
-        <Route path="/settings/blocks" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><BlockedUsers /></Suspense></ProtectedRoute>} />
-        <Route path="/business/event/:eventId/promoters" element={<ProtectedRoute requireProfile><Suspense fallback={<PageLoader />}><EventPromoterDashboard /></Suspense></ProtectedRoute>} />
+        <Route path="/scan/:eventId" element={<LazyRoute><ScanQR /></LazyRoute>} />
+        <Route path="/settings/blocks" element={<ProtectedRoute requireProfile><LazyRoute><BlockedUsers /></LazyRoute></ProtectedRoute>} />
+        <Route path="/business/event/:eventId/promoters" element={<ProtectedRoute requireProfile><LazyRoute><EventPromoterDashboard /></LazyRoute></ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFound /></Suspense>} />
+        <Route path="*" element={<LazyRoute><NotFound /></LazyRoute>} />
       </Routes>
 
       {/* Modal route — only renders on top when opened from the feed */}
