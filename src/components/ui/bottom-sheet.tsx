@@ -92,8 +92,10 @@ const SheetContent = React.forwardRef<
         // while rendering invisibly behind the modal route.
         SHEET_STACK_CLASS,
         // Consumers usually pass their own rounded-t-* + height; defaults are
-        // conservative so bare usage still looks right.
-        "rounded-t-3xl",
+        // conservative so bare usage still looks right. Default horizontal
+        // padding gives every sheet breathing room from the screen edges;
+        // consumers can override with px-* or pass px-0 for edge-to-edge.
+        "rounded-t-3xl px-4",
         className,
       )}
       {...props}
