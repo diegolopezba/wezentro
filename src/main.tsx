@@ -38,3 +38,14 @@ if (Capacitor.isNativePlatform()) {
 
 // Note: StrictMode is disabled because keepalive-for-react requires it for page caching
 createRoot(document.getElementById("root")!).render(<App />);
+
+// Remove the boot splash once React has mounted its first frame.
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    const splash = document.getElementById("app-splash");
+    if (!splash) return;
+    splash.classList.add("is-hiding");
+    setTimeout(() => splash.remove(), 300);
+  });
+});
+
