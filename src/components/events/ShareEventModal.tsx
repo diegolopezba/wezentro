@@ -109,9 +109,6 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[75dvh] rounded-t-3xl flex flex-col p-0">
-        {/* Drag handle */}
-        <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-muted shrink-0" />
-
         {/* Header */}
         <SheetHeader className="px-6 pt-3 pb-2 shrink-0">
           <SheetTitle className="font-brand text-left">Enviar evento</SheetTitle>
