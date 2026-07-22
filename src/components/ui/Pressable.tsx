@@ -1,6 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { haptics } from "@/lib/haptics";
+import { haptic } from "@/lib/haptics";
 
 interface PressableProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
@@ -35,7 +35,7 @@ export const Pressable = forwardRef<HTMLButtonElement, PressableProps>(
 
     const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
       if (haptic) {
-        void haptics.light?.();
+        void haptic("light");
       }
       onPointerDown?.(e);
     };
