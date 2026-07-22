@@ -117,6 +117,12 @@ const MediaCarouselComponent = ({
 
   const handleImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>, index: number) => {
+      setLoadedIndexes((prev) => {
+        if (prev.has(index)) return prev;
+        const next = new Set(prev);
+        next.add(index);
+        return next;
+      });
       if (index !== 0 || aspectRatio) return;
       const img = e.currentTarget;
       if (img.naturalWidth && img.naturalHeight) {
@@ -228,7 +234,10 @@ const MediaCarouselComponent = ({
                     loading={isHero && i === 0 ? "eager" : "lazy"}
                     decoding="async"
                     fetchPriority={isHero && i === 0 ? "high" : "low"}
-                    className="relative w-full h-full object-cover"
+                    className={cn(
+                      "relative w-full h-full object-cover transition-opacity duration-300 ease-out",
+                      loadedIndexes.has(i) ? "opacity-100" : "opacity-0"
+                    )}
                     onLoad={(e) => handleImageLoad(e, i)}
                   />
                 )}
