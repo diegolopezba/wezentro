@@ -387,12 +387,9 @@ const Notifications = () => {
   const markAllRead = useMarkAllNotificationsRead();
   const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
   const handleBack = () => {
-    if (window.history.length > 1) {
-      (window.history.length > 1 ? navigate(-1) : navigate("/"));
-    } else {
-      navigate("/");
-    }
+    navigate("/");
   };
+
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.is_read) {
       markRead.mutate(notification.id);
@@ -472,7 +469,7 @@ const Notifications = () => {
         return <NotificationItem key={notification.id} {...commonProps} />;
     }
   };
-  return <AppLayout>
+  return <AppLayout hideNav>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
         <div className="flex items-center justify-between px-4 py-4">

@@ -1,5 +1,6 @@
 import { m } from "framer-motion";
-import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase, Ban, Sparkles } from "lucide-react";
+import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, ChevronLeft, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase, Ban, Sparkles } from "lucide-react";
+
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,12 +68,20 @@ const Settings = () => {
   let globalIndex = 0;
 
   return (
-    <AppLayout>
+    <AppLayout hideNav>
       <header className="sticky top-0 z-40 safe-top">
         <div className="flex items-center gap-3 px-4 py-4">
+          <button
+            onClick={() => navigate("/profile")}
+            className="w-9 h-9 rounded-full flex items-center justify-center active:scale-90 transition-transform [-webkit-tap-highlight-color:transparent]"
+            aria-label="Volver"
+          >
+            <ChevronLeft className="w-5 h-5 text-foreground" />
+          </button>
           <h1 className="font-brand text-xl font-bold text-foreground">Configuración</h1>
         </div>
       </header>
+
 
       <div className="px-4 py-2 space-y-6 pb-8">
         {sections.map((section) => (
