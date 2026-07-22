@@ -7,7 +7,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "@/components/ui/bottom-sheet";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 
 interface LocationSheetProps {

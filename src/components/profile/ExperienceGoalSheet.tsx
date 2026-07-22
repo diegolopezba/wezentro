@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { ExperienceGoalPicker } from "./ExperienceGoalPicker";
 import { useAuth } from "@/contexts/AuthContext";

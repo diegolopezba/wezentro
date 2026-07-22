@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SponsoredSummaryBar } from "@/components/dashboard/SponsoredSummaryBar";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/bottom-sheet";
 import { Input } from "@/components/ui/input";
 import { useMySponsored, useCreateSponsoredPost, useUpdateSponsoredStatus, useTodayDailySpend } from "@/hooks/useSponsoredPosts";
 import { useUserCreatedEvents } from "@/hooks/useEvents";

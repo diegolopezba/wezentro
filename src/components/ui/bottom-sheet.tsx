@@ -1,0 +1,130 @@
+/**
+ * Drop-in bottom-sheet replacement for shadcn `sheet` (bottom side only).
+ *
+ * Same named exports as `@/components/ui/sheet` so consumers can swap the
+ * import path and get vaul-powered behavior: rubber-band drag, velocity-aware
+ * dismiss, background scale, stacked sheets, and iOS-like resistance.
+ *
+ * The `side` prop on `SheetContent` is accepted for API compatibility and
+ * ignored — this component is always a bottom sheet.
+ */
+import * as React from "react";
+import { Drawer as DrawerPrimitive } from "vaul";
+import { X } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+type SheetRootProps = React.ComponentProps<typeof DrawerPrimitive.Root>;
+
+const Sheet = ({ shouldScaleBackground = true, ...props }: SheetRootProps) => (
+  <DrawerPrimitive.Root shouldScaleBackground={shouldScaleBackground} {...props} />
+);
+Sheet.displayName = "Sheet";
+
+const SheetTrigger = DrawerPrimitive.Trigger;
+const SheetPortal = DrawerPrimitive.Portal;
+const SheetClose = DrawerPrimitive.Close;
+
+const SheetOverlay = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <DrawerPrimitive.Overlay
+    ref={ref}
+    className={cn("fixed inset-0 z-50 bg-black/80", className)}
+    {...props}
+  />
+));
+SheetOverlay.displayName = "SheetOverlay";
+
+interface SheetContentProps
+  extends React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> {
+  /** Kept for API parity with shadcn sheet. Ignored — always bottom. */
+  side?: "top" | "right" | "bottom" | "left";
+  /** Hide the top-right X close button. */
+  hideCloseButton?: boolean;
+  /** Hide the drag handle. */
+  hideHandle?: boolean;
+}
+
+const SheetContent = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Content>,
+  SheetContentProps
+>(({ className, children, hideCloseButton, hideHandle, side: _side, ...props }, ref) => (
+  <SheetPortal>
+    <SheetOverlay />
+    <DrawerPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-50 flex flex-col border-t border-border/50 bg-background outline-none",
+        // Consumers usually pass their own rounded-t-* + height; defaults are
+        // conservative so bare usage still looks right.
+        "rounded-t-3xl",
+        className,
+      )}
+      {...props}
+    >
+      {!hideHandle && (
+        <div className="mx-auto mt-2 mb-1 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
+      )}
+      {children}
+      {!hideCloseButton && (
+        <DrawerPrimitive.Close
+          aria-label="Close"
+          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 active:opacity-100"
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DrawerPrimitive.Close>
+      )}
+    </DrawerPrimitive.Content>
+  </SheetPortal>
+));
+SheetContent.displayName = "SheetContent";
+
+const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn("flex flex-col space-y-2 text-center sm:text-left", className)} {...props} />
+);
+SheetHeader.displayName = "SheetHeader";
+
+const SheetFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)} {...props} />
+);
+SheetFooter.displayName = "SheetFooter";
+
+const SheetTitle = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Title>,
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>
+>(({ className, ...props }, ref) => (
+  <DrawerPrimitive.Title
+    ref={ref}
+    className={cn("text-lg font-semibold text-foreground", className)}
+    {...props}
+  />
+));
+SheetTitle.displayName = "SheetTitle";
+
+const SheetDescription = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Description>
+>(({ className, ...props }, ref) => (
+  <DrawerPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+));
+SheetDescription.displayName = "SheetDescription";
+
+export {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetOverlay,
+  SheetPortal,
+  SheetTitle,
+  SheetTrigger,
+};

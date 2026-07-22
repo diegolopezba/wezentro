@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { m } from "framer-motion";
 import { Loader2, UserPlus } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { useUserFollowers, useUserFollowing, useIsFollowing, useIsFollowedBy, useFollowUser, useUnfollowUser, FollowUser } from "@/hooks/useUserProfile";
 import { useAuth } from "@/contexts/AuthContext";
