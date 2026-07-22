@@ -469,7 +469,7 @@ const Notifications = () => {
         return <NotificationItem key={notification.id} {...commonProps} />;
     }
   };
-  return <AppLayout>
+  return <AppLayout hideNav>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
         <div className="flex items-center justify-between px-4 py-4">
