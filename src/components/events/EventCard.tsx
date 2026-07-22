@@ -1,5 +1,6 @@
 import { Repeat, MoreHorizontal, EyeOff } from "lucide-react";
-import { useState, useRef, useEffect, memo, useMemo } from "react";
+import { useState, useRef, useEffect, memo, useMemo, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { useOpenEvent } from "@/hooks/useOpenEvent";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
@@ -12,6 +13,7 @@ import { haptic } from "@/lib/haptics";
 import { MediaCarousel, type CarouselMediaItem } from "@/components/events/MediaCarousel";
 import { CardLikeButton } from "@/components/events/CardLikeButton";
 import { useImpressionTracker } from "@/hooks/useImpressionTracker";
+import { prefetchEventDetail } from "@/lib/prefetchEvents";
 import type { ViewerFollowGraph } from "@/hooks/useViewerFollowGraph";
 import {
   DropdownMenu,
@@ -63,8 +65,10 @@ const EventCardComponent = ({
 }: EventCardProps) => {
   const openEvent = useOpenEvent();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const trackClick = useTrackSponsoredClick();
   const clickedRef = useRef(false);
+  const prefetchedRef = useRef(false);
   const [dismissed, setDismissed] = useState(false);
   const hasVideo = (media ?? []).some((m) => m.media_type === "video");
   const { ref: impressionRef, notifyPlay } = useImpressionTracker(id, {
@@ -75,7 +79,14 @@ const EventCardComponent = ({
 
   useEffect(() => {
     clickedRef.current = false;
+    prefetchedRef.current = false;
   }, [id]);
+
+  const handlePointerDown = useCallback(() => {
+    if (prefetchedRef.current) return;
+    prefetchedRef.current = true;
+    prefetchEventDetail(queryClient, id);
+  }, [queryClient, id]);
 
   const handleCardClick = () => {
     haptic("light");
@@ -150,6 +161,7 @@ const EventCardComponent = ({
             : ({ "--enter-delay": `${Math.min(index, 6) * 50}ms` } as React.CSSProperties)
         }
         onClick={handleCardClick}
+        onPointerDown={handlePointerDown}
       >
         <div className="space-y-2 px-0">
           <div className="relative">
