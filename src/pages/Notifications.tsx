@@ -387,12 +387,9 @@ const Notifications = () => {
   const markAllRead = useMarkAllNotificationsRead();
   const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
   const handleBack = () => {
-    if (window.history.length > 1) {
-      (window.history.length > 1 ? navigate(-1) : navigate("/"));
-    } else {
-      navigate("/");
-    }
+    navigate("/");
   };
+
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.is_read) {
       markRead.mutate(notification.id);
