@@ -82,10 +82,6 @@ export const CommentsSheet = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom" className="h-[85vh] flex flex-col p-0 rounded-t-3xl" >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-        </div>
 
         <SheetHeader className="px-5 pb-3 shrink-0 border-b border-border/50">
           <SheetTitle className="text-base font-semibold text-foreground">
