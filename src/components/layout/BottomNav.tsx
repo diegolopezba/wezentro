@@ -25,6 +25,7 @@ export const BottomNav = () => {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const handleNavClick = (e: React.MouseEvent, item: typeof navItems[0]) => {
+    void haptic("light");
     if (item.isCenter) {
       e.preventDefault();
       if (isGuest && authPrompt) {
