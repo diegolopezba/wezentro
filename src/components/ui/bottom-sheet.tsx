@@ -16,9 +16,40 @@ import { cn } from "@/lib/utils";
 
 type SheetRootProps = React.ComponentProps<typeof DrawerPrimitive.Root>;
 
-const Sheet = ({ shouldScaleBackground = true, ...props }: SheetRootProps) => (
-  <DrawerPrimitive.Root shouldScaleBackground={shouldScaleBackground} {...props} />
-);
+const Sheet = ({ shouldScaleBackground = false, ...props }: SheetRootProps) => {
+  // Safety net: vaul can leave `pointer-events: none` on <body> if a sheet
+  // is unmounted mid-transition (Fast Refresh, route change, etc.). That
+  // silently kills every subsequent tap and looks exactly like "sheets don't
+  // open anymore". Restore it whenever a sheet closes.
+  const handleOpenChange = React.useCallback(
+    (open: boolean) => {
+      props.onOpenChange?.(open);
+      if (!open) {
+        // Next tick, after vaul's own cleanup runs.
+        setTimeout(() => {
+          if (document.body.style.pointerEvents === "none") {
+            document.body.style.pointerEvents = "";
+          }
+        }, 0);
+      }
+    },
+    [props],
+  );
+  React.useEffect(() => {
+    return () => {
+      if (document.body.style.pointerEvents === "none") {
+        document.body.style.pointerEvents = "";
+      }
+    };
+  }, []);
+  return (
+    <DrawerPrimitive.Root
+      shouldScaleBackground={shouldScaleBackground}
+      {...props}
+      onOpenChange={handleOpenChange}
+    />
+  );
+};
 Sheet.displayName = "Sheet";
 
 const SheetTrigger = DrawerPrimitive.Trigger;
