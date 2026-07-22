@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import { m, useMotionValue, useTransform, type PanInfo } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { triggerHaptic } from "@/lib/haptics";
+import { haptic } from "@/lib/haptics";
 
 /**
  * Full-screen iOS-style push overlay with interactive drag-to-dismiss.
