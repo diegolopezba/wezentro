@@ -65,6 +65,11 @@ Deno.serve(async (req) => {
       return json({ error: "No se pudo actualizar la cuenta", detail: res.data }, 502);
     }
 
+    if (res.data?.process === false) {
+      console.error("edit-beneficiary rejected:", res.raw);
+      return json({ error: res.data?.message || "No se pudo actualizar la cuenta" }, 400);
+    }
+
     await supabase
       .from("qhantuy_beneficiaries")
       .update({
