@@ -42,8 +42,10 @@ import { useMyMenu } from "@/hooks/useMenu";
 import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
-import { PaymentsComingSoonSheet } from "@/components/events/PaymentsComingSoonSheet";
+import { BusinessRequiredSheet } from "@/components/events/BusinessRequiredSheet";
+import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
 import { useReplaceTicketTiers } from "@/hooks/useTicketTiers";
+import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 
 type ContentType = "post" | "event";
 
