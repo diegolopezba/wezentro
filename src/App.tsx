@@ -1,6 +1,5 @@
-import { Suspense, lazy, useState, useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
-import { Capacitor } from "@capacitor/core";
 
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "@/components/ErrorBoundary";
