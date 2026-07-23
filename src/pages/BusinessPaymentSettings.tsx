@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Bank = { id: number; name: string };
 type Beneficiary = {
