@@ -122,7 +122,7 @@ const PrivacyPolicy = () => {
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li><strong>Infraestructura en la nube:</strong> para autenticación segura y almacenamiento de datos con cifrado en reposo</li>
               <li><strong>Stripe:</strong> para procesamiento de pagos de suscripciones — los datos de tarjetas nunca pasan por nuestros servidores</li>
-              <li><strong>BNB Open Banking:</strong> para generación de códigos QR de pago dinámicos en eventos presenciales — las credenciales de la cuenta bancaria son almacenadas cifradas y el dinero va directamente a la cuenta del negocio sin pasar por Zentro</li>
+              <li><strong>Qhantuy:</strong> para generación de códigos QR de pago dinámicos en eventos presenciales — los datos de beneficiario y cuenta bancaria son almacenados cifrados y el dinero va directamente a la cuenta del negocio sin pasar por Zentro</li>
               <li><strong>Mapbox:</strong> para servicios de mapas y ubicación</li>
               <li><strong>OneSignal:</strong> para notificaciones push — solo compartimos identificadores de dispositivo anonimizados</li>
             </ul>
@@ -172,7 +172,7 @@ const PrivacyPolicy = () => {
               <li>Controles de acceso a nivel de fila (Row-Level Security) — cada usuario solo puede acceder a sus propios datos privados</li>
               <li>La configuración de mensajería y preferencias privadas solo son accesibles para usuarios autenticados</li>
               <li>Los datos de pago (tarjetas) nunca son almacenados en nuestros servidores — son gestionados exclusivamente por Stripe</li>
-              <li>Las credenciales de BNB Open Banking (Account ID y Authorization ID) se almacenan cifradas y solo son accesibles por el titular de la cuenta business</li>
+              <li>Los datos de beneficiario de Qhantuy (información bancaria y código de beneficiario) se almacenan cifrados y solo son accesibles por el titular de la cuenta business</li>
               <li>Los tokens QR de guestlist son únicos y solo visibles para el titular y el organizador del evento</li>
               <li>Monitoreo regular de seguridad y auditorías de acceso</li>
             </ul>
@@ -184,7 +184,7 @@ const PrivacyPolicy = () => {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-foreground">9b. Datos de Pagos en Eventos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Cuando un negocio configura pagos QR mediante BNB Open Banking:
+              Cuando un negocio configura pagos QR mediante Qhantuy:
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Zentro actúa únicamente como <strong>facilitador técnico</strong> — no retiene, procesa ni tiene acceso al dinero de las transacciones</li>

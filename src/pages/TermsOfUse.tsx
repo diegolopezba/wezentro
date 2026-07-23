@@ -217,7 +217,7 @@ const TermsOfUse = () => {
 
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-foreground">9. Política de reembolsos y cancelaciones</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed font-medium">Entradas a eventos (pagos QR mediante BNB):</p>
+            <p className="text-sm text-muted-foreground leading-relaxed font-medium">Entradas a eventos (pagos QR mediante Qhantuy):</p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Los reembolsos son gestionados <strong>directamente por el negocio organizador</strong>. Zentro no es parte de la transacción y no procesa reembolsos.</li>
               <li>La política de reembolso aplicable a cada entrada (incluyendo entradas de distintas categorías) es la que defina el organizador del evento.</li>
@@ -258,7 +258,7 @@ const TermsOfUse = () => {
               Algunas funciones de suscripción pueden requerir compras dentro de la aplicación procesadas por Apple App Store o Google Play Store. Estas compras son finales y no reembolsables, excepto cuando lo requiera la ley aplicable o las políticas de la tienda correspondiente.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Las compras de entradas a eventos mediante pagos QR (BNB Open Banking) <strong>no</strong> son compras dentro de la aplicación: son transferencias bancarias directas entre el comprador y el negocio organizador, y no se realizan a través de las tiendas de aplicaciones.
+              Las compras de entradas a eventos mediante pagos QR (Qhantuy) <strong>no</strong> son compras dentro de la aplicación: son transferencias bancarias directas entre el comprador y el negocio organizador, y no se realizan a través de las tiendas de aplicaciones.
             </p>
           </section>
 
