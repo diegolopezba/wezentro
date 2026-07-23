@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
     const callbackUrl = `https://${projectRef}.supabase.co/functions/v1/qhantuy-callback`;
 
     // Fire Qhantuy checkout
-    const checkoutRes = await qhantuyFetch("/v2/checkout", {
+    const checkoutRes = await qhantuyCheckoutFetch("/v2/checkout", {
       method: "POST",
       body: JSON.stringify({
         payment_method: "QRSIMPLE",
