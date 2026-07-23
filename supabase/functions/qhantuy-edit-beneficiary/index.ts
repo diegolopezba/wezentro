@@ -10,7 +10,7 @@ const BodySchema = z.object({
   bank_id: z.number().int().positive(),
   bank_name: z.string().trim().max(120).optional(),
   account_number: z.string().trim().min(3).max(50),
-  account_type: z.enum(["Ahorros", "Corriente", "AHORROS", "CORRIENTE", "ahorros", "corriente"]),
+  account_type: z.enum(["Caja de Ahorro", "Cuenta corriente", "AHORROS", "CORRIENTE", "ahorros", "corriente", "Ahorros", "Corriente"]),
 });
 
 Deno.serve(async (req) => {
@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
       return json({ error: "Invalid input", detail: parsed.error.flatten().fieldErrors }, 400);
     }
     const b = parsed.data;
-    const accountType = b.account_type.toUpperCase() === "CORRIENTE" ? "Corriente" : "Ahorros";
+    const accountType = b.account_type.toLowerCase().includes("corriente") ? "Cuenta corriente" : "Caja de Ahorro";
 
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
         beneficiary_code: existing.beneficiary_code,
         first_name: b.first_name,
         last_name: b.last_name,
-        ci_number: b.ci_number,
+        ci_number: Number(b.ci_number),
         email: b.email,
         bank_id: b.bank_id,
         account_number: b.account_number,
@@ -63,6 +63,11 @@ Deno.serve(async (req) => {
     if (!res.ok) {
       console.error("edit-beneficiary failed:", res.status, res.raw);
       return json({ error: "No se pudo actualizar la cuenta", detail: res.data }, 502);
+    }
+
+    if (res.data?.process === false) {
+      console.error("edit-beneficiary rejected:", res.raw);
+      return json({ error: res.data?.message || "No se pudo actualizar la cuenta" }, 400);
     }
 
     await supabase

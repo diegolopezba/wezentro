@@ -16,7 +16,9 @@ Deno.serve(async (req) => {
       console.error("qhantuy check-bank failed:", res.status, res.raw);
       return json({ error: "Failed to load banks", detail: res.data }, 502);
     }
-    const banks = Array.isArray(res.data) ? res.data : (res.data?.banks ?? res.data?.data ?? []);
+    const banks = Array.isArray(res.data)
+      ? res.data
+      : (res.data?.items ?? res.data?.banks ?? res.data?.data ?? []);
     cache = { at: Date.now(), data: banks };
     return json({ banks });
   } catch (err) {

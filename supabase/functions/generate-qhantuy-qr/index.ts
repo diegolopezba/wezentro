@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, json, qhantuyFetch } from "../_shared/qhantuy.ts";
+import { corsHeaders, json, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -68,6 +68,13 @@ Deno.serve(async (req) => {
       return json({ error: "El organizador aún no configuró sus pagos" }, 400);
     }
 
+    // Load buyer profile for customer fields
+    const { data: buyerProfile } = await supabase
+      .from("profiles")
+      .select("first_name, last_name, email")
+      .eq("id", buyerId)
+      .maybeSingle();
+
     // Create the session first so its id acts as the Qhantuy internal_code.
     const { data: session, error: sessErr } = await supabase
       .from("payment_sessions")
@@ -94,23 +101,24 @@ Deno.serve(async (req) => {
     const callbackUrl = `https://${projectRef}.supabase.co/functions/v1/qhantuy-callback`;
 
     // Fire Qhantuy checkout
-    const checkoutRes = await qhantuyFetch("/v2/checkout", {
+    const checkoutRes = await qhantuyCheckoutFetch("/v2/checkout", {
       method: "POST",
       body: JSON.stringify({
         payment_method: "QRSIMPLE",
         image_method: "URL",
-        currency: "BOB",
+        currency_code: "BOB",
         internal_code: session.id,
         callback_url: callbackUrl,
+        customer_email: buyerProfile?.email ?? userData.user.email ?? undefined,
+        customer_first_name: buyerProfile?.first_name ?? undefined,
+        customer_last_name: buyerProfile?.last_name ?? undefined,
+        detail: effectiveTitle.substring(0, 120),
         items: [
           {
             name: effectiveTitle.substring(0, 100),
             quantity: 1,
             price: effectivePrice,
           },
-        ],
-        custom_payouts: [
-          { code: benef.beneficiary_code, amount: effectivePrice },
         ],
       }),
     });
@@ -124,9 +132,15 @@ Deno.serve(async (req) => {
       return json({ error: "No se pudo generar el QR", detail: checkoutRes.data }, 502);
     }
 
+    if (checkoutRes.data?.process === false) {
+      console.error("qhantuy checkout rejected:", checkoutRes.raw);
+      await supabase.from("payment_sessions").update({ status: "failed" }).eq("id", session.id);
+      return json({ error: checkoutRes.data?.message || "No se pudo generar el QR" }, 400);
+    }
+
     const d = checkoutRes.data ?? {};
     const transactionId = d.transaction_id ?? d.transactionId ?? d.data?.transaction_id;
-    const imageData = d.image_data ?? d.imageData ?? d.data?.image_data ?? d.qr ?? d.image;
+    const imageData = d.qr_url ?? d.image_data ?? d.imageData ?? d.data?.qr_url ?? d.data?.image_data ?? d.qr ?? d.image;
 
     if (!transactionId || !imageData) {
       console.error("checkout response missing fields:", checkoutRes.raw);
