@@ -390,6 +390,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
                     onTiersChange={setDraftTiers}
                     saleMode={saleMode}
                     onSaleModeChange={setSaleMode}
+                    onAttemptPaidAction={!hasBeneficiary ? () => setShowBeneficiaryGate(true) : undefined}
                   />
                 </div>
               ) : (
@@ -400,8 +401,12 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
                     type="number"
                     min="0"
                     step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="Gratis — Business para cobrar"
+                    value=""
+                    readOnly
+                    onFocus={(e) => { e.target.blur(); setShowBusinessGate(true); }}
+                    onClick={() => setShowBusinessGate(true)}
+                    onChange={() => {}}
                   />
                 </div>
               )}
