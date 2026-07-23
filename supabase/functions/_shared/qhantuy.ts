@@ -47,7 +47,21 @@ export async function qhantuyCheckoutFetch(path: string, init: RequestInit = {})
 
 async function qhantuyRawFetch(url: string, init: RequestInit = {}) {
   const headers = { ...qhantuyAuthHeaders(), ...(init.headers as Record<string, string> ?? {}) };
-  const res = await fetch(url, { ...init, headers });
+  let body = init.body;
+  const method = (init.method ?? "GET").toUpperCase();
+  if (method !== "GET" && typeof body === "string") {
+    try {
+      const parsedBody = JSON.parse(body);
+      if (parsedBody && typeof parsedBody === "object" && !Array.isArray(parsedBody)) {
+        const appkey = Deno.env.get("QHANTUY_APPKEY");
+        if (appkey && parsedBody.appkey === undefined) {
+          parsedBody.appkey = appkey;
+          body = JSON.stringify(parsedBody);
+        }
+      }
+    } catch { /* leave body as-is */ }
+  }
+  const res = await fetch(url, { ...init, headers, body });
   const text = await res.text();
   let parsed: unknown = null;
   try { parsed = text ? JSON.parse(text) : null; } catch { parsed = text; }
