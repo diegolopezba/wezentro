@@ -256,8 +256,8 @@ const BusinessPaymentSettings = () => {
                 <Select value={accountType} onValueChange={(v) => setAccountType(v as any)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Ahorros">Ahorros</SelectItem>
-                    <SelectItem value="Corriente">Corriente</SelectItem>
+                    <SelectItem value="Caja de Ahorro">Caja de Ahorro</SelectItem>
+                    <SelectItem value="Cuenta corriente">Cuenta corriente</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
