@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
 
     const d = checkoutRes.data ?? {};
     const transactionId = d.transaction_id ?? d.transactionId ?? d.data?.transaction_id;
-    const imageData = d.image_data ?? d.imageData ?? d.data?.image_data ?? d.qr ?? d.image;
+    const imageData = d.qr_url ?? d.image_data ?? d.imageData ?? d.data?.qr_url ?? d.data?.image_data ?? d.qr ?? d.image;
 
     if (!transactionId || !imageData) {
       console.error("checkout response missing fields:", checkoutRes.raw);
