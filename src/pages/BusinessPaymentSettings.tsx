@@ -131,6 +131,7 @@ const BusinessPaymentSettings = () => {
       setBankId(""); setAccountNumber(""); setAccountType("Caja de Ahorro");
       setEditing(false);
       toast.success("Cuenta eliminada");
+      queryClient.invalidateQueries({ queryKey: ["qhantuy-beneficiary", user?.id] });
     } catch (err: any) {
       toast.error(err?.message || "Error al eliminar");
     } finally {
