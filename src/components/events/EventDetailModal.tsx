@@ -431,7 +431,6 @@ const EventDetailModalInner = () => {
               ticketTierId={selectedTier?.id ?? null}
               ticketTierName={selectedTier?.name ?? null}
               onPaymentConfirmed={handlePaymentSubmitted}
-              onPaymentConfirmed={handlePaymentSubmitted}
             />
           )}
           {hasTiers && (
