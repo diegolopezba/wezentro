@@ -66,6 +66,11 @@ Deno.serve(async (req) => {
       return json({ error: "No se pudo registrar la cuenta bancaria", detail: res.data }, 502);
     }
 
+    if (res.data?.process === false) {
+      console.error("register-beneficiary rejected:", res.raw);
+      return json({ error: res.data?.message || "No se pudo registrar la cuenta bancaria" }, 400);
+    }
+
     const beneficiaryCode =
       res.data?.beneficiary_code ??
       res.data?.data?.beneficiary_code ??
