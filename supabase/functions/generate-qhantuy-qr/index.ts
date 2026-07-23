@@ -68,6 +68,13 @@ Deno.serve(async (req) => {
       return json({ error: "El organizador aún no configuró sus pagos" }, 400);
     }
 
+    // Load buyer profile for customer fields
+    const { data: buyerProfile } = await supabase
+      .from("profiles")
+      .select("first_name, last_name, email")
+      .eq("id", buyerId)
+      .maybeSingle();
+
     // Create the session first so its id acts as the Qhantuy internal_code.
     const { data: session, error: sessErr } = await supabase
       .from("payment_sessions")
@@ -99,18 +106,19 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         payment_method: "QRSIMPLE",
         image_method: "URL",
-        currency: "BOB",
+        currency_code: "BOB",
         internal_code: session.id,
         callback_url: callbackUrl,
+        customer_email: buyerProfile?.email ?? userData.user.email ?? undefined,
+        customer_first_name: buyerProfile?.first_name ?? undefined,
+        customer_last_name: buyerProfile?.last_name ?? undefined,
+        detail: effectiveTitle.substring(0, 120),
         items: [
           {
             name: effectiveTitle.substring(0, 100),
             quantity: 1,
             price: effectivePrice,
           },
-        ],
-        custom_payouts: [
-          { code: benef.beneficiary_code, amount: effectivePrice },
         ],
       }),
     });
