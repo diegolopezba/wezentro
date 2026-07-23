@@ -969,7 +969,8 @@ const Create = () => {
         </div>
       </div>
 
-      <PaymentsComingSoonSheet open={showPaymentsSoon} onOpenChange={setShowPaymentsSoon} />
+      <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
+      <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} />
     </AppLayout>);
 
 };
