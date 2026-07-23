@@ -115,8 +115,6 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(true);
-
   // Preload core routes immediately after mount for native-like navigation
   useEffect(() => {
     // Use requestIdleCallback for non-blocking preload, fallback to setTimeout
@@ -145,14 +143,7 @@ const App = () => {
   return (
     <ErrorBoundary>
       <LazyMotion features={domAnimation} strict>
-      {showSplash && (
-        <SplashScreen
-          onComplete={() => setShowSplash(false)}
-          // On native (Capacitor) the OS splash already covered boot — hide JS splash ASAP.
-          // On web/PWA keep a brief 400ms minimum to avoid flash.
-          minDisplayTime={Capacitor.isNativePlatform() ? 0 : 400}
-        />
-      )}
+
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
