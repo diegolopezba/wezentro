@@ -1,30 +1,41 @@
-## Plan: restore event-detail bottom sheets
+## Goal
 
-### What I found
-- The failing actions are all inside event detail views: comments, the comment preview row, and the owner `Gestionar` button.
-- The profile `Seguidores` / `Siguiendo` sheet still works, which means the general sheet UI is not completely broken.
-- The event detail modal uses a full-screen `framer-motion` draggable overlay at `z-[60]`.
-- The new vaul bottom-sheet portal currently renders at `z-50`, below the event detail modal and its floating CTA at `z-[60]`.
-- This can make a sheet open behind the event detail modal, while vaul still briefly locks interactions, matching the “delay/bug for a second, then nothing opens” behavior.
+Replace the inline "zentro." text splash in `index.html` with the same logo splash used by React (`/lovable-uploads/11ff2e19-f4c9-4c50-8921-c329037d49ac.png`), so there's a single consistent splash from cold boot through React mount — no white flash, no visual swap.
 
-### Fix
-1. Update the shared `bottom-sheet` wrapper so vaul sheets render above event detail overlays:
-   - raise overlay/content z-index above modal routes and floating CTA bars;
-   - keep the pointer-events cleanup safety net;
-   - avoid background-scaling behavior.
+## Changes
 
-2. Add event-modal compatibility:
-   - ensure sheets opened from `EventDetailModal` are not hidden behind the modal layer;
-   - prevent the page-level drag/swipe behavior from interfering with sheet interactions if needed.
+**1. `index.html`**
+- Keep the `#app-splash` shell painted before the JS bundle (still critical for killing the white flash).
+- Replace the `.splash-mark` text ("zentro.") with an `<img>` pointing to `/lovable-uploads/11ff2e19-f4c9-4c50-8921-c329037d49ac.png`, sized to match the React splash (192px, `object-fit: contain`), centered on the dark `#0A0A0B` background.
+- Preload that image via `<link rel="preload" as="image" href="...">` in `<head>` so it's ready for the very first paint.
+- Drop the now-unused `@keyframes splash-in` / `.splash-mark` / `.splash-dot` CSS.
 
-3. Validate with a mobile smoke test:
-   - open event detail;
-   - tap comment icon;
-   - tap comment preview row;
-   - tap `Gestionar` on an owned event if available;
-   - confirm the sheet appears visibly above the event detail page and the app remains scrollable after closing.
+**2. `src/main.tsx`**
+- Keep the existing `requestAnimationFrame` fade-out of `#app-splash` on React's first frame.
+- Extend the fade delay so the boot splash stays visible for a **minimum of 600ms total** before starting the fade, then fades over 260ms (already defined). This prevents a jarring instant-disappear on fast connections.
 
-### Technical details
-- Primary file: `src/components/ui/bottom-sheet.tsx`
-- Likely small supporting file if drag conflict appears during testing: `src/components/layout/PageModal.tsx` or `src/components/events/EventDetailModal.tsx`
-- No backend/database changes needed.
+**3. `src/App.tsx`**
+- Remove the `<SplashScreen>` render (lines 150–157) and the `showSplash` state + `Capacitor` import if only used for the splash.
+- The boot splash from `index.html` now covers the entire pre-mount + first-frame window, so the React-level `SplashScreen` component is redundant and causes the double-splash the user is seeing.
+
+**4. `src/components/SplashScreen.tsx`**
+- Leave the file in place (unused) — user asked not to delete anything. It can be removed in a future cleanup pass.
+
+## Recommended splash duration
+
+Industry norms:
+- **Native apps (iOS/Android):** ~400–1000ms is standard. Apple's HIG explicitly says the splash should *not* be an intentional delay — show it only as long as needed to load the first screen.
+- **Web/PWA:** 400–800ms feels natural. Under 300ms feels like a flicker; over 1200ms feels slow.
+
+**Recommendation: 600ms minimum**, then fade out on React's first frame (whichever is later). This gives:
+- Enough time for the Poppins font and initial CSS to settle so the first painted screen looks correct.
+- Time for React to mount routes, so users don't see a bare shell right after the splash.
+- Not so long that returning users feel the app is sluggish.
+
+On native (Capacitor), the OS splash already covers cold boot, so we keep the JS-side minimum at 0ms there and hide as soon as React mounts.
+
+## Out of scope
+
+- No deletion of `SplashScreen.tsx` (per prior "don't delete anything" rule).
+- No changes to the logo asset itself.
+- No changes to native (Capacitor) splash config.
