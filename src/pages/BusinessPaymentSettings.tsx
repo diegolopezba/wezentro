@@ -43,7 +43,7 @@ const BusinessPaymentSettings = () => {
   const [email, setEmail] = useState("");
   const [bankId, setBankId] = useState<string>("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [accountType, setAccountType] = useState<"Ahorros" | "Corriente">("Ahorros");
+  const [accountType, setAccountType] = useState<"Caja de Ahorro" | "Cuenta corriente">("Caja de Ahorro");
 
   useEffect(() => {
     if (!user) return;
@@ -65,7 +65,7 @@ const BusinessPaymentSettings = () => {
         setEmail(b.email);
         setBankId(String(b.bank_id));
         setAccountNumber(b.account_number);
-        setAccountType((b.account_type === "Corriente" ? "Corriente" : "Ahorros"));
+        setAccountType((b.account_type.toLowerCase().includes("corriente") ? "Cuenta corriente" : "Caja de Ahorro"));
       } else if (user.email) {
         setEmail(user.email);
       }
