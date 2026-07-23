@@ -18,6 +18,9 @@ import { useMyMenu } from "@/hooks/useMenu";
 import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
 import { useTicketTiers, useReplaceTicketTiers } from "@/hooks/useTicketTiers";
 import { LocationPicker } from "@/components/map/LocationPicker";
+import { BusinessRequiredSheet } from "@/components/events/BusinessRequiredSheet";
+import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
+import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 
 interface EditEventSheetProps {
   event: {
