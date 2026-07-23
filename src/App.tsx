@@ -29,7 +29,6 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { GuestAllowedRoute } from "@/components/auth/GuestAllowedRoute";
 import { NotificationFeedbackProvider } from "@/components/NotificationFeedbackProvider";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
-import { SplashScreen } from "@/components/SplashScreen";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { PageLoader } from "@/components/PageLoader";
 import { LazyRoute } from "@/components/layout/LazyRoute";
