@@ -35,36 +35,6 @@ export type Database = {
         }
         Relationships: []
       }
-      business_payment_settings: {
-        Row: {
-          bnb_account_id: string
-          bnb_authorization_id: string
-          created_at: string
-          id: string
-          is_active: boolean
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          bnb_account_id: string
-          bnb_authorization_id: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          bnb_account_id?: string
-          bnb_authorization_id?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       chat_participants: {
         Row: {
           chat_id: string
@@ -1482,7 +1452,7 @@ export type Database = {
       payment_sessions: {
         Row: {
           amount: number
-          bnb_qr_id: string | null
+          beneficiary_code: string | null
           business_user_id: string
           buyer_user_id: string
           confirmed_at: string | null
@@ -1490,12 +1460,15 @@ export type Database = {
           event_id: string
           id: string
           promoter_id: string | null
+          provider: string
+          qhantuy_raw_callback: Json | null
+          qhantuy_transaction_id: number | null
           status: string
           ticket_tier_id: string | null
         }
         Insert: {
           amount: number
-          bnb_qr_id?: string | null
+          beneficiary_code?: string | null
           business_user_id: string
           buyer_user_id: string
           confirmed_at?: string | null
@@ -1503,12 +1476,15 @@ export type Database = {
           event_id: string
           id?: string
           promoter_id?: string | null
+          provider?: string
+          qhantuy_raw_callback?: Json | null
+          qhantuy_transaction_id?: number | null
           status?: string
           ticket_tier_id?: string | null
         }
         Update: {
           amount?: number
-          bnb_qr_id?: string | null
+          beneficiary_code?: string | null
           business_user_id?: string
           buyer_user_id?: string
           confirmed_at?: string | null
@@ -1516,6 +1492,9 @@ export type Database = {
           event_id?: string
           id?: string
           promoter_id?: string | null
+          provider?: string
+          qhantuy_raw_callback?: Json | null
+          qhantuy_transaction_id?: number | null
           status?: string
           ticket_tier_id?: string | null
         }
@@ -1847,6 +1826,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      qhantuy_beneficiaries: {
+        Row: {
+          account_number: string
+          account_type: string
+          bank_id: number
+          bank_name: string | null
+          beneficiary_code: string
+          ci_number: string
+          created_at: string
+          email: string
+          first_name: string
+          is_active: boolean
+          last_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_number: string
+          account_type: string
+          bank_id: number
+          bank_name?: string | null
+          beneficiary_code: string
+          ci_number: string
+          created_at?: string
+          email: string
+          first_name: string
+          is_active?: boolean
+          last_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_number?: string
+          account_type?: string
+          bank_id?: number
+          bank_name?: string | null
+          beneficiary_code?: string
+          ci_number?: string
+          created_at?: string
+          email?: string
+          first_name?: string
+          is_active?: boolean
+          last_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       referral_rewards: {
         Row: {
