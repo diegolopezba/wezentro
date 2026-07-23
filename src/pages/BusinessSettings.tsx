@@ -42,23 +42,6 @@ const BusinessSettings = () => {
     }
   };
 
-  const handleToggleMenu = async (value: boolean) => {
-    if (!user) return;
-    setTogglingMenu(true);
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ menu_enabled: value } as any)
-        .eq("id", user.id);
-      if (error) throw error;
-      await refreshProfile();
-      toast.success(value ? "Menú activado" : "Menú desactivado");
-    } catch (error: any) {
-      toast.error(error.message || "Error al cambiar configuración");
-    } finally {
-      setTogglingMenu(false);
-    }
-  };
 
   return (
     <div className="min-h-[100dvh] bg-background">
