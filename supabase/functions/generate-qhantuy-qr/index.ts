@@ -132,6 +132,12 @@ Deno.serve(async (req) => {
       return json({ error: "No se pudo generar el QR", detail: checkoutRes.data }, 502);
     }
 
+    if (checkoutRes.data?.process === false) {
+      console.error("qhantuy checkout rejected:", checkoutRes.raw);
+      await supabase.from("payment_sessions").update({ status: "failed" }).eq("id", session.id);
+      return json({ error: checkoutRes.data?.message || "No se pudo generar el QR" }, 400);
+    }
+
     const d = checkoutRes.data ?? {};
     const transactionId = d.transaction_id ?? d.transactionId ?? d.data?.transaction_id;
     const imageData = d.qr_url ?? d.image_data ?? d.imageData ?? d.data?.qr_url ?? d.data?.image_data ?? d.qr ?? d.image;
