@@ -312,12 +312,12 @@ const Create = () => {
       return;
     }
 
-    // Defensive guard: paid tickets are temporarily disabled
-    const attemptedPrice = !isPost && formData.price && parseFloat(formData.price) > 0;
-    const attemptedTiers = !isPost && isBusiness && pricingMode === "tiers";
-    if (attemptedPrice || attemptedTiers) {
-      setShowPaymentsSoon(true);
-      return;
+    // Gate paid tickets: require Business + Qhantuy beneficiary
+    const hasPaidSingle = !isPost && formData.price && parseFloat(formData.price) > 0;
+    const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
+    if (hasPaidSingle || hasPaidTier || (!isPost && isBusiness && pricingMode === "tiers")) {
+      if (!isBusiness) { setShowBusinessGate(true); return; }
+      if (!hasBeneficiary) { setShowBeneficiaryGate(true); return; }
     }
 
     // Validate ticket tiers (events only, business + tiers mode)
