@@ -3,6 +3,10 @@
 export const QHANTUY_BASE =
   Deno.env.get("QHANTUY_BASE_URL") ?? "https://empresa.qhantuy.com/external-api";
 
+// Checkout has its own subdomain per Qhantuy docs.
+export const QHANTUY_CHECKOUT_BASE =
+  Deno.env.get("QHANTUY_CHECKOUT_BASE_URL") ?? "https://checkout.qhantuy.com/external-api";
+
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -33,6 +37,15 @@ export function json(body: unknown, status = 200) {
 
 export async function qhantuyFetch(path: string, init: RequestInit = {}) {
   const url = `${QHANTUY_BASE}${path}`;
+  return qhantuyRawFetch(url, init);
+}
+
+export async function qhantuyCheckoutFetch(path: string, init: RequestInit = {}) {
+  const url = `${QHANTUY_CHECKOUT_BASE}${path}`;
+  return qhantuyRawFetch(url, init);
+}
+
+async function qhantuyRawFetch(url: string, init: RequestInit = {}) {
   const headers = { ...qhantuyAuthHeaders(), ...(init.headers as Record<string, string> ?? {}) };
   const res = await fetch(url, { ...init, headers });
   const text = await res.text();
