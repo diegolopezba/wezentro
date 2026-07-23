@@ -10,7 +10,7 @@ import { useUserTimeline } from "@/hooks/useUserTimeline";
 import { useUserStats } from "@/hooks/useUserStats";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
-import { EditMenuSheet } from "@/components/menu/EditMenuSheet";
+
 import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
 import { ReservationsManagementSheet } from "@/components/reservations/ReservationsManagementSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
@@ -30,7 +30,7 @@ const Profile = () => {
   } = useAuth();
   const [followSheetType, setFollowSheetType] = useState<"followers" | "following" | null>(null);
   const [showProfileBanner, setShowProfileBanner] = useState(true);
-  const [menuSheetOpen, setMenuSheetOpen] = useState(false);
+  
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [reservationsSheetOpen, setReservationsSheetOpen] = useState(false);
   const [goalSheetOpen, setGoalSheetOpen] = useState(false);
@@ -155,17 +155,13 @@ const Profile = () => {
           {profile?.bio && <MentionText text={profile.bio} className="text-sm text-foreground/80" />}
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
           
-          {/* Edit Menu / Reservations buttons for food businesses */}
-          {isBusiness && isFoodBusiness && (menuEnabled || reservationsEnabled) &&
+          {/* Reservations button for food businesses */}
+          {isBusiness && isFoodBusiness && reservationsEnabled &&
         <div className="flex gap-2 mt-3">
-              {menuEnabled && <Button variant="outline" size="sm" onClick={() => setMenuSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
-                <UtensilsCrossed className="w-4 h-4 text-primary" />
-                Editar Menú
-              </Button>}
-              {reservationsEnabled && <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
+              <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
                 <CalendarCheck className="w-4 h-4 text-primary" />
                 Reservas
-              </Button>}
+              </Button>
             </div>
         }
         </m.div>
@@ -221,8 +217,6 @@ const Profile = () => {
 
       {/* Followers/Following Sheet */}
       {user && <FollowersSheet userId={user.id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={(open) => !open && setFollowSheetType(null)} />}
-      {/* Edit Menu Sheet for food businesses */}
-      {isBusiness && isFoodBusiness && menuEnabled && <EditMenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} />}
       {/* Reservations Management Sheet for food businesses */}
       {isBusiness && isFoodBusiness && reservationsEnabled && user && <ReservationsManagementSheet open={reservationsSheetOpen} onOpenChange={setReservationsSheetOpen} businessId={user.id} />}
       {/* Business Info Sheet */}

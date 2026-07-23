@@ -16,7 +16,7 @@ const BusinessSettings = () => {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
   const [togglingBusiness, setTogglingBusiness] = useState(false);
-  const [togglingMenu, setTogglingMenu] = useState(false);
+  
 
   useSwipeBack();
 
@@ -42,23 +42,6 @@ const BusinessSettings = () => {
     }
   };
 
-  const handleToggleMenu = async (value: boolean) => {
-    if (!user) return;
-    setTogglingMenu(true);
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ menu_enabled: value } as any)
-        .eq("id", user.id);
-      if (error) throw error;
-      await refreshProfile();
-      toast.success(value ? "Menú activado" : "Menú desactivado");
-    } catch (error: any) {
-      toast.error(error.message || "Error al cambiar configuración");
-    } finally {
-      setTogglingMenu(false);
-    }
-  };
 
   return (
     <div className="min-h-[100dvh] bg-background">
@@ -139,25 +122,24 @@ const BusinessSettings = () => {
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </m.button>
 
-            {/* Menu Toggle */}
-            <m.div
+            {/* Menú → nav */}
+            <m.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border" >
-              <div className="w-9 h-9 rounded-lg bg-orange-500/15 flex items-center justify-center">
+              onClick={() => navigate("/settings/business/menu")}
+              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
+              <div className="w-9 h-9 rounded-lg bg-orange-500/15 flex items-center justify-center shrink-0">
                 <UtensilsCrossed className="w-5 h-5 text-orange-500" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 text-left">
                 <span className="text-foreground font-semibold block">Menú</span>
-                <span className="text-xs text-muted-foreground">Muestra tu carta en tu perfil</span>
+                <span className="text-xs text-muted-foreground">
+                  {menuEnabled ? "Activo · editar carta" : "Desactivado"}
+                </span>
               </div>
-              <Switch
-                checked={menuEnabled}
-                onCheckedChange={handleToggleMenu}
-                disabled={togglingMenu}
-              />
-            </m.div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </m.button>
 
             {/* Reservas → nav */}
             <m.button
