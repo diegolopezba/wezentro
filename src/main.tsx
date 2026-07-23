@@ -39,13 +39,22 @@ if (Capacitor.isNativePlatform()) {
 // Note: StrictMode is disabled because keepalive-for-react requires it for page caching
 createRoot(document.getElementById("root")!).render(<App />);
 
-// Remove the boot splash once React has mounted its first frame.
+// Remove the boot splash once React has mounted AND a minimum display time has elapsed.
+// 600ms feels intentional without being sluggish; on native the OS splash covers cold boot,
+// so we skip the extra delay there.
+const SPLASH_MIN_MS = Capacitor.isNativePlatform() ? 0 : 600;
+const bootStart = performance.now();
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     const splash = document.getElementById("app-splash");
     if (!splash) return;
-    splash.classList.add("is-hiding");
-    setTimeout(() => splash.remove(), 300);
+    const elapsed = performance.now() - bootStart;
+    const wait = Math.max(0, SPLASH_MIN_MS - elapsed);
+    setTimeout(() => {
+      splash.classList.add("is-hiding");
+      setTimeout(() => splash.remove(), 300);
+    }, wait);
   });
 });
+
 

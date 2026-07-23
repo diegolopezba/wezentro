@@ -1,6 +1,5 @@
-import { Suspense, lazy, useState, useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
-import { Capacitor } from "@capacitor/core";
 
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -30,7 +29,6 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { GuestAllowedRoute } from "@/components/auth/GuestAllowedRoute";
 import { NotificationFeedbackProvider } from "@/components/NotificationFeedbackProvider";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
-import { SplashScreen } from "@/components/SplashScreen";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { PageLoader } from "@/components/PageLoader";
 import { LazyRoute } from "@/components/layout/LazyRoute";
@@ -117,8 +115,6 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(true);
-
   // Preload core routes immediately after mount for native-like navigation
   useEffect(() => {
     // Use requestIdleCallback for non-blocking preload, fallback to setTimeout
@@ -147,14 +143,7 @@ const App = () => {
   return (
     <ErrorBoundary>
       <LazyMotion features={domAnimation} strict>
-      {showSplash && (
-        <SplashScreen
-          onComplete={() => setShowSplash(false)}
-          // On native (Capacitor) the OS splash already covered boot — hide JS splash ASAP.
-          // On web/PWA keep a brief 400ms minimum to avoid flash.
-          minDisplayTime={Capacitor.isNativePlatform() ? 0 : 400}
-        />
-      )}
+
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />

@@ -65,6 +65,10 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
     />
 
+    <!-- Preload splash logo so it paints on the very first frame -->
+    <link rel="preload" as="image" href="/lovable-uploads/11ff2e19-f4c9-4c50-8921-c329037d49ac.png" />
+
+
     <!-- Critical CSS: paint the app shell before JS/CSS bundles arrive -->
     <style>
       :root { color-scheme: dark; }
@@ -91,38 +95,22 @@
         transition: opacity 260ms ease;
       }
       #app-splash.is-hiding { opacity: 0; pointer-events: none; }
-      #app-splash .splash-mark {
-        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
-        font-weight: 600;
-        font-size: 28px;
-        letter-spacing: -0.02em;
-        color: #FAFAFA;
+      #app-splash img {
+        width: 192px;
+        height: 192px;
+        object-fit: contain;
         opacity: 0;
-        animation: splash-in 400ms ease 80ms forwards;
-      }
-      #app-splash .splash-dot {
-        color: #E60023;
+        animation: splash-in 300ms ease 40ms forwards;
       }
       @keyframes splash-in {
-        from { opacity: 0; transform: translateY(4px); }
-        to   { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; transform: scale(0.92); }
+        to   { opacity: 1; transform: scale(1); }
       }
       @media (prefers-reduced-motion: reduce) {
-        #app-splash, #app-splash .splash-mark { transition: none; animation: none; opacity: 1; }
+        #app-splash, #app-splash img { transition: none; animation: none; opacity: 1; }
       }
     </style>
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   <meta property="og:title" content="Zentro - El pinterest de la vida social">
   <meta name="twitter:title" content="Zentro - El pinterest de la vida social">
   <meta property="og:description" content="Descubre y únete a los mejores eventos de vida nocturna en tu ciudad. Clubs, bares, conciertos, festivales,  todo en un solo lugar.">
@@ -132,9 +120,10 @@
   <body>
     <div id="root"></div>
     <div id="app-splash" aria-hidden="true">
-      <div class="splash-mark">zentro<span class="splash-dot">.</span></div>
+      <img src="/lovable-uploads/11ff2e19-f4c9-4c50-8921-c329037d49ac.png" alt="" />
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+
 
