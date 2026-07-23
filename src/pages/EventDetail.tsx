@@ -431,7 +431,6 @@ const EventDetail = () => {
       price={selectedTier ? Number(selectedTier.price) : (event.price || 0)}
       ticketTierId={selectedTier?.id ?? null}
       ticketTierName={selectedTier?.name ?? null}
-      paymentQrUrl={event.payment_qr_url ?? undefined}
       onPaymentConfirmed={handlePaymentSubmitted} />
 
     }

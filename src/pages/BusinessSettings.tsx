@@ -182,8 +182,8 @@ const BusinessSettings = () => {
                 <CreditCard className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1 text-left">
-                <span className="text-foreground font-semibold block">Pagos QR · BNB</span>
-                <span className="text-xs text-muted-foreground">QR dinámico — confirmación automática sin intermediarios</span>
+                <span className="text-foreground font-semibold block">Pagos</span>
+                <span className="text-xs text-muted-foreground">Depósitos automáticos a tu cuenta bancaria al día siguiente</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </m.button>
