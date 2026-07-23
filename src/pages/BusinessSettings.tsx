@@ -16,7 +16,7 @@ const BusinessSettings = () => {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
   const [togglingBusiness, setTogglingBusiness] = useState(false);
-  const [togglingMenu, setTogglingMenu] = useState(false);
+  
 
   useSwipeBack();
 
