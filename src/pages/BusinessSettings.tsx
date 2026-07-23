@@ -83,7 +83,7 @@ const BusinessSettings = () => {
           </div>
           <div className="flex-1">
             <span className="text-foreground font-semibold block">Cuenta Business</span>
-            <span className="text-xs text-muted-foreground">Guestlists, dashboard, menú y reservas — gratis</span>
+            <span className="text-xs text-muted-foreground">Guestlists, dashboard, menú y reservas</span>
           </div>
           <Switch
             checked={isBusiness}
