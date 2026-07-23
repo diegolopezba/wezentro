@@ -125,7 +125,7 @@ const BusinessPaymentSettings = () => {
       if (error) throw error;
       setExisting(null);
       setFirstName(""); setLastName(""); setCi("");
-      setBankId(""); setAccountNumber(""); setAccountType("Ahorros");
+      setBankId(""); setAccountNumber(""); setAccountType("Caja de Ahorro");
       setEditing(false);
       toast.success("Cuenta eliminada");
     } catch (err: any) {
