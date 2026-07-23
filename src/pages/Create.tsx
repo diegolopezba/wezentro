@@ -122,7 +122,13 @@ const Create = () => {
   const [tierSaleMode, setTierSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const replaceTiers = useReplaceTicketTiers();
-  const [showPaymentsSoon, setShowPaymentsSoon] = useState(false);
+  const { hasBeneficiary } = useHasBeneficiary();
+  const [showBusinessGate, setShowBusinessGate] = useState(false);
+  const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
+  const gatePaidAction = () => {
+    if (!isBusiness) setShowBusinessGate(true);
+    else if (!hasBeneficiary) setShowBeneficiaryGate(true);
+  };
 
   const handleTypeChange = (type: ContentType) => {
     setContentType(type);
