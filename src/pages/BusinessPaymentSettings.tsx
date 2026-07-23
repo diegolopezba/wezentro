@@ -112,6 +112,7 @@ const BusinessPaymentSettings = () => {
         .eq("user_id", user!.id)
         .maybeSingle();
       if (fresh) setExisting(fresh as Beneficiary);
+      queryClient.invalidateQueries({ queryKey: ["qhantuy-beneficiary", user?.id] });
     } catch (err: any) {
       toast.error(err?.message || "Error al guardar");
     } finally {
