@@ -7,11 +7,11 @@ project_id = "fipdpcitsjpqivljrktj"
     verify_jwt = false
   [functions.charge-boost]
     verify_jwt = false
-  [functions.check-bnb-payment-status]
-    verify_jwt = false
   [functions.check-in-guest]
     verify_jwt = false
-  [functions.generate-bnb-qr]
+  [functions.check-qhantuy-payment-status]
+    verify_jwt = false
+  [functions.generate-qhantuy-qr]
     verify_jwt = false
   [functions.get-for-you-feed]
     verify_jwt = false
@@ -19,6 +19,16 @@ project_id = "fipdpcitsjpqivljrktj"
     verify_jwt = false
   [functions.process-email-queue]
     verify_jwt = true
+  [functions.qhantuy-callback]
+    verify_jwt = false
+  [functions.qhantuy-delete-beneficiary]
+    verify_jwt = false
+  [functions.qhantuy-edit-beneficiary]
+    verify_jwt = false
+  [functions.qhantuy-list-banks]
+    verify_jwt = false
+  [functions.qhantuy-register-beneficiary]
+    verify_jwt = false
   [functions.send-push-notification]
     verify_jwt = true
   [functions.send-reservation-reminders]
