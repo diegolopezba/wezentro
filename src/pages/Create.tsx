@@ -42,8 +42,10 @@ import { useMyMenu } from "@/hooks/useMenu";
 import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
-import { PaymentsComingSoonSheet } from "@/components/events/PaymentsComingSoonSheet";
+import { BusinessRequiredSheet } from "@/components/events/BusinessRequiredSheet";
+import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
 import { useReplaceTicketTiers } from "@/hooks/useTicketTiers";
+import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 
 type ContentType = "post" | "event";
 
@@ -120,7 +122,13 @@ const Create = () => {
   const [tierSaleMode, setTierSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const replaceTiers = useReplaceTicketTiers();
-  const [showPaymentsSoon, setShowPaymentsSoon] = useState(false);
+  const { hasBeneficiary } = useHasBeneficiary();
+  const [showBusinessGate, setShowBusinessGate] = useState(false);
+  const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
+  const gatePaidAction = () => {
+    if (!isBusiness) setShowBusinessGate(true);
+    else if (!hasBeneficiary) setShowBeneficiaryGate(true);
+  };
 
   const handleTypeChange = (type: ContentType) => {
     setContentType(type);
@@ -304,12 +312,12 @@ const Create = () => {
       return;
     }
 
-    // Defensive guard: paid tickets are temporarily disabled
-    const attemptedPrice = !isPost && formData.price && parseFloat(formData.price) > 0;
-    const attemptedTiers = !isPost && isBusiness && pricingMode === "tiers";
-    if (attemptedPrice || attemptedTiers) {
-      setShowPaymentsSoon(true);
-      return;
+    // Gate paid tickets: require Business + Qhantuy beneficiary
+    const hasPaidSingle = !isPost && formData.price && parseFloat(formData.price) > 0;
+    const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
+    if (hasPaidSingle || hasPaidTier || (!isPost && isBusiness && pricingMode === "tiers")) {
+      if (!isBusiness) { setShowBusinessGate(true); return; }
+      if (!hasBeneficiary) { setShowBeneficiaryGate(true); return; }
     }
 
     // Validate ticket tiers (events only, business + tiers mode)
@@ -754,7 +762,7 @@ const Create = () => {
                       onTiersChange={setDraftTiers}
                       saleMode={tierSaleMode}
                       onSaleModeChange={setTierSaleMode}
-                      onAttemptPaidAction={() => setShowPaymentsSoon(true)}
+                      onAttemptPaidAction={!hasBeneficiary ? () => setShowBeneficiaryGate(true) : undefined}
                     />
                   </div>
                   <div>
@@ -776,12 +784,12 @@ const Create = () => {
                       <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         type="number"
-                        placeholder="Gratis — pagos disponibles pronto"
+                        placeholder="Gratis — Business para cobrar"
                         className="pl-10"
                         value=""
                         readOnly
-                        onFocus={(e) => { e.target.blur(); setShowPaymentsSoon(true); }}
-                        onClick={() => setShowPaymentsSoon(true)}
+                        onFocus={(e) => { e.target.blur(); setShowBusinessGate(true); }}
+                        onClick={() => setShowBusinessGate(true)}
                         onChange={() => {}}
                         min="0" step="0.01" />
                     </div>
@@ -961,7 +969,8 @@ const Create = () => {
         </div>
       </div>
 
-      <PaymentsComingSoonSheet open={showPaymentsSoon} onOpenChange={setShowPaymentsSoon} />
+      <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
+      <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} />
     </AppLayout>);
 
 };

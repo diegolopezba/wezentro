@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Bank = { id: number; name: string };
 type Beneficiary = {
@@ -27,6 +28,7 @@ type Beneficiary = {
 const BusinessPaymentSettings = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   useSwipeBack();
 
   const [loading, setLoading] = useState(true);
@@ -110,6 +112,7 @@ const BusinessPaymentSettings = () => {
         .eq("user_id", user!.id)
         .maybeSingle();
       if (fresh) setExisting(fresh as Beneficiary);
+      queryClient.invalidateQueries({ queryKey: ["qhantuy-beneficiary", user?.id] });
     } catch (err: any) {
       toast.error(err?.message || "Error al guardar");
     } finally {
@@ -128,6 +131,7 @@ const BusinessPaymentSettings = () => {
       setBankId(""); setAccountNumber(""); setAccountType("Caja de Ahorro");
       setEditing(false);
       toast.success("Cuenta eliminada");
+      queryClient.invalidateQueries({ queryKey: ["qhantuy-beneficiary", user?.id] });
     } catch (err: any) {
       toast.error(err?.message || "Error al eliminar");
     } finally {

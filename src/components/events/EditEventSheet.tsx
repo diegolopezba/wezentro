@@ -18,6 +18,9 @@ import { useMyMenu } from "@/hooks/useMenu";
 import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
 import { useTicketTiers, useReplaceTicketTiers } from "@/hooks/useTicketTiers";
 import { LocationPicker } from "@/components/map/LocationPicker";
+import { BusinessRequiredSheet } from "@/components/events/BusinessRequiredSheet";
+import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
+import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 
 interface EditEventSheetProps {
   event: {
@@ -54,11 +57,14 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
   const { data: existingTiers = [] } = useTicketTiers(event.id);
   const replaceTiers = useReplaceTicketTiers();
+  const { hasBeneficiary } = useHasBeneficiary();
   const [pricingMode, setPricingMode] = useState<TicketPricingMode>("single");
   const [saleMode, setSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const [isUploadingQr, setIsUploadingQr] = useState(false);
   const [isCompressingQr, setIsCompressingQr] = useState(false);
+  const [showBusinessGate, setShowBusinessGate] = useState(false);
+  const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const qrInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
@@ -176,6 +182,14 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
 
   const handleSave = async () => {
     try {
+      // Gate paid tickets: require Business + Qhantuy beneficiary
+      const priceNum = parseFloat(formData.price) || 0;
+      const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
+      if (!isPost && (priceNum > 0 || hasPaidTier || pricingMode === "tiers")) {
+        if (!isBusiness) { setShowBusinessGate(true); return; }
+        if (!hasBeneficiary) { setShowBeneficiaryGate(true); return; }
+      }
+
       // Validate tiers if in tiers mode
       const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
       if (!isPost && pricingMode === "tiers") {
@@ -376,6 +390,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
                     onTiersChange={setDraftTiers}
                     saleMode={saleMode}
                     onSaleModeChange={setSaleMode}
+                    onAttemptPaidAction={!hasBeneficiary ? () => setShowBeneficiaryGate(true) : undefined}
                   />
                 </div>
               ) : (
@@ -386,8 +401,12 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
                     type="number"
                     min="0"
                     step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="Gratis — Business para cobrar"
+                    value=""
+                    readOnly
+                    onFocus={(e) => { e.target.blur(); setShowBusinessGate(true); }}
+                    onClick={() => setShowBusinessGate(true)}
+                    onChange={() => {}}
                   />
                 </div>
               )}
@@ -568,6 +587,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
         </div>
       </SheetContent>
 
+      <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
+      <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} />
     </Sheet>
   );
 }
