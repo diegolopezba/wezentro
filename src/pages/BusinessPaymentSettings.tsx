@@ -28,6 +28,7 @@ type Beneficiary = {
 const BusinessPaymentSettings = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   useSwipeBack();
 
   const [loading, setLoading] = useState(true);
