@@ -57,11 +57,14 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
   const { data: existingTiers = [] } = useTicketTiers(event.id);
   const replaceTiers = useReplaceTicketTiers();
+  const { hasBeneficiary } = useHasBeneficiary();
   const [pricingMode, setPricingMode] = useState<TicketPricingMode>("single");
   const [saleMode, setSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const [isUploadingQr, setIsUploadingQr] = useState(false);
   const [isCompressingQr, setIsCompressingQr] = useState(false);
+  const [showBusinessGate, setShowBusinessGate] = useState(false);
+  const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const qrInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
