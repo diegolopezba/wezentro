@@ -140,15 +140,16 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">6b. Pagos QR mediante BNB Open Banking</h2>
+            <h2 className="text-lg font-semibold text-foreground">6b. Pagos QR mediante Qhantuy</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Zentro permite a negocios aceptar pagos por entradas a eventos físicos mediante códigos QR dinámicos integrados con BNB Open Banking. Al utilizar esta funcionalidad:
+              Zentro permite a negocios aceptar pagos por entradas a eventos físicos mediante códigos QR dinámicos integrados con Qhantuy. Al utilizar esta funcionalidad:
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed font-medium">Para negocios (organizadores):</p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li>Debe registrarse en BNB Open Banking (<strong>bnb.com.bo/PortalBNB/Api/OpenBanking</strong>) y obtener sus credenciales</li>
-              <li>Es responsable de configurar correctamente sus credenciales en la aplicación</li>
-              <li>El dinero va directamente a su cuenta BNB — Zentro no interviene en la transacción financiera</li>
+              <li>Debe registrar sus datos de beneficiario y cuenta bancaria dentro de la aplicación para recibir los pagos</li>
+              <li>Es responsable de configurar correctamente sus datos bancarios en la aplicación</li>
+              <li>El dinero va directamente a su cuenta bancaria registrada — Zentro no interviene en la transacción financiera</li>
+              <li>Los pagos se liquidan automáticamente al día hábil siguiente en la cuenta bancaria indicada</li>
               <li>Es responsable de reembolsos y disputas de pago con sus clientes</li>
               <li>Debe cumplir con la normativa fiscal y tributaria boliviana aplicable</li>
             </ul>
