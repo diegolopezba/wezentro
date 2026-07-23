@@ -587,6 +587,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
         </div>
       </SheetContent>
 
+      <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
+      <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} />
     </Sheet>
   );
 }
