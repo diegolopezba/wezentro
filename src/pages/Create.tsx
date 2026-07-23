@@ -762,7 +762,7 @@ const Create = () => {
                       onTiersChange={setDraftTiers}
                       saleMode={tierSaleMode}
                       onSaleModeChange={setTierSaleMode}
-                      onAttemptPaidAction={() => setShowPaymentsSoon(true)}
+                      onAttemptPaidAction={!hasBeneficiary ? () => setShowBeneficiaryGate(true) : undefined}
                     />
                   </div>
                   <div>
