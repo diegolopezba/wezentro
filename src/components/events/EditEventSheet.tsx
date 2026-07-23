@@ -182,6 +182,14 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
 
   const handleSave = async () => {
     try {
+      // Gate paid tickets: require Business + Qhantuy beneficiary
+      const priceNum = parseFloat(formData.price) || 0;
+      const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
+      if (!isPost && (priceNum > 0 || hasPaidTier || pricingMode === "tiers")) {
+        if (!isBusiness) { setShowBusinessGate(true); return; }
+        if (!hasBeneficiary) { setShowBeneficiaryGate(true); return; }
+      }
+
       // Validate tiers if in tiers mode
       const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
       if (!isPost && pricingMode === "tiers") {
