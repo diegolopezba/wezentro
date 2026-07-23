@@ -280,7 +280,7 @@ const BusinessPaymentSettings = () => {
           className="px-4 py-3 rounded-xl bg-muted/50 border border-border"
         >
           <p className="text-xs text-muted-foreground leading-relaxed">
-            🔒 Tus datos bancarios se envían de forma segura a Qhantuy, nuestro procesador de pagos. Zentro no retiene tu dinero: cada venta se deposita directamente en tu cuenta.
+            🔒 Tus datos bancarios se envían de forma segura a Qhantuy, nuestro procesador de pagos. Zentro no retiene tu dinero: Qhantuy recibe los pagos y los deposita en tu cuenta al día hábil siguiente.
           </p>
         </m.div>
       </div>

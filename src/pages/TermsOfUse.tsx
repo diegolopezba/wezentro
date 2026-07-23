@@ -146,22 +146,22 @@ const TermsOfUse = () => {
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed font-medium">Para negocios (organizadores):</p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li>Debe registrar sus datos de beneficiario y cuenta bancaria dentro de la aplicación para recibir los pagos</li>
+              <li>Debe registrar sus datos de beneficiario y cuenta bancaria dentro de la aplicación para que Qhantuy pueda distribuir los pagos correctamente</li>
               <li>Es responsable de configurar correctamente sus datos bancarios en la aplicación</li>
-              <li>El dinero va directamente a su cuenta bancaria registrada — Zentro no interviene en la transacción financiera</li>
-              <li>Los pagos se liquidan automáticamente al día hábil siguiente en la cuenta bancaria indicada</li>
+              <li>El dinero es recibido y retenido temporalmente por Qhantuy mientras se procesa la transacción — Zentro no recibe ni retiene fondos en ningún momento</li>
+              <li>Qhantuy liquida automáticamente los pagos al día hábil siguiente en la cuenta bancaria indicada por el organizador</li>
               <li>Es responsable de reembolsos y disputas de pago con sus clientes</li>
               <li>Debe cumplir con la normativa fiscal y tributaria boliviana aplicable</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed font-medium mt-2">Para usuarios (compradores):</p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li>El pago se realiza desde su app bancaria directamente al negocio — Zentro no recibe ni retiene fondos</li>
-              <li>Una vez confirmado el pago, se emite automáticamente su entrada digital</li>
+              <li>El pago se realiza desde su app bancaria al sistema de Qhantuy — Zentro no recibe ni retiene fondos</li>
+              <li>Qhantuy procesa el pago y, una vez confirmado, se emite automáticamente su entrada digital</li>
               <li>En caso de disputa de pago, debe contactar directamente al negocio organizador</li>
-              <li>Zentro no es responsable por errores en el proceso de pago bancario externo</li>
+              <li>Zentro no es responsable por errores en el proceso de pago bancario externo gestionado por Qhantuy</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Zentro actúa exclusivamente como facilitador tecnológico y no es parte de la transacción comercial entre el negocio y el comprador.
+              Zentro actúa exclusivamente como facilitador tecnológico y no es parte de la transacción comercial entre el negocio y el comprador. Qhantuy es el encargado de recibir, procesar y distribuir los fondos conforme a sus propios términos y condiciones.
             </p>
           </section>
 
