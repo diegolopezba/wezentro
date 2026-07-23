@@ -122,7 +122,7 @@ const PrivacyPolicy = () => {
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li><strong>Infraestructura en la nube:</strong> para autenticación segura y almacenamiento de datos con cifrado en reposo</li>
               <li><strong>Stripe:</strong> para procesamiento de pagos de suscripciones — los datos de tarjetas nunca pasan por nuestros servidores</li>
-              <li><strong>Qhantuy:</strong> para generación de códigos QR de pago dinámicos en eventos presenciales — los datos de beneficiario y cuenta bancaria son almacenados cifrados y el dinero va directamente a la cuenta del negocio sin pasar por Zentro</li>
+              <li><strong>Qhantuy:</strong> para generación de códigos QR de pago dinámicos en eventos presenciales — los datos de beneficiario y cuenta bancaria son compartidos con Qhantuy para que pueda distribuir los pagos al día hábil siguiente; Qhantuy recibe y procesa los fondos temporalmente, y Zentro nunca retiene ni tiene acceso al dinero de las transacciones</li>
               <li><strong>Mapbox:</strong> para servicios de mapas y ubicación</li>
               <li><strong>OneSignal:</strong> para notificaciones push — solo compartimos identificadores de dispositivo anonimizados</li>
             </ul>
@@ -188,7 +188,7 @@ const PrivacyPolicy = () => {
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Zentro actúa únicamente como <strong>facilitador técnico</strong> — no retiene, procesa ni tiene acceso al dinero de las transacciones</li>
-              <li>Los pagos van directamente desde el banco del usuario al banco del negocio sin intermediarios</li>
+              <li>Qhantuy recibe y procesa los fondos del usuario y los distribuye al banco del negocio al día hábil siguiente, utilizando los datos de beneficiario proporcionados por el organizador</li>
               <li>Zentro registra el monto, el estado de la transacción y el identificador de la sesión de pago para confirmar su entrada al evento</li>
               <li>Para eventos con múltiples categorías de entradas, también se registra la categoría adquirida (por ejemplo: "General", "VIP") como parte del comprobante de compra</li>
               <li>No se almacenan datos bancarios del usuario pagador (número de cuenta, contraseñas bancarias)</li>
