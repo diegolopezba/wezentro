@@ -77,7 +77,7 @@ const EventDetailModalInner = () => {
     isOnGuestlist, isPending,
     isOwner,
     approvedCount, maxGuestlistCapacity, isGuestlistFull,
-    hasPaidTickets, hasPaymentQr,
+    hasPaidTickets, usesPaidCheckout,
     isLocationSecret, canSeeLocation,
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
@@ -115,12 +115,12 @@ const EventDetailModalInner = () => {
   // Check for showPayment query param (returned from checkout success)
   useEffect(() => {
     const shouldShowPayment = searchParams.get("showPayment") === "true";
-    if (shouldShowPayment && hasPaymentQr && !isOnGuestlist) {
+    if (shouldShowPayment && usesPaidCheckout && !isOnGuestlist) {
       setShowPaymentModal(true);
       searchParams.delete("showPayment");
       setSearchParams(searchParams, { replace: true });
     }
-  }, [searchParams, hasPaymentQr, isOnGuestlist, setSearchParams, setShowPaymentModal]);
+  }, [searchParams, usesPaidCheckout, isOnGuestlist, setSearchParams, setShowPaymentModal]);
 
   // Track impression for the open event (IG/TikTok-style; helper handles self-view & dedupe)
   useEffect(() => {
@@ -421,7 +421,7 @@ const EventDetailModalInner = () => {
             eventTitle={event.title}
             isPost={isPost}
           />
-          {(hasPaymentQr || hasTiers) && (
+          {(usesPaidCheckout || hasTiers) && (
             <PaymentQRModal
               open={showPaymentModal}
               onOpenChange={setShowPaymentModal}

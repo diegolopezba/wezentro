@@ -59,7 +59,7 @@ const EventDetail = () => {
     isOnGuestlist, isPending, isApproved,
     isOwner,
     approvedCount, maxGuestlistCapacity, isGuestlistFull,
-    hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
+    hasPaidTickets, usesPaidCheckout, isInviteOnlyGuestlist,
     isLocationSecret, canSeeLocation,
     isAuthenticated,
     formattedDate, formattedPrice,
@@ -401,7 +401,7 @@ const EventDetail = () => {
 
 
       {/* Guestlist Management Sheet */}
-      {isOwner && <GuestlistManagementSheet eventId={id!} eventHasPaymentQr={hasPaymentQr} open={showManagement} onOpenChange={setShowManagement} />}
+      {isOwner && <GuestlistManagementSheet eventId={id!} eventHasPaymentQr={usesPaidCheckout} open={showManagement} onOpenChange={setShowManagement} />}
 
       {/* Share Event Modal */}
       <ShareEventModal eventId={id!} open={showShareModal} onOpenChange={setShowShareModal} />
@@ -422,7 +422,7 @@ const EventDetail = () => {
       {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} isPost={isPost} />}
       
       {/* Payment QR Modal */}
-      {(hasPaymentQr || hasTiers) &&
+      {(usesPaidCheckout || hasTiers) &&
     <PaymentQRModal
       open={showPaymentModal}
       onOpenChange={setShowPaymentModal}

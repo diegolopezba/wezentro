@@ -56,9 +56,9 @@ export const useEventDetailState = (
   const { data: event, isLoading, error } = useEvent(eventId);
   const { data: guestlistStatus } = useIsOnGuestlist(eventId);
   const { data: pendingRequests = [] } = usePendingGuestlistRequests(event ? eventId : undefined);
-  // Only query pending payments for events that actually use a QR payment flow.
-  const _eventHasQr = !!event?.payment_qr_url;
-  const { data: pendingPayments = [] } = usePendingPayments(event && _eventHasQr ? eventId : undefined);
+  // Pending payments are only relevant when the event is paid (Qhantuy checkout).
+  const _isPaidEvent = (event?.price ?? 0) > 0;
+  const { data: pendingPayments = [] } = usePendingPayments(event && _isPaidEvent ? eventId : undefined);
   const { data: guestlist = [] } = useEventGuestlist(eventId);
   const { data: isSaved } = useIsEventSaved(eventId);
   const { data: isLiked } = useIsEventLiked(eventId!);
@@ -114,9 +114,10 @@ export const useEventDetailState = (
   const hasPaidTickets = hasTiers
     ? ticketTiers.some((t) => Number(t.price) > 0)
     : legacyHasPaid;
-  const hasPaymentQr = !!(event?.payment_qr_url && hasPaidTickets);
+  // Any priced event (legacy single price or priced tiers) goes through the Qhantuy checkout modal.
+  const usesPaidCheckout = hasPaidTickets;
   // Badge should only sum payments when the event actually uses the payment flow.
-  const pendingCount = pendingRequests.length + (hasPaymentQr ? pendingPayments.length : 0);
+  const pendingCount = pendingRequests.length + (usesPaidCheckout ? pendingPayments.length : 0);
   const isInviteOnlyGuestlist = !!(hasPaidTickets && event?.has_guestlist);
   const formattedDate = event?.start_datetime
     ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")
@@ -246,10 +247,12 @@ export const useEventDetailState = (
       return;
     }
     // Legacy single-price path
-    if (hasPaymentQr) { setSelectedTier(null); setShowPaymentModal(true); return; }
+    // Legacy single-price path
+    if (usesPaidCheckout) { setSelectedTier(null); setShowPaymentModal(true); return; }
+    // Free event → simple RSVP
     try {
       await joinGuestlistWithPayment.mutateAsync(eventId!);
-      toast.success(hasPaidTickets ? "¡Compra registrada! El organizador confirmará tu pago." : "¡Registro confirmado!");
+      toast.success("¡Registro confirmado!");
       setShowInviteFriendsSheet(true);
     } catch (error: any) {
       toast.error(error.message || "Error al registrar");
@@ -257,13 +260,9 @@ export const useEventDetailState = (
   };
 
   const handlePaymentSubmitted = async () => {
-    try {
-      await joinGuestlistWithPayment.mutateAsync(eventId!);
-      setShowInviteFriendsSheet(true);
-    } catch (error: any) {
-      toast.error(error.message || "Error al registrar pago");
-      throw error;
-    }
+    // Qhantuy callback already upserts the guestlist entry and inserts the notification.
+    // Here we just refresh any local views that depend on it.
+    // The success screen inside PaymentQRModal owns the "congrats" UI.
   };
 
   const handleLeaveGuestlist = async () => {
@@ -292,7 +291,7 @@ export const useEventDetailState = (
     isOnGuestlist, isPending, isApproved,
     isOwner,
     approvedCount, maxGuestlistCapacity, isGuestlistFull,
-    hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
+    hasPaidTickets, usesPaidCheckout, isInviteOnlyGuestlist,
     isLocationSecret, canSeeLocation,
     isGuest, isAuthenticated: !isGuest,
     formattedDate, formattedPrice,
