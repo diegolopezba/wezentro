@@ -305,12 +305,12 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
 
   const showPaymentQrSection = isBusiness && formData.has_guestlist && parseFloat(formData.price) > 0;
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85dvh] max-h-[85dvh] rounded-t-3xl flex flex-col">
+  const body = (
+    <>
         <SheetHeader className="shrink-0 mb-4">
           <SheetTitle>{isPost ? "Editar post" : "Editar evento"}</SheetTitle>
         </SheetHeader>
+
 
         <div className="flex-1 overflow-y-auto space-y-4 pb-4 -mx-6 px-6">
           <div className="space-y-2">
