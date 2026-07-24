@@ -247,10 +247,12 @@ export const useEventDetailState = (
       return;
     }
     // Legacy single-price path
-    if (hasPaymentQr) { setSelectedTier(null); setShowPaymentModal(true); return; }
+    // Legacy single-price path
+    if (usesPaidCheckout) { setSelectedTier(null); setShowPaymentModal(true); return; }
+    // Free event → simple RSVP
     try {
       await joinGuestlistWithPayment.mutateAsync(eventId!);
-      toast.success(hasPaidTickets ? "¡Compra registrada! El organizador confirmará tu pago." : "¡Registro confirmado!");
+      toast.success("¡Registro confirmado!");
       setShowInviteFriendsSheet(true);
     } catch (error: any) {
       toast.error(error.message || "Error al registrar");
@@ -258,13 +260,9 @@ export const useEventDetailState = (
   };
 
   const handlePaymentSubmitted = async () => {
-    try {
-      await joinGuestlistWithPayment.mutateAsync(eventId!);
-      setShowInviteFriendsSheet(true);
-    } catch (error: any) {
-      toast.error(error.message || "Error al registrar pago");
-      throw error;
-    }
+    // Qhantuy callback already upserts the guestlist entry and inserts the notification.
+    // Here we just refresh any local views that depend on it.
+    // The success screen inside PaymentQRModal owns the "congrats" UI.
   };
 
   const handleLeaveGuestlist = async () => {
