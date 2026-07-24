@@ -77,7 +77,7 @@ const EventDetailModalInner = () => {
     isOnGuestlist, isPending,
     isOwner,
     approvedCount, maxGuestlistCapacity, isGuestlistFull,
-    hasPaidTickets, hasPaymentQr,
+    hasPaidTickets, usesPaidCheckout,
     isLocationSecret, canSeeLocation,
     formattedDate, formattedPrice,
     videoRef, mediaLoaded, aspectRatio, isMuted,
