@@ -56,9 +56,9 @@ export const useEventDetailState = (
   const { data: event, isLoading, error } = useEvent(eventId);
   const { data: guestlistStatus } = useIsOnGuestlist(eventId);
   const { data: pendingRequests = [] } = usePendingGuestlistRequests(event ? eventId : undefined);
-  // Only query pending payments for events that actually use a QR payment flow.
-  const _eventHasQr = !!event?.payment_qr_url;
-  const { data: pendingPayments = [] } = usePendingPayments(event && _eventHasQr ? eventId : undefined);
+  // Pending payments are only relevant when the event is paid (Qhantuy checkout).
+  const _isPaidEvent = (event?.price ?? 0) > 0;
+  const { data: pendingPayments = [] } = usePendingPayments(event && _isPaidEvent ? eventId : undefined);
   const { data: guestlist = [] } = useEventGuestlist(eventId);
   const { data: isSaved } = useIsEventSaved(eventId);
   const { data: isLiked } = useIsEventLiked(eventId!);
