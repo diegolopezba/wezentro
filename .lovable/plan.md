@@ -1,57 +1,54 @@
-## Goal
+## Root cause
 
-Replace the dropdown + separate Edit sheet + Delete AlertDialog on the event details page with **one** vaul bottom sheet that swaps between sub-views (native app pattern).
+The Qhantuy edge function returned 400 with a real message but our client shows only the generic `"non-2xx status code"`. The actual response (from function logs) was:
 
-## New component
+> "Ya existe un beneficiario registrado con el número de cédula de identidad '6244221'."
 
-`src/components/events/EventActionsSheet.tsx` — a single `Drawer` (vaul) that renders one of three internal steps:
+Qhantuy enforces **globally-unique CI per merchant appkey**. Because we use a single Zentro merchant, any CI that was ever registered (including from earlier test accounts) is rejected forever, even when a different Zentro user tries to register with it. Combined with `supabase.functions.invoke` swallowing the JSON error body, the user sees an opaque failure with no way to recover.
 
-1. `root` — main list of actions
-   - Owner: **Editar evento/post**, **Eliminar evento/post** (destructive)
-   - Non-owner: **Reportar**
-   - Everyone: **Copiar enlace**
-2. `edit` — mounts the existing `EditEventSheet` form content inline (extract body, drop its own Drawer wrapper)
-3. `delete` — inline confirmation screen ("¿Eliminar este evento? …" + Cancelar / Eliminar buttons) using the existing `useDeleteEvent` hook
+The fix must (a) surface the real reason, and (b) recover automatically when the same person (same email) is re-registering, since that is the legitimate case for a user who deleted/switched accounts.
 
-Tapping a root row transitions the sheet to that step (no close/reopen). A back chevron in the sub-view header returns to `root`. Sheet closes only via drag-down or explicit Cancelar.
+## Fix plan
 
-Structure:
-```
-<Drawer open onOpenChange>
-  <DrawerContent>
-    {step === 'root'  && <RootActions ... />}
-    {step === 'edit'  && <EditView    ... />}
-    {step === 'delete'&& <DeleteView  ... />}
-  </DrawerContent>
-</Drawer>
-```
+### 1. Stop swallowing the Qhantuy error message
+In `BusinessPaymentSettings.tsx`, `supabase.functions.invoke` throws a `FunctionsHttpError` on non-2xx and its `.message` is generic. Read the parsed body via `err.context?.json()` (or the returned `data` on 4xx) and surface `data.error` in the toast. Do the same for the delete flow.
 
-## Refactor of EditEventSheet
+### 2. Server-side "recover or claim" for duplicate-CI
+In `supabase/functions/qhantuy-register-beneficiary/index.ts`, when Qhantuy responds with `process:false` **and** the message indicates the CI already exists:
 
-Split `EditEventSheet.tsx` into:
-- `EditEventForm.tsx` — the current form JSX + logic, no Drawer chrome
-- `EditEventSheet.tsx` — thin wrapper that keeps the old `open/onOpenChange` API by rendering `<Drawer>` around `<EditEventForm>` (so any other caller keeps working)
+1. Call the documented `POST /check-beneficiaries` (with `appkey`) to list every beneficiary under our merchant.
+2. Find the row whose `ci_number` matches the submitted CI.
+3. Compare its `email` (and optionally `first_name`+`last_name`) with the submitted values:
+   - **Match** → adopt: insert into `qhantuy_beneficiaries` for this `user_id` using the returned `beneficiary_code` and fields, then return `{ ok:true, recovered:true }`. Also call `/edit-beneficiary` if any editable field differs, to keep Qhantuy in sync.
+   - **No match** → return a clear 409 with a message like: `"Esta cédula ya está registrada en Qhantuy con otro titular. Verifica que el CI corresponda al titular de la cuenta bancaria o contacta soporte."`
 
-`EventActionsSheet` uses `EditEventForm` directly to avoid nested drawers.
+### 3. New shared helper
+Add `checkBeneficiaries()` in `supabase/functions/_shared/qhantuy.ts` that wraps `POST /check-beneficiaries` and returns the parsed `items` array. Reuse from register (and later from a support tool if needed).
 
-## DeleteEventDialog
+### 4. Same treatment for edit
+`qhantuy-edit-beneficiary` already surfaces `res.data?.message`; just ensure the frontend reads that message with the same `context.json()` extraction as (1) so users see it.
 
-Left in place for any other caller, but on event detail we render the inline delete step instead. No AlertDialog inside the drawer.
+### 5. Small UX
+- In the register form, show a helper line under the CI field: *"Debe ser el CI del titular de la cuenta bancaria."*
+- On the "recovered" success path, toast `"Cuenta bancaria vinculada correctamente."`.
 
-## Wire-up
+## Technical details
 
-In both `src/pages/EventDetail.tsx` and `src/components/events/EventDetailModal.tsx`:
-- Remove `DropdownMenu` block and the standalone `<EditEventSheet>` + `<DeleteEventDialog>` renders (and their `showEditSheet` / `showDeleteDialog` toggles for this entry point).
-- Add local `const [actionsOpen, setActionsOpen] = useState(false)`.
-- 3-dot button → `setActionsOpen(true)`.
-- Render `<EventActionsSheet open={actionsOpen} onOpenChange={setActionsOpen} event={event} isOwner={isOwner} />`.
-- Report / copy-link handlers move into the sheet.
+- `check-beneficiaries` URL: `https://empresa.qhantuy.com/external-api/check-beneficiaries`, POST, body `{ appkey }`, `X-API-Token` header. Response shape: `{ process, message, items: [{ beneficiary_code, first_name, last_name, ci_number, email, bank_id, account_number, account_type }, …] }`.
+- CI comparison must be string-normalized (Qhantuy sometimes returns int, we store string).
+- Duplicate detection: match on Qhantuy `message` containing `"Ya existe un beneficiario"` OR `errors` array containing `"cédula de identidad"`; do not rely on HTTP status.
+- Do NOT auto-adopt without the email match — otherwise two Zentro users could route payouts to the same bank account.
+- No database schema changes. No changes to checkout / QR flow.
 
-## Z-index
+## Files touched
 
-vaul Drawer already renders above the detail modal via portal, so no z bump needed (fixes the "modal not showing" symptom that came from Dialog stacking under z-60).
+- `supabase/functions/_shared/qhantuy.ts` — add `checkBeneficiaries()`.
+- `supabase/functions/qhantuy-register-beneficiary/index.ts` — duplicate-CI recovery branch.
+- `src/pages/BusinessPaymentSettings.tsx` — parse and display real edge-function error messages; CI helper text; recovered-toast copy.
 
-## Out of scope
+## Verification
 
-- No changes to payment modal, share modal, comments, or other sheets.
-- No visual redesign beyond the new sheet contents (uses existing tokens, pill buttons, destructive color for delete).
+1. Register with a brand-new CI → succeeds (unchanged path).
+2. Register a second Zentro account using the **same** CI + same email as an existing Qhantuy beneficiary → auto-recovers, row inserted, "Configurado" shown.
+3. Register with a CI that exists in Qhantuy under a **different** email → clear Spanish error toast, no row inserted.
+4. Trigger any other Qhantuy 4xx → toast shows the Qhantuy message, not "non-2xx status code".
