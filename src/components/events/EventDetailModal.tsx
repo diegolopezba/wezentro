@@ -287,15 +287,8 @@ const EventDetailModalInner = () => {
 
               {/* People Going */}
               {!isPost && attendeesGoing.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Users className="w-4 h-4 text-primary" />
-                    <h2 className="font-brand text-lg font-semibold text-foreground">
-                      {attendeesGoing.some((a) => a.isFollowed)
-                        ? `Amigos asistiendo (${attendeesGoing.filter((a) => a.isFollowed).length})`
-                        : `Personas que van (${attendeesGoing.length})`}
-                    </h2>
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Users className="w-4 h-4 text-muted-foreground shrink-0" />
                   <div className="flex items-center gap-3">
                     <div className="flex -space-x-2.5">
                       {attendeesGoing.slice(0, 5).map((attendee, i) => (
@@ -311,9 +304,9 @@ const EventDetailModalInner = () => {
                         />
                       ))}
                     </div>
-                    {attendeesGoing.length > 5 && (
-                      <span className="text-sm text-muted-foreground">+{attendeesGoing.length - 5} más</span>
-                    )}
+                    <span className="text-sm text-muted-foreground">
+                      {attendeesGoing.length}
+                    </span>
                   </div>
                 </div>
               )}
