@@ -11,12 +11,11 @@ import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { trackEventImpression } from "@/lib/analyticsTracking";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
-import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { LocationSheet } from "@/components/events/LocationSheet";
-import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
+import { EventActionsSheet } from "@/components/events/EventActionsSheet";
+
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { LeaveGuestlistDrawer } from "@/components/events/LeaveGuestlistDrawer";
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
@@ -66,6 +65,8 @@ const EventDetailModalInner = () => {
   const { user } = useAuth();
   const [showReportSheet, setShowReportSheet] = useState(false);
   const [showLocationSheet, setShowLocationSheet] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+
 
   const close = () => navigate(-1);
 
@@ -222,45 +223,10 @@ const EventDetailModalInner = () => {
                       <span className="text-xs">Menú</span>
                     </Button>
                   )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="w-5 h-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {isOwner && (
-                        <>
-                          <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
-                            <Pencil className="w-4 h-4 mr-2" />
-                            {event.is_post ? "Editar post" : "Editar evento"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            {event.is_post ? "Eliminar post" : "Eliminar evento"}
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      {!isOwner && user && (
-                        <DropdownMenuItem onClick={() => setShowReportSheet(true)}>
-                          <Flag className="w-4 h-4 mr-2" />
-                          Reportar
-                        </DropdownMenuItem>
-                      )}
-                      {!isOwner && user && (
-                        <DropdownMenuItem
-                          onClick={() => {
-                            trackPreferenceSignal(user.id, id!, "not_interested");
-                            toast("Se mostrará menos contenido como este", { duration: 2000 });
-                            close();
-                          }}
-                        >
-                          <EyeOff className="w-4 h-4 mr-2" />
-                          No me interesa
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button variant="ghost" size="icon" onClick={() => setShowActions(true)}>
+                    <MoreVertical className="w-5 h-5" />
+                  </Button>
+
                 </div>
               </div>
 
@@ -402,7 +368,13 @@ const EventDetailModalInner = () => {
           {/* Modals & sheets */}
           <GuestlistManagementSheet eventId={id!} open={showManagement} onOpenChange={setShowManagement} />
           <ShareEventModal open={showShareModal} onOpenChange={setShowShareModal} eventId={id!} />
-          <EditEventSheet open={showEditSheet} onOpenChange={setShowEditSheet} event={event} isPost={!!event.is_post} />
+          <EventActionsSheet
+            open={showActions}
+            onOpenChange={setShowActions}
+            event={event}
+            isOwner={isOwner}
+            onClosed={close}
+          />
           <LocationSheet
             open={showLocationSheet}
             onOpenChange={setShowLocationSheet}
@@ -411,16 +383,7 @@ const EventDetailModalInner = () => {
             longitude={event.longitude}
             isSecret={isLocationSecret}
           />
-          <DeleteEventDialog
-            open={showDeleteDialog}
-            onOpenChange={(open) => {
-              setShowDeleteDialog(open);
-              if (!open) close();
-            }}
-            eventId={id!}
-            eventTitle={event.title}
-            isPost={isPost}
-          />
+
           {(usesPaidCheckout || hasTiers) && (
             <PaymentQRModal
               open={showPaymentModal}

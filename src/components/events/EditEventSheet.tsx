@@ -44,11 +44,17 @@ interface EditEventSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isPost?: boolean;
+  /**
+   * When true, renders the form body without its own Sheet wrapper so it can
+   * be embedded inside an outer bottom sheet (e.g. EventActionsSheet). The
+   * `open` prop still controls the effect that hydrates form state.
+   */
+  embedded?: boolean;
 }
 
 import { CATEGORIES } from "@/lib/categories";
 
-export function EditEventSheet({ event, open, onOpenChange, isPost = false }: EditEventSheetProps) {
+export function EditEventSheet({ event, open, onOpenChange, isPost = false, embedded = false }: EditEventSheetProps) {
   const updateEvent = useUpdateEvent();
   const { profile } = useAuth();
   const isBusiness = profile?.is_business === true;
@@ -299,12 +305,12 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
 
   const showPaymentQrSection = isBusiness && formData.has_guestlist && parseFloat(formData.price) > 0;
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85dvh] max-h-[85dvh] rounded-t-3xl flex flex-col">
+  const body = (
+    <>
         <SheetHeader className="shrink-0 mb-4">
           <SheetTitle>{isPost ? "Editar post" : "Editar evento"}</SheetTitle>
         </SheetHeader>
+
 
         <div className="flex-1 overflow-y-auto space-y-4 pb-4 -mx-6 px-6">
           <div className="space-y-2">
@@ -585,10 +591,21 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false }: Ed
             Guardar cambios
           </Button>
         </div>
-      </SheetContent>
-
       <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
       <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} />
+    </>
+  );
+
+  if (embedded) {
+    return <div className="flex flex-col h-full">{body}</div>;
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="h-[85dvh] max-h-[85dvh] rounded-t-3xl flex flex-col">
+        {body}
+      </SheetContent>
     </Sheet>
   );
 }
+

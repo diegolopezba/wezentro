@@ -7,16 +7,15 @@ import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send,
 import { useState } from "react";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEventGuestlist } from "@/hooks/useEvents";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
 
-import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { LocationSheet } from "@/components/events/LocationSheet";
-import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
+import { EventActionsSheet } from "@/components/events/EventActionsSheet";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { LeaveGuestlistDrawer } from "@/components/events/LeaveGuestlistDrawer";
+
 
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
@@ -49,6 +48,8 @@ const EventDetail = () => {
   const { user } = useAuth();
   const [showReportSheet, setShowReportSheet] = useState(false);
   const [showLocationSheet, setShowLocationSheet] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+
 
   const {
     event, isLoading, error,
@@ -222,43 +223,10 @@ const EventDetail = () => {
                   <span className="text-xs">Menú</span>
                 </Button>
               )}
-              <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="w-5 h-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {isOwner &&
-                <>
-                        <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
-                          <Pencil className="w-4 h-4 mr-2" />
-                          {event.is_post ? "Editar post" : "Editar evento"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          {event.is_post ? "Eliminar post" : "Eliminar evento"}
-                        </DropdownMenuItem>
-                      </>
-                }
-                    {!isOwner && user && (
-                <DropdownMenuItem onClick={() => setShowReportSheet(true)}>
-                        <Flag className="w-4 h-4 mr-2" />
-                        Reportar
-                      </DropdownMenuItem>
-                )}
-                    {!isOwner && user &&
-                <DropdownMenuItem onClick={() => {
-                  trackPreferenceSignal(user.id, id!, "not_interested");
-                  toast("Se mostrará menos contenido como este", { duration: 2000 });
-                  (window.history.length > 1 ? navigate(-1) : navigate("/"));
-                }}>
-                        <EyeOff className="w-4 h-4 mr-2" />
-                        No me interesa
-                      </DropdownMenuItem>
-                }
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <Button variant="ghost" size="icon" onClick={() => setShowActions(true)}>
+                <MoreVertical className="w-5 h-5" />
+              </Button>
+
             </div>
           </div>
 
@@ -407,8 +375,13 @@ const EventDetail = () => {
       <ShareEventModal eventId={id!} open={showShareModal} onOpenChange={setShowShareModal} />
 
 
-      {/* Edit Event Sheet - Owner only */}
-      {isOwner && <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} isPost={!!event.is_post} />}
+      {/* Unified actions sheet — edit + delete + report + copy link */}
+      <EventActionsSheet
+        open={showActions}
+        onOpenChange={setShowActions}
+        event={event}
+        isOwner={isOwner}
+      />
       <LocationSheet
         open={showLocationSheet}
         onOpenChange={setShowLocationSheet}
@@ -418,8 +391,6 @@ const EventDetail = () => {
         isSecret={isLocationSecret}
       />
 
-      {/* Delete Event Dialog - Owner only */}
-      {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} isPost={isPost} />}
       
       {/* Payment QR Modal */}
       {(usesPaidCheckout || hasTiers) &&
