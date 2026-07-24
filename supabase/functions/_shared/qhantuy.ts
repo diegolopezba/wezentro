@@ -67,3 +67,37 @@ async function qhantuyRawFetch(url: string, init: RequestInit = {}) {
   try { parsed = text ? JSON.parse(text) : null; } catch { parsed = text; }
   return { ok: res.ok, status: res.status, data: parsed as any, raw: text };
 }
+
+export type QhantuyBeneficiaryRow = {
+  beneficiary_code: string;
+  first_name: string;
+  last_name: string;
+  ci_number: string | number;
+  email: string;
+  bank_id: number | string;
+  account_number: string;
+  account_type: string;
+};
+
+export async function checkBeneficiaries(): Promise<QhantuyBeneficiaryRow[]> {
+  const res = await qhantuyFetch("/check-beneficiaries", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok || res.data?.process === false) {
+    console.error("check-beneficiaries failed:", res.status, res.raw);
+    return [];
+  }
+  const items = res.data?.items ?? res.data?.data ?? [];
+  return Array.isArray(items) ? (items as QhantuyBeneficiaryRow[]) : [];
+}
+
+export function isDuplicateCiError(data: any): boolean {
+  const msg = String(data?.message ?? "").toLowerCase();
+  const errs = Array.isArray(data?.errors) ? data.errors.join(" ").toLowerCase() : "";
+  return (
+    msg.includes("ya existe un beneficiario") ||
+    errs.includes("cédula de identidad") ||
+    errs.includes("cedula de identidad")
+  );
+}
