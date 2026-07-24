@@ -285,6 +285,39 @@ const EventDetailModalInner = () => {
                 )
               )}
 
+              {/* People Going */}
+              {!isPost && attendeesGoing.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="w-4 h-4 text-primary" />
+                    <h2 className="font-brand text-lg font-semibold text-foreground">
+                      {attendeesGoing.some((a) => a.isFollowed)
+                        ? `Amigos asistiendo (${attendeesGoing.filter((a) => a.isFollowed).length})`
+                        : `Personas que van (${attendeesGoing.length})`}
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex -space-x-2.5">
+                      {attendeesGoing.slice(0, 5).map((attendee, i) => (
+                        <img
+                          key={attendee.user_id}
+                          src={attendee.avatar_url || DEFAULT_AVATAR}
+                          alt={attendee.username}
+                          className={`w-8 h-8 rounded-full object-cover cursor-pointer transition-transform z-10 ${
+                            attendee.isFollowed ? "border-primary" : "border-card"
+                          } border-0`}
+                          style={{ zIndex: 5 - i }}
+                          onClick={() => navigate(`/user/${attendee.user_id}`)}
+                        />
+                      ))}
+                    </div>
+                    {attendeesGoing.length > 5 && (
+                      <span className="text-sm text-muted-foreground">+{attendeesGoing.length - 5} más</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {event.description && (
                 <div className="space-y-2">
                   <h2 className="font-brand text-lg font-semibold text-foreground">Acerca de</h2>
@@ -325,39 +358,6 @@ const EventDetailModalInner = () => {
                   </p>
                 )}
               </div>
-
-              {/* People Going */}
-              {!isPost && attendeesGoing.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Users className="w-4 h-4 text-primary" />
-                    <h2 className="font-brand text-lg font-semibold text-foreground">
-                      {attendeesGoing.some((a) => a.isFollowed)
-                        ? `Amigos asistiendo (${attendeesGoing.filter((a) => a.isFollowed).length})`
-                        : `Personas que van (${attendeesGoing.length})`}
-                    </h2>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex -space-x-3">
-                      {attendeesGoing.slice(0, 5).map((attendee, i) => (
-                        <img
-                          key={attendee.user_id}
-                          src={attendee.avatar_url || DEFAULT_AVATAR}
-                          alt={attendee.username}
-                          className={`w-10 h-10 rounded-full object-cover cursor-pointer transition-transform z-10 ${
-                            attendee.isFollowed ? "border-primary" : "border-card"
-                          } border-0`}
-                          style={{ zIndex: 5 - i }}
-                          onClick={() => navigate(`/user/${attendee.user_id}`)}
-                        />
-                      ))}
-                    </div>
-                    {attendeesGoing.length > 5 && (
-                      <span className="text-sm text-muted-foreground">+{attendeesGoing.length - 5} más</span>
-                    )}
-                  </div>
-                </div>
-              )}
 
               {!isPost && isOwner && event.has_guestlist && <InvitationsSentSection eventId={id!} />}
 
