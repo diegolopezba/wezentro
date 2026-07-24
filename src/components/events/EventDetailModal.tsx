@@ -368,7 +368,13 @@ const EventDetailModalInner = () => {
           {/* Modals & sheets */}
           <GuestlistManagementSheet eventId={id!} open={showManagement} onOpenChange={setShowManagement} />
           <ShareEventModal open={showShareModal} onOpenChange={setShowShareModal} eventId={id!} />
-          <EditEventSheet open={showEditSheet} onOpenChange={setShowEditSheet} event={event} isPost={!!event.is_post} />
+          <EventActionsSheet
+            open={showActions}
+            onOpenChange={setShowActions}
+            event={event}
+            isOwner={isOwner}
+            onClosed={close}
+          />
           <LocationSheet
             open={showLocationSheet}
             onOpenChange={setShowLocationSheet}
@@ -377,16 +383,7 @@ const EventDetailModalInner = () => {
             longitude={event.longitude}
             isSecret={isLocationSecret}
           />
-          <DeleteEventDialog
-            open={showDeleteDialog}
-            onOpenChange={(open) => {
-              setShowDeleteDialog(open);
-              if (!open) close();
-            }}
-            eventId={id!}
-            eventTitle={event.title}
-            isPost={isPost}
-          />
+
           {(usesPaidCheckout || hasTiers) && (
             <PaymentQRModal
               open={showPaymentModal}
