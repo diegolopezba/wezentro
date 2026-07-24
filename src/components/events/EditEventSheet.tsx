@@ -609,4 +609,3 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
   );
 }
 
-}
