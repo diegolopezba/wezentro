@@ -222,43 +222,10 @@ const EventDetail = () => {
                   <span className="text-xs">Menú</span>
                 </Button>
               )}
-              <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="w-5 h-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {isOwner &&
-                <>
-                        <DropdownMenuItem onClick={() => setShowEditSheet(true)}>
-                          <Pencil className="w-4 h-4 mr-2" />
-                          {event.is_post ? "Editar post" : "Editar evento"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          {event.is_post ? "Eliminar post" : "Eliminar evento"}
-                        </DropdownMenuItem>
-                      </>
-                }
-                    {!isOwner && user && (
-                <DropdownMenuItem onClick={() => setShowReportSheet(true)}>
-                        <Flag className="w-4 h-4 mr-2" />
-                        Reportar
-                      </DropdownMenuItem>
-                )}
-                    {!isOwner && user &&
-                <DropdownMenuItem onClick={() => {
-                  trackPreferenceSignal(user.id, id!, "not_interested");
-                  toast("Se mostrará menos contenido como este", { duration: 2000 });
-                  (window.history.length > 1 ? navigate(-1) : navigate("/"));
-                }}>
-                        <EyeOff className="w-4 h-4 mr-2" />
-                        No me interesa
-                      </DropdownMenuItem>
-                }
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <Button variant="ghost" size="icon" onClick={() => setShowActions(true)}>
+                <MoreVertical className="w-5 h-5" />
+              </Button>
+
             </div>
           </div>
 
