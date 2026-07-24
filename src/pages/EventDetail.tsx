@@ -7,16 +7,15 @@ import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send,
 import { useState } from "react";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useEventGuestlist } from "@/hooks/useEvents";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
 
-import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { LocationSheet } from "@/components/events/LocationSheet";
-import { DeleteEventDialog } from "@/components/events/DeleteEventDialog";
+import { EventActionsSheet } from "@/components/events/EventActionsSheet";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { LeaveGuestlistDrawer } from "@/components/events/LeaveGuestlistDrawer";
+
 
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
@@ -49,6 +48,8 @@ const EventDetail = () => {
   const { user } = useAuth();
   const [showReportSheet, setShowReportSheet] = useState(false);
   const [showLocationSheet, setShowLocationSheet] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+
 
   const {
     event, isLoading, error,
@@ -374,8 +375,13 @@ const EventDetail = () => {
       <ShareEventModal eventId={id!} open={showShareModal} onOpenChange={setShowShareModal} />
 
 
-      {/* Edit Event Sheet - Owner only */}
-      {isOwner && <EditEventSheet event={event} open={showEditSheet} onOpenChange={setShowEditSheet} isPost={!!event.is_post} />}
+      {/* Unified actions sheet — edit + delete + report + copy link */}
+      <EventActionsSheet
+        open={showActions}
+        onOpenChange={setShowActions}
+        event={event}
+        isOwner={isOwner}
+      />
       <LocationSheet
         open={showLocationSheet}
         onOpenChange={setShowLocationSheet}
@@ -385,8 +391,6 @@ const EventDetail = () => {
         isSecret={isLocationSecret}
       />
 
-      {/* Delete Event Dialog - Owner only */}
-      {isOwner && <DeleteEventDialog eventId={id!} eventTitle={event.title} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} isPost={isPost} />}
       
       {/* Payment QR Modal */}
       {(usesPaidCheckout || hasTiers) &&
