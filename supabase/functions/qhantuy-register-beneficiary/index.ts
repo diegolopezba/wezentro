@@ -66,16 +66,59 @@ Deno.serve(async (req) => {
       return json({ error: "No se pudo registrar la cuenta bancaria", detail: res.data }, 502);
     }
 
-    if (res.data?.process === false) {
-      console.error("register-beneficiary rejected:", res.raw);
-      return json({ error: res.data?.message || "No se pudo registrar la cuenta bancaria" }, 400);
-    }
-
-    const beneficiaryCode =
+    let beneficiaryCode =
       res.data?.beneficiary_code ??
       res.data?.data?.beneficiary_code ??
       res.data?.code ??
       res.data?.beneficiaryCode;
+    let recovered = false;
+
+    if (res.data?.process === false) {
+      // Attempt recovery on duplicate-CI: the CI already exists at Qhantuy under
+      // our merchant. If the email matches the submitted email, adopt it for
+      // this user. Otherwise return a clear conflict.
+      if (isDuplicateCiError(res.data)) {
+        const items = await checkBeneficiaries();
+        const match = items.find((it) => String(it.ci_number).trim() === b.ci_number.trim());
+        if (!match) {
+          return json({
+            error: "Esta cédula ya está registrada en Qhantuy pero no pudimos recuperar los datos. Contacta soporte.",
+          }, 409);
+        }
+        if (String(match.email).trim().toLowerCase() !== b.email.trim().toLowerCase()) {
+          return json({
+            error: "Esta cédula ya está registrada en Qhantuy con otro titular (email diferente). Verifica que el CI corresponda al titular de la cuenta bancaria o contacta soporte.",
+          }, 409);
+        }
+        beneficiaryCode = match.beneficiary_code;
+        recovered = true;
+        // Keep Qhantuy in sync if bank/account differ
+        const needsEdit =
+          String(match.account_number) !== b.account_number ||
+          Number(match.bank_id) !== b.bank_id ||
+          String(match.account_type).toLowerCase() !== accountType.toLowerCase() ||
+          String(match.first_name).trim() !== b.first_name ||
+          String(match.last_name).trim() !== b.last_name;
+        if (needsEdit) {
+          await qhantuyFetch("/edit-beneficiary", {
+            method: "POST",
+            body: JSON.stringify({
+              beneficiary_code: beneficiaryCode,
+              first_name: b.first_name,
+              last_name: b.last_name,
+              ci_number: Number(b.ci_number),
+              email: b.email,
+              bank_id: b.bank_id,
+              account_number: b.account_number,
+              account_type: accountType,
+            }),
+          });
+        }
+      } else {
+        console.error("register-beneficiary rejected:", res.raw);
+        return json({ error: res.data?.message || "No se pudo registrar la cuenta bancaria" }, 400);
+      }
+    }
 
     if (!beneficiaryCode) {
       console.error("register-beneficiary no code in response:", res.raw);
