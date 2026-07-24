@@ -591,10 +591,22 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             Guardar cambios
           </Button>
         </div>
-      </SheetContent>
-
       <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
       <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} />
+    </>
+  );
+
+  if (embedded) {
+    return <div className="flex flex-col h-full">{body}</div>;
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="h-[85dvh] max-h-[85dvh] rounded-t-3xl flex flex-col">
+        {body}
+      </SheetContent>
     </Sheet>
   );
+}
+
 }
