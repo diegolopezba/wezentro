@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
       return json({ error: "No se pudo guardar la cuenta" }, 500);
     }
 
-    return json({ ok: true, beneficiary_code: String(beneficiaryCode) });
+    return json({ ok: true, beneficiary_code: String(beneficiaryCode), recovered });
   } catch (err) {
     console.error("qhantuy-register-beneficiary error:", err);
     return json({ error: "Internal error" }, 500);
