@@ -83,6 +83,22 @@ const BusinessPaymentSettings = () => {
 
   const canSave = firstName.trim() && lastName.trim() && ci.trim() && email.trim() && bankId && accountNumber.trim();
 
+  const parseFnError = async (err: any, fallback: string): Promise<string> => {
+    try {
+      const body = await err?.context?.json?.();
+      if (body?.error) return String(body.error);
+    } catch { /* ignore */ }
+    try {
+      const txt = await err?.context?.text?.();
+      if (txt) {
+        try { const j = JSON.parse(txt); if (j?.error) return String(j.error); } catch {}
+      }
+    } catch { /* ignore */ }
+    return err?.message && err.message !== "Edge Function returned a non-2xx status code"
+      ? err.message
+      : fallback;
+  };
+
   const handleSave = async () => {
     if (!canSave) return;
     setSaving(true);
@@ -100,10 +116,18 @@ const BusinessPaymentSettings = () => {
       };
       const fn = existing ? "qhantuy-edit-beneficiary" : "qhantuy-register-beneficiary";
       const { data, error } = await supabase.functions.invoke(fn, { body: payload });
-      if (error || (data as any)?.error) {
-        throw new Error((data as any)?.error || error?.message || "Error");
+      if (error) {
+        const msg = await parseFnError(error, "Error al guardar");
+        throw new Error(msg);
       }
-      toast.success(existing ? "Cuenta actualizada" : "Cuenta bancaria configurada");
+      if ((data as any)?.error) {
+        throw new Error((data as any).error);
+      }
+      if ((data as any)?.recovered) {
+        toast.success("Cuenta bancaria vinculada correctamente");
+      } else {
+        toast.success(existing ? "Cuenta actualizada" : "Cuenta bancaria configurada");
+      }
       setEditing(false);
       // Refresh
       const { data: fresh } = await supabase
@@ -125,7 +149,10 @@ const BusinessPaymentSettings = () => {
     setDeleting(true);
     try {
       const { error } = await supabase.functions.invoke("qhantuy-delete-beneficiary");
-      if (error) throw error;
+      if (error) {
+        const msg = await parseFnError(error, "Error al eliminar");
+        throw new Error(msg);
+      }
       setExisting(null);
       setFirstName(""); setLastName(""); setCi("");
       setBankId(""); setAccountNumber(""); setAccountType("Caja de Ahorro");
