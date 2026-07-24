@@ -1,55 +1,57 @@
-# Fix: Buy Ticket flow uses Qhantuy QR (not legacy join request)
+## Goal
 
-## What's broken
+Replace the dropdown + separate Edit sheet + Delete AlertDialog on the event details page with **one** vaul bottom sheet that swaps between sub-views (native app pattern).
 
-The "Comprar" button on paid events falls through to the legacy `joinGuestlistWithPayment` path and shows *"El organizador confirmará tu pago"* — it never opens the QR modal. Root cause is a leftover BNB gate in `useEventDetailState.ts`:
+## New component
 
-```ts
-const hasPaymentQr = !!(event?.payment_qr_url && hasPaidTickets);
-...
-if (hasPaymentQr) { setShowPaymentModal(true); return; }
-// otherwise → legacy "compra registrada" toast
+`src/components/events/EventActionsSheet.tsx` — a single `Drawer` (vaul) that renders one of three internal steps:
+
+1. `root` — main list of actions
+   - Owner: **Editar evento/post**, **Eliminar evento/post** (destructive)
+   - Non-owner: **Reportar**
+   - Everyone: **Copiar enlace**
+2. `edit` — mounts the existing `EditEventSheet` form content inline (extract body, drop its own Drawer wrapper)
+3. `delete` — inline confirmation screen ("¿Eliminar este evento? …" + Cancelar / Eliminar buttons) using the existing `useDeleteEvent` hook
+
+Tapping a root row transitions the sheet to that step (no close/reopen). A back chevron in the sub-view header returns to `root`. Sheet closes only via drag-down or explicit Cancelar.
+
+Structure:
+```
+<Drawer open onOpenChange>
+  <DrawerContent>
+    {step === 'root'  && <RootActions ... />}
+    {step === 'edit'  && <EditView    ... />}
+    {step === 'delete'&& <DeleteView  ... />}
+  </DrawerContent>
+</Drawer>
 ```
 
-With Qhantuy, the QR is generated **on demand** by `generate-qhantuy-qr` — there is no stored `payment_qr_url`. So `hasPaymentQr` is always false for the legacy single-price flow, and the button falls into the old request-to-join branch. (Multi-tier events already go through the modal because of `hasTiers`.)
+## Refactor of EditEventSheet
 
-`EventDetail.tsx` and `EventDetailModal.tsx` also gate the `<PaymentQRModal>` mount on `(hasPaymentQr || hasTiers)`, so the modal isn't even in the tree for legacy paid events.
+Split `EditEventSheet.tsx` into:
+- `EditEventForm.tsx` — the current form JSX + logic, no Drawer chrome
+- `EditEventSheet.tsx` — thin wrapper that keeps the old `open/onOpenChange` API by rendering `<Drawer>` around `<EditEventForm>` (so any other caller keeps working)
 
-Additionally, `handlePaymentSubmitted` still calls `joinGuestlistWithPayment.mutateAsync(...)` after the QR is confirmed — but `qhantuy-callback` already upserts the guestlist row. That's a redundant double-write on success.
+`EventActionsSheet` uses `EditEventForm` directly to avoid nested drawers.
 
-## The fix
+## DeleteEventDialog
 
-### 1. Replace `hasPaymentQr` with a Qhantuy-aware flag
-In `src/hooks/useEventDetailState.ts`:
-- Introduce `usesPaidCheckout = hasPaidTickets` (any priced event or priced tier goes through Qhantuy).
-- Remove the `event.payment_qr_url` dependency for gating.
-- `handleBuyTicket` for the single-price path: if `usesPaidCheckout`, open the QR modal directly. Only free events keep the legacy join flow (guestlist RSVP).
-- `handlePaymentSubmitted` becomes a lightweight refresh: invalidate `guestlist`, `tickets`, `event` queries, and open the "congrats" step (handled inside modal). Do **not** call `joinGuestlistWithPayment` — the Qhantuy callback owns that write.
-- Keep `pendingCount` behavior tied to whether the event is paid.
+Left in place for any other caller, but on event detail we render the inline delete step instead. No AlertDialog inside the drawer.
 
-### 2. Always mount `<PaymentQRModal>` for paid events
-In `EventDetail.tsx` and `EventDetailModal.tsx`:
-- Change the mount guard from `(hasPaymentQr || hasTiers)` to `(usesPaidCheckout || hasTiers)`.
-- Pass `ticketTierId={selectedTier?.id ?? null}` unchanged; single-price path passes `null` and the edge function falls back to `event.price`.
+## Wire-up
 
-### 3. Polish the buyer flow inside `PaymentQRModal.tsx`
-The modal already has: loading → blurred details → revealed w/ polling → success. Tighten it to match the requested UX:
+In both `src/pages/EventDetail.tsx` and `src/components/events/EventDetailModal.tsx`:
+- Remove `DropdownMenu` block and the standalone `<EditEventSheet>` + `<DeleteEventDialog>` renders (and their `showEditSheet` / `showDeleteDialog` toggles for this entry point).
+- Add local `const [actionsOpen, setActionsOpen] = useState(false)`.
+- 3-dot button → `setActionsOpen(true)`.
+- Render `<EventActionsSheet open={actionsOpen} onOpenChange={setActionsOpen} event={event} isOwner={isOwner} />`.
+- Report / copy-link handlers move into the sheet.
 
-- **Details step (pre-QR):** show event title, tier name (if any), price, and a short "cómo funciona" list (1. Toca "Ver QR" · 2. Escanea desde tu app bancaria · 3. Vuelve — validamos en segundos). CTA: "Ver QR de pago".
-- **QR step:** QR + amount + subtle "Esperando confirmación automática…" indicator + the 3 numbered instructions already there. Add a small "Toma unos segundos después de pagar" hint.
-- **Success step (new "congrats" screen):** big check, "¡Estás dentro!" title, event title subtitle, and two buttons: primary **"Ver mi entrada"** → navigate to `/tickets`, secondary "Cerrar".
-- Expired / error states already exist — keep as-is with "Reintentar".
+## Z-index
 
-No changes to the edge functions or DB — the callback already writes the guestlist entry and notification.
+vaul Drawer already renders above the detail modal via portal, so no z bump needed (fixes the "modal not showing" symptom that came from Dialog stacking under z-60).
 
-### 4. Verify
-- Log in as a buyer, tap **Comprar** on a paid event owned by a business with beneficiary configured → QR modal opens, generates QR, polls, and shows congrats on payment.
-- Free events still show "Free" and RSVP via `joinGuestlistWithPayment` (unchanged).
-- Confirm no double guestlist inserts (callback writes, client no longer writes on success).
+## Out of scope
 
-## Files touched
-
-- `src/hooks/useEventDetailState.ts` — replace `hasPaymentQr` gating; simplify `handlePaymentSubmitted`.
-- `src/pages/EventDetail.tsx` — update modal mount guard + destructured flag name.
-- `src/components/events/EventDetailModal.tsx` — same guard update.
-- `src/components/events/PaymentQRModal.tsx` — copy/UX polish for details, QR, and success steps.
+- No changes to payment modal, share modal, comments, or other sheets.
+- No visual redesign beyond the new sheet contents (uses existing tokens, pill buttons, destructive color for delete).
