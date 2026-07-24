@@ -291,7 +291,7 @@ export const useEventDetailState = (
     isOnGuestlist, isPending, isApproved,
     isOwner,
     approvedCount, maxGuestlistCapacity, isGuestlistFull,
-    hasPaidTickets, hasPaymentQr, isInviteOnlyGuestlist,
+    hasPaidTickets, usesPaidCheckout, isInviteOnlyGuestlist,
     isLocationSecret, canSeeLocation,
     isGuest, isAuthenticated: !isGuest,
     formattedDate, formattedPrice,
