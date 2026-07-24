@@ -114,9 +114,10 @@ export const useEventDetailState = (
   const hasPaidTickets = hasTiers
     ? ticketTiers.some((t) => Number(t.price) > 0)
     : legacyHasPaid;
-  const hasPaymentQr = !!(event?.payment_qr_url && hasPaidTickets);
+  // Any priced event (legacy single price or priced tiers) goes through the Qhantuy checkout modal.
+  const usesPaidCheckout = hasPaidTickets;
   // Badge should only sum payments when the event actually uses the payment flow.
-  const pendingCount = pendingRequests.length + (hasPaymentQr ? pendingPayments.length : 0);
+  const pendingCount = pendingRequests.length + (usesPaidCheckout ? pendingPayments.length : 0);
   const isInviteOnlyGuestlist = !!(hasPaidTickets && event?.has_guestlist);
   const formattedDate = event?.start_datetime
     ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")
