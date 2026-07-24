@@ -1,25 +1,30 @@
-## Root cause (confirmed from edge function logs)
+## Bug
 
-`qhantuy-register-beneficiary` failed with Qhantuy's response:
+On the Create page, after a business user has already registered their Qhantuy bank details, the "Configura tus datos de cobro" gate keeps showing when they try to set a price.
 
+## Root cause (verified)
+
+`src/hooks/useHasBeneficiary.ts` runs:
+
+```ts
+supabase.from("qhantuy_beneficiaries").select("id")...
 ```
-{"status":false,"process":false,"message":"Error al enviar los datos.","errors":["El parámetro 'appkey' es obligatorio."]}
-```
 
-Qhantuy requires `appkey` to be sent **in the request body** (or as a form field), not only as an HTTP header. Our shared helper `supabase/functions/_shared/qhantuy.ts` currently sends `appkey` only as a header via `qhantuyAuthHeaders()`, so Qhantuy rejects the call.
+But the `qhantuy_beneficiaries` table has no `id` column — its columns are `user_id, beneficiary_code, first_name, last_name, ci_number, email, bank_id, bank_name, account_number, account_type, is_active, created_at, updated_at` (verified via schema query). PostgREST returns an error, React Query stores no data, and the hook resolves `hasBeneficiary` to `false` forever — even though the row exists (confirmed in the network log: the `/qhantuy_beneficiaries?select=beneficiary_code,...` request returns the user's beneficiary successfully).
+
+That's why `TicketTiersEditor` receives `onAttemptPaidAction`, locks itself, and pops the Beneficiary sheet.
 
 ## Fix
 
-Update `supabase/functions/_shared/qhantuy.ts` so JSON POST bodies automatically include `appkey` (and keep sending it as a header too, for compatibility):
+Single-line change in `src/hooks/useHasBeneficiary.ts`: select an existing column instead of `id`.
 
-- In `qhantuyRawFetch`, when `init.method` is POST and `init.body` is a JSON string, parse it, inject `appkey: Deno.env.get("QHANTUY_APPKEY")`, and re-stringify.
-- Leave GET requests untouched.
+- Change `.select("id")` → `.select("user_id")`.
+- Everything else (`enabled`, `maybeSingle`, `!!data`, `staleTime`) stays as-is.
+- The existing `queryClient.invalidateQueries({ queryKey: ["qhantuy-beneficiary", user?.id] })` calls in `BusinessPaymentSettings.tsx` will then correctly flip the flag to `true` right after save.
 
-This one change fixes every Qhantuy call in the project (register/edit/delete beneficiary, list banks, generate QR, check status) without editing each function.
+No other files need to change. Create and Edit flows both consume this hook, so both are fixed by the same edit.
 
 ## Verification
 
-1. Redeploy affected functions (all Qhantuy ones — they share the helper).
-2. From the app, submit the beneficiary form again on `/settings/business/payments`.
-3. Confirm success toast and that the row appears in `qhantuy_beneficiaries`.
-4. Tail `qhantuy-register-beneficiary` logs to confirm no more "appkey" rejection.
+- Reload `/create` as the business account that already has a beneficiary → price input becomes editable, no gate on focus.
+- Delete beneficiary on `/settings/business/payments` → returning to `/create` re-locks the price input and shows the gate.
