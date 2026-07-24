@@ -256,6 +256,7 @@ const BusinessPaymentSettings = () => {
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">CI (Carnet de Identidad)</Label>
               <Input value={ci} onChange={(e) => setCi(e.target.value)} placeholder="1234567" inputMode="numeric" />
+              <p className="text-[11px] text-muted-foreground">Debe ser el CI del titular de la cuenta bancaria.</p>
             </div>
 
             <div className="space-y-1.5">
