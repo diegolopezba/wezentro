@@ -54,7 +54,7 @@ interface EditEventSheetProps {
 
 import { CATEGORIES } from "@/lib/categories";
 
-export function EditEventSheet({ event, open, onOpenChange, isPost = false }: EditEventSheetProps) {
+export function EditEventSheet({ event, open, onOpenChange, isPost = false, embedded = false }: EditEventSheetProps) {
   const updateEvent = useUpdateEvent();
   const { profile } = useAuth();
   const isBusiness = profile?.is_business === true;
