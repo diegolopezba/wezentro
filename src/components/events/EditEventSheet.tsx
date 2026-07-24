@@ -44,6 +44,12 @@ interface EditEventSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isPost?: boolean;
+  /**
+   * When true, renders the form body without its own Sheet wrapper so it can
+   * be embedded inside an outer bottom sheet (e.g. EventActionsSheet). The
+   * `open` prop still controls the effect that hydrates form state.
+   */
+  embedded?: boolean;
 }
 
 import { CATEGORIES } from "@/lib/categories";
