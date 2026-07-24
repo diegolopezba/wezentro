@@ -11,7 +11,7 @@ export function useHasBeneficiary() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("qhantuy_beneficiaries")
-        .select("id")
+        .select("user_id")
         .eq("user_id", user!.id)
         .limit(1)
         .maybeSingle();
