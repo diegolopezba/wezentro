@@ -6,9 +6,9 @@
  * Payment is processed via QR through Qhantuy (Bolivian banking infrastructure).
  */
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Sheet, SheetContent } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles } from "lucide-react";
+import { ChevronLeft, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,9 +19,7 @@ interface PaymentQRModalProps {
   eventId: string;
   eventTitle: string;
   price: number;
-  /** Optional ticket tier id — when set, the QR is generated for this specific tier. */
   ticketTierId?: string | null;
-  /** Optional tier name to display in the header alongside the event title. */
   ticketTierName?: string | null;
   onPaymentConfirmed: () => Promise<void>;
 }
@@ -135,71 +133,111 @@ export function PaymentQRModal({
   const handleClose = () => onOpenChange(false);
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="light-sheet max-w-sm rounded-3xl p-6 text-center">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="light-sheet rounded-t-3xl border-border bg-background p-0 max-h-[92dvh] overflow-hidden"
+      >
         <AnimatePresence mode="wait">
           {step === "details" && (
-            <m.div key="details" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <QrCode className="w-8 h-8 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <h2 className="text-xl font-brand font-bold text-foreground">{eventTitle}</h2>
-                {ticketTierName && (
-                  <p className="text-sm text-muted-foreground">{ticketTierName}</p>
-                )}
-              </div>
-              <div className="rounded-2xl bg-secondary/50 py-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Total a pagar</p>
-                <p className="text-3xl font-brand font-bold text-primary">Bs. {price}</p>
+            <m.div key="details" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col h-[85dvh]">
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 pt-4 pb-2">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center active:opacity-70"
+                  aria-label="Cerrar"
+                >
+                  <ChevronLeft className="w-5 h-5 text-foreground" />
+                </button>
               </div>
 
-              <div className="text-left space-y-3 rounded-2xl bg-secondary/40 p-4">
-                <p className="text-sm font-semibold text-foreground">Cómo funciona</p>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex gap-3">
-                    <span className="w-5 shrink-0 font-semibold text-primary">1.</span>
-                    <span>Generamos un QR único para tu compra.</span>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="w-5 shrink-0 font-semibold text-primary">2.</span>
-                    <span>Escanéalo desde tu app bancaria y paga.</span>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="w-5 shrink-0 font-semibold text-primary">3.</span>
-                    <span>Vuelve a zentro, validamos en segundos y estás dentro.</span>
+              {/* Title */}
+              <div className="px-5 pt-2 pb-4">
+                <h2 className="text-3xl font-brand font-extrabold tracking-tight text-foreground uppercase">
+                  Entrada
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{eventTitle}</p>
+              </div>
+
+              {/* Ticket card */}
+              <div className="px-5">
+                <div className="rounded-2xl bg-card border border-border shadow-sm p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-base font-bold uppercase tracking-tight text-foreground truncate">
+                        {ticketTierName || "Entrada general"}
+                      </p>
+                      <p className="text-lg font-brand font-bold text-foreground mt-0.5">
+                        Bs. {price}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="inline-flex items-center justify-center min-w-8 h-8 px-3 rounded-full bg-secondary text-sm font-semibold text-foreground">
+                        1
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <Button variant="hero" className="w-full" onClick={generateQR}>
-                Pagar por QR
-              </Button>
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs text-muted-foreground active:opacity-70"
-              >
-                Cancelar
-              </button>
+              {/* How it works */}
+              <div className="px-5 mt-6">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
+                  Cómo funciona
+                </p>
+                <div className="space-y-2.5">
+                  <div className="flex gap-3 text-sm text-foreground">
+                    <span className="w-5 shrink-0 font-bold text-primary">1.</span>
+                    <span>Generamos un QR único para tu compra.</span>
+                  </div>
+                  <div className="flex gap-3 text-sm text-foreground">
+                    <span className="w-5 shrink-0 font-bold text-primary">2.</span>
+                    <span>Escanéalo desde tu app bancaria y paga.</span>
+                  </div>
+                  <div className="flex gap-3 text-sm text-foreground">
+                    <span className="w-5 shrink-0 font-bold text-primary">3.</span>
+                    <span>Volvé a zentro, validamos en segundos y estás dentro.</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer with total + CTA */}
+              <div className="mt-auto px-5 pt-4 pb-6 border-t border-border bg-background">
+                <div className="flex items-end justify-between mb-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground">1 entrada seleccionada</p>
+                    <p className="text-2xl font-brand font-bold text-foreground">Total</p>
+                  </div>
+                  <p className="text-2xl font-brand font-bold text-foreground">Bs. {price}</p>
+                </div>
+                <Button
+                  type="button"
+                  onClick={generateQR}
+                  className="w-full h-14 rounded-2xl bg-foreground text-background text-base font-bold uppercase tracking-wide active:opacity-90"
+                >
+                  Pagar por QR
+                </Button>
+              </div>
             </m.div>
           )}
 
           {step === "loading" && (
-            <m.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-8 flex flex-col items-center gap-4">
+            <m.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-16 px-6 flex flex-col items-center gap-4">
               <Loader2 className="w-10 h-10 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">Generando tu QR de pago…</p>
             </m.div>
           )}
 
           {step === "revealed" && qrImageUrl && (
-            <m.div key="revealed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <m.div key="revealed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pt-6 pb-8 space-y-4 text-center overflow-y-auto max-h-[92dvh]">
               <div className="space-y-1">
                 <h2 className="text-lg font-brand font-bold text-foreground">{eventTitle}</h2>
                 <p className="text-lg font-semibold text-primary">Bs. {price}</p>
               </div>
 
-              <div className="mx-auto w-56 h-56 rounded-2xl overflow-hidden bg-white p-2">
+              <div className="mx-auto w-56 h-56 rounded-2xl overflow-hidden bg-white p-2 border border-border">
                 <img src={qrImageUrl} alt="QR de pago" className="w-full h-full object-contain" />
               </div>
 
@@ -208,7 +246,7 @@ export function PaymentQRModal({
                 Esperando confirmación automática…
               </div>
 
-              <div className="text-left space-y-2 p-4 rounded-xl bg-secondary/50">
+              <div className="text-left space-y-2 p-4 rounded-2xl bg-secondary/60">
                 <div className="flex items-start gap-3">
                   <Camera className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                   <p className="text-sm text-foreground"><span className="font-semibold">1.</span> Captura o escanea el QR</p>
@@ -233,7 +271,7 @@ export function PaymentQRModal({
           )}
 
           {step === "success" && (
-            <m.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="space-y-5 py-2">
+            <m.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="px-6 pt-8 pb-8 space-y-5 text-center">
               <div className="mx-auto w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center relative">
                 <CheckCircle className="w-12 h-12 text-primary" />
                 <Sparkles className="w-5 h-5 text-primary absolute top-1 right-1" />
@@ -242,12 +280,16 @@ export function PaymentQRModal({
                 <h2 className="text-2xl font-brand font-bold text-foreground">¡Estás dentro!</h2>
                 <p className="text-sm text-muted-foreground">Tu entrada para <span className="text-foreground font-medium">{eventTitle}</span> está confirmada.</p>
               </div>
-              <div className="p-3 rounded-xl bg-secondary/50">
+              <div className="p-3 rounded-xl bg-secondary/60">
                 <p className="text-xs text-muted-foreground">
                   Guarda tu entrada — la vas a necesitar en la puerta.
                 </p>
               </div>
-              <Button variant="hero" className="w-full" onClick={handleViewTickets}>
+              <Button
+                type="button"
+                onClick={handleViewTickets}
+                className="w-full h-14 rounded-2xl bg-foreground text-background text-base font-bold uppercase tracking-wide active:opacity-90"
+              >
                 Ver mi entrada
               </Button>
               <button
@@ -261,13 +303,13 @@ export function PaymentQRModal({
           )}
 
           {step === "expired" && (
-            <m.div key="expired" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <m.div key="expired" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pt-8 pb-8 space-y-4 text-center">
               <div className="mx-auto w-20 h-20 rounded-full bg-orange-500/10 flex items-center justify-center">
                 <AlertCircle className="w-10 h-10 text-orange-500" />
               </div>
               <h2 className="text-xl font-brand font-bold text-foreground">QR Expirado</h2>
               <p className="text-muted-foreground text-sm">El código QR expiró sin detectar un pago.</p>
-              <Button variant="hero" className="w-full" onClick={generateQR}>
+              <Button onClick={generateQR} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
                 <RefreshCw className="w-4 h-4 mr-2" />Generar nuevo QR
               </Button>
               <Button variant="ghost" className="w-full" onClick={handleClose}>Cancelar</Button>
@@ -275,20 +317,20 @@ export function PaymentQRModal({
           )}
 
           {step === "error" && (
-            <m.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <m.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pt-8 pb-8 space-y-4 text-center">
               <div className="mx-auto w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
                 <AlertCircle className="w-10 h-10 text-destructive" />
               </div>
               <h2 className="text-xl font-brand font-bold text-foreground">No se pudo generar el QR</h2>
               <p className="text-muted-foreground text-sm">{errorMsg || "Por favor intenta de nuevo."}</p>
-              <Button variant="hero" className="w-full" onClick={generateQR}>
+              <Button onClick={generateQR} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
                 <RefreshCw className="w-4 h-4 mr-2" />Reintentar
               </Button>
               <Button variant="ghost" className="w-full" onClick={handleClose}>Cancelar</Button>
             </m.div>
           )}
         </AnimatePresence>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
