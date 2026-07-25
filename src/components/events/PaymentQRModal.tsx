@@ -216,7 +216,7 @@ export function PaymentQRModal({
                         {ticketTierName || "Entrada general"}
                       </p>
                       <p className="text-lg font-brand font-bold text-foreground mt-0.5">
-                        Bs. {price}
+                        {isFree ? "Gratis" : `Bs. ${price}`}
                       </p>
                     </div>
                     <div className="text-right">
