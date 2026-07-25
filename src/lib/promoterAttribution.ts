@@ -52,6 +52,15 @@ export const getAttribution = (eventId: string): string | null => {
   }
 };
 
+/** Drop a stored attribution (stale / invalid promoter). */
+export const clearAttribution = (eventId: string): void => {
+  try {
+    localStorage.removeItem(storageKey(eventId));
+  } catch {
+    /* ignore */
+  }
+};
+
 /**
  * Read `?p=<code>` from the URL, resolve it to a promoter id via RPC,
  * persist for 7 days, and log a (deduped) click.
