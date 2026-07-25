@@ -2,7 +2,7 @@ import { useState } from "react";
 import { m } from "framer-motion";
 import {
   ArrowLeft, Briefcase, BarChart3, ChevronRight,
-  UtensilsCrossed, CalendarCheck, CreditCard, Info,
+  UtensilsCrossed, CalendarCheck, CreditCard, Info, TrendingUp,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
