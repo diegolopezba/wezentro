@@ -304,7 +304,8 @@ export const useEventDetailState = (
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
     // Mutation loading states
-    buyTicketPending: joinGuestlistWithPayment.isPending,
+    buyTicketPending: joinGuestlistWithPayment.isPending || joinGuestlist.isPending,
+    joinGuestlistPending: joinGuestlist.isPending,
     leaveGuestlistPending: leaveGuestlist.isPending,
     saveEventPending: saveEvent.isPending || unsaveEvent.isPending,
     likeEventPending: likeEvent.isPending || unlikeEvent.isPending,
