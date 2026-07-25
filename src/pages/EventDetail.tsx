@@ -14,7 +14,6 @@ import { ShareEventModal } from "@/components/events/ShareEventModal";
 import { LocationSheet } from "@/components/events/LocationSheet";
 import { EventActionsSheet } from "@/components/events/EventActionsSheet";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
-import { LeaveGuestlistDrawer } from "@/components/events/LeaveGuestlistDrawer";
 
 
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
@@ -448,8 +447,8 @@ const EventDetail = () => {
         <Button variant="ghost" size="default" disabled>
                   <Clock className="w-4 h-4 mr-1" /> Pendiente
                 </Button> :
-        <Button variant="ghost" size="default" onClick={() => setShowLeaveConfirm(true)} disabled={leaveGuestlistPending}>
-                  {leaveGuestlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> Unido</>}
+        <Button variant="hero" size="default" onClick={() => navigate(`/going/${id}`)}>
+                  <Check className="w-4 h-4 mr-1" /> Ver entrada
                 </Button> :
         isGuestlistFull ?
         <Button variant="outline" size="default" disabled>
@@ -520,12 +519,6 @@ const EventDetail = () => {
       />
     )}
 
-    <LeaveGuestlistDrawer
-      open={showLeaveConfirm}
-      onOpenChange={setShowLeaveConfirm}
-      onConfirm={handleLeaveGuestlist}
-      isPending={leaveGuestlistPending}
-    />
     </div>;
 };
 export default EventDetail;
