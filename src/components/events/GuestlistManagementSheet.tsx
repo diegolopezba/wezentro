@@ -530,69 +530,17 @@ export const GuestlistManagementSheet = ({
 
         {SearchBar}
 
-        <Tabs defaultValue="requests" className="h-[calc(100%-110px)]">
+        <Tabs defaultValue="approved" className="h-[calc(100%-110px)]">
           <TabsList className="w-full mb-4">
-            <TabsTrigger value="requests" className="flex-1 gap-1.5 text-xs">
-              <Users className="w-3.5 h-3.5" />
-              Solicitudes ({pendingRequests.length})
-            </TabsTrigger>
             <TabsTrigger value="approved" className="flex-1 gap-1.5 text-xs">
               <UserCheck className="w-3.5 h-3.5" />
-              Aceptados ({approvedGuests.length})
+              Asistentes ({approvedGuests.length})
             </TabsTrigger>
             <TabsTrigger value="scanner" className="flex-1 gap-1.5 text-xs">
               <QrCode className="w-3.5 h-3.5" />
               Escáner
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="requests" className="overflow-y-auto h-[calc(100%-60px)] -mx-6 px-6">
-            {loadingRequests ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : pendingRequests.length === 0 ? (
-              renderEmptyState(
-                <Users className="w-8 h-8 text-muted-foreground" />, "Sin solicitudes pendientes", "Las nuevas solicitudes aparecerán aquí" )
-            ) : filteredPendingRequests.length === 0 ? (
-              renderEmptyState(
-                <Search className="w-8 h-8 text-muted-foreground" />, "Sin resultados", "Prueba con otro nombre o usuario" )
-            ) : (
-              <div className="space-y-3">
-                <AnimatePresence mode="popLayout">
-                  {filteredPendingRequests.map((request: any, index: number) => {
-                    const isProcessing = processingIds.has(request.id);
-                    return renderUserRow(
-                      request,
-                      index,
-                      <>
-                        <Button
-                          variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-destructive/10 text-destructive" onClick={() => handleReject(request.id, request.user_id)}
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <X className="w-4 h-4" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-primary/10 text-primary" onClick={() => handleApprove(request.id, request.user_id)}
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Check className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-            )}
-          </TabsContent>
 
           {renderApprovedTabContent()}
 
