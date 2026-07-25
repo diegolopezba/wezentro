@@ -6,7 +6,10 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
+    if (!authHeader?.startsWith("Bearer ")) {
+      console.error("[qr] missing Authorization header");
+      return json({ error: "Inicia sesión de nuevo para continuar", code: "no_auth_header" }, 401);
+    }
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -15,12 +18,16 @@ Deno.serve(async (req) => {
     const authClient = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: userData } = await authClient.auth.getUser();
-    if (!userData?.user) return json({ error: "Unauthorized" }, 401);
+    const { data: userData, error: userErr } = await authClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      console.error("[qr] getUser failed:", userErr?.message);
+      return json({ error: "Tu sesión expiró. Inicia sesión de nuevo.", code: "session_expired" }, 401);
+    }
     const buyerId = userData.user.id;
 
     const { eventId, ticketTierId, promoterId } = await req.json();
-    if (!eventId) return json({ error: "eventId required" }, 400);
+    console.log("[qr] request", { eventId, ticketTierId, promoterId, buyerId });
+    if (!eventId) return json({ error: "Falta el evento", code: "no_event_id" }, 400);
 
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
@@ -30,7 +37,10 @@ Deno.serve(async (req) => {
       .select("id, title, price, creator_id")
       .eq("id", eventId)
       .single();
-    if (eventErr || !event) return json({ error: "Event not found" }, 404);
+    if (eventErr || !event) {
+      console.error("[qr] event not found", eventId, eventErr?.message);
+      return json({ error: "No encontramos este evento", code: "event_not_found" }, 404);
+    }
 
     // Resolve tier / price
     let effectivePrice = Number(event.price ?? 0);
@@ -44,10 +54,12 @@ Deno.serve(async (req) => {
         .eq("id", ticketTierId)
         .single();
       if (tErr || !t || t.event_id !== eventId || !t.is_active) {
-        return json({ error: "Ticket tier not found" }, 404);
+        console.error("[qr] tier not found/inactive", { ticketTierId, eventId, err: tErr?.message });
+        return json({ error: "Esta entrada ya no está disponible", code: "tier_not_found" }, 404);
       }
       if (t.capacity != null && t.sold_count >= t.capacity) {
-        return json({ error: "Tier sold out" }, 409);
+        console.error("[qr] tier sold out", ticketTierId);
+        return json({ error: "Entradas agotadas", code: "tier_sold_out" }, 409);
       }
       tierId = t.id;
       effectivePrice = Number(t.price);
@@ -55,7 +67,8 @@ Deno.serve(async (req) => {
     }
 
     if (!effectivePrice || effectivePrice <= 0) {
-      return json({ error: "Event has no price" }, 400);
+      console.error("[qr] event has no price", { eventId, tierId, effectivePrice });
+      return json({ error: "Este evento no tiene un precio configurado", code: "no_price" }, 400);
     }
 
     // Load beneficiary for the event creator
@@ -65,7 +78,23 @@ Deno.serve(async (req) => {
       .eq("user_id", event.creator_id)
       .maybeSingle();
     if (!benef || !benef.is_active) {
-      return json({ error: "El organizador aún no configuró sus pagos" }, 400);
+      console.error("[qr] beneficiary missing/inactive", { creator: event.creator_id, benef });
+      return json({ error: "El organizador aún no configuró sus pagos", code: "no_beneficiary" }, 400);
+    }
+
+    // Validate promoter attribution — a bad referral must never block the sale.
+    let safePromoterId: string | null = null;
+    if (promoterId) {
+      const { data: promo } = await supabase
+        .from("event_promoters")
+        .select("id, event_id")
+        .eq("id", promoterId)
+        .maybeSingle();
+      if (promo && promo.event_id === eventId) {
+        safePromoterId = promo.id;
+      } else {
+        console.warn("[qr] dropping invalid promoter attribution", { promoterId, eventId });
+      }
     }
 
     // Load buyer profile for customer fields
@@ -74,6 +103,7 @@ Deno.serve(async (req) => {
       .select("first_name, last_name, email")
       .eq("id", buyerId)
       .maybeSingle();
+
 
     // Create the session first so its id acts as the Qhantuy internal_code.
     const { data: session, error: sessErr } = await supabase
