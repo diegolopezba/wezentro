@@ -39,9 +39,12 @@ export function PaymentQRModal({
   price,
   ticketTierId,
   ticketTierName,
+  mode = "paid",
+  onJoinFree,
   onPaymentConfirmed,
 }: PaymentQRModalProps) {
   const navigate = useNavigate();
+  const isFree = mode === "free";
   const [step, setStep] = useState<Step>("details");
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
