@@ -582,7 +582,7 @@ const Notifications = () => {
   });
 
   return (
-    <AppLayout hideNav ref={scrollRef}>
+    <AppLayout hideNav>
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
@@ -596,7 +596,7 @@ const Notifications = () => {
         </div>
       </header>
 
-      <div className="px-0 py-0">
+      <div ref={listStartRef} className="px-0 py-0">
         {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -632,7 +632,7 @@ const Notifications = () => {
                   index={v.index}
                   onVisible={handleVisible}
                   measureRef={virtualizer.measureElement}
-                  translateY={v.start}
+                  translateY={v.start - scrollMargin}
                 >
                   {renderNotification(notification, v.index)}
                 </AutoReadRow>
