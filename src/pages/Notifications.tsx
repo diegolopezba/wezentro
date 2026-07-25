@@ -556,11 +556,18 @@ const Notifications = () => {
   // behave exactly as they did before, but only visible rows mount their
   // per-item hooks.
   const listStartRef = useRef<HTMLDivElement | null>(null);
+  const [scrollMargin, setScrollMargin] = useState(0);
+  useLayoutEffect(() => {
+    const update = () => setScrollMargin(listStartRef.current?.offsetTop ?? 0);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
   const virtualizer = useWindowVirtualizer({
     count: items.length,
     estimateSize: () => 88,
-    overscan: 6,
-    scrollMargin: listStartRef.current?.offsetTop ?? 0,
+    overscan: 8,
+    scrollMargin,
   });
 
   return (
