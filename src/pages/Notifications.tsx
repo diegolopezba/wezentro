@@ -552,16 +552,27 @@ const Notifications = () => {
 
   const items = notifications ?? [];
 
-  // Window-level virtualizer so the sticky header + native momentum scroll
-  // behave exactly as they did before, but only visible rows mount their
-  // per-item hooks.
+  // Window-level virtualizer: the document/window is the real scroll container
+  // (AppLayout's inner div is not height-constrained, so it does not scroll).
+  // scrollMargin is the absolute distance from the document top to the list,
+  // measured robustly with getBoundingClientRect so row transforms stay correct.
   const listStartRef = useRef<HTMLDivElement | null>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
   useLayoutEffect(() => {
-    const update = () => setScrollMargin(listStartRef.current?.offsetTop ?? 0);
+    const update = () => {
+      const el = listStartRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      setScrollMargin(rect.top + scrollY);
+    };
     update();
     window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
+    window.addEventListener("scroll", update, { passive: true });
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update);
+    };
   }, []);
   const virtualizer = useWindowVirtualizer({
     count: items.length,
