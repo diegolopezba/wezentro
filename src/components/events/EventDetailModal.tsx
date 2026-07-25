@@ -377,18 +377,18 @@ const EventDetailModalInner = () => {
             isSecret={isLocationSecret}
           />
 
-          {(usesPaidCheckout || hasTiers) && (
-            <PaymentQRModal
-              open={showPaymentModal}
-              onOpenChange={setShowPaymentModal}
-              eventId={id!}
-              eventTitle={event.title || "Evento"}
-              price={selectedTier ? Number(selectedTier.price) : (event.price || 0)}
-              ticketTierId={selectedTier?.id ?? null}
-              ticketTierName={selectedTier?.name ?? null}
-              onPaymentConfirmed={handlePaymentSubmitted}
-            />
-          )}
+          <PaymentQRModal
+            open={showPaymentModal}
+            onOpenChange={setShowPaymentModal}
+            eventId={id!}
+            eventTitle={event.title || "Evento"}
+            price={selectedTier ? Number(selectedTier.price) : (event.price || 0)}
+            ticketTierId={selectedTier?.id ?? null}
+            ticketTierName={selectedTier?.name ?? null}
+            mode={(usesPaidCheckout || hasTiers) ? "paid" : "free"}
+            onJoinFree={handleConfirmFreeJoin}
+            onPaymentConfirmed={handlePaymentSubmitted}
+          />
           {hasTiers && (
             <TicketTierPicker
               open={showTierPicker}
