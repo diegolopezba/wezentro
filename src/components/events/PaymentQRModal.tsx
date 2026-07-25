@@ -233,20 +233,37 @@ export function PaymentQRModal({
                 <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
                   Cómo funciona
                 </p>
-                <div className="space-y-2.5">
-                  <div className="flex gap-3 text-sm text-foreground">
-                    <span className="w-5 shrink-0 font-bold text-primary">1.</span>
-                    <span>Generamos un QR único para tu compra.</span>
+                {isFree ? (
+                  <div className="space-y-2.5">
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">1.</span>
+                      <span>Confirmá que querés unirte a este evento.</span>
+                    </div>
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">2.</span>
+                      <span>Quedás en la lista al instante.</span>
+                    </div>
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">3.</span>
+                      <span>Mostrá tu entrada en la puerta y listo.</span>
+                    </div>
                   </div>
-                  <div className="flex gap-3 text-sm text-foreground">
-                    <span className="w-5 shrink-0 font-bold text-primary">2.</span>
-                    <span>Escanéalo desde tu app bancaria y paga.</span>
+                ) : (
+                  <div className="space-y-2.5">
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">1.</span>
+                      <span>Generamos un QR único para tu compra.</span>
+                    </div>
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">2.</span>
+                      <span>Escanéalo desde tu app bancaria y paga.</span>
+                    </div>
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">3.</span>
+                      <span>Volvé a zentro, validamos en segundos y estás dentro.</span>
+                    </div>
                   </div>
-                  <div className="flex gap-3 text-sm text-foreground">
-                    <span className="w-5 shrink-0 font-bold text-primary">3.</span>
-                    <span>Volvé a zentro, validamos en segundos y estás dentro.</span>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Footer with total + CTA */}
@@ -256,14 +273,25 @@ export function PaymentQRModal({
                     <p className="text-xs text-muted-foreground">1 entrada seleccionada</p>
                     <p className="text-2xl font-brand font-bold text-foreground">Total</p>
                   </div>
-                  <p className="text-2xl font-brand font-bold text-foreground">Bs. {price}</p>
+                  {isFree ? (
+                    <p className="text-xl font-brand font-bold text-foreground flex items-center gap-1.5">
+                      tranqui, es gratis
+                      <img
+                        src={emojiWinkAsset.url}
+                        alt=""
+                        className="w-6 h-6 inline-block"
+                      />
+                    </p>
+                  ) : (
+                    <p className="text-2xl font-brand font-bold text-foreground">Bs. {price}</p>
+                  )}
                 </div>
                 <Button
                   type="button"
-                  onClick={generateQR}
+                  onClick={isFree ? confirmFreeJoin : generateQR}
                   className="w-full h-14 rounded-2xl bg-foreground text-background text-base font-bold uppercase tracking-wide active:opacity-90"
                 >
-                  Pagar por QR
+                  {isFree ? "Sí, quiero unirme" : "Pagar por QR"}
                 </Button>
               </div>
             </m.div>
