@@ -105,7 +105,7 @@ export const LocationSheet = ({
                   <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
                 </div>
               )}
-              <div ref={mapContainer} className="absolute inset-0" />
+              <div ref={setContainer} className="absolute inset-0" />
             </>
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
