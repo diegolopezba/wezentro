@@ -83,7 +83,7 @@ export const LocationSheet = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="rounded-t-3xl border-t border-border p-0 h-[70vh] flex flex-col"
+        className="light-sheet rounded-t-3xl border-t border-border bg-background p-0 h-[70vh] flex flex-col"
       >
         <SheetHeader className="px-5 pt-5 pb-3 text-left">
           <SheetTitle className="flex items-center gap-2 text-base">
