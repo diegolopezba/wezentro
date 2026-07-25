@@ -278,7 +278,7 @@ export const ReservationSheet = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[92vh] flex flex-col">
+      <DrawerContent className="light-sheet max-h-[92vh] flex flex-col">
         <DrawerHeader className="pb-3 shrink-0">
           <DrawerTitle className="text-lg font-brand">
             {isEditMode ? "Modificar reserva" : `Reservar en ${businessName}`}
