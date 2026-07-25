@@ -21,7 +21,7 @@ export function BusinessRequiredSheet({ open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="rounded-t-3xl border-border bg-background px-6 pb-8 pt-6"
+        className="light-sheet rounded-t-3xl border-border bg-background px-6 pb-8 pt-6"
       >
         <SheetHeader className="items-center text-center space-y-4">
           <div className="w-14 h-14 rounded-full bg-primary/15 flex items-center justify-center">
