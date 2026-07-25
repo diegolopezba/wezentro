@@ -17,7 +17,6 @@ import { LocationSheet } from "@/components/events/LocationSheet";
 import { EventActionsSheet } from "@/components/events/EventActionsSheet";
 
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
-import { LeaveGuestlistDrawer } from "@/components/events/LeaveGuestlistDrawer";
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
