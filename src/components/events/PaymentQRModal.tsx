@@ -49,6 +49,8 @@ export function PaymentQRModal({
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [needsLogin, setNeedsLogin] = useState(false);
+
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [howOpen, setHowOpen] = useState(false);
@@ -89,11 +91,43 @@ export function PaymentQRModal({
     }, 3000);
   }, [stopPolling, handleConfirmed]);
 
+  const goToLogin = useCallback(() => {
+    const returnTo = `${window.location.pathname}${window.location.search}`;
+    navigate("/auth", { state: { mode: "signin", returnTo } });
+  }, [navigate]);
+
+
+  /** Make sure the access token is fresh before hitting an authed function. */
+  const ensureFreshSession = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const session = data.session;
+      if (!session) return false;
+      const expiresAt = (session.expires_at ?? 0) * 1000;
+      if (expiresAt - Date.now() < 60_000) {
+        const { data: refreshed, error } = await supabase.auth.refreshSession();
+        if (error || !refreshed.session) return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   const generateQR = useCallback(async () => {
     if (!isActiveRef.current) return;
     setStep("loading");
     setErrorMsg(null);
+    setNeedsLogin(false);
     try {
+      const fresh = await ensureFreshSession();
+      if (!fresh) {
+        setErrorMsg("Tu sesión expiró. Inicia sesión de nuevo para continuar.");
+        setNeedsLogin(true);
+        setStep("error");
+        return;
+      }
+
       const { getAttribution, clearAttribution } = await import("@/lib/promoterAttribution");
       const raw = eventId ? getAttribution(eventId) : null;
       // Only forward a well-formed uuid — a stale/garbled referral must never block a sale.
@@ -107,12 +141,17 @@ export function PaymentQRModal({
         // supabase-js throws FunctionsHttpError on any non-2xx and drops the body,
         // so read the real server message out of error.context.
         let serverMsg: string | null = (data as any)?.error ?? null;
+        let serverCode: string | null = (data as any)?.code ?? null;
         const ctx = (error as any)?.context;
         if (!serverMsg && ctx && typeof ctx.json === "function") {
           try {
             const body = await ctx.json();
             serverMsg = body?.error ?? null;
+            serverCode = body?.code ?? null;
           } catch { /* body not json */ }
+        }
+        if (serverCode === "session_expired" || serverCode === "no_auth_header") {
+          setNeedsLogin(true);
         }
         setErrorMsg(serverMsg || error?.message || "No se pudo generar el QR");
         setStep("error");
@@ -127,20 +166,29 @@ export function PaymentQRModal({
       setErrorMsg(err?.message || "No se pudo generar el QR");
       setStep("error");
     }
-  }, [eventId, ticketTierId, startPolling]);
+  }, [eventId, ticketTierId, startPolling, ensureFreshSession]);
 
   const confirmFreeJoin = useCallback(async () => {
     if (!isActiveRef.current || !onJoinFree) return;
     setStep("loading");
     setErrorMsg(null);
+    setNeedsLogin(false);
     try {
+      const fresh = await ensureFreshSession();
+      if (!fresh) {
+        setErrorMsg("Tu sesión expiró. Inicia sesión de nuevo para continuar.");
+        setNeedsLogin(true);
+        setStep("error");
+        return;
+      }
       await onJoinFree();
       setStep("success");
     } catch (err: any) {
       setErrorMsg(err?.message || "No se pudo confirmar tu lugar");
       setStep("error");
     }
-  }, [onJoinFree]);
+  }, [onJoinFree, ensureFreshSession]);
+
 
   useEffect(() => {
     if (open) {
@@ -439,14 +487,21 @@ export function PaymentQRModal({
               <div className="mx-auto w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
                 <AlertCircle className="w-10 h-10 text-destructive" />
               </div>
-              <h2 className="text-xl font-brand font-bold text-foreground">{isFree ? "No se pudo confirmar tu lugar" : "No se pudo generar el QR"}</h2>
+              <h2 className="text-xl font-brand font-bold text-foreground">{needsLogin ? "Inicia sesión de nuevo" : isFree ? "No se pudo confirmar tu lugar" : "No se pudo generar el QR"}</h2>
               <p className="text-muted-foreground text-sm">{errorMsg || "Por favor intenta de nuevo."}</p>
-              <Button onClick={isFree ? confirmFreeJoin : generateQR} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
-                <RefreshCw className="w-4 h-4 mr-2" />Reintentar
-              </Button>
+              {needsLogin ? (
+                <Button onClick={goToLogin} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
+                  Iniciar sesión
+                </Button>
+              ) : (
+                <Button onClick={isFree ? confirmFreeJoin : generateQR} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
+                  <RefreshCw className="w-4 h-4 mr-2" />Reintentar
+                </Button>
+              )}
               <Button variant="ghost" className="w-full" onClick={handleClose}>Cancelar</Button>
             </m.div>
           )}
+
         </AnimatePresence>
       </SheetContent>
     </Sheet>
