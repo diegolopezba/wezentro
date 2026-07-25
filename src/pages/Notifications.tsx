@@ -73,8 +73,8 @@ const FollowNotificationItem = ({
     opacity: 1,
     x: 0
   }} transition={{
-    delay: index * 0.03
-  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
+    delay: Math.min(index, 8) * 0.02
+  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer`} onClick={onClick}>
       <Avatar className="w-10 h-10 shrink-0">
         <AvatarImage src={followerProfile?.avatar_url || DEFAULT_AVATAR} />
         <AvatarFallback />
@@ -93,7 +93,7 @@ const FollowNotificationItem = ({
         </p>
       </div>
       
-      {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
+      {!notification.is_read && <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
     </m.div>;
 };
 const GuestlistRequestNotificationItem = ({
@@ -124,8 +124,8 @@ const GuestlistRequestNotificationItem = ({
     opacity: 1,
     x: 0
   }} transition={{
-    delay: index * 0.03
-  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
+    delay: Math.min(index, 8) * 0.02
+  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer`} onClick={onClick}>
       <Avatar className="w-10 h-10 shrink-0">
         <AvatarImage src={requesterProfile?.avatar_url || DEFAULT_AVATAR} />
         <AvatarFallback />
@@ -144,7 +144,7 @@ const GuestlistRequestNotificationItem = ({
         </p>
       </div>
       
-      {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
+      {!notification.is_read && <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
     </m.div>;
 };
 const GuestlistStatusNotificationItem = ({
@@ -164,8 +164,8 @@ const GuestlistStatusNotificationItem = ({
     opacity: 1,
     x: 0
   }} transition={{
-    delay: index * 0.03
-  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
+    delay: Math.min(index, 8) * 0.02
+  }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer`} onClick={onClick}>
       <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
         {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
             <Calendar className="w-5 h-5 text-muted-foreground" />
@@ -184,7 +184,7 @@ const GuestlistStatusNotificationItem = ({
         </p>
       </div>
       
-      {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
+      {!notification.is_read && <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
     </m.div>;
 };
 const GuestlistInvitationNotificationItem = ({
@@ -251,8 +251,8 @@ const GuestlistInvitationNotificationItem = ({
     opacity: 1,
     x: 0
   }} transition={{
-    delay: index * 0.03
-  }} className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
+    delay: Math.min(index, 8) * 0.02
+  }} className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer`} onClick={onClick}>
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
           {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
@@ -281,7 +281,7 @@ const GuestlistInvitationNotificationItem = ({
         }}>
               <Check className="w-4 h-4" />
             </Button>
-            <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+            <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
           </>}
       </div>
       
@@ -306,7 +306,7 @@ const CommentNotificationItem = ({
 }: NotificationItemProps) => {
   const extractedUsername = notification.body?.match(/@(\w+)/)?.[1];
   const { data: event } = useEvent(notification.entity_id || undefined);
-  return <m.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.03 }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
+  return <m.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: Math.min(index, 8) * 0.02 }} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer`} onClick={onClick}>
     <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-secondary">
       {event?.image_url ? <img src={event.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><MessageCircle className="w-5 h-5 text-muted-foreground" /></div>}
     </div>
@@ -320,7 +320,7 @@ const CommentNotificationItem = ({
         {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: es })}
       </p>
     </div>
-    {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
+    {!notification.is_read && <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
   </m.div>;
 };
 
@@ -343,8 +343,8 @@ const NotificationItem = ({
     opacity: 1,
     x: 0
   }} transition={{
-    delay: index * 0.03
-  }} className={`flex items-start gap-4 p-4 rounded-2xl cursor-pointer ${notification.is_read ? "" : "bg-primary/5"}`} onClick={onClick}>
+    delay: Math.min(index, 8) * 0.02
+  }} className={`flex items-start gap-4 p-4 rounded-2xl cursor-pointer`} onClick={onClick}>
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notification.is_read ? "bg-secondary" : "bg-primary/20"}`}>
         <Icon className={`w-5 h-5 ${notification.is_read ? "text-muted-foreground" : "text-primary"}`} />
       </div>

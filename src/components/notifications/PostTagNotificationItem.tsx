@@ -66,7 +66,7 @@ export const PostTagNotificationItem = ({
     <m.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
+      transition={{ delay: Math.min(index, 8) * 0.02 }}
       className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer ${
         notification.is_read ? "" : "bg-primary/5"
       }`}
@@ -114,7 +114,7 @@ export const PostTagNotificationItem = ({
             >
               <Check className="w-4 h-4" />
             </Button>
-            <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+            <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
           </>
         )}
       </div>
