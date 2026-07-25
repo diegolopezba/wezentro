@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Sheet, SheetContent } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles, Download } from "lucide-react";
+import { ChevronLeft, ChevronDown, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +51,7 @@ export function PaymentQRModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [howOpen, setHowOpen] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isActiveRef = useRef(false);
 
@@ -228,43 +229,55 @@ export function PaymentQRModal({
                 </div>
               </div>
 
-              {/* How it works */}
+              {/* How it works (collapsible) */}
               <div className="px-5 mt-6">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
-                  Cómo funciona
-                </p>
-                {isFree ? (
-                  <div className="space-y-2.5">
-                    <div className="flex gap-3 text-sm text-foreground">
-                      <span className="w-5 shrink-0 font-bold text-primary">1.</span>
-                      <span>Confirmá que querés unirte a este evento.</span>
-                    </div>
-                    <div className="flex gap-3 text-sm text-foreground">
-                      <span className="w-5 shrink-0 font-bold text-primary">2.</span>
-                      <span>Quedás en la lista al instante.</span>
-                    </div>
-                    <div className="flex gap-3 text-sm text-foreground">
-                      <span className="w-5 shrink-0 font-bold text-primary">3.</span>
-                      <span>Mostrá tu entrada en la puerta y listo.</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2.5">
-                    <div className="flex gap-3 text-sm text-foreground">
-                      <span className="w-5 shrink-0 font-bold text-primary">1.</span>
-                      <span>Generamos un QR único para tu compra.</span>
-                    </div>
-                    <div className="flex gap-3 text-sm text-foreground">
-                      <span className="w-5 shrink-0 font-bold text-primary">2.</span>
-                      <span>Escanéalo desde tu app bancaria y paga.</span>
-                    </div>
-                    <div className="flex gap-3 text-sm text-foreground">
-                      <span className="w-5 shrink-0 font-bold text-primary">3.</span>
-                      <span>Volvé a zentro, validamos en segundos y estás dentro.</span>
-                    </div>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setHowOpen((v) => !v)}
+                  className="w-full flex items-center justify-between gap-3 rounded-2xl bg-card border border-border px-4 py-3 active:opacity-70 transition-opacity"
+                  aria-expanded={howOpen}
+                >
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground">
+                    ¿Cómo funciona?
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-200 ${howOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {howOpen && (
+                    <m.div
+                      key="how-it-works"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="space-y-2.5 px-1 pt-3">
+                        {(isFree
+                          ? [
+                              "Confirmá que querés unirte a este evento.",
+                              "Quedás en la lista al instante.",
+                              "Mostrá tu entrada en la puerta y listo.",
+                            ]
+                          : [
+                              "Generamos un QR único para tu compra.",
+                              "Escanéalo desde tu app bancaria y paga.",
+                              "Volvé a zentro, validamos en segundos y estás dentro.",
+                            ]
+                        ).map((text, i) => (
+                          <div key={i} className="flex gap-3 text-sm text-foreground">
+                            <span className="w-5 shrink-0 font-bold text-primary">{i + 1}.</span>
+                            <span>{text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </m.div>
+                  )}
+                </AnimatePresence>
               </div>
+
 
               {/* Footer with total + CTA */}
               <div className="mt-auto px-5 pt-4 pb-6 border-t border-border bg-background">
