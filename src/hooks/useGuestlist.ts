@@ -36,22 +36,38 @@ export const useJoinGuestlist = () => {
     mutationFn: async (eventId: string) => {
       if (!user) throw new Error("Must be logged in");
 
-      // Get user's profile and event details for notifications
+      // Get user's profile and event details for notifications + capacity check
       const [{ data: userProfile }, { data: event }] = await Promise.all([
         supabase.from("profiles").select("username").eq("id", user.id).single(),
-        supabase.from("events").select("creator_id, title").eq("id", eventId).single(),
+        supabase
+          .from("events")
+          .select("creator_id, title, max_guestlist_capacity")
+          .eq("id", eventId)
+          .single(),
       ]);
+
+      // Capacity re-check (avoid overshoot from concurrent taps)
+      if (event?.max_guestlist_capacity != null) {
+        const { count } = await supabase
+          .from("guestlist_entries")
+          .select("id", { count: "exact", head: true })
+          .eq("event_id", eventId)
+          .eq("status", "approved");
+        if ((count ?? 0) >= event.max_guestlist_capacity) {
+          throw new Error("El evento está lleno");
+        }
+      }
 
       const { getAttribution } = await import("@/lib/promoterAttribution");
       const promoterId = getAttribution(eventId);
 
-      // Insert guestlist entry
+      // Free events: user self-joins as approved (no owner approval step)
       const { data: entry, error: entryError } = await supabase
         .from("guestlist_entries")
         .insert({
           event_id: eventId,
           user_id: user.id,
-          status: "pending",
+          status: "approved",
           promoter_id: promoterId,
         } as any)
         .select()
@@ -59,13 +75,13 @@ export const useJoinGuestlist = () => {
 
       if (entryError) throw entryError;
 
-      // Notify event creator about guestlist request
+      // Notify event creator about the new joiner
       if (event && event.creator_id !== user.id) {
         sendPushNotification({
           userIds: [event.creator_id],
-          title: "Guestlist Request",
-          body: `@${userProfile?.username || "Someone"} wants to join ${event.title || "your event"}`,
-          data: { type: "guestlist_request", eventId },
+          title: "Nuevo asistente",
+          body: `@${userProfile?.username || "Alguien"} se unió a ${event.title || "tu evento"}`,
+          data: { type: "guestlist_joined", eventId },
           url: `/events/${eventId}`,
         });
       }
