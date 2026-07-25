@@ -136,7 +136,7 @@ export function PaymentQRModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-sm rounded-3xl p-6 text-center">
+      <DialogContent className="light-sheet max-w-sm rounded-3xl p-6 text-center">
         <AnimatePresence mode="wait">
           {step === "details" && (
             <m.div key="details" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
