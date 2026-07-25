@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { ExternalLink, Loader2, MapPin } from "lucide-react";
@@ -28,7 +28,7 @@ export const LocationSheet = ({
   isSecret,
 }: LocationSheetProps) => {
   const { token, isLoading: tokenLoading } = useMapboxToken();
-  const mapContainer = useRef<HTMLDivElement>(null);
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
   const hasCoords =
@@ -38,12 +38,12 @@ export const LocationSheet = ({
     !Number.isNaN(longitude);
 
   useEffect(() => {
-    if (!open || !token || !hasCoords || !mapContainer.current) return;
+    if (!open || !token || !hasCoords || !container) return;
 
     mapboxgl.accessToken = token;
     const map = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
+      container,
+      style: "mapbox://styles/mapbox/streets-v12",
       center: [longitude as number, latitude as number],
       zoom: 15,
       pitchWithRotate: false,
@@ -58,15 +58,20 @@ export const LocationSheet = ({
 
     mapRef.current = map;
 
-    // Ensure correct sizing once the sheet animation settles.
+    // The sheet animates in, so the container starts at 0 height —
+    // resize once the animation settles and whenever the box changes.
     const t = setTimeout(() => map.resize(), 350);
+    const ro = new ResizeObserver(() => map.resize());
+    ro.observe(container);
 
     return () => {
       clearTimeout(t);
+      ro.disconnect();
       map.remove();
       mapRef.current = null;
     };
-  }, [open, token, hasCoords, latitude, longitude]);
+  }, [open, token, hasCoords, latitude, longitude, container]);
+
 
   const mapsHref = hasCoords
     ? `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
@@ -78,7 +83,7 @@ export const LocationSheet = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="rounded-t-3xl border-t border-border p-0 h-[70vh] flex flex-col"
+        className="light-sheet rounded-t-3xl border-t border-border bg-background p-0 h-[70vh] flex flex-col"
       >
         <SheetHeader className="px-5 pt-5 pb-3 text-left">
           <SheetTitle className="flex items-center gap-2 text-base">
@@ -100,7 +105,7 @@ export const LocationSheet = ({
                   <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
                 </div>
               )}
-              <div ref={mapContainer} className="absolute inset-0" />
+              <div ref={setContainer} className="absolute inset-0" />
             </>
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
