@@ -439,14 +439,21 @@ export function PaymentQRModal({
               <div className="mx-auto w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
                 <AlertCircle className="w-10 h-10 text-destructive" />
               </div>
-              <h2 className="text-xl font-brand font-bold text-foreground">{isFree ? "No se pudo confirmar tu lugar" : "No se pudo generar el QR"}</h2>
+              <h2 className="text-xl font-brand font-bold text-foreground">{needsLogin ? "Inicia sesión de nuevo" : isFree ? "No se pudo confirmar tu lugar" : "No se pudo generar el QR"}</h2>
               <p className="text-muted-foreground text-sm">{errorMsg || "Por favor intenta de nuevo."}</p>
-              <Button onClick={isFree ? confirmFreeJoin : generateQR} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
-                <RefreshCw className="w-4 h-4 mr-2" />Reintentar
-              </Button>
+              {needsLogin ? (
+                <Button onClick={goToLogin} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
+                  Iniciar sesión
+                </Button>
+              ) : (
+                <Button onClick={isFree ? confirmFreeJoin : generateQR} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
+                  <RefreshCw className="w-4 h-4 mr-2" />Reintentar
+                </Button>
+              )}
               <Button variant="ghost" className="w-full" onClick={handleClose}>Cancelar</Button>
             </m.div>
           )}
+
         </AnimatePresence>
       </SheetContent>
     </Sheet>
