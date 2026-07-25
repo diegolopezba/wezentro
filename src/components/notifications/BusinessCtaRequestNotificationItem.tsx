@@ -86,20 +86,7 @@ export const BusinessCtaRequestNotificationItem = ({
         </div>
 
         {!notification.is_read && !pending && (
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRead();
-              }}
-            >
-              <Check className="w-4 h-4" />
-            </Button>
-            <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-          </>
+          <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
         )}
       </div>
 
