@@ -71,6 +71,7 @@ export const useEventDetailState = (
   const { data: ticketTiers = [] } = useTicketTiers(eventId);
 
   // Mutations
+  const joinGuestlist = useJoinGuestlist();
   const joinGuestlistWithPayment = useJoinGuestlistWithPayment();
   const leaveGuestlist = useLeaveGuestlist();
   const saveEvent = useSaveEvent();
