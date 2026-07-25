@@ -229,6 +229,7 @@ const AppRoutes = () => {
         <Route path="/settings/business/reservations" element={<ProtectedRoute requireProfile><LazyRoute><BusinessReservations /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/business/info" element={<ProtectedRoute requireProfile><LazyRoute><BusinessInfo /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/business/menu" element={<ProtectedRoute requireProfile><LazyRoute><BusinessMenu /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/business/sales" element={<ProtectedRoute requireProfile><LazyRoute><BusinessSales /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/joined-events" element={<ProtectedRoute requireProfile><LazyRoute><JoinedEvents /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/help" element={<ProtectedRoute requireProfile><LazyRoute><Help /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/referrals" element={<ProtectedRoute requireProfile><LazyRoute><Referrals /></LazyRoute></ProtectedRoute>} />
