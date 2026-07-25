@@ -2,7 +2,7 @@ import { useState } from "react";
 import { m } from "framer-motion";
 import {
   ArrowLeft, Briefcase, BarChart3, ChevronRight,
-  UtensilsCrossed, CalendarCheck, CreditCard, Info,
+  UtensilsCrossed, CalendarCheck, CreditCard, Info, TrendingUp,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -159,6 +159,26 @@ const BusinessSettings = () => {
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </m.button>
+
+            {/* Ventas y promotores → nav */}
+            <m.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22 }}
+              onClick={() => navigate("/settings/business/sales")}
+              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
+              <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+                <TrendingUp className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 text-left">
+                <span className="text-foreground font-semibold block">Ventas y promotores</span>
+                <span className="text-xs text-muted-foreground">
+                  Ingresos, entradas vendidas y rendimiento de promotores
+                </span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </m.button>
+
 
             {/* Section: Pagos */}
             <m.div

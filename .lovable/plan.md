@@ -1,49 +1,39 @@
+## Status: ~60% already built
 
-## Goal
+Verified: per-event ticketing data already exists and works — the page at `/business/event/{eventId}/promoters` shows tickets sold, revenue, promoter-attributed vs organic split, sales per ticket tier, and per-promoter stats, backed by three existing database functions (`get_event_promoter_totals`, `get_event_ticket_breakdown`, `get_event_promoter_stats`). It's just buried behind Dashboard → Contenido → expand an event card.
 
-Free events use the same bottomsheet checkout flow as paid events, with a friendlier "confirm" step instead of QR payment. Users tap "Unirme" on the event, see the same ticket card sheet, and confirm with a "Sí, quiero unirme" button — only then are they added as `approved`.
+Missing: any all-events/all-time sales view, and a single home for it.
 
-## Flow (free events)
+## What to build
 
-1. User taps **Unirme** on event detail.
-2. Same bottomsheet opens (light theme, back button, `ENTRADA` header, ticket card).
-3. Ticket card shows the event/tier name and price line reads **`Total — tranqui, es gratis 😉`** (with the winking-face emoji from the uploaded image).
-4. Bottom CTA reads **`Sí, quiero unirme`** (same dark full-width pinned button styling as `Pagar por QR`).
-5. Tap CTA → run capacity check + insert guestlist row with `status: "approved"` → transition sheet to the existing **success** step (checkmark + "Estás dentro" + "Ver mi entrada" → `/going/:eventId`).
-6. Errors (full, already joined, network) show inline in the sheet, not a toast.
+### One entry point: "Ventas y promotores"
+A new row in the Business hub (`BusinessSettings`), alongside Menú and Reservas, opening a dedicated page at `/business/sales`. Everything ticketing-related lives there.
 
-Paid flow stays exactly as it is (QR + polling).
+### Inside: pill-based sections
+A horizontal pill row (same style as the map category pills) switching between:
 
-## Changes
+**1. Resumen (default) — all-time overall sales**
+- Hero number: total revenue all time, with tickets sold underneath.
+- Secondary cards: paid events count, average ticket price, average revenue per event.
+- Area chart of revenue over time (monthly buckets all-time, with a toggle for 30d).
+- Donut: promoter-attributed vs organic revenue across all events.
 
-### 1. `src/components/events/PaymentQRModal.tsx` → generalize to a checkout sheet
-- Add a `mode: "paid" | "free"` prop (default `"paid"` to preserve current call sites).
-- When `mode === "free"`:
-  - Skip `details → loading → revealed` QR steps. Steps become `details → submitting → success | error`.
-  - Price row renders `Total` label + `tranqui, es gratis` text with the winking emoji inline (imported as `src/assets/emoji-wink.png` via `lovable-assets` from the uploaded PNG).
-  - CTA renders `Sí, quiero unirme` and calls a new `onJoinFree` prop instead of the QR generation edge function.
-  - Success screen copy adjusts to "Estás dentro" / "Nos vemos ahí" (no "pago confirmado" wording); "Ver mi entrada" button still routes to `/going/:eventId`.
-- Keep the "back", header, ticket card, and pinned CTA layout identical for both modes.
-- Optional rename note: keep filename `PaymentQRModal.tsx` for now to avoid churn; export stays `PaymentQRModal`.
+**2. Eventos**
+- List of the owner's paid events ranked by revenue, each row showing revenue, tickets sold vs capacity and a small progress bar.
+- Tapping a row opens the per-event detail (section 3) with that event selected.
 
-### 2. `src/hooks/useGuestlist.ts` → `useJoinGuestlist` (from prior plan)
-- Insert `status: "approved"`, run capacity re-check, throw friendly error `"El evento está lleno"` if full.
-- Change owner notification copy to "joined your event" (type `guestlist_joined`).
+**3. Por evento**
+- Event picker at top, then the existing per-event content, reused: totals, ventas por tier with progress bars, plus new payment-status breakdown (pagado / pendiente / expirado) as a small stacked bar, and check-in rate vs tickets sold.
 
-### 3. `src/hooks/useEventDetailState.ts` + `src/pages/EventDetail.tsx` / `EventDetailModal.tsx`
-- Free-event "Unirme" CTA opens the same `PaymentQRModal` with `mode="free"` and passes `onJoinFree={() => joinGuestlist.mutateAsync(eventId)}`.
-- Button states: `Unirme` → `Estás dentro` → `Lleno`.
-- Keep `Salir` for approved users.
+**4. Promotores**
+- Cross-event promoter leaderboard: tickets sold, revenue, clicks, conversion rate, with a horizontal bar chart of the top performers.
+- Per-event promoter creation and management stays where it is today, reachable from the event picker in section 3.
 
-### 4. `src/components/events/GuestlistManagementSheet.tsx`
-- Hide "Solicitudes" tab for free events (no pending state exists on free path anymore). Paid events keep "Pagos".
+### Cleanup
+- Remove the standalone "Promotores y ventas" button from the dashboard Contenido tab and point it to the new page instead (keeping `/business/event/:eventId/promoters` working as a deep link so existing promoter flows don't break).
 
-### 5. Asset
-- Save the uploaded winking emoji as a Lovable asset (`src/assets/emoji-wink.png.asset.json`) and import it into `PaymentQRModal.tsx` for the `es gratis 😉` line.
-
-### 6. Memory
-- Update `mem://index.md` core rule + `mem://features/guestlists`: free events → instant self-join via confirmation sheet, paid events → QR checkout, both share the same UI shell.
-
-## Out of scope
-- No DB migration. `status` column keeps `pending`/`rejected` for legacy/paid paths.
-- No changes to Qhantuy edge functions, ticket tiers editor, invitations, or paid flow behavior.
+### Technical notes
+- Per-event sections need no new backend — the three existing functions cover them.
+- The all-time rollup needs one new security-definer function, `get_creator_sales_summary(_user_id)`, returning per-event and per-month revenue/ticket totals scoped to `auth.uid()` = event creator, so the client doesn't pull every payment row.
+- New: `src/pages/BusinessSales.tsx`, section components under `src/components/sales/`, hooks added to `src/hooks/usePromoters.ts`.
+- Charts use the existing `recharts` setup already in the dashboard. Currency stays `Bs.`, dark theme, pill buttons — consistent with the rest of the app.

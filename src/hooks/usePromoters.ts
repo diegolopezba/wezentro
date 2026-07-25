@@ -155,3 +155,95 @@ export const useDeletePromoter = () => {
     },
   });
 };
+
+/* ---------------- Cross-event (all-time) sales analytics ---------------- */
+
+export interface CreatorEventSales {
+  event_id: string;
+  title: string;
+  start_datetime: string;
+  image_url: string | null;
+  tickets_sold: number;
+  revenue: number;
+  attributed_tickets: number;
+  attributed_revenue: number;
+  capacity: number;
+  checked_in: number;
+}
+
+export interface CreatorMonthlySales {
+  bucket: string;
+  revenue: number;
+  tickets: number;
+}
+
+export interface CreatorPromoterRow {
+  promoter_id: string;
+  name: string;
+  short_code: string;
+  event_id: string;
+  event_title: string;
+  clicks: number;
+  tickets_sold: number;
+  revenue_bs: number;
+  gl_approved: number;
+}
+
+export interface PaymentStatusRow {
+  status: string;
+  count: number;
+  amount: number;
+}
+
+export const useCreatorSalesByEvent = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["creator-sales-by-event", user?.id],
+    enabled: !!user,
+    staleTime: 60_000,
+    queryFn: async (): Promise<CreatorEventSales[]> => {
+      const { data, error } = await supabase.rpc("get_creator_sales_by_event" as any);
+      if (error) throw error;
+      return (data as unknown as CreatorEventSales[]) || [];
+    },
+  });
+};
+
+export const useCreatorSalesMonthly = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["creator-sales-monthly", user?.id],
+    enabled: !!user,
+    staleTime: 60_000,
+    queryFn: async (): Promise<CreatorMonthlySales[]> => {
+      const { data, error } = await supabase.rpc("get_creator_sales_monthly" as any);
+      if (error) throw error;
+      return (data as unknown as CreatorMonthlySales[]) || [];
+    },
+  });
+};
+
+export const useCreatorPromoterLeaderboard = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["creator-promoter-leaderboard", user?.id],
+    enabled: !!user,
+    staleTime: 60_000,
+    queryFn: async (): Promise<CreatorPromoterRow[]> => {
+      const { data, error } = await supabase.rpc("get_creator_promoter_leaderboard" as any);
+      if (error) throw error;
+      return (data as unknown as CreatorPromoterRow[]) || [];
+    },
+  });
+};
+
+export const usePaymentStatusBreakdown = (eventId: string | undefined) =>
+  useQuery({
+    queryKey: ["payment-status-breakdown", eventId],
+    enabled: !!eventId,
+    queryFn: async (): Promise<PaymentStatusRow[]> => {
+      const { data, error } = await supabase.rpc("get_event_payment_status_breakdown" as any, { _event_id: eventId });
+      if (error) throw error;
+      return (data as unknown as PaymentStatusRow[]) || [];
+    },
+  });
