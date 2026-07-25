@@ -335,6 +335,7 @@ export const useEventDetailState = (
     handleRepostToggle,
     handleSendToggle,
     handleBuyTicket,
+    handleConfirmFreeJoin,
     handlePaymentSubmitted,
     handleLeaveGuestlist,
   };
