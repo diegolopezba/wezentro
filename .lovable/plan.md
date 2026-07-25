@@ -1,28 +1,31 @@
-## What I found
+## What I verified
 
-Your account does have real sales in the database:
+- The event you were testing (`prueba 4`) is priced Bs. 2, has no ticket tiers, and its creator does have an active payment beneficiary — so the checkout *should* work.
+- No payment session rows were created at the time of your test, and the QR function shows boot activity but no error logs. That means the function returned early (before creating the session) on one of its silent early-exit branches: unauthorized, event/tier not found, tier sold out, no price, or beneficiary missing.
+- The UI can't tell us which one: `supabase.functions.invoke` throws on any non-2xx and discards the JSON body, so every one of those causes shows the same generic "Edge Function returned a non-2xx status code".
 
-- Event **"Test 2"** has 2 confirmed payments of Bs. 10 each (Bs. 20 total) plus 1 pending.
-- Those are the only confirmed payments across your 31 events.
+So the exact cause is not yet confirmed. Step 1 of the plan is to make the failure legible, then fix it.
 
-The data isn't showing because of a filter in the account-level sales query (`get_creator_sales_by_event`). It only returns events that have a row in the ticket-tiers table with a price above zero. "Test 2" (and your other priced events like "Mar Adentro", "80s party", "rooftop session") store their price directly on the event, not as ticket tiers — only "The Groove Temple" has actual tiers, and that one has zero sales.
+## Plan
 
-So every event with real revenue gets filtered out, and the Resumen tab computes its totals (revenue, tickets, average ticket, attribution donut) from that same empty list → Bs. 0. The monthly chart uses a different query that reads payments directly, which is why parts of the page look inconsistent.
+1. **Surface the real error in the client** (`src/components/events/PaymentQRModal.tsx`)
+   - When `invoke` returns a `FunctionsHttpError`, read `error.context.json()` and show the server's Spanish message ("El organizador aún no configuró sus pagos", "Entradas agotadas", "Inicia sesión de nuevo", etc.) instead of the raw SDK string.
+   - Keep the retry button; add the technical detail in a small muted line for debugging.
 
-## The fix
+2. **Log every early return in the QR function** (`supabase/functions/generate-qhantuy-qr/index.ts`)
+   - Add a `console.error` with eventId / tierId / promoterId / reason on each non-2xx path so the logs pinpoint the branch.
+   - Return stable Spanish messages for each case.
 
-Update the sales-by-event database function so an event is included when **any** of these is true:
+3. **Harden promoter attribution in the function**
+   - Validate `promoterId` against `event_promoters` for that event; if it's stale, unknown, or belongs to another event, drop it and continue the purchase instead of letting the session insert fail. A bad referral code must never block a sale.
+   - Same treatment for a stale attribution stored in localStorage on the client.
 
-- it has a paid ticket tier, or
-- the event's own price is greater than zero, or
-- it has at least one confirmed payment (so historical sales never disappear).
+4. **Auth-token edge case**
+   - If `auth.getUser()` fails, respond 401 with a clear message and have the modal prompt re-login rather than showing a generic failure — this covers opening a promoter link in a browser where the session is stale (e.g. Safari vs. the installed PWA).
 
-Also make capacity fall back to the event's guest-list capacity when there are no ticket tiers, so the "sold / capacity" progress bar is meaningful for tier-less events.
+5. **Re-test end to end**
+   - Deploy, open the promoter link, run "Comprar" → "Pagar con QR", and read the function logs to confirm either a successful QR or the precise branch that fails, then fix that specific cause.
 
-No UI changes are needed — the Resumen, Por evento and Promotores tabs will pick up the corrected rows automatically.
+## Note on environments
 
-### Technical notes
-
-- Single migration replacing `public.get_creator_sales_by_event` (security definer, still scoped to `auth.uid()`); the `WHERE` clause gains the price/confirmed-payment alternatives and the capacity lateral falls back to `events.max_guestlist_capacity`.
-- `get_creator_sales_monthly` and `get_creator_promoter_leaderboard` are already correct and stay as-is.
-- After the migration I'll verify by running the function as your user and confirming "Test 2" reports 2 tickets / Bs. 20.
+Your screenshot is on the published site (zentro.today). If the published app runs against the live backend while my inspection covered the test backend, a missing beneficiary/promoter record on live is a strong candidate for the failure. Step 2's logging will confirm this immediately after deploy.

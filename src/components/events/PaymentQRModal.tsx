@@ -94,13 +94,27 @@ export function PaymentQRModal({
     setStep("loading");
     setErrorMsg(null);
     try {
-      const { getAttribution } = await import("@/lib/promoterAttribution");
-      const promoterId = eventId ? getAttribution(eventId) : null;
+      const { getAttribution, clearAttribution } = await import("@/lib/promoterAttribution");
+      const raw = eventId ? getAttribution(eventId) : null;
+      // Only forward a well-formed uuid — a stale/garbled referral must never block a sale.
+      const isUuid = !!raw && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw);
+      if (raw && !isUuid) clearAttribution(eventId);
+      const promoterId = isUuid ? raw : null;
       const { data, error } = await supabase.functions.invoke("generate-qhantuy-qr", {
         body: { eventId, ticketTierId: ticketTierId ?? null, promoterId },
       });
       if (error || !data || (data as any).error) {
-        setErrorMsg((data as any)?.error || error?.message || "No se pudo generar el QR");
+        // supabase-js throws FunctionsHttpError on any non-2xx and drops the body,
+        // so read the real server message out of error.context.
+        let serverMsg: string | null = (data as any)?.error ?? null;
+        const ctx = (error as any)?.context;
+        if (!serverMsg && ctx && typeof ctx.json === "function") {
+          try {
+            const body = await ctx.json();
+            serverMsg = body?.error ?? null;
+          } catch { /* body not json */ }
+        }
+        setErrorMsg(serverMsg || error?.message || "No se pudo generar el QR");
         setStep("error");
         return;
       }
