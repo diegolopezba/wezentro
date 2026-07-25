@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Sheet, SheetContent } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles } from "lucide-react";
+import { ChevronLeft, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +41,8 @@ export function PaymentQRModal({
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isActiveRef = useRef(false);
 
@@ -128,6 +130,29 @@ export function PaymentQRModal({
   const handleViewTickets = () => {
     onOpenChange(false);
     navigate(eventId ? `/going/${eventId}` : "/settings/tickets");
+  };
+
+  const handleDownloadQR = async () => {
+    if (!qrImageUrl) return;
+    setIsDownloading(true);
+    setDownloadError(null);
+    try {
+      const response = await fetch(qrImageUrl);
+      if (!response.ok) throw new Error("No se pudo descargar la imagen");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `zentro-qr-${eventId}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setDownloadError("No se pudo descargar. Intenta con una captura de pantalla.");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleClose = () => onOpenChange(false);
@@ -240,6 +265,25 @@ export function PaymentQRModal({
               <div className="mx-auto w-56 h-56 rounded-2xl overflow-hidden bg-white p-2 border border-border">
                 <img src={qrImageUrl} alt="QR de pago" className="w-full h-full object-contain" />
               </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleDownloadQR}
+                disabled={isDownloading}
+                className="w-full h-12 rounded-2xl border-border bg-background text-foreground font-semibold active:opacity-90"
+              >
+                {isDownloading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                Descargar QR
+              </Button>
+
+              {downloadError && (
+                <p className="text-xs text-destructive">{downloadError}</p>
+              )}
 
               <div className="flex items-center justify-center gap-1.5 text-xs text-primary">
                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
