@@ -1,17 +1,15 @@
 /**
  * FeedVideoCoordinator
  *
- * Pinterest-style autoplay + single-audio behavior for feed videos.
+ * Pinterest-style autoplay + explicit-audio behavior for feed videos.
  *
  * Rules:
  *  - A registered <video> autoplays (muted) when ≥ VISIBILITY_THRESHOLD on screen.
  *  - It pauses (and resets to 0) when below that threshold.
- *  - At any time only ONE video has audio: the one whose bounding box top is
- *    closest to the top of the viewport (but still on screen). All others mute.
- *  - Until the user makes a first gesture, audio stays off everywhere
- *    (mobile browsers block audible autoplay otherwise).
- *  - If the user mutes a card via its sound button, that card is "user-muted"
- *    and skipped by the audio-selection logic until it leaves the viewport.
+ *  - Audio is OFF by default for every feed video.
+ *  - The user explicitly chooses which video has sound by tapping its sound button.
+ *  - Only that chosen video un-mutes; it stays muted while off-screen and resumes
+ *    with sound when it comes back on screen, until the user mutes it again.
  */
 
 type Entry = {
@@ -33,18 +31,9 @@ class Coordinator {
   private listeners = new Set<() => void>();
 
   constructor() {
-    if (typeof window !== "undefined") {
-      const unlock = () => {
-        this.audioUnlocked = true;
-        this.schedule();
-        window.removeEventListener("pointerdown", unlock);
-        window.removeEventListener("touchstart", unlock);
-        window.removeEventListener("keydown", unlock);
-      };
-      window.addEventListener("pointerdown", unlock, { once: true, passive: true });
-      window.addEventListener("touchstart", unlock, { once: true, passive: true });
-      window.addEventListener("keydown", unlock, { once: true });
-    }
+    // Audio stays locked until the user explicitly taps a card's sound button.
+    // We no longer unlock on generic page interactions, so feed videos remain
+    // muted by default and only the chosen video gets sound.
   }
 
   private ensureObserver() {
@@ -148,10 +137,9 @@ class Coordinator {
   }
 
   private apply() {
-    // Determine audio holder: among visible (ratio >= threshold) and not user-muted,
-    // the one with smallest |top| (closest to top of viewport, clamped at 0).
-    let audioId: string | null = null;
-    let bestTop = Number.POSITIVE_INFINITY;
+    // Audio holder is the video the user explicitly unmuted (if any).
+    // We never auto-promote a visible video to audio holder.
+    const audioId = this.audioUnlocked ? this.currentAudioId : null;
 
     for (const [id, e] of this.entries) {
       const visible = e.ratio >= VISIBILITY_THRESHOLD;
@@ -169,17 +157,7 @@ class Coordinator {
           } catch {}
         }
       }
-
-      if (visible && !e.userMuted) {
-        const dist = Math.abs(e.top);
-        if (dist < bestTop) {
-          bestTop = dist;
-          audioId = id;
-        }
-      }
     }
-
-    this.currentAudioId = audioId;
 
     // Apply mute state
     for (const [id, e] of this.entries) {
