@@ -99,6 +99,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Re-validate the token when the app is resumed (tab foregrounded or restored
+  // from bfcache). Safari suspends timers, so autoRefreshToken can miss a cycle
+  // and leave a stale access token that fails on the next authed request.
+  useEffect(() => {
+    const revalidate = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const current = data.session;
+        if (!current) return;
+        const expiresAt = (current.expires_at ?? 0) * 1000;
+        if (expiresAt - Date.now() < 5 * 60 * 1000) {
+          await supabase.auth.refreshSession();
+        }
+      } catch {
+        /* ignore — the next authed call surfaces the error */
+      }
+    };
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") revalidate();
+    };
+    const onPageShow = () => revalidate();
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("pageshow", onPageShow);
+    };
+  }, []);
+
+
   const signUp = async (email: string, password: string, username?: string) => {
     const redirectUrl = `${window.location.origin}/`;
 
