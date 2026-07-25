@@ -12,6 +12,7 @@ import { ChevronLeft, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCirc
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import emojiWinkAsset from "@/assets/emoji-wink.png.asset.json";
 
 interface PaymentQRModalProps {
   open: boolean;
@@ -21,6 +22,10 @@ interface PaymentQRModalProps {
   price: number;
   ticketTierId?: string | null;
   ticketTierName?: string | null;
+  /** "paid" = Qhantuy QR checkout (default). "free" = confirm-to-join sheet. */
+  mode?: "paid" | "free";
+  /** Called when the user taps "Sí, quiero unirme" in free mode. Should throw on failure. */
+  onJoinFree?: () => Promise<void>;
   onPaymentConfirmed: () => Promise<void>;
 }
 
@@ -34,9 +39,12 @@ export function PaymentQRModal({
   price,
   ticketTierId,
   ticketTierName,
+  mode = "paid",
+  onJoinFree,
   onPaymentConfirmed,
 }: PaymentQRModalProps) {
   const navigate = useNavigate();
+  const isFree = mode === "free";
   const [step, setStep] = useState<Step>("details");
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
@@ -105,6 +113,19 @@ export function PaymentQRModal({
       setStep("error");
     }
   }, [eventId, ticketTierId, startPolling]);
+
+  const confirmFreeJoin = useCallback(async () => {
+    if (!isActiveRef.current || !onJoinFree) return;
+    setStep("loading");
+    setErrorMsg(null);
+    try {
+      await onJoinFree();
+      setStep("success");
+    } catch (err: any) {
+      setErrorMsg(err?.message || "No se pudo confirmar tu lugar");
+      setStep("error");
+    }
+  }, [onJoinFree]);
 
   useEffect(() => {
     if (open) {
@@ -195,7 +216,7 @@ export function PaymentQRModal({
                         {ticketTierName || "Entrada general"}
                       </p>
                       <p className="text-lg font-brand font-bold text-foreground mt-0.5">
-                        Bs. {price}
+                        {isFree ? "Gratis" : `Bs. ${price}`}
                       </p>
                     </div>
                     <div className="text-right">
@@ -212,20 +233,37 @@ export function PaymentQRModal({
                 <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
                   Cómo funciona
                 </p>
-                <div className="space-y-2.5">
-                  <div className="flex gap-3 text-sm text-foreground">
-                    <span className="w-5 shrink-0 font-bold text-primary">1.</span>
-                    <span>Generamos un QR único para tu compra.</span>
+                {isFree ? (
+                  <div className="space-y-2.5">
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">1.</span>
+                      <span>Confirmá que querés unirte a este evento.</span>
+                    </div>
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">2.</span>
+                      <span>Quedás en la lista al instante.</span>
+                    </div>
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">3.</span>
+                      <span>Mostrá tu entrada en la puerta y listo.</span>
+                    </div>
                   </div>
-                  <div className="flex gap-3 text-sm text-foreground">
-                    <span className="w-5 shrink-0 font-bold text-primary">2.</span>
-                    <span>Escanéalo desde tu app bancaria y paga.</span>
+                ) : (
+                  <div className="space-y-2.5">
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">1.</span>
+                      <span>Generamos un QR único para tu compra.</span>
+                    </div>
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">2.</span>
+                      <span>Escanéalo desde tu app bancaria y paga.</span>
+                    </div>
+                    <div className="flex gap-3 text-sm text-foreground">
+                      <span className="w-5 shrink-0 font-bold text-primary">3.</span>
+                      <span>Volvé a zentro, validamos en segundos y estás dentro.</span>
+                    </div>
                   </div>
-                  <div className="flex gap-3 text-sm text-foreground">
-                    <span className="w-5 shrink-0 font-bold text-primary">3.</span>
-                    <span>Volvé a zentro, validamos en segundos y estás dentro.</span>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Footer with total + CTA */}
@@ -235,14 +273,25 @@ export function PaymentQRModal({
                     <p className="text-xs text-muted-foreground">1 entrada seleccionada</p>
                     <p className="text-2xl font-brand font-bold text-foreground">Total</p>
                   </div>
-                  <p className="text-2xl font-brand font-bold text-foreground">Bs. {price}</p>
+                  {isFree ? (
+                    <p className="text-xl font-brand font-bold text-foreground flex items-center gap-1.5">
+                      tranqui, es gratis
+                      <img
+                        src={emojiWinkAsset.url}
+                        alt=""
+                        className="w-6 h-6 inline-block"
+                      />
+                    </p>
+                  ) : (
+                    <p className="text-2xl font-brand font-bold text-foreground">Bs. {price}</p>
+                  )}
                 </div>
                 <Button
                   type="button"
-                  onClick={generateQR}
+                  onClick={isFree ? confirmFreeJoin : generateQR}
                   className="w-full h-14 rounded-2xl bg-foreground text-background text-base font-bold uppercase tracking-wide active:opacity-90"
                 >
-                  Pagar por QR
+                  {isFree ? "Sí, quiero unirme" : "Pagar por QR"}
                 </Button>
               </div>
             </m.div>
@@ -365,9 +414,9 @@ export function PaymentQRModal({
               <div className="mx-auto w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
                 <AlertCircle className="w-10 h-10 text-destructive" />
               </div>
-              <h2 className="text-xl font-brand font-bold text-foreground">No se pudo generar el QR</h2>
+              <h2 className="text-xl font-brand font-bold text-foreground">{isFree ? "No se pudo confirmar tu lugar" : "No se pudo generar el QR"}</h2>
               <p className="text-muted-foreground text-sm">{errorMsg || "Por favor intenta de nuevo."}</p>
-              <Button onClick={generateQR} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
+              <Button onClick={isFree ? confirmFreeJoin : generateQR} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
                 <RefreshCw className="w-4 h-4 mr-2" />Reintentar
               </Button>
               <Button variant="ghost" className="w-full" onClick={handleClose}>Cancelar</Button>

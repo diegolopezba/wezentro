@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import {
   useIsOnGuestlist,
+  useJoinGuestlist,
   useJoinGuestlistWithPayment,
   useLeaveGuestlist,
   usePendingGuestlistRequests,
@@ -70,6 +71,7 @@ export const useEventDetailState = (
   const { data: ticketTiers = [] } = useTicketTiers(eventId);
 
   // Mutations
+  const joinGuestlist = useJoinGuestlist();
   const joinGuestlistWithPayment = useJoinGuestlistWithPayment();
   const leaveGuestlist = useLeaveGuestlist();
   const saveEvent = useSaveEvent();
@@ -234,7 +236,7 @@ export const useEventDetailState = (
   };
 
   const handleBuyTicket = async () => {
-    if (isGuest) { promptAuth({ action: "comprar entrada" }); return; }
+    if (isGuest) { promptAuth({ action: "unirte a este evento" }); return; }
     // Multi-tier path
     if (hasTiers) {
       if (allTiersSoldOut) { toast.error("Todas las entradas están agotadas"); return; }
@@ -246,16 +248,19 @@ export const useEventDetailState = (
       setShowTierPicker(true);
       return;
     }
-    // Legacy single-price path
-    // Legacy single-price path
+    // Legacy single-price path (paid) → QR checkout
     if (usesPaidCheckout) { setSelectedTier(null); setShowPaymentModal(true); return; }
-    // Free event → simple RSVP
+    // Free event → open the same checkout sheet, "Sí, quiero unirme" confirms
+    setSelectedTier(null);
+    setShowPaymentModal(true);
+  };
+
+  const handleConfirmFreeJoin = async () => {
     try {
-      await joinGuestlistWithPayment.mutateAsync(eventId!);
-      toast.success("¡Registro confirmado!");
-      setShowInviteFriendsSheet(true);
+      await joinGuestlist.mutateAsync(eventId!);
     } catch (error: any) {
-      toast.error(error.message || "Error al registrar");
+      toast.error(error.message || "Error al unirte");
+      throw error;
     }
   };
 
@@ -299,7 +304,8 @@ export const useEventDetailState = (
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
     // Mutation loading states
-    buyTicketPending: joinGuestlistWithPayment.isPending,
+    buyTicketPending: joinGuestlistWithPayment.isPending || joinGuestlist.isPending,
+    joinGuestlistPending: joinGuestlist.isPending,
     leaveGuestlistPending: leaveGuestlist.isPending,
     saveEventPending: saveEvent.isPending || unsaveEvent.isPending,
     likeEventPending: likeEvent.isPending || unlikeEvent.isPending,
@@ -329,6 +335,7 @@ export const useEventDetailState = (
     handleRepostToggle,
     handleSendToggle,
     handleBuyTicket,
+    handleConfirmFreeJoin,
     handlePaymentSubmitted,
     handleLeaveGuestlist,
   };
