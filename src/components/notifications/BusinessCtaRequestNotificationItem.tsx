@@ -55,9 +55,7 @@ export const BusinessCtaRequestNotificationItem = ({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: Math.min(index, 8) * 0.02 }}
-      className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer ${
-        notification.is_read ? "" : "bg-primary/5"
-      }`}
+      className={`flex flex-col gap-3 p-4 rounded-2xl cursor-pointer`}
       onClick={onClick}
     >
       <div className="flex items-center gap-3">
