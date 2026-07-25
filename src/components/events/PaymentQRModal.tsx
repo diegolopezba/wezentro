@@ -114,6 +114,19 @@ export function PaymentQRModal({
     }
   }, [eventId, ticketTierId, startPolling]);
 
+  const confirmFreeJoin = useCallback(async () => {
+    if (!isActiveRef.current || !onJoinFree) return;
+    setStep("loading");
+    setErrorMsg(null);
+    try {
+      await onJoinFree();
+      setStep("success");
+    } catch (err: any) {
+      setErrorMsg(err?.message || "No se pudo confirmar tu lugar");
+      setStep("error");
+    }
+  }, [onJoinFree]);
+
   useEffect(() => {
     if (open) {
       isActiveRef.current = true;
