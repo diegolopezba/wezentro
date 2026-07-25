@@ -76,7 +76,7 @@ export const MenuSheet = ({ open, onOpenChange, userId, businessName }: MenuShee
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl">
+      <SheetContent side="bottom" className="light-sheet h-[80vh] rounded-t-3xl">
         <SheetHeader className="pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-destructive flex items-center justify-center">

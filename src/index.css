@@ -361,3 +361,35 @@
 .food-marker-popup .mapboxgl-popup-tip {
   display: none;
 }
+
+/* Light-theme scope for payment, menu, and reservation bottomsheets.
+   Overrides semantic tokens inside the sheet only, so children (buttons,
+   inputs, cards, text, borders) automatically render in light mode without
+   individual class changes. Brand red (--accent-red / --destructive) is
+   preserved for CTAs. */
+.light-sheet {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 9%;
+  --primary: 0 0% 9%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 40%;
+  --accent: 0 0% 94%;
+  --accent-foreground: 0 0% 9%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 0 0% 60%;
+
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  color-scheme: light;
+}
+
+.light-sheet .bg-background { background-color: hsl(var(--background)) !important; }
+.light-sheet .text-foreground { color: hsl(var(--foreground)) !important; }

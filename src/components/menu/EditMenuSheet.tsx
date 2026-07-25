@@ -379,7 +379,7 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
+        <SheetContent side="bottom" className="light-sheet h-[85vh] rounded-t-3xl">
           <SheetHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -530,7 +530,7 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
 
       {/* Add/Edit Item Sheet */}
       <Sheet open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
-        <SheetContent side="bottom" className="h-auto max-h-[90vh] rounded-t-3xl flex flex-col">
+        <SheetContent side="bottom" className="light-sheet h-auto max-h-[90vh] rounded-t-3xl flex flex-col">
           <SheetHeader className="pb-2">
             <SheetTitle>
               {editingItem ? "Editar Item" : "Agregar Item"}
@@ -630,7 +630,7 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
 
       {/* Add/Edit Category Sheet */}
       <Sheet open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-        <SheetContent side="bottom" className="h-auto rounded-t-3xl flex flex-col">
+        <SheetContent side="bottom" className="light-sheet h-auto rounded-t-3xl flex flex-col">
           <SheetHeader className="pb-2">
             <SheetTitle>
               {editingCategory ? "Editar Categoría" : "Agregar Categoría"}

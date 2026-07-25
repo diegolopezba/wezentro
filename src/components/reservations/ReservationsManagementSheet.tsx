@@ -78,7 +78,7 @@ export const ReservationsManagementSheet = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[90vh]">
+      <DrawerContent className="light-sheet max-h-[90vh]">
         <DrawerHeader className="pb-2">
           <DrawerTitle className="text-lg font-brand">
             Reservas
