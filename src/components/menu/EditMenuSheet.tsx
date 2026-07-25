@@ -630,7 +630,7 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
 
       {/* Add/Edit Category Sheet */}
       <Sheet open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-        <SheetContent side="bottom" className="h-auto rounded-t-3xl flex flex-col">
+        <SheetContent side="bottom" className="light-sheet h-auto rounded-t-3xl flex flex-col">
           <SheetHeader className="pb-2">
             <SheetTitle>
               {editingCategory ? "Editar Categoría" : "Agregar Categoría"}
