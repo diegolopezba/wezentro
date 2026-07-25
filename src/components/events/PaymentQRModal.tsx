@@ -91,11 +91,42 @@ export function PaymentQRModal({
     }, 3000);
   }, [stopPolling, handleConfirmed]);
 
+  const goToLogin = useCallback(() => {
+    const returnTo = `${window.location.pathname}${window.location.search}`;
+    navigate(`/auth?returnTo=${encodeURIComponent(returnTo)}`);
+  }, [navigate]);
+
+  /** Make sure the access token is fresh before hitting an authed function. */
+  const ensureFreshSession = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const session = data.session;
+      if (!session) return false;
+      const expiresAt = (session.expires_at ?? 0) * 1000;
+      if (expiresAt - Date.now() < 60_000) {
+        const { data: refreshed, error } = await supabase.auth.refreshSession();
+        if (error || !refreshed.session) return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   const generateQR = useCallback(async () => {
     if (!isActiveRef.current) return;
     setStep("loading");
     setErrorMsg(null);
+    setNeedsLogin(false);
     try {
+      const fresh = await ensureFreshSession();
+      if (!fresh) {
+        setErrorMsg("Tu sesión expiró. Inicia sesión de nuevo para continuar.");
+        setNeedsLogin(true);
+        setStep("error");
+        return;
+      }
+
       const { getAttribution, clearAttribution } = await import("@/lib/promoterAttribution");
       const raw = eventId ? getAttribution(eventId) : null;
       // Only forward a well-formed uuid — a stale/garbled referral must never block a sale.
