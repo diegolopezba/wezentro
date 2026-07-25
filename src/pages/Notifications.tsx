@@ -360,16 +360,11 @@ const NotificationItem = ({
             </p>
           </div>
           
-          {!notification.is_read && <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={e => {
-          e.stopPropagation();
-          onRead();
-        }}>
-              <Check className="w-4 h-4" />
-            </Button>}
+          {!notification.is_read && (
+            <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-2" />
+          )}
         </div>
       </div>
-      
-      {!notification.is_read}
     </m.div>;
 };
 /**
