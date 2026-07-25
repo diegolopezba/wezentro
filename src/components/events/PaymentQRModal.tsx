@@ -12,6 +12,7 @@ import { ChevronLeft, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCirc
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import emojiWinkAsset from "@/assets/emoji-wink.png.asset.json";
 
 interface PaymentQRModalProps {
   open: boolean;
@@ -21,6 +22,10 @@ interface PaymentQRModalProps {
   price: number;
   ticketTierId?: string | null;
   ticketTierName?: string | null;
+  /** "paid" = Qhantuy QR checkout (default). "free" = confirm-to-join sheet. */
+  mode?: "paid" | "free";
+  /** Called when the user taps "Sí, quiero unirme" in free mode. Should throw on failure. */
+  onJoinFree?: () => Promise<void>;
   onPaymentConfirmed: () => Promise<void>;
 }
 
