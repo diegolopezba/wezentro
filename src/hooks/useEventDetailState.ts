@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useEvent, useEventGuestlist } from "@/hooks/useEvents";
 import {
   useIsOnGuestlist,
+  useJoinGuestlist,
   useJoinGuestlistWithPayment,
   useLeaveGuestlist,
   usePendingGuestlistRequests,
