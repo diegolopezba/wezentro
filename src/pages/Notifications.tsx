@@ -375,12 +375,14 @@ const NotificationItem = ({
  */
 const AutoReadRow = ({
   notification,
+  index,
   onVisible,
   measureRef,
   translateY,
   children,
 }: {
   notification: Notification;
+  index: number;
   onVisible: (id: string) => void;
   measureRef: (el: HTMLDivElement | null) => void;
   translateY: number;
@@ -417,7 +419,7 @@ const AutoReadRow = ({
         ref.current = el;
         measureRef(el);
       }}
-      data-index={notification.id}
+      data-index={index}
       style={{
         position: "absolute",
         top: 0,
