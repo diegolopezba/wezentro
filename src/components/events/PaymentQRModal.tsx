@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Sheet, SheetContent } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles } from "lucide-react";
+import { ChevronLeft, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
