@@ -93,8 +93,9 @@ export function PaymentQRModal({
 
   const goToLogin = useCallback(() => {
     const returnTo = `${window.location.pathname}${window.location.search}`;
-    navigate(`/auth?returnTo=${encodeURIComponent(returnTo)}`);
+    navigate("/auth", { state: { mode: "signin", returnTo } });
   }, [navigate]);
+
 
   /** Make sure the access token is fresh before hitting an authed function. */
   const ensureFreshSession = useCallback(async (): Promise<boolean> => {
