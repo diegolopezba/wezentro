@@ -530,7 +530,7 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
 
       {/* Add/Edit Item Sheet */}
       <Sheet open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
-        <SheetContent side="bottom" className="h-auto max-h-[90vh] rounded-t-3xl flex flex-col">
+        <SheetContent side="bottom" className="light-sheet h-auto max-h-[90vh] rounded-t-3xl flex flex-col">
           <SheetHeader className="pb-2">
             <SheetTitle>
               {editingItem ? "Editar Item" : "Agregar Item"}
