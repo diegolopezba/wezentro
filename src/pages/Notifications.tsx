@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react";
 import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -375,12 +375,14 @@ const NotificationItem = ({
  */
 const AutoReadRow = ({
   notification,
+  index,
   onVisible,
   measureRef,
   translateY,
   children,
 }: {
   notification: Notification;
+  index: number;
   onVisible: (id: string) => void;
   measureRef: (el: HTMLDivElement | null) => void;
   translateY: number;
@@ -417,7 +419,7 @@ const AutoReadRow = ({
         ref.current = el;
         measureRef(el);
       }}
-      data-index={notification.id}
+      data-index={index}
       style={{
         position: "absolute",
         top: 0,
@@ -554,11 +556,18 @@ const Notifications = () => {
   // behave exactly as they did before, but only visible rows mount their
   // per-item hooks.
   const listStartRef = useRef<HTMLDivElement | null>(null);
+  const [scrollMargin, setScrollMargin] = useState(0);
+  useLayoutEffect(() => {
+    const update = () => setScrollMargin(listStartRef.current?.offsetTop ?? 0);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
   const virtualizer = useWindowVirtualizer({
     count: items.length,
     estimateSize: () => 88,
-    overscan: 6,
-    scrollMargin: listStartRef.current?.offsetTop ?? 0,
+    overscan: 8,
+    scrollMargin,
   });
 
   return (
@@ -609,9 +618,10 @@ const Notifications = () => {
                 <AutoReadRow
                   key={notification.id}
                   notification={notification}
+                  index={v.index}
                   onVisible={handleVisible}
                   measureRef={virtualizer.measureElement}
-                  translateY={v.start - virtualizer.options.scrollMargin}
+                  translateY={v.start - scrollMargin}
                 >
                   {renderNotification(notification, v.index)}
                 </AutoReadRow>
