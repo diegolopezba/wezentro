@@ -378,25 +378,108 @@ const NotificationItem = ({
       {!notification.is_read}
     </m.div>;
 };
+/**
+ * Wraps a virtualized row and auto-marks the notification as read after
+ * it has been on screen for ~500ms (Instagram behavior). Batched marking
+ * happens at the page level via useMarkNotificationsReadBulk.
+ */
+const AutoReadRow = ({
+  notification,
+  onVisible,
+  measureRef,
+  translateY,
+  children,
+}: {
+  notification: Notification;
+  onVisible: (id: string) => void;
+  measureRef: (el: HTMLDivElement | null) => void;
+  translateY: number;
+  children: React.ReactNode;
+}) => {
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (notification.is_read) return;
+    const el = ref.current;
+    if (!el) return;
+    let timer: number | undefined;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          timer = window.setTimeout(() => onVisible(notification.id), 500);
+        } else if (timer) {
+          window.clearTimeout(timer);
+          timer = undefined;
+        }
+      },
+      { threshold: 0.6 }
+    );
+    io.observe(el);
+    return () => {
+      if (timer) window.clearTimeout(timer);
+      io.disconnect();
+    };
+  }, [notification.id, notification.is_read, onVisible]);
+
+  return (
+    <div
+      ref={(el) => {
+        ref.current = el;
+        measureRef(el);
+      }}
+      data-index={notification.id}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        transform: `translateY(${translateY}px)`,
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
 const Notifications = () => {
   const navigate = useNavigate();
-  const {
-    data: notifications,
-    isLoading
-  } = useNotifications();
+  const { data: notifications, isLoading } = useNotifications();
   const markRead = useMarkNotificationRead();
-  const markAllRead = useMarkAllNotificationsRead();
-  const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
+  const markBulk = useMarkNotificationsReadBulk();
+
   const handleBack = () => {
     navigate("/");
   };
+
+  // Auto-mark-on-view: collect ids and flush every 400ms so we don't
+  // fire a request per row while the user scrolls.
+  const pendingRef = useRef<Set<string>>(new Set());
+  const flushTimer = useRef<number | undefined>(undefined);
+  const scheduleFlush = useCallback(() => {
+    if (flushTimer.current) return;
+    flushTimer.current = window.setTimeout(() => {
+      flushTimer.current = undefined;
+      const ids = Array.from(pendingRef.current);
+      pendingRef.current.clear();
+      if (ids.length) markBulk.mutate(ids);
+    }, 400);
+  }, [markBulk]);
+  const handleVisible = useCallback(
+    (id: string) => {
+      pendingRef.current.add(id);
+      scheduleFlush();
+    },
+    [scheduleFlush]
+  );
+  useEffect(() => () => {
+    if (flushTimer.current) window.clearTimeout(flushTimer.current);
+  }, []);
 
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.is_read) {
       markRead.mutate(notification.id);
     }
 
-    // Navigate based on notification type and entity type
     if (notification.type === "guestlist_approved" && notification.entity_id) {
       navigate(`/going/${notification.entity_id}`);
     } else if (notification.type === "guestlist_request" && notification.entity_id) {
@@ -427,51 +510,69 @@ const Notifications = () => {
       navigate(`/event/${notification.entity_id}`);
     } else if (notification.type === "secret_location_changed" && notification.entity_id) {
       navigate(`/event/${notification.entity_id}`);
-    } else if ((notification.entity_type === "profile" || notification.entity_type === "user") && notification.entity_id) {
+    } else if (
+      (notification.entity_type === "profile" || notification.entity_type === "user") &&
+      notification.entity_id
+    ) {
       navigate(`/user/${notification.entity_id}`);
     } else if (notification.entity_type === "event" && notification.entity_id) {
       navigate(`/event/${notification.entity_id}`);
     }
   };
+
   const renderNotification = (notification: Notification, index: number) => {
     const commonProps = {
       notification,
       index,
       onRead: () => markRead.mutate(notification.id),
-      onClick: () => handleNotificationClick(notification)
+      onClick: () => handleNotificationClick(notification),
     };
     switch (notification.type) {
       case "follow":
-        return <FollowNotificationItem key={notification.id} {...commonProps} />;
+        return <FollowNotificationItem {...commonProps} />;
       case "like":
-        return <LikeNotificationItem key={notification.id} {...commonProps} />;
+        return <LikeNotificationItem {...commonProps} />;
       case "repost":
-        return <RepostNotificationItem key={notification.id} {...commonProps} />;
+        return <RepostNotificationItem {...commonProps} />;
       case "guestlist_request":
-        return <GuestlistRequestNotificationItem key={notification.id} {...commonProps} />;
+        return <GuestlistRequestNotificationItem {...commonProps} />;
       case "guestlist_approved":
       case "guestlist_rejected":
-        return <GuestlistStatusNotificationItem key={notification.id} {...commonProps} />;
+        return <GuestlistStatusNotificationItem {...commonProps} />;
       case "guestlist_invitation":
-        return <GuestlistInvitationNotificationItem key={notification.id} {...commonProps} />;
+        return <GuestlistInvitationNotificationItem {...commonProps} />;
       case "referral_signup":
-        return <ReferralNotificationItem key={notification.id} {...commonProps} />;
+        return <ReferralNotificationItem {...commonProps} />;
       case "new_reservation":
       case "reservation_cancelled":
       case "reservation_tagged":
-        return <ReservationNotificationItem key={notification.id} {...commonProps} />;
+        return <ReservationNotificationItem {...commonProps} />;
       case "post_tag":
-        return <PostTagNotificationItem key={notification.id} {...commonProps} />;
+        return <PostTagNotificationItem {...commonProps} />;
       case "business_cta_request":
-        return <BusinessCtaRequestNotificationItem key={notification.id} {...commonProps} />;
+        return <BusinessCtaRequestNotificationItem {...commonProps} />;
       case "comment":
-        return <CommentNotificationItem key={notification.id} {...commonProps} />;
+        return <CommentNotificationItem {...commonProps} />;
       default:
-        return <NotificationItem key={notification.id} {...commonProps} />;
+        return <NotificationItem {...commonProps} />;
     }
   };
-  return <AppLayout hideNav>
-      {/* Header */}
+
+  const items = notifications ?? [];
+
+  // Window-level virtualizer so the sticky header + native momentum scroll
+  // behave exactly as they did before, but only visible rows mount their
+  // per-item hooks.
+  const listStartRef = useRef<HTMLDivElement | null>(null);
+  const virtualizer = useWindowVirtualizer({
+    count: items.length,
+    estimateSize: () => 88,
+    overscan: 6,
+    scrollMargin: listStartRef.current?.offsetTop ?? 0,
+  });
+
+  return (
+    <AppLayout hideNav>
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
@@ -482,21 +583,20 @@ const Notifications = () => {
               Notificaciones
             </h1>
           </div>
-          
-          {unreadCount > 0}
         </div>
       </header>
 
-      <div className="space-y-0 py-0 px-0">
-        {isLoading ? <div className="flex justify-center py-12">
+      <div ref={listStartRef} className="px-0 py-0">
+        {isLoading ? (
+          <div className="flex justify-center py-12">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          </div> : !notifications || notifications.length === 0 ? <m.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} className="flex flex-col items-center justify-center py-16 text-center">
+          </div>
+        ) : items.length === 0 ? (
+          <m.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center py-16 text-center"
+          >
             <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-4">
               <Bell className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -504,8 +604,33 @@ const Notifications = () => {
             <p className="text-sm text-muted-foreground">
               Cuando alguien te siga o interactúe con tus eventos, lo verás aquí
             </p>
-          </m.div> : notifications.map((notification, index) => renderNotification(notification, index))}
+          </m.div>
+        ) : (
+          <div
+            style={{
+              height: virtualizer.getTotalSize(),
+              width: "100%",
+              position: "relative",
+            }}
+          >
+            {virtualizer.getVirtualItems().map((v) => {
+              const notification = items[v.index];
+              return (
+                <AutoReadRow
+                  key={notification.id}
+                  notification={notification}
+                  onVisible={handleVisible}
+                  measureRef={virtualizer.measureElement}
+                  translateY={v.start - virtualizer.options.scrollMargin}
+                >
+                  {renderNotification(notification, v.index)}
+                </AutoReadRow>
+              );
+            })}
+          </div>
+        )}
       </div>
-    </AppLayout>;
+    </AppLayout>
+  );
 };
 export default Notifications;
