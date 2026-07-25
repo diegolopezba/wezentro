@@ -1,39 +1,28 @@
-## Status: ~60% already built
+## What I found
 
-Verified: per-event ticketing data already exists and works — the page at `/business/event/{eventId}/promoters` shows tickets sold, revenue, promoter-attributed vs organic split, sales per ticket tier, and per-promoter stats, backed by three existing database functions (`get_event_promoter_totals`, `get_event_ticket_breakdown`, `get_event_promoter_stats`). It's just buried behind Dashboard → Contenido → expand an event card.
+Your account does have real sales in the database:
 
-Missing: any all-events/all-time sales view, and a single home for it.
+- Event **"Test 2"** has 2 confirmed payments of Bs. 10 each (Bs. 20 total) plus 1 pending.
+- Those are the only confirmed payments across your 31 events.
 
-## What to build
+The data isn't showing because of a filter in the account-level sales query (`get_creator_sales_by_event`). It only returns events that have a row in the ticket-tiers table with a price above zero. "Test 2" (and your other priced events like "Mar Adentro", "80s party", "rooftop session") store their price directly on the event, not as ticket tiers — only "The Groove Temple" has actual tiers, and that one has zero sales.
 
-### One entry point: "Ventas y promotores"
-A new row in the Business hub (`BusinessSettings`), alongside Menú and Reservas, opening a dedicated page at `/business/sales`. Everything ticketing-related lives there.
+So every event with real revenue gets filtered out, and the Resumen tab computes its totals (revenue, tickets, average ticket, attribution donut) from that same empty list → Bs. 0. The monthly chart uses a different query that reads payments directly, which is why parts of the page look inconsistent.
 
-### Inside: pill-based sections
-A horizontal pill row (same style as the map category pills) switching between:
+## The fix
 
-**1. Resumen (default) — all-time overall sales**
-- Hero number: total revenue all time, with tickets sold underneath.
-- Secondary cards: paid events count, average ticket price, average revenue per event.
-- Area chart of revenue over time (monthly buckets all-time, with a toggle for 30d).
-- Donut: promoter-attributed vs organic revenue across all events.
+Update the sales-by-event database function so an event is included when **any** of these is true:
 
-**2. Eventos**
-- List of the owner's paid events ranked by revenue, each row showing revenue, tickets sold vs capacity and a small progress bar.
-- Tapping a row opens the per-event detail (section 3) with that event selected.
+- it has a paid ticket tier, or
+- the event's own price is greater than zero, or
+- it has at least one confirmed payment (so historical sales never disappear).
 
-**3. Por evento**
-- Event picker at top, then the existing per-event content, reused: totals, ventas por tier with progress bars, plus new payment-status breakdown (pagado / pendiente / expirado) as a small stacked bar, and check-in rate vs tickets sold.
+Also make capacity fall back to the event's guest-list capacity when there are no ticket tiers, so the "sold / capacity" progress bar is meaningful for tier-less events.
 
-**4. Promotores**
-- Cross-event promoter leaderboard: tickets sold, revenue, clicks, conversion rate, with a horizontal bar chart of the top performers.
-- Per-event promoter creation and management stays where it is today, reachable from the event picker in section 3.
-
-### Cleanup
-- Remove the standalone "Promotores y ventas" button from the dashboard Contenido tab and point it to the new page instead (keeping `/business/event/:eventId/promoters` working as a deep link so existing promoter flows don't break).
+No UI changes are needed — the Resumen, Por evento and Promotores tabs will pick up the corrected rows automatically.
 
 ### Technical notes
-- Per-event sections need no new backend — the three existing functions cover them.
-- The all-time rollup needs one new security-definer function, `get_creator_sales_summary(_user_id)`, returning per-event and per-month revenue/ticket totals scoped to `auth.uid()` = event creator, so the client doesn't pull every payment row.
-- New: `src/pages/BusinessSales.tsx`, section components under `src/components/sales/`, hooks added to `src/hooks/usePromoters.ts`.
-- Charts use the existing `recharts` setup already in the dashboard. Currency stays `Bs.`, dark theme, pill buttons — consistent with the rest of the app.
+
+- Single migration replacing `public.get_creator_sales_by_event` (security definer, still scoped to `auth.uid()`); the `WHERE` clause gains the price/confirmed-payment alternatives and the capacity lateral falls back to `events.max_guestlist_capacity`.
+- `get_creator_sales_monthly` and `get_creator_promoter_leaderboard` are already correct and stay as-is.
+- After the migration I'll verify by running the function as your user and confirming "Test 2" reports 2 tickets / Bs. 20.
