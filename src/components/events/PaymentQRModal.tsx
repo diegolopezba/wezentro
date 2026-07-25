@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Sheet, SheetContent } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles, Download } from "lucide-react";
+import { ChevronLeft, ChevronDown, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +51,7 @@ export function PaymentQRModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [howOpen, setHowOpen] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isActiveRef = useRef(false);
 
