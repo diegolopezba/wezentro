@@ -618,9 +618,10 @@ const Notifications = () => {
                 <AutoReadRow
                   key={notification.id}
                   notification={notification}
+                  index={v.index}
                   onVisible={handleVisible}
                   measureRef={virtualizer.measureElement}
-                  translateY={v.start - virtualizer.options.scrollMargin}
+                  translateY={v.start - scrollMargin}
                 >
                   {renderNotification(notification, v.index)}
                 </AutoReadRow>
