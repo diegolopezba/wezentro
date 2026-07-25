@@ -115,15 +115,15 @@ Deno.serve(async (req) => {
         amount: effectivePrice,
         status: "pending",
         ticket_tier_id: tierId,
-        promoter_id: promoterId ?? null,
+        promoter_id: safePromoterId,
         provider: "qhantuy",
         beneficiary_code: benef.beneficiary_code,
       })
       .select("id")
       .single();
     if (sessErr || !session) {
-      console.error("session insert failed:", sessErr);
-      return json({ error: "Failed to create payment session" }, 500);
+      console.error("[qr] session insert failed:", sessErr?.message, sessErr);
+      return json({ error: "No se pudo iniciar el pago", code: "session_insert_failed" }, 500);
     }
 
     // Callback URL
