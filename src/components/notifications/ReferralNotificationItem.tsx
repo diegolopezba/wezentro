@@ -35,6 +35,7 @@ export const ReferralNotificationItem = ({ notification, index, onRead, onClick 
       return data;
     },
     enabled: !!extractedUsername,
+    staleTime: 5 * 60 * 1000,
   });
 
   return (

@@ -31,6 +31,7 @@ export const LikeNotificationItem = ({ notification, index, onRead, onClick }: P
       return data;
     },
     enabled: !!extractedUsername,
+    staleTime: 5 * 60 * 1000,
   });
 
   return (

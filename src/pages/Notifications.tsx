@@ -116,6 +116,7 @@ const GuestlistRequestNotificationItem = ({
       return data;
     },
     enabled: !!extractedUsername
+    staleTime: 5 * 60 * 1000,
   });
   return <m.div initial={{
     opacity: 0,

@@ -32,6 +32,7 @@ export const ReservationNotificationItem = ({ notification, index, onRead, onCli
       return data;
     },
     enabled: !!extractedUsername,
+    staleTime: 5 * 60 * 1000,
   });
 
   const IconComponent = isCancelled ? CalendarX : isTagged ? UserCheck : CalendarCheck;
