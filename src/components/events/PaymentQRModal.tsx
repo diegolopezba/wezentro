@@ -189,7 +189,7 @@ export function PaymentQRModal({
           {step === "details" && (
             <m.div key="details" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col h-[85dvh]">
               {/* Header */}
-              <div className="flex items-center justify-between px-5 pt-4 pb-2">
+              <div className="flex items-center gap-2 px-5 pt-4 pb-2">
                 <button
                   type="button"
                   onClick={handleClose}
@@ -198,14 +198,16 @@ export function PaymentQRModal({
                 >
                   <ChevronLeft className="w-5 h-5 text-foreground" />
                 </button>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Entrada
+                </span>
               </div>
 
               {/* Title */}
               <div className="px-5 pt-2 pb-4">
-                <h2 className="text-3xl font-brand font-extrabold tracking-tight text-foreground uppercase">
-                  Entrada
+                <h2 className="text-3xl font-brand font-bold text-foreground leading-tight line-clamp-2">
+                  {eventTitle}
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{eventTitle}</p>
               </div>
 
               {/* Ticket card */}
