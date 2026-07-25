@@ -32,6 +32,7 @@ export const ReservationNotificationItem = ({ notification, index, onRead, onCli
       return data;
     },
     enabled: !!extractedUsername,
+    staleTime: 5 * 60 * 1000,
   });
 
   const IconComponent = isCancelled ? CalendarX : isTagged ? UserCheck : CalendarCheck;
@@ -41,10 +42,8 @@ export const ReservationNotificationItem = ({ notification, index, onRead, onCli
     <m.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer ${
-        notification.is_read ? "" : "bg-primary/5"
-      }`}
+      transition={{ delay: Math.min(index, 8) * 0.02 }}
+      className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer`}
       onClick={onClick}
     >
       <div className="relative">
@@ -75,7 +74,7 @@ export const ReservationNotificationItem = ({ notification, index, onRead, onCli
       </div>
 
       {!notification.is_read && (
-        <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+        <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
       )}
     </m.div>
   );
