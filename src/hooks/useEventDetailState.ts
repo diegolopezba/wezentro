@@ -236,7 +236,7 @@ export const useEventDetailState = (
   };
 
   const handleBuyTicket = async () => {
-    if (isGuest) { promptAuth({ action: "comprar entrada" }); return; }
+    if (isGuest) { promptAuth({ action: "unirte a este evento" }); return; }
     // Multi-tier path
     if (hasTiers) {
       if (allTiersSoldOut) { toast.error("Todas las entradas están agotadas"); return; }
@@ -248,16 +248,19 @@ export const useEventDetailState = (
       setShowTierPicker(true);
       return;
     }
-    // Legacy single-price path
-    // Legacy single-price path
+    // Legacy single-price path (paid) → QR checkout
     if (usesPaidCheckout) { setSelectedTier(null); setShowPaymentModal(true); return; }
-    // Free event → simple RSVP
+    // Free event → open the same checkout sheet, "Sí, quiero unirme" confirms
+    setSelectedTier(null);
+    setShowPaymentModal(true);
+  };
+
+  const handleConfirmFreeJoin = async () => {
     try {
-      await joinGuestlistWithPayment.mutateAsync(eventId!);
-      toast.success("¡Registro confirmado!");
-      setShowInviteFriendsSheet(true);
+      await joinGuestlist.mutateAsync(eventId!);
     } catch (error: any) {
-      toast.error(error.message || "Error al registrar");
+      toast.error(error.message || "Error al unirte");
+      throw error;
     }
   };
 
