@@ -21,7 +21,7 @@ export function TicketTierPicker({ open, onOpenChange, tiers, sequential, onSele
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="rounded-t-3xl max-h-[80dvh] overflow-y-auto"
+        className="light-sheet rounded-t-3xl max-h-[80dvh] overflow-y-auto"
       >
         <SheetHeader className="mb-4">
           <SheetTitle>Elige tu entrada</SheetTitle>
