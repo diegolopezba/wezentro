@@ -509,12 +509,6 @@ const EventDetailModalInner = () => {
             />
           )}
 
-          <LeaveGuestlistDrawer
-            open={showLeaveConfirm}
-            onOpenChange={setShowLeaveConfirm}
-            onConfirm={handleLeaveGuestlist}
-            isPending={leaveGuestlistPending}
-          />
         </>
       )}
     </m.div>
