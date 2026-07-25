@@ -12,7 +12,7 @@ import { ChevronLeft, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCirc
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import emojiWinkAsset from "@/assets/emoji-wink.png.asset.json";
+
 
 interface PaymentQRModalProps {
   open: boolean;
@@ -274,13 +274,9 @@ export function PaymentQRModal({
                     <p className="text-2xl font-brand font-bold text-foreground">Total</p>
                   </div>
                   {isFree ? (
-                    <p className="text-xl font-brand font-bold text-foreground flex items-center gap-1.5">
+                    <p className="text-lg font-brand font-normal text-foreground flex items-center gap-1.5">
                       tranqui, es gratis
-                      <img
-                        src={emojiWinkAsset.url}
-                        alt=""
-                        className="w-6 h-6 inline-block"
-                      />
+                      <span className="text-lg leading-none" role="img" aria-label="guiño">😉</span>
                     </p>
                   ) : (
                     <p className="text-2xl font-brand font-bold text-foreground">Bs. {price}</p>
