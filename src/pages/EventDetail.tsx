@@ -82,7 +82,7 @@ const EventDetail = () => {
     showLeaveConfirm, setShowLeaveConfirm,
     ticketTiers, hasTiers, isSequential, selectedTier, openPaymentForTier,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
-    handleBuyTicket, handlePaymentSubmitted, handleLeaveGuestlist,
+    handleBuyTicket, handleConfirmFreeJoin, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, () => (window.history.length > 1 ? navigate(-1) : navigate("/")));
 
   const { data: commentCount = 0 } = useCommentCount(id);
