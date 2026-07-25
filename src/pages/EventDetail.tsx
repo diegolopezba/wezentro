@@ -520,12 +520,6 @@ const EventDetail = () => {
       />
     )}
 
-    <LeaveGuestlistDrawer
-      open={showLeaveConfirm}
-      onOpenChange={setShowLeaveConfirm}
-      onConfirm={handleLeaveGuestlist}
-      isPending={leaveGuestlistPending}
-    />
     </div>;
 };
 export default EventDetail;
