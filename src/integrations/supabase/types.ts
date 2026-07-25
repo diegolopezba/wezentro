@@ -3445,6 +3445,43 @@ export type Database = {
           event_id: string
         }[]
       }
+      get_creator_promoter_leaderboard: {
+        Args: never
+        Returns: {
+          clicks: number
+          event_id: string
+          event_title: string
+          gl_approved: number
+          name: string
+          promoter_id: string
+          revenue_bs: number
+          short_code: string
+          tickets_sold: number
+        }[]
+      }
+      get_creator_sales_by_event: {
+        Args: never
+        Returns: {
+          attributed_revenue: number
+          attributed_tickets: number
+          capacity: number
+          checked_in: number
+          event_id: string
+          image_url: string
+          revenue: number
+          start_datetime: string
+          tickets_sold: number
+          title: string
+        }[]
+      }
+      get_creator_sales_monthly: {
+        Args: never
+        Returns: {
+          bucket: string
+          revenue: number
+          tickets: number
+        }[]
+      }
       get_eligible_sponsored_posts: {
         Args: { _lat?: number; _lng?: number; _user_id?: string }
         Returns: {
@@ -3472,6 +3509,14 @@ export type Database = {
           event_id: string
           like_count: number
           viewer_liked: boolean
+        }[]
+      }
+      get_event_payment_status_breakdown: {
+        Args: { _event_id: string }
+        Returns: {
+          amount: number
+          count: number
+          status: string
         }[]
       }
       get_event_promoter_stats: {
