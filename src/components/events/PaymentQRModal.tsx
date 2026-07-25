@@ -266,6 +266,25 @@ export function PaymentQRModal({
                 <img src={qrImageUrl} alt="QR de pago" className="w-full h-full object-contain" />
               </div>
 
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleDownloadQR}
+                disabled={isDownloading}
+                className="w-full h-12 rounded-2xl border-border bg-background text-foreground font-semibold active:opacity-90"
+              >
+                {isDownloading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                Descargar QR
+              </Button>
+
+              {downloadError && (
+                <p className="text-xs text-destructive">{downloadError}</p>
+              )}
+
               <div className="flex items-center justify-center gap-1.5 text-xs text-primary">
                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 Esperando confirmación automática…
