@@ -73,6 +73,7 @@ const BusinessPaymentSettings = lazyWithRetry(() => import("./pages/BusinessPaym
 const BusinessReservations = lazyWithRetry(() => import("./pages/BusinessReservations"));
 const BusinessInfo = lazyWithRetry(() => import("./pages/BusinessInfo"));
 const BusinessMenu = lazyWithRetry(() => import("./pages/BusinessMenu"));
+const BusinessSales = lazyWithRetry(() => import("./pages/BusinessSales"));
 const JoinedEvents = lazyWithRetry(() => import("./pages/JoinedEvents"));
 const Help = lazyWithRetry(() => import("./pages/Help"));
 const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
