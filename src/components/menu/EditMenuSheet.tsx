@@ -379,7 +379,7 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
+        <SheetContent side="bottom" className="light-sheet h-[85vh] rounded-t-3xl">
           <SheetHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
