@@ -173,7 +173,7 @@ export function PaymentQRModal({
               </div>
 
               <Button variant="hero" className="w-full" onClick={generateQR}>
-                Ver QR de pago
+                Pagar por QR
               </Button>
               <button
                 type="button"
