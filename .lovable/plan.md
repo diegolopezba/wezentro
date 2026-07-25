@@ -1,31 +1,28 @@
 ## What I verified
 
-- The event you were testing (`prueba 4`) is priced Bs. 2, has no ticket tiers, and its creator does have an active payment beneficiary — so the checkout *should* work.
-- No payment session rows were created at the time of your test, and the QR function shows boot activity but no error logs. That means the function returned early (before creating the session) on one of its silent early-exit branches: unauthorized, event/tier not found, tier sold out, no price, or beneficiary missing.
-- The UI can't tell us which one: `supabase.functions.invoke` throws on any non-2xx and discards the JSON body, so every one of those causes shows the same generic "Edge Function returned a non-2xx status code".
-
-So the exact cause is not yet confirmed. Step 1 of the plan is to make the failure legible, then fix it.
+- The function now reports the exact branch: it returned `session_expired`, which only happens when `auth.getUser()` fails on the token that reached the function.
+- The client key in `.env` is a legacy anon JWT, so when the browser has no valid session `supabase.functions.invoke` still sends the anon JWT as `Authorization`. The function then calls `getUser()` on that token and fails — indistinguishable from a real logout.
+- The buy button is gated on `user` from `AuthContext` (`handleBuyTicket` → `promptAuth` when guest), so the sheet only opens when a session object exists in memory. Combined with the above, the likely cause is a **stale/expired access token that was never refreshed** in that browser (your screenshot is Safari opened from WhatsApp, not the installed PWA — a resumed/bfcached tab where `autoRefreshToken` hasn't fired), not a truly signed-out user.
 
 ## Plan
 
-1. **Surface the real error in the client** (`src/components/events/PaymentQRModal.tsx`)
-   - When `invoke` returns a `FunctionsHttpError`, read `error.context.json()` and show the server's Spanish message ("El organizador aún no configuró sus pagos", "Entradas agotadas", "Inicia sesión de nuevo", etc.) instead of the raw SDK string.
-   - Keep the retry button; add the technical detail in a small muted line for debugging.
+1. **Refresh the token right before checkout** (`src/components/events/PaymentQRModal.tsx`)
+   - In `generateQR` (and the free-join path), call `supabase.auth.getSession()`; if it's missing or `expires_at` is within ~60s, call `supabase.auth.refreshSession()` first.
+   - If the refresh succeeds, proceed with `functions.invoke` as normal — this removes the common failure entirely.
+   - If the refresh fails, skip the function call and go straight to a clear "sign in again" state.
 
-2. **Log every early return in the QR function** (`supabase/functions/generate-qhantuy-qr/index.ts`)
-   - Add a `console.error` with eventId / tierId / promoterId / reason on each non-2xx path so the logs pinpoint the branch.
-   - Return stable Spanish messages for each case.
+2. **Give the error step a real recovery action**
+   - Capture the server's `code` (not just the message) from `error.context.json()`.
+   - When the code is `session_expired` / `no_auth_header` (or the local refresh failed), replace "Reintentar" with **"Iniciar sesión"** which routes to `/auth` with a return path back to this event (preserving the `?p=` promoter param), plus a secondary "Cancelar".
+   - All other codes keep the current "Reintentar" behaviour and message.
 
-3. **Harden promoter attribution in the function**
-   - Validate `promoterId` against `event_promoters` for that event; if it's stale, unknown, or belongs to another event, drop it and continue the purchase instead of letting the session insert fail. A bad referral code must never block a sale.
-   - Same treatment for a stale attribution stored in localStorage on the client.
+3. **Keep the session alive when the app is resumed**
+   - On `visibilitychange` / `pageshow` (bfcache restore), trigger a `supabase.auth.getSession()` refresh check so a backgrounded Safari tab re-validates before any action, not just checkout.
 
-4. **Auth-token edge case**
-   - If `auth.getUser()` fails, respond 401 with a clear message and have the modal prompt re-login rather than showing a generic failure — this covers opening a promoter link in a browser where the session is stale (e.g. Safari vs. the installed PWA).
+4. **Re-test**
+   - Open the promoter link in Safari while signed in, background the tab for a while, return, and run Comprar → Pagar con QR. Expect a QR instead of the session error; if it still fails, the function logs will now name a different branch.
 
-5. **Re-test end to end**
-   - Deploy, open the promoter link, run "Comprar" → "Pagar con QR", and read the function logs to confirm either a successful QR or the precise branch that fails, then fix that specific cause.
+## Technical notes
 
-## Note on environments
-
-Your screenshot is on the published site (zentro.today). If the published app runs against the live backend while my inspection covered the test backend, a missing beneficiary/promoter record on live is a strong candidate for the failure. Step 2's logging will confirm this immediately after deploy.
+- No backend/schema changes; the edge function already returns stable codes (`session_expired`, `no_beneficiary`, `tier_sold_out`, …).
+- Files touched: `src/components/events/PaymentQRModal.tsx`, plus a small session-revalidation effect in `src/contexts/AuthContext.tsx`.
