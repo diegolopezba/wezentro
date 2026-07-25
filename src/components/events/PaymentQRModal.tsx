@@ -140,12 +140,17 @@ export function PaymentQRModal({
         // supabase-js throws FunctionsHttpError on any non-2xx and drops the body,
         // so read the real server message out of error.context.
         let serverMsg: string | null = (data as any)?.error ?? null;
+        let serverCode: string | null = (data as any)?.code ?? null;
         const ctx = (error as any)?.context;
         if (!serverMsg && ctx && typeof ctx.json === "function") {
           try {
             const body = await ctx.json();
             serverMsg = body?.error ?? null;
+            serverCode = body?.code ?? null;
           } catch { /* body not json */ }
+        }
+        if (serverCode === "session_expired" || serverCode === "no_auth_header") {
+          setNeedsLogin(true);
         }
         setErrorMsg(serverMsg || error?.message || "No se pudo generar el QR");
         setStep("error");
@@ -160,20 +165,29 @@ export function PaymentQRModal({
       setErrorMsg(err?.message || "No se pudo generar el QR");
       setStep("error");
     }
-  }, [eventId, ticketTierId, startPolling]);
+  }, [eventId, ticketTierId, startPolling, ensureFreshSession]);
 
   const confirmFreeJoin = useCallback(async () => {
     if (!isActiveRef.current || !onJoinFree) return;
     setStep("loading");
     setErrorMsg(null);
+    setNeedsLogin(false);
     try {
+      const fresh = await ensureFreshSession();
+      if (!fresh) {
+        setErrorMsg("Tu sesión expiró. Inicia sesión de nuevo para continuar.");
+        setNeedsLogin(true);
+        setStep("error");
+        return;
+      }
       await onJoinFree();
       setStep("success");
     } catch (err: any) {
       setErrorMsg(err?.message || "No se pudo confirmar tu lugar");
       setStep("error");
     }
-  }, [onJoinFree]);
+  }, [onJoinFree, ensureFreshSession]);
+
 
   useEffect(() => {
     if (open) {
