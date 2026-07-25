@@ -167,7 +167,7 @@ export function PaymentQRModal({
                   </div>
                   <div className="flex gap-3">
                     <span className="w-5 shrink-0 font-semibold text-primary">3.</span>
-                    <span>Vuelve — validamos en segundos y estás dentro.</span>
+                    <span>Vuelve a zentro, validamos en segundos y estás dentro.</span>
                   </div>
                 </div>
               </div>
