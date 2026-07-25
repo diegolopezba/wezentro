@@ -132,6 +132,29 @@ export function PaymentQRModal({
     navigate(eventId ? `/going/${eventId}` : "/settings/tickets");
   };
 
+  const handleDownloadQR = async () => {
+    if (!qrImageUrl) return;
+    setIsDownloading(true);
+    setDownloadError(null);
+    try {
+      const response = await fetch(qrImageUrl);
+      if (!response.ok) throw new Error("No se pudo descargar la imagen");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `zentro-qr-${eventId}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setDownloadError("No se pudo descargar. Intenta con una captura de pantalla.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const handleClose = () => onOpenChange(false);
 
   return (
