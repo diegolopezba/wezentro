@@ -115,7 +115,7 @@ const GuestlistRequestNotificationItem = ({
       } = await supabase.from("profiles").select("id, username, avatar_url").eq("username", extractedUsername).maybeSingle();
       return data;
     },
-    enabled: !!extractedUsername
+    enabled: !!extractedUsername,
     staleTime: 5 * 60 * 1000,
   });
   return <m.div initial={{
