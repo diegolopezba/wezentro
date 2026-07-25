@@ -129,7 +129,7 @@ export function PaymentQRModal({
 
   const handleViewTickets = () => {
     onOpenChange(false);
-    navigate("/tickets");
+    navigate(eventId ? `/going/${eventId}` : "/settings/tickets");
   };
 
   const handleClose = () => onOpenChange(false);
