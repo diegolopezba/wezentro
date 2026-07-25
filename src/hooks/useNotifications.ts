@@ -86,6 +86,31 @@ export const useMarkNotificationRead = () => {
   });
 };
 
+/**
+ * Bulk mark-as-read used by the notifications feed's auto-mark-on-view flow.
+ * Batches multiple ids into a single UPDATE to avoid a request storm while
+ * the user scrolls.
+ */
+export const useMarkNotificationsReadBulk = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      if (!ids.length) return;
+      const { error } = await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["notifications-unread-count", user?.id] });
+    },
+  });
+};
+
 export const useMarkAllNotificationsRead = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
