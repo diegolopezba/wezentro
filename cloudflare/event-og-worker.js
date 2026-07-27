@@ -55,6 +55,11 @@ const CRAWLER_RE = new RegExp(
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+function eventIdFromOgImagePath(pathname) {
+  const match = pathname.match(/^\/og-image\/([0-9a-f-]{36})\.jpg$/i);
+  return match ? match[1] : null;
+}
+
 function escapeAttr(value) {
   return value
     .replace(/&/g, "&amp;")
@@ -82,11 +87,33 @@ function toCrawlerSafeImageUrl(raw) {
   }
 }
 
-function hardenPreviewHtml(html, shareUrl) {
+function extractMetaContent(html, property) {
+  const re = new RegExp(
+    `<meta\\s+(?:property|name)="${property}"\\s+content="([^"]*)"\\s*\\/?>`,
+    "i",
+  );
+  return html.match(re)?.[1] || null;
+}
+
+function hardenPreviewHtml(html, shareUrl, eventId) {
   const escapedShareUrl = escapeAttr(shareUrl);
+  const escapedProxyImage = escapeAttr(`${SHARE_ORIGIN}/og-image/${eventId}.jpg`);
   let next = html.replace(
     /https:\/\/fipdpcitsjpqivljrktj\.supabase\.co\/storage\/v1\/object\/public\/event-images\/[^"'<>\s]+/g,
     (raw) => toCrawlerSafeImageUrl(raw),
+  );
+
+  next = next.replace(
+    /<meta property="og:image" content="[^"]*"\s*\/?>/,
+    `<meta property="og:image" content="${escapedProxyImage}" />`,
+  );
+  next = next.replace(
+    /<meta property="og:image:secure_url" content="[^"]*"\s*\/?>/,
+    `<meta property="og:image:secure_url" content="${escapedProxyImage}" />`,
+  );
+  next = next.replace(
+    /<meta name="twitter:image" content="[^"]*"\s*\/?>/,
+    `<meta name="twitter:image" content="${escapedProxyImage}" />`,
   );
 
   next = next.replace(
@@ -109,6 +136,37 @@ export default {
     const url = new URL(request.url);
     const ua = request.headers.get("user-agent") || "";
 
+    const ogImageEventId = eventIdFromOgImagePath(url.pathname);
+    if (ogImageEventId && UUID_RE.test(ogImageEventId)) {
+      try {
+        const upstream = await fetch(`${PREVIEW_ENDPOINT}/${ogImageEventId}?image=1`, {
+          headers: { "user-agent": "zentro-og-worker" },
+        });
+        if (!upstream.ok) return fetch(`${APP_ORIGIN}/og-image.png`);
+
+        const html = await upstream.text();
+        const rawImage = extractMetaContent(html, "og:image");
+        if (!rawImage) return fetch(`${APP_ORIGIN}/og-image.png`);
+
+        const imageUrl = toCrawlerSafeImageUrl(rawImage).replace(/&amp;/g, "&");
+        const image = await fetch(imageUrl, {
+          headers: { accept: "image/jpeg,image/png,image/*" },
+        });
+        if (!image.ok) return fetch(`${APP_ORIGIN}/og-image.png`);
+
+        return new Response(image.body, {
+          status: 200,
+          headers: {
+            "Content-Type": "image/jpeg",
+            "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
+            "X-Zentro-Preview": "worker-image",
+          },
+        });
+      } catch {
+        return fetch(`${APP_ORIGIN}/og-image.png`);
+      }
+    }
+
     const match = url.pathname.match(/^\/event\/([^/?#]+)/);
     const eventId = match ? match[1] : null;
 
@@ -130,7 +188,7 @@ export default {
 
       if (!upstream.ok) return redirectToApp();
 
-      const html = hardenPreviewHtml(await upstream.text(), shareUrl);
+      const html = hardenPreviewHtml(await upstream.text(), shareUrl, eventId);
       if (!html.includes("og:title")) return redirectToApp();
 
       return new Response(html, {

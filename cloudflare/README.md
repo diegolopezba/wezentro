@@ -10,6 +10,8 @@ WhatsApp / iMessage / Facebook / Telegram.
 - **Share URL shape:** `https://link.zentro.today/event/<event-id>`
   - crawler user agent -> per-event OG HTML (`text/html`, `X-Zentro-Preview: worker`)
   - real visitor -> `302` to `https://zentro.today/event/<event-id>` (query string preserved)
+- **Image proxy shape:** `https://link.zentro.today/og-image/<event-id>.jpg`
+  - returns the event image as crawler-safe `image/jpeg`
 - `og:url` points at the shared `link.zentro.today` URL so social platforms cache the correct preview object.
 - `<link rel=canonical>` points at `https://zentro.today/event/<id>` for the public app page.
 
@@ -45,6 +47,9 @@ curl -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
 # per-event OG tags
 curl -sS -A "facebookexternalhit/1.1" https://link.zentro.today/event/<id> | grep 'og:'
 
+# crawler-safe OG image
+curl -sSI https://link.zentro.today/og-image/<id>.jpg
+
 # humans get redirected to the canonical app URL
 curl -sSI -A "Mozilla/5.0" https://link.zentro.today/event/<id>
 ```
@@ -60,5 +65,5 @@ share it into a WhatsApp chat from a real phone.
   human redirect target.
 - If the edge function fails, the Worker still redirects to the app — a preview
   failure can never break the link.
-- Event images are transformed to a 1200×630 JPEG render URL for `og:image`,
-  because some social apps fail or cache badly with WebP previews.
+- Event images are transformed to 1200×630 JPEG and proxied from `link.zentro.today`,
+  because some social apps fail or cache badly with WebP previews or storage-hosted images.
