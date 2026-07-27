@@ -121,6 +121,18 @@ export const useEventDetailState = (
   // Badge should only sum payments when the event actually uses the payment flow.
   const pendingCount = pendingRequests.length + (usesPaidCheckout ? pendingPayments.length : 0);
   const isInviteOnlyGuestlist = !!(hasPaidTickets && event?.has_guestlist);
+  // Event has ended once its calendar day is in the past (time of day ignored).
+  const hasEnded = (() => {
+    const raw = event?.end_datetime || event?.start_datetime;
+    if (!raw) return false;
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return false;
+    const eventDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    return eventDay < today;
+  })();
+
   const formattedDate = event?.start_datetime
     ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")
     : null;
