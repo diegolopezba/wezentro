@@ -1,45 +1,51 @@
 # Per-event social link previews (Cloudflare Worker)
 
-Shared links like `https://zentro.today/event/<id>` should show the event's own
-name, date, location and photo on WhatsApp / iMessage / Facebook / Telegram.
+Shared links show the event's own name, date, location and photo on
+WhatsApp / iMessage / Facebook / Telegram.
 
-## Why a Worker is required
+## Live setup (already deployed)
 
-- The app is a client-rendered SPA — crawlers only ever read the static
+- **Worker:** `zentro-og` (source: `cloudflare/event-og-worker.js`)
+- **Custom Domain:** `link.zentro.today` -> `zentro-og`
+- **Share URL shape:** `https://link.zentro.today/event/<event-id>`
+  - crawler user agent -> per-event OG HTML (`text/html`, `X-Zentro-Preview: worker`)
+  - real visitor -> `302` to `https://zentro.today/event/<event-id>` (query string preserved)
+- `og:url` / `<link rel=canonical>` always point at `https://zentro.today/event/<id>`.
+
+## Why a Worker, and why on a subdomain
+
+- The app is a client-rendered SPA — crawlers only read the static
   `index.html` head, which has one sitewide preview.
 - The `event-preview` Supabase edge function *does* generate correct per-event
   OG HTML, but Supabase serves every function response on `*.supabase.co` as
   `content-type: text/plain` with `content-security-policy: default-src 'none';
-  sandbox`. Crawlers refuse to parse that as a document. This cannot be
-  overridden from function code.
+  sandbox`. Crawlers refuse to parse that. Not overridable from function code.
+- A Worker **route** on `zentro.today/event/*` does **not** work: `zentro.today`
+  is orange-to-orange (our Cloudflare zone proxies to Lovable, which is itself
+  behind Cloudflare). In O2O, route matching uses the SaaS provider's hostname,
+  so customer-zone routes on the customer hostname never fire. Verified: the
+  route was created successfully and never executed.
+  See <https://github.com/cloudflare/workers-sdk/issues/11270>.
+- A Worker **Custom Domain** (`link.zentro.today`) bypasses route matching and
+  always executes. That is what's deployed.
 
-So the OG HTML must be re-served as real `text/html` from our own domain.
-`cloudflare/event-og-worker.js` does exactly that.
+## Redeploying after editing the Worker
 
-## One-time setup
-
-1. **Cloudflare account** (free): add the site `zentro.today`. Cloudflare will
-   import the existing DNS records — confirm the root `A` record
-   `185.158.133.1` (Lovable) is present and **proxied (orange cloud)**.
-2. **GoDaddy**: change the nameservers for `zentro.today` from
-   `ns37/ns38.domaincontrol.com` to the two Cloudflare nameservers shown in the
-   Cloudflare onboarding. Propagation is usually under an hour.
-3. **Lovable**: Project Settings → Domains → reconnect `zentro.today` with
-   **Advanced → "Domain uses Cloudflare or a similar proxy"** checked, so
-   verification uses CNAME instead of the A record.
-4. **Worker**: Cloudflare → Workers & Pages → Create Worker → paste
-   `event-og-worker.js` → Deploy.
-5. **Route**: Worker → Settings → Triggers → Add route
-   `zentro.today/event/*` (zone `zentro.today`).
+```bash
+curl -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/zentro-og" \
+  -F 'metadata={"main_module":"worker.js","compatibility_date":"2025-01-01"};type=application/json' \
+  -F 'worker.js=@cloudflare/event-og-worker.js;filename=worker.js;type=application/javascript+module'
+```
 
 ## Verify
 
 ```bash
-# Should return real per-event og:title / og:image
-curl -sS -A "facebookexternalhit/1.1" https://zentro.today/event/<event-id> | grep 'og:'
+# per-event OG tags
+curl -sS -A "facebookexternalhit/1.1" https://link.zentro.today/event/<id> | grep 'og:'
 
-# Should return the normal SPA
-curl -sSI https://zentro.today/event/<event-id>
+# humans get redirected to the canonical app URL
+curl -sSI -A "Mozilla/5.0" https://link.zentro.today/event/<id>
 ```
 
 Then run the URL through <https://developers.facebook.com/tools/debug/> and
@@ -49,8 +55,9 @@ share it into a WhatsApp chat from a real phone.
 
 - WhatsApp/Facebook cache previews **per URL**. After changing an event image,
   re-scrape in the Sharing Debugger or the old preview persists.
-- Promoter codes (`?p=...`) are passed through to the preview endpoint and to
-  the human redirect target.
-- If the Worker or the edge function fails for any reason, the request falls
-  through to the normal app — previews degrade to the sitewide Zentro card,
-  the page never breaks.
+- Promoter codes (`?p=...`) pass through to the preview endpoint and to the
+  human redirect target.
+- If the edge function fails, the Worker still redirects to the app — a preview
+  failure can never break the link.
+- Event images are stored as WebP. If a platform ever refuses to render a WebP
+  preview, add a JPEG conversion step for `og:image`.
