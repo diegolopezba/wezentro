@@ -12,6 +12,7 @@
 
 const SITE = "https://zentro.today";
 const SHARE_HOST = "https://link.zentro.today";
+const SHARE_PREVIEW_VERSION = "og3";
 
 /** Canonical in-app URL. Use for in-app navigation and chat invites. */
 export function getEventUrl(eventId: string, promoterCode?: string): string {
@@ -22,5 +23,7 @@ export function getEventUrl(eventId: string, promoterCode?: string): string {
 /** URL to share outside the app — renders a per-event link preview. */
 export function getEventShareUrl(eventId: string, promoterCode?: string): string {
   const base = `${SHARE_HOST}/event/${eventId}`;
-  return promoterCode ? `${base}?p=${encodeURIComponent(promoterCode)}` : base;
+  const params = new URLSearchParams({ v: SHARE_PREVIEW_VERSION });
+  if (promoterCode) params.set("p", promoterCode);
+  return `${base}?${params.toString()}`;
 }
