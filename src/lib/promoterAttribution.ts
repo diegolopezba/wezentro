@@ -6,6 +6,8 @@
  * (ticket purchase, guestlist join) look up the attributed promoter id.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { getEventShareUrl } from "@/lib/shareLinks";
+
 
 const TTL_DAYS = 7;
 const KEY_PREFIX = "zentro_attr_";
