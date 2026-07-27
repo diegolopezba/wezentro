@@ -1,16 +1,26 @@
-// Canonical share URL for an event.
+// Share URL for an event.
 //
-// Per-event Open Graph tags are served by the Cloudflare Worker in
-// `cloudflare/event-og-worker.js`, which sits in front of zentro.today and
-// answers crawler requests to /event/* with real per-event OG HTML (sourced
-// from the `event-preview` edge function). Humans get the normal SPA.
+// External shares (WhatsApp, iMessage, copy link, native share sheet) use
+// `link.zentro.today`, a Cloudflare Worker Custom Domain that serves real
+// per-event Open Graph HTML to social crawlers and 302s real people to the
+// canonical `https://zentro.today/event/:id`.
 //
-// Until that Worker is deployed, links still resolve correctly and fall back
-// to the sitewide preview in index.html.
+// Why not zentro.today directly: that hostname is an orange-to-orange setup
+// (our Cloudflare zone proxies to Lovable, which is itself behind Cloudflare),
+// and in O2O, Worker routes on the customer zone never match — so a route on
+// `zentro.today/event/*` silently never fires. See cloudflare/README.md.
 
 const SITE = "https://zentro.today";
+const SHARE_HOST = "https://link.zentro.today";
 
-export function getEventShareUrl(eventId: string, promoterCode?: string): string {
+/** Canonical in-app URL. Use for in-app navigation and chat invites. */
+export function getEventUrl(eventId: string, promoterCode?: string): string {
   const base = `${SITE}/event/${eventId}`;
+  return promoterCode ? `${base}?p=${encodeURIComponent(promoterCode)}` : base;
+}
+
+/** URL to share outside the app — renders a per-event link preview. */
+export function getEventShareUrl(eventId: string, promoterCode?: string): string {
+  const base = `${SHARE_HOST}/event/${eventId}`;
   return promoterCode ? `${base}?p=${encodeURIComponent(promoterCode)}` : base;
 }
