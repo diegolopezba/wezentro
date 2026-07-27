@@ -450,9 +450,9 @@ const EventDetail = () => {
         <Button variant="hero" size="default" onClick={() => navigate(`/going/${id}`)}>
                   <Check className="w-4 h-4 mr-1" /> Ver entrada
                 </Button> :
-        isGuestlistFull ?
+        (allTiersSoldOut || isGuestlistFull) ?
         <Button variant="outline" size="default" disabled>
-                Agotado
+                Entradas agotadas
               </Button> :
         <Button variant="hero" size="default" onClick={handleBuyTicket} disabled={buyTicketPending}>
                 {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <>Free</>}

@@ -438,9 +438,9 @@ const EventDetailModalInner = () => {
                     </Button>
 
                   )
-                ) : isGuestlistFull ? (
+                ) : (allTiersSoldOut || isGuestlistFull) ? (
                   <Button variant="outline" size="default" disabled>
-                    Agotado
+                    Entradas agotadas
                   </Button>
                 ) : (
                   <Button variant="hero" size="default" onClick={handleBuyTicket} disabled={buyTicketPending}>
