@@ -79,7 +79,7 @@ const EventDetailModalInner = () => {
     approvedCount, maxGuestlistCapacity, isGuestlistFull, allTiersSoldOut,
     hasPaidTickets, usesPaidCheckout,
     isLocationSecret, canSeeLocation,
-    formattedDate, formattedPrice,
+    formattedDate, formattedPrice, hasEnded,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
     buyTicketPending, leaveGuestlistPending,
@@ -409,13 +409,28 @@ const EventDetailModalInner = () => {
           {/* Floating CTA Bar */}
           {!isPost && (
             <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
+              {hasEnded && !isOwner && !isOnGuestlist ? (
+                <div className="flex items-center justify-center px-4 py-4">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Este evento ha terminado
+                  </span>
+                </div>
+              ) : (
               <div className="flex items-center justify-between px-4 py-3">
                 <div className="flex flex-col">
+                  {hasEnded ? (
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Este evento ha terminado
+                    </span>
+                  ) : (
+                  <>
                   <span className="font-brand text-lg font-semibold text-foreground">{formattedPrice}</span>
                   {maxGuestlistCapacity != null && (
                     <span className="text-xs text-muted-foreground">
                       {approvedCount}/{maxGuestlistCapacity}
                     </span>
+                  )}
+                  </>
                   )}
                 </div>
                 {isOwner ? (
@@ -454,6 +469,7 @@ const EventDetailModalInner = () => {
                   </Button>
                 )}
               </div>
+              )}
             </div>
           )}
 

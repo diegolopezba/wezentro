@@ -62,7 +62,7 @@ const EventDetail = () => {
     hasPaidTickets, usesPaidCheckout, isInviteOnlyGuestlist,
     isLocationSecret, canSeeLocation,
     isAuthenticated,
-    formattedDate, formattedPrice,
+    formattedDate, formattedPrice, hasEnded,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
     buyTicketPending, leaveGuestlistPending,
@@ -422,8 +422,19 @@ const EventDetail = () => {
       {/* Floating CTA Bar — always show for events */}
       {!isPost &&
     <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
-          <div className="flex items-center justify-between px-4 py-3">
+          {hasEnded && !isOwner && !isOnGuestlist ?
+      <div className="flex items-center justify-center px-4 py-4">
+              <span className="text-sm font-medium text-muted-foreground">
+                Este evento ha terminado
+              </span>
+            </div> :
+      <div className="flex items-center justify-between px-4 py-3">
             <div className="flex flex-col">
+              {hasEnded ?
+          <span className="text-sm font-medium text-muted-foreground">
+                  Este evento ha terminado
+                </span> :
+          <>
               <span className="font-brand text-lg font-semibold text-foreground">
                 {formattedPrice}
               </span>
@@ -432,6 +443,8 @@ const EventDetail = () => {
                   {approvedCount}/{maxGuestlistCapacity}
                 </span>
               )}
+              </>
+          }
             </div>
             {isOwner ?
         <Button variant="hero" size="default" onClick={() => setShowManagement(true)}>
@@ -459,6 +472,7 @@ const EventDetail = () => {
               </Button>
         }
           </div>
+      }
         </div>
     }
 
