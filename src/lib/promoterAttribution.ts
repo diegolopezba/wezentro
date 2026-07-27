@@ -97,8 +97,7 @@ export const captureFromUrl = async (eventId: string, search: string): Promise<v
   }
 };
 
-/** Build a shareable URL for a promoter. */
-export const buildPromoterLink = (eventId: string, shortCode: string): string => {
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://zentro.today";
-  return `${origin}/event/${eventId}?p=${shortCode}`;
-};
+/** Build a shareable URL for a promoter (renders a per-event link preview). */
+export const buildPromoterLink = (eventId: string, shortCode: string): string =>
+  getEventShareUrl(eventId, shortCode);
+
