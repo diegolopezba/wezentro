@@ -1,24 +1,16 @@
-Update the floating action button on the event details page so that when an event is sold out, it reads "Entradas agotadas" and is disabled for users who have not purchased a ticket.
+## Goal
+On the event detail view, once an event's date has passed (calendar day, ignoring time), replace the price + action button in the floating CTA bar with the message "Este evento ha terminado".
 
-## Current behavior
-- `useEventDetailState` already computes `allTiersSoldOut` for tier-based events and `isGuestlistFull` for capacity-based events.
-- The floating CTA in `EventDetail.tsx` and `EventDetailModal.tsx` only checks `isGuestlistFull`, so tier-based sold-out events still show a clickable "Comprar" button.
-- Free events that hit their guestlist capacity show "Agotado" instead of the requested "Entradas agotadas".
+## Logic
+Add a derived `hasEnded` flag in `src/hooks/useEventDetailState.ts`:
+- Take `end_datetime` if present, otherwise `start_datetime`.
+- Compare the event's calendar day against today's calendar day (both normalized to local midnight).
+- `hasEnded = eventDay < today` — so an event still shows normally all day long on its own date, and only flips the day after.
+- Export `hasEnded` from the hook.
 
-## Changes
-1. `src/pages/EventDetail.tsx`
-   - Destructure `allTiersSoldOut` from `useEventDetailState`.
-   - In the floating CTA bar, combine `allTiersSoldOut || isGuestlistFull` into a single sold-out branch.
-   - Render a disabled `<Button variant="outline">` with the text "Entradas agotadas".
+## UI
+In both `src/pages/EventDetail.tsx` and `src/components/events/EventDetailModal.tsx`, in the floating CTA bar (`!isPost` branch):
+- When `hasEnded` is true, render a single centered muted line "Este evento ha terminado" — no price, no capacity counter, no buy/join button.
+- Exceptions kept: the owner still sees "Gestionar" (so they can manage the guestlist/attendees after the event), and users who already joined/paid still see "Ver entrada" so their ticket stays accessible. Everyone else sees only the ended message.
 
-2. `src/components/events/EventDetailModal.tsx`
-   - Apply the same destructuring and CTA logic change.
-
-## Out of scope
-- Price label already shows "Agotado" via `formattedPrice`; no change needed there.
-- Owners still see "Gestionar".
-- Users who already joined still see "Ver entrada".
-
-## Verification
-- Build the app and open a sold-out event (all tiers capacity reached) as a non-owner, non-attendee user.
-- Confirm the bottom-right button reads "Entradas agotadas" and is disabled.
+No backend or business-logic changes; purely presentation plus one derived boolean in the shared hook.
