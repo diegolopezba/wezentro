@@ -311,7 +311,7 @@ export const useEventDetailState = (
     hasPaidTickets, usesPaidCheckout, isInviteOnlyGuestlist,
     isLocationSecret, canSeeLocation,
     isGuest, isAuthenticated: !isGuest,
-    formattedDate, formattedPrice,
+    formattedDate, formattedPrice, hasEnded,
     // Media
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
