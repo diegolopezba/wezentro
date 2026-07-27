@@ -1,28 +1,33 @@
-## What I verified
+# Per-event social link previews
 
-- The function now reports the exact branch: it returned `session_expired`, which only happens when `auth.getUser()` fails on the token that reached the function.
-- The client key in `.env` is a legacy anon JWT, so when the browser has no valid session `supabase.functions.invoke` still sends the anon JWT as `Authorization`. The function then calls `getUser()` on that token and fails — indistinguishable from a real logout.
-- The buy button is gated on `user` from `AuthContext` (`handleBuyTicket` → `promptAuth` when guest), so the sheet only opens when a session object exists in memory. Combined with the above, the likely cause is a **stale/expired access token that was never refreshed** in that browser (your screenshot is Safari opened from WhatsApp, not the installed PWA — a resumed/bfcached tab where `autoRefreshToken` hasn't fired), not a truly signed-out user.
+Shared event links currently show one generic Zentro preview because the app is a client-rendered SPA and preview bots never run JavaScript. Fix: a public preview endpoint that returns a tiny HTML page with real per-event Open Graph tags and instantly redirects humans to the app.
 
-## Plan
+## Verified current state
+- `events` has `title`, `description`, `image_url`, `location_name`, `start_datetime`, `deleted_at`.
+- `event_media` has `media_url`, `media_type`, `display_order`, `event_id`.
+- The only storage bucket, `event-images`, is **public**, and stored URLs are permanent `/storage/v1/object/public/...` links — no signed-token expiry work needed.
+- External share URLs are built in `ShareEventModal.tsx` (line 85) and `EventActionsSheet.tsx` (line 62, copy link).
 
-1. **Refresh the token right before checkout** (`src/components/events/PaymentQRModal.tsx`)
-   - In `generateQR` (and the free-join path), call `supabase.auth.getSession()`; if it's missing or `expires_at` is within ~60s, call `supabase.auth.refreshSession()` first.
-   - If the refresh succeeds, proceed with `functions.invoke` as normal — this removes the common failure entirely.
-   - If the refresh fails, skip the function call and go straight to a clear "sign in again" state.
+## What gets built
 
-2. **Give the error step a real recovery action**
-   - Capture the server's `code` (not just the message) from `error.context.json()`.
-   - When the code is `session_expired` / `no_auth_header` (or the local refresh failed), replace "Reintentar" with **"Iniciar sesión"** which routes to `/auth` with a return path back to this event (preserving the `?p=` promoter param), plus a secondary "Cancelar".
-   - All other codes keep the current "Reintentar" behaviour and message.
+**1. New edge function `supabase/functions/event-preview/index.ts`**
+- Public, no auth required (`verify_jwt = false`), uses the service-role client for the lookup.
+- Path form: `/functions/v1/event-preview/:eventId`.
+- Loads the event (`deleted_at is null`), plus the first `event_media` row with `media_type = 'image'` ordered by `display_order` ascending; that image wins, otherwise `events.image_url`, otherwise the generic `https://zentro.today/og-image.png`.
+- Description: `location_name · formatted start_datetime` (Spanish date format), falling back to `description` when either is missing.
+- Unknown/deleted/invalid id → generic Zentro title + og-image, redirect target `https://zentro.today/`.
+- Returns HTML with `og:title`, `og:description`, `og:image` (absolute https), `og:url` → `https://zentro.today/event/:id`, `og:type`, `twitter:card=summary_large_image`, `twitter:title/description/image`.
+- Body carries `<meta http-equiv="refresh" content="0;url=...">`, `window.location.replace(...)`, and a visible "Continue to Zentro" link.
+- HTML-escapes all event text; short `Cache-Control` (e.g. `s-maxage=300`) so edits re-scrape reasonably fast.
 
-3. **Keep the session alive when the app is resumed**
-   - On `visibilitychange` / `pageshow` (bfcache restore), trigger a `supabase.auth.getSession()` refresh check so a backgrounded Safari tab re-validates before any action, not just checkout.
+**2. Share links**
+- `ShareEventModal.tsx`: native share / copy-link uses `https://fipdpcitsjpqivljrktj.supabase.co/functions/v1/event-preview/${eventId}`. In-app send-to-user (chat `event_invite`) is untouched.
+- `EventActionsSheet.tsx` copy-link switched to the same preview URL for consistency.
+- Promoter links (`promoterAttribution.ts`) stay as-is unless you want the `?p=` code carried through — say the word and I'll pass it through the preview URL to the redirect target.
 
-4. **Re-test**
-   - Open the promoter link in Safari while signed in, background the tab for a while, return, and run Comprar → Pagar con QR. Expect a QR instead of the session error; if it still fails, the function logs will now name a different branch.
+**3. Verify**
+- Fetch the endpoint with curl and confirm tags render with real data.
+- I'll give you the exact URL for a real event so you can run it through Facebook's Sharing Debugger and a WhatsApp share before shipping.
 
-## Technical notes
-
-- No backend/schema changes; the edge function already returns stable codes (`session_expired`, `no_beneficiary`, `tier_sold_out`, …).
-- Files touched: `src/components/events/PaymentQRModal.tsx`, plus a small session-revalidation effect in `src/contexts/AuthContext.tsx`.
+## Note
+WhatsApp/Facebook cache previews per URL, so a preview scraped before an event image change persists until re-scraped via the debugger.
