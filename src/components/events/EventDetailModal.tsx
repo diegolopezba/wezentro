@@ -76,7 +76,7 @@ const EventDetailModalInner = () => {
     attendeesGoing,
     isOnGuestlist, isPending,
     isOwner,
-    approvedCount, maxGuestlistCapacity, isGuestlistFull,
+    approvedCount, maxGuestlistCapacity, isGuestlistFull, allTiersSoldOut,
     hasPaidTickets, usesPaidCheckout,
     isLocationSecret, canSeeLocation,
     formattedDate, formattedPrice,
@@ -438,9 +438,9 @@ const EventDetailModalInner = () => {
                     </Button>
 
                   )
-                ) : isGuestlistFull ? (
+                ) : (allTiersSoldOut || isGuestlistFull) ? (
                   <Button variant="outline" size="default" disabled>
-                    Agotado
+                    Entradas agotadas
                   </Button>
                 ) : (
                   <Button variant="hero" size="default" onClick={handleBuyTicket} disabled={buyTicketPending}>
