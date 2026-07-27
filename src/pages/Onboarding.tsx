@@ -133,51 +133,66 @@ const Onboarding = () => {
     }
 
     setIsLoading(true);
-    const currentYear = new Date().getFullYear();
-    const updatePayload: any = {
-      username: formData.username.toLowerCase(),
-      full_name: formData.fullName || null,
-      gender: formData.gender,
-      birth_date: birthDate,
-    };
-    if (!opts?.skipGoal) {
-      updatePayload.experience_goal = formData.experienceGoal;
-      updatePayload.experience_goal_year = currentYear;
-    }
-    const { error } = await supabase
-      .from("profiles")
-      .update(updatePayload)
-      .eq("id", user.id);
-
-    if (error) {
-      console.error("Error updating profile:", error);
-      const code = (error as any)?.code;
-      if (code === "23505" || /duplicate|unique/i.test(error.message)) {
-        toast.error("Ese nombre de usuario ya está en uso. Elige otro.");
-        setUsernameError("Este usuario ya está en uso");
-        setStep(1);
-      } else {
-        toast.error("No pudimos guardar tu perfil. Intenta de nuevo.");
+    try {
+      const currentYear = new Date().getFullYear();
+      const updatePayload: any = {
+        username: formData.username.toLowerCase(),
+        full_name: formData.fullName || null,
+        gender: formData.gender,
+        birth_date: birthDate,
+      };
+      if (!opts?.skipGoal) {
+        updatePayload.experience_goal = formData.experienceGoal;
+        updatePayload.experience_goal_year = currentYear;
       }
+      const { data: updated, error } = await supabase
+        .from("profiles")
+        .update(updatePayload)
+        .eq("id", user.id)
+        .select("id");
+
+      if (error) {
+        console.error("[Onboarding] Error updating profile:", error);
+        const code = (error as any)?.code;
+        if (code === "23505" || /duplicate|unique/i.test(error.message)) {
+          toast.error("Ese nombre de usuario ya está en uso. Elige otro.");
+          setUsernameError("Este usuario ya está en uso");
+          setStep(1);
+        } else {
+          toast.error("No pudimos guardar tu perfil. Intenta de nuevo.");
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      if (!updated || updated.length === 0) {
+        console.error("[Onboarding] Profile update affected 0 rows for", user.id);
+        toast.error("No pudimos guardar tu perfil. Cierra sesión y vuelve a entrar.");
+        setIsLoading(false);
+        return;
+      }
+
+      const referralCode = localStorage.getItem("zentro_referral_code");
+      if (referralCode) {
+        try {
+          await processReferral.mutateAsync(referralCode);
+        } catch (e) {
+          console.warn("Referral processing failed:", e);
+        }
+        localStorage.removeItem("zentro_referral_code");
+      }
+
+      await refreshProfile();
+      toast.success("¡Bienvenido a Zentro!");
       setIsLoading(false);
-      return;
+      navigate("/");
+    } catch (e) {
+      console.error("[Onboarding] handleComplete threw:", e);
+      toast.error("No pudimos guardar tu perfil. Intenta de nuevo.");
+      setIsLoading(false);
     }
-
-    const referralCode = localStorage.getItem("zentro_referral_code");
-    if (referralCode) {
-      try {
-        await processReferral.mutateAsync(referralCode);
-      } catch (e) {
-        console.warn("Referral processing failed:", e);
-      }
-      localStorage.removeItem("zentro_referral_code");
-    }
-
-    await refreshProfile();
-    toast.success("¡Bienvenido a Zentro!");
-    setIsLoading(false);
-    navigate("/");
   };
+
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col overflow-y-auto">

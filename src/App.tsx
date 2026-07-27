@@ -199,7 +199,7 @@ const AppRoutes = () => {
       <Routes location={backgroundLocation || location}>
         <Route path="/auth" element={<LazyRoute><Auth /></LazyRoute>} />
         <Route path="/reset-password" element={<LazyRoute><ResetPassword /></LazyRoute>} />
-        <Route path="/onboarding" element={<ProtectedRoute><LazyRoute><Onboarding /></LazyRoute></ProtectedRoute>} />
+        <Route path="/onboarding" element={<ProtectedRoute><ErrorBoundary><LazyRoute><Onboarding /></LazyRoute></ErrorBoundary></ProtectedRoute>} />
 
         {/* Keep-alive enabled routes - 4 core navigation pages */}
         <Route element={<KeepAliveLayout />}>
