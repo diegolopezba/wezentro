@@ -1,12 +1,16 @@
-// Links shared OUTSIDE the app must point at the edge preview endpoint so
-// social crawlers (WhatsApp, iMessage, Facebook, Telegram) get real per-event
-// Open Graph tags. Real visitors are redirected to /event/:id immediately.
-// In-app sharing (chat invites) keeps using the direct route.
+// Canonical share URL for an event.
+//
+// Per-event Open Graph tags are served by the Cloudflare Worker in
+// `cloudflare/event-og-worker.js`, which sits in front of zentro.today and
+// answers crawler requests to /event/* with real per-event OG HTML (sourced
+// from the `event-preview` edge function). Humans get the normal SPA.
+//
+// Until that Worker is deployed, links still resolve correctly and fall back
+// to the sitewide preview in index.html.
 
-const PREVIEW_BASE =
-  "https://fipdpcitsjpqivljrktj.supabase.co/functions/v1/event-preview";
+const SITE = "https://zentro.today";
 
 export function getEventShareUrl(eventId: string, promoterCode?: string): string {
-  const base = `${PREVIEW_BASE}/${eventId}`;
+  const base = `${SITE}/event/${eventId}`;
   return promoterCode ? `${base}?p=${encodeURIComponent(promoterCode)}` : base;
 }
