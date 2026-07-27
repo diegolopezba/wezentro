@@ -58,7 +58,7 @@ const EventDetail = () => {
     attendeesGoing,
     isOnGuestlist, isPending, isApproved,
     isOwner,
-    approvedCount, maxGuestlistCapacity, isGuestlistFull,
+    approvedCount, maxGuestlistCapacity, isGuestlistFull, allTiersSoldOut,
     hasPaidTickets, usesPaidCheckout, isInviteOnlyGuestlist,
     isLocationSecret, canSeeLocation,
     isAuthenticated,
