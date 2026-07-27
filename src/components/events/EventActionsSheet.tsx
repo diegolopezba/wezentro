@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useDeleteEvent } from "@/hooks/useEventMutations";
 import { trackPreferenceSignal } from "@/lib/preferenceTracking";
+import { getEventShareUrl } from "@/lib/shareLinks";
 import { useAuth } from "@/contexts/AuthContext";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
