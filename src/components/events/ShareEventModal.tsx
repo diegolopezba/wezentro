@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Search, Send, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
+import { getEventShareUrl } from "@/lib/shareLinks";
 
 interface ShareEventModalProps {
   eventId: string;
@@ -82,7 +83,7 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
   };
 
   const handleNativeShare = async () => {
-    const shareUrl = `${window.location.origin}/event/${eventId}`;
+    const shareUrl = getEventShareUrl(eventId);
 
     if (navigator.share) {
       try {

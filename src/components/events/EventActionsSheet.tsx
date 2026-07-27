@@ -59,7 +59,7 @@ export function EventActionsSheet({
 
   const handleCopyLink = async () => {
     try {
-      const url = `${window.location.origin}/event/${event.id}`;
+      const url = getEventShareUrl(event.id);
       await navigator.clipboard.writeText(url);
       toast.success("Enlace copiado");
       close();
