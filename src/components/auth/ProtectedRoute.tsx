@@ -40,9 +40,10 @@ export const ProtectedRoute = ({ children, requireProfile = false }: ProtectedRo
   }
 
   // If profile is required and user doesn't have a proper username, redirect to onboarding
-  if (requireProfile && profile && profile.username.startsWith("user_")) {
+  if (requireProfile && profile && (profile.username ?? "").startsWith("user_")) {
     return <Navigate to="/onboarding" replace />;
   }
+
 
   // Force completion of required personal info (DOB + gender) for legacy accounts
   if (isProfileIncomplete && !onAllowedPath) {

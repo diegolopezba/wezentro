@@ -34,8 +34,16 @@ class ErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
+  handleCopy = () => {
+    const detail = `${this.state.error?.name ?? "Error"}: ${this.state.error?.message ?? "desconocido"}`;
+    try {
+      navigator.clipboard?.writeText(detail);
+    } catch {}
+  };
+
   render() {
     if (this.state.hasError) {
+      const detail = this.state.error?.message ?? "";
       return (
         <div className="min-h-[100dvh] flex items-center justify-center bg-background p-6">
           <div className="text-center space-y-4 max-w-sm">
@@ -47,16 +55,32 @@ class ErrorBoundary extends Component<Props, State> {
             <p className="text-sm text-muted-foreground">
               Ocurrió un error inesperado. Por favor, recarga la aplicación.
             </p>
-            <button
-              onClick={this.handleReload}
-              className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm"
-            >
-              Recargar
-            </button>
+            {detail && (
+              <p className="text-[11px] leading-snug text-muted-foreground/70 break-words px-2">
+                {detail.slice(0, 200)}
+              </p>
+            )}
+            <div className="flex flex-col items-center gap-2">
+              <button
+                onClick={this.handleReload}
+                className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm"
+              >
+                Recargar
+              </button>
+              {detail && (
+                <button
+                  onClick={this.handleCopy}
+                  className="text-xs text-muted-foreground underline py-1"
+                >
+                  Copiar detalles del error
+                </button>
+              )}
+            </div>
           </div>
         </div>
       );
     }
+
 
     return this.props.children;
   }
