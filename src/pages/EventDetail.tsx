@@ -62,7 +62,7 @@ const EventDetail = () => {
     hasPaidTickets, usesPaidCheckout, isInviteOnlyGuestlist,
     isLocationSecret, canSeeLocation,
     isAuthenticated,
-    formattedDate, formattedPrice,
+    formattedDate, formattedPrice, hasEnded,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
     buyTicketPending, leaveGuestlistPending,
