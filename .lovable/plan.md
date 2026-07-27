@@ -1,57 +1,49 @@
-## What the screenshots show
+## Plan to undo the Cloudflare link-preview setup
 
-Cloudflare has 4 DNS records for `zentro.today`:
+Yes — we can simplify this and go back to the old setup where `zentro.today` points directly to Lovable and shared event links use the normal app URL.
 
-| Name | Type | Content | Proxy |
-|---|---|---|---|
-| zentro.today | A | 185.158.133.1 | Proxied (orange) |
-| _domainconnect | CNAME | _domainconnect.gd.domaincontrol.com | Proxied |
-| _dmarc | TXT | DMARC policy | DNS only |
-| link.zentro.today | Worker | zentro-og | Proxied |
+### 1. Revert the app sharing code
+I will change event sharing back from:
 
-Two problems:
+```text
+https://link.zentro.today/event/<eventId>?v=og3
+```
 
-1. **The `_lovable` TXT verification record is missing.** Lovable asks for `_lovable` = `lovable_verify=72979cf418db29ca314ad73bbf2d074e98f873546af30e6b7c162b021eb4f19b`, and it is not in the Cloudflare list. Without it, Lovable marks the domain Offline.
-2. **The root A record is Proxied.** Live check of `https://zentro.today/` returns HTTP 421 (misdirected request) from Cloudflare, which is the classic symptom of proxying an orange-cloud A record straight at Lovable's edge without proxy mode configured on the Lovable side.
+to:
 
-`link.zentro.today` (the preview Worker) is fine and unaffected.
+```text
+https://zentro.today/event/<eventId>
+```
 
-## Fix
+This removes the Cloudflare Worker from the app flow completely.
 
-### Step 1 — Add the missing verification record in Cloudflare
-- DNS -> Add record
-- Type: `TXT`
-- Name: `_lovable`
-- Content: `lovable_verify=72979cf418db29ca314ad73bbf2d074e98f873546af30e6b7c162b021eb4f19b`
-- Proxy: not applicable for TXT
-- Save
+### 2. Remove Cloudflare-specific project files
+I will remove the Cloudflare Worker files/documentation from the repo so we do not accidentally keep or redeploy the social-preview setup later.
 
-### Step 2 — Turn the root A record to DNS only
-- Edit the `zentro.today` A record (`185.158.133.1`)
-- Click the orange cloud so it becomes grey: **DNS only**
-- Save
+### 3. Leave the backend preview function unused
+The `event-preview` backend function can be left alone or removed later. Once the app no longer points to `link.zentro.today`, it will not affect users or sharing. Keeping it for now is safer than touching backend deployment while the live domain is being repaired.
 
-This removes the double-proxy (orange-to-orange) layer that is producing the 421 and lets Lovable serve and issue SSL directly.
+### 4. Restore the domain outside the codebase
+This part must be done in your domain/DNS accounts, not in the app code.
 
-### Step 3 — Add www (optional but recommended)
-`www.zentro.today` currently does not exist at all.
-- In Lovable Domains, add `www.zentro.today` as a second domain
-- In Cloudflare add: `A` / `www` / `185.158.133.1` / DNS only
+To disconnect Cloudflare fully and go back to how it was before:
 
-### Step 4 — Recover in Lovable
-- Project Settings -> Project -> Domains
-- Press **Recover** on `zentro.today`
-- Wait for status to move from Verifying -> Setting up -> Active
+1. In your domain registrar, change nameservers back from Cloudflare to the registrar/default nameservers.
+2. In the registrar DNS, add the Lovable records:
+   - `A` record for `@` / root -> `185.158.133.1`
+   - TXT record `_lovable` -> the verification value shown in Lovable
+3. In Lovable Project Settings -> Domains, reconnect/recover `zentro.today`.
+4. Optional: add `www.zentro.today` separately in Lovable and DNS if you want the `www` version to work too.
 
-### Step 5 — Verify
-Once Lovable shows Active, confirm:
-- `https://zentro.today/` returns HTTP 200 instead of 421
-- `https://link.zentro.today/event/<id>` still returns preview HTML for crawlers and redirects real visitors to `zentro.today`
+If you prefer not to change nameservers again, the faster temporary recovery is: keep Cloudflare as DNS provider, but keep the root `zentro.today` record as **DNS only** / grey cloud and do not use `link.zentro.today`.
 
-## Meanwhile
+### 5. Verify after the DNS change
+After the app code is reverted and DNS is restored, I will verify:
 
-The app itself is healthy and reachable at `https://wezentro.lovable.app` — use that link while DNS is being repaired.
+- `https://zentro.today/` opens the app
+- `https://zentro.today/event/<eventId>` opens event pages
+- event sharing no longer uses `link.zentro.today`
+- the published fallback `https://wezentro.lovable.app` still works
 
-## Note on the Worker
-
-Keeping the root A record DNS-only does not break `link.zentro.today`. The Worker is bound as a Custom Domain on its own subdomain and runs independently of the root record's proxy setting.
+### Important note
+A full DNS nameserver revert can take time to propagate. The app should remain accessible through `https://wezentro.lovable.app` while `zentro.today` settles.
