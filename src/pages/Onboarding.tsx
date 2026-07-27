@@ -43,16 +43,32 @@ const Onboarding = () => {
     return "";
   };
 
-  const checkUsernameAvailability = async (username: string) => {
-    if (!user) return false;
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("username")
-      .eq("username", username.toLowerCase())
-      .neq("id", user.id)
-      .maybeSingle();
-    if (error) return false;
-    return !data;
+  /**
+   * Returns "available" | "taken" | "unknown".
+   * "unknown" means the lookup itself failed (offline / RLS / transient) —
+   * we must NOT treat that as "taken", the final profile update has a unique
+   * constraint that catches real duplicates anyway.
+   */
+  const checkUsernameAvailability = async (
+    username: string
+  ): Promise<"available" | "taken" | "unknown"> => {
+    if (!user) return "unknown";
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("username", username.toLowerCase())
+        .neq("id", user.id)
+        .maybeSingle();
+      if (error) {
+        console.error("[Onboarding] username availability check failed:", error);
+        return "unknown";
+      }
+      return data ? "taken" : "available";
+    } catch (e) {
+      console.error("[Onboarding] username availability check threw:", e);
+      return "unknown";
+    }
   };
 
   const handleUsernameChange = (value: string) => {
@@ -62,25 +78,32 @@ const Onboarding = () => {
   };
 
   const handleNextStep = async () => {
-    if (step === 1) {
-      const validationError = validateUsername(formData.username);
-      if (validationError) { setUsernameError(validationError); return; }
-      setIsLoading(true);
-      const isAvailable = await checkUsernameAvailability(formData.username);
+    try {
+      if (step === 1) {
+        const validationError = validateUsername(formData.username);
+        if (validationError) { setUsernameError(validationError); return; }
+        setIsLoading(true);
+        const availability = await checkUsernameAvailability(formData.username);
+        setIsLoading(false);
+        if (availability === "taken") { setUsernameError("Este usuario ya está en uso"); return; }
+        setStep(2);
+      } else if (step === 2) {
+        setStep(3);
+      } else if (step === 3) {
+        if (!formData.gender) { toast.error("Selecciona tu género."); return; }
+        const birthDate = buildBirthDate();
+        if (!birthDate) { toast.error("Por favor ingresa tu fecha de nacimiento completa."); return; }
+        const age = getAge(birthDate);
+        if (age < 13) { toast.error("Debes tener al menos 13 años para usar Zentro."); return; }
+        setStep(4);
+      }
+    } catch (e) {
+      console.error("[Onboarding] step transition failed:", e);
       setIsLoading(false);
-      if (!isAvailable) { setUsernameError("Este usuario ya está en uso"); return; }
-      setStep(2);
-    } else if (step === 2) {
-      setStep(3);
-    } else if (step === 3) {
-      if (!formData.gender) { toast.error("Selecciona tu género."); return; }
-      const birthDate = buildBirthDate();
-      if (!birthDate) { toast.error("Por favor ingresa tu fecha de nacimiento completa."); return; }
-      const age = getAge(birthDate);
-      if (age < 13) { toast.error("Debes tener al menos 13 años para usar Zentro."); return; }
-      setStep(4);
+      toast.error("No pudimos continuar. Intenta de nuevo.");
     }
   };
+
 
   const buildBirthDate = (): string | null => {
     const { birthDay, birthMonth, birthYear } = formData;
@@ -110,51 +133,66 @@ const Onboarding = () => {
     }
 
     setIsLoading(true);
-    const currentYear = new Date().getFullYear();
-    const updatePayload: any = {
-      username: formData.username.toLowerCase(),
-      full_name: formData.fullName || null,
-      gender: formData.gender,
-      birth_date: birthDate,
-    };
-    if (!opts?.skipGoal) {
-      updatePayload.experience_goal = formData.experienceGoal;
-      updatePayload.experience_goal_year = currentYear;
-    }
-    const { error } = await supabase
-      .from("profiles")
-      .update(updatePayload)
-      .eq("id", user.id);
-
-    if (error) {
-      console.error("Error updating profile:", error);
-      const code = (error as any)?.code;
-      if (code === "23505" || /duplicate|unique/i.test(error.message)) {
-        toast.error("Ese nombre de usuario ya está en uso. Elige otro.");
-        setUsernameError("Este usuario ya está en uso");
-        setStep(1);
-      } else {
-        toast.error("No pudimos guardar tu perfil. Intenta de nuevo.");
+    try {
+      const currentYear = new Date().getFullYear();
+      const updatePayload: any = {
+        username: formData.username.toLowerCase(),
+        full_name: formData.fullName || null,
+        gender: formData.gender,
+        birth_date: birthDate,
+      };
+      if (!opts?.skipGoal) {
+        updatePayload.experience_goal = formData.experienceGoal;
+        updatePayload.experience_goal_year = currentYear;
       }
+      const { data: updated, error } = await supabase
+        .from("profiles")
+        .update(updatePayload)
+        .eq("id", user.id)
+        .select("id");
+
+      if (error) {
+        console.error("[Onboarding] Error updating profile:", error);
+        const code = (error as any)?.code;
+        if (code === "23505" || /duplicate|unique/i.test(error.message)) {
+          toast.error("Ese nombre de usuario ya está en uso. Elige otro.");
+          setUsernameError("Este usuario ya está en uso");
+          setStep(1);
+        } else {
+          toast.error("No pudimos guardar tu perfil. Intenta de nuevo.");
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      if (!updated || updated.length === 0) {
+        console.error("[Onboarding] Profile update affected 0 rows for", user.id);
+        toast.error("No pudimos guardar tu perfil. Cierra sesión y vuelve a entrar.");
+        setIsLoading(false);
+        return;
+      }
+
+      const referralCode = localStorage.getItem("zentro_referral_code");
+      if (referralCode) {
+        try {
+          await processReferral.mutateAsync(referralCode);
+        } catch (e) {
+          console.warn("Referral processing failed:", e);
+        }
+        localStorage.removeItem("zentro_referral_code");
+      }
+
+      await refreshProfile();
+      toast.success("¡Bienvenido a Zentro!");
       setIsLoading(false);
-      return;
+      navigate("/");
+    } catch (e) {
+      console.error("[Onboarding] handleComplete threw:", e);
+      toast.error("No pudimos guardar tu perfil. Intenta de nuevo.");
+      setIsLoading(false);
     }
-
-    const referralCode = localStorage.getItem("zentro_referral_code");
-    if (referralCode) {
-      try {
-        await processReferral.mutateAsync(referralCode);
-      } catch (e) {
-        console.warn("Referral processing failed:", e);
-      }
-      localStorage.removeItem("zentro_referral_code");
-    }
-
-    await refreshProfile();
-    toast.success("¡Bienvenido a Zentro!");
-    setIsLoading(false);
-    navigate("/");
   };
+
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col overflow-y-auto">

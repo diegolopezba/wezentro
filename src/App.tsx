@@ -7,16 +7,25 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 // Wrapper for lazy imports that recovers from chunk-load failures
 const lazyWithRetry = (importFn: () => Promise<any>) =>
   lazy(() =>
-    importFn().catch(() => {
-      const hasReloaded = sessionStorage.getItem("chunk_reload");
-      if (!hasReloaded) {
-        sessionStorage.setItem("chunk_reload", "1");
-        window.location.reload();
-      }
-      sessionStorage.removeItem("chunk_reload");
-      return importFn();
-    })
+    importFn()
+      .then((mod) => {
+        sessionStorage.removeItem("chunk_reload");
+        return mod;
+      })
+      .catch((err) => {
+        // A stale cached index.html can point at chunks that no longer exist.
+        // Reload once to pick up the fresh build instead of crashing the app.
+        const hasReloaded = sessionStorage.getItem("chunk_reload");
+        if (!hasReloaded) {
+          sessionStorage.setItem("chunk_reload", "1");
+          window.location.reload();
+          // Keep Suspense pending while the page reloads.
+          return new Promise(() => {}) as Promise<any>;
+        }
+        throw err;
+      })
   );
+
 
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -199,7 +208,7 @@ const AppRoutes = () => {
       <Routes location={backgroundLocation || location}>
         <Route path="/auth" element={<LazyRoute><Auth /></LazyRoute>} />
         <Route path="/reset-password" element={<LazyRoute><ResetPassword /></LazyRoute>} />
-        <Route path="/onboarding" element={<ProtectedRoute><LazyRoute><Onboarding /></LazyRoute></ProtectedRoute>} />
+        <Route path="/onboarding" element={<ProtectedRoute><ErrorBoundary><LazyRoute><Onboarding /></LazyRoute></ErrorBoundary></ProtectedRoute>} />
 
         {/* Keep-alive enabled routes - 4 core navigation pages */}
         <Route element={<KeepAliveLayout />}>
