@@ -14,6 +14,7 @@ const corsHeaders = {
 };
 
 const SITE = "https://zentro.today";
+const SHARE_SITE = "https://link.zentro.today";
 const GENERIC_TITLE = "Zentro - El pinterest de la vida social";
 const GENERIC_DESC =
   "Descubre y únete a los mejores eventos de vida nocturna en tu ciudad.";
@@ -53,17 +54,52 @@ function truncate(text: string, max = 200): string {
   return clean.length > max ? `${clean.slice(0, max - 1)}…` : clean;
 }
 
+function normalizeCrawlerImage(input: string | null | undefined): string {
+  if (!input) return GENERIC_IMAGE;
+
+  try {
+    const image = new URL(input);
+    const path = image.pathname.toLowerCase();
+
+    if (/\.(mp4|mov|m4v|webm)$/.test(path)) {
+      return GENERIC_IMAGE;
+    }
+
+    if (image.pathname.includes("/storage/v1/object/public/")) {
+      image.pathname = image.pathname.replace(
+        "/storage/v1/object/public/",
+        "/storage/v1/render/image/public/",
+      );
+      image.searchParams.set("width", "1200");
+      image.searchParams.set("height", "630");
+      image.searchParams.set("resize", "cover");
+      image.searchParams.set("quality", "80");
+      return image.toString();
+    }
+
+    if (/\.(jpe?g|png|gif|webp)(\?.*)?$/.test(input)) {
+      return input;
+    }
+  } catch {
+    return GENERIC_IMAGE;
+  }
+
+  return GENERIC_IMAGE;
+}
+
 function renderPage(opts: {
   title: string;
   description: string;
   image: string;
-  url: string;
+  previewUrl: string;
+  canonicalUrl: string;
   redirectTo: string;
 }): string {
   const title = escapeHtml(opts.title);
   const description = escapeHtml(opts.description);
   const image = escapeHtml(opts.image);
-  const url = escapeHtml(opts.url);
+  const previewUrl = escapeHtml(opts.previewUrl);
+  const canonicalUrl = escapeHtml(opts.canonicalUrl);
   const redirect = escapeHtml(opts.redirectTo);
 
   return `<!doctype html>
@@ -79,7 +115,10 @@ function renderPage(opts: {
     <meta property="og:description" content="${description}" />
     <meta property="og:image" content="${image}" />
     <meta property="og:image:secure_url" content="${image}" />
-    <meta property="og:url" content="${url}" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="${previewUrl}" />
     <meta property="og:type" content="website" />
 
     <meta name="twitter:card" content="summary_large_image" />
@@ -87,7 +126,7 @@ function renderPage(opts: {
     <meta name="twitter:description" content="${description}" />
     <meta name="twitter:image" content="${image}" />
 
-    <link rel="canonical" href="${url}" />
+    <link rel="canonical" href="${canonicalUrl}" />
     <meta http-equiv="refresh" content="0;url=${redirect}" />
     <style>
       html,body{margin:0;height:100%;background:#0A0A0B;color:#FAFAFA;
@@ -120,7 +159,8 @@ Deno.serve(async (req) => {
         title: GENERIC_TITLE,
         description: GENERIC_DESC,
         image: GENERIC_IMAGE,
-        url: `${SITE}/`,
+        previewUrl: `${SHARE_SITE}/`,
+        canonicalUrl: `${SITE}/`,
         redirectTo: `${SITE}/`,
       }),
       { status: 200, headers: htmlHeaders },
@@ -137,10 +177,15 @@ Deno.serve(async (req) => {
       return fallback();
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.log("[event-preview] missing backend env");
+      return fallback();
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const { data: event, error } = await supabase
       .from("events")
@@ -163,8 +208,9 @@ Deno.serve(async (req) => {
       .order("display_order", { ascending: true })
       .limit(1);
 
-    const image =
-      media?.[0]?.media_url || event.image_url || GENERIC_IMAGE;
+    const image = normalizeCrawlerImage(
+      media?.[0]?.media_url || event.image_url || GENERIC_IMAGE,
+    );
 
     const when = formatDate(event.start_datetime);
     const place = event.location_name?.trim() || null;
@@ -174,6 +220,7 @@ Deno.serve(async (req) => {
       : truncate(event.description || GENERIC_DESC);
 
     const eventUrl = `${SITE}/event/${event.id}`;
+    const shareUrl = `${SHARE_SITE}/event/${event.id}`;
     // Preserve promoter attribution / any extra query params on the redirect.
     const extra = url.search ? url.search : "";
 
@@ -181,8 +228,9 @@ Deno.serve(async (req) => {
       renderPage({
         title: truncate(event.title || GENERIC_TITLE, 90),
         description,
-        image: image.startsWith("http") ? image : GENERIC_IMAGE,
-        url: eventUrl,
+        image,
+        previewUrl: `${shareUrl}${extra}`,
+        canonicalUrl: eventUrl,
         redirectTo: `${eventUrl}${extra}`,
       }),
       { status: 200, headers: htmlHeaders },

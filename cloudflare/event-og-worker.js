@@ -23,6 +23,7 @@
  */
 
 const APP_ORIGIN = "https://zentro.today";
+const SHARE_ORIGIN = "https://link.zentro.today";
 
 const PREVIEW_ENDPOINT =
   "https://fipdpcitsjpqivljrktj.supabase.co/functions/v1/event-preview";
@@ -54,6 +55,55 @@ const CRAWLER_RE = new RegExp(
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+function escapeAttr(value) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function toCrawlerSafeImageUrl(raw) {
+  try {
+    const image = new URL(raw.replace(/&amp;/g, "&"));
+    if (!image.pathname.includes("/storage/v1/object/public/")) return raw;
+
+    image.pathname = image.pathname.replace(
+      "/storage/v1/object/public/",
+      "/storage/v1/render/image/public/",
+    );
+    image.searchParams.set("width", "1200");
+    image.searchParams.set("height", "630");
+    image.searchParams.set("resize", "cover");
+    image.searchParams.set("quality", "80");
+    return escapeAttr(image.toString());
+  } catch {
+    return raw;
+  }
+}
+
+function hardenPreviewHtml(html, shareUrl) {
+  const escapedShareUrl = escapeAttr(shareUrl);
+  let next = html.replace(
+    /https:\/\/fipdpcitsjpqivljrktj\.supabase\.co\/storage\/v1\/object\/public\/event-images\/[^"'<>\s]+/g,
+    (raw) => toCrawlerSafeImageUrl(raw),
+  );
+
+  next = next.replace(
+    /<meta property="og:url" content="[^"]*"\s*\/?>/,
+    `<meta property="og:url" content="${escapedShareUrl}" />`,
+  );
+
+  if (!next.includes('property="og:image:type"')) {
+    next = next.replace(
+      /(<meta property="og:image:secure_url" content="[^"]*"\s*\/?>)/,
+      `$1\n    <meta property="og:image:type" content="image/jpeg" />\n    <meta property="og:image:width" content="1200" />\n    <meta property="og:image:height" content="630" />`,
+    );
+  }
+
+  return next;
+}
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
@@ -63,6 +113,7 @@ export default {
     const eventId = match ? match[1] : null;
 
     const appUrl = `${APP_ORIGIN}${url.pathname}${url.search}`;
+    const shareUrl = `${SHARE_ORIGIN}${url.pathname}${url.search}`;
     const redirectToApp = () =>
       Response.redirect(appUrl, 302);
 
@@ -79,7 +130,7 @@ export default {
 
       if (!upstream.ok) return redirectToApp();
 
-      const html = await upstream.text();
+      const html = hardenPreviewHtml(await upstream.text(), shareUrl);
       if (!html.includes("og:title")) return redirectToApp();
 
       return new Response(html, {

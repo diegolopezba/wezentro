@@ -10,7 +10,8 @@ WhatsApp / iMessage / Facebook / Telegram.
 - **Share URL shape:** `https://link.zentro.today/event/<event-id>`
   - crawler user agent -> per-event OG HTML (`text/html`, `X-Zentro-Preview: worker`)
   - real visitor -> `302` to `https://zentro.today/event/<event-id>` (query string preserved)
-- `og:url` / `<link rel=canonical>` always point at `https://zentro.today/event/<id>`.
+- `og:url` points at the shared `link.zentro.today` URL so social platforms cache the correct preview object.
+- `<link rel=canonical>` points at `https://zentro.today/event/<id>` for the public app page.
 
 ## Why a Worker, and why on a subdomain
 
@@ -59,5 +60,5 @@ share it into a WhatsApp chat from a real phone.
   human redirect target.
 - If the edge function fails, the Worker still redirects to the app — a preview
   failure can never break the link.
-- Event images are stored as WebP. If a platform ever refuses to render a WebP
-  preview, add a JPEG conversion step for `og:image`.
+- Event images are transformed to a 1200×630 JPEG render URL for `og:image`,
+  because some social apps fail or cache badly with WebP previews.
