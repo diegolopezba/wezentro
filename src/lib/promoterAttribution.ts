@@ -6,6 +6,8 @@
  * (ticket purchase, guestlist join) look up the attributed promoter id.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { getEventShareUrl } from "@/lib/shareLinks";
+
 
 const TTL_DAYS = 7;
 const KEY_PREFIX = "zentro_attr_";
@@ -97,8 +99,7 @@ export const captureFromUrl = async (eventId: string, search: string): Promise<v
   }
 };
 
-/** Build a shareable URL for a promoter. */
-export const buildPromoterLink = (eventId: string, shortCode: string): string => {
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://zentro.today";
-  return `${origin}/event/${eventId}?p=${shortCode}`;
-};
+/** Build a shareable URL for a promoter (renders a per-event link preview). */
+export const buildPromoterLink = (eventId: string, shortCode: string): string =>
+  getEventShareUrl(eventId, shortCode);
+
