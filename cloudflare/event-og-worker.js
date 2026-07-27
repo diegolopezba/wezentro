@@ -1,21 +1,28 @@
 /**
  * Zentro — per-event social link previews.
  *
- * Why this exists: zentro.today is a client-rendered SPA, so crawlers only ever
- * see the static index.html head. The Supabase edge function `event-preview`
- * generates correct per-event OG HTML, but Supabase forcibly serves it as
- * `text/plain` with a sandbox CSP, so crawlers ignore it.
+ * Why this exists
+ * ---------------
+ * zentro.today is a client-rendered SPA, so crawlers only ever see the static
+ * index.html head. The Supabase edge function `event-preview` generates the
+ * correct per-event OG HTML, but Supabase forcibly serves it as `text/plain`
+ * with a sandbox CSP, so crawlers ignore it.
  *
- * This Worker sits on the route `zentro.today/event/*`:
- *   - crawler user agents  -> fetch the edge function, re-serve its body as real text/html
- *   - everyone else        -> pass straight through to the Lovable origin
+ * Why it runs on link.zentro.today and not zentro.today
+ * -----------------------------------------------------
+ * zentro.today is an "orange-to-orange" (O2O) setup: our Cloudflare zone
+ * proxies to Lovable, which is itself behind Cloudflare. In O2O, Worker routes
+ * on the customer zone never match the customer hostname, so a route on
+ * `zentro.today/event/*` silently never fires. `link.zentro.today` is a Worker
+ * Custom Domain, which bypasses route matching entirely and always executes.
  *
- * Deploy:
- *   1. Cloudflare dashboard -> Workers & Pages -> Create Worker -> paste this file.
- *   2. Worker -> Settings -> Triggers -> Add route: `zentro.today/event/*`
- *      (zone: zentro.today, must be on Cloudflare nameservers).
- *   3. Verify: https://developers.facebook.com/tools/debug/ on an event URL.
+ * Behaviour on link.zentro.today/event/:id
+ *   - crawler user agents -> per-event OG HTML (real text/html)
+ *   - everyone else       -> 302 to https://zentro.today/event/:id
+ * Anything else -> 302 to the equivalent path on zentro.today.
  */
+
+const APP_ORIGIN = "https://zentro.today";
 
 const PREVIEW_ENDPOINT =
   "https://fipdpcitsjpqivljrktj.supabase.co/functions/v1/event-preview";
@@ -55,9 +62,13 @@ export default {
     const match = url.pathname.match(/^\/event\/([^/?#]+)/);
     const eventId = match ? match[1] : null;
 
-    // Not an event page, or a real human: let the app serve it.
+    const appUrl = `${APP_ORIGIN}${url.pathname}${url.search}`;
+    const redirectToApp = () =>
+      Response.redirect(appUrl, 302);
+
+    // Not an event page, or a real human: send them to the app.
     if (!eventId || !UUID_RE.test(eventId) || !CRAWLER_RE.test(ua)) {
-      return fetch(request);
+      return redirectToApp();
     }
 
     try {
@@ -66,10 +77,10 @@ export default {
         { headers: { "user-agent": "zentro-og-worker" } },
       );
 
-      if (!upstream.ok) return fetch(request);
+      if (!upstream.ok) return redirectToApp();
 
       const html = await upstream.text();
-      if (!html.includes("og:title")) return fetch(request);
+      if (!html.includes("og:title")) return redirectToApp();
 
       return new Response(html, {
         status: 200,
@@ -80,8 +91,8 @@ export default {
         },
       });
     } catch (err) {
-      // Never break the page for a preview failure.
-      return fetch(request);
+      // Never break the link for a preview failure.
+      return redirectToApp();
     }
   },
 };
