@@ -1,28 +1,57 @@
-## Plan
+## What the screenshots show
 
-1. **Confirm the app is sharing the correct URL everywhere**
-   - Re-check the share modal, three-dot share action, promoter links, WhatsApp links, copy-link flow, and native share flow.
-   - Ensure external shares use `https://link.zentro.today/event/:id` and in-app navigation keeps `https://zentro.today/event/:id`.
+Cloudflare has 4 DNS records for `zentro.today`:
 
-2. **Fix the “server can’t be found” click behavior**
-   - Verify the Worker Custom Domain is still active and that human clicks return a valid redirect to the canonical app URL.
-   - If the app is still sharing an old/unpublished URL, update the share helper and all call sites so the published frontend uses the live Worker domain.
+| Name | Type | Content | Proxy |
+|---|---|---|---|
+| zentro.today | A | 185.158.133.1 | Proxied (orange) |
+| _domainconnect | CNAME | _domainconnect.gd.domaincontrol.com | Proxied |
+| _dmarc | TXT | DMARC policy | DNS only |
+| link.zentro.today | Worker | zentro-og | Proxied |
 
-3. **Fix missing images in social previews**
-   - Current crawler HTML returns the event title and image, but the image URL is a `.webp` file from backend storage.
-   - Some platforms, especially WhatsApp/iMessage/Facebook preview cache paths, can fail or cache badly with WebP previews.
-   - Update the preview pipeline to prefer a crawler-safe JPEG/PNG OG image when available, and fall back cleanly to the generic Zentro image if not.
+Two problems:
 
-4. **Add stronger verification**
-   - Test crawler requests against a real event URL and confirm:
-     - HTTP 200
-     - `content-type: text/html`
-     - real `og:title`
-     - real `og:image`
-     - `X-Zentro-Preview: worker`
-   - Test human clicks and confirm they redirect to `https://zentro.today/event/:id`.
-   - Test with query params like `?p=promoter-code` to preserve promoter attribution.
+1. **The `_lovable` TXT verification record is missing.** Lovable asks for `_lovable` = `lovable_verify=72979cf418db29ca314ad73bbf2d074e98f873546af30e6b7c162b021eb4f19b`, and it is not in the Cloudflare list. Without it, Lovable marks the domain Offline.
+2. **The root A record is Proxied.** Live check of `https://zentro.today/` returns HTTP 421 (misdirected request) from Cloudflare, which is the classic symptom of proxying an orange-cloud A record straight at Lovable's edge without proxy mode configured on the Lovable side.
 
-5. **Tell you exactly what must be refreshed manually**
-   - Social apps cache previews per URL. After the fix, old WhatsApp/Facebook previews may not change until re-scraped or shared as a fresh URL.
-   - I’ll give you the exact URL to paste into Facebook Sharing Debugger and what result to expect.
+`link.zentro.today` (the preview Worker) is fine and unaffected.
+
+## Fix
+
+### Step 1 — Add the missing verification record in Cloudflare
+- DNS -> Add record
+- Type: `TXT`
+- Name: `_lovable`
+- Content: `lovable_verify=72979cf418db29ca314ad73bbf2d074e98f873546af30e6b7c162b021eb4f19b`
+- Proxy: not applicable for TXT
+- Save
+
+### Step 2 — Turn the root A record to DNS only
+- Edit the `zentro.today` A record (`185.158.133.1`)
+- Click the orange cloud so it becomes grey: **DNS only**
+- Save
+
+This removes the double-proxy (orange-to-orange) layer that is producing the 421 and lets Lovable serve and issue SSL directly.
+
+### Step 3 — Add www (optional but recommended)
+`www.zentro.today` currently does not exist at all.
+- In Lovable Domains, add `www.zentro.today` as a second domain
+- In Cloudflare add: `A` / `www` / `185.158.133.1` / DNS only
+
+### Step 4 — Recover in Lovable
+- Project Settings -> Project -> Domains
+- Press **Recover** on `zentro.today`
+- Wait for status to move from Verifying -> Setting up -> Active
+
+### Step 5 — Verify
+Once Lovable shows Active, confirm:
+- `https://zentro.today/` returns HTTP 200 instead of 421
+- `https://link.zentro.today/event/<id>` still returns preview HTML for crawlers and redirects real visitors to `zentro.today`
+
+## Meanwhile
+
+The app itself is healthy and reachable at `https://wezentro.lovable.app` — use that link while DNS is being repaired.
+
+## Note on the Worker
+
+Keeping the root A record DNS-only does not break `link.zentro.today`. The Worker is bound as a Custom Domain on its own subdomain and runs independently of the root record's proxy setting.
