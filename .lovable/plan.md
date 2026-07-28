@@ -1,36 +1,20 @@
-## Ticket page redesign (`/going/:id`)
+## Ticket page polish (`/going/:id`)
 
-Rebuild the ticket screen as three stacked cards on a dark background, DICE-inspired but in Zentro's style (pill buttons, brand red accent, Poppins, Bs. currency conventions).
+### 1. Floating top buttons over the cover
+Move the back / info row out of the normal flow and absolutely position it over the image card (`absolute top-0 inset-x-0 z-20` inside a relative wrapper around Box 1), keeping `safe-top` padding. This pulls the whole card stack up so the cover photo starts higher on screen.
 
-```text
-┌───────────────────────────────┐
-│ [<]                      [i]  │  floating over image
-│ ┌───────────────────────────┐ │
-│ │   BOX 1 — event image     │ │  first media item (image, or
-│ │   (4:5 rounded card)      │ │  poster frame if it's a video)
-│ └───────────────────────────┘ │
-│ ┌───────────────────────────┐ │
-│ │ BOX 2 — details (light)   │ │
-│ │  Event title (small caps) │ │
-│ │  BUYER NAME (big, bold)   │ │
-│ │  Fri, 24 Oct · 22:00      │ │
-│ └───────────────────────────┘ │
-│ ┌───────────────────────────┐ │
-│ │ BOX 3 — [ Mostrar QR ]    │ │
-│ └───────────────────────────┘ │
-└───────────────────────────────┘
-```
+### 2. Branding graphic on the cover
+Upload `mascot_zentro_on_disco_ball_white_graphic_transparent_background.png` to CDN storage as a project asset and place it bottom-center of the image box:
+- Small pill/rounded container, `bg-black/40 backdrop-blur-md`, absolutely positioned `bottom-4 left-1/2 -translate-x-1/2`.
+- Mascot rendered small (~28-32px tall) inside it. The uploaded file has black line art, so it will be rendered white (CSS `invert` filter or a white-rendered copy) so it reads on the dark blurred chip.
 
-### Box behaviour
-1. **Image box** — first item of the event's media (carousel-aware); falls back to `image_url`, then placeholder. Rounded-3xl, object-cover.
-2. **Details box** — light cream/white card: event title on top (small, muted), buyer's full name in the middle in large bold text, date/time below. Location stays as a subtle line under the date so nothing is lost.
-3. **Action box** — full-width pill "Mostrar QR" button opening the existing QR dialog. If the ticket isn't viewable yet (payment pending / request pending), this box shows the existing explanatory message instead of the button.
+### 3. Third box → light theme with mascot + button
+Rebuild Box 3 to match Box 2's cream card (`#F7F3E7`, dark text, rounded-3xl):
+- Left: small mascot logo mark.
+- Right: "Mostrar QR" pill button (dark on cream), flush right, opening the existing QR dialog.
+- Layout `flex items-center justify-between` with comfortable padding.
+- Pending / unavailable states keep their explanatory text inside the same light card (centered, dark muted text) instead of the button.
 
-### Top corners
-- Left: back button (guarded `navigate(-1)` → `/` fallback), circular translucent.
-- Right: new `i` info button opening a **light-theme bottom sheet** with a friendly message encouraging the user to post the ticket to their Instagram story so friends can join — short warm copy in Spanish, a small illustration/emoji, and a "Entendido" pill button to dismiss.
-
-### Technical notes
-- Edit `src/pages/YouAreGoing.tsx`; extract the new info sheet as `src/components/events/TicketInfoSheet.tsx` using the same `light-sheet` pattern as the payment/menu/reservation sheets.
-- Data fetching, `canViewQr` logic, and the QR dialog stay exactly as-is — this is presentation only.
-- Layout scrolls safely on small screens with `safe-top`/`safe-bottom` padding.
+### Notes
+- Presentation only; data fetching, `canViewQr` logic and the QR dialog stay unchanged.
+- Files touched: `src/pages/YouAreGoing.tsx`, plus a new `src/assets/*.asset.json` pointer for the mascot.
