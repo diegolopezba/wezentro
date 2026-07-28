@@ -71,7 +71,10 @@ export const ExperienceGoalSheet = ({ open, onOpenChange }: Props) => {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-3xl max-h-[90vh] overflow-y-auto">
+      <SheetContent
+        side="bottom"
+        className="light-sheet rounded-t-3xl border-border bg-background max-h-[90vh] overflow-y-auto"
+      >
         <SheetHeader className="text-left mb-4">
           <SheetTitle className="font-brand">
             {editMode ? `Tu meta para ${currentYear}` : `Meta ${currentYear}`}
