@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { QRCodeSVG } from "qrcode.react";
 import { TicketInfoSheet } from "@/components/events/TicketInfoSheet";
+import mascotAsset from "@/assets/muñeco-negro.png.asset.json";
 
 
 const YouAreGoing = () => {
@@ -151,9 +152,16 @@ const YouAreGoing = () => {
         <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-4 py-3">
           {canViewQr ? (
             <div className="flex items-center justify-between gap-3">
-              <span className="font-brand text-2xl font-bold tracking-tight text-[#141414]">
-                zentro
-              </span>
+              <div className="flex items-center gap-2">
+                <img
+                  src={mascotAsset.url}
+                  alt="Zentro"
+                  className="h-10 w-auto object-contain"
+                />
+                <span className="font-brand text-2xl font-bold tracking-tight text-[#141414]">
+                  zentro
+                </span>
+              </div>
               <Button
                 onClick={() => setShowQR(true)}
                 size="lg"
