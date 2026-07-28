@@ -2,7 +2,7 @@ import { m } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { MapPin, Calendar, X } from "lucide-react";
+import { ChevronLeft, Info, MapPin, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { QRCodeSVG } from "qrcode.react";
+import { TicketInfoSheet } from "@/components/events/TicketInfoSheet";
 
 const YouAreGoing = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const YouAreGoing = () => {
   const { user, profile } = useAuth();
   const { data: event, isLoading } = useEvent(id);
   const [showQR, setShowQR] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   // Get the user's guestlist entry with payment status
   const { data: guestlistEntry } = useQuery({
@@ -54,105 +56,128 @@ const YouAreGoing = () => {
   const eventDate = new Date(event.start_datetime);
   const formattedDate = format(eventDate, "EEEE, d 'de' MMMM", { locale: es });
   const formattedTime = format(eventDate, "HH:mm", { locale: es });
-  const isVideo = isVideoUrl(event.image_url);
+
+  // First media item of the carousel, falling back to the legacy cover image.
+  const media = ((event as any).media as
+    | { media_url: string; media_type?: string | null; display_order?: number | null }[]
+    | undefined) ?? [];
+  const firstMedia = [...media].sort(
+    (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+  )[0];
+  const mediaUrl = firstMedia?.media_url || event.image_url || "/placeholder.svg";
+  const isVideo = firstMedia
+    ? firstMedia.media_type === "video" || isVideoUrl(firstMedia.media_url)
+    : isVideoUrl(event.image_url);
+
+  const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate("/"));
 
   return (
     <m.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50" >
-      {/* Background Media */}
-      <div className="absolute inset-0">
-        {isVideo ? (
-          <video
-            src={event.image_url || ""}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover" />
-        ) : (
-          <img
-            src={event.image_url || "/placeholder.svg"}
-            alt={event.title || "Event"}
-            className="w-full h-full object-cover" />
-        )}
+      className="fixed inset-0 z-50 bg-background overflow-y-auto overscroll-contain"
+    >
+      {/* Top actions */}
+      <div className="sticky top-0 z-20 safe-top">
+        <div className="flex items-center justify-between px-4 py-3">
+          <Button
+            onClick={goBack}
+            variant="ghost"
+            size="icon"
+            aria-label="Volver"
+            className="rounded-full bg-secondary/70 backdrop-blur-sm text-foreground active:scale-95"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
+          <Button
+            onClick={() => setShowInfo(true)}
+            variant="ghost"
+            size="icon"
+            aria-label="Información"
+            className="rounded-full bg-secondary/70 backdrop-blur-sm text-foreground active:scale-95"
+          >
+            <Info className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
 
-      {/* Close button - Top right */}
-      <div className="absolute top-0 right-0 safe-top z-20 p-4">
-        <Button
-          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
-          variant="ghost" size="icon" className="bg-black/30 backdrop-blur-sm text-white rounded-full" >
-          <X className="w-5 h-5" />
-        </Button>
-      </div>
+      <m.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="px-4 pb-8 safe-bottom space-y-3 max-w-md mx-auto"
+      >
+        {/* Box 1 — event media */}
+        <div className="rounded-3xl overflow-hidden bg-secondary aspect-[4/5]">
+          {isVideo ? (
+            <video
+              src={mediaUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <img
+              src={mediaUrl}
+              alt={event.title || "Evento"}
+              className="w-full h-full object-cover"
+            />
+          )}
+        </div>
 
-      {/* Gradient overlay - same as EventDetail */}
-      <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-background via-background/20 to-transparent pointer-events-none" />
-
-      {/* Content - Bottom Aligned */}
-      <div className="relative h-full flex flex-col justify-end">
-        <m.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-          className="px-6 pt-8 pb-6 safe-bottom" >
-
-          <div className="text-center space-y-4">
-            {/* Guestlist badge - shown when user was invited (no ticket purchase) */}
-            {guestlistEntry && (guestlistEntry.payment_status === "none" || !guestlistEntry.payment_status) && (
-              <p className="text-sm text-white/70 font-medium tracking-wide uppercase">En Guestlist</p>
-            )}
-            {/* User's Name - Big and prominent */}
-            <h1 className="text-4xl font-bold font-brand text-white">
-              {profile?.full_name || profile?.username || "Invitado"}
-            </h1>
-
-            {/* Location */}
-            {event.location_name && (
-              <div className="flex items-center justify-center gap-2 text-white/80">
-                <MapPin className="w-4 h-4" />
-                <p className="text-sm">{event.location_name}</p>
-              </div>
-            )}
-
-            {/* Date/Time */}
-            <div className="flex items-center justify-center gap-2 text-white/80">
-              <Calendar className="w-4 h-4" />
-              <p className="text-sm">
-                {formattedDate} · {formattedTime}
-              </p>
+        {/* Box 2 — ticket details */}
+        <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-6 py-7 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#141414]/60 truncate">
+            {event.title}
+          </p>
+          <h1 className="mt-3 font-brand text-3xl font-bold leading-tight">
+            {profile?.full_name || profile?.username || "Invitado"}
+          </h1>
+          <p className="mt-3 text-sm font-medium text-[#141414]/70 capitalize">
+            {formattedDate} · {formattedTime}
+          </p>
+          {event.location_name && (
+            <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs text-[#141414]/50">
+              <MapPin className="w-3.5 h-3.5" />
+              <span className="truncate">{event.location_name}</span>
             </div>
+          )}
+        </div>
 
-            {/* Buttons */}
-            <div className="flex flex-col gap-3 pt-4">
-              {canViewQr ? (
-                <Button
-                  onClick={() => setShowQR(true)}
-                  className="w-full bg-white text-black rounded-xl font-semibold" size="lg" >
-                  Mostrar QR de Entrada
-                </Button>
-              ) : guestlistEntry?.payment_status === "pending" ? (
-                <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm">
-                  <p className="text-white/80 text-sm text-center">
-                    Tu pago está siendo verificado por el organizador. 
-                    Una vez confirmado, podrás ver tu QR de entrada.
-                  </p>
-                </div>
-              ) : guestlistEntry?.status === "pending" ? (
-                <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm">
-                  <p className="text-white/80 text-sm text-center">
-                    Tu solicitud está pendiente de aprobación. 
-                    Una vez aprobada, podrás ver tu QR de entrada.
-                  </p>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </m.div>
-      </div>
+        {/* Box 3 — action */}
+        <div className="rounded-3xl bg-secondary/40 p-4">
+          {canViewQr ? (
+            <Button
+              onClick={() => setShowQR(true)}
+              size="lg"
+              className="w-full rounded-full font-semibold gap-2 active:scale-95"
+            >
+              <QrCode className="w-5 h-5" />
+              Mostrar QR
+            </Button>
+          ) : guestlistEntry?.payment_status === "pending" ? (
+            <p className="text-sm text-muted-foreground text-center px-2 py-1">
+              Tu pago está siendo verificado por el organizador. Una vez
+              confirmado, podrás ver tu QR de entrada.
+            </p>
+          ) : guestlistEntry?.status === "pending" ? (
+            <p className="text-sm text-muted-foreground text-center px-2 py-1">
+              Tu solicitud está pendiente de aprobación. Una vez aprobada,
+              podrás ver tu QR de entrada.
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center px-2 py-1">
+              Tu entrada aún no está disponible.
+            </p>
+          )}
+        </div>
+      </m.div>
+
+      {/* Info bottom sheet */}
+      <TicketInfoSheet open={showInfo} onOpenChange={setShowInfo} />
 
       {/* QR Code Dialog */}
       <Dialog open={showQR} onOpenChange={setShowQR}>
