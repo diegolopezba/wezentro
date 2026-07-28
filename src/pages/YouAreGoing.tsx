@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { QRCodeSVG } from "qrcode.react";
 import { TicketInfoSheet } from "@/components/events/TicketInfoSheet";
-import mascotAsset from "@/assets/mascot-disco.png.asset.json";
+
 
 const YouAreGoing = () => {
   const navigate = useNavigate();
@@ -126,14 +126,6 @@ const YouAreGoing = () => {
             </Button>
           </div>
 
-          {/* Branding chip */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-2xl bg-black/40 backdrop-blur-md px-3 py-1.5">
-            <img
-              src={mascotAsset.url}
-              alt="Zentro"
-              className="h-8 w-auto invert brightness-0 contrast-200 opacity-95"
-            />
-          </div>
         </div>
 
         {/* Box 2 — ticket details */}
@@ -159,15 +151,13 @@ const YouAreGoing = () => {
         <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-4 py-3">
           {canViewQr ? (
             <div className="flex items-center justify-between gap-3">
-              <img
-                src={mascotAsset.url}
-                alt="Zentro"
-                className="h-10 w-auto shrink-0"
-              />
+              <span className="font-brand text-2xl font-bold tracking-tight text-[#141414]">
+                zentro
+              </span>
               <Button
                 onClick={() => setShowQR(true)}
                 size="lg"
-                className="rounded-full font-semibold gap-2 bg-[#141414] text-white active:scale-95"
+                className="rounded-full font-semibold gap-2 bg-accent-red text-white active:scale-95"
               >
                 <QrCode className="w-5 h-5" />
                 Mostrar QR
