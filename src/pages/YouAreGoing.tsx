@@ -78,38 +78,14 @@ const YouAreGoing = () => {
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-background overflow-y-auto overscroll-contain"
     >
-      {/* Top actions */}
-      <div className="sticky top-0 z-20 safe-top">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Button
-            onClick={goBack}
-            variant="ghost"
-            size="icon"
-            aria-label="Volver"
-            className="rounded-full bg-secondary/70 backdrop-blur-sm text-foreground active:scale-95"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <Button
-            onClick={() => setShowInfo(true)}
-            variant="ghost"
-            size="icon"
-            aria-label="Información"
-            className="rounded-full bg-secondary/70 backdrop-blur-sm text-foreground active:scale-95"
-          >
-            <Info className="w-5 h-5" />
-          </Button>
-        </div>
-      </div>
-
       <m.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="px-4 pb-8 safe-bottom space-y-3 max-w-md mx-auto"
+        className="px-4 pb-8 pt-3 safe-top safe-bottom space-y-3 max-w-md mx-auto"
       >
-        {/* Box 1 — event media */}
-        <div className="rounded-3xl overflow-hidden bg-secondary aspect-[4/5]">
+        {/* Box 1 — event media with floating actions */}
+        <div className="relative rounded-3xl overflow-hidden bg-secondary aspect-[4/5]">
           {isVideo ? (
             <video
               src={mediaUrl}
@@ -126,6 +102,37 @@ const YouAreGoing = () => {
               className="w-full h-full object-cover"
             />
           )}
+
+          {/* Floating top actions */}
+          <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between p-3">
+            <Button
+              onClick={goBack}
+              variant="ghost"
+              size="icon"
+              aria-label="Volver"
+              className="rounded-full bg-black/40 backdrop-blur-md text-white active:scale-95"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <Button
+              onClick={() => setShowInfo(true)}
+              variant="ghost"
+              size="icon"
+              aria-label="Información"
+              className="rounded-full bg-black/40 backdrop-blur-md text-white active:scale-95"
+            >
+              <Info className="w-5 h-5" />
+            </Button>
+          </div>
+
+          {/* Branding chip */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-2xl bg-black/40 backdrop-blur-md px-3 py-1.5">
+            <img
+              src={mascotAsset.url}
+              alt="Zentro"
+              className="h-8 w-auto invert brightness-0 contrast-200 opacity-95"
+            />
+          </div>
         </div>
 
         {/* Box 2 — ticket details */}
@@ -148,32 +155,40 @@ const YouAreGoing = () => {
         </div>
 
         {/* Box 3 — action */}
-        <div className="rounded-3xl bg-secondary/40 p-4">
+        <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-4 py-3">
           {canViewQr ? (
-            <Button
-              onClick={() => setShowQR(true)}
-              size="lg"
-              className="w-full rounded-full font-semibold gap-2 active:scale-95"
-            >
-              <QrCode className="w-5 h-5" />
-              Mostrar QR
-            </Button>
+            <div className="flex items-center justify-between gap-3">
+              <img
+                src={mascotAsset.url}
+                alt="Zentro"
+                className="h-10 w-auto shrink-0"
+              />
+              <Button
+                onClick={() => setShowQR(true)}
+                size="lg"
+                className="rounded-full font-semibold gap-2 bg-[#141414] text-white active:scale-95"
+              >
+                <QrCode className="w-5 h-5" />
+                Mostrar QR
+              </Button>
+            </div>
           ) : guestlistEntry?.payment_status === "pending" ? (
-            <p className="text-sm text-muted-foreground text-center px-2 py-1">
+            <p className="text-sm text-[#141414]/70 text-center px-2 py-2">
               Tu pago está siendo verificado por el organizador. Una vez
               confirmado, podrás ver tu QR de entrada.
             </p>
           ) : guestlistEntry?.status === "pending" ? (
-            <p className="text-sm text-muted-foreground text-center px-2 py-1">
+            <p className="text-sm text-[#141414]/70 text-center px-2 py-2">
               Tu solicitud está pendiente de aprobación. Una vez aprobada,
               podrás ver tu QR de entrada.
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground text-center px-2 py-1">
+            <p className="text-sm text-[#141414]/70 text-center px-2 py-2">
               Tu entrada aún no está disponible.
             </p>
           )}
         </div>
+
       </m.div>
 
       {/* Info bottom sheet */}
