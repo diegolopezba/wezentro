@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { QRCodeSVG } from "qrcode.react";
 import { TicketInfoSheet } from "@/components/events/TicketInfoSheet";
+import mascotAsset from "@/assets/mascot-disco.png.asset.json";
 
 const YouAreGoing = () => {
   const navigate = useNavigate();
