@@ -49,6 +49,18 @@ const EventDetail = () => {
   const [showLocationSheet, setShowLocationSheet] = useState(false);
   const [showActions, setShowActions] = useState(false);
 
+  // Special guest invitation (?invite=<token>)
+  const inviteToken = new URLSearchParams(location.search).get("invite") || undefined;
+  const { data: specialInvite } = useSpecialInvite(inviteToken);
+  const redeemSpecialInvite = useRedeemSpecialInvite();
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const hasActiveInvite =
+    !!specialInvite && specialInvite.status === "pending" && specialInvite.event_id === id;
+  const handleAcceptSpecialInvite = async () => {
+    if (!inviteToken) return;
+    await redeemSpecialInvite.mutateAsync(inviteToken);
+  };
+
 
   const {
     event, isLoading, error,
