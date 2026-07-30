@@ -556,6 +556,60 @@ export type Database = {
           },
         ]
       }
+      event_special_invites: {
+        Row: {
+          created_at: string
+          created_by: string
+          event_id: string
+          id: string
+          label: string | null
+          redeemed_at: string | null
+          redeemed_by: string | null
+          status: string
+          ticket_tier_id: string | null
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          event_id: string
+          id?: string
+          label?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          status?: string
+          ticket_tier_id?: string | null
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          event_id?: string
+          id?: string
+          label?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          status?: string
+          ticket_tier_id?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_special_invites_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_special_invites_ticket_tier_id_fkey"
+            columns: ["ticket_tier_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_stats: {
         Row: {
           event_id: string
@@ -809,6 +863,7 @@ export type Database = {
           checked_in_at: string | null
           event_id: string
           id: string
+          is_special_guest: boolean
           joined_at: string | null
           payment_confirmed_at: string | null
           payment_status: string | null
@@ -823,6 +878,7 @@ export type Database = {
           checked_in_at?: string | null
           event_id: string
           id?: string
+          is_special_guest?: boolean
           joined_at?: string | null
           payment_confirmed_at?: string | null
           payment_status?: string | null
@@ -837,6 +893,7 @@ export type Database = {
           checked_in_at?: string | null
           event_id?: string
           id?: string
+          is_special_guest?: boolean
           joined_at?: string | null
           payment_confirmed_at?: string | null
           payment_status?: string | null
@@ -3700,6 +3757,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      redeem_special_invite: { Args: { _token: string }; Returns: Json }
       refresh_trending_scores_cache: { Args: never; Returns: undefined }
       refresh_user_collab_boosts: {
         Args: { _user_id: string }
