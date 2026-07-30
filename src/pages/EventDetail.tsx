@@ -463,6 +463,10 @@ const EventDetail = () => {
         <Button variant="hero" size="default" onClick={() => navigate(`/going/${id}`)}>
                   <Check className="w-4 h-4 mr-1" /> Ver entrada
                 </Button> :
+        hasActiveInvite ?
+        <Button variant="hero" size="default" onClick={() => setShowInviteModal(true)}>
+                Aceptar invitación especial
+              </Button> :
         (allTiersSoldOut || isGuestlistFull) ?
         <Button variant="outline" size="default" disabled>
                 Entradas agotadas
