@@ -22,9 +22,9 @@ interface PaymentQRModalProps {
   price: number;
   ticketTierId?: string | null;
   ticketTierName?: string | null;
-  /** "paid" = Qhantuy QR checkout (default). "free" = confirm-to-join sheet. */
-  mode?: "paid" | "free";
-  /** Called when the user taps "Sí, quiero unirme" in free mode. Should throw on failure. */
+  /** "paid" = Qhantuy QR checkout (default). "free" = confirm-to-join sheet. "invite" = special guest invitation. */
+  mode?: "paid" | "free" | "invite";
+  /** Called when the user confirms in free/invite mode. Should throw on failure. */
   onJoinFree?: () => Promise<void>;
   onPaymentConfirmed: () => Promise<void>;
 }
@@ -44,7 +44,8 @@ export function PaymentQRModal({
   onPaymentConfirmed,
 }: PaymentQRModalProps) {
   const navigate = useNavigate();
-  const isFree = mode === "free";
+  const isInvite = mode === "invite";
+  const isFree = mode === "free" || isInvite;
   const [step, setStep] = useState<Step>("details");
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
@@ -281,7 +282,7 @@ export function PaymentQRModal({
                         {ticketTierName || "Entrada general"}
                       </p>
                       <p className="text-lg font-brand font-bold text-foreground mt-0.5">
-                        {isFree ? "Gratis" : `Bs. ${price}`}
+                        {isInvite ? "Invitado especial" : isFree ? "Gratis" : `Bs. ${price}`}
                       </p>
                     </div>
                     <div className="text-right">
@@ -319,7 +320,13 @@ export function PaymentQRModal({
                       className="overflow-hidden"
                     >
                       <div className="space-y-2.5 px-1 pt-3">
-                        {(isFree
+                        {(isInvite
+                          ? [
+                              "El organizador te invitó a este evento.",
+                              "Confirmá tu invitación especial.",
+                              "Tu entrada queda lista, sin pagar nada.",
+                            ]
+                          : isFree
                           ? [
                               "Confirmá que querés unirte a este evento.",
                               "Quedás en la lista al instante.",
@@ -352,7 +359,7 @@ export function PaymentQRModal({
                   </div>
                   {isFree ? (
                     <p className="text-lg font-brand font-normal text-foreground flex items-center gap-1.5">
-                      tranqui, es gratis
+                      {isInvite ? "invitación especial" : "tranqui, es gratis"}
                       <span className="text-lg leading-none" role="img" aria-label="guiño">😉</span>
                     </p>
                   ) : (
@@ -364,7 +371,7 @@ export function PaymentQRModal({
                   onClick={isFree ? confirmFreeJoin : generateQR}
                   className="w-full h-14 rounded-2xl bg-foreground text-background text-base font-bold uppercase tracking-wide active:opacity-90"
                 >
-                  {isFree ? "Sí, quiero unirme" : "Pagar por QR"}
+                  {isInvite ? "Confirmar invitación especial" : isFree ? "Sí, quiero unirme" : "Pagar por QR"}
                 </Button>
               </div>
             </m.div>
@@ -487,7 +494,7 @@ export function PaymentQRModal({
               <div className="mx-auto w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
                 <AlertCircle className="w-10 h-10 text-destructive" />
               </div>
-              <h2 className="text-xl font-brand font-bold text-foreground">{needsLogin ? "Inicia sesión de nuevo" : isFree ? "No se pudo confirmar tu lugar" : "No se pudo generar el QR"}</h2>
+              <h2 className="text-xl font-brand font-bold text-foreground">{needsLogin ? "Inicia sesión de nuevo" : isInvite ? "No se pudo confirmar tu invitación" : isFree ? "No se pudo confirmar tu lugar" : "No se pudo generar el QR"}</h2>
               <p className="text-muted-foreground text-sm">{errorMsg || "Por favor intenta de nuevo."}</p>
               {needsLogin ? (
                 <Button onClick={goToLogin} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">

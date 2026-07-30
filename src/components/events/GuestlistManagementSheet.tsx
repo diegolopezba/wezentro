@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
-import { X, Check, Loader2, Users, DollarSign, Clock, QrCode, Copy, RotateCcw, Share2, UserCheck, Search } from "lucide-react";
+import { X, Check, Loader2, Users, DollarSign, Clock, QrCode, Copy, RotateCcw, Share2, UserCheck, Search, Gift } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Sheet,
@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { SpecialInvitesPanel } from "@/components/events/SpecialInvitesPanel";
 
 interface GuestlistManagementSheetProps {
   eventId: string;
@@ -407,6 +408,10 @@ export const GuestlistManagementSheet = ({
                 <QrCode className="w-3.5 h-3.5" />
                 Escáner
               </TabsTrigger>
+              <TabsTrigger value="invites" className="flex-1 gap-1.5 text-xs">
+                <Gift className="w-3.5 h-3.5" />
+                Invitados
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="payments" className="overflow-y-auto h-[calc(100%-60px)] -mx-6 px-6">
@@ -514,6 +519,10 @@ export const GuestlistManagementSheet = ({
             <TabsContent value="scanner" className="overflow-y-auto h-[calc(100%-60px)] -mx-6 px-6">
               <ScannerPanel eventId={eventId} />
             </TabsContent>
+
+            <TabsContent value="invites" className="overflow-y-auto h-[calc(100%-60px)] -mx-6 px-6">
+              <SpecialInvitesPanel eventId={eventId} />
+            </TabsContent>
           </Tabs>
         </SheetContent>
       </Sheet>
@@ -540,12 +549,20 @@ export const GuestlistManagementSheet = ({
               <QrCode className="w-3.5 h-3.5" />
               Escáner
             </TabsTrigger>
+            <TabsTrigger value="invites" className="flex-1 gap-1.5 text-xs">
+              <Gift className="w-3.5 h-3.5" />
+              Invitados
+            </TabsTrigger>
           </TabsList>
 
           {renderApprovedTabContent()}
 
           <TabsContent value="scanner" className="overflow-y-auto h-[calc(100%-60px)] -mx-6 px-6">
             <ScannerPanel eventId={eventId} />
+          </TabsContent>
+
+          <TabsContent value="invites" className="overflow-y-auto h-[calc(100%-60px)] -mx-6 px-6">
+            <SpecialInvitesPanel eventId={eventId} />
           </TabsContent>
         </Tabs>
       </SheetContent>

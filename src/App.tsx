@@ -91,6 +91,7 @@ const Referrals = lazyWithRetry(() => import("./pages/Referrals"));
 const MyReservations = lazyWithRetry(() => import("./pages/MyReservations"));
 const ReservationConfirmation = lazyWithRetry(() => import("./pages/ReservationConfirmation"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const SpecialInvite = lazyWithRetry(() => import("./pages/SpecialInvite"));
 const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
 const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
 const EventPromoterDashboard = lazyWithRetry(() => import("./pages/EventPromoterDashboard"));
@@ -250,6 +251,7 @@ const AppRoutes = () => {
         <Route path="/scan/:eventId" element={<LazyRoute><ScanQR /></LazyRoute>} />
         <Route path="/settings/blocks" element={<ProtectedRoute requireProfile><LazyRoute><BlockedUsers /></LazyRoute></ProtectedRoute>} />
         <Route path="/business/event/:eventId/promoters" element={<ProtectedRoute requireProfile><LazyRoute><EventPromoterDashboard /></LazyRoute></ProtectedRoute>} />
+        <Route path="/i/:token" element={<LazyRoute><SpecialInvite /></LazyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<LazyRoute><NotFound /></LazyRoute>} />
       </Routes>

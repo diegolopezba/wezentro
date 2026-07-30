@@ -31,7 +31,7 @@ const YouAreGoing = () => {
       if (!id || !user) return null;
       const { data, error } = await supabase
         .from("guestlist_entries")
-        .select("qr_code_token, status, payment_status")
+        .select("qr_code_token, status, payment_status, is_special_guest")
         .eq("event_id", id)
         .eq("user_id", user.id)
         .maybeSingle();
@@ -134,6 +134,11 @@ const YouAreGoing = () => {
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#141414]/60 truncate">
             {event.title}
           </p>
+          {guestlistEntry?.is_special_guest && (
+            <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.18em] text-accent-red">
+              Invitado especial
+            </p>
+          )}
           <h1 className="mt-3 font-brand text-3xl font-bold leading-tight">
             {profile?.full_name || profile?.username || "Invitado"}
           </h1>

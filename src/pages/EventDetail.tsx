@@ -17,6 +17,7 @@ import { InvitationsSentSection } from "@/components/events/InvitationsSentSecti
 
 
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
+import { useSpecialInvite, useRedeemSpecialInvite } from "@/hooks/useSpecialInvites";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
@@ -48,6 +49,18 @@ const EventDetail = () => {
   const [showReportSheet, setShowReportSheet] = useState(false);
   const [showLocationSheet, setShowLocationSheet] = useState(false);
   const [showActions, setShowActions] = useState(false);
+
+  // Special guest invitation (?invite=<token>)
+  const inviteToken = new URLSearchParams(location.search).get("invite") || undefined;
+  const { data: specialInvite } = useSpecialInvite(inviteToken);
+  const redeemSpecialInvite = useRedeemSpecialInvite();
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const hasActiveInvite =
+    !!specialInvite && specialInvite.status === "pending" && specialInvite.event_id === id;
+  const handleAcceptSpecialInvite = async () => {
+    if (!inviteToken) return;
+    await redeemSpecialInvite.mutateAsync(inviteToken);
+  };
 
 
   const {
@@ -400,6 +413,24 @@ const EventDetail = () => {
         onPaymentConfirmed={handlePaymentSubmitted}
       />
 
+      {/* Special guest invitation confirmation */}
+      {hasActiveInvite && (
+        <PaymentQRModal
+          open={showInviteModal}
+          onOpenChange={setShowInviteModal}
+          eventId={id!}
+          eventTitle={event.title || "Evento"}
+          price={0}
+          ticketTierId={specialInvite?.ticket_tier_id ?? null}
+          ticketTierName={specialInvite?.label ?? null}
+          mode="invite"
+          onJoinFree={handleAcceptSpecialInvite}
+          onPaymentConfirmed={handlePaymentSubmitted}
+        />
+      )}
+
+
+
 
     {hasTiers && (
       <TicketTierPicker
@@ -463,6 +494,10 @@ const EventDetail = () => {
         <Button variant="hero" size="default" onClick={() => navigate(`/going/${id}`)}>
                   <Check className="w-4 h-4 mr-1" /> Ver entrada
                 </Button> :
+        hasActiveInvite ?
+        <Button variant="hero" size="default" onClick={() => setShowInviteModal(true)}>
+                Aceptar invitación especial
+              </Button> :
         (allTiersSoldOut || isGuestlistFull) ?
         <Button variant="outline" size="default" disabled>
                 Entradas agotadas
