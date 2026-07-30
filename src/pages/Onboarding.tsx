@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProcessReferral } from "@/hooks/useReferrals";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
 import { ExperienceGoalPicker } from "@/components/profile/ExperienceGoalPicker";
+import { takePendingSpecialInvite } from "@/hooks/useSpecialInvites";
 
 const genderOptions = [
   { value: "male", label: "Masculino" },
