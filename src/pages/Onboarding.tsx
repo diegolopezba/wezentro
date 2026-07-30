@@ -186,7 +186,8 @@ const Onboarding = () => {
       await refreshProfile();
       toast.success("¡Bienvenido a Zentro!");
       setIsLoading(false);
-      navigate("/");
+      const pendingInvite = takePendingSpecialInvite();
+      navigate(pendingInvite ? `/i/${pendingInvite}` : "/");
     } catch (e) {
       console.error("[Onboarding] handleComplete threw:", e);
       toast.error("No pudimos guardar tu perfil. Intenta de nuevo.");
