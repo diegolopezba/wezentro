@@ -22,9 +22,9 @@ interface PaymentQRModalProps {
   price: number;
   ticketTierId?: string | null;
   ticketTierName?: string | null;
-  /** "paid" = Qhantuy QR checkout (default). "free" = confirm-to-join sheet. */
-  mode?: "paid" | "free";
-  /** Called when the user taps "Sí, quiero unirme" in free mode. Should throw on failure. */
+  /** "paid" = Qhantuy QR checkout (default). "free" = confirm-to-join sheet. "invite" = special guest invitation. */
+  mode?: "paid" | "free" | "invite";
+  /** Called when the user confirms in free/invite mode. Should throw on failure. */
   onJoinFree?: () => Promise<void>;
   onPaymentConfirmed: () => Promise<void>;
 }
