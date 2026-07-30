@@ -17,6 +17,7 @@ import { InvitationsSentSection } from "@/components/events/InvitationsSentSecti
 
 
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
+import { useSpecialInvite, useRedeemSpecialInvite } from "@/hooks/useSpecialInvites";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
