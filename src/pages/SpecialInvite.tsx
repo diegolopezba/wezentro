@@ -17,12 +17,12 @@ const SpecialInvite = () => {
   const { data: invite, isLoading, isError } = useSpecialInvite(user ? token : undefined);
 
   useEffect(() => {
-    if (loading || !token) return;
+    if (authLoading || !token) return;
     if (!user) {
       setPendingSpecialInvite(token);
       navigate("/auth", { replace: true, state: { returnTo: `/i/${token}` } });
     }
-  }, [loading, user, token, navigate]);
+  }, [authLoading, user, token, navigate]);
 
   useEffect(() => {
     if (!user || !invite) return;
