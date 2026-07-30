@@ -44,7 +44,8 @@ export function PaymentQRModal({
   onPaymentConfirmed,
 }: PaymentQRModalProps) {
   const navigate = useNavigate();
-  const isFree = mode === "free";
+  const isInvite = mode === "invite";
+  const isFree = mode === "free" || isInvite;
   const [step, setStep] = useState<Step>("details");
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
