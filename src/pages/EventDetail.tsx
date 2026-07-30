@@ -413,6 +413,24 @@ const EventDetail = () => {
         onPaymentConfirmed={handlePaymentSubmitted}
       />
 
+      {/* Special guest invitation confirmation */}
+      {hasActiveInvite && (
+        <PaymentQRModal
+          open={showInviteModal}
+          onOpenChange={setShowInviteModal}
+          eventId={id!}
+          eventTitle={event.title || "Evento"}
+          price={0}
+          ticketTierId={specialInvite?.ticket_tier_id ?? null}
+          ticketTierName={specialInvite?.label ?? null}
+          mode="invite"
+          onJoinFree={handleAcceptSpecialInvite}
+          onPaymentConfirmed={handlePaymentSubmitted}
+        />
+      )}
+
+
+
 
     {hasTiers && (
       <TicketTierPicker
