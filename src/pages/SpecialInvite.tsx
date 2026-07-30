@@ -13,7 +13,7 @@ import { useSpecialInvite, setPendingSpecialInvite } from "@/hooks/useSpecialInv
 const SpecialInvite = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { data: invite, isLoading, isError } = useSpecialInvite(user ? token : undefined);
 
   useEffect(() => {
