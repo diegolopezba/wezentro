@@ -22,7 +22,7 @@ interface SettingsSection {
 const Settings = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
+  
 
   const sections: SettingsSection[] = [
     {
