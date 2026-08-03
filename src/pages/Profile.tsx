@@ -227,8 +227,6 @@ const Profile = () => {
       address={profile?.business_address}
       hours={profile?.business_hours}
       phone={profile?.business_phone} />
-      {/* Experience Goal Sheet */}
-      <ExperienceGoalSheet open={goalSheetOpen} onOpenChange={setGoalSheetOpen} />
     
     </AppLayout>;
 };
