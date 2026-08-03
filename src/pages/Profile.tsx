@@ -18,9 +18,6 @@ import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
 import { isFoodBusinessType } from "@/lib/businessTypes";
 
-import { ExperienceGoalSheet } from "@/components/profile/ExperienceGoalSheet";
-import { ExperienceStatRing } from "@/components/profile/ExperienceStatRing";
-import { useExperienceProgress } from "@/hooks/useExperienceProgress";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -33,15 +30,10 @@ const Profile = () => {
   
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [reservationsSheetOpen, setReservationsSheetOpen] = useState(false);
-  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
   const {
     data: userStats,
     isLoading: statsLoading
   } = useUserStats(user?.id);
-  const experienceGoal = (profile as any)?.experience_goal as number | null | undefined;
-  const experienceGoalYear = (profile as any)?.experience_goal_year as number | null | undefined;
-  const hasActiveGoal = !!experienceGoal && experienceGoal > 0;
-  const { data: experienceProgress } = useExperienceProgress(user?.id, experienceGoal, experienceGoalYear);
   const {
     data: timeline,
     isLoading: timelineLoading
@@ -80,19 +72,6 @@ const Profile = () => {
       <header className="sticky top-0 z-40 safe-top bg-background">
         <div className="flex items-center justify-between px-4 py-0">
           <div className="flex items-center gap-2">
-            {hasActiveGoal && experienceProgress && (
-              <button
-                onClick={() => setGoalSheetOpen(true)}
-                className="active:opacity-70 transition-opacity"
-                aria-label="Ver progreso de experiencias"
-              >
-                <ExperienceStatRing
-                  percent={experienceProgress.percent}
-                  pace={experienceProgress.pace}
-                  size={28}
-                />
-              </button>
-            )}
             <h1 className="font-brand text-xl text-foreground font-semibold">
               {profile?.username || "cargando"}
             </h1>
@@ -227,8 +206,6 @@ const Profile = () => {
       address={profile?.business_address}
       hours={profile?.business_hours}
       phone={profile?.business_phone} />
-      {/* Experience Goal Sheet */}
-      <ExperienceGoalSheet open={goalSheetOpen} onOpenChange={setGoalSheetOpen} />
     
     </AppLayout>;
 };
