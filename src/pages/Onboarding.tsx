@@ -352,7 +352,11 @@ const Onboarding = () => {
               <div className="flex gap-3">
                 <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>Atrás</Button>
                 <Button variant="hero" className="flex-1" onClick={handleNextStep} disabled={isLoading || !formData.gender || !formData.birthDay || !formData.birthMonth || !formData.birthYear}>
-                  Continuar <ArrowRight className="w-5 h-5 ml-2" />
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>¡Vamos! <ArrowRight className="w-5 h-5 ml-2" /></>
+                  )}
                 </Button>
               </div>
             </m.div>
