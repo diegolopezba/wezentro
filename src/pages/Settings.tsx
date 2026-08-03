@@ -39,7 +39,7 @@ const Settings = () => {
       title: "Personal",
       items: [
         { icon: User, label: "Editar Perfil", path: "/edit-profile" },
-        { icon: Sparkles, label: "Meta del año", path: "__experience_goal__" },
+        
         { icon: Shield, label: "Privacidad", path: "/settings/privacy" },
         { icon: Ban, label: "Usuarios Bloqueados", path: "/settings/blocks" },
         { icon: Gift, label: "Invitar Amigos", path: "/settings/referrals" },
