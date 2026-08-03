@@ -124,7 +124,7 @@ const Onboarding = () => {
     return age;
   };
 
-  const handleComplete = async (opts?: { skipGoal?: boolean }) => {
+  const handleComplete = async () => {
     if (!user || isLoading) return;
 
     const birthDate = buildBirthDate();
@@ -135,17 +135,12 @@ const Onboarding = () => {
 
     setIsLoading(true);
     try {
-      const currentYear = new Date().getFullYear();
       const updatePayload: any = {
         username: formData.username.toLowerCase(),
         full_name: formData.fullName || null,
         gender: formData.gender,
         birth_date: birthDate,
       };
-      if (!opts?.skipGoal) {
-        updatePayload.experience_goal = formData.experienceGoal;
-        updatePayload.experience_goal_year = currentYear;
-      }
       const { data: updated, error } = await supabase
         .from("profiles")
         .update(updatePayload)
