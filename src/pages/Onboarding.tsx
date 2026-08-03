@@ -96,7 +96,7 @@ const Onboarding = () => {
         if (!birthDate) { toast.error("Por favor ingresa tu fecha de nacimiento completa."); return; }
         const age = getAge(birthDate);
         if (age < 13) { toast.error("Debes tener al menos 13 años para usar Zentro."); return; }
-        setStep(4);
+        await handleComplete();
       }
     } catch (e) {
       console.error("[Onboarding] step transition failed:", e);
