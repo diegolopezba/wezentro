@@ -132,7 +132,7 @@ const Settings = () => {
           </m.button>
         </div>
       </div>
-      <ExperienceGoalSheet open={goalSheetOpen} onOpenChange={setGoalSheetOpen} />
+      
     </AppLayout>
   );
 };
