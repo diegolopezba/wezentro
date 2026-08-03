@@ -201,8 +201,8 @@ const Onboarding = () => {
       {/* Progress bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-secondary z-20">
         <m.div
-          className="h-full bg-foreground" initial={{ width: "25%" }}
-          animate={{ width: `${(step / 4) * 100}%` }}
+          className="h-full bg-foreground" initial={{ width: "33%" }}
+          animate={{ width: `${(step / 3) * 100}%` }}
           transition={{ duration: 0.3 }}
         />
       </div>
@@ -222,13 +222,11 @@ const Onboarding = () => {
           {step === 1 && "Elige tu nombre de usuario"}
           {step === 2 && "Cuéntanos sobre ti"}
           {step === 3 && "Un poco más sobre ti"}
-          {step === 4 && "Una última cosa"}
         </h1>
         <p className="text-muted-foreground text-sm">
           {step === 1 && "Así te encontrarán los demás"}
           {step === 2 && "Ayúdanos a personalizar tu experiencia"}
           {step === 3 && "Esta info es privada y mejora tus recomendaciones"}
-          {step === 4 && "¿Cuántas experiencias nuevas quieres vivir este año?"}
         </p>
       </m.div>
 
