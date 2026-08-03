@@ -80,19 +80,6 @@ const Profile = () => {
       <header className="sticky top-0 z-40 safe-top bg-background">
         <div className="flex items-center justify-between px-4 py-0">
           <div className="flex items-center gap-2">
-            {hasActiveGoal && experienceProgress && (
-              <button
-                onClick={() => setGoalSheetOpen(true)}
-                className="active:opacity-70 transition-opacity"
-                aria-label="Ver progreso de experiencias"
-              >
-                <ExperienceStatRing
-                  percent={experienceProgress.percent}
-                  pace={experienceProgress.pace}
-                  size={28}
-                />
-              </button>
-            )}
             <h1 className="font-brand text-xl text-foreground font-semibold">
               {profile?.username || "cargando"}
             </h1>
