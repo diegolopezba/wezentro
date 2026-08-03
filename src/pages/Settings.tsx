@@ -99,10 +99,7 @@ const Settings = () => {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.04 }}
-                    onClick={() => {
-                      if (item.path === "__experience_goal__") setGoalSheetOpen(true);
-                      else navigate(item.path);
-                    }}
+                    onClick={() => navigate(item.path)}
                     className="w-full flex items-center gap-4 py-3.5 px-4"
                   >
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.highlight ? "bg-primary/15" : "bg-secondary"}`}>
