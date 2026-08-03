@@ -1,22 +1,28 @@
-## What's happening
+# Remove the "Meta del año" (experience goals) feature
 
-Your friend's redemption failed inside the database, not in the UI. The invite row is still `pending`, so nothing was consumed.
+The yearly experience-goal feature is confusing users and adds an extra step during signup. It gets removed completely from the app.
 
-Cause (verified): the `redeem_special_invite` function runs with its search path limited to `public`, but it generates the ticket QR token with `gen_random_bytes(...)`, which lives in the `extensions` schema on this database. The call can't be resolved, the function raises an error that doesn't match any of the known invite error codes, and the app falls back to the generic "No se pudo aceptar la invitación".
+## What changes for users
 
-This affects every redemption for a user who isn't already on the guestlist, so no invite link can currently be accepted.
+- Signup gets shorter: the final "meta del año" step disappears, so onboarding ends right after gender/birth date.
+- The profile header no longer shows the small progress ring.
+- The "Meta del año" row disappears from Settings > Personal.
+- No goal card, sheet, or progress tracking anywhere.
 
-## Fix
+## Technical scope
 
-One migration that replaces `redeem_special_invite` with an identical body except:
+Delete these files:
+- `src/components/profile/ExperienceGoalCard.tsx`
+- `src/components/profile/ExperienceGoalSheet.tsx`
+- `src/components/profile/ExperienceGoalPicker.tsx`
+- `src/components/profile/ExperienceStatRing.tsx`
+- `src/hooks/useExperienceProgress.ts`
 
-- Generate the QR token in a way that resolves regardless of schema layout — use `replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '')` (built-in in PG13+) instead of `gen_random_bytes`.
-- Widen the function's search path to `public, extensions` so any other extension helper also resolves.
+Edit:
+- `src/pages/Onboarding.tsx` — remove step 4 and its picker, the `experienceGoal` form state, the `skipGoal` option, and the `experience_goal` / `experience_goal_year` writes; make step 3's "Continuar" complete onboarding directly.
+- `src/pages/Profile.tsx` — remove the ring button in the header, `goalSheetOpen` state, the sheet mount, and the progress hook/derived values.
+- `src/pages/Settings.tsx` — remove the "Meta del año" item, the `__experience_goal__` branch, the sheet mount, and the now-unused `Sparkles` import.
 
-No frontend changes are needed; the existing error mapping and CTA flow stay as they are.
+Database: leave the `profiles.experience_goal` and `experience_goal_year` columns in place (unused, harmless). Say the word if you want them dropped too.
 
-## Verification
-
-- Re-run the redemption path for the outstanding pending invite on the test event and confirm: a `guestlist_entries` row is created with `is_special_guest = true`, `status = approved`, a non-null `qr_code_token`, and the invite flips to `redeemed`.
-- Confirm re-tapping the same link by the same user is still idempotent (no duplicate entry, no error).
-- Confirm the ticket screen shows the "Invitado especial" badge.
+Verify with a TypeScript check that no stale imports remain.
