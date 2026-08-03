@@ -1,12 +1,11 @@
 import { m } from "framer-motion";
-import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, ChevronLeft, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase, Ban, Sparkles } from "lucide-react";
+import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, ChevronLeft, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase, Ban } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { useState } from "react";
-import { ExperienceGoalSheet } from "@/components/profile/ExperienceGoalSheet";
+
 
 interface SettingsItem {
   icon: React.ElementType;
