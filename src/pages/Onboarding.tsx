@@ -34,7 +34,6 @@ const Onboarding = () => {
     birthDay: "",
     birthMonth: "",
     birthYear: "",
-    });
   });
 
   const validateUsername = (username: string) => {
