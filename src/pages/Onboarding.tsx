@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { m } from "framer-motion";
-import { ArrowRight, User, Check, Lock, Sparkles } from "lucide-react";
+import { ArrowRight, User, Check, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
