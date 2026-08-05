@@ -215,11 +215,13 @@ const AppRoutes = () => {
         <Route element={<KeepAliveLayout />}>
           <Route path="/" element={<GuestAllowedRoute><Index /></GuestAllowedRoute>} />
           <Route path="/discover" element={<GuestAllowedRoute><Discover /></GuestAllowedRoute>} />
-          <Route path="/chats" element={<ProtectedRoute requireProfile><Chats /></ProtectedRoute>} />
+          <Route path="/tickets" element={<ProtectedRoute requireProfile><MyTickets /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute requireProfile><Profile /></ProtectedRoute>} />
         </Route>
 
+        <Route path="/chats" element={<ProtectedRoute requireProfile><LazyRoute><Chats /></LazyRoute></ProtectedRoute>} />
         <Route path="/create" element={<ProtectedRoute requireProfile><LazyRoute><Create /></LazyRoute></ProtectedRoute>} />
+
         <Route path="/chats/:id" element={<ProtectedRoute requireProfile><LazyRoute><ChatDetail /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute requireProfile><LazyRoute><Settings /></LazyRoute></ProtectedRoute>} />
         <Route path="/saved" element={<ProtectedRoute requireProfile><LazyRoute><Saved /></LazyRoute></ProtectedRoute>} />
