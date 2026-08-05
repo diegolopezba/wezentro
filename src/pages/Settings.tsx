@@ -28,8 +28,8 @@ const Settings = () => {
     {
       title: "Actividad",
       items: [
-        { icon: Ticket, label: "Entradas", path: "/settings/tickets" },
-        { icon: UtensilsCrossed, label: "Mis Reservas", path: "/settings/reservations" },
+        { icon: Ticket, label: "Entradas", path: "/tickets" },
+        { icon: UtensilsCrossed, label: "Mis Reservas", path: "/tickets" },
         { icon: Calendar, label: "Eventos Asistidos", path: "/settings/joined-events" },
         { icon: Bookmark, label: "Guardados", path: "/saved" },
       ],
