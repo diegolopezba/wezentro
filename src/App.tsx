@@ -30,7 +30,7 @@ const lazyWithRetry = (importFn: () => Promise<any>) =>
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, type Location } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, type Location } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OneSignalProvider } from "@/contexts/OneSignalContext";
 import { LocationProvider } from "@/contexts/LocationContext";
@@ -74,7 +74,7 @@ const Auth = lazyWithRetry(() => import("./pages/Auth"));
 const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const Onboarding = lazyWithRetry(() => import("./pages/Onboarding"));
 const UserProfile = lazyWithRetry(() => import("./pages/UserProfile"));
-const Tickets = lazyWithRetry(() => import("./pages/Tickets"));
+const MyTickets = lazy(() => import("./pages/MyTickets"));
 const YouAreGoing = lazyWithRetry(() => import("./pages/YouAreGoing"));
 const BusinessDashboard = lazyWithRetry(() => import("./pages/BusinessDashboard"));
 const BusinessSettings = lazyWithRetry(() => import("./pages/BusinessSettings"));
@@ -88,7 +88,7 @@ const Help = lazyWithRetry(() => import("./pages/Help"));
 const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
 const TermsOfUse = lazyWithRetry(() => import("./pages/TermsOfUse"));
 const Referrals = lazyWithRetry(() => import("./pages/Referrals"));
-const MyReservations = lazyWithRetry(() => import("./pages/MyReservations"));
+
 const ReservationConfirmation = lazyWithRetry(() => import("./pages/ReservationConfirmation"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const SpecialInvite = lazyWithRetry(() => import("./pages/SpecialInvite"));
@@ -233,7 +233,7 @@ const AppRoutes = () => {
         <Route path="/event/:id" element={<LazyRoute><EventDetail /></LazyRoute>} />
 
         <Route path="/user/:id" element={<GuestAllowedRoute><LazyRoute><UserProfile /></LazyRoute></GuestAllowedRoute>} />
-        <Route path="/settings/tickets" element={<ProtectedRoute requireProfile><LazyRoute><Tickets /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/tickets" element={<Navigate to="/tickets" replace />} />
         <Route path="/going/:id" element={<ProtectedRoute requireProfile><LazyRoute><YouAreGoing /></LazyRoute></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute requireProfile><LazyRoute><BusinessDashboard /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/business" element={<ProtectedRoute requireProfile><LazyRoute><BusinessSettings /></LazyRoute></ProtectedRoute>} />
@@ -245,7 +245,7 @@ const AppRoutes = () => {
         <Route path="/settings/joined-events" element={<ProtectedRoute requireProfile><LazyRoute><JoinedEvents /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/help" element={<ProtectedRoute requireProfile><LazyRoute><Help /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/referrals" element={<ProtectedRoute requireProfile><LazyRoute><Referrals /></LazyRoute></ProtectedRoute>} />
-        <Route path="/settings/reservations" element={<ProtectedRoute requireProfile><LazyRoute><MyReservations /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/reservations" element={<Navigate to="/tickets" replace />} />
         <Route path="/reservation/:id" element={<ProtectedRoute><LazyRoute><ReservationConfirmation /></LazyRoute></ProtectedRoute>} />
         <Route path="/privacy-policy" element={<LazyRoute><PrivacyPolicy /></LazyRoute>} />
         <Route path="/terms" element={<LazyRoute><TermsOfUse /></LazyRoute>} />
