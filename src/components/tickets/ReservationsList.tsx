@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { m } from "framer-motion";
-import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarDays, Clock, Users, X, UserCheck, Pencil } from "lucide-react";
+import { CalendarDays, Clock, Users, X, UserCheck, Pencil, Loader2 } from "lucide-react";
 import { useCancelReservation } from "@/hooks/useReservations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { format, parseISO, isToday, isTomorrow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import {
@@ -84,7 +82,6 @@ const useAllReservations = () => {
       }
 
       const mine = (myRes.data as ReservationWithBusiness[]) || [];
-      const taggedIds = new Set(tagged.map((r) => r.id));
       const combined = [
         ...mine,
         ...tagged.filter((r) => !mine.find((m) => m.id === r.id)),
@@ -226,23 +223,13 @@ const ReservationCard = ({
   );
 };
 
-const MyReservations = () => {
-  const navigate = useNavigate();
+export const ReservationsList = () => {
   const { data: reservations, isLoading } = useAllReservations();
   const [editing, setEditing] = useState<ReservationWithBusiness | null>(null);
 
   return (
-    <AppLayout>
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg safe-top">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="font-brand text-xl font-bold text-foreground">Mis Reservas</h1>
-        </div>
-      </header>
-
-      <div className="px-4 pb-6 mt-4 space-y-3">
+    <>
+      <div className="px-4 pb-6 pt-2 space-y-3">
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -281,8 +268,6 @@ const MyReservations = () => {
           }}
         />
       )}
-    </AppLayout>
+    </>
   );
 };
-
-export default MyReservations;

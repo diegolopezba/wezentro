@@ -214,7 +214,7 @@ export function PaymentQRModal({
 
   const handleViewTickets = () => {
     onOpenChange(false);
-    navigate(eventId ? `/going/${eventId}` : "/settings/tickets");
+    navigate(eventId ? `/going/${eventId}` : "/tickets");
   };
 
   const handleDownloadQR = async () => {

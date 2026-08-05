@@ -1,4 +1,4 @@
-import { Home, Map, Plus, MessageCircle, User } from "lucide-react";
+import { Home, Map, Plus, Ticket, User } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,9 +12,10 @@ const navItems = [
   { icon: Home, label: "Inicio", path: "/", requiresAuth: false },
   { icon: Map, label: "Explorar", path: "/discover", requiresAuth: false },
   { icon: Plus, label: "Crear", path: "/create", isCenter: true, requiresAuth: true, authAction: "crear un evento" },
-  { icon: MessageCircle, label: "Chats", path: "/chats", requiresAuth: true, authAction: "ver tus mensajes" },
+  { icon: Ticket, label: "Entradas", path: "/tickets", requiresAuth: true, authAction: "ver tus entradas" },
   { icon: User, label: "Perfil", path: "/profile", requiresAuth: true, authAction: "ver tu perfil" },
 ];
+
 
 export const BottomNav = () => {
   const location = useLocation();
