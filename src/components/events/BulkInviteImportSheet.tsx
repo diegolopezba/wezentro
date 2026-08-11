@@ -100,9 +100,11 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
     }
   };
 
-  const handleExport = () => {
-    if (!result) return;
-    const rows = invites
+  const baseName = segment.trim() || "lista";
+
+  const getExportRows = () => {
+    if (!result) return [];
+    return invites
       .filter((i) => i.batch_id === result.batchId)
       .map((i) => ({
         guest_name: i.guest_name,
@@ -111,7 +113,16 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
         url: getSpecialInviteUrl(i.token),
         status: i.status,
       }));
-    downloadCsv(`invitaciones-${segment.trim() || "lista"}.csv`, buildInvitesCsv(rows));
+  };
+
+  const handleExportCsv = () => {
+    const rows = getExportRows();
+    downloadCsv(`invitaciones-${baseName}.csv`, buildInvitesCsv(rows));
+  };
+
+  const handleExportXlsx = () => {
+    const rows = getExportRows();
+    downloadXlsx(`invitaciones-${baseName}.xlsx`, buildInvitesXlsx(rows));
   };
 
   return (
