@@ -1,12 +1,16 @@
 import { m } from "framer-motion";
-import { Eye, MousePointerClick, TrendingUp, UserCheck, UsersRound, FileText, MousePointer2 } from "lucide-react";
+import { Eye, MousePointerClick, TrendingUp, UserCheck, UsersRound, FileText, MousePointer2, Coins, Ticket, Receipt } from "lucide-react";
 import { StatsCard } from "./StatsCard";
 import { PeriodSelector, Period } from "./PeriodSelector";
+import { SalesPaceSection } from "./SalesPaceSection";
+import { useSalesOverview } from "@/hooks/useSalesOverview";
+import { formatBs } from "@/components/sales/salesUtils";
 import { useAccountsReached, useInteractionSummary, useProfileVisits } from "@/hooks/useBusinessAnalytics";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+
 
 interface OverviewTabProps {
   period: Period;
@@ -18,10 +22,12 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
   const { data: reached, isLoading: reachedLoading } = useAccountsReached(period);
   const { data: interactions, isLoading: interactionsLoading } = useInteractionSummary(period);
   const { data: profileVisits, isLoading: visitsLoading } = useProfileVisits(period);
+  const { data: sales, isLoading: salesLoading } = useSalesOverview(period);
 
   // Followers total + trend
   const { data: followerData, isLoading: followerLoading } = useQuery({
     queryKey: ["overview-followers", user?.id, period],
+
     queryFn: async () => {
       if (!user?.id) throw new Error("No user");
       const { count: total } = await supabase
@@ -120,7 +126,17 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
         <PeriodSelector value={period} onChange={onPeriodChange} />
       </div>
 
+      {/* Revenue */}
       <div className="grid grid-cols-3 gap-3">
+        <StatsCard title="Ingresos" value={salesLoading ? "..." : formatBs(sales?.revenue || 0)} icon={Coins} delay={0} />
+        <StatsCard title="Tickets vendidos" value={salesLoading ? "..." : sales?.tickets || 0} icon={Ticket} delay={0.05} />
+        <StatsCard title="Ticket prom." value={salesLoading ? "..." : formatBs(sales?.avgTicket || 0)} icon={Receipt} delay={0.1} />
+      </div>
+
+      <SalesPaceSection />
+
+      <div className="grid grid-cols-3 gap-3">
+
         <StatsCard title="Impresiones" value={interactionsLoading ? "..." : interactions?.impressions || 0} icon={Eye} delay={0} />
         <StatsCard title="Views" value={interactionsLoading ? "..." : interactions?.views || 0} icon={MousePointer2} delay={0.05} />
         <StatsCard title="CTR" value={interactionsLoading ? "..." : `${ctr}%`} icon={TrendingUp} delay={0.1} />

@@ -1,15 +1,17 @@
 import { m } from "framer-motion";
-import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, ChevronLeft, Gift, Briefcase, Ban } from "lucide-react";
+import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, ChevronLeft, Gift, Briefcase, Ban, BarChart3, Wallet } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDashboardAccess } from "@/hooks/useDashboardAccess";
 import { toast } from "sonner";
 
 
 interface SettingsItem {
   icon: React.ElementType;
   label: string;
+  sublabel?: string;
   path: string;
   highlight?: boolean;
 }
@@ -22,7 +24,28 @@ interface SettingsSection {
 const Settings = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  
+  const { isBusiness, hasPayouts } = useDashboardAccess();
+
+  const businessItems: SettingsItem[] = [
+    { icon: Briefcase, label: "Business", path: "/settings/business", highlight: true },
+  ];
+
+  if (isBusiness && hasPayouts) {
+    businessItems.push({
+      icon: BarChart3,
+      label: "Dashboard",
+      sublabel: "Analíticas, ventas y reservas",
+      path: "/dashboard",
+      highlight: true,
+    });
+  } else if (isBusiness) {
+    businessItems.push({
+      icon: Wallet,
+      label: "Desbloquea tu dashboard",
+      sublabel: "Termina de configurar tus pagos",
+      path: "/settings/business/payments",
+    });
+  }
 
   const sections: SettingsSection[] = [
     {
@@ -37,9 +60,7 @@ const Settings = () => {
     },
     {
       title: "Business",
-      items: [
-        { icon: Briefcase, label: "Business", path: "/settings/business", highlight: true },
-      ],
+      items: businessItems,
     },
     {
       title: "Soporte",
@@ -48,6 +69,7 @@ const Settings = () => {
       ],
     },
   ];
+
 
   const handleSignOut = async () => {
     await signOut();
@@ -95,7 +117,13 @@ const Settings = () => {
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.highlight ? "bg-primary/15" : "bg-secondary"}`}>
                       <Icon className={`w-4 h-4 ${item.highlight ? "text-primary" : "text-muted-foreground"}`} />
                     </div>
-                    <span className="font-medium flex-1 text-left text-sm text-foreground">{item.label}</span>
+                    <span className="flex-1 text-left min-w-0">
+                      <span className="block font-medium text-sm text-foreground">{item.label}</span>
+                      {item.sublabel && (
+                        <span className="block text-xs text-muted-foreground">{item.sublabel}</span>
+                      )}
+                    </span>
+
                     <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
                   </m.button>
                 );
