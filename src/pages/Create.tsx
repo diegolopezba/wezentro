@@ -113,7 +113,6 @@ const Create = () => {
     time: "",
     price: "",
     capacity: "",
-    hasGuestlist: false,
     showMenuButton: false,
     showReservationButton: false,
     isLocationSecret: false
@@ -147,8 +146,7 @@ const Create = () => {
         time: "",
         price: "",
         capacity: "",
-        hasGuestlist: false,
-        showReservationButton: false
+            showReservationButton: false
       }));
       setLocation({ address: "", latitude: null, longitude: null });
     }
@@ -310,10 +308,6 @@ const Create = () => {
       toast.error("Por favor sube al menos una imagen o video");
       return;
     }
-    if (formData.hasGuestlist && !isBusiness) {
-      toast.error("Cambia a cuenta Business en Configuración para habilitar listas de invitados");
-      return;
-    }
     if (!isPost && (!formData.date || !formData.time)) {
       toast.error("Por favor ingresa la fecha y hora del evento");
       return;
@@ -405,7 +399,7 @@ const Create = () => {
         longitude: isPost ? null : location.longitude,
         price: insertPrice,
         max_guestlist_capacity: formData.capacity ? parseInt(formData.capacity) : null,
-        has_guestlist: !isPost && formData.hasGuestlist,
+        has_guestlist: !isPost,
         image_url: imageUrl,
         creator_id: user.id,
         is_public: true,
@@ -852,53 +846,6 @@ const Create = () => {
         </AnimatePresence>
 
         {/* ── Collaborator section ── */}
-        {/* ── Guestlist toggle (events only) ── */}
-        <AnimatePresence>
-          {!isPost &&
-          <m.div
-            key="guestlist-toggle" initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden">
-            
-              <Card className="glass border-white/10 p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                      <Users className="w-5 h-5 text-primary-foreground" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">Lista de Invitados</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {isBusiness ? "Crea una lista de invitados para tu evento" : "Requiere cuenta Business (gratis en Configuración)"}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                  type="button" onClick={() => {
-                    if (!isBusiness) {
-                      toast.info("Activa tu cuenta Business en Configuración para usar guestlists", {
-                        action: { label: "Ir", onClick: () => navigate("/settings") }
-                      });
-                      return;
-                    }
-                    setFormData({ ...formData, hasGuestlist: !formData.hasGuestlist });
-                  }}
-                  className={`relative w-12 h-7 rounded-full transition-colors ${
-                  formData.hasGuestlist ? "bg-primary" : "bg-secondary"}` }>
-                  
-                    <m.div
-                    animate={{ x: formData.hasGuestlist ? 22 : 2 }}
-                    className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
-                  
-                  </button>
-                </div>
-              </Card>
-            </m.div>
-          }
-        </AnimatePresence>
-
         {/* ── Menu button toggle (business only) ── */}
         {isBusiness && hasMenuItems &&
         <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
