@@ -99,8 +99,8 @@ export function EventActionsSheet({
           side="bottom"
           className={
             step === "edit"
-              ? "h-[90dvh] max-h-[90dvh] rounded-t-3xl flex flex-col p-0"
-              : "rounded-t-3xl flex flex-col p-0"
+              ? "light-sheet h-[90dvh] max-h-[90dvh] rounded-t-3xl flex flex-col p-0"
+              : "light-sheet rounded-t-3xl flex flex-col p-0"
           }
         >
           {step === "root" && (
