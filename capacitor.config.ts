@@ -31,8 +31,9 @@ const config: CapacitorConfig = {
       overlaysWebView: false,
     },
     Keyboard: {
-      resize: 'body',
-      resizeOnFullScreen: true,
+      // Keyboard overlays the webview; we lift inputs ourselves via
+      // the --keyboard-height CSS variable so the page behind never reflows.
+      resize: 'none',
     },
     // iOS Privacy usage descriptions (required for App Store review)
     Permissions: {
