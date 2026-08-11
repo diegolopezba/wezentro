@@ -93,6 +93,7 @@ const Referrals = lazyWithRetry(() => import("./pages/Referrals"));
 const ReservationConfirmation = lazyWithRetry(() => import("./pages/ReservationConfirmation"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const SpecialInvite = lazyWithRetry(() => import("./pages/SpecialInvite"));
+const Unsubscribe = lazyWithRetry(() => import("./pages/Unsubscribe"));
 const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
 const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
 const EventPromoterDashboard = lazyWithRetry(() => import("./pages/EventPromoterDashboard"));
