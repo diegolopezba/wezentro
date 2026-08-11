@@ -51,10 +51,12 @@ Zentro's email system is built for one-off app emails (confirmations, receipts) 
 **Sending job:** a `send-special-invites` edge function takes an `event_id` + `batch_id`, walks pending rows, enqueues one email per guest with an idempotency key `special-invite-<invite_id>`, and updates `email_status`. Resume-safe: re-running only picks up rows still `not_sent`/`failed`.
 
 **Front-end files:**
-- `src/components/events/BulkInviteImportSheet.tsx` — upload, preview, progress, results (light or dark to match the existing invite panel).
+- `src/components/events/BulkInviteImportSheet.tsx` — segment name field, upload, preview, progress, results.
 - `src/lib/inviteImport.ts` — CSV/XLSX parsing, header mapping, email validation, dedupe.
-- `src/components/events/SpecialInvitesPanel.tsx` — add import button, search box, virtualized list, status chips, resend, export CSV, bulk revoke.
-- `src/hooks/useSpecialInvites.ts` — hooks for bulk create, send batch, resend one, export.
+- `src/components/events/SpecialInvitesPanel.tsx` — import button, segment filter chips, search box, virtualized list, status chips, resend, export CSV, bulk revoke.
+- `src/hooks/useSpecialInvites.ts` — hooks for bulk create, send batch, resend one, export; expose `segment`.
+- `src/pages/YouAreGoing.tsx` — render "INVITADO ESPECIAL - {segmento}" when the guestlist entry has a label.
+
 
 ## Out of scope
 
