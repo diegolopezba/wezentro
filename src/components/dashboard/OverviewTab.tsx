@@ -24,7 +24,10 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
   const { data: profileVisits, isLoading: visitsLoading } = useProfileVisits(period);
   const { data: sales, isLoading: salesLoading } = useSalesOverview(period);
 
+  // Followers total + trend
+  const { data: followerData, isLoading: followerLoading } = useQuery({
     queryKey: ["overview-followers", user?.id, period],
+
     queryFn: async () => {
       if (!user?.id) throw new Error("No user");
       const { count: total } = await supabase
