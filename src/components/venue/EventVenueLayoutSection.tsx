@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -40,16 +40,15 @@ export function EventVenueLayoutSection({
 
   const applyTemplate = (layoutId: string) => {
     setPickedLayoutId(layoutId);
-    // templateAreas resolves async; apply on next render via effectless pattern
-    if (pickedLayoutId === layoutId && templateAreas) {
-      onAreasChange(templateAreas.map((a, i) => ({ ...a, display_order: i })));
-    }
   };
 
   // Apply the fetched template as soon as it lands.
-  if (pickedLayoutId && templateAreas && templateAreas.length > 0 && areas.length === 0) {
+  useEffect(() => {
+    if (!pickedLayoutId || !templateAreas) return;
     onAreasChange(templateAreas.map((a, i) => ({ ...a, display_order: i })));
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickedLayoutId, templateAreas]);
+
 
   const saveAsTemplate = async () => {
     if (areas.length === 0) return;
