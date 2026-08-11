@@ -383,7 +383,7 @@ export const GuestlistManagementSheet = ({
   if (eventHasPaymentQr) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl">
+        <SheetContent side="bottom" className="light-sheet h-[80vh] rounded-t-3xl">
           <SheetHeader className="pb-2">
             <SheetTitle className="font-brand text-lg">Gestionar Lista</SheetTitle>
           </SheetHeader>
@@ -532,7 +532,7 @@ export const GuestlistManagementSheet = ({
   // ── Original view for events without payment QR → 3 tabs ─────────────────
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl">
+      <SheetContent side="bottom" className="light-sheet h-[80vh] rounded-t-3xl">
         <SheetHeader className="pb-2">
           <SheetTitle className="font-brand text-lg">Gestionar Lista</SheetTitle>
         </SheetHeader>
