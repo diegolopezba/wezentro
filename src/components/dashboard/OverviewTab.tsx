@@ -22,9 +22,8 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
   const { data: reached, isLoading: reachedLoading } = useAccountsReached(period);
   const { data: interactions, isLoading: interactionsLoading } = useInteractionSummary(period);
   const { data: profileVisits, isLoading: visitsLoading } = useProfileVisits(period);
+  const { data: sales, isLoading: salesLoading } = useSalesOverview(period);
 
-  // Followers total + trend
-  const { data: followerData, isLoading: followerLoading } = useQuery({
     queryKey: ["overview-followers", user?.id, period],
     queryFn: async () => {
       if (!user?.id) throw new Error("No user");
