@@ -91,6 +91,8 @@ const EventDetail = () => {
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
     showTierPicker, setShowTierPicker,
+    showAreaPicker, setShowAreaPicker,
+    eventAreas, hasAreas, selectedArea, areaBooking, openPaymentForArea,
     showLeaveConfirm, setShowLeaveConfirm,
     ticketTiers, hasTiers, isSequential, selectedTier, openPaymentForTier,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
