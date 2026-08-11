@@ -1,18 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Upload, X, QrCode, UtensilsCrossed, CalendarCheck, ChevronDown, Lock } from "lucide-react";
+import { Loader2, UtensilsCrossed, CalendarCheck, ChevronDown, Lock } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { compressImage, blobToFile } from "@/lib/mediaCompression";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
 import { useMyMenu } from "@/hooks/useMenu";
 import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
@@ -67,11 +66,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
   const [pricingMode, setPricingMode] = useState<TicketPricingMode>("single");
   const [saleMode, setSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
-  const [isUploadingQr, setIsUploadingQr] = useState(false);
-  const [isCompressingQr, setIsCompressingQr] = useState(false);
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
-  const qrInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     title: event.title || "",
@@ -83,8 +79,6 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     longitude: event.longitude ?? null,
     price: event.price?.toString() || "0",
     max_guestlist_capacity: event.max_guestlist_capacity?.toString() || "",
-    has_guestlist: event.has_guestlist || false,
-    payment_qr_url: event.payment_qr_url || "",
     show_menu_button: event.show_menu_button ?? false,
     show_reservation_button: event.show_reservation_button ?? false,
     is_location_secret: event.is_location_secret ?? false,
@@ -102,8 +96,6 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         longitude: event.longitude ?? null,
         price: event.price?.toString() || "0",
         max_guestlist_capacity: event.max_guestlist_capacity?.toString() || "",
-        has_guestlist: event.has_guestlist || false,
-        payment_qr_url: event.payment_qr_url || "",
         show_menu_button: event.show_menu_button ?? false,
         show_reservation_button: event.show_reservation_button ?? false,
         is_location_secret: event.is_location_secret ?? false,
@@ -132,59 +124,6 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       setDraftTiers([]);
     }
   }, [open, existingTiers]);
-
-  const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Por favor sube una imagen");
-      return;
-    }
-
-    setIsCompressingQr(true);
-    let fileToUpload = file;
-    
-    try {
-      // Compress QR image (smaller size for QR codes)
-      const result = await compressImage(file, 800, 0.9);
-      fileToUpload = blobToFile(result.blob, file.name);
-    } catch (error) {
-      console.error("Compression failed, using original:", error);
-    } finally {
-      setIsCompressingQr(false);
-    }
-
-    setIsUploadingQr(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        toast.error("No autenticado");
-        return;
-      }
-
-      const fileExt = fileToUpload.name.split(".").pop();
-      const fileName = `${session.user.id}/payment-qr-${event.id}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("event-images")
-        .upload(fileName, fileToUpload, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage.from("event-images").getPublicUrl(fileName);
-      setFormData({ ...formData, payment_qr_url: `${data.publicUrl}?t=${Date.now()}` });
-      toast.success("QR de pago subido");
-    } catch (error: any) {
-      toast.error(error.message || "Error al subir QR");
-    } finally {
-      setIsUploadingQr(false);
-    }
-  };
-
-  const removePaymentQr = () => {
-    setFormData({ ...formData, payment_qr_url: "" });
-  };
 
   const handleSave = async () => {
     try {
@@ -240,8 +179,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           longitude: formData.longitude,
           price: legacyPrice,
           max_guestlist_capacity: formData.max_guestlist_capacity ? parseInt(formData.max_guestlist_capacity) : null,
-          has_guestlist: formData.has_guestlist,
-          payment_qr_url: formData.payment_qr_url || null,
+          has_guestlist: isPost ? false : true,
           show_menu_button: formData.show_menu_button,
           show_reservation_button: formData.show_reservation_button,
           is_location_secret: formData.is_location_secret,
@@ -302,8 +240,6 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       toast.error(error.message || "Error al actualizar evento");
     }
   };
-
-  const showPaymentQrSection = isBusiness && formData.has_guestlist && parseFloat(formData.price) > 0;
 
   const body = (
     <>
