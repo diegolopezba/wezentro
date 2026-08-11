@@ -13,6 +13,12 @@ export interface SpecialInvite {
   redeemed_by: string | null;
   redeemed_at: string | null;
   created_at: string;
+  guest_name: string | null;
+  guest_email: string | null;
+  segment: string | null;
+  batch_id: string | null;
+  email_status: "not_sent" | "queued" | "sent" | "failed";
+  email_sent_at: string | null;
 }
 
 const PENDING_INVITE_KEY = "zentro_pending_special_invite";
