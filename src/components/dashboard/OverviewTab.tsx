@@ -3,6 +3,7 @@ import { Eye, MousePointerClick, TrendingUp, UserCheck, UsersRound, FileText, Mo
 import { StatsCard } from "./StatsCard";
 import { PeriodSelector, Period } from "./PeriodSelector";
 import { SalesPaceSection } from "./SalesPaceSection";
+import { ConversionFunnel } from "./ConversionFunnel";
 import { useSalesOverview } from "@/hooks/useSalesOverview";
 import { formatBs } from "@/components/sales/salesUtils";
 import { useAccountsReached, useInteractionSummary, useProfileVisits } from "@/hooks/useBusinessAnalytics";
