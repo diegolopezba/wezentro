@@ -22,6 +22,10 @@ interface PaymentQRModalProps {
   price: number;
   ticketTierId?: string | null;
   ticketTierName?: string | null;
+  /** Visual venue layout checkout: the area being bought and its existing hold. */
+  eventAreaId?: string | null;
+  areaBookingId?: string | null;
+  partySize?: number | null;
   /** "paid" = Qhantuy QR checkout (default). "free" = confirm-to-join sheet. "invite" = special guest invitation. */
   mode?: "paid" | "free" | "invite";
   /** Called when the user confirms in free/invite mode. Should throw on failure. */
