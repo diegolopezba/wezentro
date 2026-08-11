@@ -13,6 +13,7 @@ import { ContentTab } from "@/components/dashboard/ContentTab";
 import { AudienceTab } from "@/components/dashboard/AudienceTab";
 import { ActionsTab } from "@/components/dashboard/ActionsTab";
 import { SalesTab } from "@/components/dashboard/SalesTab";
+import { PromotersTab } from "@/components/dashboard/PromotersTab";
 import { ReservasTab } from "@/components/dashboard/ReservasTab";
 import { ComingSoonTab } from "@/components/dashboard/ComingSoonTab";
 import { m } from "framer-motion";
@@ -20,10 +21,11 @@ import type { Period } from "@/components/dashboard/PeriodSelector";
 
 const TABS = [
   { value: "overview", label: "Overview" },
-  { value: "content", label: "Contenido" },
-  { value: "audience", label: "Audiencia" },
-  { value: "actions", label: "Acciones" },
   { value: "sales", label: "Ventas" },
+  { value: "promotores", label: "Promotores" },
+  { value: "audience", label: "Audiencia" },
+  { value: "content", label: "Contenido" },
+  { value: "actions", label: "Acciones" },
   { value: "reservas", label: "Reservas" },
   { value: "soon", label: "Próximamente" },
 ];
@@ -148,17 +150,20 @@ const BusinessDashboard = () => {
           <TabsContent value="overview">
             <OverviewTab period={period} onPeriodChange={setPeriod} />
           </TabsContent>
-          <TabsContent value="content">
-            <ContentTab />
+          <TabsContent value="sales">
+            <SalesTab />
+          </TabsContent>
+          <TabsContent value="promotores">
+            <PromotersTab />
           </TabsContent>
           <TabsContent value="audience">
             <AudienceTab />
           </TabsContent>
+          <TabsContent value="content">
+            <ContentTab />
+          </TabsContent>
           <TabsContent value="actions">
             <ActionsTab period={period} openBoostWizard={openBoostWizard} />
-          </TabsContent>
-          <TabsContent value="sales">
-            <SalesTab />
           </TabsContent>
           <TabsContent value="reservas">
             <ReservasTab period={period} onPeriodChange={setPeriod} />
