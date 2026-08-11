@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ import {
   getSpecialInviteUrl,
 } from "@/hooks/useSpecialInvites";
 import { BulkInviteImportSheet } from "@/components/events/BulkInviteImportSheet";
+import { buildInvitesXlsx, downloadXlsx } from "@/lib/inviteImport";
+import { cn } from "@/lib/utils";
 
 interface SpecialInvitesPanelProps {
   eventId: string;
@@ -22,11 +24,50 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const [label, setLabel] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [activeSegment, setActiveSegment] = useState<string>("__all__");
 
   const { data: invites = [], isLoading } = useEventSpecialInvites(eventId);
   const createInvite = useCreateSpecialInvite();
   const revokeInvite = useRevokeSpecialInvite();
   const sendEmails = useSendSpecialInviteEmails();
+
+  const segments = useMemo(() => {
+    const set = new Set<string>();
+    let hasNone = false;
+    invites.forEach((i) => (i.segment ? set.add(i.segment) : (hasNone = true)));
+    const list = Array.from(set).sort((a, b) => a.localeCompare(b));
+    return { list, hasNone };
+  }, [invites]);
+
+  const showPills = segments.list.length > 0;
+
+  const filteredInvites = useMemo(() => {
+    if (!showPills || activeSegment === "__all__") return invites;
+    if (activeSegment === "__none__") return invites.filter((i) => !i.segment);
+    return invites.filter((i) => i.segment === activeSegment);
+  }, [invites, activeSegment, showPills]);
+
+  const handleExport = () => {
+    if (filteredInvites.length === 0) {
+      toast.error("No hay invitaciones para exportar");
+      return;
+    }
+    const rows = filteredInvites.map((i) => ({
+      guest_name: i.guest_name,
+      guest_email: i.guest_email,
+      segment: i.segment,
+      url: getSpecialInviteUrl(i.token),
+      status: i.status,
+    }));
+    const suffix =
+      activeSegment === "__all__" ? "todos" : activeSegment === "__none__" ? "sin-segmento" : activeSegment;
+    downloadXlsx(
+      `invitaciones-${suffix.toLowerCase().replace(/\s+/g, "-")}.xlsx`,
+      buildInvitesXlsx(rows)
+    );
+  };
+
+
 
   const handleResend = async (inviteId: string) => {
     try {
@@ -107,6 +148,40 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
         </Button>
       </div>
 
+      {showPills && (
+        <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
+          {[
+            { key: "__all__", label: `Todos (${invites.length})` },
+            ...segments.list.map((s) => ({
+              key: s,
+              label: `${s} (${invites.filter((i) => i.segment === s).length})`,
+            })),
+            ...(segments.hasNone
+              ? [{ key: "__none__", label: `Sin segmento (${invites.filter((i) => !i.segment).length})` }]
+              : []),
+          ].map((pill) => (
+            <button
+              key={pill.key}
+              onClick={() => setActiveSegment(pill.key)}
+              className={cn(
+                "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors",
+                activeSegment === pill.key
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-muted-foreground border-border"
+              )}
+            >
+              {pill.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && invites.length > 0 && (
+        <Button variant="secondary" className="w-full" onClick={handleExport}>
+          <Download className="w-4 h-4 mr-2" /> Descargar Excel
+          {showPills && activeSegment !== "__all__" ? " del segmento" : ""}
+        </Button>
+      )}
 
       {isLoading ? (
         <div className="flex justify-center py-10">
@@ -116,9 +191,13 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
         <p className="text-center text-sm text-muted-foreground py-8">
           Todavía no creaste invitaciones especiales
         </p>
+      ) : filteredInvites.length === 0 ? (
+        <p className="text-center text-sm text-muted-foreground py-8">
+          No hay invitaciones en este segmento
+        </p>
       ) : (
         <div className="space-y-2">
-          {invites.map((invite) => (
+          {filteredInvites.map((invite) => (
             <div
               key={invite.id}
               className="rounded-2xl border border-border bg-card px-4 py-3 flex items-center gap-3"
