@@ -34,12 +34,15 @@ Zentro's email system is built for one-off app emails (confirmations, receipts) 
 ## Technical details
 
 **Schema (migration):**
-- `event_special_invites`: add `guest_name text`, `guest_email text`, `email_status text default 'not_sent'` (`not_sent | queued | sent | failed`), `email_sent_at timestamptz`, `batch_id uuid`.
+- `event_special_invites`: add `guest_name text`, `guest_email text`, `email_status text default 'not_sent'` (`not_sent | queued | sent | failed`), `email_sent_at timestamptz`, `batch_id uuid`, `segment text` (the batch label, max ~24 chars).
+- `guestlist_entries`: add `special_guest_label text` — copied from the invite's `segment` when redeemed, so the ticket can render it without re-reading the invite.
 - Index on `(event_id, status)` and `(event_id, batch_id)` for fast filtering at 2000 rows.
 - Partial unique index on `(event_id, lower(guest_email))` where `guest_email is not null`, so re-uploading the same file doesn't duplicate a guest.
 - Keep existing RLS (owner manages; authenticated can read by token). Restrict the broad "authenticated users can read invites" policy so emails aren't publicly readable — reads limited to the row's own token lookup via a SECURITY DEFINER function used by `/i/:token`, plus full access for the event owner.
+- Update `redeem_special_invite` to write `special_guest_label` onto the guestlist entry.
 
-**Bulk creation RPC:** `bulk_create_special_invites(_event_id uuid, _guests jsonb)` — validates ownership, inserts up to N rows per call with generated tokens, returns created rows and skipped duplicates. Client chunks the file into batches of ~200 rows and shows progress.
+**Bulk creation RPC:** `bulk_create_special_invites(_event_id uuid, _segment text, _guests jsonb)` — validates ownership, inserts up to N rows per call with generated tokens and the shared `batch_id` + `segment`, returns created rows and skipped duplicates. Client chunks the file into batches of ~200 rows and shows progress.
+
 
 **Parsing:** add `xlsx` (SheetJS) for `.xlsx` and CSV parsing in the browser; no file is uploaded to the server, only parsed rows.
 
