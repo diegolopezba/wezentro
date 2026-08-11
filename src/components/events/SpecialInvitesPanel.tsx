@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Plus, Copy, Share2, Check, Ban, Gift } from "lucide-react";
+import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,8 +8,10 @@ import {
   useEventSpecialInvites,
   useCreateSpecialInvite,
   useRevokeSpecialInvite,
+  useSendSpecialInviteEmails,
   getSpecialInviteUrl,
 } from "@/hooks/useSpecialInvites";
+import { BulkInviteImportSheet } from "@/components/events/BulkInviteImportSheet";
 
 interface SpecialInvitesPanelProps {
   eventId: string;
@@ -19,10 +21,24 @@ interface SpecialInvitesPanelProps {
 export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const [label, setLabel] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data: invites = [], isLoading } = useEventSpecialInvites(eventId);
   const createInvite = useCreateSpecialInvite();
   const revokeInvite = useRevokeSpecialInvite();
+  const sendEmails = useSendSpecialInviteEmails();
+
+  const handleResend = async (inviteId: string) => {
+    try {
+      const res = await sendEmails.mutateAsync({ eventId, inviteIds: [inviteId] });
+      toast[res.sent ? "success" : "error"](
+        res.sent ? "Invitación enviada" : "No se pudo enviar el correo"
+      );
+    } catch {
+      toast.error("No se pudo enviar el correo");
+    }
+  };
+
 
   const handleCreate = async () => {
     try {
