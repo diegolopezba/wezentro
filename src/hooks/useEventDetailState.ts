@@ -73,6 +73,7 @@ export const useEventDetailState = (
   const { data: saveCount = 0 } = useSaveCount(event ? eventId : undefined);
   const { data: attendeesGoing = [] } = useFollowingGoing(eventId);
   const { data: ticketTiers = [] } = useTicketTiers(eventId);
+  const { data: eventAreas = [] } = useEventAreas(eventId);
 
   // Mutations
   const joinGuestlist = useJoinGuestlist();
