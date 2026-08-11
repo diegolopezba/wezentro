@@ -45,6 +45,8 @@ import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSal
 import { BusinessRequiredSheet } from "@/components/events/BusinessRequiredSheet";
 import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
 import { useReplaceTicketTiers } from "@/hooks/useTicketTiers";
+import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSection";
+import { useReplaceEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 
 type ContentType = "post" | "event";
@@ -122,6 +124,11 @@ const Create = () => {
   const [tierSaleMode, setTierSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const replaceTiers = useReplaceTicketTiers();
+
+  // Optional visual venue layout (events only, business accounts)
+  const [useAreas, setUseAreas] = useState(false);
+  const [draftAreas, setDraftAreas] = useState<DraftArea[]>([]);
+  const replaceEventAreas = useReplaceEventAreas();
   const { hasBeneficiary } = useHasBeneficiary();
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
