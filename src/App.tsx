@@ -160,6 +160,7 @@ const App = () => {
 
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
+          <KeyboardViewportObserver />
           <Toaster />
           <Sonner position="top-center" theme="dark" />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
