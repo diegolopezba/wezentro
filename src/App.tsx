@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
 
+import { KeyboardViewportObserver } from "@/components/KeyboardViewportObserver";
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
