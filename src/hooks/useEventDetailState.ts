@@ -118,7 +118,11 @@ export const useEventDetailState = (
   const isGuestlistFull = maxGuestlistCapacity != null && approvedCount >= maxGuestlistCapacity;
 
   const legacyHasPaid = (event?.price ?? 0) > 0;
-  const hasPaidTickets = hasTiers
+  // Visual venue layout mode (opt-in per event) takes over the checkout when present.
+  const hasAreas = eventAreas.length > 0;
+  const hasPaidTickets = hasAreas
+    ? eventAreas.some((a) => Number(a.price) > 0)
+    : hasTiers
     ? ticketTiers.some((t) => Number(t.price) > 0)
     : legacyHasPaid;
   // Any priced event (legacy single price or priced tiers) goes through the Qhantuy checkout modal.
