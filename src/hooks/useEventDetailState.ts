@@ -15,6 +15,7 @@ import { useIsEventLiked, useLikeEvent, useUnlikeEvent, useEventLikes } from "@/
 import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useReposts";
 import { useFollowingGoing } from "@/hooks/useFollowingGoing";
 import { useTicketTiers, computeTierAvailability, type TicketTier } from "@/hooks/useTicketTiers";
+import { useEventAreas, confirmFreeAreaBooking, type EventArea } from "@/hooks/useVenueLayouts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { format } from "date-fns";
@@ -46,8 +47,11 @@ export const useEventDetailState = (
   const [showReservationSheet, setShowReservationSheet] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showTierPicker, setShowTierPicker] = useState(false);
+  const [showAreaPicker, setShowAreaPicker] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [selectedTier, setSelectedTier] = useState<TicketTier | null>(null);
+  const [selectedArea, setSelectedArea] = useState<EventArea | null>(null);
+  const [areaBooking, setAreaBooking] = useState<{ bookingId: string; partySize: number } | null>(null);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(true);
