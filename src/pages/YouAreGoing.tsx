@@ -31,7 +31,7 @@ const YouAreGoing = () => {
       if (!id || !user) return null;
       const { data, error } = await supabase
         .from("guestlist_entries")
-        .select("qr_code_token, status, payment_status, is_special_guest")
+        .select("qr_code_token, status, payment_status, is_special_guest, special_guest_label")
         .eq("event_id", id)
         .eq("user_id", user.id)
         .maybeSingle();
