@@ -319,10 +319,18 @@ const Create = () => {
       return;
     }
 
+    // Optional visual layout (events only, business accounts)
+    const useLayout = !isPost && isBusiness && useAreas && draftAreas.length > 0;
+    if (!isPost && isBusiness && useAreas && draftAreas.length === 0) {
+      toast.error("Añade al menos un área al plano o desactiva la venta por áreas");
+      return;
+    }
+    const hasPaidArea = useLayout && draftAreas.some((a) => (a.price ?? 0) > 0);
+
     // Gate paid tickets: require Business + Qhantuy beneficiary
     const hasPaidSingle = !isPost && formData.price && parseFloat(formData.price) > 0;
     const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
-    if (hasPaidSingle || hasPaidTier || (!isPost && isBusiness && pricingMode === "tiers")) {
+    if (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers")) {
       if (!isBusiness) { setShowBusinessGate(true); return; }
       if (!hasBeneficiary) { setShowBeneficiaryGate(true); return; }
     }
