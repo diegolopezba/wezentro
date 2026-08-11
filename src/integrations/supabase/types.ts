@@ -3729,6 +3729,27 @@ export type Database = {
       cleanup_old_event_interactions: { Args: never; Returns: undefined }
       cleanup_session_feed_state: { Args: never; Returns: undefined }
       cleanup_web_vitals: { Args: never; Returns: undefined }
+      confirm_free_area_booking: {
+        Args: { _booking_id: string }
+        Returns: {
+          created_at: string
+          event_area_id: string
+          guestlist_entry_id: string | null
+          hold_expires_at: string | null
+          id: string
+          party_size: number
+          payment_session_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "area_bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
