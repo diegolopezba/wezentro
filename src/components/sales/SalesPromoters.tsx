@@ -45,6 +45,7 @@ export const SalesPromoters = () => {
 
   const totalClicks = rows.reduce((s, r) => s + Number(r.clicks), 0);
   const totalTickets = rows.reduce((s, r) => s + Number(r.tickets_sold), 0);
+  const totalRevenue = rows.reduce((s, r) => s + Number(r.revenue_bs || 0), 0);
   const conv = totalClicks ? (totalTickets / totalClicks) * 100 : 0;
 
   return (
@@ -53,7 +54,10 @@ export const SalesPromoters = () => {
         <Stat label="Promotores" value={`${rows.length}`} />
         <Stat label="Clicks" value={`${totalClicks}`} />
         <Stat label="Conversión" value={`${conv.toFixed(1)}%`} />
+        <Stat label="Tickets" value={`${totalTickets}`} />
+        <Stat label="Ingresos" value={formatBs(totalRevenue)} />
       </div>
+
 
       <div className="flex gap-1 bg-secondary rounded-full p-0.5 w-fit">
         {SORTS.map((s) => (

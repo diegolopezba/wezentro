@@ -1,12 +1,16 @@
 import { m } from "framer-motion";
-import { Eye, MousePointerClick, TrendingUp, UserCheck, UsersRound, FileText, MousePointer2 } from "lucide-react";
+import { Eye, MousePointerClick, TrendingUp, UserCheck, UsersRound, FileText, MousePointer2, Coins, Ticket, Receipt } from "lucide-react";
 import { StatsCard } from "./StatsCard";
 import { PeriodSelector, Period } from "./PeriodSelector";
+import { SalesPaceSection } from "./SalesPaceSection";
+import { useSalesOverview } from "@/hooks/useSalesOverview";
+import { formatBs } from "@/components/sales/salesUtils";
 import { useAccountsReached, useInteractionSummary, useProfileVisits } from "@/hooks/useBusinessAnalytics";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+
 
 interface OverviewTabProps {
   period: Period;
