@@ -18,6 +18,7 @@ import { useTicketTiers, computeTierAvailability, type TicketTier } from "@/hook
 import { useEventAreas, confirmFreeAreaBooking, type EventArea } from "@/hooks/useVenueLayouts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
+import { trackCheckoutTap } from "@/lib/analyticsTracking";
 import { format } from "date-fns";
 
 /**
