@@ -24,6 +24,7 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const [label, setLabel] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [activeSegment, setActiveSegment] = useState<string>("__all__");
 
   const { data: invites = [], isLoading } = useEventSpecialInvites(eventId);
   const createInvite = useCreateSpecialInvite();
