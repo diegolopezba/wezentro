@@ -258,6 +258,7 @@ const AppRoutes = () => {
         <Route path="/settings/blocks" element={<ProtectedRoute requireProfile><LazyRoute><BlockedUsers /></LazyRoute></ProtectedRoute>} />
         <Route path="/business/event/:eventId/promoters" element={<ProtectedRoute requireProfile><LazyRoute><EventPromoterDashboard /></LazyRoute></ProtectedRoute>} />
         <Route path="/i/:token" element={<LazyRoute><SpecialInvite /></LazyRoute>} />
+        <Route path="/unsubscribe" element={<LazyRoute><Unsubscribe /></LazyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<LazyRoute><NotFound /></LazyRoute>} />
       </Routes>
