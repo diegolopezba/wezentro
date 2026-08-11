@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, ChevronLeft, Ticket, Calendar, Gift, UtensilsCrossed, Briefcase, Ban } from "lucide-react";
+import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, ChevronLeft, Gift, Briefcase, Ban } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
@@ -26,19 +26,10 @@ const Settings = () => {
 
   const sections: SettingsSection[] = [
     {
-      title: "Actividad",
-      items: [
-        { icon: Ticket, label: "Entradas", path: "/tickets" },
-        { icon: UtensilsCrossed, label: "Mis Reservas", path: "/tickets" },
-        { icon: Calendar, label: "Eventos Asistidos", path: "/settings/joined-events" },
-        { icon: Bookmark, label: "Guardados", path: "/saved" },
-      ],
-    },
-    {
       title: "Personal",
       items: [
         { icon: User, label: "Editar Perfil", path: "/edit-profile" },
-        
+        { icon: Bookmark, label: "Guardados", path: "/saved" },
         { icon: Shield, label: "Privacidad", path: "/settings/privacy" },
         { icon: Ban, label: "Usuarios Bloqueados", path: "/settings/blocks" },
         { icon: Gift, label: "Invitar Amigos", path: "/settings/referrals" },
