@@ -283,9 +283,14 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
                 )}
               </Button>
 
-              <Button variant="secondary" className="w-full" onClick={handleExport}>
-                <Download className="w-4 h-4 mr-2" /> Descargar enlaces (CSV)
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="secondary" onClick={handleExportCsv}>
+                  <Download className="w-4 h-4 mr-2" /> CSV
+                </Button>
+                <Button variant="secondary" onClick={handleExportXlsx}>
+                  <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+                </Button>
+              </div>
 
               <Button variant="ghost" className="w-full" onClick={() => onOpenChange(false)}>
                 Listo
