@@ -12,6 +12,8 @@ import {
   getSpecialInviteUrl,
 } from "@/hooks/useSpecialInvites";
 import { BulkInviteImportSheet } from "@/components/events/BulkInviteImportSheet";
+import { buildInvitesXlsx, downloadXlsx } from "@/lib/inviteImport";
+import { cn } from "@/lib/utils";
 
 interface SpecialInvitesPanelProps {
   eventId: string;
