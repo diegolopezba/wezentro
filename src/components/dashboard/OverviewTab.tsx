@@ -134,6 +134,8 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
         <StatsCard title="Ticket prom." value={salesLoading ? "..." : formatBs(sales?.avgTicket || 0)} icon={Receipt} delay={0.1} />
       </div>
 
+      <ConversionFunnel period={period} />
+
       <SalesPaceSection />
 
       <div className="grid grid-cols-3 gap-3">
