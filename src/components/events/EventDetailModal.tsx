@@ -468,9 +468,15 @@ const EventDetailModalInner = () => {
                       <Clock className="w-4 h-4 mr-1" /> Pendiente
                     </Button>
                   ) : (
-                    <Button variant="hero" size="default" onClick={() => navigate(`/going/${id}`)}>
-                      <Check className="w-4 h-4 mr-1" /> Ver entrada
+                    <Button
+                      variant="secondary"
+                      size="default"
+                      onClick={() => navigate(`/going/${id}`)}
+                      className="bg-white text-black border border-border"
+                    >
+                      <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
                     </Button>
+
 
                   )
                 ) : (allTiersSoldOut || isGuestlistFull) ? (
