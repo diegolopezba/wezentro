@@ -19,6 +19,9 @@ Automate the manual "special invite" flow so an organizer can invite thousands o
 
 Guest opens their link → if not registered, they sign up and land back on the event → the event page shows "Aceptar invitación especial" → confirms → gets a free ticket marked "Invitado especial". Exactly the existing behavior; the import just creates many links at once.
 
+**Segment on the ticket:** when the invite came from a named batch, the ticket badge line reads "INVITADO ESPECIAL - VIP" (segment appended after a dash, same line, same styling). With no segment it stays "INVITADO ESPECIAL" as today. The manual one-off invite flow can also take an optional segment name.
+
+
 ## Important note on sending 2000 emails
 
 Zentro's email system is built for one-off app emails (confirmations, receipts) with a throughput around 120/minute, and mass sends from a young sending domain can hurt deliverability. So:
