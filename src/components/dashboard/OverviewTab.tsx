@@ -126,7 +126,17 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
         <PeriodSelector value={period} onChange={onPeriodChange} />
       </div>
 
+      {/* Revenue */}
       <div className="grid grid-cols-3 gap-3">
+        <StatsCard title="Ingresos" value={salesLoading ? "..." : formatBs(sales?.revenue || 0)} icon={Coins} delay={0} />
+        <StatsCard title="Tickets vendidos" value={salesLoading ? "..." : sales?.tickets || 0} icon={Ticket} delay={0.05} />
+        <StatsCard title="Ticket prom." value={salesLoading ? "..." : formatBs(sales?.avgTicket || 0)} icon={Receipt} delay={0.1} />
+      </div>
+
+      <SalesPaceSection />
+
+      <div className="grid grid-cols-3 gap-3">
+
         <StatsCard title="Impresiones" value={interactionsLoading ? "..." : interactions?.impressions || 0} icon={Eye} delay={0} />
         <StatsCard title="Views" value={interactionsLoading ? "..." : interactions?.views || 0} icon={MousePointer2} delay={0.05} />
         <StatsCard title="CTR" value={interactionsLoading ? "..." : `${ctr}%`} icon={TrendingUp} delay={0.1} />
