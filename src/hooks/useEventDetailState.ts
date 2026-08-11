@@ -256,8 +256,28 @@ export const useEventDetailState = (
     setShowPaymentModal(true);
   };
 
+  /** Called by the visual layout picker once the area is atomically held. */
+  const openPaymentForArea = ({
+    area,
+    partySize,
+    bookingId,
+  }: { area: EventArea; partySize: number; bookingId: string }) => {
+    setSelectedTier(null);
+    setSelectedArea(area);
+    setAreaBooking({ bookingId, partySize });
+    setShowAreaPicker(false);
+    setShowPaymentModal(true);
+  };
+
   const handleBuyTicket = async () => {
     if (isGuest) { promptAuth({ action: "unirte a este evento" }); return; }
+    // Visual venue layout path → pick an area first
+    if (hasAreas) {
+      setSelectedArea(null);
+      setAreaBooking(null);
+      setShowAreaPicker(true);
+      return;
+    }
     // Multi-tier path
     if (hasTiers) {
       if (allTiersSoldOut) { toast.error("Todas las entradas están agotadas"); return; }
@@ -278,6 +298,11 @@ export const useEventDetailState = (
 
   const handleConfirmFreeJoin = async () => {
     try {
+      // Free area booking → confirm the existing hold instead of a plain guestlist join
+      if (areaBooking) {
+        await confirmFreeAreaBooking(areaBooking.bookingId);
+        return;
+      }
       await joinGuestlist.mutateAsync(eventId!);
     } catch (error: any) {
       toast.error(error.message || "Error al unirte");
