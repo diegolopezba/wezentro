@@ -97,3 +97,22 @@ export const trackReserveTap = async (eventId: string, userId: string | null) =>
 export const trackEventImpression = async (eventId: string, _userId: string | null) => {
   enqueueImpression(eventId, "impression");
 };
+
+/**
+ * Track a "Comprar" / "Unirme" tap on an event detail (page or overlay).
+ *
+ * Low volume (one row per real intent tap) and timestamped, so it powers the
+ * period-scoped middle stage of the conversion funnel.
+ */
+export const trackCheckoutTap = async (eventId: string, userId: string | null) => {
+  if (!userId) return;
+  try {
+    await supabase.from("event_interactions").insert({
+      event_id: eventId,
+      user_id: userId,
+      type: "checkout_tap",
+    });
+  } catch (error) {
+    console.error("Failed to track checkout tap:", error);
+  }
+};
