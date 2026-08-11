@@ -389,6 +389,8 @@ const Create = () => {
       // For tier mode, legacy price = cheapest tier (used as a fallback display)
       const insertPrice = useTiers && cleanTiers.length > 0
         ? Math.min(...cleanTiers.map((t) => t.price))
+        : useLayout
+        ? Math.min(...draftAreas.map((a) => a.price ?? 0))
         : (!isPost && formData.price ? parseFloat(formData.price) : 0);
 
       const { data, error } = await supabase.
