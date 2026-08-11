@@ -79,6 +79,7 @@ export const SalesEvents = () => {
                 <Users className="w-3 h-3" /> {e.tickets_sold}{e.capacity > 0 ? `/${e.capacity}` : ""} vendidos
               </span>
               <span>{e.checked_in} check-in</span>
+              {conv !== null && <span>{conv.toFixed(1).replace(".", ",")}% conv.</span>}
               {e.attributed_tickets > 0 && <span>{e.attributed_tickets} vía promotores</span>}
             </div>
 
