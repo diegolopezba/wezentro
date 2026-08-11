@@ -120,7 +120,7 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
         if (!o) setTimeout(reset, 300);
       }}
     >
-      <DrawerContent className="max-h-[92vh]">
+      <DrawerContent className="light-sheet max-h-[92vh]">
         <div className="px-5 pb-8 pt-2 overflow-y-auto space-y-5">
           <div>
             <p className="text-xs text-muted-foreground">Invitaciones masivas</p>
