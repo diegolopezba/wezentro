@@ -13,6 +13,12 @@ export interface SpecialInvite {
   redeemed_by: string | null;
   redeemed_at: string | null;
   created_at: string;
+  guest_name: string | null;
+  guest_email: string | null;
+  segment: string | null;
+  batch_id: string | null;
+  email_status: "not_sent" | "queued" | "sent" | "failed";
+  email_sent_at: string | null;
 }
 
 const PENDING_INVITE_KEY = "zentro_pending_special_invite";
@@ -35,19 +41,18 @@ export const takePendingSpecialInvite = (): string | null => {
 export const getSpecialInviteUrl = (token: string) =>
   `${window.location.origin}/i/${token}`;
 
-/** Look up a single invite by its link token. */
+/** Look up a single invite by its link token (token-scoped, no email exposure). */
 export function useSpecialInvite(token: string | undefined) {
   return useQuery({
     queryKey: ["special-invite", token],
     queryFn: async () => {
       if (!token) return null;
-      const { data, error } = await supabase
-        .from("event_special_invites")
-        .select("*")
-        .eq("token", token)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("get_special_invite_by_token", {
+        _token: token,
+      });
       if (error) throw error;
-      return data as SpecialInvite | null;
+      const row = Array.isArray(data) ? data[0] : data;
+      return (row ?? null) as SpecialInvite | null;
     },
     enabled: !!token,
     staleTime: 30_000,
@@ -80,10 +85,12 @@ export function useCreateSpecialInvite() {
     mutationFn: async ({
       eventId,
       label,
+      segment,
       ticketTierId,
     }: {
       eventId: string;
       label?: string | null;
+      segment?: string | null;
       ticketTierId?: string | null;
     }) => {
       if (!user) throw new Error("Must be logged in");
@@ -93,6 +100,7 @@ export function useCreateSpecialInvite() {
           event_id: eventId,
           created_by: user.id,
           label: label?.trim() || null,
+          segment: segment?.trim() || null,
           ticket_tier_id: ticketTierId ?? null,
         })
         .select()
@@ -101,6 +109,76 @@ export function useCreateSpecialInvite() {
       return data as SpecialInvite;
     },
     onSuccess: (_data, { eventId }) => {
+      queryClient.invalidateQueries({ queryKey: ["event-special-invites", eventId] });
+    },
+  });
+}
+
+/** Bulk-create invites from an imported guest list (chunked, ~200 rows per call). */
+export function useBulkCreateSpecialInvites() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      eventId,
+      segment,
+      guests,
+      onProgress,
+    }: {
+      eventId: string;
+      segment: string | null;
+      guests: { name: string | null; email: string }[];
+      onProgress?: (done: number, total: number) => void;
+    }) => {
+      const CHUNK = 200;
+      const batchId = crypto.randomUUID();
+      let created = 0;
+      let skipped = 0;
+
+      for (let i = 0; i < guests.length; i += CHUNK) {
+        const chunk = guests.slice(i, i + CHUNK);
+        const { data, error } = await supabase.rpc("bulk_create_special_invites", {
+          _event_id: eventId,
+          _segment: segment,
+          _guests: chunk.map((g) => ({ name: g.name, email: g.email })),
+          _batch_id: batchId,
+        });
+        if (error) throw error;
+        const res = (data ?? {}) as { created?: number; skipped?: number };
+        created += res.created ?? 0;
+        skipped += res.skipped ?? 0;
+        onProgress?.(Math.min(i + CHUNK, guests.length), guests.length);
+      }
+
+      return { batchId, created, skipped };
+    },
+    onSuccess: (_d, { eventId }) => {
+      queryClient.invalidateQueries({ queryKey: ["event-special-invites", eventId] });
+    },
+  });
+}
+
+/** Send (or retry) invitation emails for a batch. */
+export function useSendSpecialInviteEmails() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      eventId,
+      batchId,
+      inviteIds,
+    }: {
+      eventId: string;
+      batchId?: string;
+      inviteIds?: string[];
+    }) => {
+      const { data, error } = await supabase.functions.invoke("send-special-invites", {
+        body: { eventId, batchId, inviteIds },
+      });
+      if (error) throw error;
+      return data as { sent: number; failed: number; processed: number };
+    },
+    onSuccess: (_d, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ["event-special-invites", eventId] });
     },
   });

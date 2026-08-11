@@ -704,37 +704,55 @@ export type Database = {
       }
       event_special_invites: {
         Row: {
+          batch_id: string | null
           created_at: string
           created_by: string
+          email_sent_at: string | null
+          email_status: string
           event_id: string
+          guest_email: string | null
+          guest_name: string | null
           id: string
           label: string | null
           redeemed_at: string | null
           redeemed_by: string | null
+          segment: string | null
           status: string
           ticket_tier_id: string | null
           token: string
         }
         Insert: {
+          batch_id?: string | null
           created_at?: string
           created_by: string
+          email_sent_at?: string | null
+          email_status?: string
           event_id: string
+          guest_email?: string | null
+          guest_name?: string | null
           id?: string
           label?: string | null
           redeemed_at?: string | null
           redeemed_by?: string | null
+          segment?: string | null
           status?: string
           ticket_tier_id?: string | null
           token?: string
         }
         Update: {
+          batch_id?: string | null
           created_at?: string
           created_by?: string
+          email_sent_at?: string | null
+          email_status?: string
           event_id?: string
+          guest_email?: string | null
+          guest_name?: string | null
           id?: string
           label?: string | null
           redeemed_at?: string | null
           redeemed_by?: string | null
+          segment?: string | null
           status?: string
           ticket_tier_id?: string | null
           token?: string
@@ -1015,6 +1033,7 @@ export type Database = {
           payment_status: string | null
           promoter_id: string | null
           qr_code_token: string | null
+          special_guest_label: string | null
           status: string | null
           ticket_tier_id: string | null
           user_id: string
@@ -1030,6 +1049,7 @@ export type Database = {
           payment_status?: string | null
           promoter_id?: string | null
           qr_code_token?: string | null
+          special_guest_label?: string | null
           status?: string | null
           ticket_tier_id?: string | null
           user_id: string
@@ -1045,6 +1065,7 @@ export type Database = {
           payment_status?: string | null
           promoter_id?: string | null
           qr_code_token?: string | null
+          special_guest_label?: string | null
           status?: string | null
           ticket_tier_id?: string | null
           user_id?: string
@@ -3695,6 +3716,15 @@ export type Database = {
       }
     }
     Functions: {
+      bulk_create_special_invites: {
+        Args: {
+          _batch_id?: string
+          _event_id: string
+          _guests: Json
+          _segment: string
+        }
+        Returns: Json
+      }
       bulk_upsert_category_preferences: {
         Args: { _records: Json }
         Returns: undefined
@@ -3983,6 +4013,19 @@ export type Database = {
         }[]
       }
       get_save_count: { Args: { _event_id: string }; Returns: number }
+      get_special_invite_by_token: {
+        Args: { _token: string }
+        Returns: {
+          event_id: string
+          guest_name: string
+          id: string
+          redeemed_by: string
+          segment: string
+          status: string
+          ticket_tier_id: string
+          token: string
+        }[]
+      }
       get_trending_scores: {
         Args: never
         Returns: {

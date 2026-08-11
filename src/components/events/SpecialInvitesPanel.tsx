@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Plus, Copy, Share2, Check, Ban, Gift } from "lucide-react";
+import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,8 +8,10 @@ import {
   useEventSpecialInvites,
   useCreateSpecialInvite,
   useRevokeSpecialInvite,
+  useSendSpecialInviteEmails,
   getSpecialInviteUrl,
 } from "@/hooks/useSpecialInvites";
+import { BulkInviteImportSheet } from "@/components/events/BulkInviteImportSheet";
 
 interface SpecialInvitesPanelProps {
   eventId: string;
@@ -19,10 +21,24 @@ interface SpecialInvitesPanelProps {
 export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const [label, setLabel] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data: invites = [], isLoading } = useEventSpecialInvites(eventId);
   const createInvite = useCreateSpecialInvite();
   const revokeInvite = useRevokeSpecialInvite();
+  const sendEmails = useSendSpecialInviteEmails();
+
+  const handleResend = async (inviteId: string) => {
+    try {
+      const res = await sendEmails.mutateAsync({ eventId, inviteIds: [inviteId] });
+      toast[res.sent ? "success" : "error"](
+        res.sent ? "Invitación enviada" : "No se pudo enviar el correo"
+      );
+    } catch {
+      toast.error("No se pudo enviar el correo");
+    }
+  };
+
 
   const handleCreate = async () => {
     try {
@@ -86,7 +102,11 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
             )}
           </Button>
         </div>
+        <Button variant="secondary" className="w-full" onClick={() => setImportOpen(true)}>
+          <Upload className="w-4 h-4 mr-2" /> Importar lista (CSV o Excel)
+        </Button>
       </div>
+
 
       {isLoading ? (
         <div className="flex justify-center py-10">
@@ -104,15 +124,42 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
               className="rounded-2xl border border-border bg-card px-4 py-3 flex items-center gap-3"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {invite.label || "Invitación especial"}
-                </p>
+                <div className="flex items-center gap-2 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {invite.guest_name || invite.label || "Invitación especial"}
+                  </p>
+                  {invite.segment && (
+                    <Badge variant="secondary" className="shrink-0 text-[10px]">
+                      {invite.segment}
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground truncate">
-                  {getSpecialInviteUrl(invite.token)}
+                  {invite.guest_email || getSpecialInviteUrl(invite.token)}
                 </p>
+                {invite.guest_email && (
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    {invite.email_status === "sent"
+                      ? "Correo enviado"
+                      : invite.email_status === "failed"
+                        ? "Envío fallido"
+                        : "Sin enviar"}
+                  </p>
+                )}
               </div>
               {invite.status === "pending" ? (
                 <div className="flex items-center gap-1 shrink-0">
+                  {invite.guest_email && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleResend(invite.id)}
+                      disabled={sendEmails.isPending}
+                      aria-label="Enviar por email"
+                    >
+                      <Mail className="w-4 h-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -152,6 +199,8 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
           ))}
         </div>
       )}
+
+      <BulkInviteImportSheet eventId={eventId} open={importOpen} onOpenChange={setImportOpen} />
     </div>
   );
 }
