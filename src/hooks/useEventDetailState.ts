@@ -271,7 +271,6 @@ export const useEventDetailState = (
   };
 
   const handleBuyTicket = async () => {
-  const handleBuyTicket = async () => {
     if (isGuest) { promptAuth({ action: "unirte a este evento" }); return; }
     // Funnel: intent tap (fire-and-forget, never blocks the checkout)
     if (eventId) void trackCheckoutTap(eventId, user?.id ?? null);
