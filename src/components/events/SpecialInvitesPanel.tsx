@@ -102,7 +102,11 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
             )}
           </Button>
         </div>
+        <Button variant="secondary" className="w-full" onClick={() => setImportOpen(true)}>
+          <Upload className="w-4 h-4 mr-2" /> Importar lista (CSV o Excel)
+        </Button>
       </div>
+
 
       {isLoading ? (
         <div className="flex justify-center py-10">
