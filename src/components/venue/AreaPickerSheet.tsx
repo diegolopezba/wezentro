@@ -198,7 +198,7 @@ export function AreaPickerSheet({
                 type="button"
                 disabled={soldOut || holding}
                 onClick={handleContinue}
-                className="w-full h-13 h-14 rounded-2xl bg-foreground text-background text-base font-bold uppercase tracking-wide active:opacity-90"
+                className="w-full h-14 rounded-2xl bg-foreground text-background text-base font-bold uppercase tracking-wide active:opacity-90"
               >
                 {holding ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
