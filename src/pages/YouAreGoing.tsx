@@ -137,6 +137,9 @@ const YouAreGoing = () => {
           {guestlistEntry?.is_special_guest && (
             <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.18em] text-accent-red">
               Invitado especial
+              {guestlistEntry?.special_guest_label
+                ? ` - ${guestlistEntry.special_guest_label}`
+                : ""}
             </p>
           )}
           <h1 className="mt-3 font-brand text-3xl font-bold leading-tight">
