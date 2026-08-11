@@ -369,6 +369,9 @@ export const useEventDetailState = (
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
     showTierPicker, setShowTierPicker,
+    showAreaPicker, setShowAreaPicker,
+    // Visual venue layout
+    eventAreas, hasAreas, selectedArea, areaBooking, openPaymentForArea,
     showLeaveConfirm, setShowLeaveConfirm,
     // Tiers
     ticketTiers, hasTiers, isSequential, allTiersSoldOut,
