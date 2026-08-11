@@ -6,12 +6,14 @@ Automate the manual "special invite" flow so an organizer can invite thousands o
 
 1. In the event's guest management sheet, next to the existing manual invite creation, a new **"Importar lista"** option.
 2. Upload a `.csv` or `.xlsx` file with two columns: `nombre` and `email` (header detection is flexible: name/nombre, email/correo).
-3. A preview step showing: rows detected, rows with invalid or missing email, duplicates (within file and against invites already created). Invalid rows are listed and skipped.
-4. Confirm → invites are created in batches with a progress bar. Each row becomes a unique single-use link (the existing `/i/:token` flow, unchanged).
-5. After import, a choice:
+3. Name the batch (the **segment**): a short free-text label such as "VIP", "Prensa", "Staff". Optional — leave it blank for a plain special invite. The same event can have as many segments as the organizer wants, each from its own upload.
+4. A preview step showing: rows detected, rows with invalid or missing email, duplicates (within file and against invites already created). Invalid rows are listed and skipped.
+5. Confirm → invites are created in batches with a progress bar. Each row becomes a unique single-use link (the existing `/i/:token` flow, unchanged).
+6. After import, a choice:
    - **Enviar por email** — every guest receives their personal link by email, sent in a throttled background job with per-guest status (pending / sent / failed / bounced).
-   - **Descargar CSV** — export of `nombre, email, enlace, estado` so the organizer can send via WhatsApp or their own tool.
-6. The invite list becomes searchable and virtualized (2000 rows must scroll smoothly), with per-row status (pendiente / usada / cancelada), a resend action, and bulk revoke.
+   - **Descargar CSV** — export of `nombre, email, segmento, enlace, estado` so the organizer can send via WhatsApp or their own tool.
+7. The invite list becomes searchable and virtualized (2000 rows must scroll smoothly), grouped/filterable by segment, with per-row status (pendiente / usada / cancelada), a resend action, and bulk revoke (including "revoke whole segment").
+
 
 ## Guest experience (unchanged flow, no new mechanics)
 
