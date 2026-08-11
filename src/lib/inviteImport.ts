@@ -97,8 +97,49 @@ export function buildInvitesCsv(
   return [header.join(","), ...lines].join("\n");
 }
 
+const STATUS_LABEL: Record<string, string> = {
+  pending: "Pendiente",
+  redeemed: "Usada",
+  revoked: "Cancelada",
+  not_sent: "Sin enviar",
+  queued: "En cola",
+  sent: "Enviado",
+  failed: "Fallido",
+  bounced: "Rebotado",
+};
+
+/** Build an XLSX (Excel) export of invites as an ArrayBuffer. */
+export function buildInvitesXlsx(
+  rows: { guest_name: string | null; guest_email: string | null; segment: string | null; url: string; status: string }[]
+): ArrayBuffer {
+  const data = rows.map((r) => ({
+    Nombre: r.guest_name ?? "",
+    Email: r.guest_email ?? "",
+    Segmento: r.segment ?? "",
+    Enlace: r.url,
+    Estado: STATUS_LABEL[r.status] ?? r.status,
+  }));
+  const ws = XLSX.utils.json_to_sheet(data, {
+    header: ["Nombre", "Email", "Segmento", "Enlace", "Estado"],
+  });
+  ws["!cols"] = [{ wch: 24 }, { wch: 32 }, { wch: 16 }, { wch: 48 }, { wch: 14 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Invitaciones");
+  return XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+}
+
 export function downloadCsv(filename: string, csv: string) {
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function downloadXlsx(filename: string, buffer: ArrayBuffer) {
+  const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
