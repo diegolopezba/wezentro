@@ -117,7 +117,13 @@ const Settings = () => {
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.highlight ? "bg-primary/15" : "bg-secondary"}`}>
                       <Icon className={`w-4 h-4 ${item.highlight ? "text-primary" : "text-muted-foreground"}`} />
                     </div>
-                    <span className="font-medium flex-1 text-left text-sm text-foreground">{item.label}</span>
+                    <span className="flex-1 text-left min-w-0">
+                      <span className="block font-medium text-sm text-foreground">{item.label}</span>
+                      {item.sublabel && (
+                        <span className="block text-xs text-muted-foreground">{item.sublabel}</span>
+                      )}
+                    </span>
+
                     <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
                   </m.button>
                 );
