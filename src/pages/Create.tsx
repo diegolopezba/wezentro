@@ -447,6 +447,18 @@ const Create = () => {
         }
       }
 
+      // Persist the visual venue layout as this event's sellable areas
+      if (useLayout && data?.id) {
+        try {
+          await replaceEventAreas.mutateAsync({ eventId: data.id, areas: draftAreas });
+        } catch (areaErr: any) {
+          console.error("Error saving event areas:", areaErr);
+          toast.error("Evento creado, pero falló al guardar el plano de áreas.");
+        }
+      }
+
+
+
       if (data.id && formData.description.trim()) {
         const mentionRegex = /(?<!\w)@([a-zA-Z0-9_]+)/g;
         const usernames = new Set<string>();
