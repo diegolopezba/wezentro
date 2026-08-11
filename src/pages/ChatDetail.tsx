@@ -229,7 +229,7 @@ const ChatDetail = () => {
       </div>
 
       {/* Input */}
-      <div className={`shrink-0 p-4 glass-strong ${isKeyboardVisible ? "pb-2" : "safe-bottom"}`}>
+      <div className={`shrink-0 p-4 glass-strong ${isKeyboardVisible ? "keyboard-inset-bottom" : "safe-bottom"}`}>
         <div className="flex gap-2">
           <Input
             placeholder="Escribe un mensaje..."

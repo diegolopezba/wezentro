@@ -1,100 +1,82 @@
 import { useEffect, useState } from "react";
-import { Capacitor } from "@capacitor/core";
 
 interface KeyboardState {
   isVisible: boolean;
   keyboardHeight: number;
 }
 
+let listenerCount = 0;
+const subscribers = new Set<(s: KeyboardState) => void>();
+let currentState: KeyboardState = { isVisible: false, keyboardHeight: 0 };
+let detach: (() => void) | null = null;
+
+const setKeyboardVar = (height: number) => {
+  document.documentElement.style.setProperty("--keyboard-height", `${height}px`);
+  if (height > 0) {
+    document.documentElement.setAttribute("data-keyboard", "open");
+  } else {
+    document.documentElement.removeAttribute("data-keyboard");
+  }
+};
+
+const attach = () => {
+  const viewport = window.visualViewport;
+  if (!viewport) return;
+
+  const update = () => {
+    // Layout viewport height minus the visible (visual) viewport bottom edge.
+    // With `interactive-widget=resizes-visual` the layout viewport never
+    // shrinks, so this difference is exactly the keyboard height.
+    const raw = window.innerHeight - (viewport.height + viewport.offsetTop);
+    const height = raw > 80 ? Math.round(raw) : 0;
+
+    if (height === currentState.keyboardHeight) return;
+    currentState = { isVisible: height > 0, keyboardHeight: height };
+    setKeyboardVar(height);
+    subscribers.forEach((fn) => fn(currentState));
+  };
+
+  viewport.addEventListener("resize", update);
+  viewport.addEventListener("scroll", update);
+  update();
+
+  detach = () => {
+    viewport.removeEventListener("resize", update);
+    viewport.removeEventListener("scroll", update);
+    setKeyboardVar(0);
+    currentState = { isVisible: false, keyboardHeight: 0 };
+  };
+};
+
 /**
- * Hook to handle keyboard visibility and adjust UI accordingly on mobile.
- * Uses the visualViewport API for accurate keyboard height detection.
- * Prioritized for native Capacitor (iOS/Android) with browser PWA fallback.
+ * Tracks the on-screen keyboard using the visualViewport API.
+ *
+ * The layout viewport is never resized (see `interactive-widget=resizes-visual`
+ * in index.html and `Keyboard.resize: 'none'` in capacitor.config.ts), so the
+ * page behind stays perfectly still. Components lift themselves above the
+ * keyboard with the `--keyboard-height` CSS variable exposed here — a
+ * compositor-only transform, exactly how Instagram's composer behaves.
  */
-export const useKeyboardAdjust = () => {
-  const [keyboardState, setKeyboardState] = useState<KeyboardState>({
-    isVisible: false,
-    keyboardHeight: 0,
-  });
+export const useKeyboardAdjust = (): KeyboardState => {
+  const [state, setState] = useState<KeyboardState>(currentState);
 
   useEffect(() => {
-    // Only run on mobile devices
-    const isMobile = Capacitor.isNativePlatform() ||
-      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    if (!isMobile) return;
-
-    const viewport = window.visualViewport;
-    if (!viewport) return;
-
-    // Use screen height as baseline — more stable than capturing viewport.height
-    // at mount time which can be inaccurate on orientation change or late boot.
-    const getBaselineHeight = () => {
-      // On native Capacitor the screen height is reliable.
-      // On browser, fall back to the largest seen viewport height.
-      return Math.max(window.screen.height * 0.85, viewport.height);
-    };
-
-    let baselineHeight = getBaselineHeight();
-
-    const handleResize = () => {
-      const currentHeight = viewport.height;
-      const heightDiff = baselineHeight - currentHeight;
-
-      // Keyboard is considered visible if height difference > 100px
-      const isKeyboardVisible = heightDiff > 100;
-
-      setKeyboardState({
-        isVisible: isKeyboardVisible,
-        keyboardHeight: isKeyboardVisible ? heightDiff : 0,
-      });
-
-      // Scroll focused element into view when keyboard opens
-      if (isKeyboardVisible && document.activeElement) {
-        const activeElement = document.activeElement as HTMLElement;
-        if (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA") {
-          setTimeout(() => {
-            activeElement.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-          }, 100);
-        }
-      }
-    };
-
-    // Reset baseline on orientation change
-    const handleOrientationChange = () => {
-      setTimeout(() => {
-        baselineHeight = getBaselineHeight();
-        setKeyboardState({ isVisible: false, keyboardHeight: 0 });
-      }, 350);
-    };
-
-    // When focus leaves an input and keyboard closes, reset baseline
-    // This prevents drift when the viewport was never at full height at mount
-    const handleFocusOut = () => {
-      setTimeout(() => {
-        if (!document.activeElement ||
-          (document.activeElement.tagName !== "INPUT" &&
-           document.activeElement.tagName !== "TEXTAREA")) {
-          baselineHeight = getBaselineHeight();
-        }
-      }, 400);
-    };
-
-    viewport.addEventListener("resize", handleResize);
-    window.addEventListener("orientationchange", handleOrientationChange);
-    document.addEventListener("focusout", handleFocusOut);
+    subscribers.add(setState);
+    listenerCount += 1;
+    if (listenerCount === 1) attach();
+    setState(currentState);
 
     return () => {
-      viewport.removeEventListener("resize", handleResize);
-      window.removeEventListener("orientationchange", handleOrientationChange);
-      document.removeEventListener("focusout", handleFocusOut);
+      subscribers.delete(setState);
+      listenerCount -= 1;
+      if (listenerCount === 0 && detach) {
+        detach();
+        detach = null;
+      }
     };
   }, []);
 
-  return keyboardState;
+  return state;
 };
 
 /**

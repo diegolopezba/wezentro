@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
 
+import { KeyboardViewportObserver } from "@/components/KeyboardViewportObserver";
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -160,6 +161,7 @@ const App = () => {
 
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
+          <KeyboardViewportObserver />
           <Toaster />
           <Sonner position="top-center" theme="dark" />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
