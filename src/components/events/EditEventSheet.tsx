@@ -417,29 +417,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                 </div>
               )}
 
-              <div className="flex items-center justify-between py-2">
-                <div className="flex flex-col">
-                  <Label htmlFor="guestlist">Habilitar lista de invitados</Label>
-                  {!isBusiness && (
-                    <span className="text-xs text-muted-foreground">
-                      Requiere cuenta Business (gratis en Configuración)
-                    </span>
-                  )}
-                </div>
-                <Switch
-                  id="guestlist"
-                  checked={formData.has_guestlist}
-                  onCheckedChange={(checked) => {
-                    if (checked && !isBusiness) {
-                      toast.info("Activa tu cuenta Business en Configuración para usar guestlists");
-                      return;
-                    }
-                    setFormData({ ...formData, has_guestlist: checked });
-                  }}
-                />
-              </div>
-
-              {(isBusiness || formData.has_guestlist) && (
+              {isBusiness && (
                 <div className="space-y-2">
                   <Label htmlFor="capacity">Capacidad total (opcional)</Label>
                   <Input
@@ -451,60 +429,6 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                     placeholder="Ilimitada"
                   />
                 </div>
-              )}
-
-              {/* Payment QR Section - Only for Business users with price > 0 and guestlist enabled */}
-              {showPaymentQrSection && (
-            <div className="space-y-2 p-4 rounded-xl bg-secondary/50 border border-border">
-              <div className="flex items-center gap-2 mb-2">
-                <QrCode className="w-4 h-4 text-primary" />
-                <Label>QR de Pago (opcional)</Label>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">
-                Sube un QR de pago para habilitar la compra de entradas dentro de la app
-              </p>
-              
-              {formData.payment_qr_url ? (
-                <div className="relative w-32 h-32 mx-auto">
-                  <img
-                    src={formData.payment_qr_url}
-                    alt="QR de pago"
-                    className="w-full h-full object-contain rounded-xl bg-white p-2"
-                  />
-                  <button
-                    type="button"
-                    onClick={removePaymentQr}
-                    className="absolute -top-2 -right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <input
-                    ref={qrInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleQrUpload}
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full border-dashed"
-                    onClick={() => qrInputRef.current?.click()}
-                    disabled={isUploadingQr || isCompressingQr}
-                  >
-                    {(isUploadingQr || isCompressingQr) ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : (
-                      <Upload className="w-4 h-4 mr-2" />
-                    )}
-                    {isCompressingQr ? "Optimizando..." : "Subir QR de Pago"}
-                  </Button>
-                </div>
-              )}
-            </div>
               )}
             </>
           )}
