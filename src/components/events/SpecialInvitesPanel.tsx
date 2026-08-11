@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
