@@ -338,3 +338,17 @@ export const holdEventArea = async (
 export const cancelAreaBooking = async (bookingId: string) => {
   await db.from("area_bookings").update({ status: "cancelled" }).eq("id", bookingId);
 };
+
+/** Confirm a hold on a free (price 0) area — no payment involved. */
+export const confirmFreeAreaBooking = async (bookingId: string) => {
+  const { error } = await db.rpc("confirm_free_area_booking", {
+    _booking_id: bookingId,
+  });
+  if (error) {
+    const msg = error.message || "";
+    if (msg.includes("hold_expired"))
+      throw new Error("Tu reserva expiró, elegí el área de nuevo.");
+    throw new Error("No se pudo confirmar tu lugar.");
+  }
+};
+
