@@ -772,6 +772,18 @@ const Create = () => {
                       onAttemptPaidAction={!hasBeneficiary ? () => setShowBeneficiaryGate(true) : undefined}
                     />
                   </div>
+                  {user && (
+                    <EventVenueLayoutSection
+                      businessId={user.id}
+                      enabled={useAreas}
+                      onEnabledChange={(v) => {
+                        setUseAreas(v);
+                        if (!v) setDraftAreas([]);
+                      }}
+                      areas={draftAreas}
+                      onAreasChange={setDraftAreas}
+                    />
+                  )}
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">Capacidad total (opcional)</label>
                     <div className="relative">
