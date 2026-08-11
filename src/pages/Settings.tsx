@@ -26,19 +26,10 @@ const Settings = () => {
 
   const sections: SettingsSection[] = [
     {
-      title: "Actividad",
-      items: [
-        { icon: Ticket, label: "Entradas", path: "/tickets" },
-        { icon: UtensilsCrossed, label: "Mis Reservas", path: "/tickets" },
-        { icon: Calendar, label: "Eventos Asistidos", path: "/settings/joined-events" },
-        { icon: Bookmark, label: "Guardados", path: "/saved" },
-      ],
-    },
-    {
       title: "Personal",
       items: [
         { icon: User, label: "Editar Perfil", path: "/edit-profile" },
-        
+        { icon: Bookmark, label: "Guardados", path: "/saved" },
         { icon: Shield, label: "Privacidad", path: "/settings/privacy" },
         { icon: Ban, label: "Usuarios Bloqueados", path: "/settings/blocks" },
         { icon: Gift, label: "Invitar Amigos", path: "/settings/referrals" },
