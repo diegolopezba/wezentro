@@ -15,6 +15,7 @@ import {
   useCreatePromoter,
 } from "@/hooks/usePromoters";
 import { PromoterCard } from "@/components/promoters/PromoterCard";
+import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
 
 const formatBs = (n: number) => `Bs. ${Math.round(Number(n) || 0)}`;
 
@@ -102,6 +103,10 @@ const EventPromoterDashboard = () => {
             secondary={t ? `${formatBs(t.attributed_revenue)} promotor · ${formatBs(organicRevenue)} orgánico` : ""}
           />
         </section>
+
+        {/* Conversion funnel for this event */}
+        {eventId && <ConversionFunnel period="all" eventId={eventId} />}
+
 
         {/* Ticket tiers */}
         <section className="space-y-2">

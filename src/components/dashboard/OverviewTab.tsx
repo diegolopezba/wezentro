@@ -3,6 +3,7 @@ import { Eye, MousePointerClick, TrendingUp, UserCheck, UsersRound, FileText, Mo
 import { StatsCard } from "./StatsCard";
 import { PeriodSelector, Period } from "./PeriodSelector";
 import { SalesPaceSection } from "./SalesPaceSection";
+import { ConversionFunnel } from "./ConversionFunnel";
 import { useSalesOverview } from "@/hooks/useSalesOverview";
 import { formatBs } from "@/components/sales/salesUtils";
 import { useAccountsReached, useInteractionSummary, useProfileVisits } from "@/hooks/useBusinessAnalytics";
@@ -132,6 +133,8 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
         <StatsCard title="Tickets vendidos" value={salesLoading ? "..." : sales?.tickets || 0} icon={Ticket} delay={0.05} />
         <StatsCard title="Ticket prom." value={salesLoading ? "..." : formatBs(sales?.avgTicket || 0)} icon={Receipt} delay={0.1} />
       </div>
+
+      <ConversionFunnel period={period} />
 
       <SalesPaceSection />
 
