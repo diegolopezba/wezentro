@@ -1,13 +1,34 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, Users } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCreatorSalesByEvent } from "@/hooks/usePromoters";
+import { supabase } from "@/integrations/supabase/client";
 import { formatBs } from "./salesUtils";
 import { EmptyChart } from "./SalesSummary";
 
 export const SalesEvents = () => {
   const { data, isLoading } = useCreatorSalesByEvent();
   const navigate = useNavigate();
+
+  const eventIds = (data || []).map((e) => e.event_id);
+
+  // Detail views per event → conversion (vistas → compras) on each card.
+  const { data: viewsByEvent } = useQuery({
+    queryKey: ["sales-events-views", eventIds],
+    enabled: eventIds.length > 0,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data: stats } = await supabase
+        .from("event_stats")
+        .select("event_id, view_count")
+        .in("event_id", eventIds);
+      const map: Record<string, number> = {};
+      (stats || []).forEach((s) => { map[s.event_id] = Number(s.view_count || 0); });
+      return map;
+    },
+  });
+
 
   if (isLoading) {
     return (
