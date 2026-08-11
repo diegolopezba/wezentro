@@ -31,6 +31,44 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const revokeInvite = useRevokeSpecialInvite();
   const sendEmails = useSendSpecialInviteEmails();
 
+  const segments = useMemo(() => {
+    const set = new Set<string>();
+    let hasNone = false;
+    invites.forEach((i) => (i.segment ? set.add(i.segment) : (hasNone = true)));
+    const list = Array.from(set).sort((a, b) => a.localeCompare(b));
+    return { list, hasNone };
+  }, [invites]);
+
+  const showPills = segments.list.length > 0;
+
+  const filteredInvites = useMemo(() => {
+    if (!showPills || activeSegment === "__all__") return invites;
+    if (activeSegment === "__none__") return invites.filter((i) => !i.segment);
+    return invites.filter((i) => i.segment === activeSegment);
+  }, [invites, activeSegment, showPills]);
+
+  const handleExport = () => {
+    if (filteredInvites.length === 0) {
+      toast.error("No hay invitaciones para exportar");
+      return;
+    }
+    const rows = filteredInvites.map((i) => ({
+      guest_name: i.guest_name,
+      guest_email: i.guest_email,
+      segment: i.segment,
+      url: getSpecialInviteUrl(i.token),
+      status: i.status,
+    }));
+    const suffix =
+      activeSegment === "__all__" ? "todos" : activeSegment === "__none__" ? "sin-segmento" : activeSegment;
+    downloadXlsx(
+      `invitaciones-${suffix.toLowerCase().replace(/\s+/g, "-")}.xlsx`,
+      buildInvitesXlsx(rows)
+    );
+  };
+
+
+
   const handleResend = async (inviteId: string) => {
     try {
       const res = await sendEmails.mutateAsync({ eventId, inviteIds: [inviteId] });
