@@ -50,6 +50,8 @@ export const SalesEvents = () => {
     <div className="space-y-2">
       {data.map((e) => {
         const pct = e.capacity > 0 ? Math.min(100, (e.tickets_sold / e.capacity) * 100) : 0;
+        const views = viewsByEvent?.[e.event_id] || 0;
+        const conv = views > 0 ? (e.tickets_sold / views) * 100 : null;
         return (
           <button
             key={e.event_id}
