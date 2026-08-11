@@ -83,6 +83,7 @@ const BusinessReservations = lazyWithRetry(() => import("./pages/BusinessReserva
 const BusinessInfo = lazyWithRetry(() => import("./pages/BusinessInfo"));
 const BusinessMenu = lazyWithRetry(() => import("./pages/BusinessMenu"));
 const BusinessSales = lazyWithRetry(() => import("./pages/BusinessSales"));
+const VenueLayouts = lazyWithRetry(() => import("./pages/VenueLayouts"));
 const JoinedEvents = lazyWithRetry(() => import("./pages/JoinedEvents"));
 const Help = lazyWithRetry(() => import("./pages/Help"));
 const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
@@ -242,7 +243,9 @@ const AppRoutes = () => {
         <Route path="/settings/business/info" element={<ProtectedRoute requireProfile><LazyRoute><BusinessInfo /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/business/menu" element={<ProtectedRoute requireProfile><LazyRoute><BusinessMenu /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/business/sales" element={<ProtectedRoute requireProfile><LazyRoute><BusinessSales /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/business/layouts" element={<ProtectedRoute requireProfile><LazyRoute><VenueLayouts /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/joined-events" element={<ProtectedRoute requireProfile><LazyRoute><JoinedEvents /></LazyRoute></ProtectedRoute>} />
+
         <Route path="/settings/help" element={<ProtectedRoute requireProfile><LazyRoute><Help /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/referrals" element={<ProtectedRoute requireProfile><LazyRoute><Referrals /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/reservations" element={<Navigate to="/tickets" replace />} />

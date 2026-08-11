@@ -15,6 +15,7 @@ import { useIsEventLiked, useLikeEvent, useUnlikeEvent, useEventLikes } from "@/
 import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useReposts";
 import { useFollowingGoing } from "@/hooks/useFollowingGoing";
 import { useTicketTiers, computeTierAvailability, type TicketTier } from "@/hooks/useTicketTiers";
+import { useEventAreas, confirmFreeAreaBooking, type EventArea } from "@/hooks/useVenueLayouts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { format } from "date-fns";
@@ -46,8 +47,11 @@ export const useEventDetailState = (
   const [showReservationSheet, setShowReservationSheet] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showTierPicker, setShowTierPicker] = useState(false);
+  const [showAreaPicker, setShowAreaPicker] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [selectedTier, setSelectedTier] = useState<TicketTier | null>(null);
+  const [selectedArea, setSelectedArea] = useState<EventArea | null>(null);
+  const [areaBooking, setAreaBooking] = useState<{ bookingId: string; partySize: number } | null>(null);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(true);
@@ -69,6 +73,7 @@ export const useEventDetailState = (
   const { data: saveCount = 0 } = useSaveCount(event ? eventId : undefined);
   const { data: attendeesGoing = [] } = useFollowingGoing(eventId);
   const { data: ticketTiers = [] } = useTicketTiers(eventId);
+  const { data: eventAreas = [] } = useEventAreas(eventId);
 
   // Mutations
   const joinGuestlist = useJoinGuestlist();
@@ -113,7 +118,11 @@ export const useEventDetailState = (
   const isGuestlistFull = maxGuestlistCapacity != null && approvedCount >= maxGuestlistCapacity;
 
   const legacyHasPaid = (event?.price ?? 0) > 0;
-  const hasPaidTickets = hasTiers
+  // Visual venue layout mode (opt-in per event) takes over the checkout when present.
+  const hasAreas = eventAreas.length > 0;
+  const hasPaidTickets = hasAreas
+    ? eventAreas.some((a) => Number(a.price) > 0)
+    : hasTiers
     ? ticketTiers.some((t) => Number(t.price) > 0)
     : legacyHasPaid;
   // Any priced event (legacy single price or priced tiers) goes through the Qhantuy checkout modal.
@@ -247,8 +256,28 @@ export const useEventDetailState = (
     setShowPaymentModal(true);
   };
 
+  /** Called by the visual layout picker once the area is atomically held. */
+  const openPaymentForArea = ({
+    area,
+    partySize,
+    bookingId,
+  }: { area: EventArea; partySize: number; bookingId: string }) => {
+    setSelectedTier(null);
+    setSelectedArea(area);
+    setAreaBooking({ bookingId, partySize });
+    setShowAreaPicker(false);
+    setShowPaymentModal(true);
+  };
+
   const handleBuyTicket = async () => {
     if (isGuest) { promptAuth({ action: "unirte a este evento" }); return; }
+    // Visual venue layout path → pick an area first
+    if (hasAreas) {
+      setSelectedArea(null);
+      setAreaBooking(null);
+      setShowAreaPicker(true);
+      return;
+    }
     // Multi-tier path
     if (hasTiers) {
       if (allTiersSoldOut) { toast.error("Todas las entradas están agotadas"); return; }
@@ -269,6 +298,11 @@ export const useEventDetailState = (
 
   const handleConfirmFreeJoin = async () => {
     try {
+      // Free area booking → confirm the existing hold instead of a plain guestlist join
+      if (areaBooking) {
+        await confirmFreeAreaBooking(areaBooking.bookingId);
+        return;
+      }
       await joinGuestlist.mutateAsync(eventId!);
     } catch (error: any) {
       toast.error(error.message || "Error al unirte");
@@ -335,6 +369,9 @@ export const useEventDetailState = (
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
     showTierPicker, setShowTierPicker,
+    showAreaPicker, setShowAreaPicker,
+    // Visual venue layout
+    eventAreas, hasAreas, selectedArea, areaBooking, openPaymentForArea,
     showLeaveConfirm, setShowLeaveConfirm,
     // Tiers
     ticketTiers, hasTiers, isSequential, allTiersSoldOut,

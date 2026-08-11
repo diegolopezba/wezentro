@@ -19,6 +19,7 @@ import { EventActionsSheet } from "@/components/events/EventActionsSheet";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
+import { AreaPickerSheet } from "@/components/venue/AreaPickerSheet";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { MediaCarousel } from "@/components/events/MediaCarousel";
@@ -94,6 +95,8 @@ const EventDetailModalInner = () => {
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
     showTierPicker, setShowTierPicker,
+    showAreaPicker, setShowAreaPicker,
+    eventAreas, hasAreas, selectedArea, areaBooking, openPaymentForArea,
     showLeaveConfirm, setShowLeaveConfirm,
     ticketTiers, hasTiers, isSequential, selectedTier, openPaymentForTier,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
@@ -381,13 +384,30 @@ const EventDetailModalInner = () => {
             onOpenChange={setShowPaymentModal}
             eventId={id!}
             eventTitle={event.title || "Evento"}
-            price={selectedTier ? Number(selectedTier.price) : (event.price || 0)}
+            price={selectedArea ? Number(selectedArea.price) : selectedTier ? Number(selectedTier.price) : (event.price || 0)}
             ticketTierId={selectedTier?.id ?? null}
-            ticketTierName={selectedTier?.name ?? null}
-            mode={(usesPaidCheckout || hasTiers) ? "paid" : "free"}
+            ticketTierName={selectedArea?.name ?? selectedTier?.name ?? null}
+            eventAreaId={selectedArea?.id ?? null}
+            areaBookingId={areaBooking?.bookingId ?? null}
+            partySize={areaBooking?.partySize ?? null}
+            mode={
+              selectedArea
+                ? (Number(selectedArea.price) > 0 ? "paid" : "free")
+                : (usesPaidCheckout || hasTiers) ? "paid" : "free"
+            }
             onJoinFree={handleConfirmFreeJoin}
             onPaymentConfirmed={handlePaymentSubmitted}
           />
+          {hasAreas && (
+            <AreaPickerSheet
+              open={showAreaPicker}
+              onOpenChange={setShowAreaPicker}
+              eventId={id!}
+              eventTitle={event.title || "Evento"}
+              areas={eventAreas}
+              onAreaHeld={openPaymentForArea}
+            />
+          )}
           {hasTiers && (
             <TicketTierPicker
               open={showTierPicker}

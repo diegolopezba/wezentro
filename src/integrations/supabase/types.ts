@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      area_bookings: {
+        Row: {
+          created_at: string
+          event_area_id: string
+          guestlist_entry_id: string | null
+          hold_expires_at: string | null
+          id: string
+          party_size: number
+          payment_session_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_area_id: string
+          guestlist_entry_id?: string | null
+          hold_expires_at?: string | null
+          id?: string
+          party_size?: number
+          payment_session_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_area_id?: string
+          guestlist_entry_id?: string | null
+          hold_expires_at?: string | null
+          id?: string
+          party_size?: number
+          payment_session_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "area_bookings_event_area_id_fkey"
+            columns: ["event_area_id"]
+            isOneToOne: false
+            referencedRelation: "event_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_bookings_guestlist_entry_id_fkey"
+            columns: ["guestlist_entry_id"]
+            isOneToOne: false
+            referencedRelation: "guestlist_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_bookings_guestlist_entry_id_fkey"
+            columns: ["guestlist_entry_id"]
+            isOneToOne: false
+            referencedRelation: "guestlist_entries_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_bookings_payment_session_id_fkey"
+            columns: ["payment_session_id"]
+            isOneToOne: false
+            referencedRelation: "payment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocked_users: {
         Row: {
           blocked_id: string
@@ -284,6 +352,84 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: true
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_areas: {
+        Row: {
+          area_type: Database["public"]["Enums"]["venue_area_type"]
+          capacity: number
+          color: string
+          created_at: string
+          display_order: number
+          event_id: string
+          height: number
+          id: string
+          is_active: boolean
+          is_exclusive: boolean
+          name: string
+          pos_x: number
+          pos_y: number
+          price: number
+          rotation: number
+          source_layout_area_id: string | null
+          updated_at: string
+          width: number
+        }
+        Insert: {
+          area_type?: Database["public"]["Enums"]["venue_area_type"]
+          capacity?: number
+          color?: string
+          created_at?: string
+          display_order?: number
+          event_id: string
+          height?: number
+          id?: string
+          is_active?: boolean
+          is_exclusive?: boolean
+          name: string
+          pos_x?: number
+          pos_y?: number
+          price?: number
+          rotation?: number
+          source_layout_area_id?: string | null
+          updated_at?: string
+          width?: number
+        }
+        Update: {
+          area_type?: Database["public"]["Enums"]["venue_area_type"]
+          capacity?: number
+          color?: string
+          created_at?: string
+          display_order?: number
+          event_id?: string
+          height?: number
+          id?: string
+          is_active?: boolean
+          is_exclusive?: boolean
+          name?: string
+          pos_x?: number
+          pos_y?: number
+          price?: number
+          rotation?: number
+          source_layout_area_id?: string | null
+          updated_at?: string
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_areas_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_areas_source_layout_area_id_fkey"
+            columns: ["source_layout_area_id"]
+            isOneToOne: false
+            referencedRelation: "venue_layout_areas"
             referencedColumns: ["id"]
           },
         ]
@@ -1514,8 +1660,10 @@ export type Database = {
           buyer_user_id: string
           confirmed_at: string | null
           created_at: string
+          event_area_id: string | null
           event_id: string
           id: string
+          party_size: number | null
           promoter_id: string | null
           provider: string
           qhantuy_raw_callback: Json | null
@@ -1530,8 +1678,10 @@ export type Database = {
           buyer_user_id: string
           confirmed_at?: string | null
           created_at?: string
+          event_area_id?: string | null
           event_id: string
           id?: string
+          party_size?: number | null
           promoter_id?: string | null
           provider?: string
           qhantuy_raw_callback?: Json | null
@@ -1546,8 +1696,10 @@ export type Database = {
           buyer_user_id?: string
           confirmed_at?: string | null
           created_at?: string
+          event_area_id?: string | null
           event_id?: string
           id?: string
+          party_size?: number | null
           promoter_id?: string | null
           provider?: string
           qhantuy_raw_callback?: Json | null
@@ -1556,6 +1708,13 @@ export type Database = {
           ticket_tier_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "payment_sessions_event_area_id_fkey"
+            columns: ["event_area_id"]
+            isOneToOne: false
+            referencedRelation: "event_areas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payment_sessions_event_id_fkey"
             columns: ["event_id"]
@@ -2836,6 +2995,116 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_layout_areas: {
+        Row: {
+          area_type: Database["public"]["Enums"]["venue_area_type"]
+          capacity: number
+          color: string
+          created_at: string
+          default_price: number | null
+          display_order: number
+          height: number
+          id: string
+          is_exclusive: boolean
+          layout_id: string
+          name: string
+          pos_x: number
+          pos_y: number
+          rotation: number
+          updated_at: string
+          width: number
+        }
+        Insert: {
+          area_type?: Database["public"]["Enums"]["venue_area_type"]
+          capacity?: number
+          color?: string
+          created_at?: string
+          default_price?: number | null
+          display_order?: number
+          height?: number
+          id?: string
+          is_exclusive?: boolean
+          layout_id: string
+          name: string
+          pos_x?: number
+          pos_y?: number
+          rotation?: number
+          updated_at?: string
+          width?: number
+        }
+        Update: {
+          area_type?: Database["public"]["Enums"]["venue_area_type"]
+          capacity?: number
+          color?: string
+          created_at?: string
+          default_price?: number | null
+          display_order?: number
+          height?: number
+          id?: string
+          is_exclusive?: boolean
+          layout_id?: string
+          name?: string
+          pos_x?: number
+          pos_y?: number
+          rotation?: number
+          updated_at?: string
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_layout_areas_layout_id_fkey"
+            columns: ["layout_id"]
+            isOneToOne: false
+            referencedRelation: "venue_layouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venue_layouts: {
+        Row: {
+          business_id: string
+          canvas_height: number
+          canvas_width: number
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          canvas_height?: number
+          canvas_width?: number
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          canvas_height?: number
+          canvas_width?: number
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_layouts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_layouts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       web_vitals: {
         Row: {
           created_at: string
@@ -3454,11 +3723,33 @@ export type Database = {
         Args: { _entry_user_id: string; _event_id: string; _user_id: string }
         Returns: boolean
       }
+      cleanup_expired_area_holds: { Args: never; Returns: number }
       cleanup_infra_logs: { Args: never; Returns: undefined }
       cleanup_interaction_events_log: { Args: never; Returns: undefined }
       cleanup_old_event_interactions: { Args: never; Returns: undefined }
       cleanup_session_feed_state: { Args: never; Returns: undefined }
       cleanup_web_vitals: { Args: never; Returns: undefined }
+      confirm_free_area_booking: {
+        Args: { _booking_id: string }
+        Returns: {
+          created_at: string
+          event_area_id: string
+          guestlist_entry_id: string | null
+          hold_expires_at: string | null
+          id: string
+          party_size: number
+          payment_session_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "area_bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -3550,6 +3841,17 @@ export type Database = {
           target_categories: string[]
           target_gender: string
           target_radius_km: number
+        }[]
+      }
+      get_event_area_availability: {
+        Args: { _event_id: string }
+        Returns: {
+          capacity: number
+          event_area_id: string
+          is_exclusive: boolean
+          remaining: number
+          state: string
+          taken: number
         }[]
       }
       get_event_card_counts: {
@@ -3702,6 +4004,27 @@ export type Database = {
         }
         Returns: boolean
       }
+      hold_event_area: {
+        Args: { _event_area_id: string; _party_size: number }
+        Returns: {
+          created_at: string
+          event_area_id: string
+          guestlist_entry_id: string | null
+          hold_expires_at: string | null
+          id: string
+          party_size: number
+          payment_session_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "area_bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       increment_sponsored_clicks: {
         Args: { _post_id: string }
         Returns: undefined
@@ -3770,6 +4093,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      venue_area_type:
+        | "table"
+        | "lounge"
+        | "long_table"
+        | "section"
+        | "general_admission"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3898,6 +4227,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      venue_area_type: [
+        "table",
+        "lounge",
+        "long_table",
+        "section",
+        "general_admission",
+      ],
     },
   },
 } as const

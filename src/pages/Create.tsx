@@ -45,6 +45,8 @@ import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSal
 import { BusinessRequiredSheet } from "@/components/events/BusinessRequiredSheet";
 import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
 import { useReplaceTicketTiers } from "@/hooks/useTicketTiers";
+import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSection";
+import { useReplaceEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 
 type ContentType = "post" | "event";
@@ -122,6 +124,11 @@ const Create = () => {
   const [tierSaleMode, setTierSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const replaceTiers = useReplaceTicketTiers();
+
+  // Optional visual venue layout (events only, business accounts)
+  const [useAreas, setUseAreas] = useState(false);
+  const [draftAreas, setDraftAreas] = useState<DraftArea[]>([]);
+  const replaceEventAreas = useReplaceEventAreas();
   const { hasBeneficiary } = useHasBeneficiary();
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
@@ -312,10 +319,18 @@ const Create = () => {
       return;
     }
 
+    // Optional visual layout (events only, business accounts)
+    const useLayout = !isPost && isBusiness && useAreas && draftAreas.length > 0;
+    if (!isPost && isBusiness && useAreas && draftAreas.length === 0) {
+      toast.error("Añade al menos un área al plano o desactiva la venta por áreas");
+      return;
+    }
+    const hasPaidArea = useLayout && draftAreas.some((a) => (a.price ?? 0) > 0);
+
     // Gate paid tickets: require Business + Qhantuy beneficiary
     const hasPaidSingle = !isPost && formData.price && parseFloat(formData.price) > 0;
     const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
-    if (hasPaidSingle || hasPaidTier || (!isPost && isBusiness && pricingMode === "tiers")) {
+    if (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers")) {
       if (!isBusiness) { setShowBusinessGate(true); return; }
       if (!hasBeneficiary) { setShowBeneficiaryGate(true); return; }
     }
@@ -374,6 +389,8 @@ const Create = () => {
       // For tier mode, legacy price = cheapest tier (used as a fallback display)
       const insertPrice = useTiers && cleanTiers.length > 0
         ? Math.min(...cleanTiers.map((t) => t.price))
+        : useLayout
+        ? Math.min(...draftAreas.map((a) => a.price ?? 0))
         : (!isPost && formData.price ? parseFloat(formData.price) : 0);
 
       const { data, error } = await supabase.
@@ -431,6 +448,18 @@ const Create = () => {
           toast.error("Evento creado, pero falló al guardar las entradas. Edítalas desde el evento.");
         }
       }
+
+      // Persist the visual venue layout as this event's sellable areas
+      if (useLayout && data?.id) {
+        try {
+          await replaceEventAreas.mutateAsync({ eventId: data.id, areas: draftAreas });
+        } catch (areaErr: any) {
+          console.error("Error saving event areas:", areaErr);
+          toast.error("Evento creado, pero falló al guardar el plano de áreas.");
+        }
+      }
+
+
 
       if (data.id && formData.description.trim()) {
         const mentionRegex = /(?<!\w)@([a-zA-Z0-9_]+)/g;
@@ -765,6 +794,18 @@ const Create = () => {
                       onAttemptPaidAction={!hasBeneficiary ? () => setShowBeneficiaryGate(true) : undefined}
                     />
                   </div>
+                  {user && (
+                    <EventVenueLayoutSection
+                      businessId={user.id}
+                      enabled={useAreas}
+                      onEnabledChange={(v) => {
+                        setUseAreas(v);
+                        if (!v) setDraftAreas([]);
+                      }}
+                      areas={draftAreas}
+                      onAreasChange={setDraftAreas}
+                    />
+                  )}
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">Capacidad total (opcional)</label>
                     <div className="relative">

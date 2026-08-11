@@ -19,6 +19,7 @@ import { InvitationsSentSection } from "@/components/events/InvitationsSentSecti
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { useSpecialInvite, useRedeemSpecialInvite } from "@/hooks/useSpecialInvites";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
+import { AreaPickerSheet } from "@/components/venue/AreaPickerSheet";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
@@ -91,6 +92,8 @@ const EventDetail = () => {
     showReservationSheet, setShowReservationSheet,
     showComments, setShowComments,
     showTierPicker, setShowTierPicker,
+    showAreaPicker, setShowAreaPicker,
+    eventAreas, hasAreas, selectedArea, areaBooking, openPaymentForArea,
     showLeaveConfirm, setShowLeaveConfirm,
     ticketTiers, hasTiers, isSequential, selectedTier, openPaymentForTier,
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
@@ -405,13 +408,34 @@ const EventDetail = () => {
         onOpenChange={setShowPaymentModal}
         eventId={id!}
         eventTitle={event.title || "Evento"}
-        price={selectedTier ? Number(selectedTier.price) : (event.price || 0)}
+        price={selectedArea ? Number(selectedArea.price) : selectedTier ? Number(selectedTier.price) : (event.price || 0)}
         ticketTierId={selectedTier?.id ?? null}
-        ticketTierName={selectedTier?.name ?? null}
-        mode={(usesPaidCheckout || hasTiers) ? "paid" : "free"}
+        ticketTierName={selectedArea?.name ?? selectedTier?.name ?? null}
+        eventAreaId={selectedArea?.id ?? null}
+        areaBookingId={areaBooking?.bookingId ?? null}
+        partySize={areaBooking?.partySize ?? null}
+        mode={
+          selectedArea
+            ? (Number(selectedArea.price) > 0 ? "paid" : "free")
+            : (usesPaidCheckout || hasTiers) ? "paid" : "free"
+        }
         onJoinFree={handleConfirmFreeJoin}
         onPaymentConfirmed={handlePaymentSubmitted}
       />
+
+      {/* Visual venue layout picker (opt-in per event) */}
+      {hasAreas && (
+        <AreaPickerSheet
+          open={showAreaPicker}
+          onOpenChange={setShowAreaPicker}
+          eventId={id!}
+          eventTitle={event.title || "Evento"}
+          areas={eventAreas}
+          onAreaHeld={openPaymentForArea}
+        />
+      )}
+
+
 
       {/* Special guest invitation confirmation */}
       {hasActiveInvite && (

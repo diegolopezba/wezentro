@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
       else if (incOk === false) console.warn("tier sold out at confirmation", session.ticket_tier_id);
     }
 
-    const { error: glErr } = await supabase
+    const { data: glRow, error: glErr } = await supabase
       .from("guestlist_entries")
       .upsert(
         {
@@ -110,8 +110,23 @@ Deno.serve(async (req) => {
           ticket_tier_id: session.ticket_tier_id ?? null,
         },
         { onConflict: "event_id,user_id" },
-      );
+      )
+      .select("id")
+      .maybeSingle();
     if (glErr) console.error("guestlist upsert failed:", glErr);
+
+    // Visual venue layout: turn the held area booking into a confirmed one.
+    const { error: abErr } = await supabase
+      .from("area_bookings")
+      .update({
+        status: "confirmed",
+        hold_expires_at: null,
+        guestlist_entry_id: glRow?.id ?? null,
+      })
+      .eq("payment_session_id", session.id)
+      .eq("status", "held");
+    if (abErr) console.error("area booking confirm failed:", abErr);
+
 
     await supabase.from("notifications").insert({
       user_id: session.buyer_user_id,

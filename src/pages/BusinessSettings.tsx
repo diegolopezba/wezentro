@@ -2,7 +2,7 @@ import { useState } from "react";
 import { m } from "framer-motion";
 import {
   ArrowLeft, Briefcase, BarChart3, ChevronRight,
-  UtensilsCrossed, CalendarCheck, CreditCard, Info, TrendingUp,
+  UtensilsCrossed, CalendarCheck, CreditCard, Info, TrendingUp, LayoutGrid,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -178,6 +178,27 @@ const BusinessSettings = () => {
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </m.button>
+
+            {/* Planos del lugar → nav */}
+            <m.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.23 }}
+              onClick={() => navigate("/settings/business/layouts")}
+              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
+              <div className="w-9 h-9 rounded-lg bg-purple-500/15 flex items-center justify-center shrink-0">
+                <LayoutGrid className="w-5 h-5 text-purple-500" />
+              </div>
+              <div className="flex-1 text-left">
+                <span className="text-foreground font-semibold block">Planos del lugar</span>
+                <span className="text-xs text-muted-foreground">
+                  Mesas, lounges y secciones reutilizables para tus eventos
+                </span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </m.button>
+
+
 
 
             {/* Section: Pagos */}

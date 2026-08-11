@@ -25,8 +25,8 @@ Deno.serve(async (req) => {
     }
     const buyerId = userData.user.id;
 
-    const { eventId, ticketTierId, promoterId } = await req.json();
-    console.log("[qr] request", { eventId, ticketTierId, promoterId, buyerId });
+    const { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId } = await req.json();
+    console.log("[qr] request", { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId, buyerId });
     if (!eventId) return json({ error: "Falta el evento", code: "no_event_id" }, 400);
 
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
@@ -64,6 +64,46 @@ Deno.serve(async (req) => {
       tierId = t.id;
       effectivePrice = Number(t.price);
       effectiveTitle = `${event.title || "Ticket"} — ${t.name}`;
+    }
+
+    // Visual venue layout checkout: price and availability come from the held area.
+    let areaId: string | null = null;
+    let bookingId: string | null = null;
+    let bookingPartySize = 1;
+
+    if (eventAreaId) {
+      if (!areaBookingId) {
+        return json({ error: "Falta la reserva del área", code: "no_area_booking" }, 400);
+      }
+      const { data: booking } = await supabase
+        .from("area_bookings")
+        .select("id, event_area_id, user_id, party_size, status, hold_expires_at")
+        .eq("id", areaBookingId)
+        .maybeSingle();
+      if (
+        !booking ||
+        booking.user_id !== buyerId ||
+        booking.event_area_id !== eventAreaId ||
+        booking.status !== "held" ||
+        (booking.hold_expires_at && new Date(booking.hold_expires_at).getTime() <= Date.now())
+      ) {
+        console.error("[qr] invalid area hold", { areaBookingId, eventAreaId, buyerId });
+        return json({ error: "Tu reserva del área expiró. Elegí el área de nuevo.", code: "area_hold_invalid" }, 409);
+      }
+      const { data: area } = await supabase
+        .from("event_areas")
+        .select("id, name, price, event_id, is_active")
+        .eq("id", eventAreaId)
+        .maybeSingle();
+      if (!area || area.event_id !== eventId || !area.is_active) {
+        return json({ error: "Esta área ya no está disponible", code: "area_not_found" }, 404);
+      }
+      areaId = area.id;
+      bookingId = booking.id;
+      bookingPartySize = booking.party_size;
+      effectivePrice = Number(area.price ?? 0);
+      effectiveTitle = `${event.title || "Ticket"} — ${area.name}`;
+      tierId = null;
     }
 
     if (!effectivePrice || effectivePrice <= 0) {
@@ -118,12 +158,22 @@ Deno.serve(async (req) => {
         promoter_id: safePromoterId,
         provider: "qhantuy",
         beneficiary_code: benef.beneficiary_code,
+        event_area_id: areaId,
+        party_size: bookingPartySize,
       })
       .select("id")
       .single();
     if (sessErr || !session) {
       console.error("[qr] session insert failed:", sessErr?.message, sessErr);
       return json({ error: "No se pudo iniciar el pago", code: "session_insert_failed" }, 500);
+    }
+
+    // Tie the held area booking to this payment session so the callback can confirm it.
+    if (bookingId) {
+      await supabase
+        .from("area_bookings")
+        .update({ payment_session_id: session.id })
+        .eq("id", bookingId);
     }
 
     // Callback URL
