@@ -143,7 +143,13 @@ export function PaymentQRModal({
       if (raw && !isUuid) clearAttribution(eventId);
       const promoterId = isUuid ? raw : null;
       const { data, error } = await supabase.functions.invoke("generate-qhantuy-qr", {
-        body: { eventId, ticketTierId: ticketTierId ?? null, promoterId },
+        body: {
+          eventId,
+          ticketTierId: ticketTierId ?? null,
+          promoterId,
+          eventAreaId: eventAreaId ?? null,
+          areaBookingId: areaBookingId ?? null,
+        },
       });
       if (error || !data || (data as any).error) {
         // supabase-js throws FunctionsHttpError on any non-2xx and drops the body,
@@ -174,7 +180,7 @@ export function PaymentQRModal({
       setErrorMsg(err?.message || "No se pudo generar el QR");
       setStep("error");
     }
-  }, [eventId, ticketTierId, startPolling, ensureFreshSession]);
+  }, [eventId, ticketTierId, eventAreaId, areaBookingId, startPolling, ensureFreshSession]);
 
   const confirmFreeJoin = useCallback(async () => {
     if (!isActiveRef.current || !onJoinFree) return;
@@ -294,7 +300,7 @@ export function PaymentQRModal({
                     </div>
                     <div className="text-right">
                       <span className="inline-flex items-center justify-center min-w-8 h-8 px-3 rounded-full bg-secondary text-sm font-semibold text-foreground">
-                        1
+                        {partySize && partySize > 1 ? partySize : 1}
                       </span>
                     </div>
                   </div>
@@ -361,7 +367,9 @@ export function PaymentQRModal({
               <div className="mt-auto px-5 pt-4 pb-6 border-t border-border bg-background">
                 <div className="flex items-end justify-between mb-3">
                   <div>
-                    <p className="text-xs text-muted-foreground">1 entrada seleccionada</p>
+                    <p className="text-xs text-muted-foreground">
+                      {partySize && partySize > 1 ? `${partySize} personas` : "1 entrada seleccionada"}
+                    </p>
                     <p className="text-2xl font-brand font-bold text-foreground">Total</p>
                   </div>
                   {isFree ? (
