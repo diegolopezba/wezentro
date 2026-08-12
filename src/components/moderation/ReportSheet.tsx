@@ -52,7 +52,7 @@ export const ReportSheet = ({ open, onOpenChange, targetType, targetId }: Report
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent side="bottom" className="h-[85vh] overflow-y-auto rounded-t-3xl">
+      <SheetContent side="bottom" className="h-[85dvh] flex flex-col rounded-t-3xl">
         <SheetHeader className="text-left">
           <SheetTitle className="font-brand text-xl">Reportar</SheetTitle>
           <SheetDescription>
@@ -60,7 +60,7 @@ export const ReportSheet = ({ open, onOpenChange, targetType, targetId }: Report
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 space-y-2">
+        <div data-vaul-no-drag className="sheet-scroll-region flex-1 mt-6 space-y-2">
           {REASONS.map((r) => (
             <button
               key={r.value}
@@ -76,7 +76,7 @@ export const ReportSheet = ({ open, onOpenChange, targetType, targetId }: Report
         </div>
 
         {selectedReason && (
-          <div className="mt-4">
+          <div data-vaul-no-drag className="shrink-0 mt-4">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Detalles adicionales (opcional)
             </label>

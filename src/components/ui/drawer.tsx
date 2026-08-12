@@ -3,8 +3,13 @@ import { Drawer as DrawerPrimitive } from "vaul";
 
 import { cn } from "@/lib/utils";
 
-const Drawer = ({ shouldScaleBackground = true, ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
-  <DrawerPrimitive.Root shouldScaleBackground={shouldScaleBackground} {...props} />
+const Drawer = ({ shouldScaleBackground = false, repositionInputs = false, ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
+  <DrawerPrimitive.Root
+    shouldScaleBackground={shouldScaleBackground}
+    repositionInputs={repositionInputs}
+    noBodyStyles
+    {...props}
+  />
 );
 Drawer.displayName = "Drawer";
 
@@ -27,14 +32,47 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, ...props }, forwardedRef) => {
+  const contentRef = React.useRef<React.ElementRef<typeof DrawerPrimitive.Content>>(null);
+
+  React.useImperativeHandle(forwardedRef, () => contentRef.current as React.ElementRef<typeof DrawerPrimitive.Content>);
+
+  React.useEffect(() => {
+    const element = contentRef.current;
+    if (!element) return;
+
+    const measure = () => {
+      if (document.documentElement.dataset.keyboard === "open") return;
+      element.style.setProperty("--sheet-resting-height", `${Math.round(element.getBoundingClientRect().height)}px`);
+    };
+    const revealFocusedField = () => {
+      requestAnimationFrame(() => {
+        const active = document.activeElement;
+        if (!(active instanceof HTMLElement) || !element.contains(active)) return;
+        active.scrollIntoView({ block: "nearest", inline: "nearest" });
+      });
+    };
+    const frame = requestAnimationFrame(measure);
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    element.addEventListener("focusin", revealFocusedField);
+    window.visualViewport?.addEventListener("resize", revealFocusedField);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      element.removeEventListener("focusin", revealFocusedField);
+      window.visualViewport?.removeEventListener("resize", revealFocusedField);
+    };
+  }, []);
+
+  return (
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerPrimitive.Content
-      ref={ref}
+      ref={contentRef}
       className={cn(
         "fixed inset-x-0 bottom-0 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
-        "keyboard-aware",
+        "sheet-keyboard-viewport",
         DRAWER_STACK_CLASS,
         className,
       )}
@@ -44,7 +82,8 @@ const DrawerContent = React.forwardRef<
       {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>
-));
+  );
+});
 DrawerContent.displayName = "DrawerContent";
 
 const DrawerHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (

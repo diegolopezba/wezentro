@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Loader2, MessageCircle, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/bottom-sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useEventComments, useAddComment, useDeleteComment } from "@/hooks/useEventComments";
@@ -34,6 +33,7 @@ export const CommentsSheet = ({
   const [replyingTo, setReplyingTo] = useState<{ parentId: string; username: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const { data: comments = [], isLoading } = useEventComments(open ? eventId : undefined);
   const addComment = useAddComment();
@@ -41,7 +41,10 @@ export const CommentsSheet = ({
 
   useEffect(() => {
     if (comments.length > 0) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      requestAnimationFrame(() => {
+        const list = listRef.current;
+        if (list) list.scrollTo({ top: list.scrollHeight, behavior: "smooth" });
+      });
     }
   }, [comments.length]);
 
@@ -58,7 +61,10 @@ export const CommentsSheet = ({
     setReplyingTo(null);
     haptic("light");
     await addComment.mutateAsync({ eventId, content: trimmed, parentId });
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    requestAnimationFrame(() => {
+      const list = listRef.current;
+      if (list) list.scrollTo({ top: list.scrollHeight, behavior: "smooth" });
+    });
   };
 
   const handleInputFocus = () => {
@@ -81,7 +87,7 @@ export const CommentsSheet = ({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        side="bottom" className="h-[85vh] flex flex-col p-0 rounded-t-3xl" >
+        side="bottom" className="h-[85dvh] flex flex-col p-0 rounded-t-3xl" >
 
         <SheetHeader className="px-5 pb-3 shrink-0 border-b border-border/50">
           <SheetTitle className="text-base font-semibold text-foreground">
@@ -90,7 +96,7 @@ export const CommentsSheet = ({
         </SheetHeader>
 
         {/* Comments list */}
-        <ScrollArea className="flex-1 px-4">
+        <div ref={listRef} data-vaul-no-drag className="sheet-scroll-region flex-1 px-4">
           {isLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
@@ -116,7 +122,7 @@ export const CommentsSheet = ({
               <div ref={bottomRef} />
             </div>
           )}
-        </ScrollArea>
+        </div>
 
         {/* Reply indicator */}
         {replyingTo && (
@@ -133,7 +139,7 @@ export const CommentsSheet = ({
         )}
 
         {/* Input bar */}
-        <div className="shrink-0 border-t border-border/50 px-4 py-3 safe-bottom">
+        <div data-vaul-no-drag className="shrink-0 border-t border-border/50 px-4 py-3 safe-bottom">
           <form onSubmit={handleSubmit} className="flex items-center gap-3">
             <Avatar className="w-8 h-8 shrink-0">
               <AvatarImage src={currentProfile?.avatar_url || DEFAULT_AVATAR} />
