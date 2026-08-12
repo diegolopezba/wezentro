@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 type SheetRootProps = React.ComponentProps<typeof DrawerPrimitive.Root>;
 
-const Sheet = ({ shouldScaleBackground = false, ...props }: SheetRootProps) => {
+const Sheet = ({ shouldScaleBackground = false, repositionInputs = false, ...props }: SheetRootProps) => {
   // Safety net: vaul can leave `pointer-events: none` on <body> if a sheet
   // is unmounted mid-transition (Fast Refresh, route change, etc.). That
   // silently kills every subsequent tap and looks exactly like "sheets don't
@@ -44,6 +44,7 @@ const Sheet = ({ shouldScaleBackground = false, ...props }: SheetRootProps) => {
   return (
     <DrawerPrimitive.Root
       shouldScaleBackground={shouldScaleBackground}
+      repositionInputs={repositionInputs}
       {...props}
       onOpenChange={handleOpenChange}
     />
@@ -80,11 +81,33 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   SheetContentProps
->(({ className, children, hideHandle, side: _side, ...props }, ref) => (
-  <SheetPortal>
-    <SheetOverlay />
-    <DrawerPrimitive.Content
-      ref={ref}
+>(({ className, children, hideHandle, side: _side, ...props }, forwardedRef) => {
+  const contentRef = React.useRef<React.ElementRef<typeof DrawerPrimitive.Content>>(null);
+
+  React.useImperativeHandle(forwardedRef, () => contentRef.current as React.ElementRef<typeof DrawerPrimitive.Content>);
+
+  React.useEffect(() => {
+    const element = contentRef.current;
+    if (!element) return;
+
+    const measure = () => {
+      if (document.documentElement.dataset.keyboard === "open") return;
+      element.style.setProperty("--sheet-resting-height", `${Math.round(element.getBoundingClientRect().height)}px`);
+    };
+    const frame = requestAnimationFrame(measure);
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <SheetPortal>
+      <SheetOverlay />
+      <DrawerPrimitive.Content
+      ref={contentRef}
       className={cn(
         "fixed inset-x-0 bottom-0 flex flex-col border-t border-border/50 bg-background outline-none",
         // Event detail modals and their floating CTA bars sit at z-[60].
@@ -96,6 +119,7 @@ const SheetContent = React.forwardRef<
         // padding gives every sheet breathing room from the screen edges;
         // consumers can override with px-* or pass px-0 for edge-to-edge.
         "rounded-t-3xl px-4",
+        "sheet-keyboard-viewport",
         className,
       )}
       {...props}
@@ -105,8 +129,9 @@ const SheetContent = React.forwardRef<
       )}
       {children}
     </DrawerPrimitive.Content>
-  </SheetPortal>
-));
+    </SheetPortal>
+  );
+});
 SheetContent.displayName = "SheetContent";
 
 const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (

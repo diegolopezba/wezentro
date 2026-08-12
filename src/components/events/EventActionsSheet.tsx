@@ -156,7 +156,7 @@ export function EventActionsSheet({
           )}
 
           {step === "edit" && isOwner && (
-            <div className="flex flex-col h-full px-6 pt-4 pb-4 overflow-hidden">
+            <div data-vaul-no-drag className="flex flex-col h-full min-h-0 px-6 pt-4 pb-4 overflow-hidden">
               <div className="flex items-center gap-2 shrink-0 mb-2">
                 <button
                   aria-label="Volver"

@@ -248,7 +248,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         </SheetHeader>
 
 
-        <div className="flex-1 overflow-y-auto space-y-4 pb-4 -mx-6 px-6">
+        <div data-vaul-no-drag className="sheet-scroll-region flex-1 space-y-4 pb-4 -mx-6 px-6">
           <div className="space-y-2">
             <Label htmlFor="title">Título</Label>
             <Input
