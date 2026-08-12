@@ -94,12 +94,23 @@ const SheetContent = React.forwardRef<
       if (document.documentElement.dataset.keyboard === "open") return;
       element.style.setProperty("--sheet-resting-height", `${Math.round(element.getBoundingClientRect().height)}px`);
     };
+    const revealFocusedField = () => {
+      requestAnimationFrame(() => {
+        const active = document.activeElement;
+        if (!(active instanceof HTMLElement) || !element.contains(active)) return;
+        active.scrollIntoView({ block: "nearest", inline: "nearest" });
+      });
+    };
     const frame = requestAnimationFrame(measure);
     const observer = new ResizeObserver(measure);
     observer.observe(element);
+    element.addEventListener("focusin", revealFocusedField);
+    window.visualViewport?.addEventListener("resize", revealFocusedField);
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      element.removeEventListener("focusin", revealFocusedField);
+      window.visualViewport?.removeEventListener("resize", revealFocusedField);
     };
   }, []);
 
