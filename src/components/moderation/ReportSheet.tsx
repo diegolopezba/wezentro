@@ -60,7 +60,7 @@ export const ReportSheet = ({ open, onOpenChange, targetType, targetId }: Report
           </SheetDescription>
         </SheetHeader>
 
-        <div data-vaul-no-drag className="sheet-scroll-region mt-6 space-y-2">
+        <div data-vaul-no-drag className="sheet-scroll-region flex-1 mt-6 space-y-2">
           {REASONS.map((r) => (
             <button
               key={r.value}

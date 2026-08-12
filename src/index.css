@@ -253,6 +253,7 @@
   .sheet-keyboard-viewport {
     max-height: min(var(--sheet-resting-height, 100dvh), calc(var(--visual-viewport-height, 100dvh) - 8px));
     overscroll-behavior: contain;
+    overflow: hidden;
     transition: height 180ms cubic-bezier(0.32, 0.72, 0, 1), bottom 180ms cubic-bezier(0.32, 0.72, 0, 1);
   }
 

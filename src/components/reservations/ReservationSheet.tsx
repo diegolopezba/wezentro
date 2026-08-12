@@ -301,7 +301,7 @@ export const ReservationSheet = ({
           </div>
         </DrawerHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-2">
+        <div data-vaul-no-drag className="sheet-scroll-region flex-1 px-4 pb-2">
           <AnimatePresence mode="wait">
             {/* DATE */}
             {currentStep === "date" && (
@@ -564,11 +564,6 @@ export const ReservationSheet = ({
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Alergias, celebraciones, preferencias de asiento..." rows={2}
-                    onFocus={(e) => {
-                      setTimeout(() => {
-                        e.target.scrollIntoView({ behavior: "smooth", block: "center" });
-                      }, 300);
-                    }}
                   />
                 </div>
               </m.div>
