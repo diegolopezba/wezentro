@@ -11,6 +11,7 @@ export const CATEGORIES = [
   { id: "coffee",    label: "Café",         emoji: "☕" },
   { id: "fitness",   label: "Fitness",     emoji: "🏋️" },
   { id: "culture",   label: "Arte y Cultura", emoji: "🎨" },
+  { id: "adventure", label: "Aventura",    emoji: "🏔️" },
 ] as const;
 
 export type CategoryId = (typeof CATEGORIES)[number]["id"];
