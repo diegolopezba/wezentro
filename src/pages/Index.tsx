@@ -1,13 +1,18 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { m } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, SlidersHorizontal } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventFeed } from "@/components/events/EventFeed";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useForYouEvents } from "@/hooks/useForYouEvents";
-import { useFollowingEventsScored } from "@/hooks/useFollowingEventsScored";
 import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
+import { useEvents } from "@/hooks/useEvents";
+import { useNearbyEvents, FilterOptions } from "@/hooks/useNearbyEvents";
+import { useFriendsGoingData } from "@/hooks/useFriendsGoingData";
+import { useUserLocation } from "@/hooks/useUserLocation";
+import { FilterSheet } from "@/components/map/FilterSheet";
+import { CATEGORIES } from "@/lib/categories";
+import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
@@ -18,20 +23,36 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 const Index = () => {
-  const navigate = useNavigate();
   const openNotifications = useOpenNotifications();
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
   const isGuest = !user;
 
-  const [activeTab, setActiveTab] = useState<"for-you" | "following">("for-you");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
   const headerVisibleRef = useRef(true);
   const lastScrollY = useRef(0);
   const scrollRafRef = useRef<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const [filters, setFilters] = useState<FilterOptions>({
+    searchQuery: "",
+    dateFilter: "all",
+    categories: [],
+    maxDistance: null,
+    hasGuestlistOnly: false,
+    friendsGoingOnly: false,
+  });
+
+  const sheetFilterCount =
+    (filters.dateFilter !== "all" ? 1 : 0) +
+    (filters.maxDistance !== null ? 1 : 0) +
+    (filters.hasGuestlistOnly ? 1 : 0) +
+    (filters.friendsGoingOnly ? 1 : 0);
+
+  const isFiltering = filters.categories.length > 0 || sheetFilterCount > 0;
 
   const {
     data: forYouEvents = [],
@@ -41,17 +62,30 @@ const Index = () => {
     hasNextPage: hasMoreForYou,
     isFetchingNextPage: isFetchingMoreForYou,
   } = useForYouEvents();
+
+  // Explore-style catalog, only fetched when filters are active.
   const {
-    data: followingEvents = [],
-    isLoading: followingLoading,
-    refetch: refetchFollowing,
-    fetchNextPage: fetchMoreFollowing,
-    hasNextPage: hasMoreFollowing,
-    isFetchingNextPage: isFetchingMoreFollowing,
-  } = useFollowingEventsScored();
-  const {
-    data: unreadCount = 0
-  } = useUnreadNotificationsCount();
+    data: allEvents = [],
+    isLoading: catalogLoading,
+    refetch: refetchCatalog,
+  } = useEvents(isFiltering);
+  const { location: userLocation } = useUserLocation();
+  const friendsData = useFriendsGoingData(
+    allEvents.map((e: any) => e.id),
+    isFiltering && filters.friendsGoingOnly,
+  );
+  const activeFilters = useMemo(
+    () => ({ ...filters, searchQuery }),
+    [filters, searchQuery],
+  );
+  const filteredEvents = useNearbyEvents(
+    isFiltering ? (allEvents as any) : [],
+    userLocation,
+    activeFilters,
+    friendsData,
+  );
+
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount();
 
   const handleNotificationClick = () => {
     if (isGuest) {
@@ -60,16 +94,37 @@ const Index = () => {
     }
     openNotifications();
   };
-  const events = activeTab === "for-you" ? forYouEvents : followingEvents;
-  const isLoading = activeTab === "for-you" ? forYouLoading : followingLoading;
+
+  const events = isFiltering ? filteredEvents : forYouEvents;
+  const isLoading = isFiltering ? catalogLoading : forYouLoading;
 
   const handleRefresh = useCallback(async () => {
-    if (activeTab === "for-you") {
-      await refetchForYou();
+    if (isFiltering) {
+      await refetchCatalog();
     } else {
-      await refetchFollowing();
+      await refetchForYou();
     }
-  }, [activeTab, refetchForYou, refetchFollowing]);
+  }, [isFiltering, refetchCatalog, refetchForYou]);
+
+  const toggleCategory = (categoryId: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(categoryId)
+        ? prev.categories.filter((c) => c !== categoryId)
+        : [...prev.categories, categoryId],
+    }));
+  };
+
+  const resetToForYou = () => {
+    setFilters({
+      searchQuery: "",
+      dateFilter: "all",
+      categories: [],
+      maxDistance: null,
+      hasGuestlistOnly: false,
+      friendsGoingOnly: false,
+    });
+  };
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
@@ -101,60 +156,64 @@ const Index = () => {
   // no client-side ad injection (Instagram/Pinterest pattern).
   const cardCacheRef = useRef<Map<string, any>>(new Map());
 
+  const toCard = useCallback((event: any) => {
+    const cached = cardCacheRef.current.get(event.id);
+    const guestlistEntries = event.guestlist_entries || [];
+    const attendeeTotal = event._attendee_count ?? guestlistEntries.length;
+    const repostInfo = event.repostInfo;
+    const isSponsored = !!event._isSponsored;
+
+    if (
+      cached &&
+      cached._attendeeTotal === attendeeTotal &&
+      cached._guestlistLen === guestlistEntries.length &&
+      cached._repostStamp === (repostInfo?.mostRecentRepostAt ?? null)
+    ) {
+      return cached;
+    }
+
+    const attendeeAvatars = guestlistEntries
+      .map((entry: any) => entry.user)
+      .filter(Boolean)
+      .map((u: any) => ({ id: u.id, avatar_url: u.avatar_url }));
+
+    const card = {
+      id: event.id,
+      title: event.title || undefined,
+      imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
+      date: event.start_datetime ? format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", { locale: es }) : "",
+      location: event.location_name || "Ubicación por confirmar",
+      category: event.category || "party",
+      attendees: attendeeTotal,
+      attendeeAvatars,
+      hasGuestlist: event.has_guestlist || false,
+      ownerAvatar: event.creator?.avatar_url || undefined,
+      creatorId: event.creator_id,
+      repostInfo,
+      isSponsored,
+      sponsoredPostId: event._sponsoredPostId ?? undefined,
+      media: event.media || [],
+      _attendeeTotal: attendeeTotal,
+      _guestlistLen: guestlistEntries.length,
+      _repostStamp: repostInfo?.mostRecentRepostAt ?? null,
+    };
+    cardCacheRef.current.set(event.id, card);
+    return card;
+  }, []);
+
   const transformedEvents = useMemo(() => {
+    // In filter mode the search query is already applied by useNearbyEvents.
     const q = searchQuery.toLowerCase();
-    return events
-      .filter(event => {
-        if (searchQuery === "") return true;
-        const t = event.title?.toLowerCase().includes(q);
-        const l = event.location_name?.toLowerCase().includes(q) ?? false;
-        return t || l;
-      })
-      .map((event: any) => {
-        const cached = cardCacheRef.current.get(event.id);
-        const guestlistEntries = event.guestlist_entries || [];
-        const attendeeTotal = event._attendee_count ?? guestlistEntries.length;
-        const repostInfo = event.repostInfo;
-        const isSponsored = !!event._isSponsored;
-
-        if (
-          cached &&
-          cached._attendeeTotal === attendeeTotal &&
-          cached._guestlistLen === guestlistEntries.length &&
-          cached._repostStamp === (repostInfo?.mostRecentRepostAt ?? null)
-        ) {
-          return cached;
-        }
-
-        const attendeeAvatars = guestlistEntries
-          .map((entry: any) => entry.user)
-          .filter(Boolean)
-          .map((user: any) => ({ id: user.id, avatar_url: user.avatar_url }));
-
-        const card = {
-          id: event.id,
-          title: event.title || undefined,
-          imageUrl: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
-          date: event.start_datetime ? format(new Date(event.start_datetime), "EEE, d MMM • h:mm a", { locale: es }) : "",
-          location: event.location_name || "Ubicación por confirmar",
-          category: event.category || "party",
-          attendees: attendeeTotal,
-          attendeeAvatars,
-          hasGuestlist: event.has_guestlist || false,
-          ownerAvatar: event.creator?.avatar_url || undefined,
-          creatorId: event.creator_id,
-          repostInfo,
-          isSponsored,
-          sponsoredPostId: event._sponsoredPostId ?? undefined,
-          media: event.media || [],
-          _attendeeTotal: attendeeTotal,
-          _guestlistLen: guestlistEntries.length,
-          _repostStamp: repostInfo?.mostRecentRepostAt ?? null,
-        };
-        cardCacheRef.current.set(event.id, card);
-        return card;
-      });
-  }, [events, searchQuery]);
+    const source = isFiltering
+      ? events
+      : events.filter((event: any) => {
+          if (searchQuery === "") return true;
+          const t = event.title?.toLowerCase().includes(q);
+          const l = event.location_name?.toLowerCase().includes(q) ?? false;
+          return t || l;
+        });
+    return source.map(toCard);
+  }, [events, searchQuery, isFiltering, toCard]);
 
   return <AppLayout ref={scrollContainerRef}>
         <header className="sticky top-0 z-30 safe-top bg-background">
@@ -166,6 +225,14 @@ const Index = () => {
               <Button variant="ghost" size="icon" className="relative" onClick={handleNotificationClick}>
                 <Bell className="w-5 h-5" />
                 {!isGuest && unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />}
+              </Button>
+              <Button variant="ghost" size="icon" className="relative" onClick={() => setShowFilters(true)}>
+                <SlidersHorizontal className="w-5 h-5" />
+                {sheetFilterCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] leading-4 text-center">
+                    {sheetFilterCount}
+                  </span>
+                )}
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setShowSearch(s => !s)}>
                 <Search className="w-5 h-5" />
@@ -183,17 +250,41 @@ const Index = () => {
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="overflow-hidden"
           >
-            <div className="flex px-4 pb-3 gap-2" style={{ pointerEvents: headerVisible ? "auto" : "none" }}>
-              <button onClick={() => setActiveTab("for-you")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-colors duration-150 ${activeTab === "for-you" ? "text-primary" : "text-muted-foreground active:text-foreground"}`}>
-                {activeTab === "for-you" && <m.div initial={false} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 gradient-primary rounded-full" />}
-                <span className="relative z-10">Para Ti</span>
-              </button>
-              {!isGuest && (
-                <button onClick={() => setActiveTab("following")} className={`relative px-3 py-1 text-sm font-medium rounded-full transition-colors duration-150 ${activeTab === "following" ? "text-primary" : "text-muted-foreground active:text-foreground"}`}>
-                  {activeTab === "following" && <m.div initial={false} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 gradient-primary rounded-full" />}
-                  <span className="relative z-10">Siguiendo</span>
-                </button>
-              )}
+            <div
+              className="flex px-4 pb-3 gap-2 overflow-x-auto no-scrollbar"
+              style={{ pointerEvents: headerVisible ? "auto" : "none" }}
+            >
+              <m.button
+                whileTap={{ scale: 0.95 }}
+                onClick={resetToForYou}
+                className={cn(
+                  "px-3 py-1.5 text-sm font-medium rounded-full whitespace-nowrap transition-colors duration-150",
+                  !isFiltering
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground",
+                )}
+              >
+                Para Ti
+              </m.button>
+              {CATEGORIES.map((category) => {
+                const isSelected = filters.categories.includes(category.id);
+                return (
+                  <m.button
+                    key={category.id}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => toggleCategory(category.id)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full whitespace-nowrap transition-colors duration-150",
+                      isSelected
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-secondary-foreground",
+                    )}
+                  >
+                    <span>{category.emoji}</span>
+                    <span className="font-medium">{category.label}</span>
+                  </m.button>
+                );
+              })}
             </div>
           </m.div>
         </header>
@@ -201,12 +292,19 @@ const Index = () => {
           <EventFeed
             events={transformedEvents}
             isLoading={isLoading}
-            emptyStateType={activeTab}
-            onEndReached={activeTab === "for-you" ? fetchMoreForYou : fetchMoreFollowing}
-            hasMore={activeTab === "for-you" ? hasMoreForYou : hasMoreFollowing}
-            isLoadingMore={activeTab === "for-you" ? isFetchingMoreForYou : isFetchingMoreFollowing}
+            emptyStateType="for-you"
+            onEndReached={isFiltering ? undefined : fetchMoreForYou}
+            hasMore={isFiltering ? false : hasMoreForYou}
+            isLoadingMore={isFiltering ? false : isFetchingMoreForYou}
           />
         </PullToRefresh>
+
+        <FilterSheet
+          open={showFilters}
+          onOpenChange={setShowFilters}
+          filters={filters}
+          onApplyFilters={setFilters}
+        />
       </AppLayout>;
 };
 export default Index;

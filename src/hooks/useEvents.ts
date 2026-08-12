@@ -40,9 +40,10 @@ export interface EventWithCreator extends Event {
   };
 }
 
-export const useEvents = () => {
+export const useEvents = (enabled: boolean = true) => {
   const { data: blockedIds } = useBlockedIds();
   return useQuery({
+    enabled,
     queryKey: ["events", blockedIds ? Array.from(blockedIds).sort().join(",") : ""],
     queryFn: async () => {
       const { data, error } = await supabase
