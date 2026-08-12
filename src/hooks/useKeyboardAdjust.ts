@@ -1,11 +1,34 @@
 import { useEffect, useState } from "react";
 
-interface KeyboardState {
+export interface KeyboardState {
   isVisible: boolean;
   keyboardHeight: number;
   viewportHeight: number;
   viewportOffsetTop: number;
 }
+
+export const calculateKeyboardState = ({
+  layoutHeight,
+  visualHeight,
+  offsetTop,
+  hasFocusedInput,
+  wasVisible,
+}: {
+  layoutHeight: number;
+  visualHeight: number;
+  offsetTop: number;
+  hasFocusedInput: boolean;
+  wasVisible: boolean;
+}): KeyboardState => {
+  const rawHeight = layoutHeight - (visualHeight + offsetTop);
+  const keyboardHeight = (hasFocusedInput || wasVisible) && rawHeight > 80 ? Math.round(rawHeight) : 0;
+  return {
+    isVisible: keyboardHeight > 0,
+    keyboardHeight,
+    viewportHeight: Math.round(visualHeight),
+    viewportOffsetTop: Math.round(offsetTop),
+  };
+};
 
 let listenerCount = 0;
 const subscribers = new Set<(s: KeyboardState) => void>();
@@ -50,15 +73,13 @@ const attach = () => {
       const focusedInput = isKeyboardInput(document.activeElement);
       if (!focusedInput) stableLayoutHeight = Math.max(stableLayoutHeight, window.innerHeight, viewport.height);
 
-      const viewportBottom = viewport.height + viewport.offsetTop;
-      const rawHeight = stableLayoutHeight - viewportBottom;
-      const keyboardHeight = focusedInput && rawHeight > 80 ? Math.round(rawHeight) : 0;
-      const nextState: KeyboardState = {
-        isVisible: keyboardHeight > 0,
-        keyboardHeight,
-        viewportHeight: Math.round(viewport.height),
-        viewportOffsetTop: Math.round(viewport.offsetTop),
-      };
+      const nextState = calculateKeyboardState({
+        layoutHeight: stableLayoutHeight,
+        visualHeight: viewport.height,
+        offsetTop: viewport.offsetTop,
+        hasFocusedInput: focusedInput,
+        wasVisible: currentState.isVisible,
+      });
 
       if (
         nextState.keyboardHeight === currentState.keyboardHeight &&
