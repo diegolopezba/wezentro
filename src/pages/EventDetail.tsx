@@ -495,7 +495,7 @@ const EventDetail = () => {
               </span>
               {maxGuestlistCapacity != null && (
                 <span className="text-xs text-muted-foreground">
-                  {approvedCount}/{maxGuestlistCapacity}
+                  {approvedCount}/{maxGuestlistCapacity} entradas vendidas
                 </span>
               )}
               </>
