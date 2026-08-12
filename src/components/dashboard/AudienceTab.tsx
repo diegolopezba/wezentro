@@ -14,10 +14,6 @@ export const AudienceTab = () => {
 
       <DemographicsCharts demographics={demographics} isLoading={demoLoading} />
 
-      <FollowerGrowthChart />
-
-      <AudienceInsights />
-
       {/* Repeat Attendees */}
       {repeatData && repeatData.totalUniqueAttendees > 0 && (
         <div className="p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
@@ -34,6 +30,10 @@ export const AudienceTab = () => {
           </div>
         </div>
       )}
+
+      <FollowerGrowthChart />
+
+      <AudienceInsights />
     </div>
   );
 };
