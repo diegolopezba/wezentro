@@ -447,7 +447,7 @@ const EventDetailModalInner = () => {
                   <span className="font-brand text-lg font-semibold text-foreground">{formattedPrice}</span>
                   {maxGuestlistCapacity != null && (
                     <span className="text-xs text-muted-foreground">
-                      {approvedCount}/{maxGuestlistCapacity}
+                      {approvedCount}/{maxGuestlistCapacity} entradas vendidas
                     </span>
                   )}
                   </>
