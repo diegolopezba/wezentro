@@ -45,6 +45,7 @@ const Sheet = ({ shouldScaleBackground = false, repositionInputs = false, ...pro
     <DrawerPrimitive.Root
       shouldScaleBackground={shouldScaleBackground}
       repositionInputs={repositionInputs}
+      noBodyStyles
       {...props}
       onOpenChange={handleOpenChange}
     />
