@@ -109,18 +109,24 @@ export const useNearbyEvents = (
       return { ...event, distance };
     });
 
-    // Apply search filter (includes description)
+    // Apply search filter (relevance-scored across title, venue, organizer,
+    // category label, semantic tags and description)
     const hasSearchQuery = filters.searchQuery.trim().length > 0;
+    const searchScores = new Map<string, number>();
     if (hasSearchQuery) {
-      const query = filters.searchQuery.toLowerCase();
-      result = result.filter(
-        (event) =>
-          event.title?.toLowerCase().includes(query) ||
-          event.location_name?.toLowerCase().includes(query) ||
-          event.category?.toLowerCase().includes(query) ||
-          event.description?.toLowerCase().includes(query)
-      );
+      const tokens = tokenize(filters.searchQuery);
+      const collect = (fuzzy: boolean) => {
+        searchScores.clear();
+        for (const event of result) {
+          const score = scoreEvent(event, tokens, fuzzy);
+          if (score > 0) searchScores.set(event.id, score);
+        }
+      };
+      collect(false);
+      if (searchScores.size === 0 && tokens.some((t) => t.length >= 4)) collect(true);
+      result = result.filter((event) => searchScores.has(event.id));
     }
+
 
     // Apply date filter - always filter out past events first
     const now = new Date();
