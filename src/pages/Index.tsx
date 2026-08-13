@@ -211,18 +211,13 @@ const Index = () => {
   }, []);
 
   const transformedEvents = useMemo(() => {
-    // In filter mode the search query is already applied by useNearbyEvents.
-    const q = searchQuery.toLowerCase();
+    // In filter mode the search query is already applied (and ranked) by useNearbyEvents.
     const source = isFiltering
       ? events
-      : events.filter((event: any) => {
-          if (searchQuery === "") return true;
-          const t = event.title?.toLowerCase().includes(q);
-          const l = event.location_name?.toLowerCase().includes(q) ?? false;
-          return t || l;
-        });
+      : searchAndRank(events as any[], debouncedQuery);
     return source.map(toCard);
-  }, [events, searchQuery, isFiltering, toCard]);
+  }, [events, debouncedQuery, isFiltering, toCard]);
+
 
   return <AppLayout ref={scrollContainerRef}>
         <header className="sticky top-0 z-30 safe-top bg-background">
