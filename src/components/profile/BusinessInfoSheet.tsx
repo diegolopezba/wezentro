@@ -1,11 +1,15 @@
+import { lazy, Suspense } from "react";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { MapPin, Clock, Phone } from "lucide-react";
+import { MapPin, Clock, Phone, Loader2 } from "lucide-react";
 import { parseSchedule, type DaySchedule } from "./BusinessHoursEditor";
+
+const BusinessMiniMap = lazy(() => import("./BusinessMiniMap"));
+
 
 const SHORT_DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
