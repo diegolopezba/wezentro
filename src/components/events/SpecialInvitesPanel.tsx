@@ -234,6 +234,65 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
         </div>
       )}
 
+      {!isLoading && selectableInvites.length > 0 && (
+        <div className="rounded-2xl border border-border bg-card p-3 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <button
+              onClick={toggleSelectAll}
+              className="flex items-center gap-2 text-xs font-semibold text-foreground"
+            >
+              <Checkbox checked={allSelected} className="pointer-events-none" />
+              {allSelected ? "Quitar selección" : "Seleccionar todas"}
+            </button>
+            <span className="text-xs text-muted-foreground">
+              {selectedIds.length} seleccionadas
+            </span>
+          </div>
+
+          {selectedIds.length > 0 && (
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleSetMode(selectedIds, "direct")}
+                  disabled={setMode.isPending}
+                >
+                  <Zap className="w-4 h-4 mr-1.5" /> Sin cuenta
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleSetMode(selectedIds, "app")}
+                  disabled={setMode.isPending}
+                >
+                  <Smartphone className="w-4 h-4 mr-1.5" /> En la app
+                </Button>
+              </div>
+              <Button
+                variant="hero"
+                size="sm"
+                className="w-full"
+                onClick={handleBulkSend}
+                disabled={sendEmails.isPending}
+              >
+                {sendEmails.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 mr-1.5" /> Enviar por correo
+                  </>
+                )}
+              </Button>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                "Sin cuenta": el invitado solo confirma su nombre y correo y recibe su QR al
+                instante, sin registrarse.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {!isLoading && invites.length > 0 && (
         <Button variant="secondary" className="w-full" onClick={handleExport}>
           <Download className="w-4 h-4 mr-2" /> Descargar Excel
@@ -260,30 +319,48 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
               key={invite.id}
               className="rounded-2xl border border-border bg-card px-4 py-3 flex items-center gap-3"
             >
+              {invite.status === "pending" && (
+                <Checkbox
+                  checked={selectedIds.includes(invite.id)}
+                  onCheckedChange={() => toggleSelect(invite.id)}
+                  aria-label="Seleccionar invitación"
+                  className="shrink-0"
+                />
+              )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">
-                    {invite.guest_name || invite.label || "Invitación especial"}
+                    {invite.rsvp_name || invite.guest_name || invite.label || "Invitación especial"}
                   </p>
                   {invite.segment && (
                     <Badge variant="secondary" className="shrink-0 text-[10px]">
                       {invite.segment}
                     </Badge>
                   )}
+                  {invite.delivery_mode === "direct" && (
+                    <Badge className="shrink-0 text-[10px] gap-1">
+                      <Zap className="w-3 h-3" /> Sin cuenta
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
-                  {invite.guest_email || getSpecialInviteUrl(invite.token)}
+                  {invite.rsvp_email || invite.guest_email || getSpecialInviteUrl(invite.token)}
                 </p>
-                {invite.guest_email && (
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    {invite.email_status === "sent"
-                      ? "Correo enviado"
-                      : invite.email_status === "failed"
-                        ? "Envío fallido"
-                        : "Sin enviar"}
-                  </p>
-                )}
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {invite.checked_in_at
+                    ? "Ingresó al evento"
+                    : invite.rsvp_confirmed_at
+                      ? "Asistencia confirmada"
+                      : invite.guest_email
+                        ? invite.email_status === "sent"
+                          ? "Correo enviado"
+                          : invite.email_status === "failed"
+                            ? "Envío fallido"
+                            : "Sin enviar"
+                        : "Enlace listo para compartir"}
+                </p>
               </div>
+
               {invite.status === "pending" ? (
                 <div className="flex items-center gap-1 shrink-0">
                   {invite.guest_email && (
