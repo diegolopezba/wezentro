@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Event } from "./useEvents";
 import { useBlockedIds } from "./useBlockedUsers";
+import { scoreEvent, tokenize } from "@/lib/searchScoring";
+
 
 interface UserLocation {
   lat: number;
