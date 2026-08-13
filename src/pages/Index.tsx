@@ -29,7 +29,15 @@ const Index = () => {
   const isGuest = !user;
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+
+  // Debounce so scoring doesn't run on every keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 200);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
   const [showFilters, setShowFilters] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
   const headerVisibleRef = useRef(true);
