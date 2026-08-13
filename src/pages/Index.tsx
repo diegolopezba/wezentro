@@ -83,9 +83,10 @@ const Index = () => {
     isFiltering && filters.friendsGoingOnly,
   );
   const activeFilters = useMemo(
-    () => ({ ...filters, searchQuery }),
-    [filters, searchQuery],
+    () => ({ ...filters, searchQuery: debouncedQuery }),
+    [filters, debouncedQuery],
   );
+
   const filteredEvents = useNearbyEvents(
     isFiltering ? (allEvents as any) : [],
     userLocation,
