@@ -104,9 +104,11 @@ const formatDateLabel = (dateStr: string) => {
 const ReservationCard = ({
   reservation,
   onModify,
+  isPast = false,
 }: {
   reservation: ReservationWithBusiness;
   onModify: (r: ReservationWithBusiness) => void;
+  isPast?: boolean;
 }) => {
   const navigate = useNavigate();
   const cancelMutation = useCancelReservation();
@@ -114,13 +116,18 @@ const ReservationCard = ({
   // 2h cutoff for modify
   const reservationWhen = new Date( `${reservation.reservation_date}T${reservation.reservation_time}` );
   const canModify =
+    !isPast &&
     !reservation.isTagged &&
     reservation.status !== "cancelled" &&
     reservationWhen.getTime() - Date.now() > 2 * 60 * 60 * 1000;
 
   return (
     <div
-      className="p-3 rounded-xl border bg-card space-y-2 cursor-pointer" onClick={() => navigate(`/reservation/${reservation.id}`)}
+      className={cn(
+        "p-3 rounded-xl border bg-card space-y-2 cursor-pointer",
+        isPast && "opacity-60"
+      )}
+      onClick={() => navigate(`/reservation/${reservation.id}`)}
     >
       <div className="flex items-center justify-between">
         <button
