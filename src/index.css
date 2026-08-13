@@ -109,6 +109,58 @@
     background: var(--gradient-red);
   }
 
+  /* Magnetic animated ring — rotating light around a pill border */
+  .glow-border {
+    position: relative;
+    display: inline-flex;
+    border-radius: 9999px;
+    padding: 1.5px;
+    isolation: isolate;
+    background: linear-gradient(
+      var(--glow-angle, 0deg),
+      hsl(var(--accent-red)) 0%,
+      hsl(var(--accent-red) / 0.15) 25%,
+      hsl(var(--accent-red) / 0.05) 50%,
+      hsl(var(--accent-red) / 0.15) 75%,
+      hsl(var(--accent-red)) 100%
+    );
+  }
+
+  .glow-border::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 9999px;
+    background: conic-gradient(
+      from var(--glow-angle, 0deg),
+      transparent 0deg,
+      hsl(var(--accent-red) / 0.9) 40deg,
+      hsl(var(--accent-red) / 0.2) 90deg,
+      transparent 160deg,
+      transparent 360deg
+    );
+    filter: blur(4px);
+    opacity: 0.9;
+    z-index: -1;
+    animation: glowSpin 3s linear infinite;
+  }
+
+  .glow-border {
+    animation: glowSpin 3s linear infinite;
+  }
+
+  .glow-border > * {
+    border-radius: 9999px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glow-border,
+    .glow-border::before {
+      animation: none;
+    }
+  }
+
+
   .shadow-subtle {
     box-shadow: var(--shadow-subtle);
   }
@@ -287,6 +339,16 @@
 html[data-keyboard="open"] body {
   overscroll-behavior: none;
   overflow: hidden;
+}
+
+@property --glow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes glowSpin {
+  to { --glow-angle: 360deg; }
 }
 
 @keyframes boostGlow {
