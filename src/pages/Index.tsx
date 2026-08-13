@@ -221,12 +221,11 @@ const Index = () => {
   }, []);
 
   const transformedEvents = useMemo(() => {
-    // In filter mode the search query is already applied (and ranked) by useNearbyEvents.
-    const source = isFiltering
-      ? events
-      : searchAndRank(events as any[], debouncedQuery);
+    // In catalog mode the search query is already applied (and ranked) by useNearbyEvents.
+    const source = useCatalog ? events : searchAndRank(events as any[], debouncedQuery);
     return source.map(toCard);
-  }, [events, debouncedQuery, isFiltering, toCard]);
+  }, [events, debouncedQuery, useCatalog, toCard]);
+
 
 
   return <AppLayout ref={scrollContainerRef}>
