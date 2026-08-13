@@ -19,7 +19,36 @@ export interface SpecialInvite {
   batch_id: string | null;
   email_status: "not_sent" | "queued" | "sent" | "failed";
   email_sent_at: string | null;
+  delivery_mode: "app" | "direct";
+  qr_code_token: string | null;
+  rsvp_name: string | null;
+  rsvp_email: string | null;
+  rsvp_confirmed_at: string | null;
+  checked_in_at: string | null;
 }
+
+/** Token-scoped payload for the public (no-account) invite page. */
+export interface PublicInvite {
+  id: string;
+  event_id: string;
+  token: string;
+  status: "pending" | "redeemed" | "revoked";
+  segment: string | null;
+  delivery_mode: "app" | "direct";
+  guest_name: string | null;
+  guest_email: string | null;
+  rsvp_name: string | null;
+  rsvp_email: string | null;
+  rsvp_confirmed_at: string | null;
+  checked_in_at: string | null;
+  qr_code_token: string | null;
+  event_title: string | null;
+  event_start: string | null;
+  event_location: string | null;
+  event_image_url: string | null;
+  host_name: string | null;
+}
+
 
 const PENDING_INVITE_KEY = "zentro_pending_special_invite";
 
