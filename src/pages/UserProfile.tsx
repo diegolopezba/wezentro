@@ -291,7 +291,10 @@ const UserProfile = () => {
       businessName={userProfile.full_name || userProfile.username}
       address={userProfile.business_address}
       hours={userProfile.business_hours}
-      phone={userProfile.business_phone} />
+      phone={userProfile.business_phone}
+      latitude={userProfile.business_latitude}
+      longitude={userProfile.business_longitude} />
+
 
     }
       {/* Reservation Sheet for food businesses */}

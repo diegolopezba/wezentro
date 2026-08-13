@@ -1,11 +1,15 @@
+import { lazy, Suspense } from "react";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { MapPin, Clock, Phone } from "lucide-react";
+import { MapPin, Clock, Phone, Loader2 } from "lucide-react";
 import { parseSchedule, type DaySchedule } from "./BusinessHoursEditor";
+
+const BusinessMiniMap = lazy(() => import("./BusinessMiniMap"));
+
 
 const SHORT_DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
@@ -27,6 +31,8 @@ interface BusinessInfoSheetProps {
   address?: string | null;
   hours?: string | null;
   phone?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export const BusinessInfoSheet = ({
@@ -36,12 +42,19 @@ export const BusinessInfoSheet = ({
   address,
   hours,
   phone,
+  latitude,
+  longitude,
 }: BusinessInfoSheetProps) => {
   const hasAnyInfo = address || hours || phone;
   if (!hasAnyInfo) return null;
 
   const schedule = parseSchedule(hours ?? null);
   const openNow = schedule ? isOpenNow(schedule) : null;
+  const hasCoords =
+    typeof latitude === "number" &&
+    typeof longitude === "number" &&
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude);
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -58,12 +71,28 @@ export const BusinessInfoSheet = ({
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <MapPin className="w-5 h-5 text-primary" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground">Ubicación</p>
                 <p className="text-sm text-muted-foreground mt-0.5">{address}</p>
+                {open && hasCoords && (
+                  <Suspense
+                    fallback={
+                      <div className="mt-2 h-[140px] w-full rounded-xl bg-secondary flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
+                      </div>
+                    }
+                  >
+                    <BusinessMiniMap
+                      latitude={latitude as number}
+                      longitude={longitude as number}
+                      name={businessName}
+                    />
+                  </Suspense>
+                )}
               </div>
             </div>
           )}
+
 
           {hours && (
             <div className="flex items-start gap-3 p-3 rounded-xl bg-secondary/50">

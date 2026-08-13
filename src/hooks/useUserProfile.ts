@@ -15,8 +15,11 @@ export interface UserProfile {
   is_food_business: boolean;
   interests: string[] | null;
   business_address: string | null;
+  business_latitude: number | null;
+  business_longitude: number | null;
   business_hours: string | null;
   business_phone: string | null;
+
   reservation_start_time: string | null;
   reservation_end_time: string | null;
 }
