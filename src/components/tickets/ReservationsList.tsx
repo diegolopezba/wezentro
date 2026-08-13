@@ -188,7 +188,7 @@ const ReservationCard = ({
         <p className="text-xs text-muted-foreground truncate">{reservation.notes}</p>
       )}
 
-      {!reservation.isTagged && reservation.status !== "cancelled" && (
+      {!isPast && !reservation.isTagged && reservation.status !== "cancelled" && (
         <div className="flex gap-2 pt-1">
           {canModify && (
             <Button
