@@ -10,10 +10,9 @@ Lo que pediste ya está construido en el flujo "Sin cuenta" (`direct`), verifica
 
 ## Ajustes pequeños para que quede exactamente como lo describís
 
-1. Cambiar el texto del botón a **"Confirmar y recibir entrada"** (hoy dice "Confirmar asistencia").
-2. Agregar una línea corta arriba de los campos: "Confirmá tus datos — te enviamos la entrada a este correo."
-3. Si el correo precargado se edita, la entrada se envía al correo confirmado (ya funciona así; solo se aclara en el texto).
-4. Mostrar aviso claro tras confirmar: "Te enviamos la entrada a {correo}".
+1. Agregar una línea corta arriba de los campos: "Confirmá tus datos — te enviamos la entrada a este correo."
+2. Si el correo precargado se edita, la entrada se envía al correo confirmado (ya funciona así; solo se aclara en el texto).
+3. Mostrar aviso claro tras confirmar: "Te enviamos la entrada a {correo}".
 
 ## Detalles técnicos
 
