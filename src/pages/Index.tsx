@@ -117,12 +117,13 @@ const Index = () => {
 
 
   const handleRefresh = useCallback(async () => {
-    if (isFiltering) {
+    if (useCatalog) {
       await refetchCatalog();
     } else {
       await refetchForYou();
     }
-  }, [isFiltering, refetchCatalog, refetchForYou]);
+  }, [useCatalog, refetchCatalog, refetchForYou]);
+
 
   const toggleCategory = (categoryId: string) => {
     setFilters((prev) => ({
