@@ -233,9 +233,25 @@ const ReservationCard = ({
   );
 };
 
+const PAST_PAGE_SIZE = 10;
+
 export const ReservationsList = () => {
   const { data: reservations, isLoading } = useAllReservations();
   const [editing, setEditing] = useState<ReservationWithBusiness | null>(null);
+  const [pastVisible, setPastVisible] = useState(PAST_PAGE_SIZE);
+
+  const now = Date.now();
+  const all = reservations || [];
+  const upcoming = all.filter(
+    (r) => new Date(`${r.reservation_date}T${r.reservation_time}`).getTime() >= now
+  );
+  const past = all
+    .filter((r) => new Date(`${r.reservation_date}T${r.reservation_time}`).getTime() < now)
+    .sort((a, b) =>
+      `${b.reservation_date}T${b.reservation_time}`.localeCompare(
+        `${a.reservation_date}T${a.reservation_time}`
+      )
+    );
 
   return (
     <>
@@ -244,21 +260,47 @@ export const ReservationsList = () => {
           <div className="flex justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
-        ) : !reservations || reservations.length === 0 ? (
+        ) : all.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground text-sm">
             <CalendarDays className="w-10 h-10 mx-auto mb-3 opacity-40" />
-            No tienes reservas próximas
+            No tienes reservas
           </div>
         ) : (
-          reservations.map((r) => (
-            <m.div
-              key={r.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <ReservationCard reservation={r} onModify={setEditing} />
-            </m.div>
-          ))
+          <>
+            {upcoming.map((r) => (
+              <m.div
+                key={r.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <ReservationCard reservation={r} onModify={setEditing} />
+              </m.div>
+            ))}
+
+            {upcoming.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                No tienes reservas próximas
+              </div>
+            )}
+
+            {past.length > 0 && (
+              <div className="pt-4 space-y-3">
+                <h2 className="text-sm font-semibold text-muted-foreground">Pasadas</h2>
+                {past.slice(0, pastVisible).map((r) => (
+                  <ReservationCard key={r.id} reservation={r} onModify={setEditing} isPast />
+                ))}
+                {past.length > pastVisible && (
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full"
+                    onClick={() => setPastVisible((v) => v + PAST_PAGE_SIZE)}
+                  >
+                    Ver más
+                  </Button>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 
