@@ -12,7 +12,11 @@ import { useFriendsGoingData } from "@/hooks/useFriendsGoingData";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { FilterSheet } from "@/components/map/FilterSheet";
 import { CATEGORIES } from "@/lib/categories";
+import { searchAndRank } from "@/lib/searchScoring";
+import { useSearchUsers } from "@/hooks/useSearchUsers";
+import { UserSearchResultCard } from "@/components/search/UserSearchResultCard";
 import { cn } from "@/lib/utils";
+
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
