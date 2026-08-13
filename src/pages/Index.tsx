@@ -86,10 +86,13 @@ const Index = () => {
     allEvents.map((e: any) => e.id),
     isFiltering && filters.friendsGoingOnly,
   );
+  const isSearching = debouncedQuery.length > 0;
+  const { data: searchedUsers = [] } = useSearchUsers(debouncedQuery);
   const activeFilters = useMemo(
     () => ({ ...filters, searchQuery: debouncedQuery }),
     [filters, debouncedQuery],
   );
+
 
   const filteredEvents = useNearbyEvents(
     isFiltering ? (allEvents as any) : [],
