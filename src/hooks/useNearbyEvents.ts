@@ -186,31 +186,31 @@ export const useNearbyEvents = (
       });
     }
 
-    // Sort: when searching, rank nearby matches first, then farther ones
-    if (userLocation) {
-      if (hasSearchQuery) {
-        const radius = filters.maxDistance ?? 30; // default 30 mi boundary
-        result.sort((a, b) => {
-          const aInRadius = a.distance !== null && a.distance <= radius;
-          const bInRadius = b.distance !== null && b.distance <= radius;
-          // Nearby results first
-          if (aInRadius && !bInRadius) return -1;
-          if (!aInRadius && bInRadius) return 1;
-          // Within same tier, sort by distance
-          if (a.distance === null && b.distance === null) return 0;
-          if (a.distance === null) return 1;
-          if (b.distance === null) return -1;
-          return a.distance - b.distance;
-        });
-      } else {
-        result.sort((a, b) => {
-          if (a.distance === null && b.distance === null) return 0;
-          if (a.distance === null) return 1;
-          if (b.distance === null) return -1;
-          return a.distance - b.distance;
-        });
-      }
+    // Sort: relevance first when searching (with a small nearby boost),
+    // otherwise plain distance ordering.
+    if (hasSearchQuery) {
+      const radius = filters.maxDistance ?? 30; // default 30 mi boundary
+      const rank = (e: EventWithDistance) => {
+        const base = searchScores.get(e.id) ?? 0;
+        const nearby = e.distance !== null && e.distance <= radius ? 20 : 0;
+        return base + nearby;
+      };
+      result.sort((a, b) => {
+        const diff = rank(b) - rank(a);
+        if (diff !== 0) return diff;
+        const aTime = a.start_datetime ? new Date(a.start_datetime).getTime() : Infinity;
+        const bTime = b.start_datetime ? new Date(b.start_datetime).getTime() : Infinity;
+        return aTime - bTime;
+      });
+    } else if (userLocation) {
+      result.sort((a, b) => {
+        if (a.distance === null && b.distance === null) return 0;
+        if (a.distance === null) return 1;
+        if (b.distance === null) return -1;
+        return a.distance - b.distance;
+      });
     }
+
 
     return result;
   }, [events, userLocation, filters, friendsData, blockedIds]);
