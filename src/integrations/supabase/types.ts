@@ -705,8 +705,11 @@ export type Database = {
       event_special_invites: {
         Row: {
           batch_id: string | null
+          checked_in_at: string | null
+          checked_in_by: string | null
           created_at: string
           created_by: string
+          delivery_mode: string
           email_sent_at: string | null
           email_status: string
           event_id: string
@@ -714,8 +717,12 @@ export type Database = {
           guest_name: string | null
           id: string
           label: string | null
+          qr_code_token: string | null
           redeemed_at: string | null
           redeemed_by: string | null
+          rsvp_confirmed_at: string | null
+          rsvp_email: string | null
+          rsvp_name: string | null
           segment: string | null
           status: string
           ticket_tier_id: string | null
@@ -723,8 +730,11 @@ export type Database = {
         }
         Insert: {
           batch_id?: string | null
+          checked_in_at?: string | null
+          checked_in_by?: string | null
           created_at?: string
           created_by: string
+          delivery_mode?: string
           email_sent_at?: string | null
           email_status?: string
           event_id: string
@@ -732,8 +742,12 @@ export type Database = {
           guest_name?: string | null
           id?: string
           label?: string | null
+          qr_code_token?: string | null
           redeemed_at?: string | null
           redeemed_by?: string | null
+          rsvp_confirmed_at?: string | null
+          rsvp_email?: string | null
+          rsvp_name?: string | null
           segment?: string | null
           status?: string
           ticket_tier_id?: string | null
@@ -741,8 +755,11 @@ export type Database = {
         }
         Update: {
           batch_id?: string | null
+          checked_in_at?: string | null
+          checked_in_by?: string | null
           created_at?: string
           created_by?: string
+          delivery_mode?: string
           email_sent_at?: string | null
           email_status?: string
           event_id?: string
@@ -750,8 +767,12 @@ export type Database = {
           guest_name?: string | null
           id?: string
           label?: string | null
+          qr_code_token?: string | null
           redeemed_at?: string | null
           redeemed_by?: string | null
+          rsvp_confirmed_at?: string | null
+          rsvp_email?: string | null
+          rsvp_name?: string | null
           segment?: string | null
           status?: string
           ticket_tier_id?: string | null
@@ -3780,6 +3801,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      confirm_invite_rsvp: {
+        Args: { _email: string; _name: string; _token: string }
+        Returns: Json
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -4003,6 +4028,29 @@ export type Database = {
         Args: { _other_user_id: string; _user_id: string }
         Returns: string
       }
+      get_public_invite: {
+        Args: { _token: string }
+        Returns: {
+          checked_in_at: string
+          delivery_mode: string
+          event_id: string
+          event_image_url: string
+          event_location: string
+          event_start: string
+          event_title: string
+          guest_email: string
+          guest_name: string
+          host_name: string
+          id: string
+          qr_code_token: string
+          rsvp_confirmed_at: string
+          rsvp_email: string
+          rsvp_name: string
+          segment: string
+          status: string
+          token: string
+        }[]
+      }
       get_referral_stats: {
         Args: { _user_id: string }
         Returns: {
@@ -4132,6 +4180,10 @@ export type Database = {
       resolve_promoter: {
         Args: { _code: string; _event_id: string }
         Returns: string
+      }
+      set_special_invite_mode: {
+        Args: { _invite_ids: string[]; _mode: string }
+        Returns: number
       }
     }
     Enums: {
