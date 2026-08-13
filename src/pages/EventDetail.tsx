@@ -516,8 +516,8 @@ const EventDetail = () => {
                   <Clock className="w-4 h-4 mr-1" /> Pendiente
                 </Button> :
         <span className="glow-border">
-                  <Button variant="outline" size="default" className="bg-white text-foreground border-0 hover:bg-white/90" onClick={() => navigate(`/going/${id}`)}>
-                    <Check className="w-4 h-4 mr-1 text-foreground" /> Ver entrada
+                  <Button variant="outline" size="default" className="bg-white text-black border-0 hover:bg-white/90" onClick={() => navigate(`/going/${id}`)}>
+                    <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
                   </Button>
                 </span> :
         hasActiveInvite ?
