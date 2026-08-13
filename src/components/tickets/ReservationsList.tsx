@@ -50,14 +50,12 @@ const useAllReservations = () => {
     queryKey: ["reservations", "all-combined", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const today = new Date().toISOString().split("T")[0];
 
       const [myRes, taggedGuests] = await Promise.all([
         supabase
           .from("reservations")
           .select("*, business:profiles!reservations_business_id_fkey(id, username, full_name, avatar_url)")
           .eq("user_id", user.id)
-          .gte("reservation_date", today)
           .order("reservation_date", { ascending: true })
           .order("reservation_time", { ascending: true }),
         supabase
@@ -75,11 +73,11 @@ const useAllReservations = () => {
           .from("reservations")
           .select("*, business:profiles!reservations_business_id_fkey(id, username, full_name, avatar_url)")
           .in("id", ids)
-          .gte("reservation_date", today)
           .neq("status", "cancelled");
         if (error) throw error;
         tagged = (data as ReservationWithBusiness[]).map((r) => ({ ...r, isTagged: true }));
       }
+
 
       const mine = (myRes.data as ReservationWithBusiness[]) || [];
       const combined = [
