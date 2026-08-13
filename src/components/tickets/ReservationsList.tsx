@@ -156,11 +156,15 @@ const ReservationCard = ({
               Invitado
             </span>
           )}
-          {reservation.status === "cancelled" && (
+          {reservation.status === "cancelled" ? (
             <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">
               Cancelada
             </span>
-          )}
+          ) : isPast ? (
+            <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">
+              Finalizada
+            </span>
+          ) : null}
         </div>
       </div>
 
