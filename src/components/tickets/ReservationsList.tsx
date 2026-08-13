@@ -10,6 +10,7 @@ import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { format, parseISO, isToday, isTomorrow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import {
   AlertDialog,
@@ -50,14 +51,12 @@ const useAllReservations = () => {
     queryKey: ["reservations", "all-combined", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const today = new Date().toISOString().split("T")[0];
 
       const [myRes, taggedGuests] = await Promise.all([
         supabase
           .from("reservations")
           .select("*, business:profiles!reservations_business_id_fkey(id, username, full_name, avatar_url)")
           .eq("user_id", user.id)
-          .gte("reservation_date", today)
           .order("reservation_date", { ascending: true })
           .order("reservation_time", { ascending: true }),
         supabase
@@ -75,11 +74,11 @@ const useAllReservations = () => {
           .from("reservations")
           .select("*, business:profiles!reservations_business_id_fkey(id, username, full_name, avatar_url)")
           .in("id", ids)
-          .gte("reservation_date", today)
           .neq("status", "cancelled");
         if (error) throw error;
         tagged = (data as ReservationWithBusiness[]).map((r) => ({ ...r, isTagged: true }));
       }
+
 
       const mine = (myRes.data as ReservationWithBusiness[]) || [];
       const combined = [
@@ -106,9 +105,11 @@ const formatDateLabel = (dateStr: string) => {
 const ReservationCard = ({
   reservation,
   onModify,
+  isPast = false,
 }: {
   reservation: ReservationWithBusiness;
   onModify: (r: ReservationWithBusiness) => void;
+  isPast?: boolean;
 }) => {
   const navigate = useNavigate();
   const cancelMutation = useCancelReservation();
@@ -116,13 +117,18 @@ const ReservationCard = ({
   // 2h cutoff for modify
   const reservationWhen = new Date( `${reservation.reservation_date}T${reservation.reservation_time}` );
   const canModify =
+    !isPast &&
     !reservation.isTagged &&
     reservation.status !== "cancelled" &&
     reservationWhen.getTime() - Date.now() > 2 * 60 * 60 * 1000;
 
   return (
     <div
-      className="p-3 rounded-xl border bg-card space-y-2 cursor-pointer" onClick={() => navigate(`/reservation/${reservation.id}`)}
+      className={cn(
+        "p-3 rounded-xl border bg-card space-y-2 cursor-pointer",
+        isPast && "opacity-60"
+      )}
+      onClick={() => navigate(`/reservation/${reservation.id}`)}
     >
       <div className="flex items-center justify-between">
         <button
@@ -151,11 +157,15 @@ const ReservationCard = ({
               Invitado
             </span>
           )}
-          {reservation.status === "cancelled" && (
+          {reservation.status === "cancelled" ? (
             <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">
               Cancelada
             </span>
-          )}
+          ) : isPast ? (
+            <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">
+              Finalizada
+            </span>
+          ) : null}
         </div>
       </div>
 
@@ -178,7 +188,7 @@ const ReservationCard = ({
         <p className="text-xs text-muted-foreground truncate">{reservation.notes}</p>
       )}
 
-      {!reservation.isTagged && reservation.status !== "cancelled" && (
+      {!isPast && !reservation.isTagged && reservation.status !== "cancelled" && (
         <div className="flex gap-2 pt-1">
           {canModify && (
             <Button
@@ -223,9 +233,25 @@ const ReservationCard = ({
   );
 };
 
+const PAST_PAGE_SIZE = 10;
+
 export const ReservationsList = () => {
   const { data: reservations, isLoading } = useAllReservations();
   const [editing, setEditing] = useState<ReservationWithBusiness | null>(null);
+  const [pastVisible, setPastVisible] = useState(PAST_PAGE_SIZE);
+
+  const now = Date.now();
+  const all = reservations || [];
+  const upcoming = all.filter(
+    (r) => new Date(`${r.reservation_date}T${r.reservation_time}`).getTime() >= now
+  );
+  const past = all
+    .filter((r) => new Date(`${r.reservation_date}T${r.reservation_time}`).getTime() < now)
+    .sort((a, b) =>
+      `${b.reservation_date}T${b.reservation_time}`.localeCompare(
+        `${a.reservation_date}T${a.reservation_time}`
+      )
+    );
 
   return (
     <>
@@ -234,21 +260,47 @@ export const ReservationsList = () => {
           <div className="flex justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
-        ) : !reservations || reservations.length === 0 ? (
+        ) : all.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground text-sm">
             <CalendarDays className="w-10 h-10 mx-auto mb-3 opacity-40" />
-            No tienes reservas próximas
+            No tienes reservas
           </div>
         ) : (
-          reservations.map((r) => (
-            <m.div
-              key={r.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <ReservationCard reservation={r} onModify={setEditing} />
-            </m.div>
-          ))
+          <>
+            {upcoming.map((r) => (
+              <m.div
+                key={r.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <ReservationCard reservation={r} onModify={setEditing} />
+              </m.div>
+            ))}
+
+            {upcoming.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                No tienes reservas próximas
+              </div>
+            )}
+
+            {past.length > 0 && (
+              <div className="pt-4 space-y-3">
+                <h2 className="text-sm font-semibold text-muted-foreground">Pasadas</h2>
+                {past.slice(0, pastVisible).map((r) => (
+                  <ReservationCard key={r.id} reservation={r} onModify={setEditing} isPast />
+                ))}
+                {past.length > pastVisible && (
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full"
+                    onClick={() => setPastVisible((v) => v + PAST_PAGE_SIZE)}
+                  >
+                    Ver más
+                  </Button>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 
