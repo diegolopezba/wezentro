@@ -12,7 +12,11 @@ import { useFriendsGoingData } from "@/hooks/useFriendsGoingData";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { FilterSheet } from "@/components/map/FilterSheet";
 import { CATEGORIES } from "@/lib/categories";
+import { searchAndRank } from "@/lib/searchScoring";
+import { useSearchUsers } from "@/hooks/useSearchUsers";
+import { UserSearchResultCard } from "@/components/search/UserSearchResultCard";
 import { cn } from "@/lib/utils";
+
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
@@ -29,7 +33,15 @@ const Index = () => {
   const isGuest = !user;
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+
+  // Debounce so scoring doesn't run on every keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 200);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
   const [showFilters, setShowFilters] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
   const headerVisibleRef = useRef(true);
@@ -53,6 +65,9 @@ const Index = () => {
     (filters.friendsGoingOnly ? 1 : 0);
 
   const isFiltering = filters.categories.length > 0 || sheetFilterCount > 0;
+  const isSearching = debouncedQuery.length > 0;
+  // Search and filters both run over the full catalog, not the For You window.
+  const useCatalog = isFiltering || isSearching;
 
   const {
     data: forYouEvents = [],
@@ -63,23 +78,25 @@ const Index = () => {
     isFetchingNextPage: isFetchingMoreForYou,
   } = useForYouEvents();
 
-  // Explore-style catalog, only fetched when filters are active.
+  // Explore-style catalog, only fetched when filters or a search are active.
   const {
     data: allEvents = [],
     isLoading: catalogLoading,
     refetch: refetchCatalog,
-  } = useEvents(isFiltering);
+  } = useEvents(useCatalog);
   const { location: userLocation } = useUserLocation();
   const friendsData = useFriendsGoingData(
     allEvents.map((e: any) => e.id),
     isFiltering && filters.friendsGoingOnly,
   );
+  const { data: searchedUsers = [] } = useSearchUsers(debouncedQuery);
   const activeFilters = useMemo(
-    () => ({ ...filters, searchQuery }),
-    [filters, searchQuery],
+    () => ({ ...filters, searchQuery: debouncedQuery }),
+    [filters, debouncedQuery],
   );
+
   const filteredEvents = useNearbyEvents(
-    isFiltering ? (allEvents as any) : [],
+    useCatalog ? (allEvents as any) : [],
     userLocation,
     activeFilters,
     friendsData,
@@ -95,16 +112,18 @@ const Index = () => {
     openNotifications();
   };
 
-  const events = isFiltering ? filteredEvents : forYouEvents;
-  const isLoading = isFiltering ? catalogLoading : forYouLoading;
+  const events = useCatalog ? filteredEvents : forYouEvents;
+  const isLoading = useCatalog ? catalogLoading : forYouLoading;
+
 
   const handleRefresh = useCallback(async () => {
-    if (isFiltering) {
+    if (useCatalog) {
       await refetchCatalog();
     } else {
       await refetchForYou();
     }
-  }, [isFiltering, refetchCatalog, refetchForYou]);
+  }, [useCatalog, refetchCatalog, refetchForYou]);
+
 
   const toggleCategory = (categoryId: string) => {
     setFilters((prev) => ({
@@ -202,18 +221,12 @@ const Index = () => {
   }, []);
 
   const transformedEvents = useMemo(() => {
-    // In filter mode the search query is already applied by useNearbyEvents.
-    const q = searchQuery.toLowerCase();
-    const source = isFiltering
-      ? events
-      : events.filter((event: any) => {
-          if (searchQuery === "") return true;
-          const t = event.title?.toLowerCase().includes(q);
-          const l = event.location_name?.toLowerCase().includes(q) ?? false;
-          return t || l;
-        });
+    // In catalog mode the search query is already applied (and ranked) by useNearbyEvents.
+    const source = useCatalog ? events : searchAndRank(events as any[], debouncedQuery);
     return source.map(toCard);
-  }, [events, searchQuery, isFiltering, toCard]);
+  }, [events, debouncedQuery, useCatalog, toCard]);
+
+
 
   return <AppLayout ref={scrollContainerRef}>
         <header className="sticky top-0 z-30 safe-top bg-background">
@@ -289,15 +302,39 @@ const Index = () => {
           </m.div>
         </header>
         <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-          <EventFeed
-            events={transformedEvents}
-            isLoading={isLoading}
-            emptyStateType="for-you"
-            onEndReached={isFiltering ? undefined : fetchMoreForYou}
-            hasMore={isFiltering ? false : hasMoreForYou}
-            isLoadingMore={isFiltering ? false : isFetchingMoreForYou}
-          />
+          {isSearching && searchedUsers.length > 0 && (
+            <div className="px-2 pt-2">
+              <p className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Personas
+              </p>
+              {searchedUsers.slice(0, 3).map((u) => (
+                <UserSearchResultCard key={u.id} user={u} />
+              ))}
+            </div>
+          )}
+          {isSearching && !isLoading && transformedEvents.length === 0 ? (
+            <div className="px-6 py-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                Sin resultados para "{debouncedQuery}"
+              </p>
+              {isFiltering && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Prueba quitando los filtros activos.
+                </p>
+              )}
+            </div>
+          ) : (
+            <EventFeed
+              events={transformedEvents}
+              isLoading={isLoading}
+              emptyStateType="for-you"
+              onEndReached={useCatalog ? undefined : fetchMoreForYou}
+              hasMore={useCatalog ? false : hasMoreForYou}
+              isLoadingMore={useCatalog ? false : isFetchingMoreForYou}
+            />
+          )}
         </PullToRefresh>
+
 
         <FilterSheet
           open={showFilters}

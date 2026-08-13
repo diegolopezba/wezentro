@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Event } from "./useEvents";
 import { useBlockedIds } from "./useBlockedUsers";
+import { scoreEvent, tokenize } from "@/lib/searchScoring";
+
 
 interface UserLocation {
   lat: number;
@@ -109,18 +111,24 @@ export const useNearbyEvents = (
       return { ...event, distance };
     });
 
-    // Apply search filter (includes description)
+    // Apply search filter (relevance-scored across title, venue, organizer,
+    // category label, semantic tags and description)
     const hasSearchQuery = filters.searchQuery.trim().length > 0;
+    const searchScores = new Map<string, number>();
     if (hasSearchQuery) {
-      const query = filters.searchQuery.toLowerCase();
-      result = result.filter(
-        (event) =>
-          event.title?.toLowerCase().includes(query) ||
-          event.location_name?.toLowerCase().includes(query) ||
-          event.category?.toLowerCase().includes(query) ||
-          event.description?.toLowerCase().includes(query)
-      );
+      const tokens = tokenize(filters.searchQuery);
+      const collect = (fuzzy: boolean) => {
+        searchScores.clear();
+        for (const event of result) {
+          const score = scoreEvent(event, tokens, fuzzy);
+          if (score > 0) searchScores.set(event.id, score);
+        }
+      };
+      collect(false);
+      if (searchScores.size === 0 && tokens.some((t) => t.length >= 4)) collect(true);
+      result = result.filter((event) => searchScores.has(event.id));
     }
+
 
     // Apply date filter - always filter out past events first
     const now = new Date();
@@ -178,31 +186,31 @@ export const useNearbyEvents = (
       });
     }
 
-    // Sort: when searching, rank nearby matches first, then farther ones
-    if (userLocation) {
-      if (hasSearchQuery) {
-        const radius = filters.maxDistance ?? 30; // default 30 mi boundary
-        result.sort((a, b) => {
-          const aInRadius = a.distance !== null && a.distance <= radius;
-          const bInRadius = b.distance !== null && b.distance <= radius;
-          // Nearby results first
-          if (aInRadius && !bInRadius) return -1;
-          if (!aInRadius && bInRadius) return 1;
-          // Within same tier, sort by distance
-          if (a.distance === null && b.distance === null) return 0;
-          if (a.distance === null) return 1;
-          if (b.distance === null) return -1;
-          return a.distance - b.distance;
-        });
-      } else {
-        result.sort((a, b) => {
-          if (a.distance === null && b.distance === null) return 0;
-          if (a.distance === null) return 1;
-          if (b.distance === null) return -1;
-          return a.distance - b.distance;
-        });
-      }
+    // Sort: relevance first when searching (with a small nearby boost),
+    // otherwise plain distance ordering.
+    if (hasSearchQuery) {
+      const radius = filters.maxDistance ?? 30; // default 30 mi boundary
+      const rank = (e: EventWithDistance) => {
+        const base = searchScores.get(e.id) ?? 0;
+        const nearby = e.distance !== null && e.distance <= radius ? 20 : 0;
+        return base + nearby;
+      };
+      result.sort((a, b) => {
+        const diff = rank(b) - rank(a);
+        if (diff !== 0) return diff;
+        const aTime = a.start_datetime ? new Date(a.start_datetime).getTime() : Infinity;
+        const bTime = b.start_datetime ? new Date(b.start_datetime).getTime() : Infinity;
+        return aTime - bTime;
+      });
+    } else if (userLocation) {
+      result.sort((a, b) => {
+        if (a.distance === null && b.distance === null) return 0;
+        if (a.distance === null) return 1;
+        if (b.distance === null) return -1;
+        return a.distance - b.distance;
+      });
     }
+
 
     return result;
   }, [events, userLocation, filters, friendsData, blockedIds]);
