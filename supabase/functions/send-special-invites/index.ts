@@ -111,7 +111,9 @@ Deno.serve(async (req) => {
             segment: invite.segment ?? undefined,
             inviteUrl: `${SITE}/i/${invite.token}`,
             hostName,
+            deliveryMode: invite.delivery_mode ?? 'app',
           },
+
         }),
       })
 
