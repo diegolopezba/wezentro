@@ -59,12 +59,13 @@ Deno.serve(async (req) => {
 
   let query = admin
     .from('event_special_invites')
-    .select('id, token, guest_name, guest_email, segment, email_status, status')
+    .select('id, token, guest_name, guest_email, segment, email_status, status, delivery_mode')
     .eq('event_id', eventId)
     .eq('status', 'pending')
     .in('email_status', ['not_sent', 'failed'])
     .not('guest_email', 'is', null)
     .limit(500)
+
 
   if (batchId) query = query.eq('batch_id', batchId)
   if (inviteIds?.length) query = query.in('id', inviteIds)
