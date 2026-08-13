@@ -65,6 +65,9 @@ const Index = () => {
     (filters.friendsGoingOnly ? 1 : 0);
 
   const isFiltering = filters.categories.length > 0 || sheetFilterCount > 0;
+  const isSearching = debouncedQuery.length > 0;
+  // Search and filters both run over the full catalog, not the For You window.
+  const useCatalog = isFiltering || isSearching;
 
   const {
     data: forYouEvents = [],
@@ -75,27 +78,25 @@ const Index = () => {
     isFetchingNextPage: isFetchingMoreForYou,
   } = useForYouEvents();
 
-  // Explore-style catalog, only fetched when filters are active.
+  // Explore-style catalog, only fetched when filters or a search are active.
   const {
     data: allEvents = [],
     isLoading: catalogLoading,
     refetch: refetchCatalog,
-  } = useEvents(isFiltering);
+  } = useEvents(useCatalog);
   const { location: userLocation } = useUserLocation();
   const friendsData = useFriendsGoingData(
     allEvents.map((e: any) => e.id),
     isFiltering && filters.friendsGoingOnly,
   );
-  const isSearching = debouncedQuery.length > 0;
   const { data: searchedUsers = [] } = useSearchUsers(debouncedQuery);
   const activeFilters = useMemo(
     () => ({ ...filters, searchQuery: debouncedQuery }),
     [filters, debouncedQuery],
   );
 
-
   const filteredEvents = useNearbyEvents(
-    isFiltering ? (allEvents as any) : [],
+    useCatalog ? (allEvents as any) : [],
     userLocation,
     activeFilters,
     friendsData,
@@ -111,8 +112,9 @@ const Index = () => {
     openNotifications();
   };
 
-  const events = isFiltering ? filteredEvents : forYouEvents;
-  const isLoading = isFiltering ? catalogLoading : forYouLoading;
+  const events = useCatalog ? filteredEvents : forYouEvents;
+  const isLoading = useCatalog ? catalogLoading : forYouLoading;
+
 
   const handleRefresh = useCallback(async () => {
     if (isFiltering) {
