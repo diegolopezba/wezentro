@@ -88,6 +88,98 @@ export function useSpecialInvite(token: string | undefined) {
   });
 }
 
+/** Public QR image URL for a confirmed frictionless ticket. */
+export const getInviteQrImageUrl = (qrToken: string) =>
+  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-qr?token=${encodeURIComponent(qrToken)}`;
+
+/** Anonymous, token-scoped invite lookup used by the public RSVP page. */
+export function usePublicInvite(token: string | undefined) {
+  return useQuery({
+    queryKey: ["public-invite", token],
+    queryFn: async () => {
+      if (!token) return null;
+      const { data, error } = await supabase.rpc("get_public_invite", { _token: token });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      return (row ?? null) as PublicInvite | null;
+    },
+    enabled: !!token,
+    staleTime: 15_000,
+  });
+}
+
+const RSVP_ERRORS: Record<string, string> = {
+  invalid_name: "Escribí tu nombre.",
+  invalid_email: "Escribí un correo válido.",
+  invitation_not_found: "Esta invitación no existe.",
+  invitation_revoked: "Esta invitación fue cancelada por el organizador.",
+  invitation_already_used: "Esta invitación ya fue usada.",
+  invitation_requires_account: "Esta invitación requiere iniciar sesión.",
+};
+
+/** One-tap RSVP: confirms attendance and mints the ticket QR, no account needed. */
+export function useConfirmInviteRsvp() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      token,
+      name,
+      email,
+    }: {
+      token: string;
+      name: string;
+      email: string;
+    }) => {
+      const { data, error } = await supabase.rpc("confirm_invite_rsvp", {
+        _token: token,
+        _name: name,
+        _email: email,
+      });
+      if (error) {
+        const key = Object.keys(RSVP_ERRORS).find((k) => error.message?.includes(k));
+        throw new Error(key ? RSVP_ERRORS[key] : "No se pudo confirmar tu asistencia");
+      }
+      return data as {
+        invite_id: string;
+        event_id: string;
+        qr_code_token: string;
+        already_confirmed: boolean;
+      };
+    },
+    onSuccess: (_d, { token }) => {
+      queryClient.invalidateQueries({ queryKey: ["public-invite", token] });
+    },
+  });
+}
+
+/** Owner switch between the in-app flow and the frictionless RSVP flow. */
+export function useSetInviteDeliveryMode() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      inviteIds,
+      mode,
+    }: {
+      inviteIds: string[];
+      mode: "app" | "direct";
+      eventId: string;
+    }) => {
+      const { error } = await supabase.rpc("set_special_invite_mode", {
+        _invite_ids: inviteIds,
+        _mode: mode,
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_d, { eventId }) => {
+      queryClient.invalidateQueries({ queryKey: ["event-special-invites", eventId] });
+    },
+  });
+}
+
+
+
 /** All invites the owner created for an event. */
 export function useEventSpecialInvites(eventId: string | undefined, enabled = true) {
   return useQuery({
