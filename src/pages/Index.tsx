@@ -297,15 +297,39 @@ const Index = () => {
           </m.div>
         </header>
         <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-          <EventFeed
-            events={transformedEvents}
-            isLoading={isLoading}
-            emptyStateType="for-you"
-            onEndReached={isFiltering ? undefined : fetchMoreForYou}
-            hasMore={isFiltering ? false : hasMoreForYou}
-            isLoadingMore={isFiltering ? false : isFetchingMoreForYou}
-          />
+          {isSearching && searchedUsers.length > 0 && (
+            <div className="px-2 pt-2">
+              <p className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Personas
+              </p>
+              {searchedUsers.slice(0, 3).map((u) => (
+                <UserSearchResultCard key={u.id} user={u} />
+              ))}
+            </div>
+          )}
+          {isSearching && !isLoading && transformedEvents.length === 0 ? (
+            <div className="px-6 py-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                Sin resultados para "{debouncedQuery}"
+              </p>
+              {isFiltering && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Prueba quitando los filtros activos.
+                </p>
+              )}
+            </div>
+          ) : (
+            <EventFeed
+              events={transformedEvents}
+              isLoading={isLoading}
+              emptyStateType="for-you"
+              onEndReached={isFiltering || isSearching ? undefined : fetchMoreForYou}
+              hasMore={isFiltering || isSearching ? false : hasMoreForYou}
+              isLoadingMore={isFiltering || isSearching ? false : isFetchingMoreForYou}
+            />
+          )}
         </PullToRefresh>
+
 
         <FilterSheet
           open={showFilters}
