@@ -1,14 +1,16 @@
-import { useMemo, useState } from "react";
-import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail, Download } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail, Download, Zap, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   useEventSpecialInvites,
   useCreateSpecialInvite,
   useRevokeSpecialInvite,
   useSendSpecialInviteEmails,
+  useSetInviteDeliveryMode,
   getSpecialInviteUrl,
 } from "@/hooks/useSpecialInvites";
 import { BulkInviteImportSheet } from "@/components/events/BulkInviteImportSheet";
@@ -25,11 +27,13 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [activeSegment, setActiveSegment] = useState<string>("__all__");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const { data: invites = [], isLoading } = useEventSpecialInvites(eventId);
   const createInvite = useCreateSpecialInvite();
   const revokeInvite = useRevokeSpecialInvite();
   const sendEmails = useSendSpecialInviteEmails();
+  const setMode = useSetInviteDeliveryMode();
 
   const segments = useMemo(() => {
     const set = new Set<string>();
@@ -46,6 +50,56 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
     if (activeSegment === "__none__") return invites.filter((i) => !i.segment);
     return invites.filter((i) => i.segment === activeSegment);
   }, [invites, activeSegment, showPills]);
+
+  // Drop selections that left the visible segment
+  useEffect(() => {
+    setSelectedIds((prev) => prev.filter((id) => filteredInvites.some((i) => i.id === id)));
+  }, [filteredInvites]);
+
+  const selectableInvites = filteredInvites.filter((i) => i.status === "pending");
+  const allSelected =
+    selectableInvites.length > 0 && selectedIds.length === selectableInvites.length;
+
+  const toggleSelect = (id: string) =>
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const toggleSelectAll = () =>
+    setSelectedIds(allSelected ? [] : selectableInvites.map((i) => i.id));
+
+  const handleSetMode = async (ids: string[], mode: "app" | "direct") => {
+    if (ids.length === 0) return;
+    try {
+      await setMode.mutateAsync({ inviteIds: ids, mode, eventId });
+      toast.success(
+        mode === "direct"
+          ? "Estas invitaciones ya no requieren cuenta"
+          : "Estas invitaciones se abren en la app"
+      );
+    } catch {
+      toast.error("No se pudo cambiar el modo");
+    }
+  };
+
+  const handleBulkSend = async () => {
+    const withEmail = filteredInvites.filter(
+      (i) => selectedIds.includes(i.id) && i.guest_email
+    );
+    if (withEmail.length === 0) {
+      toast.error("Las invitaciones seleccionadas no tienen correo");
+      return;
+    }
+    try {
+      const res = await sendEmails.mutateAsync({
+        eventId,
+        inviteIds: withEmail.map((i) => i.id),
+      });
+      toast.success(`${res.sent ?? withEmail.length} invitaciones enviadas`);
+      setSelectedIds([]);
+    } catch {
+      toast.error("No se pudieron enviar los correos");
+    }
+  };
+
 
   const handleExport = () => {
     if (filteredInvites.length === 0) {
