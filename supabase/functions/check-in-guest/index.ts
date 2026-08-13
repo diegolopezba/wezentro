@@ -84,14 +84,70 @@ Deno.serve(async (req) => {
       .select("id, status, checked_in_at, user_id, event_id")
       .eq("qr_code_token", qr_code_token)
       .eq("event_id", event_id)
-      .single();
+      .maybeSingle();
 
     if (lookupError || !existingEntry) {
+      // Fallback: frictionless RSVP ticket stored on the special invite itself
+      const { data: invite } = await supabaseAdmin
+        .from("event_special_invites")
+        .select("id, status, checked_in_at, rsvp_name, guest_name, segment")
+        .eq("qr_code_token", qr_code_token)
+        .eq("event_id", event_id)
+        .maybeSingle();
+
+      if (!invite) {
+        return new Response(
+          JSON.stringify({ success: false, error: "QR inválido o no pertenece a este evento" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const guest = {
+        username: null,
+        full_name: invite.rsvp_name ?? invite.guest_name ?? "Invitado especial",
+        avatar_url: null,
+      };
+
+      if (invite.status === "revoked") {
+        return new Response(
+          JSON.stringify({ success: false, error: "Esta invitación fue cancelada" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (invite.checked_in_at) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            alreadyUsed: true,
+            checkedInAt: invite.checked_in_at,
+            guest,
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: updatedInvite } = await supabaseAdmin
+        .from("event_special_invites")
+        .update({ checked_in_at: new Date().toISOString() })
+        .eq("id", invite.id)
+        .is("checked_in_at", null)
+        .select("id")
+        .maybeSingle();
+
+      if (!updatedInvite) {
+        return new Response(
+          JSON.stringify({ success: false, alreadyUsed: true, guest }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       return new Response(
-        JSON.stringify({ success: false, error: "QR inválido o no pertenece a este evento" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: true, alreadyUsed: false, guest }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
 
     if (existingEntry.status !== "approved") {
       return new Response(

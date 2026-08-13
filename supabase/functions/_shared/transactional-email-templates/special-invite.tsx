@@ -25,6 +25,7 @@ interface SpecialInviteEmailProps {
   segment?: string
   inviteUrl?: string
   hostName?: string
+  deliveryMode?: 'app' | 'direct'
 }
 
 const SpecialInviteEmail = ({
@@ -36,48 +37,57 @@ const SpecialInviteEmail = ({
   segment,
   inviteUrl = 'https://zentro.today',
   hostName,
-}: SpecialInviteEmailProps) => (
-  <Html lang="es" dir="ltr">
-    <Head />
-    <Preview>{`Tu invitación especial a ${eventTitle}`}</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Text style={brand}>zentro</Text>
+  deliveryMode = 'app',
+}: SpecialInviteEmailProps) => {
+  const isDirect = deliveryMode === 'direct'
 
-        {eventImageUrl ? (
-          <Img src={eventImageUrl} alt={eventTitle} width="540" style={cover} />
-        ) : null}
+  return (
+    <Html lang="es" dir="ltr">
+      <Head />
+      <Preview>{`Tu invitación especial a ${eventTitle}`}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Text style={brand}>zentro</Text>
 
-        <Text style={kicker}>
-          {segment ? `INVITADO ESPECIAL - ${segment}` : 'INVITADO ESPECIAL'}
-        </Text>
+          {eventImageUrl ? (
+            <Img src={eventImageUrl} alt={eventTitle} width="540" style={cover} />
+          ) : null}
 
-        <Heading style={h1}>{eventTitle}</Heading>
+          <Text style={kicker}>
+            {segment ? `INVITADO ESPECIAL - ${segment}` : 'INVITADO ESPECIAL'}
+          </Text>
 
-        <Text style={text}>
-          {guestName ? `Hola ${guestName}, ` : 'Hola, '}
-          {hostName ? `${hostName} te invita ` : 'te invitamos '}
-          a este evento. Tu entrada es gratuita y este enlace es solo tuyo.
-        </Text>
+          <Heading style={h1}>{eventTitle}</Heading>
 
-        {eventDate ? <Text style={detail}>📅 {eventDate}</Text> : null}
-        {eventLocation ? <Text style={detail}>📍 {eventLocation}</Text> : null}
+          <Text style={text}>
+            {guestName ? `Hola ${guestName}, ` : 'Hola, '}
+            {hostName ? `${hostName} te invita ` : 'te invitamos '}
+            a este evento. Tu entrada es gratuita y este enlace es solo tuyo.
+            {isDirect
+              ? ' Confirmá con un toque y recibí tu entrada al instante: sin contraseñas, sin descargar nada.'
+              : ''}
+          </Text>
 
-        <Section style={{ margin: '28px 0' }}>
-          <Button style={button} href={inviteUrl}>
-            Confirmar mi invitación
-          </Button>
-        </Section>
+          {eventDate ? <Text style={detail}>📅 {eventDate}</Text> : null}
+          {eventLocation ? <Text style={detail}>📍 {eventLocation}</Text> : null}
 
-        <Hr style={hr} />
-        <Text style={footer}>
-          Este enlace es de un solo uso. Si no podés abrir el botón, copiá y pegá
-          esta dirección en tu navegador: {inviteUrl}
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-)
+          <Section style={{ margin: '28px 0' }}>
+            <Button style={button} href={inviteUrl}>
+              {isDirect ? 'Confirmar asistencia' : 'Confirmar mi invitación'}
+            </Button>
+          </Section>
+
+          <Hr style={hr} />
+          <Text style={footer}>
+            Este enlace es de un solo uso. Si no podés abrir el botón, copiá y pegá
+            esta dirección en tu navegador: {inviteUrl}
+          </Text>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
+
 
 export const template = {
   component: SpecialInviteEmail,

@@ -110,23 +110,39 @@ const STATUS_LABEL: Record<string, string> = {
 
 /** Build an XLSX (Excel) export of invites as an ArrayBuffer. */
 export function buildInvitesXlsx(
-  rows: { guest_name: string | null; guest_email: string | null; segment: string | null; url: string; status: string }[]
+  rows: {
+    guest_name: string | null;
+    guest_email: string | null;
+    segment: string | null;
+    url: string;
+    status: string;
+    mode?: string;
+    rsvp?: string;
+    check_in?: string;
+  }[]
 ): ArrayBuffer {
   const data = rows.map((r) => ({
     Nombre: r.guest_name ?? "",
     Email: r.guest_email ?? "",
     Segmento: r.segment ?? "",
+    Modo: r.mode ?? "",
+    RSVP: r.rsvp ?? "",
+    "Check-in": r.check_in ?? "",
     Enlace: r.url,
     Estado: STATUS_LABEL[r.status] ?? r.status,
   }));
   const ws = XLSX.utils.json_to_sheet(data, {
-    header: ["Nombre", "Email", "Segmento", "Enlace", "Estado"],
+    header: ["Nombre", "Email", "Segmento", "Modo", "RSVP", "Check-in", "Enlace", "Estado"],
   });
-  ws["!cols"] = [{ wch: 24 }, { wch: 32 }, { wch: 16 }, { wch: 48 }, { wch: 14 }];
+  ws["!cols"] = [
+    { wch: 24 }, { wch: 32 }, { wch: 16 }, { wch: 12 },
+    { wch: 18 }, { wch: 18 }, { wch: 48 }, { wch: 14 },
+  ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Invitaciones");
   return XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
 }
+
 
 export function downloadCsv(filename: string, csv: string) {
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
