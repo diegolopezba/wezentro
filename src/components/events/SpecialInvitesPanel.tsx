@@ -107,12 +107,16 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
       return;
     }
     const rows = filteredInvites.map((i) => ({
-      guest_name: i.guest_name,
-      guest_email: i.guest_email,
+      guest_name: i.rsvp_name || i.guest_name,
+      guest_email: i.rsvp_email || i.guest_email,
       segment: i.segment,
       url: getSpecialInviteUrl(i.token),
       status: i.status,
+      mode: i.delivery_mode === "direct" ? "Sin cuenta" : "App",
+      rsvp: i.rsvp_confirmed_at ? new Date(i.rsvp_confirmed_at).toLocaleString("es-BO") : "",
+      check_in: i.checked_in_at ? new Date(i.checked_in_at).toLocaleString("es-BO") : "",
     }));
+
     const suffix =
       activeSegment === "__all__" ? "todos" : activeSegment === "__none__" ? "sin-segmento" : activeSegment;
     downloadXlsx(
