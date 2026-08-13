@@ -205,7 +205,10 @@ const Profile = () => {
       businessName={profile?.full_name || profile?.username}
       address={profile?.business_address}
       hours={profile?.business_hours}
-      phone={profile?.business_phone} />
+      phone={profile?.business_phone}
+      latitude={(profile as any)?.business_latitude}
+      longitude={(profile as any)?.business_longitude} />
+
     
     </AppLayout>;
 };
