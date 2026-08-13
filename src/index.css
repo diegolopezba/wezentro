@@ -341,6 +341,16 @@ html[data-keyboard="open"] body {
   overflow: hidden;
 }
 
+@property --glow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes glowSpin {
+  to { --glow-angle: 360deg; }
+}
+
 @keyframes boostGlow {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
