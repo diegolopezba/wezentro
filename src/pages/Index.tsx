@@ -328,9 +328,9 @@ const Index = () => {
               events={transformedEvents}
               isLoading={isLoading}
               emptyStateType="for-you"
-              onEndReached={isFiltering || isSearching ? undefined : fetchMoreForYou}
-              hasMore={isFiltering || isSearching ? false : hasMoreForYou}
-              isLoadingMore={isFiltering || isSearching ? false : isFetchingMoreForYou}
+              onEndReached={useCatalog ? undefined : fetchMoreForYou}
+              hasMore={useCatalog ? false : hasMoreForYou}
+              isLoadingMore={useCatalog ? false : isFetchingMoreForYou}
             />
           )}
         </PullToRefresh>
