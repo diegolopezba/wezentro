@@ -101,7 +101,7 @@ const SpecialInvite = () => {
           })
           .catch(() => undefined);
       }
-      toast.success("¡Asistencia confirmada!");
+      toast.success(`Te enviamos la entrada a ${email.trim().toLowerCase()}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "No se pudo confirmar");
     }
@@ -233,7 +233,8 @@ const SpecialInvite = () => {
           <div className="rounded-3xl border border-border bg-card p-5 space-y-3">
             <p className="text-sm font-semibold text-foreground">Confirmá tu asistencia</p>
             <p className="text-xs text-muted-foreground">
-              Sin contraseñas ni descargas. Tu entrada aparece al instante.
+              Confirmá tus datos — te enviamos la entrada a este correo. Sin contraseñas,
+              sin códigos ni descargas.
             </p>
             <Input
               placeholder="Tu nombre"
