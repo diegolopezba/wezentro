@@ -10,6 +10,7 @@ import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { format, parseISO, isToday, isTomorrow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import {
   AlertDialog,
