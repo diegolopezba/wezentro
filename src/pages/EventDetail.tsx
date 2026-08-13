@@ -515,9 +515,11 @@ const EventDetail = () => {
         <Button variant="ghost" size="default" disabled>
                   <Clock className="w-4 h-4 mr-1" /> Pendiente
                 </Button> :
-        <Button variant="outline" size="default" className="bg-white text-foreground border-0 hover:bg-white/90" onClick={() => navigate(`/going/${id}`)}>
-                  <Check className="w-4 h-4 mr-1 text-foreground" /> Ver entrada
-                </Button> :
+        <span className="glow-border">
+                  <Button variant="outline" size="default" className="bg-white text-foreground border-0 hover:bg-white/90" onClick={() => navigate(`/going/${id}`)}>
+                    <Check className="w-4 h-4 mr-1 text-foreground" /> Ver entrada
+                  </Button>
+                </span> :
         hasActiveInvite ?
 
         <Button variant="hero" size="default" onClick={() => setShowInviteModal(true)}>
