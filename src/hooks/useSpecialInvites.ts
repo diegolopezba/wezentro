@@ -153,30 +153,6 @@ export function useConfirmInviteRsvp() {
   });
 }
 
-/** Owner switch between the in-app flow and the frictionless RSVP flow. */
-export function useSetInviteDeliveryMode() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      inviteIds,
-      mode,
-    }: {
-      inviteIds: string[];
-      mode: "app" | "direct";
-      eventId: string;
-    }) => {
-      const { error } = await supabase.rpc("set_special_invite_mode", {
-        _invite_ids: inviteIds,
-        _mode: mode,
-      });
-      if (error) throw error;
-    },
-    onSuccess: (_d, { eventId }) => {
-      queryClient.invalidateQueries({ queryKey: ["event-special-invites", eventId] });
-    },
-  });
-}
 
 
 
