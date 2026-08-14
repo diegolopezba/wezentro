@@ -116,7 +116,6 @@ export function buildInvitesXlsx(
     segment: string | null;
     url: string;
     status: string;
-    mode?: string;
     rsvp?: string;
     check_in?: string;
   }[]
@@ -125,17 +124,16 @@ export function buildInvitesXlsx(
     Nombre: r.guest_name ?? "",
     Email: r.guest_email ?? "",
     Segmento: r.segment ?? "",
-    Modo: r.mode ?? "",
     RSVP: r.rsvp ?? "",
     "Check-in": r.check_in ?? "",
     Enlace: r.url,
     Estado: STATUS_LABEL[r.status] ?? r.status,
   }));
   const ws = XLSX.utils.json_to_sheet(data, {
-    header: ["Nombre", "Email", "Segmento", "Modo", "RSVP", "Check-in", "Enlace", "Estado"],
+    header: ["Nombre", "Email", "Segmento", "RSVP", "Check-in", "Enlace", "Estado"],
   });
   ws["!cols"] = [
-    { wch: 24 }, { wch: 32 }, { wch: 16 }, { wch: 12 },
+    { wch: 24 }, { wch: 32 }, { wch: 16 },
     { wch: 18 }, { wch: 18 }, { wch: 48 }, { wch: 14 },
   ];
   const wb = XLSX.utils.book_new();
