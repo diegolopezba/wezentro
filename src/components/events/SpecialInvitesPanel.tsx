@@ -10,7 +10,6 @@ import {
   useCreateSpecialInvite,
   useRevokeSpecialInvite,
   useSendSpecialInviteEmails,
-  useSetInviteDeliveryMode,
   getSpecialInviteUrl,
 } from "@/hooks/useSpecialInvites";
 import { BulkInviteImportSheet } from "@/components/events/BulkInviteImportSheet";
@@ -33,7 +32,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const createInvite = useCreateSpecialInvite();
   const revokeInvite = useRevokeSpecialInvite();
   const sendEmails = useSendSpecialInviteEmails();
-  const setMode = useSetInviteDeliveryMode();
 
   const segments = useMemo(() => {
     const set = new Set<string>();
@@ -65,20 +63,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
 
   const toggleSelectAll = () =>
     setSelectedIds(allSelected ? [] : selectableInvites.map((i) => i.id));
-
-  const handleSetMode = async (ids: string[], mode: "app" | "direct") => {
-    if (ids.length === 0) return;
-    try {
-      await setMode.mutateAsync({ inviteIds: ids, mode, eventId });
-      toast.success(
-        mode === "direct"
-          ? "Estas invitaciones ya no requieren cuenta"
-          : "Estas invitaciones se abren en la app"
-      );
-    } catch {
-      toast.error("No se pudo cambiar el modo");
-    }
-  };
 
   const handleBulkSend = async () => {
     const withEmail = filteredInvites.filter(
@@ -112,7 +96,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
       segment: i.segment,
       url: getSpecialInviteUrl(i.token),
       status: i.status,
-      mode: i.delivery_mode === "direct" ? "Sin cuenta" : "App",
       rsvp: i.rsvp_confirmed_at ? new Date(i.rsvp_confirmed_at).toLocaleString("es-BO") : "",
       check_in: i.checked_in_at ? new Date(i.checked_in_at).toLocaleString("es-BO") : "",
     }));
