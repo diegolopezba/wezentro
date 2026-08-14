@@ -1,0 +1,2 @@
+ALTER TABLE public.event_special_invites ALTER COLUMN delivery_mode SET DEFAULT 'direct';
+UPDATE public.event_special_invites SET delivery_mode = 'direct' WHERE status = 'pending' AND delivery_mode = 'app';
