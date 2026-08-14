@@ -3,7 +3,7 @@ import { m } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck, Flag } from "lucide-react";
+import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck, Flag } from "lucide-react";
 import { useState } from "react";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { Button } from "@/components/ui/button";
@@ -517,7 +517,7 @@ const EventDetail = () => {
                 </Button> :
         <span className="glow-border">
                   <Button variant="outline" size="default" className="bg-white text-black border-0 hover:bg-white/90" onClick={() => navigate(`/going/${id}`)}>
-                    <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
+                    Ver entrada
                   </Button>
                 </span> :
         hasActiveInvite ?
