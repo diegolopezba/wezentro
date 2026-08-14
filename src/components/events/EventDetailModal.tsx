@@ -3,7 +3,7 @@ import { m } from "framer-motion";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ModalErrorBoundary } from "@/components/events/ModalErrorBoundary";
 import {
-  Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock,
+  Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Clock,
   Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, X, Bookmark, Repeat,
   EyeOff, UtensilsCrossed, CalendarCheck, Flag, Lock,
 } from "lucide-react";
@@ -475,7 +475,7 @@ const EventDetailModalInner = () => {
                         onClick={() => navigate(`/going/${id}`)}
                         className="bg-white text-black border-0"
                       >
-                        <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
+                        Ver entrada
                       </Button>
                     </span>
 
