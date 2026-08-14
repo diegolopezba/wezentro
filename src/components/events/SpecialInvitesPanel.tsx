@@ -251,24 +251,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
 
           {selectedIds.length > 0 && (
             <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleSetMode(selectedIds, "direct")}
-                  disabled={setMode.isPending}
-                >
-                  <Zap className="w-4 h-4 mr-1.5" /> Sin cuenta
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleSetMode(selectedIds, "app")}
-                  disabled={setMode.isPending}
-                >
-                  <Smartphone className="w-4 h-4 mr-1.5" /> En la app
-                </Button>
-              </div>
               <Button
                 variant="hero"
                 size="sm"
@@ -284,10 +266,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
                   </>
                 )}
               </Button>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                "Sin cuenta": el invitado solo confirma su nombre y correo y recibe su QR al
-                instante, sin registrarse.
-              </p>
             </div>
           )}
         </div>
