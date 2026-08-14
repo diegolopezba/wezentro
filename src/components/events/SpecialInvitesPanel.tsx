@@ -337,11 +337,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
                       {invite.segment}
                     </Badge>
                   )}
-                  {invite.delivery_mode === "direct" && (
-                    <Badge className="shrink-0 text-[10px] gap-1">
-                      <Zap className="w-3 h-3" /> Sin cuenta
-                    </Badge>
-                  )}
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
                   {invite.rsvp_email || invite.guest_email || getSpecialInviteUrl(invite.token)}
