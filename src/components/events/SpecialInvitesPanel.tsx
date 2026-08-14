@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail, Download, Zap, Smartphone } from "lucide-react";
+import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail, Download, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,6 @@ import {
   useCreateSpecialInvite,
   useRevokeSpecialInvite,
   useSendSpecialInviteEmails,
-  useSetInviteDeliveryMode,
   getSpecialInviteUrl,
 } from "@/hooks/useSpecialInvites";
 import { BulkInviteImportSheet } from "@/components/events/BulkInviteImportSheet";
@@ -33,7 +32,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const createInvite = useCreateSpecialInvite();
   const revokeInvite = useRevokeSpecialInvite();
   const sendEmails = useSendSpecialInviteEmails();
-  const setMode = useSetInviteDeliveryMode();
 
   const segments = useMemo(() => {
     const set = new Set<string>();
@@ -65,20 +63,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
 
   const toggleSelectAll = () =>
     setSelectedIds(allSelected ? [] : selectableInvites.map((i) => i.id));
-
-  const handleSetMode = async (ids: string[], mode: "app" | "direct") => {
-    if (ids.length === 0) return;
-    try {
-      await setMode.mutateAsync({ inviteIds: ids, mode, eventId });
-      toast.success(
-        mode === "direct"
-          ? "Estas invitaciones ya no requieren cuenta"
-          : "Estas invitaciones se abren en la app"
-      );
-    } catch {
-      toast.error("No se pudo cambiar el modo");
-    }
-  };
 
   const handleBulkSend = async () => {
     const withEmail = filteredInvites.filter(
@@ -112,7 +96,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
       segment: i.segment,
       url: getSpecialInviteUrl(i.token),
       status: i.status,
-      mode: i.delivery_mode === "direct" ? "Sin cuenta" : "App",
       rsvp: i.rsvp_confirmed_at ? new Date(i.rsvp_confirmed_at).toLocaleString("es-BO") : "",
       check_in: i.checked_in_at ? new Date(i.checked_in_at).toLocaleString("es-BO") : "",
     }));
@@ -204,6 +187,14 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
         <Button variant="secondary" className="w-full" onClick={() => setImportOpen(true)}>
           <Upload className="w-4 h-4 mr-2" /> Importar lista (CSV o Excel)
         </Button>
+        <div className="rounded-xl bg-muted/50 p-3 flex gap-2">
+          <Zap className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Las invitaciones se envían por correo. El invitado confirma su nombre y correo y recibe
+            su entrada al instante, sin crear cuenta. Si no tenés su correo, compartí el enlace: ahí
+            mismo escribe su nombre y correo para confirmar.
+          </p>
+        </div>
       </div>
 
       {showPills && (
@@ -251,24 +242,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
 
           {selectedIds.length > 0 && (
             <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleSetMode(selectedIds, "direct")}
-                  disabled={setMode.isPending}
-                >
-                  <Zap className="w-4 h-4 mr-1.5" /> Sin cuenta
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleSetMode(selectedIds, "app")}
-                  disabled={setMode.isPending}
-                >
-                  <Smartphone className="w-4 h-4 mr-1.5" /> En la app
-                </Button>
-              </div>
               <Button
                 variant="hero"
                 size="sm"
@@ -284,10 +257,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
                   </>
                 )}
               </Button>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                "Sin cuenta": el invitado solo confirma su nombre y correo y recibe su QR al
-                instante, sin registrarse.
-              </p>
             </div>
           )}
         </div>
@@ -335,11 +304,6 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
                   {invite.segment && (
                     <Badge variant="secondary" className="shrink-0 text-[10px]">
                       {invite.segment}
-                    </Badge>
-                  )}
-                  {invite.delivery_mode === "direct" && (
-                    <Badge className="shrink-0 text-[10px] gap-1">
-                      <Zap className="w-3 h-3" /> Sin cuenta
                     </Badge>
                   )}
                 </div>
