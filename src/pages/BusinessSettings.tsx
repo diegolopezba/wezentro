@@ -21,6 +21,7 @@ const BusinessSettings = () => {
   useSwipeBack();
 
   const isBusiness = profile?.is_business === true;
+  const showVenueLayouts = false; // Hidden until venue layout feature is more developed
   const menuEnabled = (profile as any)?.menu_enabled !== false;
   const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
 
