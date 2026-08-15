@@ -180,6 +180,7 @@ const BusinessSettings = () => {
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </m.button>
 
+            {showVenueLayouts && (
             {/* Planos del lugar → nav */}
             <m.button
               initial={{ opacity: 0, y: 10 }}
@@ -198,6 +199,7 @@ const BusinessSettings = () => {
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </m.button>
+            )}
 
 
 
