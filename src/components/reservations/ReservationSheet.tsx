@@ -18,6 +18,7 @@ import {
 } from "@/hooks/useSlotAvailability";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
+import { useJoinWaitlist } from "@/hooks/useReservationConfig";
 import { useSearchUsers, SearchUser } from "@/hooks/useSearchUsers";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { format, addDays, startOfDay } from "date-fns";
@@ -91,6 +92,7 @@ export const ReservationSheet = ({
   const { user } = useAuth();
   const navigate = useNavigate();
   const { promptAuth } = useAuthPrompt();
+  const joinWaitlist = useJoinWaitlist();
 
   const [currentStep, setCurrentStep] = useState<Step>("date");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -393,7 +395,7 @@ export const ReservationSheet = ({
                     disabled={joinWaitlist.isPending}
                     onClick={() => {
                       if (!user) {
-                        promptAuth();
+                        promptAuth({ action: "unirte a la lista de espera" });
                         return;
                       }
                       joinWaitlist.mutate({
