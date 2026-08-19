@@ -451,7 +451,7 @@ export function PaymentQRModal({
                       <span className="text-lg leading-none" role="img" aria-label="guiño">😉</span>
                     </p>
                   ) : (
-                    <p className="text-2xl font-brand font-bold text-foreground">Bs. {price}</p>
+                    <p className="text-2xl font-brand font-bold text-foreground">Bs. {total}</p>
                   )}
                 </div>
                 <Button
