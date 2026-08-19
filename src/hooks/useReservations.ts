@@ -60,9 +60,6 @@ export const useCreateReservation = () => {
       haptic("success");
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
-      queryClient.invalidateQueries({
-        queryKey: ["available-capacity", variables.business_id],
-      });
       toast.success("¡Reserva confirmada!");
     },
     onError: (error: any) => {
@@ -285,48 +282,3 @@ export const useReservationDetail = (reservationId: string | undefined) => {
   });
 };
 
-export const useAvailableCapacity = (
-  businessId: string | undefined,
-  date: string | undefined,
-  time: string | undefined
-) => {
-  return useQuery({
-    queryKey: ["available-capacity", businessId, date, time],
-    queryFn: async () => {
-      if (!businessId || !date || !time) return null;
-
-      // Get business capacity
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("reservation_capacity")
-        .eq("id", businessId)
-        .single();
-
-      const capacity = profile?.reservation_capacity;
-      if (!capacity) return { capacity: null, booked: 0, available: null };
-
-      // Count existing reservations for that date/time
-      const { data: reservations, error } = await supabase
-        .from("reservations")
-        .select("party_size")
-        .eq("business_id", businessId)
-        .eq("reservation_date", date)
-        .eq("reservation_time", time)
-        .eq("status", "confirmed");
-
-      if (error) throw error;
-
-      const booked = (reservations || []).reduce(
-        (sum, r) => sum + r.party_size,
-        0
-      );
-
-      return {
-        capacity,
-        booked,
-        available: Math.max(0, capacity - booked),
-      };
-    },
-    enabled: !!businessId && !!date && !!time,
-  });
-};
