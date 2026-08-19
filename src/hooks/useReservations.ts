@@ -60,9 +60,6 @@ export const useCreateReservation = () => {
       haptic("success");
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
-      queryClient.invalidateQueries({
-        queryKey: ["available-capacity", variables.business_id],
-      });
       toast.success("¡Reserva confirmada!");
     },
     onError: (error: any) => {
