@@ -22,6 +22,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+const STATUS_LABEL: Record<string, string> = {
+  seated: "Sentada",
+  completed: "Completada",
+  cancelled: "Cancelada",
+  no_show: "No-show",
+};
+
 interface ReservationsManagementSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
