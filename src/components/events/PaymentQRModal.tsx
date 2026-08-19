@@ -62,6 +62,11 @@ export function PaymentQRModal({
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [howOpen, setHowOpen] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [assignees, setAssignees] = useState<(SearchUser | null)[]>([]);
+  // Multi-ticket buying only applies to paid general/tier checkout, not venue areas.
+  const canBuyMultiple = !isFree && !eventAreaId;
+  const total = Number(price) * (canBuyMultiple ? quantity : 1);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isActiveRef = useRef(false);
 
