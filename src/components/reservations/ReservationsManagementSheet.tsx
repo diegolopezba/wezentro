@@ -3,8 +3,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Users, CalendarDays, Clock, MessageCircle, X, StickyNote } from "lucide-react";
-import { useBusinessReservations, useCancelReservation, useReservationGuests } from "@/hooks/useReservations";
+import { Loader2, Users, CalendarDays, Clock, MessageCircle, X, StickyNote, UserCheck, UserX, CheckCircle2 } from "lucide-react";
+import { useBusinessReservations, useCancelReservation, useReservationGuests, useSetReservationStatus } from "@/hooks/useReservations";
 import { useCreatePrivateChat } from "@/hooks/useChats";
 import { useNavigate } from "react-router-dom";
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
