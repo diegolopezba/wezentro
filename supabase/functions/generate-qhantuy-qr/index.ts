@@ -135,6 +135,29 @@ Deno.serve(async (req) => {
       return json({ error: "Este evento no tiene un precio configurado", code: "no_price" }, 400);
     }
 
+    // Validate assignees: real profiles, no duplicates, never the buyer, at most quantity-1.
+    const cleanAssignees: (string | null)[] = new Array(Math.max(quantity - 1, 0)).fill(null);
+    const wanted = assignees.slice(0, Math.max(quantity - 1, 0)).filter((a): a is string => !!a);
+    if (wanted.length) {
+      const unique = [...new Set(wanted)].filter((id) => id !== buyerId);
+      const { data: validProfiles } = await supabase
+        .from("profiles")
+        .select("id")
+        .in("id", unique);
+      const validIds = new Set((validProfiles ?? []).map((p: any) => p.id));
+      const used = new Set<string>();
+      for (let i = 0; i < cleanAssignees.length; i++) {
+        const candidate = assignees[i];
+        if (candidate && candidate !== buyerId && validIds.has(candidate) && !used.has(candidate)) {
+          cleanAssignees[i] = candidate;
+          used.add(candidate);
+        }
+      }
+    }
+
+    const totalAmount = Number((effectivePrice * quantity).toFixed(2));
+
+
     // Load beneficiary for the event creator
     const { data: benef } = await supabase
       .from("qhantuy_beneficiaries")
