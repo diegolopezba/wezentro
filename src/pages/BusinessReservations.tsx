@@ -123,78 +123,17 @@ const BusinessReservations = () => {
           />
         </m.div>
 
-        {/* Reservation window config — only when enabled */}
-        {reservationsEnabled && (
+        {/* Inventory, schedules & policies — only when enabled */}
+        {reservationsEnabled && user && (
           <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="py-4 px-4 rounded-xl bg-card border border-border space-y-4"
+            className="space-y-3"
           >
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-green-500" />
-              <Label className="text-foreground font-semibold">Horario de reservas</Label>
-            </div>
-            <p className="text-xs text-muted-foreground -mt-2">
-              Solo se podrán reservar mesas en el rango de horas que definas aquí.
-            </p>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Desde</Label>
-                <Select value={reservationStartTime} onValueChange={setReservationStartTime}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-52">
-                    {TIME_OPTIONS.map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Hasta</Label>
-                <Select value={reservationEndTime} onValueChange={setReservationEndTime}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-52">
-                    {TIME_OPTIONS.map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="res-capacity" className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Users className="w-3.5 h-3.5" /> Capacidad por horario (personas)
-              </Label>
-              <Input
-                id="res-capacity"
-                type="number"
-                min={1}
-                value={reservationCapacity}
-                onChange={(e) => setReservationCapacity(e.target.value)}
-                placeholder="Ej: 50"
-              />
-              <p className="text-xs text-muted-foreground">
-                Máximo de personas que pueden reservar en un mismo horario.
-              </p>
-            </div>
-
-            <Button
-              size="sm"
-              onClick={handleSaveWindow}
-              disabled={savingWindow}
-              className="w-full"
-            >
-              {savingWindow ? "Guardando..." : (
-                <><Save className="w-4 h-4 mr-2" />Guardar configuración</>
-              )}
-            </Button>
+            <TablesEditor businessId={user.id} />
+            <ReservationScheduleEditor businessId={user.id} />
+            <ReservationRulesEditor businessId={user.id} />
           </m.div>
         )}
       </div>
