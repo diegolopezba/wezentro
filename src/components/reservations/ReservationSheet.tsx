@@ -385,6 +385,29 @@ export const ReservationSheet = ({
                     </div>
                   </m.div>
                 )}
+
+                {selectedTime && (!selectedInfo || selectedInfo.status === "full") && (
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full"
+                    disabled={joinWaitlist.isPending}
+                    onClick={() => {
+                      if (!user) {
+                        promptAuth();
+                        return;
+                      }
+                      joinWaitlist.mutate({
+                        business_id: businessId,
+                        desired_date: dateStr,
+                        desired_time: selectedTime,
+                        party_size: partySize,
+                        user_id: user.id,
+                      });
+                    }}
+                  >
+                    Avisarme si se libera ({selectedTime})
+                  </Button>
+                )}
               </m.div>
             )}
 
