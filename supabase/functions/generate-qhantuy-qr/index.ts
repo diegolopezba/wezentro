@@ -242,14 +242,15 @@ Deno.serve(async (req) => {
         customer_email: buyerProfile?.email ?? userData.user.email ?? undefined,
         customer_first_name: buyerProfile?.first_name ?? undefined,
         customer_last_name: buyerProfile?.last_name ?? undefined,
-        detail: effectiveTitle.substring(0, 120),
+        detail: `${effectiveTitle}${quantity > 1 ? ` x${quantity}` : ""}`.substring(0, 120),
         items: [
           {
             name: effectiveTitle.substring(0, 100),
-            quantity: 1,
+            quantity,
             price: effectivePrice,
           },
         ],
+
       }),
     });
 
