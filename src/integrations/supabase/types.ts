@@ -4111,6 +4111,18 @@ export type Database = {
         Args: { _email: string; _name: string; _token: string }
         Returns: Json
       }
+      create_reservation: {
+        Args: {
+          _business_id: string
+          _date: string
+          _guest_ids?: string[]
+          _notes?: string
+          _party_size: number
+          _reservation_id?: string
+          _time: string
+        }
+        Returns: string
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -4366,6 +4378,14 @@ export type Database = {
           reward_claimed: boolean
         }[]
       }
+      get_reservation_availability: {
+        Args: { _business_id: string; _date: string; _party_size?: number }
+        Returns: {
+          seats_left: number
+          slot_time: string
+          status: string
+        }[]
+      }
       get_save_count: { Args: { _event_id: string }; Returns: number }
       get_special_invite_by_token: {
         Args: { _token: string }
@@ -4486,6 +4506,10 @@ export type Database = {
       resolve_promoter: {
         Args: { _code: string; _event_id: string }
         Returns: string
+      }
+      set_reservation_status: {
+        Args: { _reservation_id: string; _status: string }
+        Returns: undefined
       }
       set_special_invite_mode: {
         Args: { _invite_ids: string[]; _mode: string }
