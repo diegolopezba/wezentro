@@ -1,24 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { m } from "framer-motion";
-import { ArrowLeft, CalendarCheck, Clock, Users, Save } from "lucide-react";
+import { ArrowLeft, CalendarCheck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { TablesEditor } from "@/components/reservations/TablesEditor";
+import { ReservationScheduleEditor } from "@/components/reservations/ReservationScheduleEditor";
+import { ReservationRulesEditor } from "@/components/reservations/ReservationRulesEditor";
 
-// Generate time options in 30-min intervals from 06:00 to 24:00
-const TIME_OPTIONS = Array.from({ length: 37 }, (_, i) => {
-  const totalMinutes = 6 * 60 + i * 30;
-  const h = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
-  const m = (totalMinutes % 60).toString().padStart(2, "0");
-  return `${h}:${m}`;
-});
 
 const BusinessReservations = () => {
   const navigate = useNavigate();
