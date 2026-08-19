@@ -430,12 +430,16 @@ export const ReservationSheet = ({
                   </div>
                 </div>
 
-                {selectedInfo && capacity != null && (
+                {selectedTime && (
                   <div
                     className={cn( "text-center text-sm px-3 py-2 rounded-xl",
-                      selectedInfo.status === "full" ? "bg-destructive/10 text-destructive" : selectedInfo.status === "limited" ? "bg-warning/10 text-warning" : "bg-secondary text-muted-foreground" )}
+                      !selectedInfo || selectedInfo.status === "full" ? "bg-destructive/10 text-destructive" : selectedInfo.status === "limited" ? "bg-warning/10 text-warning" : "bg-secondary text-muted-foreground" )}
                   >
-                    {selectedInfo.status === "full" ? "Sin disponibilidad para este horario" : `${Math.max(0, capacity - selectedInfo.booked)} lugares disponibles`}
+                    {!selectedInfo || selectedInfo.status === "full"
+                      ? "Sin disponibilidad para este horario"
+                      : selectedInfo.seatsLeft > 0
+                      ? `${selectedInfo.seatsLeft} lugares disponibles`
+                      : "Disponible"}
                   </div>
                 )}
               </m.div>
