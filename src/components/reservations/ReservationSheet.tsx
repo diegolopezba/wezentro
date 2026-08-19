@@ -10,11 +10,11 @@ import {
   useUpdateReservation,
 } from "@/hooks/useReservations";
 import {
-  useSlotAvailability,
-  computeSlotInfo,
+  useReservationAvailability,
   groupSlotsByPeriod,
   findAlternatives,
   type SlotStatus,
+  type SlotInfo,
 } from "@/hooks/useSlotAvailability";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
