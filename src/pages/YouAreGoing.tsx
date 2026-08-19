@@ -171,7 +171,7 @@ const YouAreGoing = () => {
                 </span>
               </div>
               <Button
-                onClick={() => setShowQR(true)}
+                onClick={() => setQrToken(guestlistEntry?.qr_code_token ?? null)}
                 size="lg"
                 className="rounded-full font-semibold gap-2 bg-accent-red text-white active:scale-95"
               >
@@ -202,7 +202,7 @@ const YouAreGoing = () => {
       <TicketInfoSheet open={showInfo} onOpenChange={setShowInfo} />
 
       {/* QR Code Dialog */}
-      <Dialog open={showQR} onOpenChange={setShowQR}>
+      <Dialog open={!!qrToken} onOpenChange={(o) => !o && setQrToken(null)}>
         <DialogContent className="bg-background text-foreground max-w-xs rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-center">Tu QR de Entrada</DialogTitle>
