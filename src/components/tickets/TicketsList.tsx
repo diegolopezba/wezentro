@@ -35,6 +35,8 @@ export const TicketsList = () => {
           joined_at,
           status,
           payment_status,
+          user_id,
+          purchased_by_user_id,
           event:events(
             id,
             title,
@@ -49,7 +51,8 @@ export const TicketsList = () => {
               full_name
             )
           ) `)
-        .eq("user_id", user.id)
+        // Own tickets + extra tickets this user paid for that nobody claimed yet.
+        .or(`user_id.eq.${user.id},and(user_id.is.null,purchased_by_user_id.eq.${user.id})`)
         .eq("status", "approved")
         .order("joined_at", { ascending: false });
 
@@ -57,6 +60,7 @@ export const TicketsList = () => {
 
       return data || [];
     },
+
     enabled: !!user,
   });
 
