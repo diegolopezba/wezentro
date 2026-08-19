@@ -25,9 +25,25 @@ Deno.serve(async (req) => {
     }
     const buyerId = userData.user.id;
 
-    const { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId } = await req.json();
-    console.log("[qr] request", { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId, buyerId });
+    const body = await req.json();
+    const { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId } = body;
+    const MAX_QTY = 10;
+    const rawQty = Number(body.quantity ?? 1);
+    const quantity = Number.isFinite(rawQty) ? Math.floor(rawQty) : 1;
+    // assignees[i] = user id for ticket i+2 (ticket 1 always belongs to the buyer), null when unassigned
+    const rawAssignees: unknown = body.assignees;
+    const assignees: (string | null)[] = Array.isArray(rawAssignees)
+      ? rawAssignees.map((a) => (typeof a === "string" && /^[0-9a-f-]{36}$/i.test(a) ? a : null))
+      : [];
+    console.log("[qr] request", { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId, buyerId, quantity });
     if (!eventId) return json({ error: "Falta el evento", code: "no_event_id" }, 400);
+    if (quantity < 1 || quantity > MAX_QTY) {
+      return json({ error: `Podés comprar entre 1 y ${MAX_QTY} entradas`, code: "bad_quantity" }, 400);
+    }
+    if (quantity > 1 && eventAreaId) {
+      return json({ error: "Las áreas se reservan de a una", code: "area_quantity" }, 400);
+    }
+
 
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
