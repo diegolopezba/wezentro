@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
         event_id: eventId,
         buyer_user_id: buyerId,
         business_user_id: event.creator_id,
-        amount: effectivePrice,
+        amount: totalAmount,
         status: "pending",
         ticket_tier_id: tierId,
         promoter_id: safePromoterId,
@@ -207,6 +207,9 @@ Deno.serve(async (req) => {
         beneficiary_code: benef.beneficiary_code,
         event_area_id: areaId,
         party_size: bookingPartySize,
+        quantity,
+        assignees: cleanAssignees,
+
       })
       .select("id")
       .single();
