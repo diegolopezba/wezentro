@@ -437,7 +437,11 @@ export function PaymentQRModal({
                 <div className="flex items-end justify-between mb-3">
                   <div>
                     <p className="text-xs text-muted-foreground">
-                      {partySize && partySize > 1 ? `${partySize} personas` : "1 entrada seleccionada"}
+                      {canBuyMultiple && quantity > 1
+                        ? `${quantity} entradas seleccionadas`
+                        : partySize && partySize > 1
+                        ? `${partySize} personas`
+                        : "1 entrada seleccionada"}
                     </p>
                     <p className="text-2xl font-brand font-bold text-foreground">Total</p>
                   </div>
