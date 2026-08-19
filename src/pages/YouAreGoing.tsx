@@ -208,10 +208,10 @@ const YouAreGoing = () => {
             <DialogTitle className="text-center">Tu QR de Entrada</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center py-6">
-            {guestlistEntry?.qr_code_token ? (
+            {qrToken ? (
               <div className="bg-white p-5 rounded-2xl shadow-lg">
                 <QRCodeSVG
-                  value={guestlistEntry.qr_code_token}
+                  value={qrToken}
                   size={200}
                   level="H" includeMargin={false}
                 />
