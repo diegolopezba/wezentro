@@ -341,7 +341,7 @@ export const ReservationSheet = ({
                     {selectedDate &&
                       format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
                   </p>
-                  {capacity != null && (
+                  {slots.length > 0 && (
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <span className="w-2 h-2 rounded-full bg-warning" /> Pocos
