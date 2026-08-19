@@ -157,6 +157,8 @@ export function PaymentQRModal({
           promoterId,
           eventAreaId: eventAreaId ?? null,
           areaBookingId: areaBookingId ?? null,
+          quantity: canBuyMultiple ? quantity : 1,
+          assignees: canBuyMultiple ? assignees.slice(0, quantity - 1).map((a) => a?.id ?? null) : [],
         },
       });
       if (error || !data || (data as any).error) {
