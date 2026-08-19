@@ -41,6 +41,24 @@ const YouAreGoing = () => {
     enabled: !!id && !!user,
   });
 
+  // Extra tickets this user paid for that are not assigned to a zentro account.
+  const { data: extraTickets } = useQuery({
+    queryKey: ["purchased-extra-tickets", id, user?.id],
+    queryFn: async () => {
+      if (!id || !user) return [];
+      const { data, error } = await supabase
+        .from("guestlist_entries")
+        .select("id, qr_code_token, payment_status")
+        .eq("event_id", id)
+        .eq("purchased_by_user_id", user.id)
+        .is("user_id", null)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id && !!user,
+  });
+
   // Check if user can view QR (must be approved and payment confirmed if payment was required)
   const canViewQr = guestlistEntry?.status === "approved" && 
     (guestlistEntry?.payment_status === "none" || 
