@@ -214,6 +214,32 @@ const YouAreGoing = () => {
           )}
         </div>
 
+        {/* Extra tickets bought for other people */}
+        {!!extraTickets?.length && (
+          <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-4 py-3 space-y-2">
+            <p className="text-xs uppercase tracking-widest text-[#141414]/60">
+              Entradas extra que compraste
+            </p>
+            {extraTickets.map((t: any, i: number) => (
+              <div key={t.id} className="flex items-center justify-between gap-3">
+                <span className="text-sm font-semibold">Entrada invitado {i + 1}</span>
+                <Button
+                  onClick={() => setQrToken(t.qr_code_token)}
+                  size="sm"
+                  className="rounded-full font-semibold gap-1.5 bg-accent-red text-white active:scale-95"
+                >
+                  <QrCode className="w-4 h-4" />
+                  Ver QR
+                </Button>
+              </div>
+            ))}
+            <p className="text-xs text-[#141414]/60">
+              También te las enviamos por correo para que las reenvíes.
+            </p>
+          </div>
+        )}
+
+
       </m.div>
 
       {/* Info bottom sheet */}
