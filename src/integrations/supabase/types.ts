@@ -2329,6 +2329,45 @@ export type Database = {
           },
         ]
       }
+      reservation_blackouts: {
+        Row: {
+          blackout_date: string
+          business_id: string
+          created_at: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          blackout_date: string
+          business_id: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          blackout_date?: string
+          business_id?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_blackouts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_blackouts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reservation_guests: {
         Row: {
           created_at: string | null
@@ -2372,6 +2411,60 @@ export type Database = {
           },
         ]
       }
+      reservation_policies: {
+        Row: {
+          allow_table_join: boolean
+          arrival_grace_minutes: number
+          business_id: string
+          cancellation_window_hours: number
+          created_at: string
+          max_covers_per_interval: number | null
+          max_party_size: number
+          min_lead_minutes: number
+          turn_time_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          allow_table_join?: boolean
+          arrival_grace_minutes?: number
+          business_id: string
+          cancellation_window_hours?: number
+          created_at?: string
+          max_covers_per_interval?: number | null
+          max_party_size?: number
+          min_lead_minutes?: number
+          turn_time_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          allow_table_join?: boolean
+          arrival_grace_minutes?: number
+          business_id?: string
+          cancellation_window_hours?: number
+          created_at?: string
+          max_covers_per_interval?: number | null
+          max_party_size?: number
+          min_lead_minutes?: number
+          turn_time_minutes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_policies_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_policies_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reservation_reminders: {
         Row: {
           created_at: string
@@ -2407,43 +2500,198 @@ export type Database = {
           },
         ]
       }
+      reservation_schedules: {
+        Row: {
+          business_id: string
+          created_at: string
+          end_time: string
+          id: string
+          is_closed: boolean
+          shift_name: string | null
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          end_time: string
+          id?: string
+          is_closed?: boolean
+          shift_name?: string | null
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_closed?: boolean
+          shift_name?: string | null
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_schedules_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_schedules_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservation_tables: {
+        Row: {
+          reservation_id: string
+          table_id: string
+        }
+        Insert: {
+          reservation_id: string
+          table_id: string
+        }
+        Update: {
+          reservation_id?: string
+          table_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_tables_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_tables_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservation_waitlist: {
+        Row: {
+          business_id: string
+          created_at: string
+          desired_date: string
+          desired_time: string
+          id: string
+          notified_at: string | null
+          party_size: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          desired_date: string
+          desired_time: string
+          id?: string
+          notified_at?: string | null
+          party_size?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          desired_date?: string
+          desired_time?: string
+          id?: string
+          notified_at?: string | null
+          party_size?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_waitlist_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_waitlist_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_waitlist_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_waitlist_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reservations: {
         Row: {
           business_id: string
           cancelled_by: string | null
+          completed_at: string | null
           created_at: string | null
+          duration_minutes: number
           id: string
           notes: string | null
           party_size: number
           reservation_date: string
           reservation_time: string
+          seated_at: string | null
           status: string
+          table_id: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           business_id: string
           cancelled_by?: string | null
+          completed_at?: string | null
           created_at?: string | null
+          duration_minutes?: number
           id?: string
           notes?: string | null
           party_size?: number
           reservation_date: string
           reservation_time: string
+          seated_at?: string | null
           status?: string
+          table_id?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           business_id?: string
           cancelled_by?: string | null
+          completed_at?: string | null
           created_at?: string | null
+          duration_minutes?: number
           id?: string
           notes?: string | null
           party_size?: number
           reservation_date?: string
           reservation_time?: string
+          seated_at?: string | null
           status?: string
+          table_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -2463,6 +2711,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reservations_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_tables"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reservations_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -2472,6 +2727,57 @@ export type Database = {
           {
             foreignKeyName: "reservations_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_tables: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          seats: number
+          sort_order: number
+          updated_at: string
+          zone: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          seats?: number
+          sort_order?: number
+          updated_at?: string
+          zone?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          seats?: number
+          sort_order?: number
+          updated_at?: string
+          zone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_tables_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_tables_business_id_fkey"
+            columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
