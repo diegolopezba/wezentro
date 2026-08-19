@@ -17,27 +17,10 @@ const BusinessReservations = () => {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
   const [togglingReservations, setTogglingReservations] = useState(false);
-  const [savingWindow, setSavingWindow] = useState(false);
-
-  const [reservationStartTime, setReservationStartTime] = useState("12:00");
-  const [reservationEndTime, setReservationEndTime] = useState("22:00");
-  const [reservationCapacity, setReservationCapacity] = useState("");
 
   useSwipeBack();
 
   const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
-
-  useEffect(() => {
-    if (profile) {
-      setReservationStartTime((profile as any).reservation_start_time?.slice(0, 5) || "12:00");
-      setReservationEndTime((profile as any).reservation_end_time?.slice(0, 5) || "22:00");
-      setReservationCapacity(
-        (profile as any).reservation_capacity != null
-          ? String((profile as any).reservation_capacity)
-          : ""
-      );
-    }
-  }, [profile]);
 
   const handleToggleReservations = async (value: boolean) => {
     if (!user) return;
@@ -57,32 +40,6 @@ const BusinessReservations = () => {
     }
   };
 
-  const handleSaveWindow = async () => {
-    if (!user) return;
-    if (reservationStartTime >= reservationEndTime) {
-      toast.error("La hora de inicio debe ser anterior a la hora de cierre");
-      return;
-    }
-    setSavingWindow(true);
-    try {
-      const cap = parseInt(reservationCapacity);
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          reservation_start_time: reservationStartTime,
-          reservation_end_time: reservationEndTime,
-          reservation_capacity: isNaN(cap) || cap <= 0 ? null : cap,
-        } as any)
-        .eq("id", user.id);
-      if (error) throw error;
-      await refreshProfile();
-      toast.success("Configuración de reservas guardada");
-    } catch (error: any) {
-      toast.error(error.message || "Error al guardar");
-    } finally {
-      setSavingWindow(false);
-    }
-  };
 
   return (
     <div className="min-h-[100dvh] bg-background">
