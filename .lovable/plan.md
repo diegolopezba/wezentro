@@ -1,4 +1,4 @@
-# Reservation System: Audit and Upgrade Plan
+# Reservation System: Audit, Table Inventory and Monetization
 
 ## What exists today
 
@@ -7,58 +7,69 @@
 - Availability: the app fetches confirmed reservations for the selected date in the browser, sums party sizes per slot, and marks slots available / limited / full.
 - Records: date, time, party size, notes, status (defaults to `confirmed`), cancelled_by. Guests can be tagged. Reminders are scheduled by a database trigger.
 - Business side: a list of upcoming reservations grouped by day, with cancel and message actions; a Reservas tab in the dashboard.
+- Payments already exist for tickets through Qhantuy QR (beneficiary per business, QR generation, callback, payment sessions).
 
 ## Gaps found (verified in code and database)
 
-1. **Capacity is only enforced in the browser.** The database has no capacity check and no policy blocking overbooking. Two people booking at the same moment, or anyone calling the API directly, can exceed capacity. The "users can update own reservations" policy also allows moving a reservation into a full slot.
-2. **No table/duration model.** Real booking systems reserve a *table for a duration* (e.g. 90 min). Here a 20:00 booking frees nothing at 20:30, so a single "capacity per slot" number both over- and under-books.
-3. **No status lifecycle.** Status is free text defaulting to `confirmed`; there is no pending/approval path, no seated, no completed, no no-show, and no way for the business to require confirmation for large parties.
-4. **One schedule for all days.** A single start/end time applies to every day of the week; no per-day hours, no closed days, no holiday/blackout dates, no temporary pause for a fully booked night.
-5. **No booking policies.** No minimum lead time, no maximum party size (large groups should route to a request), no cancellation window, and no limit on duplicate bookings by the same user.
-6. **No confirmation email / calendar file.** The guest only gets in-app confirmation; industry standard is instant email + add-to-calendar, plus a cancel/modify link.
-7. **Weak no-show and history handling.** Business list only shows upcoming, non-cancelled bookings; no past history, no no-show marking, no guest reliability signal.
-8. **No waitlist.** When a slot is full the guest only sees nearby alternatives; standard apps offer to notify when a slot frees up.
+1. **Capacity is only enforced in the browser.** The database has no capacity check and no policy blocking overbooking. Two people booking at the same time, or anyone calling the API directly, can exceed capacity. The "users can update own reservations" policy also lets a guest move a booking into a full slot.
+2. **No table or duration model.** A 20:00 booking never frees up, so one flat "capacity per slot" number both over- and under-books.
+3. **No status lifecycle.** Status is free text defaulting to `confirmed`; no seated, completed or no-show.
+4. **One schedule for all days.** Single start/end time for every day; no closed days or blackout dates.
+5. **No booking policies.** No lead time, max party size, cancellation window, or duplicate-booking limit.
+6. **No confirmation email / add-to-calendar.**
+7. **No past history or no-show tracking** on the business side.
+8. **No waitlist** when a slot is full.
+9. **No monetization**: reservations generate zero revenue today.
 
-## How the leading apps do it (OpenTable, Resy, SevenRooms, Yelp/Google reservations)
+## How the leading apps monetize reservations
 
-- Inventory is modeled as **tables/seat groups with turn times**, not a flat headcount per slot; availability is computed server-side over overlapping intervals.
-- **Pacing controls**: max covers per 15 min interval so the kitchen isn't slammed, on top of raw capacity.
-- **Per-day schedules and shifts** (lunch/dinner) with closures and special dates.
-- **Status lifecycle**: booked → confirmed (guest reconfirms) → seated → completed, plus cancelled and no-show; large parties or high-risk times require approval.
-- **Policies**: lead time, party-size limits, cancellation window, and sometimes a hold/deposit for big groups.
-- **Guest communication**: instant email/SMS confirmation with cancel + modify links, reminder the day before, and post-visit follow-up.
-- **Waitlist / notify-me** when the requested slot is full.
+- **OpenTable**: SaaS subscription per restaurant plus a per-cover fee (roughly $0.25–$1.50 per seated diner, higher for diners sourced from their marketplace). Revenue is tied to seated covers, not to the guest.
+- **Resy**: mostly flat SaaS subscription tiers for the restaurant; consumer side free. Adds ticketed/prepaid events for high-demand nights.
+- **Tock**: the prepay pioneer — tickets, deposits and prepaid tasting menus, taking a commission on the prepaid amount plus a subscription. This is the closest model to what you describe.
+- **SevenRooms / Eat App / Guest Manager (Yelp)**: subscription plus optional deposit/no-show fee processing, with card-on-file authorization instead of an actual charge.
+- **Delivery/marketplace players (Uber Eats, Google)**: commission on the order value, not on the seat.
+- **Universal pattern**: the *deposit* exists to reduce no-shows, not to make money. It is usually **refundable or credited to the bill** if the guest shows up, and forfeited only under a stated cancellation window. Restaurants apply it selectively (large parties, peak nights, tasting menus), not to every booking, because a mandatory fee on every table measurably reduces bookings.
+
+**Implication for the proposed model**: charging 6% on pre-orders is well aligned with Tock's commission-on-prepay model. Charging 50 Bs per seat on every reservation is not standard as a *fee*; the standard is a per-seat **deposit that is credited toward the bill** (or refunded on timely cancellation), with the platform taking its commission on that amount too. Recommendation: keep both paths, make the deposit refundable/creditable, and make it opt-in per business (and optionally only for parties over N or specific peak shifts).
+
+## Decisions locked in
+
+- **Table-level inventory**: businesses configure real tables with seat counts.
+- **Bookings auto-confirm** once payment (pre-order or deposit) succeeds; no manual approval step.
+- **Monetization**: 6% platform commission on pre-orders; optional per-seat deposit (default suggestion 50 Bs) credited to the bill, also commissionable.
 
 ## Proposed work (phased)
 
-### Phase 1 — Correctness and trust (foundation)
-- Move availability and booking into a database function that checks capacity, business hours, lead time and party-size limits inside a transaction, so overbooking becomes impossible.
-- Introduce turn time (default 90 min, configurable) so a booking consumes capacity across the interval it actually occupies.
-- Tighten the update policies so guests can only change their own booking through the validated path.
-- Add a real status lifecycle: pending, confirmed, seated, completed, cancelled, no_show.
+### Phase 1 — Table inventory and server-side booking
+- Businesses define their tables: name/number, seat count, zone (interior, terraza, barra), active flag. Bulk "add N tables of X seats" for fast setup.
+- Turn time per business (default 90 min), per-table override optional.
+- A database function assigns the smallest suitable table (or a combination, if the business allows joining tables) for the requested party size and time window, with row locking so two simultaneous bookings can never take the same table.
+- Availability is computed server-side over overlapping time intervals, returning per-slot status and which sizes still fit.
+- Real status lifecycle: pending_payment, confirmed, seated, completed, cancelled, no_show.
+- Tighten policies so guests can only book/modify through the validated function.
 
 ### Phase 2 — Business controls
-- Per-day schedule with shifts, closed days and blackout dates, replacing the single start/end pair.
-- Settings for turn time, max party size, minimum lead time, cancellation window, and optional "requires approval" (all bookings, or only parties over N).
-- Pacing limit: max covers per 15-minute interval.
+- Per-day schedule and shifts (lunch/dinner), closed days, blackout dates.
+- Policies: minimum lead time, max party size, cancellation window, pacing limit (max covers per 15 min).
+- Reservation payment settings: deposit off / per-seat amount, pre-order on/off, which parties or shifts require it, refund window.
 
-### Phase 3 — Guest experience
-- Confirmation email with add-to-calendar and cancel/modify links; day-before reminder reusing the existing reminder job.
-- Waitlist / notify-me when a slot is full, with an automatic offer when capacity opens.
-- Clear policy text in the booking sheet (cancellation window, arrival grace period).
+### Phase 3 — Pre-order and deposit checkout
+- In the booking sheet, after picking table/time/party size, an optional step to pre-order from the existing menu (menus, categories, items already exist in the database).
+- Payment step reuses the Qhantuy QR checkout used for tickets: total = pre-order subtotal and/or deposit x seats; the reservation is held for a short window while payment completes and auto-releases if it doesn't.
+- Platform commission of 6% recorded per reservation payment; the business's payout amount is stored alongside so the dashboard can show gross, commission and net.
+- Refund/credit handling: cancellation inside the window refunds according to the business's policy; on arrival the deposit shows as credit toward the bill on the business's reservation detail.
+- Businesses without payout setup keep free reservations exactly as today.
 
-### Phase 4 — Operations and insight
-- Business day view: timeline by shift, seat/no-show marking, past history, search by guest.
-- Dashboard metrics: covers, no-show rate, cancellation rate, peak slots, repeat guests.
+### Phase 4 — Guest experience and operations
+- Confirmation email with add-to-calendar, order summary and cancel/modify link; day-before reminder reuses the existing reminder job.
+- Waitlist / notify-me when the requested slot is full.
+- Business day view: floor list by shift and table, seat / no-show / complete actions, past history, guest search.
+- Dashboard metrics: covers, no-show rate, pre-order revenue, deposits collected, commission, peak slots.
 
 ## Technical notes
 
-- New tables: reservation policy/schedule per business (per-day rows), blackout dates, waitlist entries. Extend `reservations` with `duration_minutes`, `seated_at`, `completed_at`, and a status check constraint.
-- New database functions: `get_reservation_availability(business, date, party_size)` returning slot statuses, and `create_reservation` / `update_reservation` doing validated writes with row locking. Every new public table gets grants plus RLS scoped to the guest and the owning business.
-- Client hooks `useSlotAvailability` and `useReservations` switch from raw table reads to these functions; the booking sheet keeps its current 4-step UI.
+- New tables: `restaurant_tables` (business, name, seats, zone, active), `reservation_policies` (per business), `reservation_schedules` (per weekday) and `reservation_blackouts`, `reservation_orders` + `reservation_order_items` (pre-order lines referencing `menu_items`), `reservation_waitlist`. Extend `reservations` with `table_id`, `duration_minutes`, `deposit_amount`, `prepaid_amount`, `platform_fee_amount`, `payment_status`, `seated_at`, `completed_at`, `hold_expires_at`.
+- New functions: `get_reservation_availability(business, date, party_size)`, `hold_reservation(...)` (locks a table, creates a pending row with expiry), `confirm_reservation_payment(...)` called from the Qhantuy callback, plus a cleanup job for expired holds mirroring `cleanup_expired_area_holds`.
+- Every new public table gets GRANTs and RLS scoped to the guest and the owning business; money fields are written only by security-definer functions and the payment callback.
+- Client: `useSlotAvailability` and `useReservations` switch to these functions; the booking sheet gains pre-order and payment steps; business settings gains a Mesas editor and a reservation-payments section.
 - Emails go through the existing transactional email pipeline and template registry.
-
-## Decisions needed before building
-
-- Should businesses model actual tables (2-top, 4-top…), or keep a total-seats-per-interval model with turn time? Total-seats plus turn time is far simpler and covers most venues here.
-- Should bookings be auto-confirmed by default, with approval only as an opt-in for large parties?
