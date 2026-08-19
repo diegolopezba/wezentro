@@ -10,14 +10,15 @@ import {
   useUpdateReservation,
 } from "@/hooks/useReservations";
 import {
-  useSlotAvailability,
-  computeSlotInfo,
+  useReservationAvailability,
   groupSlotsByPeriod,
   findAlternatives,
   type SlotStatus,
+  type SlotInfo,
 } from "@/hooks/useSlotAvailability";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
+import { useJoinWaitlist } from "@/hooks/useReservationConfig";
 import { useSearchUsers, SearchUser } from "@/hooks/useSearchUsers";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { format, addDays, startOfDay } from "date-fns";
@@ -44,13 +45,6 @@ interface ReservationSheetProps {
   };
 }
 
-// All possible slots 08:00 → 23:30 (30-min steps)
-const ALL_TIME_SLOTS = Array.from({ length: 32 }, (_, i) => {
-  const totalMinutes = 8 * 60 + i * 30;
-  const h = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
-  const m = (totalMinutes % 60).toString().padStart(2, "0");
-  return `${h}:${m}`;
-});
 
 function getDateChips(n = 21) {
   const today = startOfDay(new Date());
@@ -98,6 +92,7 @@ export const ReservationSheet = ({
   const { user } = useAuth();
   const navigate = useNavigate();
   const { promptAuth } = useAuthPrompt();
+  const joinWaitlist = useJoinWaitlist();
 
   const [currentStep, setCurrentStep] = useState<Step>("date");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -121,43 +116,18 @@ export const ReservationSheet = ({
 
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined;
 
-  // Build available time slots: respect business window + filter past times when date is today
-  const TIME_SLOTS = useMemo(() => {
-    const start = reservationStartTime?.slice(0, 5);
-    const end = reservationEndTime?.slice(0, 5);
-
-    // If selected date is today, drop any slot in the past (with a small 15-min buffer
-    // so users don't pick a time they can't realistically arrive for).
-    let minTime: string | null = null;
-    if (selectedDate) {
-      const today = new Date();
-      const isToday =
-        selectedDate.getFullYear() === today.getFullYear() &&
-        selectedDate.getMonth() === today.getMonth() &&
-        selectedDate.getDate() === today.getDate();
-      if (isToday) {
-        const buffered = new Date(today.getTime() + 15 * 60 * 1000);
-        const h = buffered.getHours().toString().padStart(2, "0");
-        const m = buffered.getMinutes().toString().padStart(2, "0");
-        minTime = `${h}:${m}`;
-      }
-    }
-
-    return ALL_TIME_SLOTS.filter((slot) => {
-      if (start && end && !(slot >= start && slot < end)) return false;
-      if (minTime && slot <= minTime) return false;
-      return true;
-    });
-  }, [reservationStartTime, reservationEndTime, selectedDate]);
-
-  // Live availability for the picked date
-  const { data: availability } = useSlotAvailability(
+  // Server-side availability for the picked date & party size
+  const { data: slots = [], isLoading: loadingSlots } = useReservationAvailability(
     businessId,
     dateStr,
-    editingReservation?.id
+    partySize
   );
-  const bookings = availability?.bookings ?? new Map<string, number>();
-  const capacity = availability?.capacity ?? null;
+
+  const slotMap = useMemo(() => {
+    const map = new Map<string, SlotInfo>();
+    slots.forEach((s) => map.set(s.time, s));
+    return map;
+  }, [slots]);
 
   const { data: searchResults } = useSearchUsers(guestSearch);
   const createMutation = useCreateReservation();
@@ -166,11 +136,10 @@ export const ReservationSheet = ({
   const currentStepIndex = STEPS.indexOf(currentStep);
 
   // Selected slot info
-  const selectedInfo = selectedTime
-    ? computeSlotInfo(selectedTime, bookings, capacity, partySize)
-    : null;
+  const selectedInfo = selectedTime ? slotMap.get(selectedTime) ?? null : null;
   const alternatives =
-    selectedInfo?.status === "full" ? findAlternatives(selectedTime, TIME_SLOTS, bookings, capacity, partySize, 3)
+    selectedTime && (!selectedInfo || selectedInfo.status === "full")
+      ? findAlternatives(selectedTime, slots, 3)
       : [];
 
   const canProceedFrom = (step: Step) => {
@@ -207,6 +176,7 @@ export const ReservationSheet = ({
       updateMutation.mutate(
         {
           reservationId: editingReservation.id,
+          business_id: businessId,
           reservation_date: format(selectedDate, "yyyy-MM-dd"),
           reservation_time: `${selectedTime}:00`,
           party_size: partySize,
@@ -243,17 +213,17 @@ export const ReservationSheet = ({
   const isOverCapacity = selectedInfo?.status === "full";
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const grouped = groupSlotsByPeriod(TIME_SLOTS);
-  const renderTimeSection = (label: string, slots: string[]) => {
-    if (slots.length === 0) return null;
+  const grouped = groupSlotsByPeriod(slots);
+  const renderTimeSection = (label: string, sectionSlots: SlotInfo[]) => {
+    if (sectionSlots.length === 0) return null;
     return (
       <div className="space-y-2">
         <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
           {label}
         </p>
         <div className="grid grid-cols-4 gap-2">
-          {slots.map((time) => {
-            const info = computeSlotInfo(time, bookings, capacity, partySize);
+          {sectionSlots.map((info) => {
+            const time = info.time;
             const selected = selectedTime === time;
             return (
               <button
@@ -367,7 +337,7 @@ export const ReservationSheet = ({
                     {selectedDate &&
                       format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
                   </p>
-                  {capacity != null && (
+                  {slots.length > 0 && (
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <span className="w-2 h-2 rounded-full bg-warning" /> Pocos
@@ -378,6 +348,19 @@ export const ReservationSheet = ({
                     </div>
                   )}
                 </div>
+
+                {loadingSlots && (
+                  <div className="flex justify-center py-6">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+
+                {!loadingSlots && slots.length === 0 && (
+                  <div className="text-center text-sm text-muted-foreground py-6">
+                    No hay horarios disponibles para esta fecha con {partySize}{" "}
+                    {partySize === 1 ? "persona" : "personas"}. Prueba otro día.
+                  </div>
+                )}
 
                 {renderTimeSection("Almuerzo", grouped.lunch)}
                 {renderTimeSection("Cena", grouped.dinner)}
@@ -403,6 +386,29 @@ export const ReservationSheet = ({
                       ))}
                     </div>
                   </m.div>
+                )}
+
+                {selectedTime && (!selectedInfo || selectedInfo.status === "full") && (
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full"
+                    disabled={joinWaitlist.isPending}
+                    onClick={() => {
+                      if (!user) {
+                        promptAuth({ action: "unirte a la lista de espera" });
+                        return;
+                      }
+                      joinWaitlist.mutate({
+                        business_id: businessId,
+                        desired_date: dateStr,
+                        desired_time: selectedTime,
+                        party_size: partySize,
+                        user_id: user.id,
+                      });
+                    }}
+                  >
+                    Avisarme si se libera ({selectedTime})
+                  </Button>
                 )}
               </m.div>
             )}
@@ -456,12 +462,16 @@ export const ReservationSheet = ({
                   </div>
                 </div>
 
-                {selectedInfo && capacity != null && (
+                {selectedTime && (
                   <div
                     className={cn( "text-center text-sm px-3 py-2 rounded-xl",
-                      selectedInfo.status === "full" ? "bg-destructive/10 text-destructive" : selectedInfo.status === "limited" ? "bg-warning/10 text-warning" : "bg-secondary text-muted-foreground" )}
+                      !selectedInfo || selectedInfo.status === "full" ? "bg-destructive/10 text-destructive" : selectedInfo.status === "limited" ? "bg-warning/10 text-warning" : "bg-secondary text-muted-foreground" )}
                   >
-                    {selectedInfo.status === "full" ? "Sin disponibilidad para este horario" : `${Math.max(0, capacity - selectedInfo.booked)} lugares disponibles`}
+                    {!selectedInfo || selectedInfo.status === "full"
+                      ? "Sin disponibilidad para este horario"
+                      : selectedInfo.seatsLeft > 0
+                      ? `${selectedInfo.seatsLeft} lugares disponibles`
+                      : "Disponible"}
                   </div>
                 )}
               </m.div>

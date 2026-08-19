@@ -1,0 +1,143 @@
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { SlidersHorizontal } from "lucide-react";
+import {
+  useReservationPolicy,
+  useSaveReservationPolicy,
+  DEFAULT_POLICY,
+} from "@/hooks/useReservationConfig";
+
+interface Props {
+  businessId: string;
+}
+
+export const ReservationRulesEditor = ({ businessId }: Props) => {
+  const { data: policy } = useReservationPolicy(businessId);
+  const save = useSaveReservationPolicy(businessId);
+
+  const [form, setForm] = useState({ ...DEFAULT_POLICY });
+
+  useEffect(() => {
+    if (policy) {
+      const { business_id, ...rest } = policy;
+      setForm({ ...DEFAULT_POLICY, ...rest });
+    }
+  }, [policy]);
+
+  const num = (v: string, fallback: number) => {
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const fields: {
+    key: keyof typeof DEFAULT_POLICY;
+    label: string;
+    hint: string;
+    min: number;
+  }[] = [
+    {
+      key: "turn_time_minutes",
+      label: "Duración de la mesa (min)",
+      hint: "Cuánto tiempo ocupa una reserva la mesa.",
+      min: 30,
+    },
+    {
+      key: "min_lead_minutes",
+      label: "Anticipación mínima (min)",
+      hint: "Tiempo mínimo antes del horario para poder reservar.",
+      min: 0,
+    },
+    {
+      key: "max_party_size",
+      label: "Máximo de personas",
+      hint: "Grupos más grandes deben contactarte directamente.",
+      min: 1,
+    },
+    {
+      key: "cancellation_window_hours",
+      label: "Cancelación (horas antes)",
+      hint: "Hasta cuándo el cliente puede cancelar o modificar.",
+      min: 0,
+    },
+    {
+      key: "arrival_grace_minutes",
+      label: "Tolerancia de llegada (min)",
+      hint: "Después de este tiempo puedes marcar no-show.",
+      min: 0,
+    },
+  ];
+
+  return (
+    <div className="py-4 px-4 rounded-xl bg-card border border-border space-y-4">
+      <div className="flex items-center gap-2">
+        <SlidersHorizontal className="w-4 h-4 text-amber-500" />
+        <Label className="text-foreground font-semibold">Reglas de reserva</Label>
+      </div>
+
+      {fields.map((f) => (
+        <div key={f.key} className="space-y-1">
+          <Label className="text-xs text-muted-foreground">{f.label}</Label>
+          <Input
+            type="number"
+            min={f.min}
+            value={String(form[f.key] ?? "")}
+            onChange={(e) =>
+              setForm((p) => ({
+                ...p,
+                [f.key]: Math.max(f.min, num(e.target.value, f.min)),
+              }))
+            }
+          />
+          <p className="text-[11px] text-muted-foreground">{f.hint}</p>
+        </div>
+      ))}
+
+      <div className="space-y-1">
+        <Label className="text-xs text-muted-foreground">
+          Máx. personas por franja (opcional)
+        </Label>
+        <Input
+          type="number"
+          min={1}
+          placeholder="Sin límite"
+          value={form.max_covers_per_interval ?? ""}
+          onChange={(e) =>
+            setForm((p) => ({
+              ...p,
+              max_covers_per_interval: e.target.value
+                ? Math.max(1, num(e.target.value, 1))
+                : null,
+            }))
+          }
+        />
+        <p className="text-[11px] text-muted-foreground">
+          Controla el ritmo de llegadas para no saturar la cocina.
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div>
+          <Label className="text-sm text-foreground">Unir mesas</Label>
+          <p className="text-[11px] text-muted-foreground">
+            Permite combinar hasta 3 mesas para grupos grandes.
+          </p>
+        </div>
+        <Switch
+          checked={form.allow_table_join}
+          onCheckedChange={(v) => setForm((p) => ({ ...p, allow_table_join: v }))}
+        />
+      </div>
+
+      <Button
+        className="w-full rounded-full"
+        onClick={() => save.mutate(form)}
+        disabled={save.isPending}
+      >
+        Guardar reglas
+      </Button>
+    </div>
+  );
+};

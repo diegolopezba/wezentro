@@ -5,85 +5,48 @@ export type SlotStatus = "available" | "limited" | "full";
 
 export interface SlotInfo {
   time: string; // "HH:MM"
-  booked: number;
-  capacity: number | null;
   status: SlotStatus;
+  seatsLeft: number;
 }
 
 /**
- * Fetches all confirmed reservations for a business on a given date,
- * and bins them by reservation_time. Returns a map keyed by "HH:MM".
- *
- * Status rules:
- * - capacity is null  → always "available" (no cap configured)
- * - booked >= capacity → "full"
- * - booked / capacity >= 0.8 → "limited"
- * - otherwise → "available"
+ * Server-side availability. The database function applies the business
+ * schedule, closed/blackout dates, table inventory + turn time, lead time,
+ * party-size limit and pacing rules, and returns one row per bookable slot.
  */
-export const useSlotAvailability = (
+export const useReservationAvailability = (
   businessId: string | undefined,
   date: string | undefined,
-  excludeReservationId?: string
+  partySize: number
 ) => {
   return useQuery({
-    queryKey: ["slot-availability", businessId, date, excludeReservationId ?? null],
-    queryFn: async (): Promise<{ capacity: number | null; bookings: Map<string, number> }> => {
-      if (!businessId || !date) return { capacity: null, bookings: new Map() };
-
-      const [profileRes, reservationsRes] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("reservation_capacity")
-          .eq("id", businessId)
-          .single(),
-        supabase
-          .from("reservations")
-          .select("id, reservation_time, party_size")
-          .eq("business_id", businessId)
-          .eq("reservation_date", date)
-          .eq("status", "confirmed"),
-      ]);
-
-      const capacity = profileRes.data?.reservation_capacity ?? null;
-      const bookings = new Map<string, number>();
-
-      (reservationsRes.data || []).forEach((r: any) => {
-        if (excludeReservationId && r.id === excludeReservationId) return;
-        const key = String(r.reservation_time).slice(0, 5); // "HH:MM"
-        bookings.set(key, (bookings.get(key) ?? 0) + Number(r.party_size || 0));
+    queryKey: ["slot-availability", businessId, date, partySize],
+    queryFn: async (): Promise<SlotInfo[]> => {
+      if (!businessId || !date) return [];
+      const { data, error } = await supabase.rpc("get_reservation_availability", {
+        _business_id: businessId,
+        _date: date,
+        _party_size: partySize,
       });
-
-      return { capacity, bookings };
+      if (error) throw error;
+      return (data || []).map((r: any) => ({
+        time: String(r.slot_time).slice(0, 5),
+        status: r.status as SlotStatus,
+        seatsLeft: Number(r.seats_left ?? 0),
+      }));
     },
     enabled: !!businessId && !!date,
     staleTime: 30_000,
   });
 };
 
-export const computeSlotInfo = (
-  time: string,
-  bookings: Map<string, number>,
-  capacity: number | null,
-  partySize = 1
-): SlotInfo => {
-  const booked = bookings.get(time) ?? 0;
-  if (capacity == null) {
-    return { time, booked, capacity: null, status: "available" };
-  }
-  const projected = booked + partySize;
-  if (projected > capacity) return { time, booked, capacity, status: "full" };
-  const ratio = booked / capacity;
-  if (ratio >= 0.8) return { time, booked, capacity, status: "limited" };
-  return { time, booked, capacity, status: "available" };
-};
-
 /** Group "HH:MM" times into meal periods. */
-export const groupSlotsByPeriod = (slots: string[]) => {
-  const lunch: string[] = [];
-  const dinner: string[] = [];
-  const other: string[] = [];
+export const groupSlotsByPeriod = (slots: SlotInfo[]) => {
+  const lunch: SlotInfo[] = [];
+  const dinner: SlotInfo[] = [];
+  const other: SlotInfo[] = [];
   for (const s of slots) {
-    const h = parseInt(s.slice(0, 2), 10);
+    const h = parseInt(s.time.slice(0, 2), 10);
     if (h >= 12 && h < 16) lunch.push(s);
     else if (h >= 19 && h < 24) dinner.push(s);
     else other.push(s);
@@ -91,24 +54,19 @@ export const groupSlotsByPeriod = (slots: string[]) => {
   return { lunch, dinner, other };
 };
 
-/** Find up to N nearest non-full alternatives around a target time. */
+/** Find up to N nearest bookable alternatives around a target time. */
 export const findAlternatives = (
   target: string,
-  slots: string[],
-  bookings: Map<string, number>,
-  capacity: number | null,
-  partySize: number,
+  slots: SlotInfo[],
   count = 3
 ): string[] => {
-  const toMinutes = (t: string) => parseInt(t.slice(0, 2), 10) * 60 + parseInt(t.slice(3, 5), 10);
+  const toMinutes = (t: string) =>
+    parseInt(t.slice(0, 2), 10) * 60 + parseInt(t.slice(3, 5), 10);
   const targetMin = toMinutes(target);
-  const ranked = slots
-    .filter((s) => s !== target)
-    .map((s) => ({ s, info: computeSlotInfo(s, bookings, capacity, partySize) }))
-    .filter((x) => x.info.status !== "full")
-    .map((x) => ({ ...x, dist: Math.abs(toMinutes(x.s) - targetMin) }))
+  return slots
+    .filter((s) => s.time !== target && s.status !== "full")
+    .map((s) => ({ s, dist: Math.abs(toMinutes(s.time) - targetMin) }))
     .sort((a, b) => a.dist - b.dist)
     .slice(0, count)
-    .map((x) => x.s);
-  return ranked;
+    .map((x) => x.s.time);
 };

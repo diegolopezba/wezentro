@@ -44,35 +44,22 @@ export const useCreateReservation = () => {
     mutationFn: async (params: CreateReservationParams) => {
       if (!user?.id) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
-        .from("reservations")
-        .insert({
-          business_id: params.business_id,
-          user_id: user.id,
-          reservation_date: params.reservation_date,
-          reservation_time: params.reservation_time,
-          party_size: params.party_size,
-          notes: params.notes || null,
-        })
-        .select()
-        .single();
+      const { data: reservationId, error } = await supabase.rpc("create_reservation", {
+        _business_id: params.business_id,
+        _date: params.reservation_date,
+        _time: params.reservation_time,
+        _party_size: params.party_size,
+        _notes: params.notes || null,
+        _guest_ids: params.tagged_user_ids ?? null,
+      });
 
       if (error) throw error;
-
-      // Insert tagged guests
-      if (params.tagged_user_ids && params.tagged_user_ids.length > 0) {
-        const guestRows = params.tagged_user_ids.map((uid) => ({
-          reservation_id: data.id,
-          user_id: uid,
-        }));
-        await supabase.from("reservation_guests").insert(guestRows);
-      }
-
-      return data;
+      return { id: reservationId as string };
     },
     onSuccess: (_, variables) => {
       haptic("success");
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
       queryClient.invalidateQueries({
         queryKey: ["available-capacity", variables.business_id],
       });
@@ -80,7 +67,7 @@ export const useCreateReservation = () => {
     },
     onError: (error: any) => {
       console.error("Error creating reservation:", error);
-      toast.error("Error al crear la reserva");
+      toast.error(error?.message || "Error al crear la reserva");
     },
   });
 };
@@ -134,40 +121,83 @@ export const useBusinessReservations = (businessId: string | undefined) => {
 };
 
 export const useCancelReservation = () => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
       reservationId,
-      cancelledBy,
     }: {
       reservationId: string;
-      cancelledBy: "user" | "business";
+      cancelledBy?: "user" | "business";
     }) => {
-      const { error } = await supabase
-        .from("reservations")
-        .update({
-          status: "cancelled",
-          cancelled_by: cancelledBy,
-        })
-        .eq("id", reservationId);
-
+      const { error } = await supabase.rpc("set_reservation_status", {
+        _reservation_id: reservationId,
+        _status: "cancelled",
+      });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["reservation-detail"] });
       queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
       toast.success("Reserva cancelada");
     },
-    onError: () => {
-      toast.error("Error al cancelar la reserva");
+    onError: (error: any) => {
+      toast.error(error?.message || "Error al cancelar la reserva");
+    },
+  });
+};
+
+export type ReservationStatus =
+  | "confirmed"
+  | "seated"
+  | "completed"
+  | "cancelled"
+  | "no_show";
+
+const STATUS_TOAST: Record<ReservationStatus, string> = {
+  confirmed: "Reserva reactivada",
+  seated: "Mesa marcada como sentada",
+  completed: "Reserva completada",
+  cancelled: "Reserva cancelada",
+  no_show: "Marcada como no-show",
+};
+
+/** Business-side lifecycle actions: seated / completed / no_show / cancelled. */
+export const useSetReservationStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      reservationId,
+      status,
+    }: {
+      reservationId: string;
+      status: ReservationStatus;
+    }) => {
+      const { error } = await supabase.rpc("set_reservation_status", {
+        _reservation_id: reservationId,
+        _status: status,
+      });
+      if (error) throw error;
+      return status;
+    },
+    onSuccess: (status) => {
+      haptic("success");
+      queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["reservation-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
+      toast.success(STATUS_TOAST[status]);
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Error al actualizar la reserva");
     },
   });
 };
 
 interface UpdateReservationParams {
   reservationId: string;
+  business_id: string;
   reservation_date: string;
   reservation_time: string;
   party_size: number;
@@ -175,34 +205,26 @@ interface UpdateReservationParams {
 }
 
 /**
- * Modify an existing reservation. Allowed only when the reservation
- * starts more than 2 hours in the future. Reminders are auto-refreshed
- * by a database trigger when date/time/status change.
+ * Modify an existing reservation through the validated booking function,
+ * which re-checks schedule, lead time, table availability and pacing.
  */
 export const useUpdateReservation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (params: UpdateReservationParams) => {
-      const newWhen = new Date(`${params.reservation_date}T${params.reservation_time}`);
-      if (newWhen.getTime() - Date.now() < 2 * 60 * 60 * 1000) {
-        throw new Error("Solo puedes modificar con más de 2 horas de anticipación");
-      }
-
-      const { data, error } = await supabase
-        .from("reservations")
-        .update({
-          reservation_date: params.reservation_date,
-          reservation_time: params.reservation_time,
-          party_size: params.party_size,
-          notes: params.notes ?? null,
-        })
-        .eq("id", params.reservationId)
-        .select()
-        .single();
+      const { data, error } = await supabase.rpc("create_reservation", {
+        _business_id: params.business_id,
+        _date: params.reservation_date,
+        _time: params.reservation_time,
+        _party_size: params.party_size,
+        _notes: params.notes ?? null,
+        _guest_ids: null,
+        _reservation_id: params.reservationId,
+      });
 
       if (error) throw error;
-      return data;
+      return { id: data as string };
     },
     onSuccess: () => {
       haptic("success");

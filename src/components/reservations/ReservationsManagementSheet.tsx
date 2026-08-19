@@ -3,8 +3,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Users, CalendarDays, Clock, MessageCircle, X, StickyNote } from "lucide-react";
-import { useBusinessReservations, useCancelReservation, useReservationGuests } from "@/hooks/useReservations";
+import { Loader2, Users, CalendarDays, Clock, MessageCircle, X, StickyNote, UserCheck, UserX, CheckCircle2 } from "lucide-react";
+import { useBusinessReservations, useCancelReservation, useReservationGuests, useSetReservationStatus } from "@/hooks/useReservations";
 import { useCreatePrivateChat } from "@/hooks/useChats";
 import { useNavigate } from "react-router-dom";
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
@@ -22,6 +22,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+const STATUS_LABEL: Record<string, string> = {
+  seated: "Sentada",
+  completed: "Completada",
+  cancelled: "Cancelada",
+  no_show: "No-show",
+};
+
 interface ReservationsManagementSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,6 +44,7 @@ export const ReservationsManagementSheet = ({
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
   const { data: reservations, isLoading } = useBusinessReservations(businessId);
   const cancelMutation = useCancelReservation();
+  const statusMutation = useSetReservationStatus();
   const createChatMutation = useCreatePrivateChat();
 
   const filteredReservations = filterDate
@@ -168,6 +176,66 @@ export const ReservationsManagementSheet = ({
                     </div>
 
                     <ReservationGuestAvatars reservationId={reservation.id} />
+
+                    {(reservation as any).status &&
+                      (reservation as any).status !== "confirmed" && (
+                        <span className="inline-block text-[11px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
+                          {STATUS_LABEL[(reservation as any).status as string] ??
+                            (reservation as any).status}
+                        </span>
+                      )}
+
+                    {/* Lifecycle actions */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        disabled={
+                          statusMutation.isPending ||
+                          (reservation as any).status === "seated"
+                        }
+                        onClick={() =>
+                          statusMutation.mutate({
+                            reservationId: reservation.id,
+                            status: "seated",
+                          })
+                        }
+                      >
+                        <UserCheck className="w-3.5 h-3.5 mr-1" />
+                        Sentada
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        disabled={statusMutation.isPending}
+                        onClick={() =>
+                          statusMutation.mutate({
+                            reservationId: reservation.id,
+                            status: "completed",
+                          })
+                        }
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                        Completar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-destructive border-destructive/30"
+                        disabled={statusMutation.isPending}
+                        onClick={() =>
+                          statusMutation.mutate({
+                            reservationId: reservation.id,
+                            status: "no_show",
+                          })
+                        }
+                      >
+                        <UserX className="w-3.5 h-3.5 mr-1" />
+                        No-show
+                      </Button>
+                    </div>
 
                     <div className="flex gap-2">
                       <Button
