@@ -90,30 +90,81 @@ Deno.serve(async (req) => {
       })
       .eq("id", session.id);
 
+    const quantity = Math.max(Number((session as any).quantity ?? 1) || 1, 1);
+    const assignees: (string | null)[] = Array.isArray((session as any).assignees)
+      ? ((session as any).assignees as (string | null)[])
+      : [];
+
     if (session.ticket_tier_id) {
-      const { data: incOk, error: incErr } = await supabase.rpc("increment_tier_sold", {
+      const { data: incOk, error: incErr } = await supabase.rpc("increment_tier_sold_by", {
         _tier_id: session.ticket_tier_id,
+        _qty: quantity,
       });
-      if (incErr) console.error("increment_tier_sold failed:", incErr);
-      else if (incOk === false) console.warn("tier sold out at confirmation", session.ticket_tier_id);
+      if (incErr) console.error("increment_tier_sold_by failed:", incErr);
+      else if (incOk === false) console.warn("tier oversold at confirmation", session.ticket_tier_id);
     }
 
-    const { data: glRow, error: glErr } = await supabase
-      .from("guestlist_entries")
-      .upsert(
-        {
-          event_id: session.event_id,
-          user_id: session.buyer_user_id,
-          status: "approved",
-          payment_status: "confirmed",
-          payment_confirmed_at: now,
-          ticket_tier_id: session.ticket_tier_id ?? null,
-        },
-        { onConflict: "event_id,user_id" },
-      )
-      .select("id")
-      .maybeSingle();
-    if (glErr) console.error("guestlist upsert failed:", glErr);
+    // Ticket 1 belongs to the buyer; the rest go to tagged users or stay unassigned
+    // (the buyer receives them by email and forwards them).
+    const owners: (string | null)[] = [session.buyer_user_id];
+    for (let i = 1; i < quantity; i++) owners.push(assignees[i - 1] ?? null);
+
+    const baseRow = {
+      event_id: session.event_id,
+      status: "approved",
+      payment_status: "confirmed",
+      payment_confirmed_at: now,
+      ticket_tier_id: session.ticket_tier_id ?? null,
+      purchased_by_user_id: session.buyer_user_id,
+      payment_session_id: session.id,
+    };
+
+    let buyerEntryId: string | null = null;
+    const seen = new Set<string>();
+
+    for (const ownerId of owners) {
+      if (ownerId && seen.has(ownerId)) {
+        // Never create two owned tickets for the same person; leave it unassigned instead.
+        const { error } = await supabase.from("guestlist_entries").insert({ ...baseRow, user_id: null });
+        if (error) console.error("ticket insert failed:", error);
+        continue;
+      }
+
+      if (ownerId) {
+        seen.add(ownerId);
+        const { data: existing } = await supabase
+          .from("guestlist_entries")
+          .select("id")
+          .eq("event_id", session.event_id)
+          .eq("user_id", ownerId)
+          .maybeSingle();
+
+        if (existing?.id) {
+          const { error } = await supabase
+            .from("guestlist_entries")
+            .update({
+              status: "approved",
+              payment_status: "confirmed",
+              payment_confirmed_at: now,
+              ticket_tier_id: session.ticket_tier_id ?? null,
+              purchased_by_user_id: session.buyer_user_id,
+              payment_session_id: session.id,
+            })
+            .eq("id", existing.id);
+          if (error) console.error("ticket update failed:", error);
+          if (ownerId === session.buyer_user_id) buyerEntryId = existing.id;
+          continue;
+        }
+      }
+
+      const { data: inserted, error } = await supabase
+        .from("guestlist_entries")
+        .insert({ ...baseRow, user_id: ownerId })
+        .select("id")
+        .maybeSingle();
+      if (error) console.error("ticket insert failed:", error);
+      if (ownerId && ownerId === session.buyer_user_id) buyerEntryId = inserted?.id ?? null;
+    }
 
     // Visual venue layout: turn the held area booking into a confirmed one.
     const { error: abErr } = await supabase
@@ -121,21 +172,48 @@ Deno.serve(async (req) => {
       .update({
         status: "confirmed",
         hold_expires_at: null,
-        guestlist_entry_id: glRow?.id ?? null,
+        guestlist_entry_id: buyerEntryId,
       })
       .eq("payment_session_id", session.id)
       .eq("status", "held");
     if (abErr) console.error("area booking confirm failed:", abErr);
 
+    const notifications = [
+      {
+        user_id: session.buyer_user_id,
+        type: "payment_confirmed",
+        title: "¡Pago Confirmado!",
+        body:
+          quantity > 1
+            ? `Tus ${quantity} entradas fueron confirmadas. Te las enviamos por correo.`
+            : "Tu entrada fue confirmada automáticamente. ¡Ya estás en la lista!",
+        entity_type: "event",
+        entity_id: session.event_id,
+      },
+      ...[...seen]
+        .filter((id) => id !== session.buyer_user_id)
+        .map((id) => ({
+          user_id: id,
+          type: "payment_confirmed",
+          title: "Tenés una entrada",
+          body: "Alguien compró una entrada para vos. Ya está en tus entradas.",
+          entity_type: "event",
+          entity_id: session.event_id,
+        })),
+    ];
+    await supabase.from("notifications").insert(notifications);
 
-    await supabase.from("notifications").insert({
-      user_id: session.buyer_user_id,
-      type: "payment_confirmed",
-      title: "¡Pago Confirmado!",
-      body: "Tu entrada fue confirmada automáticamente. ¡Ya estás en la lista!",
-      entity_type: "event",
-      entity_id: session.event_id,
-    });
+    // Email every ticket (buyer gets all of them, assignees get theirs).
+    try {
+      await fetch(`${SUPABASE_URL}/functions/v1/send-purchase-tickets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+        body: JSON.stringify({ paymentSessionId: session.id }),
+      });
+    } catch (e) {
+      console.error("send-purchase-tickets dispatch failed", e);
+    }
+
 
     return new Response("ok", { status: 200, headers: corsHeaders });
   } catch (err) {
