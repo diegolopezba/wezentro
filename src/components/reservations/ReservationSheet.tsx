@@ -44,13 +44,6 @@ interface ReservationSheetProps {
   };
 }
 
-// All possible slots 08:00 → 23:30 (30-min steps)
-const ALL_TIME_SLOTS = Array.from({ length: 32 }, (_, i) => {
-  const totalMinutes = 8 * 60 + i * 30;
-  const h = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
-  const m = (totalMinutes % 60).toString().padStart(2, "0");
-  return `${h}:${m}`;
-});
 
 function getDateChips(n = 21) {
   const today = startOfDay(new Date());
