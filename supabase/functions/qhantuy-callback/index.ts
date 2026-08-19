@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
 
     const { data: session, error: sessErr } = await supabase
       .from("payment_sessions")
-      .select("id, event_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id")
+      .select("id, event_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees")
       .eq("id", internalCode)
       .maybeSingle();
     if (sessErr || !session) {
