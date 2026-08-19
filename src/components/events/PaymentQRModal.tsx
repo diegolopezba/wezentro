@@ -190,7 +190,7 @@ export function PaymentQRModal({
       setErrorMsg(err?.message || "No se pudo generar el QR");
       setStep("error");
     }
-  }, [eventId, ticketTierId, eventAreaId, areaBookingId, startPolling, ensureFreshSession]);
+  }, [eventId, ticketTierId, eventAreaId, areaBookingId, startPolling, ensureFreshSession, canBuyMultiple, quantity, assignees]);
 
   const confirmFreeJoin = useCallback(async () => {
     if (!isActiveRef.current || !onJoinFree) return;
