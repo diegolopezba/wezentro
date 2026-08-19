@@ -12,6 +12,9 @@ import { ChevronLeft, ChevronDown, QrCode, CheckCircle, Camera, Loader2, Refresh
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { TicketAssigneeRow } from "./TicketAssigneeRow";
+import type { SearchUser } from "@/hooks/useSearchUsers";
+import { Minus, Plus } from "lucide-react";
 
 
 interface PaymentQRModalProps {
@@ -62,6 +65,11 @@ export function PaymentQRModal({
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [howOpen, setHowOpen] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [assignees, setAssignees] = useState<(SearchUser | null)[]>([]);
+  // Multi-ticket buying only applies to paid general/tier checkout, not venue areas.
+  const canBuyMultiple = !isFree && !eventAreaId;
+  const total = Number(price) * (canBuyMultiple ? quantity : 1);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isActiveRef = useRef(false);
 
@@ -149,6 +157,8 @@ export function PaymentQRModal({
           promoterId,
           eventAreaId: eventAreaId ?? null,
           areaBookingId: areaBookingId ?? null,
+          quantity: canBuyMultiple ? quantity : 1,
+          assignees: canBuyMultiple ? assignees.slice(0, quantity - 1).map((a) => a?.id ?? null) : [],
         },
       });
       if (error || !data || (data as any).error) {
@@ -180,7 +190,7 @@ export function PaymentQRModal({
       setErrorMsg(err?.message || "No se pudo generar el QR");
       setStep("error");
     }
-  }, [eventId, ticketTierId, eventAreaId, areaBookingId, startPolling, ensureFreshSession]);
+  }, [eventId, ticketTierId, eventAreaId, areaBookingId, startPolling, ensureFreshSession, canBuyMultiple, quantity, assignees]);
 
   const confirmFreeJoin = useCallback(async () => {
     if (!isActiveRef.current || !onJoinFree) return;
@@ -216,6 +226,8 @@ export function PaymentQRModal({
         setQrImageUrl(null);
         setPaymentSessionId(null);
         setErrorMsg(null);
+        setQuantity(1);
+        setAssignees([]);
       }, 300);
     }
     return () => {
@@ -286,8 +298,8 @@ export function PaymentQRModal({
                 </h2>
               </div>
 
-              {/* Ticket card */}
-              <div className="px-5">
+              {/* Ticket card + quantity */}
+              <div className="px-5 flex-1 min-h-0 overflow-y-auto pb-4">
                 <div className="rounded-2xl bg-card border border-border shadow-sm p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -298,14 +310,71 @@ export function PaymentQRModal({
                         {isInvite ? "Invitado especial" : isFree ? "Gratis" : `Bs. ${price}`}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <span className="inline-flex items-center justify-center min-w-8 h-8 px-3 rounded-full bg-secondary text-sm font-semibold text-foreground">
-                        {partySize && partySize > 1 ? partySize : 1}
-                      </span>
-                    </div>
+                    {canBuyMultiple ? (
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          aria-label="Quitar una entrada"
+                          disabled={quantity <= 1}
+                          onClick={() => {
+                            setQuantity((q) => Math.max(q - 1, 1));
+                            setAssignees((a) => a.slice(0, Math.max(quantity - 2, 0)));
+                          }}
+                          className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center active:opacity-70 disabled:opacity-40"
+                        >
+                          <Minus className="w-4 h-4 text-foreground" />
+                        </button>
+                        <span className="min-w-6 text-center text-base font-bold text-foreground">
+                          {quantity}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label="Agregar una entrada"
+                          disabled={quantity >= 10}
+                          onClick={() => setQuantity((q) => Math.min(q + 1, 10))}
+                          className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center active:opacity-70 disabled:opacity-40"
+                        >
+                          <Plus className="w-4 h-4 text-foreground" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-right">
+                        <span className="inline-flex items-center justify-center min-w-8 h-8 px-3 rounded-full bg-secondary text-sm font-semibold text-foreground">
+                          {partySize && partySize > 1 ? partySize : 1}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {canBuyMultiple && quantity > 1 && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground px-1">
+                      ¿Para quién son?
+                    </p>
+                    {Array.from({ length: quantity - 1 }).map((_, i) => (
+                      <TicketAssigneeRow
+                        key={i}
+                        index={i}
+                        value={assignees[i] ?? null}
+                        excludeIds={assignees.filter(Boolean).map((a) => a!.id)}
+                        onChange={(u) =>
+                          setAssignees((prev) => {
+                            const next = [...prev];
+                            while (next.length < quantity - 1) next.push(null);
+                            next[i] = u;
+                            return next;
+                          })
+                        }
+                      />
+                    ))}
+                    <p className="text-xs text-muted-foreground px-1 pt-1">
+                      Las entradas sin etiquetar te llegan por correo para que las reenvíes.
+                    </p>
+                  </div>
+                )}
               </div>
+
 
               {/* How it works (collapsible) */}
               <div className="px-5 mt-6">
@@ -368,7 +437,11 @@ export function PaymentQRModal({
                 <div className="flex items-end justify-between mb-3">
                   <div>
                     <p className="text-xs text-muted-foreground">
-                      {partySize && partySize > 1 ? `${partySize} personas` : "1 entrada seleccionada"}
+                      {canBuyMultiple && quantity > 1
+                        ? `${quantity} entradas seleccionadas`
+                        : partySize && partySize > 1
+                        ? `${partySize} personas`
+                        : "1 entrada seleccionada"}
                     </p>
                     <p className="text-2xl font-brand font-bold text-foreground">Total</p>
                   </div>
@@ -378,7 +451,7 @@ export function PaymentQRModal({
                       <span className="text-lg leading-none" role="img" aria-label="guiño">😉</span>
                     </p>
                   ) : (
-                    <p className="text-2xl font-brand font-bold text-foreground">Bs. {price}</p>
+                    <p className="text-2xl font-brand font-bold text-foreground">Bs. {total}</p>
                   )}
                 </div>
                 <Button

@@ -21,7 +21,7 @@ const YouAreGoing = () => {
   const { id } = useParams<{ id: string }>();
   const { user, profile } = useAuth();
   const { data: event, isLoading } = useEvent(id);
-  const [showQR, setShowQR] = useState(false);
+  const [qrToken, setQrToken] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
 
   // Get the user's guestlist entry with payment status
@@ -37,6 +37,24 @@ const YouAreGoing = () => {
         .maybeSingle();
       if (error) throw error;
       return data;
+    },
+    enabled: !!id && !!user,
+  });
+
+  // Extra tickets this user paid for that are not assigned to a zentro account.
+  const { data: extraTickets } = useQuery({
+    queryKey: ["purchased-extra-tickets", id, user?.id],
+    queryFn: async () => {
+      if (!id || !user) return [];
+      const { data, error } = await supabase
+        .from("guestlist_entries")
+        .select("id, qr_code_token, payment_status")
+        .eq("event_id", id)
+        .eq("purchased_by_user_id", user.id)
+        .is("user_id", null)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!id && !!user,
   });
@@ -171,7 +189,7 @@ const YouAreGoing = () => {
                 </span>
               </div>
               <Button
-                onClick={() => setShowQR(true)}
+                onClick={() => setQrToken(guestlistEntry?.qr_code_token ?? null)}
                 size="lg"
                 className="rounded-full font-semibold gap-2 bg-accent-red text-white active:scale-95"
               >
@@ -196,22 +214,48 @@ const YouAreGoing = () => {
           )}
         </div>
 
+        {/* Extra tickets bought for other people */}
+        {!!extraTickets?.length && (
+          <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-4 py-3 space-y-2">
+            <p className="text-xs uppercase tracking-widest text-[#141414]/60">
+              Entradas extra que compraste
+            </p>
+            {extraTickets.map((t: any, i: number) => (
+              <div key={t.id} className="flex items-center justify-between gap-3">
+                <span className="text-sm font-semibold">Entrada invitado {i + 1}</span>
+                <Button
+                  onClick={() => setQrToken(t.qr_code_token)}
+                  size="sm"
+                  className="rounded-full font-semibold gap-1.5 bg-accent-red text-white active:scale-95"
+                >
+                  <QrCode className="w-4 h-4" />
+                  Ver QR
+                </Button>
+              </div>
+            ))}
+            <p className="text-xs text-[#141414]/60">
+              También te las enviamos por correo para que las reenvíes.
+            </p>
+          </div>
+        )}
+
+
       </m.div>
 
       {/* Info bottom sheet */}
       <TicketInfoSheet open={showInfo} onOpenChange={setShowInfo} />
 
       {/* QR Code Dialog */}
-      <Dialog open={showQR} onOpenChange={setShowQR}>
+      <Dialog open={!!qrToken} onOpenChange={(o) => !o && setQrToken(null)}>
         <DialogContent className="bg-background text-foreground max-w-xs rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-center">Tu QR de Entrada</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center py-6">
-            {guestlistEntry?.qr_code_token ? (
+            {qrToken ? (
               <div className="bg-white p-5 rounded-2xl shadow-lg">
                 <QRCodeSVG
-                  value={guestlistEntry.qr_code_token}
+                  value={qrToken}
                   size={200}
                   level="H" includeMargin={false}
                 />

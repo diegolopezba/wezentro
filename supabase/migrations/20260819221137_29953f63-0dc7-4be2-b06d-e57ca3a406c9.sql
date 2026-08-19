@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.increment_tier_sold_by(uuid, integer) FROM anon, authenticated, public;

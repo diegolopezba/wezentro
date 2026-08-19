@@ -25,9 +25,25 @@ Deno.serve(async (req) => {
     }
     const buyerId = userData.user.id;
 
-    const { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId } = await req.json();
-    console.log("[qr] request", { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId, buyerId });
+    const body = await req.json();
+    const { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId } = body;
+    const MAX_QTY = 10;
+    const rawQty = Number(body.quantity ?? 1);
+    const quantity = Number.isFinite(rawQty) ? Math.floor(rawQty) : 1;
+    // assignees[i] = user id for ticket i+2 (ticket 1 always belongs to the buyer), null when unassigned
+    const rawAssignees: unknown = body.assignees;
+    const assignees: (string | null)[] = Array.isArray(rawAssignees)
+      ? rawAssignees.map((a) => (typeof a === "string" && /^[0-9a-f-]{36}$/i.test(a) ? a : null))
+      : [];
+    console.log("[qr] request", { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId, buyerId, quantity });
     if (!eventId) return json({ error: "Falta el evento", code: "no_event_id" }, 400);
+    if (quantity < 1 || quantity > MAX_QTY) {
+      return json({ error: `Podés comprar entre 1 y ${MAX_QTY} entradas`, code: "bad_quantity" }, 400);
+    }
+    if (quantity > 1 && eventAreaId) {
+      return json({ error: "Las áreas se reservan de a una", code: "area_quantity" }, 400);
+    }
+
 
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
@@ -57,10 +73,18 @@ Deno.serve(async (req) => {
         console.error("[qr] tier not found/inactive", { ticketTierId, eventId, err: tErr?.message });
         return json({ error: "Esta entrada ya no está disponible", code: "tier_not_found" }, 404);
       }
-      if (t.capacity != null && t.sold_count >= t.capacity) {
-        console.error("[qr] tier sold out", ticketTierId);
-        return json({ error: "Entradas agotadas", code: "tier_sold_out" }, 409);
+      if (t.capacity != null && t.sold_count + quantity > t.capacity) {
+        const left = Math.max(Number(t.capacity) - Number(t.sold_count), 0);
+        console.error("[qr] tier sold out / not enough", { ticketTierId, left, quantity });
+        return json(
+          {
+            error: left === 0 ? "Entradas agotadas" : `Solo quedan ${left} entradas de este tipo`,
+            code: left === 0 ? "tier_sold_out" : "tier_insufficient",
+          },
+          409,
+        );
       }
+
       tierId = t.id;
       effectivePrice = Number(t.price);
       effectiveTitle = `${event.title || "Ticket"} — ${t.name}`;
@@ -111,6 +135,29 @@ Deno.serve(async (req) => {
       return json({ error: "Este evento no tiene un precio configurado", code: "no_price" }, 400);
     }
 
+    // Validate assignees: real profiles, no duplicates, never the buyer, at most quantity-1.
+    const cleanAssignees: (string | null)[] = new Array(Math.max(quantity - 1, 0)).fill(null);
+    const wanted = assignees.slice(0, Math.max(quantity - 1, 0)).filter((a): a is string => !!a);
+    if (wanted.length) {
+      const unique = [...new Set(wanted)].filter((id) => id !== buyerId);
+      const { data: validProfiles } = await supabase
+        .from("profiles")
+        .select("id")
+        .in("id", unique);
+      const validIds = new Set((validProfiles ?? []).map((p: any) => p.id));
+      const used = new Set<string>();
+      for (let i = 0; i < cleanAssignees.length; i++) {
+        const candidate = assignees[i];
+        if (candidate && candidate !== buyerId && validIds.has(candidate) && !used.has(candidate)) {
+          cleanAssignees[i] = candidate;
+          used.add(candidate);
+        }
+      }
+    }
+
+    const totalAmount = Number((effectivePrice * quantity).toFixed(2));
+
+
     // Load beneficiary for the event creator
     const { data: benef } = await supabase
       .from("qhantuy_beneficiaries")
@@ -152,7 +199,7 @@ Deno.serve(async (req) => {
         event_id: eventId,
         buyer_user_id: buyerId,
         business_user_id: event.creator_id,
-        amount: effectivePrice,
+        amount: totalAmount,
         status: "pending",
         ticket_tier_id: tierId,
         promoter_id: safePromoterId,
@@ -160,6 +207,9 @@ Deno.serve(async (req) => {
         beneficiary_code: benef.beneficiary_code,
         event_area_id: areaId,
         party_size: bookingPartySize,
+        quantity,
+        assignees: cleanAssignees,
+
       })
       .select("id")
       .single();
@@ -192,14 +242,15 @@ Deno.serve(async (req) => {
         customer_email: buyerProfile?.email ?? userData.user.email ?? undefined,
         customer_first_name: buyerProfile?.first_name ?? undefined,
         customer_last_name: buyerProfile?.last_name ?? undefined,
-        detail: effectiveTitle.substring(0, 120),
+        detail: `${effectiveTitle}${quantity > 1 ? ` x${quantity}` : ""}`.substring(0, 120),
         items: [
           {
             name: effectiveTitle.substring(0, 100),
-            quantity: 1,
+            quantity,
             price: effectivePrice,
           },
         ],
+
       }),
     });
 
@@ -236,9 +287,12 @@ Deno.serve(async (req) => {
     return json({
       paymentSessionId: session.id,
       qrImageUrl: String(imageData),
-      amount: effectivePrice,
+      amount: totalAmount,
+      unitPrice: effectivePrice,
+      quantity,
       eventTitle: effectiveTitle,
       ticketTierId: tierId,
+
     });
   } catch (err) {
     console.error("generate-qhantuy-qr error:", err);

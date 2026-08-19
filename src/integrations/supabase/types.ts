@@ -1047,49 +1047,61 @@ export type Database = {
           attended: boolean | null
           checked_in_at: string | null
           event_id: string
+          guest_email: string | null
+          guest_name: string | null
           id: string
           is_special_guest: boolean
           joined_at: string | null
           payment_confirmed_at: string | null
+          payment_session_id: string | null
           payment_status: string | null
           promoter_id: string | null
+          purchased_by_user_id: string | null
           qr_code_token: string | null
           special_guest_label: string | null
           status: string | null
           ticket_tier_id: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           attended?: boolean | null
           checked_in_at?: string | null
           event_id: string
+          guest_email?: string | null
+          guest_name?: string | null
           id?: string
           is_special_guest?: boolean
           joined_at?: string | null
           payment_confirmed_at?: string | null
+          payment_session_id?: string | null
           payment_status?: string | null
           promoter_id?: string | null
+          purchased_by_user_id?: string | null
           qr_code_token?: string | null
           special_guest_label?: string | null
           status?: string | null
           ticket_tier_id?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           attended?: boolean | null
           checked_in_at?: string | null
           event_id?: string
+          guest_email?: string | null
+          guest_name?: string | null
           id?: string
           is_special_guest?: boolean
           joined_at?: string | null
           payment_confirmed_at?: string | null
+          payment_session_id?: string | null
           payment_status?: string | null
           promoter_id?: string | null
+          purchased_by_user_id?: string | null
           qr_code_token?: string | null
           special_guest_label?: string | null
           status?: string | null
           ticket_tier_id?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1100,10 +1112,31 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "guestlist_entries_payment_session_id_fkey"
+            columns: ["payment_session_id"]
+            isOneToOne: false
+            referencedRelation: "payment_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "guestlist_entries_promoter_id_fkey"
             columns: ["promoter_id"]
             isOneToOne: false
             referencedRelation: "event_promoters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guestlist_entries_purchased_by_user_id_fkey"
+            columns: ["purchased_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guestlist_entries_purchased_by_user_id_fkey"
+            columns: ["purchased_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
           {
@@ -1697,6 +1730,7 @@ export type Database = {
       payment_sessions: {
         Row: {
           amount: number
+          assignees: Json | null
           beneficiary_code: string | null
           business_user_id: string
           buyer_user_id: string
@@ -1710,11 +1744,13 @@ export type Database = {
           provider: string
           qhantuy_raw_callback: Json | null
           qhantuy_transaction_id: number | null
+          quantity: number
           status: string
           ticket_tier_id: string | null
         }
         Insert: {
           amount: number
+          assignees?: Json | null
           beneficiary_code?: string | null
           business_user_id: string
           buyer_user_id: string
@@ -1728,11 +1764,13 @@ export type Database = {
           provider?: string
           qhantuy_raw_callback?: Json | null
           qhantuy_transaction_id?: number | null
+          quantity?: number
           status?: string
           ticket_tier_id?: string | null
         }
         Update: {
           amount?: number
+          assignees?: Json | null
           beneficiary_code?: string | null
           business_user_id?: string
           buyer_user_id?: string
@@ -1746,6 +1784,7 @@ export type Database = {
           provider?: string
           qhantuy_raw_callback?: Json | null
           qhantuy_transaction_id?: number | null
+          quantity?: number
           status?: string
           ticket_tier_id?: string | null
         }
@@ -4459,6 +4498,10 @@ export type Database = {
         Returns: undefined
       }
       increment_tier_sold: { Args: { _tier_id: string }; Returns: boolean }
+      increment_tier_sold_by: {
+        Args: { _qty: number; _tier_id: string }
+        Returns: boolean
+      }
       is_blocked: {
         Args: { _target: string; _viewer: string }
         Returns: boolean
