@@ -121,43 +121,18 @@ export const ReservationSheet = ({
 
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined;
 
-  // Build available time slots: respect business window + filter past times when date is today
-  const TIME_SLOTS = useMemo(() => {
-    const start = reservationStartTime?.slice(0, 5);
-    const end = reservationEndTime?.slice(0, 5);
-
-    // If selected date is today, drop any slot in the past (with a small 15-min buffer
-    // so users don't pick a time they can't realistically arrive for).
-    let minTime: string | null = null;
-    if (selectedDate) {
-      const today = new Date();
-      const isToday =
-        selectedDate.getFullYear() === today.getFullYear() &&
-        selectedDate.getMonth() === today.getMonth() &&
-        selectedDate.getDate() === today.getDate();
-      if (isToday) {
-        const buffered = new Date(today.getTime() + 15 * 60 * 1000);
-        const h = buffered.getHours().toString().padStart(2, "0");
-        const m = buffered.getMinutes().toString().padStart(2, "0");
-        minTime = `${h}:${m}`;
-      }
-    }
-
-    return ALL_TIME_SLOTS.filter((slot) => {
-      if (start && end && !(slot >= start && slot < end)) return false;
-      if (minTime && slot <= minTime) return false;
-      return true;
-    });
-  }, [reservationStartTime, reservationEndTime, selectedDate]);
-
-  // Live availability for the picked date
-  const { data: availability } = useSlotAvailability(
+  // Server-side availability for the picked date & party size
+  const { data: slots = [], isLoading: loadingSlots } = useReservationAvailability(
     businessId,
     dateStr,
-    editingReservation?.id
+    partySize
   );
-  const bookings = availability?.bookings ?? new Map<string, number>();
-  const capacity = availability?.capacity ?? null;
+
+  const slotMap = useMemo(() => {
+    const map = new Map<string, SlotInfo>();
+    slots.forEach((s) => map.set(s.time, s));
+    return map;
+  }, [slots]);
 
   const { data: searchResults } = useSearchUsers(guestSearch);
   const createMutation = useCreateReservation();
@@ -166,11 +141,10 @@ export const ReservationSheet = ({
   const currentStepIndex = STEPS.indexOf(currentStep);
 
   // Selected slot info
-  const selectedInfo = selectedTime
-    ? computeSlotInfo(selectedTime, bookings, capacity, partySize)
-    : null;
+  const selectedInfo = selectedTime ? slotMap.get(selectedTime) ?? null : null;
   const alternatives =
-    selectedInfo?.status === "full" ? findAlternatives(selectedTime, TIME_SLOTS, bookings, capacity, partySize, 3)
+    selectedTime && (!selectedInfo || selectedInfo.status === "full")
+      ? findAlternatives(selectedTime, slots, 3)
       : [];
 
   const canProceedFrom = (step: Step) => {
