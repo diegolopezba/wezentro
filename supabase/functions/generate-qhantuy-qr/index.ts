@@ -287,9 +287,12 @@ Deno.serve(async (req) => {
     return json({
       paymentSessionId: session.id,
       qrImageUrl: String(imageData),
-      amount: effectivePrice,
+      amount: totalAmount,
+      unitPrice: effectivePrice,
+      quantity,
       eventTitle: effectiveTitle,
       ticketTierId: tierId,
+
     });
   } catch (err) {
     console.error("generate-qhantuy-qr error:", err);
