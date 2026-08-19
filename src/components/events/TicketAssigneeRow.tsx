@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Search, X, UserPlus } from "lucide-react";
 import { useSearchUsers, type SearchUser } from "@/hooks/useSearchUsers";
-import { getDefaultAvatar } from "@/lib/defaultAvatar";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 interface TicketAssigneeRowProps {
   index: number;
@@ -22,7 +22,7 @@ export function TicketAssigneeRow({ index, value, excludeIds, onChange }: Ticket
     return (
       <div className="flex items-center gap-3 rounded-2xl bg-card border border-border px-3 py-2.5">
         <img
-          src={value.avatar_url || getDefaultAvatar(value.id)}
+          src={value.avatar_url || DEFAULT_AVATAR}
           alt=""
           className="w-8 h-8 rounded-full object-cover"
         />
@@ -95,7 +95,7 @@ export function TicketAssigneeRow({ index, value, excludeIds, onChange }: Ticket
               className="w-full flex items-center gap-3 px-1 py-2 rounded-xl active:bg-secondary text-left"
             >
               <img
-                src={u.avatar_url || getDefaultAvatar(u.id)}
+                src={u.avatar_url || DEFAULT_AVATAR}
                 alt=""
                 className="w-7 h-7 rounded-full object-cover"
               />
