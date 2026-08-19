@@ -226,6 +226,8 @@ export function PaymentQRModal({
         setQrImageUrl(null);
         setPaymentSessionId(null);
         setErrorMsg(null);
+        setQuantity(1);
+        setAssignees([]);
       }, 300);
     }
     return () => {
