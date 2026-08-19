@@ -44,35 +44,22 @@ export const useCreateReservation = () => {
     mutationFn: async (params: CreateReservationParams) => {
       if (!user?.id) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
-        .from("reservations")
-        .insert({
-          business_id: params.business_id,
-          user_id: user.id,
-          reservation_date: params.reservation_date,
-          reservation_time: params.reservation_time,
-          party_size: params.party_size,
-          notes: params.notes || null,
-        })
-        .select()
-        .single();
+      const { data: reservationId, error } = await supabase.rpc("create_reservation", {
+        _business_id: params.business_id,
+        _date: params.reservation_date,
+        _time: params.reservation_time,
+        _party_size: params.party_size,
+        _notes: params.notes || null,
+        _guest_ids: params.tagged_user_ids ?? null,
+      });
 
       if (error) throw error;
-
-      // Insert tagged guests
-      if (params.tagged_user_ids && params.tagged_user_ids.length > 0) {
-        const guestRows = params.tagged_user_ids.map((uid) => ({
-          reservation_id: data.id,
-          user_id: uid,
-        }));
-        await supabase.from("reservation_guests").insert(guestRows);
-      }
-
-      return data;
+      return { id: reservationId as string };
     },
     onSuccess: (_, variables) => {
       haptic("success");
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
       queryClient.invalidateQueries({
         queryKey: ["available-capacity", variables.business_id],
       });
@@ -80,7 +67,7 @@ export const useCreateReservation = () => {
     },
     onError: (error: any) => {
       console.error("Error creating reservation:", error);
-      toast.error("Error al crear la reserva");
+      toast.error(error?.message || "Error al crear la reserva");
     },
   });
 };
