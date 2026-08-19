@@ -217,17 +217,17 @@ export const ReservationSheet = ({
   const isOverCapacity = selectedInfo?.status === "full";
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const grouped = groupSlotsByPeriod(TIME_SLOTS);
-  const renderTimeSection = (label: string, slots: string[]) => {
-    if (slots.length === 0) return null;
+  const grouped = groupSlotsByPeriod(slots);
+  const renderTimeSection = (label: string, sectionSlots: SlotInfo[]) => {
+    if (sectionSlots.length === 0) return null;
     return (
       <div className="space-y-2">
         <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
           {label}
         </p>
         <div className="grid grid-cols-4 gap-2">
-          {slots.map((time) => {
-            const info = computeSlotInfo(time, bookings, capacity, partySize);
+          {sectionSlots.map((info) => {
+            const time = info.time;
             const selected = selectedTime === time;
             return (
               <button
