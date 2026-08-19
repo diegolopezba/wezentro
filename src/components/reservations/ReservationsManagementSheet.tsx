@@ -44,6 +44,7 @@ export const ReservationsManagementSheet = ({
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
   const { data: reservations, isLoading } = useBusinessReservations(businessId);
   const cancelMutation = useCancelReservation();
+  const statusMutation = useSetReservationStatus();
   const createChatMutation = useCreatePrivateChat();
 
   const filteredReservations = filterDate
