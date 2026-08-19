@@ -73,10 +73,18 @@ Deno.serve(async (req) => {
         console.error("[qr] tier not found/inactive", { ticketTierId, eventId, err: tErr?.message });
         return json({ error: "Esta entrada ya no está disponible", code: "tier_not_found" }, 404);
       }
-      if (t.capacity != null && t.sold_count >= t.capacity) {
-        console.error("[qr] tier sold out", ticketTierId);
-        return json({ error: "Entradas agotadas", code: "tier_sold_out" }, 409);
+      if (t.capacity != null && t.sold_count + quantity > t.capacity) {
+        const left = Math.max(Number(t.capacity) - Number(t.sold_count), 0);
+        console.error("[qr] tier sold out / not enough", { ticketTierId, left, quantity });
+        return json(
+          {
+            error: left === 0 ? "Entradas agotadas" : `Solo quedan ${left} entradas de este tipo`,
+            code: left === 0 ? "tier_sold_out" : "tier_insufficient",
+          },
+          409,
+        );
       }
+
       tierId = t.id;
       effectivePrice = Number(t.price);
       effectiveTitle = `${event.title || "Ticket"} — ${t.name}`;
