@@ -174,6 +174,7 @@ export const ReservationSheet = ({
       updateMutation.mutate(
         {
           reservationId: editingReservation.id,
+          business_id: businessId,
           reservation_date: format(selectedDate, "yyyy-MM-dd"),
           reservation_time: `${selectedTime}:00`,
           party_size: partySize,
