@@ -21,7 +21,7 @@ const YouAreGoing = () => {
   const { id } = useParams<{ id: string }>();
   const { user, profile } = useAuth();
   const { data: event, isLoading } = useEvent(id);
-  const [showQR, setShowQR] = useState(false);
+  const [qrToken, setQrToken] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
 
   // Get the user's guestlist entry with payment status
