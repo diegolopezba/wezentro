@@ -353,6 +353,19 @@ export const ReservationSheet = ({
                   )}
                 </div>
 
+                {loadingSlots && (
+                  <div className="flex justify-center py-6">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+
+                {!loadingSlots && slots.length === 0 && (
+                  <div className="text-center text-sm text-muted-foreground py-6">
+                    No hay horarios disponibles para esta fecha con {partySize}{" "}
+                    {partySize === 1 ? "persona" : "personas"}. Prueba otro día.
+                  </div>
+                )}
+
                 {renderTimeSection("Almuerzo", grouped.lunch)}
                 {renderTimeSection("Cena", grouped.dinner)}
                 {renderTimeSection("Otros", grouped.other)}
