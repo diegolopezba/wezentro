@@ -219,3 +219,64 @@ export const tableLimitLabel = (tier: TierKey): string => {
   const next = tier === "basico" ? "Profesional" : "Elite";
   return `Tu plan ${SUBSCRIPTION_TIERS[tier].name} permite hasta ${max} mesas. Pasá a ${next} para agregar más.`;
 };
+
+/** Price anchoring: "Bs. 250/mes · unos Bs. 8 por día". */
+export const dailyPriceLabel = (tier: TierKey): string => {
+  const price = SUBSCRIPTION_TIERS[tier].price_bob;
+  if (price <= 0) return "";
+  return `unos Bs. ${Math.round(price / 30)} por día`;
+};
+
+/** Rows of the collapsible comparison table on the Planes screen. */
+export const TIER_COMPARISON: readonly {
+  label: string;
+  values: Record<TierKey, string>;
+}[] = [
+  {
+    label: "Mesas configurables",
+    values: { basico: "Hasta 9", profesional: "Hasta 20", elite: "Ilimitadas" },
+  },
+  {
+    label: "Turnos por día",
+    values: { basico: "1", profesional: "Varios", elite: "Varios" },
+  },
+  {
+    label: "Fechas bloqueadas",
+    values: { basico: "—", profesional: "Sí", elite: "Sí" },
+  },
+  {
+    label: "Ritmo de llegadas",
+    values: { basico: "—", profesional: "Sí", elite: "Sí" },
+  },
+  {
+    label: "Unir mesas",
+    values: { basico: "—", profesional: "Sí", elite: "Sí" },
+  },
+  {
+    label: "Analíticas de reservas",
+    values: { basico: "Conteos", profesional: "Completas", elite: "Completas" },
+  },
+  {
+    label: "Prioridad en Discover",
+    values: { basico: "—", profesional: "Sí", elite: "Sí" },
+  },
+];
+
+export const PLAN_FAQ: readonly { q: string; a: string }[] = [
+  {
+    q: "¿Cómo pago el plan?",
+    a: "Por ahora la activación es manual: nos escribís, coordinamos el pago y te dejamos el plan activo el mismo día.",
+  },
+  {
+    q: "¿Me cobran comisión por reserva?",
+    a: "No. La mensualidad es lo único que pagás por las reservas; no cobramos por reserva recibida.",
+  },
+  {
+    q: "¿Puedo cambiar de plan?",
+    a: "Sí, subís o bajás de plan cuando quieras. No hay permanencia ni penalidad.",
+  },
+  {
+    q: "¿Qué pasa con mis reservas si cancelo?",
+    a: "Tus reservas ya confirmadas siguen visibles. Se pausa la posibilidad de recibir nuevas reservas hasta que reactives el plan.",
+  },
+];

@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { m } from "framer-motion";
-import { User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, ChevronLeft, Gift, Briefcase, Ban, BarChart3, Wallet } from "lucide-react";
+import { Store, X, User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, ChevronLeft, Gift, Briefcase, Ban, BarChart3, Wallet } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +26,14 @@ const Settings = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { isBusiness, hasPayouts } = useDashboardAccess();
+  const [businessPromoDismissed, setBusinessPromoDismissed] = useState(
+    () => localStorage.getItem("business-promo-dismissed") === "1",
+  );
+
+  const dismissBusinessPromo = () => {
+    localStorage.setItem("business-promo-dismissed", "1");
+    setBusinessPromoDismissed(true);
+  };
 
   const businessItems: SettingsItem[] = [
     { icon: Briefcase, label: "Business", path: "/settings/business", highlight: true },
@@ -96,6 +105,41 @@ const Settings = () => {
 
 
       <div className="px-4 py-2 space-y-6 pb-8">
+        {!isBusiness && !businessPromoDismissed && (
+          <m.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative rounded-2xl border border-border bg-card p-4"
+          >
+            <button
+              onClick={dismissBusinessPromo}
+              className="absolute right-3 top-3 text-muted-foreground active:opacity-60"
+              aria-label="Descartar"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="flex items-start gap-3 pr-6">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary">
+                <Store className="h-4 w-4 text-foreground" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-brand text-base font-medium text-foreground">
+                  ¿Tenés un local?
+                </p>
+                <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
+                  Recibí reservas, vendé entradas y mostrá tu menú desde tu perfil.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate("/settings/business", { state: { intro: true } })}
+              className="mt-3 w-full rounded-full bg-foreground py-2.5 text-sm font-medium text-background active:opacity-80"
+            >
+              Conocer cuenta Business
+            </button>
+          </m.div>
+        )}
+
         {sections.map((section) => (
           <div key={section.title}>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">
