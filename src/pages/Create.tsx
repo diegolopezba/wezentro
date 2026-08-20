@@ -149,7 +149,7 @@ const Create = () => {
   };
   const gatePaidAction = () => {
     if (!isBusiness) setShowBusinessGate(true);
-    else if (!hasBeneficiary) setShowBeneficiaryGate(true);
+    else if (!hasBeneficiary) openBeneficiaryGate("tickets");
   };
 
   const handleTypeChange = (type: ContentType) => {
