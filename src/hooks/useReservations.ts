@@ -36,6 +36,18 @@ interface CreateReservationParams {
   tagged_user_ids?: string[];
 }
 
+/** Fire-and-forget notification emails; never block or fail the booking flow. */
+const sendReservationEmails = (
+  reservationId: string,
+  kind: "created" | "cancelled",
+) => {
+  supabase.functions
+    .invoke("send-reservation-emails", { body: { reservationId, kind } })
+    .catch((e) => console.error("send-reservation-emails failed", e));
+};
+
+
+
 export const useCreateReservation = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
