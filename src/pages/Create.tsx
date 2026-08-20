@@ -145,6 +145,7 @@ const Create = () => {
         ...prev,
         date: "",
         time: "",
+        endTime: "",
         price: "",
         capacity: "",
             showReservationButton: false
