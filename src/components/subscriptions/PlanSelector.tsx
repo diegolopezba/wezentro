@@ -47,6 +47,8 @@ interface PlanSelectorProps {
   /** Rendered on the right of the title (close / skip). */
   onDismiss?: () => void;
   dismissLabel?: string;
+  /** Small line under the title (e.g. current plan status). */
+  subtitle?: string;
   /** Secondary link under the CTA (e.g. "Ver todos los detalles"). */
   footerSlot?: React.ReactNode;
 }
@@ -62,6 +64,7 @@ export const PlanSelector = ({
   variant = "page",
   onDismiss,
   dismissLabel = "Omitir",
+  subtitle,
   footerSlot,
 }: PlanSelectorProps) => {
   const [selected, setSelected] = useState<TierKey>(initialTier ?? currentTier);
@@ -102,6 +105,10 @@ export const PlanSelector = ({
           </button>
         )}
       </div>
+
+      {subtitle && (
+        <p className="px-1 pt-1 text-xs text-muted-foreground">{subtitle}</p>
+      )}
 
       {/* Tier pills */}
       <div className="-mx-4 mt-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

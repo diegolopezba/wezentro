@@ -25,19 +25,16 @@ const BusinessPlans = () => {
           <Button variant="ghost" size="icon" onClick={goBack} aria-label="Volver">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="font-brand text-lg font-bold text-foreground">Planes</h1>
         </div>
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pt-3">
-        <p className="text-xs text-muted-foreground">
-          Tu plan actual: {SUBSCRIPTION_TIERS[currentTier].name}
-          {status !== "active" ? ` · ${status}` : ""}
-        </p>
-
         <PlanSelector
           variant="page"
           currentTier={currentTier}
+          subtitle={`Tu plan actual: ${SUBSCRIPTION_TIERS[currentTier].name}${
+            status !== "active" ? ` · ${status}` : ""
+          }`}
           footerSlot={
             <div className="space-y-2">
               <p className="text-center text-[11px] text-muted-foreground">
