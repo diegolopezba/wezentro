@@ -6,10 +6,13 @@ import { Landmark } from "lucide-react";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Adapts the copy to the flow that triggered the gate. */
+  context?: "tickets" | "experience";
 }
 
-export function BeneficiaryRequiredSheet({ open, onOpenChange }: Props) {
+export function BeneficiaryRequiredSheet({ open, onOpenChange, context = "tickets" }: Props) {
   const navigate = useNavigate();
+  const isExperience = context === "experience";
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -26,10 +29,11 @@ export function BeneficiaryRequiredSheet({ open, onOpenChange }: Props) {
         </SheetHeader>
 
         <p className="text-sm text-muted-foreground text-center mt-3 leading-relaxed">
-          Para vender entradas necesitamos los datos de tu cuenta bancaria.
-          Los pagos se procesan por QR y recibirás el dinero al día siguiente
-          automáticamente en tu cuenta.
+          {isExperience
+            ? "Para cobrar reservas de experiencias necesitamos los datos de tu cuenta bancaria. Los pagos se procesan por QR y recibirás el dinero al día siguiente automáticamente en tu cuenta."
+            : "Para vender entradas necesitamos los datos de tu cuenta bancaria. Los pagos se procesan por QR y recibirás el dinero al día siguiente automáticamente en tu cuenta."}
         </p>
+
 
         <Button
           type="button"

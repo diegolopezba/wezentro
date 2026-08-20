@@ -142,9 +142,14 @@ const Create = () => {
   const linkedExperience = myExperiences.find((e) => e.id === experienceId) ?? null;
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
+  const [beneficiaryGateContext, setBeneficiaryGateContext] = useState<"tickets" | "experience">("tickets");
+  const openBeneficiaryGate = (ctx: "tickets" | "experience" = "tickets") => {
+    setBeneficiaryGateContext(ctx);
+    setShowBeneficiaryGate(true);
+  };
   const gatePaidAction = () => {
     if (!isBusiness) setShowBusinessGate(true);
-    else if (!hasBeneficiary) setShowBeneficiaryGate(true);
+    else if (!hasBeneficiary) openBeneficiaryGate("tickets");
   };
 
   const handleTypeChange = (type: ContentType) => {
@@ -336,9 +341,13 @@ const Create = () => {
     // Gate paid tickets: require Business + Qhantuy beneficiary
     const hasPaidSingle = !isPost && formData.price && parseFloat(formData.price) > 0;
     const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
-    if (!experienceId && (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers"))) {
+    if (experienceId) {
+      // Linked experiences are booked and paid through QR too: payouts are required.
       if (!isBusiness) { setShowBusinessGate(true); return; }
-      if (!hasBeneficiary) { setShowBeneficiaryGate(true); return; }
+      if (!hasBeneficiary) { openBeneficiaryGate("experience"); return; }
+    } else if (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers")) {
+      if (!isBusiness) { setShowBusinessGate(true); return; }
+      if (!hasBeneficiary) { openBeneficiaryGate("tickets"); return; }
     }
 
     // Validate ticket tiers (events only, business + tiers mode)
@@ -799,18 +808,28 @@ const Create = () => {
                     <button
                       key={exp.id}
                       type="button"
-                      onClick={() => setExperienceId(exp.id)}
+                      onClick={() => {
+                        if (!hasBeneficiary) { openBeneficiaryGate("experience"); return; }
+                        setExperienceId(exp.id);
+                      }}
                       className={cn(
                         "px-3 py-2 rounded-full text-sm border transition-colors max-w-full truncate",
                         experienceId === exp.id
                           ? "bg-foreground text-background border-transparent"
                           : "border-border text-muted-foreground",
+                        !hasBeneficiary && "opacity-60",
                       )}
                     >
                       {exp.title}
                     </button>
                   ))}
                 </div>
+              )}
+
+              {!hasBeneficiary && (
+                <p className="text-xs text-muted-foreground">
+                  Necesitás cargar tus datos de cobro para vender reservas de experiencias.
+                </p>
               )}
 
               {linkedExperience && (
@@ -1048,7 +1067,7 @@ const Create = () => {
       </div>
 
       <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
-      <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} />
+      <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} context={beneficiaryGateContext} />
     </AppLayout>);
 
 };
