@@ -18,7 +18,7 @@ import {
   Lock } from
 "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,7 @@ import { useReplaceTicketTiers } from "@/hooks/useTicketTiers";
 import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSection";
 import { useReplaceEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
+import { useBusinessExperiences } from "@/hooks/useExperiences";
 
 type ContentType = "post" | "event";
 
@@ -71,6 +72,7 @@ const TYPE_OPTIONS: {id: ContentType;label: string;description: string;icon: Rea
 const Create = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const routerLocation = useLocation();
   const { user, profile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isBusiness = profile?.is_business === true;
@@ -130,6 +132,14 @@ const Create = () => {
   const [draftAreas, setDraftAreas] = useState<DraftArea[]>([]);
   const replaceEventAreas = useReplaceEventAreas();
   const { hasBeneficiary } = useHasBeneficiary();
+
+  // Optional link to a bookable experience (business only)
+  const { data: myExperiences = [] } = useBusinessExperiences(isBusiness ? user?.id : undefined);
+  const activeExperiences = myExperiences.filter((e) => e.is_active);
+  const [experienceId, setExperienceId] = useState<string | null>(
+    ((routerLocation.state as any)?.experienceId as string) ?? null,
+  );
+  const linkedExperience = myExperiences.find((e) => e.id === experienceId) ?? null;
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const gatePaidAction = () => {
@@ -326,14 +336,14 @@ const Create = () => {
     // Gate paid tickets: require Business + Qhantuy beneficiary
     const hasPaidSingle = !isPost && formData.price && parseFloat(formData.price) > 0;
     const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
-    if (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers")) {
+    if (!experienceId && (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers"))) {
       if (!isBusiness) { setShowBusinessGate(true); return; }
       if (!hasBeneficiary) { setShowBeneficiaryGate(true); return; }
     }
 
     // Validate ticket tiers (events only, business + tiers mode)
     const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
-    const useTiers = !isPost && isBusiness && pricingMode === "tiers";
+    const useTiers = !isPost && isBusiness && !experienceId && pricingMode === "tiers";
     if (useTiers) {
       if (draftTiers.length === 0) {
         toast.error("Añade al menos un tipo de entrada");
@@ -418,7 +428,8 @@ const Create = () => {
         description_tags: descriptionTags.length > 0 ? descriptionTags : null,
         show_menu_button: isBusiness && hasMenuItems ? formData.showMenuButton : false,
         show_reservation_button: isBusiness && reservationsEnabled && isPost ? formData.showReservationButton : false,
-        is_location_secret: !isPost && formData.isLocationSecret
+        is_location_secret: !isPost && formData.isLocationSecret,
+        experience_id: experienceId
       }).
       select().
       single();
@@ -786,6 +797,7 @@ const Create = () => {
 
               {isBusiness ? (
                 <>
+                  {!experienceId && (
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">Entradas</label>
                     <TicketTiersEditor
@@ -800,6 +812,7 @@ const Create = () => {
                       onAttemptPaidAction={!hasBeneficiary ? () => setShowBeneficiaryGate(true) : undefined}
                     />
                   </div>
+                  )}
                   {/* Vender por áreas — hidden for now, will re-enable later */}
                   {/* {user && (
                     <EventVenueLayoutSection
