@@ -91,7 +91,7 @@ export const ReportSheet = ({ open, onOpenChange, targetType, targetId }: Report
 
         <div className="sticky bottom-0 bg-background pt-4 pb-2 mt-4">
           <Button
-            variant="hero" className="w-full" disabled={!selectedReason || createReport.isPending}
+            variant="sheet-action" className="w-full" disabled={!selectedReason || createReport.isPending}
             onClick={handleSubmit}
           >
             {createReport.isPending ? (

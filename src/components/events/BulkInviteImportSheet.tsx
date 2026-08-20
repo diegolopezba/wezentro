@@ -233,7 +233,7 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
                   Cambiar archivo
                 </Button>
                 <Button
-                  variant="hero"
+                  variant="sheet-action"
                   className="flex-1"
                   onClick={handleCreate}
                   disabled={parsed.guests.length === 0}
@@ -269,7 +269,7 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
               </div>
 
               <Button
-                variant="hero"
+                variant="sheet-action"
                 className="w-full"
                 onClick={handleSend}
                 disabled={sendEmails.isPending}

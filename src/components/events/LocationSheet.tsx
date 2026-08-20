@@ -123,7 +123,7 @@ export const LocationSheet = ({
               href={mapsHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full rounded-full bg-primary text-primary-foreground py-3 text-sm font-semibold active:opacity-80"
+              className="flex items-center justify-center gap-2 w-full rounded-full bg-foreground text-background py-3 text-sm font-semibold active:opacity-80"
             >
               <ExternalLink className="w-4 h-4" />
               Abrir en Mapas

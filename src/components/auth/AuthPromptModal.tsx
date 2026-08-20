@@ -63,7 +63,7 @@ export const AuthPromptModal = () => {
                 {/* Action buttons */}
                 <div className="space-y-3 pt-2">
                   <Button
-                    variant="hero" className="w-full" onClick={handleSignUp}
+                    variant="sheet-action" className="w-full" onClick={handleSignUp}
                   >
                     Crear Cuenta
                   </Button>

@@ -218,7 +218,7 @@ export function InviteFriendsSheet({ eventId, eventTitle, open, onOpenChange }: 
             Ahora no
           </Button>
           <Button
-            variant="hero" className="flex-1" onClick={handleSend}
+            variant="sheet-action" className="flex-1" onClick={handleSend}
             disabled={selectedUsers.length === 0 || sendInvitations.isPending}
           >
             {sendInvitations.isPending ? (

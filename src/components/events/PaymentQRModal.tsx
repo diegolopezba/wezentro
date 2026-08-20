@@ -456,8 +456,9 @@ export function PaymentQRModal({
                 </div>
                 <Button
                   type="button"
+                  variant="sheet-action"
                   onClick={isFree ? confirmFreeJoin : generateQR}
-                  className="w-full h-14 rounded-2xl bg-foreground text-background text-base font-bold uppercase tracking-wide active:opacity-90"
+                  className="w-full h-14 text-base font-bold uppercase tracking-wide"
                 >
                   {isInvite ? "Confirmar invitación especial" : isFree ? "Sí, quiero unirme" : "Pagar por QR"}
                 </Button>
@@ -548,8 +549,9 @@ export function PaymentQRModal({
               </div>
               <Button
                 type="button"
+                variant="sheet-action"
                 onClick={handleViewTickets}
-                className="w-full h-14 rounded-2xl bg-foreground text-background text-base font-bold uppercase tracking-wide active:opacity-90"
+                className="w-full h-14 text-base font-bold uppercase tracking-wide"
               >
                 Ver mi entrada
               </Button>
@@ -570,9 +572,9 @@ export function PaymentQRModal({
               </div>
               <h2 className="text-xl font-brand font-bold text-foreground">QR Expirado</h2>
               <p className="text-muted-foreground text-sm">El código QR expiró sin detectar un pago.</p>
-              <Button onClick={generateQR} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
-                <RefreshCw className="w-4 h-4 mr-2" />Generar nuevo QR
-              </Button>
+                <Button variant="sheet-action" onClick={generateQR} className="w-full h-14 font-bold uppercase">
+                  <RefreshCw className="w-4 h-4 mr-2" />Generar nuevo QR
+                </Button>
               <Button variant="ghost" className="w-full" onClick={handleClose}>Cancelar</Button>
             </m.div>
           )}
@@ -584,15 +586,15 @@ export function PaymentQRModal({
               </div>
               <h2 className="text-xl font-brand font-bold text-foreground">{needsLogin ? "Inicia sesión de nuevo" : isInvite ? "No se pudo confirmar tu invitación" : isFree ? "No se pudo confirmar tu lugar" : "No se pudo generar el QR"}</h2>
               <p className="text-muted-foreground text-sm">{errorMsg || "Por favor intenta de nuevo."}</p>
-              {needsLogin ? (
-                <Button onClick={goToLogin} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
-                  Iniciar sesión
-                </Button>
-              ) : (
-                <Button onClick={isFree ? confirmFreeJoin : generateQR} className="w-full h-14 rounded-2xl bg-foreground text-background font-bold uppercase active:opacity-90">
-                  <RefreshCw className="w-4 h-4 mr-2" />Reintentar
-                </Button>
-              )}
+                {needsLogin ? (
+                  <Button variant="sheet-action" onClick={goToLogin} className="w-full h-14 font-bold uppercase">
+                    Iniciar sesión
+                  </Button>
+                ) : (
+                  <Button variant="sheet-action" onClick={isFree ? confirmFreeJoin : generateQR} className="w-full h-14 font-bold uppercase">
+                    <RefreshCw className="w-4 h-4 mr-2" />Reintentar
+                  </Button>
+                )}
               <Button variant="ghost" className="w-full" onClick={handleClose}>Cancelar</Button>
             </m.div>
           )}

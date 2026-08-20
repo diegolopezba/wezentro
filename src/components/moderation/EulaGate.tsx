@@ -89,7 +89,7 @@ export const EulaGate = ({ children }: { children: React.ReactNode }) => {
                 <button className="underline" onClick={() => navigate("/privacy-policy")}>Política de Privacidad</button>.
               </p>
             </div>
-            <Button variant="hero" className="w-full" disabled={submitting} onClick={handleAccept}>
+            <Button variant="sheet-action" className="w-full" disabled={submitting} onClick={handleAccept}>
               {submitting ? "Guardando..." : "Acepto y entiendo"}
             </Button>
           </m.div>

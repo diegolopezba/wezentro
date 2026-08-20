@@ -28,7 +28,7 @@ const BusinessCtaRow = ({ req }: { req: BusinessCtaRequest }) => {
       <div className="flex flex-wrap items-center gap-2 px-4 py-2">
         <span className="text-xs text-muted-foreground">{name}:</span>
         {showRes && (
-          <Button variant="hero" size="sm" onClick={() => setResOpen(true)} className="gap-1.5">
+          <Button variant="sheet-action" size="sm" onClick={() => setResOpen(true)} className="gap-1.5">
             <CalendarCheck className="w-4 h-4" />
             Reservar
           </Button>

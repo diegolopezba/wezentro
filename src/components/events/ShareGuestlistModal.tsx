@@ -162,7 +162,7 @@ export function ShareGuestlistModal({ eventId, open, onOpenChange }: ShareGuestl
 
           {/* Send button */}
           <Button
-            variant="hero" className="w-full" onClick={handleSend}
+            variant="sheet-action" className="w-full" onClick={handleSend}
             disabled={selectedUsers.length === 0 || sendInvitations.isPending}
           >
             {sendInvitations.isPending ? (
