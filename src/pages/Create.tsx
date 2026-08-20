@@ -404,6 +404,7 @@ const Create = () => {
         description: formData.description.trim() || null,
         category: formData.category || null,
         start_datetime: startDatetime,
+        end_datetime: endDatetime,
         location_name: isPost ? null : location.address.trim() || null,
         latitude: isPost ? null : location.latitude,
         longitude: isPost ? null : location.longitude,
