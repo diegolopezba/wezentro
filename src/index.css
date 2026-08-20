@@ -467,11 +467,10 @@ html[data-keyboard="open"] body {
   display: none;
 }
 
-/* Light-theme scope for payment, menu, and reservation bottomsheets.
+/* Light-theme scope for content and action bottomsheets (Apple-style).
    Overrides semantic tokens inside the sheet only, so children (buttons,
    inputs, cards, text, borders) automatically render in light mode without
-   individual class changes. Brand red (--accent-red / --destructive) is
-   preserved for CTAs. */
+   individual class changes. Accents are monochrome — black ink on white. */
 .light-sheet {
   --background: 0 0% 100%;
   --foreground: 0 0% 9%;
