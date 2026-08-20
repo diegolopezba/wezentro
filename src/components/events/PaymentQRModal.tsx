@@ -293,7 +293,7 @@ export function PaymentQRModal({
 
               {/* Title */}
               <div className="px-5 pt-2 pb-4">
-                <h2 className="text-3xl font-brand font-bold text-foreground leading-tight line-clamp-2">
+                <h2 className="text-3xl font-brand font-medium text-foreground leading-tight line-clamp-2">
                   {eventTitle}
                 </h2>
               </div>
@@ -306,7 +306,7 @@ export function PaymentQRModal({
                       <p className="text-base font-bold uppercase tracking-tight text-foreground truncate">
                         {ticketTierName || "Entrada general"}
                       </p>
-                      <p className="text-lg font-brand font-bold text-foreground mt-0.5">
+                      <p className="text-lg font-brand font-medium text-foreground mt-0.5">
                         {isInvite ? "Invitado especial" : isFree ? "Gratis" : `Bs. ${price}`}
                       </p>
                     </div>
@@ -443,7 +443,7 @@ export function PaymentQRModal({
                         ? `${partySize} personas`
                         : "1 entrada seleccionada"}
                     </p>
-                    <p className="text-2xl font-brand font-bold text-foreground">Total</p>
+                    <p className="text-2xl font-brand font-medium text-foreground">Total</p>
                   </div>
                   {isFree ? (
                     <p className="text-lg font-brand font-normal text-foreground flex items-center gap-1.5">
@@ -451,7 +451,7 @@ export function PaymentQRModal({
                       <span className="text-lg leading-none" role="img" aria-label="guiño">😉</span>
                     </p>
                   ) : (
-                    <p className="text-2xl font-brand font-bold text-foreground">Bs. {total}</p>
+                    <p className="text-2xl font-brand font-medium text-foreground">Bs. {total}</p>
                   )}
                 </div>
                 <Button
@@ -476,7 +476,7 @@ export function PaymentQRModal({
           {step === "revealed" && qrImageUrl && (
             <m.div key="revealed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pt-6 pb-8 space-y-4 text-center overflow-y-auto max-h-[92dvh]">
               <div className="space-y-1">
-                <h2 className="text-lg font-brand font-bold text-foreground">{eventTitle}</h2>
+                <h2 className="text-lg font-brand font-medium text-foreground">{eventTitle}</h2>
                 <p className="text-lg font-semibold text-primary">Bs. {price}</p>
               </div>
 
@@ -539,7 +539,7 @@ export function PaymentQRModal({
                 <Sparkles className="w-5 h-5 text-primary absolute top-1 right-1" />
               </div>
               <div className="space-y-1">
-                <h2 className="text-2xl font-brand font-bold text-foreground">¡Estás dentro!</h2>
+                <h2 className="text-2xl font-brand font-medium text-foreground">¡Estás dentro!</h2>
                 <p className="text-sm text-muted-foreground">Tu entrada para <span className="text-foreground font-medium">{eventTitle}</span> está confirmada.</p>
               </div>
               <div className="p-3 rounded-xl bg-secondary/60">
@@ -570,7 +570,7 @@ export function PaymentQRModal({
               <div className="mx-auto w-20 h-20 rounded-full bg-orange-500/10 flex items-center justify-center">
                 <AlertCircle className="w-10 h-10 text-orange-500" />
               </div>
-              <h2 className="text-xl font-brand font-bold text-foreground">QR Expirado</h2>
+              <h2 className="text-xl font-brand font-medium text-foreground">QR Expirado</h2>
               <p className="text-muted-foreground text-sm">El código QR expiró sin detectar un pago.</p>
                 <Button variant="sheet-action" onClick={generateQR} className="w-full h-14 font-bold uppercase">
                   <RefreshCw className="w-4 h-4 mr-2" />Generar nuevo QR
@@ -584,7 +584,7 @@ export function PaymentQRModal({
               <div className="mx-auto w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
                 <AlertCircle className="w-10 h-10 text-destructive" />
               </div>
-              <h2 className="text-xl font-brand font-bold text-foreground">{needsLogin ? "Inicia sesión de nuevo" : isInvite ? "No se pudo confirmar tu invitación" : isFree ? "No se pudo confirmar tu lugar" : "No se pudo generar el QR"}</h2>
+              <h2 className="text-xl font-brand font-medium text-foreground">{needsLogin ? "Inicia sesión de nuevo" : isInvite ? "No se pudo confirmar tu invitación" : isFree ? "No se pudo confirmar tu lugar" : "No se pudo generar el QR"}</h2>
               <p className="text-muted-foreground text-sm">{errorMsg || "Por favor intenta de nuevo."}</p>
                 {needsLogin ? (
                   <Button variant="sheet-action" onClick={goToLogin} className="w-full h-14 font-bold uppercase">

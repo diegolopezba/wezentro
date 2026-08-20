@@ -512,7 +512,7 @@ const Create = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
         <div className="px-4 py-4">
-          <h1 className="font-brand text-xl font-bold text-foreground">Crear</h1>
+          <h1 className="font-brand text-xl font-medium text-foreground">Crear</h1>
         </div>
       </header>
 

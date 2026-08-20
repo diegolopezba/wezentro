@@ -160,7 +160,7 @@ const YouAreGoing = () => {
                 : ""}
             </p>
           )}
-          <h1 className="mt-3 font-brand text-3xl font-bold leading-tight">
+          <h1 className="mt-3 font-brand text-3xl font-medium leading-tight">
             {profile?.full_name || profile?.username || "Invitado"}
           </h1>
           <p className="mt-3 text-sm font-medium text-[#141414]/70 capitalize">
@@ -184,7 +184,7 @@ const YouAreGoing = () => {
                   alt="Zentro"
                   className="h-10 w-auto object-contain"
                 />
-                <span className="font-brand text-2xl font-bold tracking-tight text-[#141414]">
+                <span className="font-brand text-2xl font-medium tracking-tight text-[#141414]">
                   zentro
                 </span>
               </div>

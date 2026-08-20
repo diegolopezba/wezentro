@@ -62,7 +62,7 @@ const BusinessDashboard = () => {
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-bold text-foreground">Business Dashboard</h1>
+          <h1 className="font-brand text-xl font-medium text-foreground">Business Dashboard</h1>
         </div>
       </header>
       <div className="flex-1 flex items-center justify-center p-6">
@@ -70,7 +70,7 @@ const BusinessDashboard = () => {
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
             <Icon className="w-10 h-10 text-white" />
           </div>
-          <h2 className="font-brand text-2xl font-bold text-foreground mb-2">{title}</h2>
+          <h2 className="font-brand text-2xl font-medium text-foreground mb-2">{title}</h2>
           <p className="text-muted-foreground mb-6">{body}</p>
           <Button variant="premium" size="lg" className="w-full" onClick={() => navigate(to)}>
             {cta}
@@ -120,7 +120,7 @@ const BusinessDashboard = () => {
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-bold text-foreground">Analytics</h1>
+          <h1 className="font-brand text-xl font-medium text-foreground">Analytics</h1>
           {profile?.business_type && (
             <Badge variant="secondary" className="text-xs font-normal">
               {profile.business_type}

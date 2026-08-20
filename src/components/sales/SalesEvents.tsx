@@ -69,7 +69,7 @@ export const SalesEvents = () => {
                 <p className="text-[11px] text-muted-foreground">
                   {new Date(e.start_datetime).toLocaleDateString("es-BO", { day: "numeric", month: "short", year: "numeric" })}
                 </p>
-                <p className="font-brand text-sm font-bold text-foreground mt-0.5">{formatBs(e.revenue)}</p>
+                <p className="font-brand text-sm font-medium text-foreground mt-0.5">{formatBs(e.revenue)}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             </div>

@@ -212,7 +212,7 @@ const Onboarding = () => {
             <img src="/logo.png" alt="Zentro" className="w-10 h-10 object-fill" />
           </div>
         )}
-        <h1 className="font-brand text-2xl font-bold text-foreground mb-1">
+        <h1 className="font-brand text-2xl font-medium text-foreground mb-1">
           {step === 1 && "Elige tu nombre de usuario"}
           {step === 2 && "Cuéntanos sobre ti"}
           {step === 3 && "Un poco más sobre ti"}

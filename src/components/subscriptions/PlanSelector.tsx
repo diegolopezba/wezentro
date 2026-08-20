@@ -92,7 +92,7 @@ export const PlanSelector = ({
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Title row */}
       <div className="flex items-baseline justify-between px-1 pt-1">
-        <h2 className="font-brand text-[28px] font-bold leading-tight text-foreground">
+        <h2 className="font-brand text-[28px] font-medium leading-tight text-foreground">
           Elegí tu plan
         </h2>
         {onDismiss && (

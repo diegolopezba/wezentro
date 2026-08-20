@@ -79,7 +79,7 @@ const EventPromoterDashboard = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="min-w-0">
-            <h1 className="font-brand text-lg font-bold text-foreground truncate">Promotores</h1>
+            <h1 className="font-brand text-lg font-medium text-foreground truncate">Promotores</h1>
             {event?.title && (
               <p className="text-xs text-muted-foreground truncate">{event.title}</p>
             )}
@@ -206,7 +206,7 @@ const SummaryCard = ({
       <Icon className="w-3.5 h-3.5" />
       <span className="text-xs">{label}</span>
     </div>
-    <p className="font-brand text-lg font-bold text-foreground">{primary}</p>
+    <p className="font-brand text-lg font-medium text-foreground">{primary}</p>
     {secondary && <p className="text-[10px] text-muted-foreground mt-0.5">{secondary}</p>}
   </div>
 );

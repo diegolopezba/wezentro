@@ -24,7 +24,7 @@ const PrivacyPolicy = () => {
           </Button>
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-primary" />
-            <h1 className="font-brand text-xl font-bold text-foreground">Política de Privacidad</h1>
+            <h1 className="font-brand text-xl font-medium text-foreground">Política de Privacidad</h1>
           </div>
         </div>
       </header>

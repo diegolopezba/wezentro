@@ -144,7 +144,7 @@ const EventDetailModalInner = () => {
         <EventDetailSkeleton />
       ) : error || !event ? (
         <div className="min-h-[100dvh] flex flex-col items-center justify-center px-4">
-          <h1 className="font-brand text-xl font-bold text-foreground mb-2">Evento no encontrado</h1>
+          <h1 className="font-brand text-xl font-medium text-foreground mb-2">Evento no encontrado</h1>
           <p className="text-muted-foreground mb-4">Este evento puede haber sido eliminado.</p>
           <Button onClick={close}>Volver</Button>
         </div>

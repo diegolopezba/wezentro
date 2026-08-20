@@ -52,7 +52,7 @@ export const AuthPromptModal = () => {
                 </div>
 
                 <div>
-                  <h2 className="font-brand text-2xl font-bold text-foreground mb-2">
+                  <h2 className="font-brand text-2xl font-medium text-foreground mb-2">
                     Únete a Zentro
                   </h2>
                   <p className="text-muted-foreground text-sm">

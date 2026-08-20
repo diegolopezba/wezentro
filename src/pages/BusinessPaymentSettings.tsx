@@ -177,7 +177,7 @@ const BusinessPaymentSettings = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="font-brand text-xl font-bold text-foreground">Pagos</h1>
+            <h1 className="font-brand text-xl font-medium text-foreground">Pagos</h1>
           </div>
           {existing && !editing && (
             <span className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">

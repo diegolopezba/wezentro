@@ -589,7 +589,7 @@ const Notifications = () => {
             <Button variant="ghost" size="icon" onClick={handleBack}>
               <ChevronLeft className="w-5 h-5" />
             </Button>
-            <h1 className="font-brand text-xl font-bold text-foreground">
+            <h1 className="font-brand text-xl font-medium text-foreground">
               Notificaciones
             </h1>
           </div>

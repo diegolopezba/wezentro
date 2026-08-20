@@ -275,7 +275,7 @@ const EditProfile = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
               <ChevronLeft className="w-5 h-5" />
             </Button>
-            <h1 className="font-brand text-xl font-bold text-foreground">
+            <h1 className="font-brand text-xl font-medium text-foreground">
               Editar Perfil
             </h1>
           </div>

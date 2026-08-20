@@ -48,7 +48,7 @@ const BusinessReservations = () => {
           <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-bold text-foreground">Reservas</h1>
+          <h1 className="font-brand text-xl font-medium text-foreground">Reservas</h1>
         </div>
       </header>
 

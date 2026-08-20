@@ -113,7 +113,7 @@ const SpecialInvite = () => {
         <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center">
           <TicketX className="w-8 h-8 text-muted-foreground" />
         </div>
-        <h1 className="font-brand text-xl font-bold text-foreground">
+        <h1 className="font-brand text-xl font-medium text-foreground">
           Invitación no disponible
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -153,7 +153,7 @@ const SpecialInvite = () => {
                 ? `INVITADO ESPECIAL · ${invite.segment.toUpperCase()}`
                 : "INVITADO ESPECIAL"}
             </p>
-            <h1 className="font-brand text-xl font-bold text-foreground leading-tight">
+            <h1 className="font-brand text-xl font-medium text-foreground leading-tight">
               {invite.event_title}
             </h1>
             {eventDate && (

@@ -86,7 +86,7 @@ const VenueLayouts = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-bold text-foreground">
+          <h1 className="font-brand text-xl font-medium text-foreground">
             {creating ? (editingId ? "Editar plano" : "Nuevo plano") : "Planos del lugar"}
           </h1>
         </div>

@@ -65,7 +65,7 @@ export const ConversionFunnel = ({ period, eventId, title = "Embudo de conversi√
       <div className="grid grid-cols-3 gap-2 pt-1">
         {rates.map((r) => (
           <div key={r.label} className="rounded-xl bg-secondary/50 p-2.5 text-center">
-            <p className="font-brand text-sm font-bold text-foreground">{fmtPct(r.value)}</p>
+            <p className="font-brand text-sm font-medium text-foreground">{fmtPct(r.value)}</p>
             <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{r.label}</p>
           </div>
         ))}

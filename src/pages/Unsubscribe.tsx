@@ -60,7 +60,7 @@ const Unsubscribe = () => {
 
       {state === "valid" && (
         <>
-          <h1 className="font-brand text-xl font-bold text-foreground">
+          <h1 className="font-brand text-xl font-medium text-foreground">
             Cancelar suscripción
           </h1>
           <p className="text-sm text-muted-foreground max-w-sm">
@@ -74,7 +74,7 @@ const Unsubscribe = () => {
 
       {state === "done" && (
         <>
-          <h1 className="font-brand text-xl font-bold text-foreground">Listo</h1>
+          <h1 className="font-brand text-xl font-medium text-foreground">Listo</h1>
           <p className="text-sm text-muted-foreground">
             Cancelaste tu suscripción a los correos de Zentro.
           </p>
@@ -83,7 +83,7 @@ const Unsubscribe = () => {
 
       {state === "used" && (
         <>
-          <h1 className="font-brand text-xl font-bold text-foreground">
+          <h1 className="font-brand text-xl font-medium text-foreground">
             Ya estabas dado de baja
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -94,7 +94,7 @@ const Unsubscribe = () => {
 
       {(state === "invalid" || state === "error") && (
         <>
-          <h1 className="font-brand text-xl font-bold text-foreground">
+          <h1 className="font-brand text-xl font-medium text-foreground">
             Enlace no válido
           </h1>
           <p className="text-sm text-muted-foreground">

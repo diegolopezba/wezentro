@@ -147,7 +147,7 @@ const Help = () => {
             
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-bold text-foreground">Ayuda y Soporte</h1>
+          <h1 className="font-brand text-xl font-medium text-foreground">Ayuda y Soporte</h1>
         </div>
       </header>
 

@@ -150,7 +150,7 @@ const EventDetail = () => {
   }
   if (error || !event) {
     return <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4">
-        <h1 className="font-brand text-xl font-bold text-foreground mb-2">Evento no encontrado</h1>
+        <h1 className="font-brand text-xl font-medium text-foreground mb-2">Evento no encontrado</h1>
         <p className="text-muted-foreground mb-4">Este evento puede haber sido eliminado o no existe.</p>
         <Button onClick={() => navigate("/")}>Ir al Inicio</Button>
       </div>;
@@ -202,7 +202,7 @@ const EventDetail = () => {
             {event.category && <span className="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-primary mb-3 text-primary">
                 {event.category.replace("_", " ")}
               </span>}
-            {event.title && <h1 className="font-brand text-3xl font-bold text-foreground">{event.title}</h1>}
+            {event.title && <h1 className="font-brand text-3xl font-medium text-foreground">{event.title}</h1>}
           </div>
 
           {/* Event action buttons */}
