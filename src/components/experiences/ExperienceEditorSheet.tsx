@@ -20,6 +20,9 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   businessId: string;
   experience?: Experience | null;
+  /** False when the business has no payout account yet: publishing is blocked. */
+  canPublish?: boolean;
+  onRequirePayouts?: () => void;
 }
 
 interface SegmentDraft {
@@ -28,7 +31,14 @@ interface SegmentDraft {
 }
 
 /** Create / edit an experience: details, price segments, weekly slots and rules. */
-export const ExperienceEditorSheet = ({ open, onOpenChange, businessId, experience }: Props) => {
+export const ExperienceEditorSheet = ({
+  open,
+  onOpenChange,
+  businessId,
+  experience,
+  canPublish = true,
+  onRequirePayouts,
+}: Props) => {
   const { data: config } = useExperienceConfig(experience?.id);
   const save = useSaveExperience();
 
@@ -52,7 +62,7 @@ export const ExperienceEditorSheet = ({ open, onOpenChange, businessId, experien
     setDescription(experience?.description ?? "");
     setLocationNote(experience?.location_note ?? "");
     setDuration(String(experience?.duration_minutes ?? 60));
-    setIsActive(experience?.is_active ?? true);
+    setIsActive(canPublish ? experience?.is_active ?? true : false);
   }, [open, experience]);
 
   useEffect(() => {
@@ -88,7 +98,7 @@ export const ExperienceEditorSheet = ({ open, onOpenChange, businessId, experien
         description,
         location_note: locationNote,
         duration_minutes: Number(duration) || 60,
-        is_active: isActive,
+        is_active: canPublish && isActive,
         segments: validSegments.map((s) => ({ name: s.name, price: Number(s.price) })),
         weekdays,
         start_time: startTime,
@@ -233,9 +243,22 @@ export const ExperienceEditorSheet = ({ open, onOpenChange, businessId, experien
           <div className="flex items-center justify-between rounded-2xl border border-border p-4">
             <div>
               <p className="text-sm font-medium text-foreground">Publicada</p>
-              <p className="text-xs text-muted-foreground">Visible y reservable para los clientes</p>
+              <p className="text-xs text-muted-foreground">
+                {canPublish
+                  ? "Visible y reservable para los clientes"
+                  : "Configurá tus datos de cobro para poder publicarla"}
+              </p>
             </div>
-            <Switch checked={isActive} onCheckedChange={setIsActive} />
+            <Switch
+              checked={isActive && canPublish}
+              onCheckedChange={(v) => {
+                if (v && !canPublish) {
+                  onRequirePayouts?.();
+                  return;
+                }
+                setIsActive(v);
+              }}
+            />
           </div>
         </div>
 
