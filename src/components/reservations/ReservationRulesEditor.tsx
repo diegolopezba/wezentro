@@ -48,6 +48,7 @@ export const ReservationRulesEditor = ({ businessId }: Props) => {
     label: string;
     hint: string;
     min: number;
+    feature?: FeatureKey;
   }[] = [
     {
       key: "turn_time_minutes",
