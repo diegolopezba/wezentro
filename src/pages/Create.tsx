@@ -341,9 +341,13 @@ const Create = () => {
     // Gate paid tickets: require Business + Qhantuy beneficiary
     const hasPaidSingle = !isPost && formData.price && parseFloat(formData.price) > 0;
     const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
-    if (!experienceId && (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers"))) {
+    if (experienceId) {
+      // Linked experiences are booked and paid through QR too: payouts are required.
       if (!isBusiness) { setShowBusinessGate(true); return; }
-      if (!hasBeneficiary) { setShowBeneficiaryGate(true); return; }
+      if (!hasBeneficiary) { openBeneficiaryGate("experience"); return; }
+    } else if (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers")) {
+      if (!isBusiness) { setShowBusinessGate(true); return; }
+      if (!hasBeneficiary) { openBeneficiaryGate("tickets"); return; }
     }
 
     // Validate ticket tiers (events only, business + tiers mode)
