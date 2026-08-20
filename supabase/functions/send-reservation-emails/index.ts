@@ -69,9 +69,20 @@ Deno.serve(async (req) => {
 
   const { data: profiles } = await admin
     .from('profiles')
-    .select('id, full_name, username, email, business_address')
+    .select('id, full_name, username, business_address')
     .in('id', profileIds)
-  const profileById = new Map((profiles ?? []).map((p: any) => [p.id, p]))
+  // Emails live in auth.users, not in profiles.
+  const emailById = new Map<string, string>()
+  await Promise.all(
+    profileIds.map(async (id) => {
+      const { data } = await admin.auth.admin.getUserById(id)
+      if (data?.user?.email) emailById.set(id, data.user.email)
+    }),
+  )
+
+  const profileById = new Map(
+    (profiles ?? []).map((p: any) => [p.id, { ...p, email: emailById.get(p.id) }]),
+  )
 
   const customer = profileById.get(reservation.user_id)
   const business = profileById.get(reservation.business_id)
