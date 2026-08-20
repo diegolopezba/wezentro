@@ -11,6 +11,9 @@ import {
   useDeleteTable,
   type RestaurantTable,
 } from "@/hooks/useReservationConfig";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { tableLimitLabel } from "@/lib/subscriptionTiers";
+import { PlansSheet } from "@/components/subscriptions/PlansSheet";
 
 interface Props {
   businessId: string;
@@ -27,6 +30,11 @@ export const TablesEditor = ({ businessId }: Props) => {
   const [bulkCount, setBulkCount] = useState("4");
   const [bulkSeats, setBulkSeats] = useState("4");
   const [bulkZone, setBulkZone] = useState<string>("");
+  const [plansOpen, setPlansOpen] = useState(false);
+
+  const { tier, maxTables } = useSubscriptionTier(businessId);
+  const remaining = maxTables == null ? Infinity : Math.max(0, maxTables - tables.length);
+  const atLimit = remaining <= 0;
 
   const totals = useMemo(() => {
     const active = tables.filter((t) => t.is_active);
@@ -40,8 +48,9 @@ export const TablesEditor = ({ businessId }: Props) => {
     const count = parseInt(bulkCount, 10);
     const seats = parseInt(bulkSeats, 10);
     if (!count || count < 1 || !seats || seats < 1) return;
+    if (atLimit) return;
     bulkCreate.mutate({
-      count: Math.min(count, 50),
+      count: Math.min(count, 50, remaining),
       seats,
       zone: bulkZone || null,
       startIndex: tables.length + 1,
@@ -83,10 +92,28 @@ export const TablesEditor = ({ businessId }: Props) => {
             onChange={(e) => setBulkSeats(e.target.value)}
           />
         </div>
-        <Button size="sm" onClick={handleBulkAdd} disabled={bulkCreate.isPending}>
+        <Button size="sm" onClick={handleBulkAdd} disabled={bulkCreate.isPending || atLimit}>
           <Plus className="w-4 h-4 mr-1" /> Agregar
         </Button>
       </div>
+
+      {maxTables != null && (
+        <p className="text-xs text-muted-foreground">
+          {tables.length} / {maxTables} mesas de tu plan
+          {atLimit && (
+            <>
+              {" · "}
+              <button
+                type="button"
+                onClick={() => setPlansOpen(true)}
+                className="underline underline-offset-2 text-foreground"
+              >
+                {tableLimitLabel(tier)}
+              </button>
+            </>
+          )}
+        </p>
+      )}
 
       <div className="flex gap-2 flex-wrap">
         {ZONES.map((z) => (
@@ -154,6 +181,8 @@ export const TablesEditor = ({ businessId }: Props) => {
           </p>
         </div>
       )}
+
+      <PlansSheet open={plansOpen} onOpenChange={setPlansOpen} currentTier={tier} />
     </div>
   );
 };

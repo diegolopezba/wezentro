@@ -2,9 +2,7 @@
  * Subscription tiers for food businesses (restaurant / coffee / bar).
  * This is intentionally hardcoded config — not a database table — so pricing and
  * feature packaging change via code, not a CMS.
- *
- * TODO: replace the placeholder prices below with the real monthly prices in Bs.
- */
+*/
 
 export type TierKey = "basico" | "profesional" | "elite";
 
@@ -22,8 +20,12 @@ export type FeatureKey =
 export interface TierConfig {
   key: TierKey;
   name: string;
-  /** Monthly price in Bolivianos. TODO: pricing pending. */
+  /** Monthly price in Bolivianos. */
   price_bob: number;
+  /** Max reservable tables the business can configure (null = unlimited). */
+  maxTables: number | null;
+  /** Short venue-size label shown on the plan card. */
+  sizeLabel: string;
   tagline: string;
   features: readonly FeatureKey[];
   /** Marketing bullets shown on the Planes screen. */
@@ -75,15 +77,18 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
   basico: {
     key: "basico",
     name: "Básico",
-    price_bob: 0, // TODO: precio real
+    price_bob: 250,
+    maxTables: 9,
+    sizeLabel: "Hasta 9 mesas",
     tagline: "Lo esencial para empezar a recibir reservas",
     features: BASICO_FEATURES,
     bullets: [
+      "Para locales pequeños: hasta 9 mesas",
       "Un turno por día",
       "Menú básico",
       "Reservas con conteo total de reservas e invitados",
     ],
-    badge: "Complementario",
+    badge: "Locales pequeños",
     highlights: [
       {
         icon: "calendar",
@@ -105,11 +110,14 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
   profesional: {
     key: "profesional",
     name: "Profesional",
-    price_bob: 0, // TODO: precio real
+    price_bob: 350,
+    maxTables: 20,
+    sizeLabel: "De 10 a 20 mesas",
     tagline: "Control total de tu operación de reservas",
     features: PROFESIONAL_FEATURES,
     bullets: [
       "Todo lo del plan Básico",
+      "Para locales medianos: de 10 a 20 mesas",
       "Múltiples turnos por día",
       "Fechas bloqueadas",
       "Control de ritmo de llegadas (máx. personas por franja)",
@@ -150,11 +158,14 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
   elite: {
     key: "elite",
     name: "Elite",
-    price_bob: 0, // TODO: precio real
+    price_bob: 500,
+    maxTables: null,
+    sizeLabel: "Más de 20 mesas",
     tagline: "Para grupos y locales que quieren ir un paso adelante",
     features: ELITE_FEATURES,
     bullets: [
       "Todo lo del plan Profesional",
+      "Para locales grandes: más de 20 mesas",
       "Plano visual del local y mapa de mesas (próximamente)",
       "Insights de ciudad entre locales (próximamente)",
     ],
@@ -194,5 +205,17 @@ export const featureUpgradeLabel = (feature: FeatureKey): string => {
 
 export const formatTierPrice = (tier: TierKey): string => {
   const price = SUBSCRIPTION_TIERS[tier].price_bob;
-  return price > 0 ? `Bs. ${price}/mes` : tier === "basico" ? "Gratis" : "Precio por definir";
+  return price > 0 ? `Bs. ${price}/mes` : "Gratis";
+};
+
+/** Max tables a plan allows (null = unlimited). */
+export const maxTablesForTier = (tier: TierKey): number | null =>
+  SUBSCRIPTION_TIERS[tier].maxTables;
+
+/** Message shown when a business hits its table limit. */
+export const tableLimitLabel = (tier: TierKey): string => {
+  const max = maxTablesForTier(tier);
+  if (max == null) return "";
+  const next = tier === "basico" ? "Profesional" : "Elite";
+  return `Tu plan ${SUBSCRIPTION_TIERS[tier].name} permite hasta ${max} mesas. Pasá a ${next} para agregar más.`;
 };
