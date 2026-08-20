@@ -93,7 +93,6 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         category: event.category || "",
         start_datetime: format(new Date(event.start_datetime), "yyyy-MM-dd'T'HH:mm"),
         end_datetime: event.end_datetime ? format(new Date(event.end_datetime), "yyyy-MM-dd'T'HH:mm") : "",
-    end_datetime: event.end_datetime ? format(new Date(event.end_datetime), "yyyy-MM-dd'T'HH:mm") : "",
         location_name: event.location_name || "",
         latitude: event.latitude ?? null,
         longitude: event.longitude ?? null,
