@@ -44,12 +44,13 @@ const STEPS = [
   },
   {
     title: "Cuánto cuesta",
-    subtitle: "Sin sorpresas: depende del tipo de negocio que tengas.",
+    subtitle:
+      "Dos modelos claros: sin mensualidad para quien vende entradas, plan fijo para quien recibe reservas.",
     items: [
       {
         icon: Ticket,
-        label: "Eventos y entradas: gratis",
-        desc: "Discotecas, venues y productores no pagan mensualidad.",
+        label: "Eventos y entradas: 5% por ticket",
+        desc: "Eventos, discotecas, venues, productores y experiencias con pago por entrada o slot. Sin mensualidad: solo pagás cuando vendés.",
       },
       {
         icon: UtensilsCrossed,
