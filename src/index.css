@@ -496,11 +496,14 @@ html[data-keyboard="open"] body {
   --destructive-foreground: 0 0% 100%;
   --gradient-red: linear-gradient(135deg, hsl(0 0% 14%) 0%, hsl(0 0% 32%) 100%);
 
-
-
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   color-scheme: light;
+}
+
+/* Grabber reads as a light-grey pill on the white surface. */
+.light-sheet > .bg-muted-foreground\/30 {
+  background-color: hsl(0 0% 82%);
 }
 
 .light-sheet .bg-background { background-color: hsl(var(--background)) !important; }
