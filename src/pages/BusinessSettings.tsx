@@ -193,6 +193,13 @@ const BusinessSettings = () => {
                 delay={0.12}
               />
               <SettingsRow
+                icon={Sparkles}
+                label="Experiencias"
+                sublabel="Tours, clases y actividades con horarios y pago por adelantado"
+                onClick={() => navigate("/settings/business/experiences")}
+                delay={0.14}
+              />
+              <SettingsRow
                 icon={TrendingUp}
                 label="Ventas y promotores"
                 sublabel="Ingresos, entradas vendidas y rendimiento de promotores"

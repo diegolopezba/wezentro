@@ -13,6 +13,8 @@ project_id = "fipdpcitsjpqivljrktj"
     verify_jwt = false
   [functions.generate-qhantuy-qr]
     verify_jwt = false
+  [functions.generate-experience-qr]
+    verify_jwt = false
   [functions.get-for-you-feed]
     verify_jwt = false
   [functions.get-mapbox-token]

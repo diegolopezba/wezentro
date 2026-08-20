@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
 
     const { data: session, error: sessErr } = await supabase
       .from("payment_sessions")
-      .select("id, event_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees")
+      .select("id, event_id, experience_booking_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees")
       .eq("id", internalCode)
       .maybeSingle();
     if (sessErr || !session) {
@@ -89,6 +89,49 @@ Deno.serve(async (req) => {
         qhantuy_raw_callback: params,
       })
       .eq("id", session.id);
+
+    // Experience booking checkout: confirm the booking and stop here (no event tickets).
+    if ((session as any).experience_booking_id) {
+      const bookingId = (session as any).experience_booking_id as string;
+      const { error: bkErr } = await supabase
+        .from("experience_bookings")
+        .update({ status: "confirmed", hold_expires_at: null })
+        .eq("id", bookingId);
+      if (bkErr) console.error("experience booking confirm failed:", bkErr);
+
+      const { data: bk } = await supabase
+        .from("experience_bookings")
+        .select("experience_id, quantity, experiences(title, business_id)")
+        .eq("id", bookingId)
+        .maybeSingle();
+
+      const expTitle = (bk as any)?.experiences?.title ?? "tu experiencia";
+      const businessId = (bk as any)?.experiences?.business_id ?? null;
+
+      const notes: any[] = [
+        {
+          user_id: session.buyer_user_id,
+          type: "payment_confirmed",
+          title: "¡Reserva confirmada!",
+          body: `Tu reserva para ${expTitle} está confirmada.`,
+          entity_type: "experience_booking",
+          entity_id: bookingId,
+        },
+      ];
+      if (businessId && businessId !== session.buyer_user_id) {
+        notes.push({
+          user_id: businessId,
+          type: "payment_confirmed",
+          title: "Nueva reserva pagada",
+          body: `Tenés una nueva reserva para ${expTitle}.`,
+          entity_type: "experience_booking",
+          entity_id: bookingId,
+        });
+      }
+      await supabase.from("notifications").insert(notes);
+
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
 
     const quantity = Math.max(Number((session as any).quantity ?? 1) || 1, 1);
     const assignees: (string | null)[] = Array.isArray((session as any).assignees)

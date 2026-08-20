@@ -86,6 +86,7 @@ const BusinessMenu = lazyWithRetry(() => import("./pages/BusinessMenu"));
 const BusinessSales = lazyWithRetry(() => import("./pages/BusinessSales"));
 const VenueLayouts = lazyWithRetry(() => import("./pages/VenueLayouts"));
 const BusinessPlans = lazyWithRetry(() => import("./pages/BusinessPlans"));
+const BusinessExperiences = lazyWithRetry(() => import("./pages/BusinessExperiences"));
 const JoinedEvents = lazyWithRetry(() => import("./pages/JoinedEvents"));
 const Help = lazyWithRetry(() => import("./pages/Help"));
 const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
@@ -249,6 +250,7 @@ const AppRoutes = () => {
         <Route path="/settings/business/sales" element={<ProtectedRoute requireProfile><LazyRoute><BusinessSales /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/business/layouts" element={<ProtectedRoute requireProfile><LazyRoute><VenueLayouts /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/business/plans" element={<ProtectedRoute requireProfile><LazyRoute><BusinessPlans /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/business/experiences" element={<ProtectedRoute requireProfile><LazyRoute><BusinessExperiences /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/joined-events" element={<ProtectedRoute requireProfile><LazyRoute><JoinedEvents /></LazyRoute></ProtectedRoute>} />
 
         <Route path="/settings/help" element={<ProtectedRoute requireProfile><LazyRoute><Help /></LazyRoute></ProtectedRoute>} />
