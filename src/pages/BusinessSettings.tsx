@@ -14,11 +14,18 @@ import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isFoodBusinessType } from "@/lib/businessTypes";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscriptionTiers";
+import { useDashboardAccess } from "@/hooks/useDashboardAccess";
+import { BusinessIntroSheet } from "@/components/business/BusinessIntroSheet";
+import { BusinessTypePickerSheet } from "@/components/business/BusinessTypePickerSheet";
+import { BusinessSetupChecklist, SetupStep } from "@/components/business/BusinessSetupChecklist";
 
 const BusinessSettings = () => {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
   const [togglingBusiness, setTogglingBusiness] = useState(false);
+  const [introOpen, setIntroOpen] = useState(false);
+  const [typePickerOpen, setTypePickerOpen] = useState(false);
+  const [savingType, setSavingType] = useState(false);
   
 
   useSwipeBack();
@@ -28,7 +35,71 @@ const BusinessSettings = () => {
   const menuEnabled = (profile as any)?.menu_enabled !== false;
   const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
   const isFoodBusiness = isBusiness && isFoodBusinessType((profile as any)?.business_type);
-  const { tier } = useSubscriptionTier(isFoodBusiness ? user?.id : undefined);
+  const { tier, needsActivation } = useSubscriptionTier(isFoodBusiness ? user?.id : undefined);
+  const { hasPayouts } = useDashboardAccess();
+  const businessType = (profile as any)?.business_type as string | undefined;
+
+  const setupSteps: SetupStep[] = isBusiness
+    ? [
+        {
+          key: "type",
+          label: "Elegí tu tipo de negocio",
+          hint: "Define qué herramientas ves",
+          done: !!businessType,
+          onClick: () => setTypePickerOpen(true),
+        },
+        {
+          key: "info",
+          label: "Completá tu información",
+          hint: "Dirección, horarios y teléfono",
+          done: !!(profile as any)?.business_address,
+          onClick: () => navigate("/settings/business/info"),
+        },
+        ...(isFoodBusiness
+          ? [
+              {
+                key: "plan",
+                label: "Activá tu plan",
+                hint: `Desde Bs. ${SUBSCRIPTION_TIERS.basico.price_bob}/mes · desbloquea reservas`,
+                done: !needsActivation,
+                onClick: () => navigate("/settings/business/plans"),
+              } as SetupStep,
+            ]
+          : []),
+        {
+          key: "payments",
+          label: "Configurá tus pagos",
+          hint: "Para recibir el dinero de tus entradas",
+          done: !!hasPayouts,
+          onClick: () => navigate("/settings/business/payments"),
+        },
+      ]
+    : [];
+
+  const activateBusiness = async () => {
+    await handleToggleBusiness(true);
+    setIntroOpen(false);
+    setTypePickerOpen(true);
+  };
+
+  const saveBusinessType = async (value: string, isFood: boolean) => {
+    if (!user) return;
+    setSavingType(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ business_type: value, is_food_business: isFood } as any)
+        .eq("id", user.id);
+      if (error) throw error;
+      await refreshProfile();
+      setTypePickerOpen(false);
+      if (isFood) navigate("/settings/business/plans");
+    } catch (error: any) {
+      toast.error(error.message || "Error al guardar el tipo de negocio");
+    } finally {
+      setSavingType(false);
+    }
+  };
 
   const handleToggleBusiness = async (value: boolean) => {
     if (!user) return;
@@ -76,13 +147,15 @@ const BusinessSettings = () => {
           </div>
           <Switch
             checked={isBusiness}
-            onCheckedChange={handleToggleBusiness}
+            onCheckedChange={(v) => (v ? setIntroOpen(true) : handleToggleBusiness(false))}
             disabled={togglingBusiness}
           />
         </m.div>
 
         {isBusiness && (
           <>
+            <BusinessSetupChecklist steps={setupSteps} />
+
             {/* Dashboard Button */}
             <m.button
               initial={{ opacity: 0, y: 10 }}
@@ -259,6 +332,20 @@ const BusinessSettings = () => {
           </>
         )}
       </div>
+
+      <BusinessIntroSheet
+        open={introOpen}
+        onOpenChange={setIntroOpen}
+        onActivate={activateBusiness}
+        isActivating={togglingBusiness}
+      />
+      <BusinessTypePickerSheet
+        open={typePickerOpen}
+        onOpenChange={setTypePickerOpen}
+        initialType={businessType}
+        onSelect={saveBusinessType}
+        isSaving={savingType}
+      />
     </div>
   );
 };
