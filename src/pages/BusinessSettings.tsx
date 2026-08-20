@@ -2,7 +2,7 @@ import { useState } from "react";
 import { m } from "framer-motion";
 import {
   ArrowLeft, Briefcase, BarChart3, ChevronRight,
-  UtensilsCrossed, CalendarCheck, CreditCard, Info, TrendingUp, LayoutGrid,
+  UtensilsCrossed, CalendarCheck, CreditCard, Info, TrendingUp, LayoutGrid, Sparkles,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { isFoodBusinessType } from "@/lib/businessTypes";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { SUBSCRIPTION_TIERS } from "@/lib/subscriptionTiers";
 
 const BusinessSettings = () => {
   const navigate = useNavigate();
@@ -24,6 +27,8 @@ const BusinessSettings = () => {
   const showVenueLayouts = false; // Hidden until venue layout feature is more developed
   const menuEnabled = (profile as any)?.menu_enabled !== false;
   const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
+  const isFoodBusiness = isBusiness && isFoodBusinessType((profile as any)?.business_type);
+  const { tier } = useSubscriptionTier(isFoodBusiness ? user?.id : undefined);
 
   const handleToggleBusiness = async (value: boolean) => {
     if (!user) return;
