@@ -1,16 +1,20 @@
 import { useState } from "react";
 import { m } from "framer-motion";
-import { ArrowLeft, Plus, Sparkles, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Sparkles, Pencil, Trash2, HelpCircle, Landmark, Megaphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import {
   useBusinessExperiences,
   useDeleteExperience,
   type Experience,
 } from "@/hooks/useExperiences";
 import { ExperienceEditorSheet } from "@/components/experiences/ExperienceEditorSheet";
+import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { EXPERIENCES_INTRO } from "@/components/business/featureIntroSteps";
 
 /** Business hub for creating and managing bookable experiences. */
 const BusinessExperiences = () => {
@@ -20,9 +24,12 @@ const BusinessExperiences = () => {
 
   const { data: experiences = [], isLoading } = useBusinessExperiences(user?.id);
   const remove = useDeleteExperience();
+  const { hasBeneficiary } = useHasBeneficiary();
+  const intro = useFeatureIntro("experiences");
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Experience | null>(null);
+  const [beneficiaryGate, setBeneficiaryGate] = useState(false);
 
   const openEditor = (exp: Experience | null) => {
     setEditing(exp);
@@ -40,7 +47,14 @@ const BusinessExperiences = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="font-brand text-xl font-medium text-foreground">Experiencias</h1>
+          <h1 className="flex-1 font-brand text-xl font-medium text-foreground">Experiencias</h1>
+          <button
+            type="button"
+            onClick={intro.reopen}
+            className="flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground active:opacity-60"
+          >
+            <HelpCircle className="h-3.5 w-3.5" /> ¿Cómo funciona?
+          </button>
         </div>
       </header>
 
@@ -49,6 +63,32 @@ const BusinessExperiences = () => {
           Creá experiencias con horarios, cupos y precios. Tus clientes reservan y pagan por adelantado
           con QR, igual que una entrada.
         </p>
+
+        {!hasBeneficiary && (
+          <m.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-border bg-card p-4"
+          >
+            <div className="flex items-start gap-3">
+              <Landmark className="mt-0.5 h-5 w-5 shrink-0 text-foreground" />
+              <div className="min-w-0">
+                <p className="font-medium text-foreground">Necesitás tus datos de cobro</p>
+                <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
+                  Sin una cuenta bancaria registrada podés preparar tus experiencias, pero no publicarlas
+                  ni cobrar las reservas.
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="sheet-action"
+              className="mt-3 h-11 w-full rounded-full"
+              onClick={() => navigate("/settings/business/payments")}
+            >
+              Configurar cobros
+            </Button>
+          </m.div>
+        )}
 
         {isLoading ? (
           <div className="h-24 animate-pulse rounded-2xl bg-muted/40" />
@@ -72,24 +112,45 @@ const BusinessExperiences = () => {
               key={exp.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
+              className="rounded-2xl border border-border bg-card p-4"
             >
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-foreground">{exp.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {exp.duration_minutes} min · {exp.is_active ? "Publicada" : "Oculta"}
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-foreground">{exp.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {exp.duration_minutes} min ·{" "}
+                    {exp.is_active
+                      ? "Publicada"
+                      : hasBeneficiary
+                      ? "Oculta"
+                      : "Oculta · falta configurar cobros"}
+                  </p>
+                </div>
+                <button type="button" className="p-2 text-muted-foreground" onClick={() => openEditor(exp)}>
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  className="p-2 text-muted-foreground"
+                  onClick={() => remove.mutate(exp.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
-              <button type="button" className="p-2 text-muted-foreground" onClick={() => openEditor(exp)}>
-                <Pencil className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                className="p-2 text-muted-foreground"
-                onClick={() => remove.mutate(exp.id)}
+
+              <Button
+                variant="outline"
+                className="mt-3 h-10 w-full rounded-full text-sm"
+                onClick={() => {
+                  if (!hasBeneficiary) {
+                    setBeneficiaryGate(true);
+                    return;
+                  }
+                  navigate("/create", { state: { experienceId: exp.id } });
+                }}
               >
-                <Trash2 className="h-4 w-4" />
-              </button>
+                <Megaphone className="mr-1.5 h-4 w-4" /> Publicar
+              </Button>
             </m.div>
           ))
         )}
@@ -109,8 +170,13 @@ const BusinessExperiences = () => {
           onOpenChange={setEditorOpen}
           businessId={user.id}
           experience={editing}
+          canPublish={hasBeneficiary}
+          onRequirePayouts={() => setBeneficiaryGate(true)}
         />
       )}
+
+      <BeneficiaryRequiredSheet open={beneficiaryGate} onOpenChange={setBeneficiaryGate} />
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={EXPERIENCES_INTRO} />
     </div>
   );
 };
