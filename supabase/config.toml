@@ -33,6 +33,8 @@ project_id = "fipdpcitsjpqivljrktj"
     verify_jwt = true
   [functions.send-reservation-reminders]
     verify_jwt = false
+  [functions.send-reservation-emails]
+    verify_jwt = true
   [functions.stripe-webhook]
     verify_jwt = false
   [functions.send-transactional-email]

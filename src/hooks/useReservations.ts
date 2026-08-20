@@ -36,6 +36,18 @@ interface CreateReservationParams {
   tagged_user_ids?: string[];
 }
 
+/** Fire-and-forget notification emails; never block or fail the booking flow. */
+const sendReservationEmails = (
+  reservationId: string,
+  kind: "created" | "cancelled",
+) => {
+  supabase.functions
+    .invoke("send-reservation-emails", { body: { reservationId, kind } })
+    .catch((e) => console.error("send-reservation-emails failed", e));
+};
+
+
+
 export const useCreateReservation = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -56,11 +68,12 @@ export const useCreateReservation = () => {
       if (error) throw error;
       return { id: reservationId as string };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: ({ id }) => {
       haptic("success");
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
       toast.success("¡Reserva confirmada!");
+      sendReservationEmails(id, "created");
     },
     onError: (error: any) => {
       console.error("Error creating reservation:", error);
@@ -132,12 +145,14 @@ export const useCancelReservation = () => {
         _status: "cancelled",
       });
       if (error) throw error;
+      return reservationId;
     },
-    onSuccess: () => {
+    onSuccess: (reservationId) => {
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       queryClient.invalidateQueries({ queryKey: ["reservation-detail"] });
       queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
       toast.success("Reserva cancelada");
+      sendReservationEmails(reservationId, "cancelled");
     },
     onError: (error: any) => {
       toast.error(error?.message || "Error al cancelar la reserva");
@@ -177,14 +192,15 @@ export const useSetReservationStatus = () => {
         _status: status,
       });
       if (error) throw error;
-      return status;
+      return { status, reservationId };
     },
-    onSuccess: (status) => {
+    onSuccess: ({ status, reservationId }) => {
       haptic("success");
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       queryClient.invalidateQueries({ queryKey: ["reservation-detail"] });
       queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
       toast.success(STATUS_TOAST[status]);
+      if (status === "cancelled") sendReservationEmails(reservationId, "cancelled");
     },
     onError: (error: any) => {
       toast.error(error?.message || "Error al actualizar la reserva");
