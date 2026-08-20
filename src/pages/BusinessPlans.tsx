@@ -11,7 +11,7 @@ import { cancelSubscription, BILLING_CONTACT_EMAIL } from "@/lib/subscriptionBil
 const BusinessPlans = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { tier: currentTier, status, needsActivation } = useSubscriptionTier(user?.id);
+  const { tier: currentTier, needsActivation } = useSubscriptionTier(user?.id);
 
   useSwipeBack();
 

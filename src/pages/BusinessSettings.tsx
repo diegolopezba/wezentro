@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { m } from "framer-motion";
 import {
   ArrowLeft, Briefcase, BarChart3, ChevronRight,
@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ import { BusinessSetupChecklist, SetupStep } from "@/components/business/Busines
 
 const BusinessSettings = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, profile, refreshProfile } = useAuth();
   const [togglingBusiness, setTogglingBusiness] = useState(false);
   const [introOpen, setIntroOpen] = useState(false);
@@ -75,6 +76,13 @@ const BusinessSettings = () => {
         },
       ]
     : [];
+
+  useEffect(() => {
+    if ((location.state as any)?.intro && profile?.is_business !== true) {
+      setIntroOpen(true);
+      window.history.replaceState({}, "");
+    }
+  }, [location.state, profile?.is_business]);
 
   const activateBusiness = async () => {
     await handleToggleBusiness(true);
