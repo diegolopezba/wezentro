@@ -83,19 +83,43 @@ export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
       {isLoading ? (
         <Skeleton className="h-28 rounded-2xl" />
       ) : (
-        <div className="grid grid-cols-3 gap-3">
+        <div className={`grid gap-3 ${fullAnalytics ? "grid-cols-3" : "grid-cols-2"}`}>
           <StatsCard title="Reservas" value={stats.total} icon={CalendarCheck} delay={0} />
           <StatsCard title="Invitados" value={stats.guests} icon={Users} delay={0.05} />
-          <StatsCard
-            title="Cancelación"
-            value={`${stats.cancelRate.toFixed(0)}%`}
-            icon={XCircle}
-            delay={0.1}
-          />
+          {fullAnalytics && (
+            <StatsCard
+              title="Cancelación"
+              value={`${stats.cancelRate.toFixed(0)}%`}
+              icon={XCircle}
+              delay={0.1}
+            />
+          )}
         </div>
       )}
 
-      {stats.enoughForBreakdown && (
+      {!fullAnalytics && (
+        <section className="rounded-2xl bg-card border border-border p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-muted-foreground" />
+            <h3 className="font-brand text-sm font-semibold text-foreground">
+              Analíticas completas de reservas
+            </h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Tasa de cancelación, no-shows y los días y franjas que más se llenan.{" "}
+            {featureUpgradeLabel("reservas_analytics_full")}.
+          </p>
+          <Button
+            variant="default"
+            className="w-full rounded-full mt-1"
+            onClick={() => setPlansOpen(true)}
+          >
+            Ver planes
+          </Button>
+        </section>
+      )}
+
+      {fullAnalytics && stats.enoughForBreakdown && (
         <section className="rounded-2xl bg-card border border-border p-4">
           <h3 className="font-brand text-sm font-semibold text-foreground mb-3">
             Días que más se llenan
@@ -126,6 +150,8 @@ export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
         <h3 className="font-brand text-sm font-semibold text-foreground">Próximas reservas</h3>
         <ReservationsSummary />
       </section>
+
+      <PlansSheet open={plansOpen} onOpenChange={setPlansOpen} currentTier={tier} />
     </div>
   );
 };
