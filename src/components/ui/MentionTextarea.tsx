@@ -158,7 +158,9 @@ export const MentionTextarea = ({
       {/* Mirror div — renders colored highlights behind the transparent textarea */}
       <div
         ref={mirrorRef}
-        aria-hidden="true" className={cn( "absolute inset-0 flex min-h-[80px] w-full rounded-md border border-transparent px-3 py-2 text-sm pointer-events-none overflow-hidden whitespace-pre-wrap break-words",
+        aria-hidden="true"
+        className={cn(
+          "absolute inset-0 block min-h-[80px] w-full rounded-md border border-input px-3 py-2 text-sm pointer-events-none overflow-hidden",
           className
         )}
         style={{
@@ -167,12 +169,17 @@ export const MentionTextarea = ({
           lineHeight: "inherit",
           letterSpacing: "inherit",
           wordSpacing: "inherit",
+          whiteSpace: "pre-wrap",
+          overflowWrap: "break-word",
+          wordBreak: "normal",
+          tabSize: 4 as unknown as number,
           color: "hsl(var(--foreground))",
           background: "transparent",
+          borderColor: "transparent",
           zIndex: 0,
           ...style,
         }}
-        dangerouslySetInnerHTML={{ __html: buildHighlightHTML(value) + "&nbsp;" }}
+        dangerouslySetInnerHTML={{ __html: buildHighlightHTML(value) + "\u200b" }}
       />
       <textarea
         ref={textareaRef}
@@ -180,12 +187,25 @@ export const MentionTextarea = ({
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         onScroll={syncScroll}
-        className={cn( "relative flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none",
+        className={cn(
+          "relative block min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none",
           className
         )}
-        style={{ ...style, position: "relative", zIndex: 1, background: "transparent", color: "transparent", caretColor: "hsl(var(--foreground))" }}
+        style={{
+          ...style,
+          position: "relative",
+          zIndex: 1,
+          background: "transparent",
+          color: "transparent",
+          caretColor: "hsl(var(--foreground))",
+          whiteSpace: "pre-wrap",
+          overflowWrap: "break-word",
+          wordBreak: "normal",
+          tabSize: 4 as unknown as number,
+        }}
         {...props}
       />
+
       {showDropdown && suggestions.length > 0 && (
         <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-popover border border-border rounded-xl shadow-lg overflow-hidden">
           {suggestions.map((user) => (
