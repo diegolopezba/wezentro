@@ -21,4 +21,5 @@ export function useDirtyBaseline<T>(current: T) {
 }
 
 /** Save buttons stay muted until there is something to save. */
-export const saveVariant = (isDirty: boolean) => (isDirty ? "save" : "default") as const;
+export const saveVariant = (isDirty: boolean): "save" | "default" =>
+  isDirty ? "save" : "default";
