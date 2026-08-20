@@ -682,11 +682,8 @@ const Create = () => {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               maxLength={2000}
-              className="rounded-xl border-border bg-secondary/50 px-4 py-3 text-base min-h-[120px] resize-none" onFocus={(e) => {
-                setTimeout(() => {
-                  e.target.scrollIntoView({ behavior: "smooth", block: "center" });
-                }, 300);
-              }}
+              className="rounded-xl border-border bg-secondary/50 px-4 py-3 text-base min-h-[120px] resize-none"
+
             />
           </div>
         </m.div>
