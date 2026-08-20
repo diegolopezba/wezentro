@@ -1067,7 +1067,7 @@ const Create = () => {
       </div>
 
       <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
-      <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} />
+      <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} context={beneficiaryGateContext} />
     </AppLayout>);
 
 };
