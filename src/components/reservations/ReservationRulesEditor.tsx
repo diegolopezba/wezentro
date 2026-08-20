@@ -73,12 +73,14 @@ export const ReservationRulesEditor = ({ businessId }: Props) => {
       label: "Cancelación (horas antes)",
       hint: "Hasta cuándo el cliente puede cancelar o modificar.",
       min: 0,
+      feature: "full_reservation_policy",
     },
     {
       key: "arrival_grace_minutes",
       label: "Tolerancia de llegada (min)",
       hint: "Después de este tiempo puedes marcar no-show.",
       min: 0,
+      feature: "full_reservation_policy",
     },
   ];
 
