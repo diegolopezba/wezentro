@@ -33,9 +33,16 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       manifest: {
-        name: "Zentro - Pinterest for Nightlife",
+        id: "/",
+        lang: "es",
+        dir: "ltr",
+        categories: ["social", "lifestyle", "entertainment"],
+        display_override: ["standalone"],
+        prefer_related_applications: false,
+        name: "Zentro - El pinterest de la vida social",
         short_name: "Zentro",
-        description: "Discover and join the best nightlife events in your city",
+        description:
+          "Descubre y únete a los mejores eventos, restaurantes y vida nocturna de tu ciudad.",
         theme_color: "#0A0A0B",
         background_color: "#0A0A0B",
         display: "standalone",

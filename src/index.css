@@ -89,6 +89,9 @@
     @apply bg-background text-foreground antialiased;
     font-family: "Inter", system-ui, sans-serif;
     min-height: 100vh;
+    /* Installed/standalone shells: keep the browser's own pull-to-refresh and
+       rubber-band chaining out of the way; the app ships its own PullToRefresh. */
+    overscroll-behavior-y: contain;
   }
 
   h1,

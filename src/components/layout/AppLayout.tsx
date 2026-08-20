@@ -1,5 +1,6 @@
 import { ReactNode, forwardRef } from "react";
 import { BottomNav } from "./BottomNav";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 export interface AppLayoutProps {
   children: ReactNode;
@@ -10,6 +11,8 @@ export const AppLayout = forwardRef<HTMLDivElement, AppLayoutProps>(
   ({ children, hideNav = false }, ref) => {
     return (
       <div ref={ref} className="min-h-[100dvh] bg-background overflow-auto">
+        <OfflineBanner />
+
         {/* Main content */}
         <main className={hideNav ? "" : "pb-24"}>
           {children}
