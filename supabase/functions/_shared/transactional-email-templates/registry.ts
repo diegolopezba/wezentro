@@ -18,4 +18,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'special-invite': specialInvite,
   'invite-confirmed': inviteConfirmed,
   'tickets-purchased': ticketsPurchased,
+  'reservation-confirmed': reservationConfirmed,
+  'reservation-received': reservationReceived,
 }
