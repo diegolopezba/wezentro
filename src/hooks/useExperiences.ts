@@ -80,6 +80,23 @@ export const usePublicExperiences = (businessId: string | undefined) =>
     },
   });
 
+/** Single experience by id (used to render the booking CTA on a linked post). */
+export const useExperience = (experienceId: string | undefined | null) =>
+  useQuery({
+    queryKey: ["experience", experienceId],
+    enabled: !!experienceId,
+    queryFn: async (): Promise<Experience | null> => {
+      const { data, error } = await db
+        .from("experiences")
+        .select("*")
+        .eq("id", experienceId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as Experience | null;
+    },
+  });
+
+
 export const useExperienceConfig = (experienceId: string | undefined) =>
   useQuery({
     queryKey: ["experience-config", experienceId],

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { m } from "framer-motion";
-import { ArrowLeft, CalendarCheck } from "lucide-react";
+import { ArrowLeft, HelpCircle, CalendarCheck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { RESERVATIONS_INTRO } from "@/components/business/featureIntroSteps";
 import { TablesEditor } from "@/components/reservations/TablesEditor";
 import { ReservationScheduleEditor } from "@/components/reservations/ReservationScheduleEditor";
 import { ReservationRulesEditor } from "@/components/reservations/ReservationRulesEditor";
@@ -24,6 +26,7 @@ const BusinessReservations = () => {
 
   const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
   const { needsActivation } = useSubscriptionTier(user?.id);
+  const intro = useFeatureIntro("reservations");
 
   const handleToggleReservations = async (value: boolean) => {
     if (!user) return;
@@ -51,7 +54,14 @@ const BusinessReservations = () => {
           <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-medium text-foreground">Reservas</h1>
+          <h1 className="flex-1 font-brand text-xl font-medium text-foreground">Reservas</h1>
+          <button
+            type="button"
+            onClick={intro.reopen}
+            className="flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground active:opacity-60"
+          >
+            <HelpCircle className="h-3.5 w-3.5" /> ¿Cómo funciona?
+          </button>
         </div>
       </header>
 
@@ -113,6 +123,7 @@ const BusinessReservations = () => {
           </m.div>
         )}
       </div>
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={RESERVATIONS_INTRO} />
     </div>
   );
 };

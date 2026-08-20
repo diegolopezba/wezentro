@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { m } from "framer-motion";
-import { ArrowLeft, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, HelpCircle, UtensilsCrossed } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { MENU_INTRO } from "@/components/business/featureIntroSteps";
 import { MenuEditor } from "@/components/menu/MenuEditor";
 
 const BusinessMenu = () => {
@@ -18,6 +20,7 @@ const BusinessMenu = () => {
   useSwipeBack();
 
   const menuEnabled = (profile as any)?.menu_enabled !== false;
+  const intro = useFeatureIntro("menu");
 
   const handleToggleMenu = async (value: boolean) => {
     if (!user) return;
@@ -48,7 +51,14 @@ const BusinessMenu = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-medium text-foreground">Menú</h1>
+          <h1 className="flex-1 font-brand text-xl font-medium text-foreground">Menú</h1>
+          <button
+            type="button"
+            onClick={intro.reopen}
+            className="flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground active:opacity-60"
+          >
+            <HelpCircle className="h-3.5 w-3.5" /> ¿Cómo funciona?
+          </button>
         </div>
       </header>
 
@@ -84,6 +94,7 @@ const BusinessMenu = () => {
           </m.div>
         )}
       </div>
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={MENU_INTRO} />
     </div>
   );
 };
