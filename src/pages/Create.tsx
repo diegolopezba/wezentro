@@ -142,6 +142,11 @@ const Create = () => {
   const linkedExperience = myExperiences.find((e) => e.id === experienceId) ?? null;
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
+  const [beneficiaryGateContext, setBeneficiaryGateContext] = useState<"tickets" | "experience">("tickets");
+  const openBeneficiaryGate = (ctx: "tickets" | "experience" = "tickets") => {
+    setBeneficiaryGateContext(ctx);
+    setShowBeneficiaryGate(true);
+  };
   const gatePaidAction = () => {
     if (!isBusiness) setShowBusinessGate(true);
     else if (!hasBeneficiary) setShowBeneficiaryGate(true);
