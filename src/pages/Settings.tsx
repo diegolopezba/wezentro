@@ -115,12 +115,6 @@ const Settings = () => {
               />
             }
           />
-          <SettingsRow
-            icon={User}
-            label="Editar Perfil"
-            onClick={() => navigate("/edit-profile")}
-            delay={0.04}
-          />
         </SettingsGroup>
 
         {!isBusiness && !businessPromoDismissed && (
