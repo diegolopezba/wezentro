@@ -1,20 +1,20 @@
 import { useState } from "react";
 import { m } from "framer-motion";
-import { Store, X, User, Shield, HelpCircle, LogOut, Bookmark, ChevronRight, ChevronLeft, Gift, Briefcase, Ban, BarChart3, Wallet } from "lucide-react";
+import { Store, X, User, Shield, HelpCircle, LogOut, Bookmark, ChevronLeft, Gift, Briefcase, Ban, BarChart3, Wallet } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDashboardAccess } from "@/hooks/useDashboardAccess";
+import { SettingsGroup, SettingsRow } from "@/components/settings/SettingsRow";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { toast } from "sonner";
-
 
 interface SettingsItem {
   icon: React.ElementType;
   label: string;
   sublabel?: string;
   path: string;
-  highlight?: boolean;
 }
 
 interface SettingsSection {
@@ -24,7 +24,7 @@ interface SettingsSection {
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
   const { isBusiness, hasPayouts } = useDashboardAccess();
   const [businessPromoDismissed, setBusinessPromoDismissed] = useState(
     () => localStorage.getItem("business-promo-dismissed") === "1",
@@ -36,7 +36,7 @@ const Settings = () => {
   };
 
   const businessItems: SettingsItem[] = [
-    { icon: Briefcase, label: "Business", path: "/settings/business", highlight: true },
+    { icon: Briefcase, label: "Business", path: "/settings/business" },
   ];
 
   if (isBusiness && hasPayouts) {
@@ -45,7 +45,6 @@ const Settings = () => {
       label: "Dashboard",
       sublabel: "Analíticas, ventas y reservas",
       path: "/dashboard",
-      highlight: true,
     });
   } else if (isBusiness) {
     businessItems.push({
@@ -60,7 +59,6 @@ const Settings = () => {
     {
       title: "Personal",
       items: [
-        { icon: User, label: "Editar Perfil", path: "/edit-profile" },
         { icon: Bookmark, label: "Guardados", path: "/saved" },
         { icon: Shield, label: "Privacidad", path: "/settings/privacy" },
         { icon: Ban, label: "Usuarios Bloqueados", path: "/settings/blocks" },
@@ -78,7 +76,6 @@ const Settings = () => {
       ],
     },
   ];
-
 
   const handleSignOut = async () => {
     await signOut();
@@ -103,8 +100,29 @@ const Settings = () => {
         </div>
       </header>
 
+      <div className="px-4 py-2 space-y-5 pb-8">
+        {/* Profile row */}
+        <SettingsGroup>
+          <SettingsRow
+            label={profile?.full_name || profile?.username || "Mi perfil"}
+            sublabel={profile?.username}
+            onClick={() => navigate("/edit-profile")}
+            left={
+              <img
+                src={profile?.avatar_url || DEFAULT_AVATAR}
+                alt=""
+                className="h-10 w-10 shrink-0 rounded-full object-cover"
+              />
+            }
+          />
+          <SettingsRow
+            icon={User}
+            label="Editar Perfil"
+            onClick={() => navigate("/edit-profile")}
+            delay={0.04}
+          />
+        </SettingsGroup>
 
-      <div className="px-4 py-2 space-y-6 pb-8">
         {!isBusiness && !businessPromoDismissed && (
           <m.div
             initial={{ opacity: 0, y: 6 }}
@@ -141,57 +159,34 @@ const Settings = () => {
         )}
 
         {sections.map((section) => (
-          <div key={section.title}>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">
-              {section.title}
-            </p>
-            <div className="rounded-2xl bg-card border border-border overflow-hidden divide-y divide-border">
-              {section.items.map((item) => {
-                const Icon = item.icon;
-                const idx = globalIndex++;
-                return (
-                  <m.button
-                    key={item.label}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.04 }}
-                    onClick={() => navigate(item.path)}
-                    className="w-full flex items-center gap-4 py-3.5 px-4"
-                  >
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.highlight ? "bg-primary/15" : "bg-secondary"}`}>
-                      <Icon className={`w-4 h-4 ${item.highlight ? "text-primary" : "text-muted-foreground"}`} />
-                    </div>
-                    <span className="flex-1 text-left min-w-0">
-                      <span className="block font-medium text-sm text-foreground">{item.label}</span>
-                      {item.sublabel && (
-                        <span className="block text-xs text-muted-foreground">{item.sublabel}</span>
-                      )}
-                    </span>
-
-                    <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
-                  </m.button>
-                );
-              })}
-            </div>
-          </div>
+          <SettingsGroup key={section.title} title={section.title}>
+            {section.items.map((item) => {
+              const idx = globalIndex++;
+              return (
+                <SettingsRow
+                  key={item.label}
+                  icon={item.icon}
+                  label={item.label}
+                  sublabel={item.sublabel}
+                  onClick={() => navigate(item.path)}
+                  delay={idx * 0.03}
+                />
+              );
+            })}
+          </SettingsGroup>
         ))}
 
-        <div className="rounded-2xl bg-card border border-border overflow-hidden">
-          <m.button
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+        <SettingsGroup>
+          <SettingsRow
+            icon={LogOut}
+            label="Cerrar Sesión"
             onClick={handleSignOut}
-            className="w-full flex items-center gap-4 py-3.5 px-4"
-          >
-            <div className="w-8 h-8 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
-              <LogOut className="w-4 h-4 text-destructive" />
-            </div>
-            <span className="text-destructive font-medium flex-1 text-left text-sm">Cerrar Sesión</span>
-          </m.button>
-        </div>
+            destructive
+            right={<span />}
+            delay={0.3}
+          />
+        </SettingsGroup>
       </div>
-      
     </AppLayout>
   );
 };
