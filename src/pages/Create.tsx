@@ -758,6 +758,70 @@ const Create = () => {
           </AnimatePresence>
         </m.div>
 
+        {/* ── Link a bookable experience (business only) ── */}
+        {isBusiness && (
+          <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <Card className="glass border-white/10 p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-foreground">Reservar una experiencia</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Vinculá esta publicación a una experiencia para que la gente reserve y pague por adelantado.
+                  </p>
+                </div>
+              </div>
+
+              {activeExperiences.length === 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full rounded-full h-10 text-sm"
+                  onClick={() => navigate("/settings/business/experiences")}
+                >
+                  Crear experiencia
+                </Button>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setExperienceId(null)}
+                    className={cn(
+                      "px-3 py-2 rounded-full text-sm border transition-colors",
+                      !experienceId ? "bg-foreground text-background border-transparent" : "border-border text-muted-foreground",
+                    )}
+                  >
+                    Ninguna
+                  </button>
+                  {activeExperiences.map((exp) => (
+                    <button
+                      key={exp.id}
+                      type="button"
+                      onClick={() => setExperienceId(exp.id)}
+                      className={cn(
+                        "px-3 py-2 rounded-full text-sm border transition-colors max-w-full truncate",
+                        experienceId === exp.id
+                          ? "bg-foreground text-background border-transparent"
+                          : "border-border text-muted-foreground",
+                      )}
+                    >
+                      {exp.title}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {linkedExperience && (
+                <p className="text-xs text-muted-foreground">
+                  El precio y los horarios vienen de “{linkedExperience.title}”. No hace falta configurar entradas.
+                </p>
+              )}
+            </Card>
+          </m.div>
+        )}
+
         {/* ── Event-only fields (date, time, location, price, capacity) ── */}
         <AnimatePresence>
           {!isPost &&
