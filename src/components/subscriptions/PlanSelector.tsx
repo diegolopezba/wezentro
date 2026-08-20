@@ -5,6 +5,7 @@ import {
   CalendarDays,
   CalendarRange,
   Check,
+  ChevronDown,
   Clock,
   Gauge,
   Map as MapIcon,
@@ -22,8 +23,12 @@ import {
   TierHighlightIcon,
   TierKey,
   formatTierPrice,
+  dailyPriceLabel,
+  TIER_COMPARISON,
+  PLAN_FAQ,
 } from "@/lib/subscriptionTiers";
-import { startSubscriptionCheckout } from "@/lib/subscriptionBilling";
+import { PlanConfirmSheet } from "@/components/subscriptions/PlanConfirmSheet";
+import { PlanRecommendationStep } from "@/components/subscriptions/PlanRecommendationStep";
 
 const ICONS: Record<TierHighlightIcon, typeof Check> = {
   calendar: CalendarDays,
@@ -51,6 +56,8 @@ interface PlanSelectorProps {
   subtitle?: string;
   /** Secondary link under the CTA (e.g. "Ver todos los detalles"). */
   footerSlot?: React.ReactNode;
+  /** Ask "how many tables do you have?" first and pre-select the matching plan. */
+  askRecommendation?: boolean;
 }
 
 /**
@@ -66,8 +73,14 @@ export const PlanSelector = ({
   dismissLabel = "Omitir",
   subtitle,
   footerSlot,
+  askRecommendation = false,
 }: PlanSelectorProps) => {
   const [selected, setSelected] = useState<TierKey>(initialTier ?? currentTier);
+  const [showRecommendation, setShowRecommendation] = useState(askRecommendation);
+  const [recommended, setRecommended] = useState<TierKey | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
+  const [showComparison, setShowComparison] = useState(false);
   const pillRefs = useRef<Partial<Record<TierKey, HTMLButtonElement | null>>>({});
 
   useEffect(() => {
@@ -87,6 +100,19 @@ export const PlanSelector = ({
     const next = TIER_ORDER[idx + dir];
     if (next) setSelected(next);
   };
+
+  if (showRecommendation) {
+    return (
+      <PlanRecommendationStep
+        onPick={(t) => {
+          setRecommended(t);
+          setSelected(t);
+          setShowRecommendation(false);
+        }}
+        onSkip={() => setShowRecommendation(false)}
+      />
+    );
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -170,7 +196,7 @@ export const PlanSelector = ({
                 >
                   {tier.name}
                 </h3>
-                {(isCurrent || tier.badge) && (
+                {(isCurrent || tier.badge || recommended === selected) && (
                   <span
                     className={cn(
                       "flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium",
@@ -180,7 +206,11 @@ export const PlanSelector = ({
                     )}
                   >
                     {isCurrent && <Check className="h-3 w-3" />}
-                    {isCurrent ? "Activo" : tier.badge}
+                    {isCurrent
+                      ? "Activo"
+                      : recommended === selected
+                        ? "Recomendado para vos"
+                        : tier.badge}
                   </span>
                 )}
               </div>
@@ -193,6 +223,16 @@ export const PlanSelector = ({
               >
                 {formatTierPrice(selected)}
               </p>
+              {dailyPriceLabel(selected) && (
+                <p
+                  className={cn(
+                    "mt-0.5 text-[13px]",
+                    isSheet ? "text-background/60" : "text-muted-foreground",
+                  )}
+                >
+                  {dailyPriceLabel(selected)}
+                </p>
+              )}
               <p
                 className={cn(
                   "mt-1 text-sm",
@@ -231,6 +271,77 @@ export const PlanSelector = ({
               })}
             </div>
 
+            {/* Comparison table */}
+            <div className="mt-6 overflow-hidden rounded-2xl border border-border/60">
+              <button
+                type="button"
+                onClick={() => setShowComparison((v) => !v)}
+                className="flex w-full items-center justify-between px-4 py-3.5 text-left"
+              >
+                <span className="text-sm font-semibold text-foreground">Comparar planes</span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 text-muted-foreground transition-transform",
+                    showComparison && "rotate-180",
+                  )}
+                />
+              </button>
+              {showComparison && (
+                <div className="px-4 pb-3">
+                  <div className="grid grid-cols-[1.4fr_repeat(3,1fr)] gap-x-2 border-b border-border/60 pb-2 text-[11px] font-semibold text-muted-foreground">
+                    <span />
+                    {TIER_ORDER.map((k) => (
+                      <span key={k} className="text-center">
+                        {SUBSCRIPTION_TIERS[k].name}
+                      </span>
+                    ))}
+                  </div>
+                  {TIER_COMPARISON.map((row) => (
+                    <div
+                      key={row.label}
+                      className="grid grid-cols-[1.4fr_repeat(3,1fr)] gap-x-2 border-b border-border/40 py-2 text-[12px] last:border-0"
+                    >
+                      <span className="text-muted-foreground">{row.label}</span>
+                      {TIER_ORDER.map((k) => (
+                        <span key={k} className="text-center text-foreground">
+                          {row.values[k]}
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* FAQ */}
+            <h4 className="mt-6 font-brand text-base font-semibold text-foreground">
+              Preguntas frecuentes
+            </h4>
+            <div className="mt-2 overflow-hidden rounded-2xl border border-border/60 divide-y divide-border/60">
+              {PLAN_FAQ.map((f) => (
+                <div key={f.q}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq((v) => (v === f.q ? null : f.q))}
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
+                  >
+                    <span className="text-[13px] font-medium text-foreground">{f.q}</span>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                        openFaq === f.q && "rotate-180",
+                      )}
+                    />
+                  </button>
+                  {openFaq === f.q && (
+                    <p className="px-4 pb-3.5 text-[13px] leading-snug text-muted-foreground">
+                      {f.a}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+
             {footerSlot && <div className="pt-4">{footerSlot}</div>}
             <div className="h-4" />
           </m.div>
@@ -244,16 +355,23 @@ export const PlanSelector = ({
           isSheet ? "pb-[max(env(safe-area-inset-bottom),12px)]" : "safe-bottom pb-3",
         )}
       >
+        {!isCurrent && (
+          <p className="pb-2 text-center text-[11px] text-muted-foreground">
+            Sin permanencia · Sin comisión por reserva · Cancelás cuando quieras
+          </p>
+        )}
         <Button
           type="button"
           variant="sheet-action"
           disabled={isCurrent}
           className="h-12 w-full rounded-full text-base"
-          onClick={() => startSubscriptionCheckout(selected)}
+          onClick={() => setConfirmOpen(true)}
         >
           {isCurrent ? "Tu plan actual" : `Quiero ${tier.name}`}
         </Button>
       </div>
+
+      <PlanConfirmSheet open={confirmOpen} onOpenChange={setConfirmOpen} tier={selected} />
     </div>
   );
 };
