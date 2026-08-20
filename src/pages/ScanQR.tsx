@@ -347,7 +347,7 @@ export default function ScanQR() {
 
               {/* Action */}
               <Button
-                variant="hero"
+                variant="sheet-action"
                 size="lg"
                 className="w-full gap-2"
                 onClick={reset}
