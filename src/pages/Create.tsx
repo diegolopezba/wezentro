@@ -758,28 +758,26 @@ const Create = () => {
             className="overflow-hidden space-y-4">
             
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="min-w-0">
                   <label className="text-sm font-medium text-foreground mb-2 block">Fecha</label>
                   <div className="relative">
                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                    type="date" className="pl-10" value={formData.date}
+                    type="date" className="pl-10 w-full" value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     min={new Date().toISOString().split("T")[0]} />
-                  
                   </div>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <label className="text-sm font-medium text-foreground mb-2 block">Hora</label>
                   <Input
-                  type="time" value={formData.time}
+                  type="time" className="w-full min-w-0" value={formData.time}
                   onChange={(e) => setFormData({ ...formData, time: e.target.value })} />
-                
                 </div>
-                <div>
+                <div className="min-w-0 col-span-2 sm:col-span-1">
                   <label className="text-sm font-medium text-foreground mb-2 block">Hora fin (opcional)</label>
                   <Input
-                  type="time" value={formData.endTime}
+                  type="time" className="w-full min-w-0" value={formData.endTime}
                   onChange={(e) => setFormData({ ...formData, endTime: e.target.value })} />
                 </div>
               </div>
