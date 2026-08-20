@@ -191,11 +191,18 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
                 </div>
               ))}
 
-            {!d.closed && (
-              <Button variant="ghost" size="sm" onClick={() => addShift(i)}>
-                <Plus className="w-3.5 h-3.5 mr-1" /> Agregar turno
-              </Button>
-            )}
+            {!d.closed &&
+              (canMultiShift || d.shifts.length === 0 ? (
+                <Button variant="ghost" size="sm" onClick={() => addShift(i)}>
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Agregar turno
+                </Button>
+              ) : (
+                <LockedFeature feature="multi_shift" currentTier={tier}>
+                  <Button variant="ghost" size="sm">
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Agregar turno
+                  </Button>
+                </LockedFeature>
+              ))}
           </div>
         ))}
       </div>
