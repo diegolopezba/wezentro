@@ -28,7 +28,7 @@ const BusinessMiniMap = ({ latitude, longitude, name }: BusinessMiniMapProps) =>
       attributionControl: false,
     });
 
-    new mapboxgl.Marker({ color: "#E60023" })
+    new mapboxgl.Marker({ color: "#FFFFFF" })
       .setLngLat([longitude, latitude])
       .addTo(map);
 

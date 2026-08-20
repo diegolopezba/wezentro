@@ -117,8 +117,8 @@ export const BusinessInfoSheet = ({
 
                     {openNow !== null && (
                       <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border">
-                        <span className={`w-2 h-2 rounded-full ${openNow ? "bg-green-500" : "bg-red-500"}`} />
-                        <span className={`text-xs font-medium ${openNow ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                        <span className={`w-2 h-2 rounded-full ${openNow ? "bg-green-500" : "bg-muted-foreground"}`} />
+                        <span className={`text-xs font-medium ${openNow ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}`}>
                           {openNow ? "Abierto ahora" : "Cerrado ahora"}
                         </span>
                       </div>

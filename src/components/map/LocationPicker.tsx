@@ -53,7 +53,7 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
 
     // Add draggable marker
     marker.current = new mapboxgl.Marker({
-      color: '#E60023',
+      color: '#FFFFFF',
       draggable: true,
     })
       .setLngLat([value.longitude, value.latitude])
