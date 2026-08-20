@@ -21,6 +21,7 @@ interface Props {
 export const ReservationRulesEditor = ({ businessId }: Props) => {
   const { data: policy } = useReservationPolicy(businessId);
   const save = useSaveReservationPolicy(businessId);
+  const { tier, hasFeature } = useSubscriptionTier(businessId);
 
   const [form, setForm] = useState({ ...DEFAULT_POLICY });
   const { isDirty, capture } = useDirtyBaseline(form);
