@@ -11,6 +11,8 @@ import {
   useToggleBlackout,
 } from "@/hooks/useReservationConfig";
 import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { LockedFeature } from "@/components/subscriptions/LockedFeature";
 
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
@@ -36,6 +38,9 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
   const save = useSaveSchedules(businessId);
   const { data: blackouts = [] } = useReservationBlackouts(businessId);
   const toggleBlackout = useToggleBlackout(businessId);
+  const { tier, hasFeature } = useSubscriptionTier(businessId);
+  const canMultiShift = hasFeature("multi_shift");
+  const canBlackouts = hasFeature("blackout_dates");
 
   const [days, setDays] = useState<DayState[]>(() =>
     Array.from({ length: 7 }, () => defaultDay())
