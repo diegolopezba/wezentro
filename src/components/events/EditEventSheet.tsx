@@ -130,11 +130,39 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     }
   }, [open, existingTiers]);
 
-  // Snapshot the hydrated form so the save button can light up on first change
+  // Snapshot the hydrated form so the save button only lights up on real changes
   useEffect(() => {
     if (!open) return;
-    const t = setTimeout(() => capture({ formData, draftTiers, pricingMode, saleMode }), 0);
-    return () => clearTimeout(t);
+    const hydratedTiers: DraftTier[] = existingTiers.map((t) => ({
+      key: t.id,
+      name: t.name,
+      price: String(t.price ?? ""),
+      capacity: t.capacity != null ? String(t.capacity) : "",
+      description: t.description ?? "",
+    }));
+    capture({
+      formData: {
+        title: event.title || "",
+        description: event.description || "",
+        category: event.category || "",
+        start_datetime: format(new Date(event.start_datetime), "yyyy-MM-dd'T'HH:mm"),
+        end_datetime: event.end_datetime ? format(new Date(event.end_datetime), "yyyy-MM-dd'T'HH:mm") : "",
+        location_name: event.location_name || "",
+        latitude: event.latitude ?? null,
+        longitude: event.longitude ?? null,
+        price: event.price?.toString() || "0",
+        max_guestlist_capacity: event.max_guestlist_capacity?.toString() || "",
+        show_menu_button: event.show_menu_button ?? false,
+        show_reservation_button: event.show_reservation_button ?? false,
+        is_location_secret: event.is_location_secret ?? false,
+      },
+      draftTiers: hydratedTiers,
+      pricingMode: existingTiers.length > 0 ? "tiers" : "single",
+      saleMode:
+        existingTiers.length > 0 && existingTiers.some((t) => !!t.unlock_after_tier_id)
+          ? "sequential"
+          : "parallel",
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, event, existingTiers]);
 
