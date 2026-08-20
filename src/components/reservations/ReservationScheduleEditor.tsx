@@ -10,6 +10,7 @@ import {
   useReservationBlackouts,
   useToggleBlackout,
 } from "@/hooks/useReservationConfig";
+import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
 
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
@@ -40,6 +41,7 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
     Array.from({ length: 7 }, () => defaultDay())
   );
   const [newBlackout, setNewBlackout] = useState("");
+  const { isDirty, capture } = useDirtyBaseline(days);
 
   useEffect(() => {
     if (isLoading) return;
@@ -62,6 +64,8 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
       }
     }
     setDays(next);
+    capture(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schedules, isLoading]);
 
   const update = (i: number, patch: Partial<DayState>) =>
@@ -191,7 +195,12 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
         ))}
       </div>
 
-      <Button className="w-full rounded-full" onClick={handleSave} disabled={save.isPending}>
+      <Button
+        variant={saveVariant(isDirty)}
+        className="w-full rounded-full"
+        onClick={() => { handleSave(); capture(days); }}
+        disabled={!isDirty || save.isPending}
+      >
         Guardar horarios
       </Button>
 

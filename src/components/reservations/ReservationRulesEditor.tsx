@@ -9,6 +9,7 @@ import {
   useSaveReservationPolicy,
   DEFAULT_POLICY,
 } from "@/hooks/useReservationConfig";
+import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
 
 interface Props {
   businessId: string;
@@ -19,12 +20,18 @@ export const ReservationRulesEditor = ({ businessId }: Props) => {
   const save = useSaveReservationPolicy(businessId);
 
   const [form, setForm] = useState({ ...DEFAULT_POLICY });
+  const { isDirty, capture } = useDirtyBaseline(form);
 
   useEffect(() => {
     if (policy) {
       const { business_id, ...rest } = policy;
-      setForm({ ...DEFAULT_POLICY, ...rest });
+      const next = { ...DEFAULT_POLICY, ...rest };
+      setForm(next);
+      capture(next);
+    } else {
+      capture({ ...DEFAULT_POLICY });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [policy]);
 
   const num = (v: string, fallback: number) => {
@@ -132,9 +139,10 @@ export const ReservationRulesEditor = ({ businessId }: Props) => {
       </div>
 
       <Button
+        variant={saveVariant(isDirty)}
         className="w-full rounded-full"
-        onClick={() => save.mutate(form)}
-        disabled={save.isPending}
+        onClick={() => { save.mutate(form); capture(form); }}
+        disabled={!isDirty || save.isPending}
       >
         Guardar reglas
       </Button>

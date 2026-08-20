@@ -46,12 +46,19 @@ const BusinessInfo = () => {
       const parsed = parseSchedule(raw);
       setBusinessHours(parsed || DEFAULT_SCHEDULE);
       setBusinessPhone((profile as any).business_phone || "");
-      setBusinessLocation({
+      const loc = {
         address: (profile as any).business_address || "",
         latitude: (profile as any).business_latitude ?? null,
         longitude: (profile as any).business_longitude ?? null,
+      };
+      setBusinessLocation(loc);
+      capture({
+        businessHours: parsed || DEFAULT_SCHEDULE,
+        businessPhone: (profile as any).business_phone || "",
+        businessLocation: loc,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
 
   const handleBusinessTypeChange = async (value: string) => {
@@ -179,8 +186,9 @@ const BusinessInfo = () => {
 
           <Button
             size="sm"
+            variant={saveVariant(isDirty)}
             onClick={handleSave}
-            disabled={saving}
+            disabled={!isDirty || saving}
             className="w-full"
           >
             {saving ? "Guardando..." : (

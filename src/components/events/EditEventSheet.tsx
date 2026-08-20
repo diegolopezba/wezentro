@@ -20,6 +20,7 @@ import { LocationPicker } from "@/components/map/LocationPicker";
 import { BusinessRequiredSheet } from "@/components/events/BusinessRequiredSheet";
 import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
+import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
 
 interface EditEventSheetProps {
   event: {
@@ -85,6 +86,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     is_location_secret: event.is_location_secret ?? false,
   });
 
+  const { isDirty, capture } = useDirtyBaseline({ formData, draftTiers, pricingMode, saleMode });
+
   useEffect(() => {
     if (open) {
       setFormData({
@@ -126,6 +129,14 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       setDraftTiers([]);
     }
   }, [open, existingTiers]);
+
+  // Snapshot the hydrated form so the save button can light up on first change
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(() => capture({ formData, draftTiers, pricingMode, saleMode }), 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, event, existingTiers]);
 
   const handleSave = async () => {
     try {
@@ -454,9 +465,10 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
 
         <div className="shrink-0 pt-4 border-t safe-bottom">
           <Button
+            variant={saveVariant(isDirty)}
             className="w-full"
             onClick={handleSave}
-            disabled={updateEvent.isPending}
+            disabled={!isDirty || updateEvent.isPending}
           >
             {updateEvent.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />

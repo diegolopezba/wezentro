@@ -75,7 +75,25 @@ const EditProfile = () => {
         longitude: profile.business_longitude || null,
         address: profile.business_address || null,
       });
+      capture({
+        formData: {
+          full_name: profile.full_name || "",
+          username: profile.username || "",
+          bio: profile.bio || "",
+          birth_day: birthDay,
+          birth_month: birthMonth,
+          birth_year: birthYear,
+          gender: profile.gender || "",
+        },
+        avatarUrl: profile.avatar_url,
+        businessLocation: {
+          latitude: profile.business_latitude || null,
+          longitude: profile.business_longitude || null,
+          address: profile.business_address || null,
+        },
+      });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
 
   const handleBusinessLocationChange = (
@@ -258,7 +276,7 @@ const EditProfile = () => {
               Editar Perfil
             </h1>
           </div>
-          <Button variant="default" size="sm" onClick={handleSave} disabled={isLoading}>
+          <Button variant={saveVariant(isDirty)} size="sm" onClick={handleSave} disabled={!isDirty || isLoading}>
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
           </Button>
         </div>
