@@ -185,6 +185,27 @@ const BusinessSettings = () => {
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </m.button>
 
+            {isFoodBusiness && (
+              <m.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.23 }}
+                onClick={() => navigate("/settings/business/plans")}
+                className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
+                <div className="w-9 h-9 rounded-lg bg-foreground/10 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-foreground" />
+                </div>
+                <div className="flex-1 text-left">
+                  <span className="text-foreground font-semibold block">Plan y facturación</span>
+                  <span className="text-xs text-muted-foreground">
+                    Plan actual: {SUBSCRIPTION_TIERS[tier].name}
+                  </span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </m.button>
+            )}
+
+
             {showVenueLayouts && (
               <m.button
                 initial={{ opacity: 0, y: 10 }}
