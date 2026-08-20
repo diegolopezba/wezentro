@@ -12,20 +12,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
-import { isFoodBusinessType } from "@/lib/businessTypes";
+import { isFoodBusinessType, BUSINESS_TYPES } from "@/lib/businessTypes";
 import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
-
-const BUSINESS_TYPES = [
-  { value: "bar", label: "Bar", emoji: "🍸" },
-  { value: "restaurant", label: "Restaurante", emoji: "🍽️" },
-  { value: "coffee", label: "Café", emoji: "☕" },
-  { value: "club", label: "Club / Discoteca", emoji: "🪩" },
-  { value: "gym", label: "Gimnasio", emoji: "🏋️" },
-  { value: "gallery", label: "Galería / Cultura", emoji: "🎨" },
-  { value: "rooftop", label: "Rooftop", emoji: "🌆" },
-  { value: "venue", label: "Venue / Salón", emoji: "🏛️" },
-  { value: "other", label: "Otro", emoji: "✨" },
-];
 
 const BusinessInfo = () => {
   const navigate = useNavigate();
