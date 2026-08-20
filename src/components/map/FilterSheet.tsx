@@ -62,7 +62,7 @@ export const FilterSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[70vh] rounded-t-3xl flex flex-col">
+      <SheetContent side="bottom" className="light-sheet h-[70vh] rounded-t-3xl flex flex-col">
         <SheetHeader className="pb-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <SheetTitle className="font-brand text-xl">Filtros</SheetTitle>

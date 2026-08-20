@@ -19,7 +19,7 @@ export const PushNotificationPrompt = ({ children }: Props) => {
     <>
       {children}
       <Sheet open={showExplainer} onOpenChange={(o) => !o && dismiss()}>
-        <SheetContent side="bottom" className="rounded-t-3xl border-t pb-8">
+        <SheetContent side="bottom" className="light-sheet rounded-t-3xl border-t pb-8">
           <div className="mx-auto max-w-sm pt-2">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl gradient-red">
               <Bell className="h-7 w-7 text-accent-red-foreground" />

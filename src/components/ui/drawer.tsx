@@ -71,7 +71,7 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={contentRef}
       className={cn(
-        "fixed inset-x-0 bottom-0 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        "fixed inset-x-0 bottom-0 mt-24 flex h-auto flex-col rounded-t-3xl border bg-background",
         "sheet-keyboard-viewport",
         DRAWER_STACK_CLASS,
         className,
