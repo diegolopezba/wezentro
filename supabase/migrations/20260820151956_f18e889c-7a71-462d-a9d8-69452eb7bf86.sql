@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.ensure_food_business_subscription() FROM PUBLIC, anon, authenticated;

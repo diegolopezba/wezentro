@@ -103,6 +103,51 @@ export type Database = {
         }
         Relationships: []
       }
+      business_subscriptions: {
+        Row: {
+          activation_method: string
+          billing_period_end: string | null
+          billing_period_start: string | null
+          business_id: string
+          cancelled_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          qhantuy_subscription_id: string | null
+          status: string
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          activation_method?: string
+          billing_period_end?: string | null
+          billing_period_start?: string | null
+          business_id: string
+          cancelled_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          qhantuy_subscription_id?: string | null
+          status?: string
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          activation_method?: string
+          billing_period_end?: string | null
+          billing_period_start?: string | null
+          business_id?: string
+          cancelled_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          qhantuy_subscription_id?: string | null
+          status?: string
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_participants: {
         Row: {
           chat_id: string

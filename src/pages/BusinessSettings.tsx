@@ -2,7 +2,7 @@ import { useState } from "react";
 import { m } from "framer-motion";
 import {
   ArrowLeft, Briefcase, BarChart3, ChevronRight,
-  UtensilsCrossed, CalendarCheck, CreditCard, Info, TrendingUp, LayoutGrid,
+  UtensilsCrossed, CalendarCheck, CreditCard, Info, TrendingUp, LayoutGrid, Sparkles,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { isFoodBusinessType } from "@/lib/businessTypes";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { SUBSCRIPTION_TIERS } from "@/lib/subscriptionTiers";
 
 const BusinessSettings = () => {
   const navigate = useNavigate();
@@ -24,6 +27,8 @@ const BusinessSettings = () => {
   const showVenueLayouts = false; // Hidden until venue layout feature is more developed
   const menuEnabled = (profile as any)?.menu_enabled !== false;
   const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
+  const isFoodBusiness = isBusiness && isFoodBusinessType((profile as any)?.business_type);
+  const { tier } = useSubscriptionTier(isFoodBusiness ? user?.id : undefined);
 
   const handleToggleBusiness = async (value: boolean) => {
     if (!user) return;
@@ -179,6 +184,27 @@ const BusinessSettings = () => {
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </m.button>
+
+            {isFoodBusiness && (
+              <m.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.23 }}
+                onClick={() => navigate("/settings/business/plans")}
+                className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
+                <div className="w-9 h-9 rounded-lg bg-foreground/10 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-foreground" />
+                </div>
+                <div className="flex-1 text-left">
+                  <span className="text-foreground font-semibold block">Plan y facturación</span>
+                  <span className="text-xs text-muted-foreground">
+                    Plan actual: {SUBSCRIPTION_TIERS[tier].name}
+                  </span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </m.button>
+            )}
+
 
             {showVenueLayouts && (
               <m.button

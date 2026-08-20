@@ -1,12 +1,16 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarCheck, Users, XCircle } from "lucide-react";
+import { CalendarCheck, Users, XCircle, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { StatsCard } from "./StatsCard";
 import { PeriodSelector, Period } from "./PeriodSelector";
 import { ReservationsSummary } from "./ReservationsSummary";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { PlansSheet } from "@/components/subscriptions/PlansSheet";
+import { featureUpgradeLabel } from "@/lib/subscriptionTiers";
 
 const DAYS_ES = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
 
@@ -17,6 +21,10 @@ interface ReservasTabProps {
 
 export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
   const { user } = useAuth();
+  const { tier, hasFeature } = useSubscriptionTier(user?.id);
+  const fullAnalytics = hasFeature("reservas_analytics_full");
+  const [plansOpen, setPlansOpen] = useState(false);
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["reservations-analytics", user?.id, period],
@@ -75,19 +83,43 @@ export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
       {isLoading ? (
         <Skeleton className="h-28 rounded-2xl" />
       ) : (
-        <div className="grid grid-cols-3 gap-3">
+        <div className={`grid gap-3 ${fullAnalytics ? "grid-cols-3" : "grid-cols-2"}`}>
           <StatsCard title="Reservas" value={stats.total} icon={CalendarCheck} delay={0} />
           <StatsCard title="Invitados" value={stats.guests} icon={Users} delay={0.05} />
-          <StatsCard
-            title="Cancelación"
-            value={`${stats.cancelRate.toFixed(0)}%`}
-            icon={XCircle}
-            delay={0.1}
-          />
+          {fullAnalytics && (
+            <StatsCard
+              title="Cancelación"
+              value={`${stats.cancelRate.toFixed(0)}%`}
+              icon={XCircle}
+              delay={0.1}
+            />
+          )}
         </div>
       )}
 
-      {stats.enoughForBreakdown && (
+      {!fullAnalytics && (
+        <section className="rounded-2xl bg-card border border-border p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-muted-foreground" />
+            <h3 className="font-brand text-sm font-semibold text-foreground">
+              Analíticas completas de reservas
+            </h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Tasa de cancelación, no-shows y los días y franjas que más se llenan.{" "}
+            {featureUpgradeLabel("reservas_analytics_full")}.
+          </p>
+          <Button
+            variant="default"
+            className="w-full rounded-full mt-1"
+            onClick={() => setPlansOpen(true)}
+          >
+            Ver planes
+          </Button>
+        </section>
+      )}
+
+      {fullAnalytics && stats.enoughForBreakdown && (
         <section className="rounded-2xl bg-card border border-border p-4">
           <h3 className="font-brand text-sm font-semibold text-foreground mb-3">
             Días que más se llenan
@@ -118,6 +150,8 @@ export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
         <h3 className="font-brand text-sm font-semibold text-foreground">Próximas reservas</h3>
         <ReservationsSummary />
       </section>
+
+      <PlansSheet open={plansOpen} onOpenChange={setPlansOpen} currentTier={tier} />
     </div>
   );
 };
