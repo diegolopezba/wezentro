@@ -32,6 +32,8 @@ import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 import { MentionText } from "@/components/ui/MentionText";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
+import { ExperienceBookingSheet } from "@/components/experiences/ExperienceBookingSheet";
+import { useExperience } from "@/hooks/useExperiences";
 import { useEventDetailState } from "@/hooks/useEventDetailState";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -475,7 +477,7 @@ const EventDetail = () => {
 
     }
       {/* Floating CTA Bar — always show for events */}
-      {!isPost &&
+      {!isPost && !linkedExperience &&
     <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
           {hasEnded && !isOwner && !isOnGuestlist ?
       <div className="flex items-center justify-center px-4 py-4">
@@ -538,8 +540,34 @@ const EventDetail = () => {
         </div>
     }
 
+    {/* Floating experience booking CTA — post/event linked to a bookable experience */}
+    {linkedExperience && (
+      <>
+        <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex flex-col">
+              <span className="font-brand text-base font-medium text-foreground">
+                {linkedExperience.title}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {linkedExperience.duration_minutes} min
+              </span>
+            </div>
+            <Button variant="sheet-action" size="default" onClick={() => setShowExperienceSheet(true)}>
+              <CalendarCheck className="w-4 h-4 mr-1" /> Reservar
+            </Button>
+          </div>
+        </div>
+        <ExperienceBookingSheet
+          open={showExperienceSheet}
+          onOpenChange={setShowExperienceSheet}
+          experience={linkedExperience}
+        />
+      </>
+    )}
+
     {/* Floating Reservation CTA Bar — shown only for posts */}
-    {isPost && event.show_reservation_button && event.creator_id && (
+    {isPost && !linkedExperience && event.show_reservation_button && event.creator_id && (
       <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
         <div className="flex items-center justify-between px-4 py-3">
           <span className="font-brand text-base font-semibold text-foreground">
