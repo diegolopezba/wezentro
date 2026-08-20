@@ -164,7 +164,7 @@ export const PlanSelector = ({
               <div className="flex items-start justify-between gap-3">
                 <h3
                   className={cn(
-                    "font-brand text-[30px] font-bold leading-none",
+                    "font-brand text-[30px] font-medium leading-none",
                     isSheet ? "text-background" : "text-foreground",
                   )}
                 >
