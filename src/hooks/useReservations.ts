@@ -145,12 +145,14 @@ export const useCancelReservation = () => {
         _status: "cancelled",
       });
       if (error) throw error;
+      return reservationId;
     },
-    onSuccess: () => {
+    onSuccess: (reservationId) => {
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       queryClient.invalidateQueries({ queryKey: ["reservation-detail"] });
       queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
       toast.success("Reserva cancelada");
+      sendReservationEmails(reservationId, "cancelled");
     },
     onError: (error: any) => {
       toast.error(error?.message || "Error al cancelar la reserva");
