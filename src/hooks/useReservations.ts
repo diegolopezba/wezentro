@@ -192,14 +192,15 @@ export const useSetReservationStatus = () => {
         _status: status,
       });
       if (error) throw error;
-      return status;
+      return { status, reservationId };
     },
-    onSuccess: (status) => {
+    onSuccess: ({ status, reservationId }) => {
       haptic("success");
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       queryClient.invalidateQueries({ queryKey: ["reservation-detail"] });
       queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
       toast.success(STATUS_TOAST[status]);
+      if (status === "cancelled") sendReservationEmails(reservationId, "cancelled");
     },
     onError: (error: any) => {
       toast.error(error?.message || "Error al actualizar la reserva");
