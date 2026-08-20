@@ -111,6 +111,7 @@ const Create = () => {
     category: "",
     date: "",
     time: "",
+    endTime: "",
     price: "",
     capacity: "",
     showMenuButton: false,
