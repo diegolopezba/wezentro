@@ -237,7 +237,7 @@ const Index = () => {
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" className="relative" onClick={handleNotificationClick}>
                 <Bell className="w-5 h-5" />
-                {!isGuest && unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />}
+                {!isGuest && unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-red" />}
               </Button>
               <Button variant="ghost" size="icon" className="relative" onClick={() => setShowFilters(true)}>
                 <SlidersHorizontal className="w-5 h-5" />

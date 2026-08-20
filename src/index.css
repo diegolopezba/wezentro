@@ -34,6 +34,11 @@
     --accent-red: 0 0% 98%;
     --accent-red-foreground: 0 0% 4%;
 
+    /* True brand red — ONLY for the like heart and the unread notification dot. */
+    --brand-red: 351 100% 45%;
+    --brand-red-foreground: 0 0% 100%;
+
+
     /* Destructive is neutral too — emphasis via weight/outline, not color. */
     --destructive: 0 0% 88%;
     --destructive-foreground: 0 0% 4%;
@@ -492,6 +497,9 @@ html[data-keyboard="open"] body {
   /* Monochrome accents inside light sheets: dark ink on white. */
   --accent-red: 0 0% 9%;
   --accent-red-foreground: 0 0% 100%;
+  /* Brand red stays the same inside light sheets. */
+  --brand-red: 351 100% 45%;
+  --brand-red-foreground: 0 0% 100%;
   --destructive: 0 0% 20%;
   --destructive-foreground: 0 0% 100%;
   --gradient-red: linear-gradient(135deg, hsl(0 0% 14%) 0%, hsl(0 0% 32%) 100%);

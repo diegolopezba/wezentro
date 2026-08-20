@@ -198,7 +198,7 @@ const EventDetailModalInner = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   <Button variant="ghost" size="sm" onClick={handleLikeToggle} disabled={likeEventPending} className="gap-1.5 px-2">
-                    <Heart className={`w-5 h-5 ${isLiked ? "fill-foreground text-foreground" : ""}`} />
+                    <Heart className={`w-5 h-5 ${isLiked ? "fill-brand-red text-brand-red" : ""}`} />
                     {likeCount > 0 && <span className="text-xs text-muted-foreground">{likeCount}</span>}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={handleRepostToggle} disabled={repostPending} className="gap-1.5 px-2">

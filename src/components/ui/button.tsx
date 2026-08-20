@@ -10,6 +10,8 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-secondary text-secondary-foreground",
+        // Emphasized save state: black on light sheets, white on dark pages
+        save: "bg-foreground text-background font-semibold active:scale-[0.98]",
         destructive: "bg-destructive text-destructive-foreground",
         outline: "border border-input bg-background",
         secondary: "bg-secondary text-secondary-foreground",
