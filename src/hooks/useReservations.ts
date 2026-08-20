@@ -56,11 +56,12 @@ export const useCreateReservation = () => {
       if (error) throw error;
       return { id: reservationId as string };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: ({ id }) => {
       haptic("success");
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
       toast.success("¡Reserva confirmada!");
+      sendReservationEmails(id, "created");
     },
     onError: (error: any) => {
       console.error("Error creating reservation:", error);
