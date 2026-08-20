@@ -776,6 +776,12 @@ const Create = () => {
                   onChange={(e) => setFormData({ ...formData, time: e.target.value })} />
                 
                 </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Hora fin (opcional)</label>
+                  <Input
+                  type="time" value={formData.endTime}
+                  onChange={(e) => setFormData({ ...formData, endTime: e.target.value })} />
+                </div>
               </div>
 
               <LocationPicker value={location} onChange={setLocation} />
