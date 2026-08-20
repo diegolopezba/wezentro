@@ -131,7 +131,7 @@ const Referrals = () => {
                   <Button
                     onClick={handleClaimReward}
                     disabled={claimReward.isPending}
-                    className="w-full gradient-red text-white"
+                    className="w-full gradient-red text-accent-red-foreground"
                   >
                     {claimReward.isPending ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

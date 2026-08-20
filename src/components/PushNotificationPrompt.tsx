@@ -22,7 +22,7 @@ export const PushNotificationPrompt = ({ children }: Props) => {
         <SheetContent side="bottom" className="rounded-t-3xl border-t pb-8">
           <div className="mx-auto max-w-sm pt-2">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl gradient-red">
-              <Bell className="h-7 w-7 text-white" />
+              <Bell className="h-7 w-7 text-accent-red-foreground" />
             </div>
             <SheetHeader className="text-center">
               <SheetTitle className="font-brand text-xl">Activa las notificaciones</SheetTitle>

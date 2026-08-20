@@ -293,7 +293,7 @@ const Onboarding = () => {
                       type="button" onClick={() => setFormData({ ...formData, gender: opt.value })}
                       className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                         formData.gender === opt.value
-                          ? "gradient-red text-white" : "bg-secondary text-muted-foreground " }`}
+                          ? "gradient-red text-accent-red-foreground" : "bg-secondary text-muted-foreground " }`}
                     >
                       {formData.gender === opt.value && <Check className="w-4 h-4 shrink-0" />}
                       {opt.label}

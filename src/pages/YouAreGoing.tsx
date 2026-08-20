@@ -191,7 +191,7 @@ const YouAreGoing = () => {
               <Button
                 onClick={() => setQrToken(guestlistEntry?.qr_code_token ?? null)}
                 size="lg"
-                className="rounded-full font-semibold gap-2 bg-accent-red text-white active:scale-95"
+                className="rounded-full font-semibold gap-2 bg-accent-red text-accent-red-foreground active:scale-95"
               >
                 <QrCode className="w-5 h-5" />
                 Mostrar QR
@@ -226,7 +226,7 @@ const YouAreGoing = () => {
                 <Button
                   onClick={() => setQrToken(t.qr_code_token)}
                   size="sm"
-                  className="rounded-full font-semibold gap-1.5 bg-accent-red text-white active:scale-95"
+                  className="rounded-full font-semibold gap-1.5 bg-accent-red text-accent-red-foreground active:scale-95"
                 >
                   <QrCode className="w-4 h-4" />
                   Ver QR
