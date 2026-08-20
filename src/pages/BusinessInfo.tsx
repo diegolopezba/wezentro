@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isFoodBusinessType } from "@/lib/businessTypes";
+import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
 
 const BUSINESS_TYPES = [
   { value: "bar", label: "Bar", emoji: "🍸" },
@@ -37,6 +38,8 @@ const BusinessInfo = () => {
   const [businessLocation, setBusinessLocation] = useState<{ address: string; latitude: number | null; longitude: number | null }>({ address: "", latitude: null, longitude: null });
 
   useSwipeBack();
+
+  const { isDirty, capture } = useDirtyBaseline({ businessHours, businessPhone, businessLocation });
 
   const currentBusinessType = (profile as any)?.business_type || "";
 

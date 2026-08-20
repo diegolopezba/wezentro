@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage, blobToFile } from "@/lib/mediaCompression";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
+import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
 
 const GENDER_OPTIONS = [
   { value: "male", label: "Masculino" },
@@ -46,6 +47,8 @@ const EditProfile = () => {
     longitude: null,
     address: null,
   });
+
+  const { isDirty, capture } = useDirtyBaseline({ formData, avatarUrl, businessLocation });
 
   const isBusiness = profile?.is_business === true;
 
