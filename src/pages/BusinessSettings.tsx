@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { m } from "framer-motion";
 import {
-  ArrowLeft, Briefcase, BarChart3, ChevronRight,
+  ArrowLeft, Briefcase, BarChart3,
   UtensilsCrossed, CalendarCheck, CreditCard, Info, TrendingUp, LayoutGrid, Sparkles,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -18,6 +18,7 @@ import { useDashboardAccess } from "@/hooks/useDashboardAccess";
 import { BusinessIntroSheet } from "@/components/business/BusinessIntroSheet";
 import { BusinessTypePickerSheet } from "@/components/business/BusinessTypePickerSheet";
 import { BusinessSetupChecklist, SetupStep } from "@/components/business/BusinessSetupChecklist";
+import { SettingsGroup, SettingsRow } from "@/components/settings/SettingsRow";
 
 const BusinessSettings = () => {
   const navigate = useNavigate();
@@ -27,7 +28,6 @@ const BusinessSettings = () => {
   const [introOpen, setIntroOpen] = useState(false);
   const [typePickerOpen, setTypePickerOpen] = useState(false);
   const [savingType, setSavingType] = useState(false);
-  
 
   useSwipeBack();
 
@@ -127,7 +127,6 @@ const BusinessSettings = () => {
     }
   };
 
-
   return (
     <div className="min-h-[100dvh] bg-background">
       {/* Header */}
@@ -140,203 +139,95 @@ const BusinessSettings = () => {
         </div>
       </header>
 
-      <div className="px-4 py-4 space-y-3">
+      <div className="px-4 py-4 space-y-5">
         {/* Business Account Toggle */}
-        <m.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 py-4 px-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/5 border border-blue-500/20" >
-          <div className="w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center">
-            <Briefcase className="w-5 h-5 text-blue-500" />
-          </div>
-          <div className="flex-1">
-            <span className="text-foreground font-semibold block">Cuenta Business</span>
-            <span className="text-xs text-muted-foreground">Guestlists, dashboard, menú y reservas</span>
-          </div>
-          <Switch
-            checked={isBusiness}
-            onCheckedChange={(v) => (v ? setIntroOpen(true) : handleToggleBusiness(false))}
-            disabled={togglingBusiness}
+        <SettingsGroup>
+          <SettingsRow
+            icon={Briefcase}
+            label="Cuenta Business"
+            sublabel="Guestlists, dashboard, menú y reservas"
+            right={
+              <Switch
+                checked={isBusiness}
+                onCheckedChange={(v) => (v ? setIntroOpen(true) : handleToggleBusiness(false))}
+                disabled={togglingBusiness}
+              />
+            }
           />
-        </m.div>
+        </SettingsGroup>
 
         {isBusiness && (
           <>
             <BusinessSetupChecklist steps={setupSteps} />
 
-            {/* Dashboard Button */}
-            <m.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-              onClick={() => navigate("/dashboard")}
-              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 transition-colors" >
-              <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1 text-left">
-                <span className="text-foreground font-semibold block">Business Dashboard</span>
-                <span className="text-xs text-muted-foreground">Analíticas y perspectivas</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </m.button>
+            <SettingsGroup>
+              <SettingsRow
+                icon={BarChart3}
+                label="Business Dashboard"
+                sublabel="Analíticas y perspectivas"
+                onClick={() => navigate("/dashboard")}
+                delay={0.03}
+              />
+            </SettingsGroup>
 
-            {/* Section: Funciones */}
-            <m.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="mt-4" >
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1 mb-2">
-                Funciones
-              </h2>
-            </m.div>
+            <SettingsGroup title="Funciones">
+              <SettingsRow
+                icon={Info}
+                label="Información del negocio"
+                sublabel="Tipo, horarios, teléfono y dirección"
+                onClick={() => navigate("/settings/business/info")}
+                delay={0.06}
+              />
+              <SettingsRow
+                icon={UtensilsCrossed}
+                label="Menú"
+                sublabel={menuEnabled ? "Activo · editar carta" : "Desactivado"}
+                onClick={() => navigate("/settings/business/menu")}
+                delay={0.09}
+              />
+              <SettingsRow
+                icon={CalendarCheck}
+                label="Reservas"
+                sublabel={reservationsEnabled ? "Activas · configurar horario" : "Desactivadas"}
+                onClick={() => navigate("/settings/business/reservations")}
+                delay={0.12}
+              />
+              <SettingsRow
+                icon={TrendingUp}
+                label="Ventas y promotores"
+                sublabel="Ingresos, entradas vendidas y rendimiento de promotores"
+                onClick={() => navigate("/settings/business/sales")}
+                delay={0.15}
+              />
+              {isFoodBusiness && (
+                <SettingsRow
+                  icon={Sparkles}
+                  label="Plan y facturación"
+                  sublabel={`Plan actual: ${SUBSCRIPTION_TIERS[tier].name}`}
+                  onClick={() => navigate("/settings/business/plans")}
+                  delay={0.18}
+                />
+              )}
+              {showVenueLayouts && (
+                <SettingsRow
+                  icon={LayoutGrid}
+                  label="Planos del lugar"
+                  sublabel="Mesas, lounges y secciones reutilizables para tus eventos"
+                  onClick={() => navigate("/settings/business/layouts")}
+                  delay={0.21}
+                />
+              )}
+            </SettingsGroup>
 
-            {/* Información del negocio → nav */}
-            <m.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.12 }}
-              onClick={() => navigate("/settings/business/info")}
-              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
-              <div className="w-9 h-9 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0">
-                <Info className="w-5 h-5 text-blue-500" />
-              </div>
-              <div className="flex-1 text-left">
-                <span className="text-foreground font-semibold block">Información del negocio</span>
-                <span className="text-xs text-muted-foreground">Tipo, horarios, teléfono y dirección</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </m.button>
-
-            {/* Menú → nav */}
-            <m.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              onClick={() => navigate("/settings/business/menu")}
-              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
-              <div className="w-9 h-9 rounded-lg bg-orange-500/15 flex items-center justify-center shrink-0">
-                <UtensilsCrossed className="w-5 h-5 text-orange-500" />
-              </div>
-              <div className="flex-1 text-left">
-                <span className="text-foreground font-semibold block">Menú</span>
-                <span className="text-xs text-muted-foreground">
-                  {menuEnabled ? "Activo · editar carta" : "Desactivado"}
-                </span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </m.button>
-
-            {/* Reservas → nav */}
-            <m.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              onClick={() => navigate("/settings/business/reservations")}
-              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
-              <div className="w-9 h-9 rounded-lg bg-green-500/15 flex items-center justify-center shrink-0">
-                <CalendarCheck className="w-5 h-5 text-green-500" />
-              </div>
-              <div className="flex-1 text-left">
-                <span className="text-foreground font-semibold block">Reservas</span>
-                <span className="text-xs text-muted-foreground">
-                  {reservationsEnabled ? "Activas · configurar horario" : "Desactivadas"}
-                </span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </m.button>
-
-            {/* Ventas y promotores → nav */}
-            <m.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.22 }}
-              onClick={() => navigate("/settings/business/sales")}
-              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
-              <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-                <TrendingUp className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1 text-left">
-                <span className="text-foreground font-semibold block">Ventas y promotores</span>
-                <span className="text-xs text-muted-foreground">
-                  Ingresos, entradas vendidas y rendimiento de promotores
-                </span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </m.button>
-
-            {isFoodBusiness && (
-              <m.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.23 }}
-                onClick={() => navigate("/settings/business/plans")}
-                className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
-                <div className="w-9 h-9 rounded-lg bg-foreground/10 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-5 h-5 text-foreground" />
-                </div>
-                <div className="flex-1 text-left">
-                  <span className="text-foreground font-semibold block">Plan y facturación</span>
-                  <span className="text-xs text-muted-foreground">
-                    Plan actual: {SUBSCRIPTION_TIERS[tier].name}
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </m.button>
-            )}
-
-
-            {showVenueLayouts && (
-              <m.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.23 }}
-                onClick={() => navigate("/settings/business/layouts")}
-                className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
-                <div className="w-9 h-9 rounded-lg bg-purple-500/15 flex items-center justify-center shrink-0">
-                  <LayoutGrid className="w-5 h-5 text-purple-500" />
-                </div>
-                <div className="flex-1 text-left">
-                  <span className="text-foreground font-semibold block">Planos del lugar</span>
-                  <span className="text-xs text-muted-foreground">
-                    Mesas, lounges y secciones reutilizables para tus eventos
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </m.button>
-            )}
-
-
-
-
-            {/* Section: Pagos */}
-            <m.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-              className="mt-4" >
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1 mb-2">
-                Pagos
-              </h2>
-            </m.div>
-
-            {/* Pagos QR nav button */}
-            <m.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.28 }}
-              onClick={() => navigate("/settings/business/payments")}
-              className="w-full flex items-center gap-4 py-4 px-4 rounded-xl bg-card border border-border transition-colors" >
-              <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-                <CreditCard className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1 text-left">
-                <span className="text-foreground font-semibold block">Pagos</span>
-                <span className="text-xs text-muted-foreground">Depósitos automáticos a tu cuenta bancaria al día siguiente</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </m.button>
+            <SettingsGroup title="Pagos">
+              <SettingsRow
+                icon={CreditCard}
+                label="Pagos"
+                sublabel="Depósitos automáticos a tu cuenta bancaria al día siguiente"
+                onClick={() => navigate("/settings/business/payments")}
+                delay={0.24}
+              />
+            </SettingsGroup>
           </>
         )}
       </div>
