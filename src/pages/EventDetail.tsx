@@ -546,7 +546,7 @@ const EventDetail = () => {
             {event.creator?.full_name || event.creator?.username || ""}
           </span>
           <Button
-            variant="hero" size="default" onClick={() => setShowReservationSheet(true)}
+            variant="sheet-action" size="default" onClick={() => setShowReservationSheet(true)}
           >
             <CalendarCheck className="w-4 h-4 mr-1" /> Reservar
           </Button>

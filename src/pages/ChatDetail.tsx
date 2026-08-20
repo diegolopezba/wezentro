@@ -239,7 +239,7 @@ const ChatDetail = () => {
             className="flex-1"
           />
           <Button
-            variant="hero"
+            variant="sheet-action"
             size="icon"
             onClick={handleSend}
             disabled={!message.trim() || sendMessage.isPending}
