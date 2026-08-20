@@ -119,7 +119,7 @@ const SpecialInvite = () => {
         <p className="text-sm text-muted-foreground">
           Este enlace ya fue usado o el organizador lo canceló.
         </p>
-        <Button variant="hero" onClick={() => navigate("/", { replace: true })}>
+        <Button variant="sheet-action" onClick={() => navigate("/", { replace: true })}>
           Ir al inicio
         </Button>
       </div>
@@ -210,7 +210,7 @@ const SpecialInvite = () => {
               </p>
               {!user && (
                 <Button
-                  variant="hero"
+                  variant="sheet-action"
                   className="w-full"
                   onClick={() => {
                     if (token) setPendingSpecialInvite(token);
@@ -253,7 +253,7 @@ const SpecialInvite = () => {
               inputMode="email"
             />
             <Button
-              variant="hero"
+              variant="sheet-action"
               className="w-full"
               onClick={handleConfirm}
               disabled={confirmRsvp.isPending || !name.trim() || !email.trim()}

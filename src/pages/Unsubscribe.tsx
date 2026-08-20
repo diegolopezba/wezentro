@@ -66,7 +66,7 @@ const Unsubscribe = () => {
           <p className="text-sm text-muted-foreground max-w-sm">
             Ya no recibirás más correos de Zentro en esta dirección.
           </p>
-          <Button variant="hero" onClick={confirm} disabled={submitting}>
+          <Button variant="sheet-action" onClick={confirm} disabled={submitting}>
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirmar"}
           </Button>
         </>
