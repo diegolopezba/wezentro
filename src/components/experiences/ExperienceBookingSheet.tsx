@@ -129,7 +129,19 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
       const { data, error } = await supabase.functions.invoke("generate-experience-qr", {
         body: { bookingId },
       });
-      if (error || data?.error) throw new Error(data?.error || error?.message);
+
+      let payload: any = data;
+      if (error) {
+        payload = await (error as any)?.context?.json?.().catch(() => null);
+      }
+      if (error || payload?.error) {
+        if (payload?.code === "no_beneficiary") {
+          toast.error("El organizador todavía no habilitó los pagos. Intentá más tarde.");
+          setStep("quantity");
+          return;
+        }
+        throw new Error(payload?.error || error?.message);
+      }
 
       setQrUrl(data.qrImageUrl);
       setSessionId(data.paymentSessionId);
@@ -140,6 +152,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
       setStarting(false);
     }
   };
+
 
   const canContinue =
     (step === "date" && !!date) ||
