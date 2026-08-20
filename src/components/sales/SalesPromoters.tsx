@@ -112,7 +112,7 @@ export const SalesPromoters = () => {
                 <p className="text-sm font-semibold text-foreground truncate">{r.name}</p>
                 <p className="text-[11px] text-muted-foreground truncate">{r.event_title}</p>
               </div>
-              <p className="font-brand text-sm font-bold text-foreground flex-shrink-0">{formatBs(r.revenue_bs)}</p>
+              <p className="font-brand text-sm font-medium text-foreground flex-shrink-0">{formatBs(r.revenue_bs)}</p>
             </div>
             <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">
               <span>{r.clicks} clicks</span>
@@ -129,7 +129,7 @@ export const SalesPromoters = () => {
 
 const Stat = ({ label, value }: { label: string; value: string }) => (
   <div className="rounded-2xl bg-card border border-border p-3">
-    <p className="font-brand text-base font-bold text-foreground leading-tight">{value}</p>
+    <p className="font-brand text-base font-medium text-foreground leading-tight">{value}</p>
     <p className="text-[10px] text-muted-foreground mt-0.5">{label}</p>
   </div>
 );

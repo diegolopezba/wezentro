@@ -60,7 +60,7 @@ export const SalesSummary = () => {
       {/* Hero */}
       <div className="rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/20 p-5">
         <p className="text-xs text-muted-foreground mb-1">Ingresos totales · histórico</p>
-        <p className="font-brand text-4xl font-bold text-foreground">{formatBs(totals.revenue)}</p>
+        <p className="font-brand text-4xl font-medium text-foreground">{formatBs(totals.revenue)}</p>
         <p className="text-sm text-muted-foreground mt-1">
           {totals.tickets} {totals.tickets === 1 ? "ticket vendido" : "tickets vendidos"}
         </p>
@@ -150,7 +150,7 @@ export const SalesSummary = () => {
 const MiniCard = ({ icon: Icon, label, value }: { icon: any; label: string; value: string }) => (
   <div className="rounded-2xl bg-card border border-border p-3">
     <Icon className="w-3.5 h-3.5 text-muted-foreground mb-1" />
-    <p className="font-brand text-base font-bold text-foreground leading-tight">{value}</p>
+    <p className="font-brand text-base font-medium text-foreground leading-tight">{value}</p>
     <p className="text-[10px] text-muted-foreground mt-0.5">{label}</p>
   </div>
 );

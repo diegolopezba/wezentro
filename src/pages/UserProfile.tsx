@@ -127,7 +127,7 @@ const UserProfile = () => {
   }
   if (!userProfile) {
     return <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4">
-        <h1 className="font-brand text-xl font-bold text-foreground mb-2">Usuario no encontrado</h1>
+        <h1 className="font-brand text-xl font-medium text-foreground mb-2">Usuario no encontrado</h1>
         <Button onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>Volver</Button>
       </div>;
   }
@@ -184,7 +184,7 @@ const UserProfile = () => {
             {/* Stats */}
             <div className="flex gap-6 mt-2">
               {stats.map((stat) => <div key={stat.label} className={`text-center ${stat.onClick ? "cursor-pointer transition-opacity" : ""}`} onClick={stat.onClick}>
-                  <p className="font-brand text-lg font-bold text-foreground">{stat.value}</p>
+                  <p className="font-brand text-lg font-medium text-foreground">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </div>)}
             </div>

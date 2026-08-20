@@ -13,7 +13,7 @@ const MyTickets = () => {
     <AppLayout>
       <header className="sticky top-0 z-30 safe-top bg-background/80 backdrop-blur-lg">
         <div className="px-4 pt-4 pb-3">
-          <h1 className="font-brand text-xl font-bold text-foreground">Entradas</h1>
+          <h1 className="font-brand text-xl font-medium text-foreground">Entradas</h1>
           <div className="flex items-center gap-2 mt-3">
             {([
               { id: "entradas", label: "Entradas" },

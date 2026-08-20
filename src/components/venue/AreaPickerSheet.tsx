@@ -109,7 +109,7 @@ export function AreaPickerSheet({
         </div>
 
         <div className="px-5 pb-2">
-          <h2 className="text-2xl font-brand font-bold text-foreground leading-tight line-clamp-2">
+          <h2 className="text-2xl font-brand font-medium text-foreground leading-tight line-clamp-2">
             {eventTitle}
           </h2>
         </div>
@@ -164,7 +164,7 @@ export function AreaPickerSheet({
                       : `${remaining} lugares disponibles`}
                   </p>
                 </div>
-                <p className="text-lg font-brand font-bold text-foreground shrink-0">
+                <p className="text-lg font-brand font-medium text-foreground shrink-0">
                   {Number(selected.price) > 0 ? `Bs. ${selected.price}` : "Gratis"}
                 </p>
               </div>

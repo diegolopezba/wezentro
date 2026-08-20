@@ -90,7 +90,7 @@ const Settings = () => {
           >
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="font-brand text-xl font-bold text-foreground">Configuración</h1>
+          <h1 className="font-brand text-xl font-medium text-foreground">Configuración</h1>
         </div>
       </header>
 

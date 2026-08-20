@@ -48,7 +48,7 @@ const BusinessMenu = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-bold text-foreground">Menú</h1>
+          <h1 className="font-brand text-xl font-medium text-foreground">Menú</h1>
         </div>
       </header>
 
