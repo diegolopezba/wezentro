@@ -92,58 +92,77 @@ export const ReservationRulesEditor = ({ businessId }: Props) => {
       </div>
 
       {fields.map((f) => (
-        <div key={f.key} className="space-y-1">
-          <Label className="text-xs text-muted-foreground">{f.label}</Label>
+        <LockedFeature
+          key={f.key}
+          feature={f.feature ?? "full_reservation_policy"}
+          currentTier={tier}
+          locked={!!f.feature && !hasFeature(f.feature)}
+        >
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">{f.label}</Label>
+            <Input
+              type="number"
+              min={f.min}
+              value={String(form[f.key] ?? "")}
+              onChange={(e) =>
+                setForm((p) => ({
+                  ...p,
+                  [f.key]: Math.max(f.min, num(e.target.value, f.min)),
+                }))
+              }
+            />
+            <p className="text-[11px] text-muted-foreground">{f.hint}</p>
+          </div>
+        </LockedFeature>
+      ))}
+
+      <LockedFeature
+        feature="covers_pacing"
+        currentTier={tier}
+        locked={!hasFeature("covers_pacing")}
+      >
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground">
+            Máx. personas por franja (opcional)
+          </Label>
           <Input
             type="number"
-            min={f.min}
-            value={String(form[f.key] ?? "")}
+            min={1}
+            placeholder="Sin límite"
+            value={form.max_covers_per_interval ?? ""}
             onChange={(e) =>
               setForm((p) => ({
                 ...p,
-                [f.key]: Math.max(f.min, num(e.target.value, f.min)),
+                max_covers_per_interval: e.target.value
+                  ? Math.max(1, num(e.target.value, 1))
+                  : null,
               }))
             }
           />
-          <p className="text-[11px] text-muted-foreground">{f.hint}</p>
-        </div>
-      ))}
-
-      <div className="space-y-1">
-        <Label className="text-xs text-muted-foreground">
-          Máx. personas por franja (opcional)
-        </Label>
-        <Input
-          type="number"
-          min={1}
-          placeholder="Sin límite"
-          value={form.max_covers_per_interval ?? ""}
-          onChange={(e) =>
-            setForm((p) => ({
-              ...p,
-              max_covers_per_interval: e.target.value
-                ? Math.max(1, num(e.target.value, 1))
-                : null,
-            }))
-          }
-        />
-        <p className="text-[11px] text-muted-foreground">
-          Controla el ritmo de llegadas para no saturar la cocina.
-        </p>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div>
-          <Label className="text-sm text-foreground">Unir mesas</Label>
           <p className="text-[11px] text-muted-foreground">
-            Permite combinar hasta 3 mesas para grupos grandes.
+            Controla el ritmo de llegadas para no saturar la cocina.
           </p>
         </div>
-        <Switch
-          checked={form.allow_table_join}
-          onCheckedChange={(v) => setForm((p) => ({ ...p, allow_table_join: v }))}
-        />
-      </div>
+      </LockedFeature>
+
+      <LockedFeature
+        feature="table_joining"
+        currentTier={tier}
+        locked={!hasFeature("table_joining")}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <Label className="text-sm text-foreground">Unir mesas</Label>
+            <p className="text-[11px] text-muted-foreground">
+              Permite combinar hasta 3 mesas para grupos grandes.
+            </p>
+          </div>
+          <Switch
+            checked={form.allow_table_join}
+            onCheckedChange={(v) => setForm((p) => ({ ...p, allow_table_join: v }))}
+          />
+        </div>
+      </LockedFeature>
 
       <Button
         variant={saveVariant(isDirty)}
