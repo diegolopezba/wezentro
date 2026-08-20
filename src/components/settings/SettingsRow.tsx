@@ -48,6 +48,7 @@ export const SettingsRow = ({
   disabled,
 }: SettingsRowProps) => {
   const interactive = !!onClick;
+  const Wrapper: any = interactive ? "button" : "div";
 
   return (
     <m.div
@@ -55,14 +56,11 @@ export const SettingsRow = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
     >
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled || !interactive}
+      <Wrapper
+        {...(interactive ? { type: "button", onClick, disabled } : {})}
         className={cn(
           "flex w-full items-center gap-3.5 px-4 py-3.5 text-left [-webkit-tap-highlight-color:transparent]",
-          interactive && "active:bg-muted/40",
-          !interactive && "cursor-default",
+          interactive ? "active:bg-muted/40" : "cursor-default",
         )}
       >
         {left ?? (
