@@ -219,38 +219,42 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
       {/* Blackouts */}
       <div className="pt-2 border-t border-border space-y-2">
         <Label className="text-sm text-foreground">Días cerrados (feriados)</Label>
-        <div className="flex gap-2">
-          <Input
-            type="date"
-            value={newBlackout}
-            onChange={(e) => setNewBlackout(e.target.value)}
-            className="h-9"
-          />
-          <Button
-            size="sm"
-            disabled={!newBlackout}
-            onClick={() => {
-              toggleBlackout.mutate({ date: newBlackout });
-              setNewBlackout("");
-            }}
-          >
-            Agregar
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {blackouts.map((b) => (
-            <button
-              key={b.id}
-              onClick={() =>
-                toggleBlackout.mutate({ date: b.blackout_date, existingId: b.id })
-              }
-              className="px-3 py-1 rounded-full text-xs bg-secondary text-foreground flex items-center gap-1"
-            >
-              {b.blackout_date}
-              <Trash2 className="w-3 h-3 text-destructive" />
-            </button>
-          ))}
-        </div>
+        <LockedFeature feature="blackout_dates" currentTier={tier} locked={!canBlackouts}>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                type="date"
+                value={newBlackout}
+                onChange={(e) => setNewBlackout(e.target.value)}
+                className="h-9"
+              />
+              <Button
+                size="sm"
+                disabled={!newBlackout}
+                onClick={() => {
+                  toggleBlackout.mutate({ date: newBlackout });
+                  setNewBlackout("");
+                }}
+              >
+                Agregar
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {blackouts.map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() =>
+                    toggleBlackout.mutate({ date: b.blackout_date, existingId: b.id })
+                  }
+                  className="px-3 py-1 rounded-full text-xs bg-secondary text-foreground flex items-center gap-1"
+                >
+                  {b.blackout_date}
+                  <Trash2 className="w-3 h-3 text-destructive" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </LockedFeature>
       </div>
     </div>
   );
