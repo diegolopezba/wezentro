@@ -21,6 +21,10 @@ interface ReservasTabProps {
 
 export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
   const { user } = useAuth();
+  const { tier, hasFeature } = useSubscriptionTier(user?.id);
+  const fullAnalytics = hasFeature("reservas_analytics_full");
+  const [plansOpen, setPlansOpen] = useState(false);
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["reservations-analytics", user?.id, period],
