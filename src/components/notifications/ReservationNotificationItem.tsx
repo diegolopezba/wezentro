@@ -36,7 +36,7 @@ export const ReservationNotificationItem = ({ notification, index, onRead, onCli
   });
 
   const IconComponent = isCancelled ? CalendarX : isTagged ? UserCheck : CalendarCheck;
-  const iconBgColor = isCancelled ? "bg-red-500" : isTagged ? "bg-blue-500" : "bg-emerald-500";
+  const iconBgColor = isCancelled ? "bg-muted-foreground" : isTagged ? "bg-blue-500" : "bg-emerald-500";
 
   return (
     <m.div

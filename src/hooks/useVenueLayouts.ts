@@ -26,7 +26,7 @@ export const AREA_TYPE_DEFAULT_EXCLUSIVE: Record<VenueAreaType, boolean> = {
 };
 
 export const AREA_COLORS = [
-  "#E60023",
+  "#F5F5F5",
   "#F59E0B",
   "#10B981",
   "#3B82F6",

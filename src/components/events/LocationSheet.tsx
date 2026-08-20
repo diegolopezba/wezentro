@@ -52,7 +52,7 @@ export const LocationSheet = ({
     });
     map.touchZoomRotate.disableRotation();
 
-    new mapboxgl.Marker({ color: "#E60023" })
+    new mapboxgl.Marker({ color: "#FFFFFF" })
       .setLngLat([longitude as number, latitude as number])
       .addTo(map);
 

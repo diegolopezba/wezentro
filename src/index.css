@@ -29,12 +29,14 @@
     --accent: 0 0% 20%;
     --accent-foreground: 0 0% 98%;
 
-    /* Red accent - reserved for specific elements */
-    --accent-red: 351 100% 45%;
-    --accent-red-foreground: 0 0% 100%;
+    /* Monochrome accent — formerly red, now a bright neutral.
+       Token name kept so existing usages stay valid. */
+    --accent-red: 0 0% 98%;
+    --accent-red-foreground: 0 0% 4%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    /* Destructive is neutral too — emphasis via weight/outline, not color. */
+    --destructive: 0 0% 88%;
+    --destructive-foreground: 0 0% 4%;
 
     --border: 0 0% 14%;
     --input: 0 0% 14%;
@@ -43,8 +45,8 @@
     --radius: 1rem;
 
     /* Zentro Premium Tokens */
-    --gradient-red: linear-gradient(135deg, hsl(351 100% 45%) 0%, hsl(351 100% 55%) 100%);
-    
+    --gradient-red: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(0 0% 78%) 100%);
+
     --shadow-subtle: 0 2px 8px hsl(0 0% 0% / 0.3);
     --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.4);
     --shadow-elevated: 0 8px 32px hsl(0 0% 0% / 0.5);
@@ -465,11 +467,10 @@ html[data-keyboard="open"] body {
   display: none;
 }
 
-/* Light-theme scope for payment, menu, and reservation bottomsheets.
+/* Light-theme scope for content and action bottomsheets (Apple-style).
    Overrides semantic tokens inside the sheet only, so children (buttons,
    inputs, cards, text, borders) automatically render in light mode without
-   individual class changes. Brand red (--accent-red / --destructive) is
-   preserved for CTAs. */
+   individual class changes. Accents are monochrome — black ink on white. */
 .light-sheet {
   --background: 0 0% 100%;
   --foreground: 0 0% 9%;
@@ -488,10 +489,21 @@ html[data-keyboard="open"] body {
   --border: 0 0% 90%;
   --input: 0 0% 90%;
   --ring: 0 0% 60%;
+  /* Monochrome accents inside light sheets: dark ink on white. */
+  --accent-red: 0 0% 9%;
+  --accent-red-foreground: 0 0% 100%;
+  --destructive: 0 0% 20%;
+  --destructive-foreground: 0 0% 100%;
+  --gradient-red: linear-gradient(135deg, hsl(0 0% 14%) 0%, hsl(0 0% 32%) 100%);
 
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   color-scheme: light;
+}
+
+/* Grabber reads as a light-grey pill on the white surface. */
+.light-sheet > .bg-muted-foreground\/30 {
+  background-color: hsl(0 0% 82%);
 }
 
 .light-sheet .bg-background { background-color: hsl(var(--background)) !important; }

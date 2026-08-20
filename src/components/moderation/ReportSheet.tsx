@@ -52,7 +52,7 @@ export const ReportSheet = ({ open, onOpenChange, targetType, targetId }: Report
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent side="bottom" className="h-[85dvh] flex flex-col rounded-t-3xl">
+      <SheetContent side="bottom" className="light-sheet h-[85dvh] flex flex-col rounded-t-3xl">
         <SheetHeader className="text-left">
           <SheetTitle className="font-brand text-xl">Reportar</SheetTitle>
           <SheetDescription>

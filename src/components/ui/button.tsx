@@ -16,8 +16,8 @@ const buttonVariants = cva(
         ghost: "",
         link: "text-foreground underline-offset-4",
         glass: "glass border-white/10 text-foreground",
-        // Hero button uses red accent for primary CTAs
-        hero: "gradient-red text-white font-semibold shadow-lg active:scale-[0.98]",
+        // Hero button uses the high-contrast neutral accent for primary CTAs
+        hero: "gradient-red text-accent-red-foreground font-semibold shadow-lg active:scale-[0.98]",
         // Premium button with gold/amber accent
         premium: "bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold shadow-lg",
       },

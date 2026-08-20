@@ -497,7 +497,7 @@ const Auth = () => {
                             ? "gradient-red border-transparent" : "border-muted-foreground/40 bg-secondary" }`}
                       >
                         {termsAccepted && (
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 text-accent-red-foreground" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         )}

@@ -90,7 +90,7 @@ export const FollowersSheet = ({
   const isLoading = type === "followers" ? followersLoading : followingLoading;
   const title = type === "followers" ? "Seguidores" : "Siguiendo";
   return <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[70vh] rounded-t-3xl">
+      <SheetContent side="bottom" className="light-sheet h-[70vh] rounded-t-3xl">
         <SheetHeader className="mb-4">
           <SheetTitle className="font-brand text-xl">{title}</SheetTitle>
         </SheetHeader>

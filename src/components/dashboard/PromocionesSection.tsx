@@ -504,7 +504,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
       {/* ── 4-step wizard sheet ── */}
       <Sheet open={showWizard} onOpenChange={(open) => { if (!open) { setShowWizard(false); resetWizard(); } }}>
 
-        <SheetContent side="bottom" className="h-[92dvh] rounded-t-3xl p-0 flex flex-col overflow-hidden">
+        <SheetContent side="bottom" className="light-sheet h-[92dvh] rounded-t-3xl p-0 flex flex-col overflow-hidden">
           {/* Progress bar */}
           <div className="flex gap-1 px-5 pt-5 pb-1 shrink-0">
             {STEPS.map((s, i) => (

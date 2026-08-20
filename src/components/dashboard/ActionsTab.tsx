@@ -23,7 +23,7 @@ const FunnelStep = ({ label, value, prevValue }: { label: string; value: number;
       <div className="flex items-center gap-2">
         <span className="text-sm font-semibold text-foreground">{value}</span>
         {dropOff !== null && dropOff > 0 && (
-          <span className="text-[10px] text-red-500">-{dropOff}%</span>
+          <span className="text-[10px] text-muted-foreground">-{dropOff}%</span>
         )}
       </div>
     </div>

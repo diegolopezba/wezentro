@@ -64,7 +64,7 @@ const TYPE_OPTIONS: {id: ContentType;label: string;description: string;icon: Rea
   label: "Evento",
   description: "Crea un evento con fecha, lugar y lista de invitados",
   icon: <PartyPopper className="w-5 h-5" />,
-  color: "from-[hsl(var(--accent-red))] to-pink-500"
+  color: "from-neutral-200 to-neutral-400"
 }];
 
 

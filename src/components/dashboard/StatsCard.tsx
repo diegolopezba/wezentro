@@ -37,7 +37,7 @@ export const StatsCard = ({
             className={`text-xs font-medium px-2 py-1 rounded-full ${
               trend.isPositive
                 ? "bg-green-500/20 text-green-400"
-                : "bg-red-500/20 text-red-400"
+                : "bg-muted text-muted-foreground"
             }`}
           >
             {trend.isPositive ? "+" : "-"}{Math.abs(trend.value)}%

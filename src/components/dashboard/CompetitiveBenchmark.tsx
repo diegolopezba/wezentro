@@ -20,7 +20,7 @@ const BenchmarkRow = ({ label, yours, avg }: { label: string; yours: number; avg
           <p className="text-sm text-muted-foreground">{avg.toFixed(1)}</p>
           <p className="text-[10px] text-muted-foreground">Promedio</p>
         </div>
-        <div className={`flex items-center gap-0.5 text-xs font-medium ${isAbove ? "text-green-500" : isEqual ? "text-muted-foreground" : "text-red-500"}`}>
+        <div className={`flex items-center gap-0.5 text-xs font-medium ${isAbove ? "text-green-500" : isEqual ? "text-muted-foreground" : "text-muted-foreground"}`}>
           {isAbove ? <TrendingUp className="w-3 h-3" /> : isEqual ? <Minus className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
           {isEqual ? "—" : `${Math.abs(diff)}%`}
         </div>

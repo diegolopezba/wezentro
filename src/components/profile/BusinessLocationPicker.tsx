@@ -88,9 +88,9 @@ export const BusinessLocationPicker = ({
   };
 
   return (
-    <div className="space-y-4 p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20">
+    <div className="space-y-4 p-4 rounded-xl bg-gradient-to-br from-muted to-muted border border-border">
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-neutral-500 to-neutral-700 flex items-center justify-center">
           <MapPin className="w-4 h-4 text-white" />
         </div>
         <div>
@@ -120,7 +120,7 @@ export const BusinessLocationPicker = ({
             <Button
               onClick={handleSaveLocation}
               disabled={isSaving || !latitude || !longitude}
-              size="sm" className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 " >
+              size="sm" className="flex-1 bg-gradient-to-r from-neutral-500 to-neutral-700 " >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Guardar
             </Button>
@@ -154,7 +154,7 @@ export const BusinessLocationPicker = ({
       ) : (
         <Button
           onClick={() => setShowPicker(true)}
-          className="w-full bg-gradient-to-r from-orange-500 to-red-500 " >
+          className="w-full bg-gradient-to-r from-neutral-500 to-neutral-700 " >
           <MapPin className="w-4 h-4 mr-2" />
           Establecer ubicación
         </Button>

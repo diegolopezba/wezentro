@@ -475,7 +475,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85dvh] max-h-[85dvh] rounded-t-3xl flex flex-col">
+      <SheetContent side="bottom" className="light-sheet h-[85dvh] max-h-[85dvh] rounded-t-3xl flex flex-col">
         {body}
       </SheetContent>
     </Sheet>
