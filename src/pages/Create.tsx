@@ -111,6 +111,7 @@ const Create = () => {
     category: "",
     date: "",
     time: "",
+    endTime: "",
     price: "",
     capacity: "",
     showMenuButton: false,
@@ -144,6 +145,7 @@ const Create = () => {
         ...prev,
         date: "",
         time: "",
+        endTime: "",
         price: "",
         capacity: "",
             showReservationButton: false
@@ -370,8 +372,16 @@ const Create = () => {
       const imageUrl = uploadedMedia[0]?.url ?? null;
 
       let startDatetime: string | null = null;
+      let endDatetime: string | null = null;
       if (!isPost && formData.date && formData.time) {
-        startDatetime = new Date(`${formData.date}T${formData.time}`).toISOString();
+        const start = new Date(`${formData.date}T${formData.time}`);
+        startDatetime = start.toISOString();
+        if (formData.endTime) {
+          const end = new Date(`${formData.date}T${formData.endTime}`);
+          // Overnight events: end time at or before start rolls to the next day
+          if (end.getTime() <= start.getTime()) end.setDate(end.getDate() + 1);
+          endDatetime = end.toISOString();
+        }
       }
 
       const descriptionTags = extractDescriptionTags(
@@ -394,6 +404,7 @@ const Create = () => {
         description: formData.description.trim() || null,
         category: formData.category || null,
         start_datetime: startDatetime,
+        end_datetime: endDatetime,
         location_name: isPost ? null : location.address.trim() || null,
         latitude: isPost ? null : location.latitude,
         longitude: isPost ? null : location.longitude,
@@ -764,6 +775,12 @@ const Create = () => {
                   type="time" value={formData.time}
                   onChange={(e) => setFormData({ ...formData, time: e.target.value })} />
                 
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Hora fin (opcional)</label>
+                  <Input
+                  type="time" value={formData.endTime}
+                  onChange={(e) => setFormData({ ...formData, endTime: e.target.value })} />
                 </div>
               </div>
 

@@ -74,6 +74,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     description: event.description || "",
     category: event.category || "",
     start_datetime: format(new Date(event.start_datetime), "yyyy-MM-dd'T'HH:mm"),
+    end_datetime: event.end_datetime ? format(new Date(event.end_datetime), "yyyy-MM-dd'T'HH:mm") : "",
     location_name: event.location_name || "",
     latitude: event.latitude ?? null,
     longitude: event.longitude ?? null,
@@ -91,6 +92,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         description: event.description || "",
         category: event.category || "",
         start_datetime: format(new Date(event.start_datetime), "yyyy-MM-dd'T'HH:mm"),
+        end_datetime: event.end_datetime ? format(new Date(event.end_datetime), "yyyy-MM-dd'T'HH:mm") : "",
         location_name: event.location_name || "",
         latitude: event.latitude ?? null,
         longitude: event.longitude ?? null,
@@ -174,6 +176,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           description: formData.description || null,
           category: formData.category || null,
           start_datetime: formData.start_datetime ? new Date(formData.start_datetime).toISOString() : null,
+          end_datetime: formData.end_datetime ? new Date(formData.end_datetime).toISOString() : null,
           location_name: formData.location_name || null,
           latitude: formData.latitude,
           longitude: formData.longitude,
@@ -298,6 +301,16 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                   type="datetime-local"
                   value={formData.start_datetime}
                   onChange={(e) => setFormData({ ...formData, start_datetime: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="end-datetime">Fecha y hora de fin (opcional)</Label>
+                <Input
+                  id="end-datetime"
+                  type="datetime-local"
+                  value={formData.end_datetime}
+                  onChange={(e) => setFormData({ ...formData, end_datetime: e.target.value })}
                 />
               </div>
 

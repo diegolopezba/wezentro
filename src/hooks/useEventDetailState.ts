@@ -144,7 +144,11 @@ export const useEventDetailState = (
   })();
 
   const formattedDate = event?.start_datetime
-    ? format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")
+    ? `${format(new Date(event.start_datetime), "EEE, MMM d • h:mm a")}${
+        event?.end_datetime && !isNaN(new Date(event.end_datetime).getTime())
+          ? ` - ${format(new Date(event.end_datetime), "h:mm a")}`
+          : ""
+      }`
     : null;
 
   const formattedPrice = (() => {
