@@ -372,8 +372,16 @@ const Create = () => {
       const imageUrl = uploadedMedia[0]?.url ?? null;
 
       let startDatetime: string | null = null;
+      let endDatetime: string | null = null;
       if (!isPost && formData.date && formData.time) {
-        startDatetime = new Date(`${formData.date}T${formData.time}`).toISOString();
+        const start = new Date(`${formData.date}T${formData.time}`);
+        startDatetime = start.toISOString();
+        if (formData.endTime) {
+          const end = new Date(`${formData.date}T${formData.endTime}`);
+          // Overnight events: end time at or before start rolls to the next day
+          if (end.getTime() <= start.getTime()) end.setDate(end.getDate() + 1);
+          endDatetime = end.toISOString();
+        }
       }
 
       const descriptionTags = extractDescriptionTags(
