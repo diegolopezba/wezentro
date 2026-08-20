@@ -83,7 +83,7 @@ export const GuestlistFunnel = ({ data, isLoading }: GuestlistFunnelProps) => {
                     transition={{ delay: index * 0.1 + 0.2, duration: 0.5 }}
                     className="h-full rounded-full"
                     style={{
-                      background: `hsl(var(--accent-red))`,
+                      background: `hsl(var(--foreground))`,
                       opacity: 1 - index * 0.15,
                     }}
                   />

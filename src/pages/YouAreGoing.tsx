@@ -153,7 +153,7 @@ const YouAreGoing = () => {
             {event.title}
           </p>
           {guestlistEntry?.is_special_guest && (
-            <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.18em] text-accent-red">
+            <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[#141414]">
               Invitado especial
               {guestlistEntry?.special_guest_label
                 ? ` - ${guestlistEntry.special_guest_label}`
@@ -191,7 +191,7 @@ const YouAreGoing = () => {
               <Button
                 onClick={() => setQrToken(guestlistEntry?.qr_code_token ?? null)}
                 size="lg"
-                className="rounded-full font-semibold gap-2 bg-accent-red text-accent-red-foreground active:scale-95"
+                className="rounded-full font-semibold gap-2 bg-[#141414] text-[#F7F3E7] active:scale-95"
               >
                 <QrCode className="w-5 h-5" />
                 Mostrar QR
@@ -226,7 +226,7 @@ const YouAreGoing = () => {
                 <Button
                   onClick={() => setQrToken(t.qr_code_token)}
                   size="sm"
-                  className="rounded-full font-semibold gap-1.5 bg-accent-red text-accent-red-foreground active:scale-95"
+                  className="rounded-full font-semibold gap-1.5 bg-[#141414] text-[#F7F3E7] active:scale-95"
                 >
                   <QrCode className="w-4 h-4" />
                   Ver QR
