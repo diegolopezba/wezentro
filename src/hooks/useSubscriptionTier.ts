@@ -72,8 +72,11 @@ export const useSubscriptionTier = (businessId?: string) => {
     isFoodBusiness: isSubscriptionGated,
     /** Food business that has never activated a paid plan yet. */
     needsActivation:
-      isSubscriptionGated && (data?.status ?? "pending_activation") !== "active" &&
-      (data?.status ?? "pending_activation") !== "past_due",
+      isSubscriptionGated &&
+      !isLoading &&
+      !!data &&
+      data.status !== "active" &&
+      data.status !== "past_due",
     /** Max reservable tables allowed by the plan (null = unlimited). */
     maxTables: isSubscriptionGated ? SUBSCRIPTION_TIERS[tier].maxTables : null,
     isLoading,

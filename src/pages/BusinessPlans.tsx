@@ -11,7 +11,7 @@ import { cancelSubscription, BILLING_CONTACT_EMAIL } from "@/lib/subscriptionBil
 const BusinessPlans = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { tier: currentTier, needsActivation } = useSubscriptionTier(user?.id);
+  const { tier: currentTier, needsActivation, isLoading } = useSubscriptionTier(user?.id);
 
   useSwipeBack();
 
@@ -29,6 +29,7 @@ const BusinessPlans = () => {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pt-3">
+        {isLoading ? null : (
         <PlanSelector
           variant="page"
           currentTier={currentTier}
@@ -55,6 +56,7 @@ const BusinessPlans = () => {
             </div>
           }
         />
+        )}
       </div>
     </div>
   );
