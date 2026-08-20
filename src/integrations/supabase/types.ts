@@ -944,6 +944,7 @@ export type Database = {
           description: string | null
           description_tags: string[] | null
           end_datetime: string | null
+          experience_id: string | null
           has_guestlist: boolean | null
           has_guestlist_chat: boolean | null
           id: string
@@ -972,6 +973,7 @@ export type Database = {
           description?: string | null
           description_tags?: string[] | null
           end_datetime?: string | null
+          experience_id?: string | null
           has_guestlist?: boolean | null
           has_guestlist_chat?: boolean | null
           id?: string
@@ -1000,6 +1002,7 @@ export type Database = {
           description?: string | null
           description_tags?: string[] | null
           end_datetime?: string | null
+          experience_id?: string | null
           has_guestlist?: boolean | null
           has_guestlist_chat?: boolean | null
           id?: string
@@ -1031,6 +1034,342 @@ export type Database = {
           {
             foreignKeyName: "events_creator_id_fkey"
             columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experience_blackouts: {
+        Row: {
+          blackout_date: string
+          created_at: string
+          experience_id: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          blackout_date: string
+          created_at?: string
+          experience_id: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          blackout_date?: string
+          created_at?: string
+          experience_id?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_blackouts_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experience_booking_guests: {
+        Row: {
+          booking_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_booking_guests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "experience_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experience_booking_guests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experience_booking_guests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experience_bookings: {
+        Row: {
+          amount: number
+          booking_date: string
+          booking_time: string
+          check_in_token: string
+          created_at: string
+          experience_id: string
+          hold_expires_at: string | null
+          id: string
+          notes: string | null
+          payment_session_id: string | null
+          quantity: number
+          segment_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          booking_date: string
+          booking_time: string
+          check_in_token?: string
+          created_at?: string
+          experience_id: string
+          hold_expires_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_session_id?: string | null
+          quantity?: number
+          segment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          booking_date?: string
+          booking_time?: string
+          check_in_token?: string
+          created_at?: string
+          experience_id?: string
+          hold_expires_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_session_id?: string | null
+          quantity?: number
+          segment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_bookings_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experience_bookings_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "experience_segments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experience_bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experience_bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experience_policies: {
+        Row: {
+          cancellation_window_hours: number
+          experience_id: string
+          max_per_booking: number
+          min_lead_minutes: number
+          spots_per_slot: number
+          updated_at: string
+        }
+        Insert: {
+          cancellation_window_hours?: number
+          experience_id: string
+          max_per_booking?: number
+          min_lead_minutes?: number
+          spots_per_slot?: number
+          updated_at?: string
+        }
+        Update: {
+          cancellation_window_hours?: number
+          experience_id?: string
+          max_per_booking?: number
+          min_lead_minutes?: number
+          spots_per_slot?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_policies_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: true
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experience_schedules: {
+        Row: {
+          created_at: string
+          end_time: string
+          experience_id: string
+          id: string
+          is_closed: boolean
+          slot_interval_minutes: number
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string
+          experience_id: string
+          id?: string
+          is_closed?: boolean
+          slot_interval_minutes?: number
+          start_time?: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          experience_id?: string
+          id?: string
+          is_closed?: boolean
+          slot_interval_minutes?: number
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_schedules_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experience_segments: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          experience_id: string
+          id: string
+          is_active: boolean
+          max_per_booking: number | null
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          experience_id: string
+          id?: string
+          is_active?: boolean
+          max_per_booking?: number | null
+          name: string
+          price?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          experience_id?: string
+          id?: string
+          is_active?: boolean
+          max_per_booking?: number | null
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_segments_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experiences: {
+        Row: {
+          business_id: string
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          image_url: string | null
+          is_active: boolean
+          location_note: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location_note?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location_note?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experiences_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experiences_business_id_fkey"
+            columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
@@ -1782,7 +2121,8 @@ export type Database = {
           confirmed_at: string | null
           created_at: string
           event_area_id: string | null
-          event_id: string
+          event_id: string | null
+          experience_booking_id: string | null
           id: string
           party_size: number | null
           promoter_id: string | null
@@ -1802,7 +2142,8 @@ export type Database = {
           confirmed_at?: string | null
           created_at?: string
           event_area_id?: string | null
-          event_id: string
+          event_id?: string | null
+          experience_booking_id?: string | null
           id?: string
           party_size?: number | null
           promoter_id?: string | null
@@ -1822,7 +2163,8 @@ export type Database = {
           confirmed_at?: string | null
           created_at?: string
           event_area_id?: string | null
-          event_id?: string
+          event_id?: string | null
+          experience_booking_id?: string | null
           id?: string
           party_size?: number | null
           promoter_id?: string | null
@@ -1846,6 +2188,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_experience_booking_id_fkey"
+            columns: ["experience_booking_id"]
+            isOneToOne: false
+            referencedRelation: "experience_bookings"
             referencedColumns: ["id"]
           },
           {
@@ -4195,6 +4544,18 @@ export type Database = {
         Args: { _email: string; _name: string; _token: string }
         Returns: Json
       }
+      create_experience_booking: {
+        Args: {
+          _date: string
+          _experience_id: string
+          _guest_ids?: string[]
+          _notes?: string
+          _quantity: number
+          _segment_id: string
+          _time: string
+        }
+        Returns: string
+      }
       create_reservation: {
         Args: {
           _business_id: string
@@ -4377,6 +4738,14 @@ export type Database = {
         Returns: {
           event_id: string
           view_count: number
+        }[]
+      }
+      get_experience_availability: {
+        Args: { _date: string; _experience_id: string; _quantity?: number }
+        Returns: {
+          slot_time: string
+          spots_left: number
+          status: string
         }[]
       }
       get_for_you_context: { Args: { _user_id: string }; Returns: Json }
@@ -4577,6 +4946,7 @@ export type Database = {
         }
         Returns: number
       }
+      owns_experience: { Args: { _experience_id: string }; Returns: boolean }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -4594,6 +4964,10 @@ export type Database = {
       resolve_promoter: {
         Args: { _code: string; _event_id: string }
         Returns: string
+      }
+      set_experience_booking_status: {
+        Args: { _booking_id: string; _status: string }
+        Returns: undefined
       }
       set_reservation_status: {
         Args: { _reservation_id: string; _status: string }
