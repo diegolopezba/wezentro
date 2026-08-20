@@ -11,7 +11,7 @@ import { cancelSubscription, BILLING_CONTACT_EMAIL } from "@/lib/subscriptionBil
 const BusinessPlans = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { tier: currentTier, status } = useSubscriptionTier(user?.id);
+  const { tier: currentTier, status, needsActivation } = useSubscriptionTier(user?.id);
 
   useSwipeBack();
 
@@ -32,15 +32,18 @@ const BusinessPlans = () => {
         <PlanSelector
           variant="page"
           currentTier={currentTier}
-          subtitle={`Tu plan actual: ${SUBSCRIPTION_TIERS[currentTier].name}${
-            status !== "active" ? ` · ${status}` : ""
-          }`}
+          askRecommendation={needsActivation}
+          subtitle={
+            needsActivation
+              ? "Sin plan activo · las reservas se desbloquean al activar"
+              : `Tu plan actual: ${SUBSCRIPTION_TIERS[currentTier].name}`
+          }
           footerSlot={
             <div className="space-y-2">
               <p className="text-center text-[11px] text-muted-foreground">
                 Los planes se activan manualmente por ahora. Escribinos a {BILLING_CONTACT_EMAIL}.
               </p>
-              {currentTier !== "basico" && (
+              {!needsActivation && (
                 <Button
                   variant="ghost"
                   className="w-full rounded-full"
