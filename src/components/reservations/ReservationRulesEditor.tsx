@@ -10,6 +10,9 @@ import {
   DEFAULT_POLICY,
 } from "@/hooks/useReservationConfig";
 import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { LockedFeature } from "@/components/subscriptions/LockedFeature";
+import type { FeatureKey } from "@/lib/subscriptionTiers";
 
 interface Props {
   businessId: string;
