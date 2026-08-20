@@ -27,11 +27,12 @@ function buildHighlightHTML(text: string): string {
       if (/^@[a-zA-Z0-9_]+$/.test(part)) {
         return `<mark style="background:transparent;color:hsl(204,100%,47%);font-weight:500;">${escapeHtml(part)}</mark>`;
       }
-      // Preserve newlines so the mirror div stays in sync with the textarea
-      return escapeHtml(part).replace(/\n/g, "<br/>");
+      // whitespace: pre-wrap preserves newlines, so no <br/> injection here
+      return escapeHtml(part);
     })
     .join("");
 }
+
 
 function escapeHtml(str: string) {
   return str
