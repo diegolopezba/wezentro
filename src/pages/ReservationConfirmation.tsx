@@ -328,8 +328,9 @@ const ReservationConfirmation = () => {
             transition={{ delay: 0.45, duration: 0.3 }}
             className="mt-4" >
             <Button
+              variant="sheet-action"
               onClick={() => setMenuOpen(true)}
-              className="w-full bg-primary text-primary-foreground rounded-2xl font-semibold h-12" >
+              className="w-full rounded-2xl font-semibold h-12" >
               <UtensilsCrossed className="w-4 h-4 mr-2" />
               Ver Menú
             </Button>
