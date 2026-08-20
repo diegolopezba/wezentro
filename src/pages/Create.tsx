@@ -808,18 +808,28 @@ const Create = () => {
                     <button
                       key={exp.id}
                       type="button"
-                      onClick={() => setExperienceId(exp.id)}
+                      onClick={() => {
+                        if (!hasBeneficiary) { openBeneficiaryGate("experience"); return; }
+                        setExperienceId(exp.id);
+                      }}
                       className={cn(
                         "px-3 py-2 rounded-full text-sm border transition-colors max-w-full truncate",
                         experienceId === exp.id
                           ? "bg-foreground text-background border-transparent"
                           : "border-border text-muted-foreground",
+                        !hasBeneficiary && "opacity-60",
                       )}
                     >
                       {exp.title}
                     </button>
                   ))}
                 </div>
+              )}
+
+              {!hasBeneficiary && (
+                <p className="text-xs text-muted-foreground">
+                  Necesitás cargar tus datos de cobro para vender reservas de experiencias.
+                </p>
               )}
 
               {linkedExperience && (
