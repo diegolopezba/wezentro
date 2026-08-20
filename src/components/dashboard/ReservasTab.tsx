@@ -1,12 +1,16 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarCheck, Users, XCircle } from "lucide-react";
+import { CalendarCheck, Users, XCircle, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { StatsCard } from "./StatsCard";
 import { PeriodSelector, Period } from "./PeriodSelector";
 import { ReservationsSummary } from "./ReservationsSummary";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { PlansSheet } from "@/components/subscriptions/PlansSheet";
+import { featureUpgradeLabel } from "@/lib/subscriptionTiers";
 
 const DAYS_ES = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
 
