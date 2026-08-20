@@ -28,6 +28,29 @@ export interface TierConfig {
   features: readonly FeatureKey[];
   /** Marketing bullets shown on the Planes screen. */
   bullets: readonly string[];
+  /** Short badge shown on the hero card (e.g. "Complementario", "Recomendado"). */
+  badge?: string;
+  /** Highlighted features rendered in the "Funciones destacadas" block. */
+  highlights: readonly TierHighlight[];
+}
+
+/** Icon keys are mapped to lucide icons inside the Planes UI. */
+export type TierHighlightIcon =
+  | "calendar"
+  | "clock"
+  | "gauge"
+  | "table"
+  | "shield"
+  | "chart"
+  | "sparkles"
+  | "map"
+  | "trending"
+  | "menu";
+
+export interface TierHighlight {
+  icon: TierHighlightIcon;
+  title: string;
+  description: string;
 }
 
 const BASICO_FEATURES: readonly FeatureKey[] = [];
@@ -60,6 +83,24 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
       "Menú básico",
       "Reservas con conteo total de reservas e invitados",
     ],
+    badge: "Complementario",
+    highlights: [
+      {
+        icon: "calendar",
+        title: "Reservas online",
+        description: "Recibí reservas con confirmación automática, sin llamadas ni WhatsApp.",
+      },
+      {
+        icon: "menu",
+        title: "Menú básico",
+        description: "Publicá tu carta para que la gente sepa qué vas a servir.",
+      },
+      {
+        icon: "chart",
+        title: "Conteos del día",
+        description: "Total de reservas e invitados, para saber cómo viene la noche.",
+      },
+    ],
   },
   profesional: {
     key: "profesional",
@@ -77,6 +118,34 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
       "Analíticas completas de reservas (cancelación, no-show, franjas)",
       "Prioridad en resultados de Discover y mapa de tu categoría",
     ],
+    badge: "Recomendado",
+    highlights: [
+      {
+        icon: "clock",
+        title: "Múltiples turnos y bloqueos",
+        description: "Almuerzo y cena por separado, más fechas bloqueadas cuando cerrás.",
+      },
+      {
+        icon: "gauge",
+        title: "Ritmo de llegadas",
+        description: "Limitá cuántas personas entran por franja para no saturar la cocina.",
+      },
+      {
+        icon: "table",
+        title: "Unir mesas",
+        description: "Aceptá grupos grandes combinando mesas disponibles automáticamente.",
+      },
+      {
+        icon: "chart",
+        title: "Analíticas completas",
+        description: "No-shows, cancelaciones y las franjas que más te llenan.",
+      },
+      {
+        icon: "trending",
+        title: "Prioridad en Discover",
+        description: "Tu local aparece más arriba en resultados y mapa de tu categoría.",
+      },
+    ],
   },
   elite: {
     key: "elite",
@@ -88,6 +157,23 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
       "Todo lo del plan Profesional",
       "Plano visual del local y mapa de mesas (próximamente)",
       "Insights de ciudad entre locales (próximamente)",
+    ],
+    highlights: [
+      {
+        icon: "sparkles",
+        title: "Todo lo del plan Profesional",
+        description: "Turnos, ritmo, mesas unidas, políticas y analíticas completas.",
+      },
+      {
+        icon: "map",
+        title: "Plano visual del local",
+        description: "Mapa de mesas y selección por área. Próximamente.",
+      },
+      {
+        icon: "trending",
+        title: "Insights de ciudad",
+        description: "Comparate con locales similares de tu ciudad. Próximamente.",
+      },
     ],
   },
 };
@@ -108,5 +194,5 @@ export const featureUpgradeLabel = (feature: FeatureKey): string => {
 
 export const formatTierPrice = (tier: TierKey): string => {
   const price = SUBSCRIPTION_TIERS[tier].price_bob;
-  return price > 0 ? `Bs. ${price}/mes` : "Precio por definir";
+  return price > 0 ? `Bs. ${price}/mes` : tier === "basico" ? "Gratis" : "Precio por definir";
 };
