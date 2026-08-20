@@ -70,7 +70,10 @@ export const useSubscriptionTier = (businessId?: string) => {
     status: (data?.status ?? "active") as SubscriptionStatus,
     subscription: data ?? null,
     isFoodBusiness: isSubscriptionGated,
+    /** Max reservable tables allowed by the plan (null = unlimited). */
+    maxTables: isSubscriptionGated ? SUBSCRIPTION_TIERS[tier].maxTables : null,
     isLoading,
     hasFeature,
   };
 };
+

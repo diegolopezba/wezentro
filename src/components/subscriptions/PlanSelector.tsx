@@ -199,8 +199,9 @@ export const PlanSelector = ({
                   isSheet ? "text-background/70" : "text-muted-foreground",
                 )}
               >
-                {tier.tagline}
+                {tier.sizeLabel} · {tier.tagline}
               </p>
+
             </div>
 
             {/* Highlights */}
