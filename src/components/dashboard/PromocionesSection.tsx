@@ -381,7 +381,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                 </div>
 
                 <Button
-                  variant="hero" size="lg" className="w-full text-base" onClick={() => setShowWizard(true)}
+                  variant="sheet-action" size="lg" className="w-full text-base" onClick={() => setShowWizard(true)}
                   disabled={availableEvents.length === 0}
                 >
                   {availableEvents.length === 0 ? "Crea un evento primero" : "Impulsar mi evento →"}
@@ -440,7 +440,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                                 <Pencil className="w-3.5 h-3.5" />
                               </Button>
                               <Button
-                                size="sm" variant="hero" className="h-8 text-xs" onClick={() => handleActivate(sp)}
+                                size="sm" variant="sheet-action" className="h-8 text-xs" onClick={() => handleActivate(sp)}
                                 disabled={activatingId === sp.id}
                               >
                                 {activatingId === sp.id ? "..." : "Activar →"}
@@ -913,7 +913,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
 
                     {/* Pay CTA */}
                     <Button
-                      variant="hero" size="xl" className="w-full text-base" onClick={handleCreate}
+                      variant="sheet-action" size="xl" className="w-full text-base" onClick={handleCreate}
                       disabled={createMutation.isPending}
                     >
                       {createMutation.isPending ? ( "Procesando..." ) : editingPostId ? (
@@ -945,7 +945,7 @@ export const PromocionesSection = ({ openWizardOnMount }: { openWizardOnMount?: 
                 </p>
               )}
               <Button
-                variant="hero" size="xl" className="w-full text-base" onClick={() => setStep(s => s + 1)}
+                variant="sheet-action" size="xl" className="w-full text-base" onClick={() => setStep(s => s + 1)}
                 disabled={!canAdvance()}
               >
                 Siguiente

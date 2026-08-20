@@ -41,6 +41,7 @@ export const TicketInfoSheet = ({ open, onOpenChange }: TicketInfoSheetProps) =>
           </p>
 
           <Button
+            variant="sheet-action"
             onClick={() => onOpenChange(false)}
             className="w-full rounded-full font-semibold active:scale-95"
             size="lg"

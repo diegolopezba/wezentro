@@ -245,7 +245,7 @@ const Onboarding = () => {
                 <p className="text-muted-foreground text-xs mt-2">Solo letras, números y guiones bajos</p>
               </div>
               <Button
-                variant="hero" className="w-full" onClick={handleNextStep}
+                variant="sheet-action" className="w-full" onClick={handleNextStep}
                 disabled={isLoading || !formData.username || !!usernameError}
               >
                 {isLoading ? (
@@ -272,7 +272,7 @@ const Onboarding = () => {
               </div>
               <div className="flex gap-3">
                 <Button variant="secondary" className="flex-1" onClick={() => setStep(1)}>Atrás</Button>
-                <Button variant="hero" className="flex-1" onClick={handleNextStep}>
+                <Button variant="sheet-action" className="flex-1" onClick={handleNextStep}>
                   Continuar <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </div>
@@ -343,7 +343,7 @@ const Onboarding = () => {
 
               <div className="flex gap-3">
                 <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>Atrás</Button>
-                <Button variant="hero" className="flex-1" onClick={handleNextStep} disabled={isLoading || !formData.gender || !formData.birthDay || !formData.birthMonth || !formData.birthYear}>
+                <Button variant="sheet-action" className="flex-1" onClick={handleNextStep} disabled={isLoading || !formData.gender || !formData.birthDay || !formData.birthMonth || !formData.birthYear}>
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (

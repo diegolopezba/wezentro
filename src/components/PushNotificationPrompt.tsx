@@ -31,7 +31,7 @@ export const PushNotificationPrompt = ({ children }: Props) => {
               </SheetDescription>
             </SheetHeader>
             <div className="mt-6 space-y-2">
-              <Button variant="hero" className="w-full" onClick={accept} disabled={isAccepting}>
+              <Button variant="sheet-action" className="w-full" onClick={accept} disabled={isAccepting}>
                 {isAccepting ? "Activando…" : "Activar notificaciones"}
               </Button>
               <Button variant="ghost" className="w-full" onClick={dismiss} disabled={isAccepting}>

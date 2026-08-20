@@ -408,7 +408,7 @@ const Auth = () => {
                   )}
                 </div>
                 <Button
-                  variant="hero"
+                  variant="sheet-action"
                   className="w-full"
                   onClick={handleVerifyCode}
                   disabled={isLoading || otpCode.length < 6}
@@ -528,7 +528,7 @@ const Auth = () => {
                 )}
 
                 <Button
-                  variant="hero" className="w-full" onClick={mode === "reset" ? handleResetPassword : handleAuth}
+                  variant="sheet-action" className="w-full" onClick={mode === "reset" ? handleResetPassword : handleAuth}
                   disabled={isLoading}
                 >
                   {isLoading ? (

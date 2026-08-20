@@ -184,7 +184,7 @@ export function ShareEventModal({ eventId, open, onOpenChange }: ShareEventModal
         {/* Footer */}
         <div className="px-6 pt-3 pb-6 shrink-0 border-t border-border/50 flex gap-2">
           <Button
-            variant="hero"
+            variant="sheet-action"
             className="flex-1"
             onClick={handleSend}
             disabled={selectedUsers.length === 0 || isSending}

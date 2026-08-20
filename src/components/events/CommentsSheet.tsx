@@ -154,7 +154,7 @@ export const CommentsSheet = ({
               maxLength={500}
               className="flex-1 bg-secondary/50 rounded-full px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
             <Button
-              type="submit" size="icon-sm" variant="hero" disabled={!text.trim() || addComment.isPending}
+              type="submit" size="icon-sm" variant="sheet-action" disabled={!text.trim() || addComment.isPending}
               className="shrink-0" >
               {addComment.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -160,12 +160,13 @@ export const FilterSheet = ({
         {/* Apply Button */}
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
           <Button
+            variant="sheet-action"
             className="w-full rounded-full h-12"
             onClick={handleApply}
           >
             Aplicar filtros
             {activeFilterCount > 0 && (
-              <span className="ml-2 px-2 py-0.5 bg-primary-foreground/20 rounded-full text-xs">
+              <span className="ml-2 px-2 py-0.5 bg-background/20 rounded-full text-xs">
                 {activeFilterCount}
               </span>
             )}

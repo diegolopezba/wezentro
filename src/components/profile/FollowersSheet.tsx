@@ -40,7 +40,7 @@ const FollowButton = ({
     }
   };
   const isPending = followMutation.isPending || unfollowMutation.isPending;
-  return <Button variant={isFollowing ? "secondary" : "hero"} size="sm" onClick={handleClick} disabled={isLoading || isPending} className="min-w-[100px] px-2 text-xs">
+  return <Button variant={isFollowing ? "secondary" : "sheet-action"} size="sm" onClick={handleClick} disabled={isLoading || isPending} className="min-w-[100px] px-2 text-xs">
       {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="truncate">
           {isFollowing ? "Siguiendo" : isFollowedBy ? "Seguir de vuelta" : "Seguir"}
         </span>}

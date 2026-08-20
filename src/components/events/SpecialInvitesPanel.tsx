@@ -176,7 +176,7 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
             onChange={(e) => setLabel(e.target.value)}
             maxLength={40}
           />
-          <Button variant="hero" onClick={handleCreate} disabled={createInvite.isPending}>
+          <Button variant="sheet-action" onClick={handleCreate} disabled={createInvite.isPending}>
             {createInvite.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
@@ -243,7 +243,7 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
           {selectedIds.length > 0 && (
             <div className="space-y-2">
               <Button
-                variant="hero"
+                variant="sheet-action"
                 size="sm"
                 className="w-full"
                 onClick={handleBulkSend}

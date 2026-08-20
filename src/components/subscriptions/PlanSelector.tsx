@@ -245,6 +245,7 @@ export const PlanSelector = ({
       >
         <Button
           type="button"
+          variant="sheet-action"
           disabled={isCurrent}
           className="h-12 w-full rounded-full text-base"
           onClick={() => startSubscriptionCheckout(selected)}

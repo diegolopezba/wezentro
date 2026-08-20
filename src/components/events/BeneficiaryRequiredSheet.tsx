@@ -33,11 +33,12 @@ export function BeneficiaryRequiredSheet({ open, onOpenChange }: Props) {
 
         <Button
           type="button"
+          variant="sheet-action"
           onClick={() => {
             onOpenChange(false);
             navigate("/settings/business/payments");
           }}
-          className="w-full rounded-full mt-6 h-12 bg-primary text-primary-foreground active:bg-primary/90"
+          className="w-full rounded-full mt-6 h-12"
         >
           Configurar cobros
         </Button>

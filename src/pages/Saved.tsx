@@ -44,7 +44,7 @@ const Saved = () => {
             <p className="text-muted-foreground text-center text-sm max-w-xs">
               Guarda eventos que te interesen y aparecerán aquí
             </p>
-            <Button variant="hero" className="mt-6" onClick={() => navigate("/")}>
+            <Button variant="sheet-action" className="mt-6" onClick={() => navigate("/")}>
               Explorar Eventos
             </Button>
           </m.div>}

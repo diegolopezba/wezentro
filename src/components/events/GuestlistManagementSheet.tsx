@@ -119,7 +119,7 @@ function ScannerPanel({ eventId }: { eventId: string }) {
           {/* Action buttons */}
           <div className="grid grid-cols-2 gap-3">
             <Button
-              variant="hero" className="gap-2" onClick={handleShare}
+              variant="sheet-action" className="gap-2" onClick={handleShare}
               disabled={!scannerUrl}
             >
               {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}

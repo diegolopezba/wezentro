@@ -370,7 +370,7 @@ const EventDetail = () => {
               <p className="text-muted-foreground text-sm mb-4">Regístrate para unirte a listas, comprar entradas, guardar eventos y conectar con amigos.
 
           </p>
-              <Button variant="hero" className="w-full" onClick={() => navigate("/auth")}>
+              <Button variant="sheet-action" className="w-full" onClick={() => navigate("/auth")}>
                 Registrarse / Iniciar Sesión
               </Button>
             </div>}
@@ -502,7 +502,7 @@ const EventDetail = () => {
           }
             </div>
             {isOwner ?
-        <Button variant="hero" size="default" onClick={() => setShowManagement(true)}>
+        <Button variant="sheet-action" size="default" onClick={() => setShowManagement(true)}>
                 Gestionar
                 {pendingCount > 0 &&
           <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
@@ -522,14 +522,14 @@ const EventDetail = () => {
                 </span> :
         hasActiveInvite ?
 
-        <Button variant="hero" size="default" onClick={() => setShowInviteModal(true)}>
+        <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
                 Aceptar invitación especial
               </Button> :
         (allTiersSoldOut || isGuestlistFull) ?
         <Button variant="outline" size="default" disabled>
                 Entradas agotadas
               </Button> :
-        <Button variant="hero" size="default" onClick={handleBuyTicket} disabled={buyTicketPending}>
+        <Button variant="sheet-action" size="default" onClick={handleBuyTicket} disabled={buyTicketPending}>
                 {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <>Free</>}
               </Button>
         }
@@ -546,7 +546,7 @@ const EventDetail = () => {
             {event.creator?.full_name || event.creator?.username || ""}
           </span>
           <Button
-            variant="hero" size="default" onClick={() => setShowReservationSheet(true)}
+            variant="sheet-action" size="default" onClick={() => setShowReservationSheet(true)}
           >
             <CalendarCheck className="w-4 h-4 mr-1" /> Reservar
           </Button>

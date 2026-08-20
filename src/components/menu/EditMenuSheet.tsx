@@ -616,6 +616,7 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
               Cancelar
             </Button>
             <Button
+              variant="sheet-action"
               onClick={handleSaveItem}
               disabled={createItemMutation.isPending || updateItemMutation.isPending}
             >
@@ -654,6 +655,7 @@ export const EditMenuSheet = ({ open, onOpenChange }: EditMenuSheetProps) => {
               Cancelar
             </Button>
             <Button
+              variant="sheet-action"
               onClick={handleSaveCategory}
               disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
             >

@@ -224,7 +224,7 @@ const BusinessPaymentSettings = () => {
               <p className="text-muted-foreground text-xs">{existing.email}</p>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button variant="hero" size="sm" className="flex-1" onClick={() => setEditing(true)}>Editar</Button>
+              <Button variant="sheet-action" size="sm" className="flex-1" onClick={() => setEditing(true)}>Editar</Button>
               <Button variant="ghost" size="sm" onClick={handleDelete} disabled={deleting} className="text-destructive">
                 {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
               </Button>
@@ -296,7 +296,7 @@ const BusinessPaymentSettings = () => {
             </div>
 
             <div className="flex gap-2 pt-1">
-              <Button variant="hero" size="sm" className="flex-1" onClick={handleSave} disabled={saving || !canSave}>
+              <Button variant="sheet-action" size="sm" className="flex-1" onClick={handleSave} disabled={saving || !canSave}>
                 {saving ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Guardando...</> : existing ? "Guardar cambios" : "Configurar cuenta"}
               </Button>
               {existing && (

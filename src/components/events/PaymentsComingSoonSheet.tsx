@@ -36,8 +36,9 @@ export function PaymentsComingSoonSheet({ open, onOpenChange }: Props) {
 
         <Button
           type="button"
+          variant="sheet-action"
           onClick={() => onOpenChange(false)}
-          className="w-full rounded-full mt-6 h-12 bg-primary text-primary-foreground active:bg-primary/90"
+          className="w-full rounded-full mt-6 h-12"
         >
           Entendido
         </Button>

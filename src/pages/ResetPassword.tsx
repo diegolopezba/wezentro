@@ -76,7 +76,7 @@ export default function ResetPassword() {
             El enlace para restablecer tu contraseña ya no es válido. Solicita uno nuevo desde el inicio de sesión.
           </p>
           <Button
-            variant="hero"
+            variant="sheet-action"
             className="w-full rounded-full"
             onClick={() => navigate("/auth", { replace: true })}
           >
@@ -129,7 +129,7 @@ export default function ResetPassword() {
           />
         </div>
 
-        <Button type="submit" variant="hero" className="w-full rounded-full" disabled={submitting}>
+        <Button type="submit" variant="sheet-action" className="w-full rounded-full" disabled={submitting}>
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Actualizar contraseña"}
         </Button>
       </form>

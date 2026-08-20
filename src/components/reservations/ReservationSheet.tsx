@@ -585,7 +585,7 @@ export const ReservationSheet = ({
         <div className="px-4 pb-6 pt-3 border-t shrink-0">
           {currentStep !== "extras" ? (
             <Button
-              className="w-full" variant="hero" disabled={!canProceedFrom(currentStep)}
+              variant="sheet-action" className="w-full" disabled={!canProceedFrom(currentStep)}
               onClick={goNext}
             >
               Continuar
@@ -593,9 +593,10 @@ export const ReservationSheet = ({
             </Button>
           ) : (
             <Button
+              variant="sheet-action"
               onClick={handleSubmit}
               disabled={isPending || isOverCapacity}
-              className="w-full" variant="hero" >
+              className="w-full" >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               {isEditMode ? "Guardar cambios" : "Confirmar Reserva"}
             </Button>
