@@ -245,7 +245,7 @@ const Onboarding = () => {
                 <p className="text-muted-foreground text-xs mt-2">Solo letras, números y guiones bajos</p>
               </div>
               <Button
-                variant="hero" className="w-full" onClick={handleNextStep}
+                variant="sheet-action" className="w-full" onClick={handleNextStep}
                 disabled={isLoading || !formData.username || !!usernameError}
               >
                 {isLoading ? (

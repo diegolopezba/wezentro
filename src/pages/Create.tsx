@@ -957,7 +957,7 @@ const Create = () => {
         {/* ── Publish button ── */}
         <div className="pt-2">
           <Button
-            variant="hero" className="w-full" onClick={handleSubmit}
+            variant="sheet-action" className="w-full" onClick={handleSubmit}
             disabled={isSubmitting || isUploading}>
             
             {isSubmitting ?
