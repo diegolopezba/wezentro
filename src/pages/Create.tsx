@@ -15,8 +15,9 @@ import {
   CalendarCheck,
   Sparkles,
   PartyPopper,
-  Lock } from
-"lucide-react";
+  Lock,
+  HelpCircle,
+} from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -49,6 +50,9 @@ import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSect
 import { useReplaceEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import { useBusinessExperiences } from "@/hooks/useExperiences";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { CREATE_INTRO } from "@/components/business/featureIntroSteps";
+
 
 type ContentType = "post" | "event";
 
@@ -143,6 +147,7 @@ const Create = () => {
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const [beneficiaryGateContext, setBeneficiaryGateContext] = useState<"tickets" | "experience">("tickets");
+  const { open: introOpen, setOpen: setIntroOpen, reopen: reopenIntro } = useFeatureIntro("create");
   const openBeneficiaryGate = (ctx: "tickets" | "experience" = "tickets") => {
     setBeneficiaryGateContext(ctx);
     setShowBeneficiaryGate(true);
@@ -151,6 +156,7 @@ const Create = () => {
     if (!isBusiness) setShowBusinessGate(true);
     else if (!hasBeneficiary) openBeneficiaryGate("tickets");
   };
+
 
   const handleTypeChange = (type: ContentType) => {
     setContentType(type);
@@ -531,10 +537,19 @@ const Create = () => {
     <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
-        <div className="px-4 py-4">
+        <div className="px-4 py-4 flex items-center justify-between">
           <h1 className="font-brand text-xl font-medium text-foreground">Crear</h1>
+          <button
+            type="button"
+            onClick={reopenIntro}
+            className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
+            aria-label="¿Cómo funciona?"
+          >
+            <HelpCircle className="w-5 h-5 text-muted-foreground" />
+          </button>
         </div>
       </header>
+
 
       <div className="px-4 py-6 space-y-6 pb-24">
 
@@ -1068,6 +1083,11 @@ const Create = () => {
 
       <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
       <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} context={beneficiaryGateContext} />
+      <FeatureIntroSheet
+        open={introOpen && !showBusinessGate && !showBeneficiaryGate}
+        onOpenChange={setIntroOpen}
+        steps={CREATE_INTRO}
+      />
     </AppLayout>);
 
 };
