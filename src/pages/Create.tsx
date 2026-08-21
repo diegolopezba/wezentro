@@ -537,10 +537,19 @@ const Create = () => {
     <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg">
-        <div className="px-4 py-4">
+        <div className="px-4 py-4 flex items-center justify-between">
           <h1 className="font-brand text-xl font-medium text-foreground">Crear</h1>
+          <button
+            type="button"
+            onClick={reopenIntro}
+            className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
+            aria-label="¿Cómo funciona?"
+          >
+            <HelpCircle className="w-5 h-5 text-muted-foreground" />
+          </button>
         </div>
       </header>
+
 
       <div className="px-4 py-6 space-y-6 pb-24">
 
