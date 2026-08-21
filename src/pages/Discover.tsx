@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, lazy, Suspense } from "react";
 import { m, AnimatePresence } from "framer-motion";
-import { Search, SlidersHorizontal, MapPin, X, Users, Loader2 } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, X, Users, Loader2, HelpCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
