@@ -390,6 +390,12 @@ const Discover = () => {
                 </span>
               )}
             </Button>
+            <Button
+              variant="secondary" size="icon" className="bg-card/90 backdrop-blur-md border-border/50" onClick={intro.reopen}
+              aria-label="¿Cómo funciona?"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </Button>
           </div>
 
           {/* Category Filter Bar */}
