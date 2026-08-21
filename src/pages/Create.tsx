@@ -1083,6 +1083,11 @@ const Create = () => {
 
       <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
       <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} context={beneficiaryGateContext} />
+      <FeatureIntroSheet
+        open={introOpen && !showBusinessGate && !showBeneficiaryGate}
+        onOpenChange={setIntroOpen}
+        steps={CREATE_INTRO}
+      />
     </AppLayout>);
 
 };
