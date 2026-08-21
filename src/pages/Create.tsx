@@ -147,6 +147,7 @@ const Create = () => {
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const [beneficiaryGateContext, setBeneficiaryGateContext] = useState<"tickets" | "experience">("tickets");
+  const { open: introOpen, setOpen: setIntroOpen, reopen: reopenIntro } = useFeatureIntro("create");
   const openBeneficiaryGate = (ctx: "tickets" | "experience" = "tickets") => {
     setBeneficiaryGateContext(ctx);
     setShowBeneficiaryGate(true);
@@ -155,6 +156,7 @@ const Create = () => {
     if (!isBusiness) setShowBusinessGate(true);
     else if (!hasBeneficiary) openBeneficiaryGate("tickets");
   };
+
 
   const handleTypeChange = (type: ContentType) => {
     setContentType(type);
