@@ -117,7 +117,7 @@ export const DISCOVER_INTRO: FeatureIntroStep[] = [
       { icon: Map, label: "Eventos en el mapa", desc: "Cada pin es un evento. Tocá un pin para ver la tarjeta abajo." },
       { icon: Compass, label: "Categorías", desc: "Filtrá por restaurantes, bares, fiestas, cultura y más." },
       { icon: Search, label: "Buscar", desc: "Buscá eventos o personas desde la barra superior." },
-      { icon: Navigation, label: "Cerca de ti", desc: "Activá tu ubicación para ver primero lo que está más cerca." },
+      { icon: MapPin, label: "Cerca de ti", desc: "Activá tu ubicación para ver primero lo que está más cerca." },
     ],
   },
 ];
