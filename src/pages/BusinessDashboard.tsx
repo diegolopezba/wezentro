@@ -119,16 +119,21 @@ const BusinessDashboard = () => {
     <div className="min-h-[100dvh] bg-background pb-8">
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={goBack}>
-            <ArrowLeft className="w-5 h-5" />
+        <div className="flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={goBack}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="font-brand text-xl font-medium text-foreground">Analytics</h1>
+            {profile?.business_type && (
+              <Badge variant="secondary" className="text-xs font-normal">
+                {profile.business_type}
+              </Badge>
+            )}
+          </div>
+          <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
+            <HelpCircle className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-medium text-foreground">Analytics</h1>
-          {profile?.business_type && (
-            <Badge variant="secondary" className="text-xs font-normal">
-              {profile.business_type}
-            </Badge>
-          )}
         </div>
       </header>
 
