@@ -175,18 +175,23 @@ const BusinessPaymentSettings = () => {
   return (
     <div className="min-h-[100dvh] bg-background">
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="font-brand text-xl font-medium text-foreground">Pagos</h1>
+        <div className="flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="font-brand text-xl font-medium text-foreground">Pagos</h1>
+            </div>
+            {existing && !editing && (
+              <span className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                <CheckCircle2 className="w-3 h-3" /> Configurado
+              </span>
+            )}
           </div>
-          {existing && !editing && (
-            <span className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-              <CheckCircle2 className="w-3 h-3" /> Configurado
-            </span>
-          )}
+          <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
+            <HelpCircle className="w-5 h-5" />
+          </Button>
         </div>
       </header>
 
