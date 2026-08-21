@@ -252,6 +252,9 @@ const Index = () => {
               <Button variant="ghost" size="icon" onClick={() => setShowSearch(s => !s)}>
                 <Search className="w-5 h-5" />
               </Button>
+              <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
+                <HelpCircle className="w-5 h-5" />
+              </Button>
             </div>
           </div>
           {showSearch && <m.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-4 pb-4">
