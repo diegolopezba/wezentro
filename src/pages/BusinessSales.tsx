@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, HelpCircle } from "lucide-react";
 import { SalesSummary } from "@/components/sales/SalesSummary";
 import { SalesEvents } from "@/components/sales/SalesEvents";
 import { SalesPromoters } from "@/components/sales/SalesPromoters";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { SALES_PAYOUTS_INTRO } from "@/components/business/featureIntroSteps";
 
 type Tab = "overview" | "events" | "promoters";
 
@@ -15,6 +17,7 @@ const TABS: { key: Tab; label: string }[] = [
 
 const BusinessSales = () => {
   const navigate = useNavigate();
+  const intro = useFeatureIntro("sales");
   const [tab, setTab] = useState<Tab>("overview");
 
   const goBack = () => {
@@ -25,15 +28,24 @@ const BusinessSales = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="flex items-center gap-3 px-4 h-14">
+        <div className="flex items-center justify-between px-4 h-14">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={goBack}
+              aria-label="Volver"
+              className="w-9 h-9 rounded-full grid place-items-center active:bg-secondary transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="font-brand text-lg font-semibold text-foreground">Ventas y promotores</h1>
+          </div>
           <button
-            onClick={goBack}
-            aria-label="Volver"
+            onClick={intro.reopen}
+            aria-label="¿Cómo funciona?"
             className="w-9 h-9 rounded-full grid place-items-center active:bg-secondary transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
+            <HelpCircle className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="font-brand text-lg font-semibold text-foreground">Ventas y promotores</h1>
         </div>
 
         <div className="flex gap-2 px-4 pb-3 overflow-x-auto scrollbar-hide">
