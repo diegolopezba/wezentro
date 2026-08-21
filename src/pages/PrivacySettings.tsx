@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
 import { useState } from "react";
-import { ChevronLeft, Users, UserCheck, Heart, Loader2, Bell, BellOff, Send, AlertTriangle } from "lucide-react";
+import { ChevronLeft, Users, UserCheck, Heart, Loader2, Bell, BellOff, Send, AlertTriangle, HelpCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -11,10 +11,13 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { PRIVACY_INTRO } from "@/components/business/featureIntroSteps";
 
 const PrivacySettings = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const intro = useFeatureIntro("privacy");
   const { data: settings, isLoading } = useUserSettings();
   const updateSettings = useUpdateUserSettings();
   const { 
