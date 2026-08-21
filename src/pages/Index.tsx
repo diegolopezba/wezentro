@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { m } from "framer-motion";
-import { Bell, Search, SlidersHorizontal } from "lucide-react";
+import { Bell, Search, SlidersHorizontal, HelpCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventFeed } from "@/components/events/EventFeed";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -17,7 +17,6 @@ import { useSearchUsers } from "@/hooks/useSearchUsers";
 import { UserSearchResultCard } from "@/components/search/UserSearchResultCard";
 import { cn } from "@/lib/utils";
 
-
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { useOpenNotifications } from "@/hooks/useOpenOverlay";
@@ -25,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { HOME_FEED_INTRO } from "@/components/business/featureIntroSteps";
 
 const Index = () => {
   const openNotifications = useOpenNotifications();
