@@ -347,6 +347,7 @@ const Index = () => {
           filters={filters}
           onApplyFilters={setFilters}
         />
+        <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={HOME_FEED_INTRO} />
       </AppLayout>;
 };
 export default Index;
