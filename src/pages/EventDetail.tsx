@@ -249,7 +249,9 @@ const EventDetail = () => {
               <Button variant="ghost" size="icon" onClick={() => setShowActions(true)}>
                 <MoreVertical className="w-5 h-5" />
               </Button>
-
+              <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
+                <HelpCircle className="w-5 h-5" />
+              </Button>
             </div>
           </div>
 
