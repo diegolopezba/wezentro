@@ -34,6 +34,7 @@ type SearchTab = "events" | "people";
 const Discover = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const intro = useFeatureIntro("discover");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEvents, setSelectedEvents] = useState<EventWithDistance[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
