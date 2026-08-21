@@ -484,6 +484,7 @@ const Discover = () => {
           filters={filters}
           onApplyFilters={handleApplyFilters}
         />
+        <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={DISCOVER_INTRO} />
       </div>
     </AppLayout>
   );
