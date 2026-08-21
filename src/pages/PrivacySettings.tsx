@@ -117,11 +117,16 @@ const PrivacySettings = () => {
     <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg safe-top">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
-            <ChevronLeft className="w-5 h-5" />
+        <div className="flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="font-brand text-xl font-medium text-foreground">Privacidad</h1>
+          </div>
+          <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
+            <HelpCircle className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-medium text-foreground">Privacidad</h1>
         </div>
       </header>
 
