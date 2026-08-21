@@ -32,6 +32,7 @@ const Index = () => {
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
   const isGuest = !user;
+  const intro = useFeatureIntro("home");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
