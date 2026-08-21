@@ -279,6 +279,7 @@ const PrivacySettings = () => {
           </m.div>
         )}
       </div>
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={PRIVACY_INTRO} />
     </AppLayout>
   );
 };
