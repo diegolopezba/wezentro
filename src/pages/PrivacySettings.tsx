@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
 import { useState } from "react";
-import { ChevronLeft, Users, UserCheck, Heart, Loader2, Bell, BellOff, Send, AlertTriangle } from "lucide-react";
+import { ChevronLeft, Users, UserCheck, Heart, Loader2, Bell, BellOff, Send, AlertTriangle, HelpCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -11,10 +11,13 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { PRIVACY_INTRO } from "@/components/business/featureIntroSteps";
 
 const PrivacySettings = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const intro = useFeatureIntro("privacy");
   const { data: settings, isLoading } = useUserSettings();
   const updateSettings = useUpdateUserSettings();
   const { 
@@ -114,11 +117,16 @@ const PrivacySettings = () => {
     <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg safe-top">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
-            <ChevronLeft className="w-5 h-5" />
+        <div className="flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="font-brand text-xl font-medium text-foreground">Privacidad</h1>
+          </div>
+          <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
+            <HelpCircle className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-medium text-foreground">Privacidad</h1>
         </div>
       </header>
 
@@ -271,6 +279,7 @@ const PrivacySettings = () => {
           </m.div>
         )}
       </div>
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={PRIVACY_INTRO} />
     </AppLayout>
   );
 };

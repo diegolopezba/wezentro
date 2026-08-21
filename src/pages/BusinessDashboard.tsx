@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BarChart3, Wallet } from "lucide-react";
+import { ArrowLeft, BarChart3, Wallet, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +18,8 @@ import { ReservasTab } from "@/components/dashboard/ReservasTab";
 import { ComingSoonTab } from "@/components/dashboard/ComingSoonTab";
 import { m } from "framer-motion";
 import type { Period } from "@/components/dashboard/PeriodSelector";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { BUSINESS_DASHBOARD_INTRO } from "@/components/business/featureIntroSteps";
 
 const TABS = [
   { value: "overview", label: "Overview" },
@@ -33,6 +35,7 @@ const TABS = [
 const BusinessDashboard = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const intro = useFeatureIntro("dashboard");
   const [period, setPeriod] = useState<Period>("7d");
   const [activeTab, setActiveTab] = useState("overview");
   const [openBoostWizard, setOpenBoostWizard] = useState(false);
@@ -116,16 +119,21 @@ const BusinessDashboard = () => {
     <div className="min-h-[100dvh] bg-background pb-8">
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={goBack}>
-            <ArrowLeft className="w-5 h-5" />
+        <div className="flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={goBack}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="font-brand text-xl font-medium text-foreground">Analytics</h1>
+            {profile?.business_type && (
+              <Badge variant="secondary" className="text-xs font-normal">
+                {profile.business_type}
+              </Badge>
+            )}
+          </div>
+          <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
+            <HelpCircle className="w-5 h-5" />
           </Button>
-          <h1 className="font-brand text-xl font-medium text-foreground">Analytics</h1>
-          {profile?.business_type && (
-            <Badge variant="secondary" className="text-xs font-normal">
-              {profile.business_type}
-            </Badge>
-          )}
         </div>
       </header>
 
@@ -173,6 +181,7 @@ const BusinessDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={BUSINESS_DASHBOARD_INTRO} />
     </div>
   );
 };

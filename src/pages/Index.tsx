@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { m } from "framer-motion";
-import { Bell, Search, SlidersHorizontal } from "lucide-react";
+import { Bell, Search, SlidersHorizontal, HelpCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventFeed } from "@/components/events/EventFeed";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -17,7 +17,6 @@ import { useSearchUsers } from "@/hooks/useSearchUsers";
 import { UserSearchResultCard } from "@/components/search/UserSearchResultCard";
 import { cn } from "@/lib/utils";
 
-
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { useOpenNotifications } from "@/hooks/useOpenOverlay";
@@ -25,12 +24,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { HOME_FEED_INTRO } from "@/components/business/featureIntroSteps";
 
 const Index = () => {
   const openNotifications = useOpenNotifications();
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
   const isGuest = !user;
+  const intro = useFeatureIntro("home");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -250,6 +252,9 @@ const Index = () => {
               <Button variant="ghost" size="icon" onClick={() => setShowSearch(s => !s)}>
                 <Search className="w-5 h-5" />
               </Button>
+              <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
+                <HelpCircle className="w-5 h-5" />
+              </Button>
             </div>
           </div>
           {showSearch && <m.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-4 pb-4">
@@ -342,6 +347,7 @@ const Index = () => {
           filters={filters}
           onApplyFilters={setFilters}
         />
+        <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={HOME_FEED_INTRO} />
       </AppLayout>;
 };
 export default Index;

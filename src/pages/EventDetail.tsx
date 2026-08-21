@@ -3,7 +3,7 @@ import { m } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck, Flag } from "lucide-react";
+import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck, Flag, HelpCircle } from "lucide-react";
 import { useState } from "react";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,8 @@ import { useEventDetailState } from "@/hooks/useEventDetailState";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { CommentsSheet } from "@/components/events/CommentsSheet";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { EVENT_ACTIONS_INTRO } from "@/components/business/featureIntroSteps";
 import { useCommentCount, useLatestComment } from "@/hooks/useEventComments";
 import { AttachedBusinessCtas } from "@/components/events/AttachedBusinessCtas";
 import { captureFromUrl } from "@/lib/promoterAttribution";
@@ -46,6 +48,7 @@ const EventDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const intro = useFeatureIntro("event");
   const fromCreate = (location.state as { fromCreate?: boolean })?.fromCreate;
   const openGuestlistOnMount = (location.state as { openGuestlist?: boolean })?.openGuestlist;
   const { user } = useAuth();
@@ -246,7 +249,9 @@ const EventDetail = () => {
               <Button variant="ghost" size="icon" onClick={() => setShowActions(true)}>
                 <MoreVertical className="w-5 h-5" />
               </Button>
-
+              <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
+                <HelpCircle className="w-5 h-5" />
+              </Button>
             </div>
           </div>
 
@@ -626,6 +631,7 @@ const EventDetail = () => {
       />
     )}
 
+    <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={EVENT_ACTIONS_INTRO} />
     </div>;
 };
 export default EventDetail;

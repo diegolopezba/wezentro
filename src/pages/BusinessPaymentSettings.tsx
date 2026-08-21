@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { m } from "framer-motion";
-import { ArrowLeft, CreditCard, CheckCircle2, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, CreditCard, CheckCircle2, Loader2, Trash2, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { useQueryClient } from "@tanstack/react-query";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { SALES_PAYOUTS_INTRO } from "@/components/business/featureIntroSteps";
 
 type Bank = { id: number; name: string };
 type Beneficiary = {
@@ -29,6 +31,7 @@ const BusinessPaymentSettings = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const intro = useFeatureIntro("payments");
   useSwipeBack();
 
   const [loading, setLoading] = useState(true);
@@ -172,18 +175,23 @@ const BusinessPaymentSettings = () => {
   return (
     <div className="min-h-[100dvh] bg-background">
       <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="font-brand text-xl font-medium text-foreground">Pagos</h1>
+        <div className="flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="font-brand text-xl font-medium text-foreground">Pagos</h1>
+            </div>
+            {existing && !editing && (
+              <span className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                <CheckCircle2 className="w-3 h-3" /> Configurado
+              </span>
+            )}
           </div>
-          {existing && !editing && (
-            <span className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-              <CheckCircle2 className="w-3 h-3" /> Configurado
-            </span>
-          )}
+          <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
+            <HelpCircle className="w-5 h-5" />
+          </Button>
         </div>
       </header>
 
@@ -316,6 +324,7 @@ const BusinessPaymentSettings = () => {
           </p>
         </m.div>
       </div>
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={SALES_PAYOUTS_INTRO} />
     </div>
   );
 };

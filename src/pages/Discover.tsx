@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, lazy, Suspense } from "react";
 import { m, AnimatePresence } from "framer-motion";
-import { Search, SlidersHorizontal, MapPin, X, Users, Loader2 } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, X, Users, Loader2, HelpCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { DISCOVER_INTRO } from "@/components/business/featureIntroSteps";
 
 type EventWithDistance = ReturnType<typeof useNearbyEvents>[number];
 type SearchTab = "events" | "people";
@@ -32,6 +34,7 @@ type SearchTab = "events" | "people";
 const Discover = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const intro = useFeatureIntro("discover");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEvents, setSelectedEvents] = useState<EventWithDistance[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -387,6 +390,12 @@ const Discover = () => {
                 </span>
               )}
             </Button>
+            <Button
+              variant="secondary" size="icon" className="bg-card/90 backdrop-blur-md border-border/50" onClick={intro.reopen}
+              aria-label="¿Cómo funciona?"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </Button>
           </div>
 
           {/* Category Filter Bar */}
@@ -475,6 +484,7 @@ const Discover = () => {
           filters={filters}
           onApplyFilters={handleApplyFilters}
         />
+        <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={DISCOVER_INTRO} />
       </div>
     </AppLayout>
   );
