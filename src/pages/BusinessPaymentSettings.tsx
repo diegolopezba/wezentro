@@ -324,6 +324,7 @@ const BusinessPaymentSettings = () => {
           </p>
         </m.div>
       </div>
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={SALES_PAYOUTS_INTRO} />
     </div>
   );
 };
