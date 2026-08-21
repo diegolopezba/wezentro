@@ -631,6 +631,7 @@ const EventDetail = () => {
       />
     )}
 
+    <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={EVENT_ACTIONS_INTRO} />
     </div>;
 };
 export default EventDetail;
