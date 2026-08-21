@@ -25,6 +25,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { DISCOVER_INTRO } from "@/components/business/featureIntroSteps";
 
 type EventWithDistance = ReturnType<typeof useNearbyEvents>[number];
 type SearchTab = "events" | "people";
