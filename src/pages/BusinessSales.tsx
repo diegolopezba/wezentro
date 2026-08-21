@@ -70,6 +70,7 @@ const BusinessSales = () => {
         {tab === "events" && <SalesEvents />}
         {tab === "promoters" && <SalesPromoters />}
       </main>
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={SALES_PAYOUTS_INTRO} />
     </div>
   );
 };
