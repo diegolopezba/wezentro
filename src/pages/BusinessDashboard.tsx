@@ -18,6 +18,8 @@ import { ReservasTab } from "@/components/dashboard/ReservasTab";
 import { ComingSoonTab } from "@/components/dashboard/ComingSoonTab";
 import { m } from "framer-motion";
 import type { Period } from "@/components/dashboard/PeriodSelector";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { BUSINESS_DASHBOARD_INTRO } from "@/components/business/featureIntroSteps";
 
 const TABS = [
   { value: "overview", label: "Overview" },
@@ -33,6 +35,7 @@ const TABS = [
 const BusinessDashboard = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const intro = useFeatureIntro("dashboard");
   const [period, setPeriod] = useState<Period>("7d");
   const [activeTab, setActiveTab] = useState("overview");
   const [openBoostWizard, setOpenBoostWizard] = useState(false);
