@@ -647,6 +647,7 @@ const Notifications = () => {
           </div>
         )}
       </div>
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={NOTIFICATIONS_INTRO} />
     </AppLayout>
   );
 };
