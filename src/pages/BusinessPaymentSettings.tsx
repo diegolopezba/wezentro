@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { m } from "framer-motion";
-import { ArrowLeft, CreditCard, CheckCircle2, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, CreditCard, CheckCircle2, Loader2, Trash2, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { useQueryClient } from "@tanstack/react-query";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { SALES_PAYOUTS_INTRO } from "@/components/business/featureIntroSteps";
 
 type Bank = { id: number; name: string };
 type Beneficiary = {
@@ -29,6 +31,7 @@ const BusinessPaymentSettings = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const intro = useFeatureIntro("payments");
   useSwipeBack();
 
   const [loading, setLoading] = useState(true);
