@@ -5,7 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, AtSign, Heart, Repeat2, MessageCircle, Sparkles, MapPin } from "lucide-react";
+import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, AtSign, Heart, Repeat2, MessageCircle, Sparkles, MapPin, HelpCircle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,6 +22,8 @@ import { RepostNotificationItem } from "@/components/notifications/RepostNotific
 import { ReferralNotificationItem } from "@/components/notifications/ReferralNotificationItem";
 import { ReservationNotificationItem } from "@/components/notifications/ReservationNotificationItem";
 import { BusinessCtaRequestNotificationItem } from "@/components/notifications/BusinessCtaRequestNotificationItem";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { NOTIFICATIONS_INTRO } from "@/components/business/featureIntroSteps";
 const getNotificationIcon = (type: string) => {
   switch (type) {
     case "event":
