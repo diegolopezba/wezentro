@@ -437,6 +437,7 @@ const AutoReadRow = ({
 
 const Notifications = () => {
   const navigate = useNavigate();
+  const intro = useFeatureIntro("notifications");
   const { data: notifications, isLoading } = useNotifications();
   const markRead = useMarkNotificationRead();
   const markBulk = useMarkNotificationsReadBulk();
