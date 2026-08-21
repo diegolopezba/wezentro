@@ -15,8 +15,9 @@ import {
   CalendarCheck,
   Sparkles,
   PartyPopper,
-  Lock } from
-"lucide-react";
+  Lock,
+  HelpCircle,
+} from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -49,6 +50,9 @@ import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSect
 import { useReplaceEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import { useBusinessExperiences } from "@/hooks/useExperiences";
+import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { CREATE_INTRO } from "@/components/business/featureIntroSteps";
+
 
 type ContentType = "post" | "event";
 
