@@ -7,6 +7,7 @@ import {
   Landmark,
   ListOrdered,
   Megaphone,
+  PartyPopper,
   Sparkles,
   Tag,
   Timer,
@@ -14,6 +15,19 @@ import {
   Users,
 } from "lucide-react";
 import type { FeatureIntroStep } from "./FeatureIntroSheet";
+
+export const CREATE_INTRO: FeatureIntroStep[] = [
+  {
+    title: "¿Qué querés publicar?",
+    subtitle: "Elegí entre tres formatos según lo que querés compartir o vender.",
+    items: [
+      { icon: Sparkles, label: "Post", desc: "Un momento, aventura o contenido. Podés activar botón de menú o reservas si tenés un negocio." },
+      { icon: PartyPopper, label: "Evento", desc: "Fecha, lugar y gente. Con lista de invitados, entradas o layout del lugar." },
+      { icon: CalendarCheck, label: "Experiencia", desc: "Evento vinculado a una experiencia con horarios, opciones y pago por QR." },
+    ],
+  },
+];
+
 
 export const EXPERIENCES_INTRO: FeatureIntroStep[] = [
   {
