@@ -181,6 +181,7 @@ const BusinessDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={BUSINESS_DASHBOARD_INTRO} />
     </div>
   );
 };
