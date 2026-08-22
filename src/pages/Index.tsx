@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { m } from "framer-motion";
-import { Bell, Search, SlidersHorizontal, HelpCircle } from "lucide-react";
+import { Bell, Search, SlidersHorizontal } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventFeed } from "@/components/events/EventFeed";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -251,9 +251,6 @@ const Index = () => {
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setShowSearch(s => !s)}>
                 <Search className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
-                <HelpCircle className="w-5 h-5" />
               </Button>
             </div>
           </div>
