@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { haptic } from "@/lib/haptics";
 import { m, AnimatePresence } from "framer-motion";
 import {
