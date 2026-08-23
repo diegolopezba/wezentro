@@ -22,6 +22,7 @@ interface Profile {
   business_type: string | null;
   reservations_enabled: boolean | null;
   menu_enabled: boolean | null;
+  experiences_enabled: boolean | null;
   reservation_start_time: string | null;
   reservation_end_time: string | null;
 }
