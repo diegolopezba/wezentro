@@ -81,6 +81,7 @@ const Create = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isBusiness = profile?.is_business === true;
   const reservationsEnabled = (profile as any)?.reservations_enabled === true;
+  const experiencesEnabled = (profile as any)?.experiences_enabled === true;
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
 
