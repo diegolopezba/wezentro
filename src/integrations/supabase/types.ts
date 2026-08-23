@@ -2353,6 +2353,7 @@ export type Database = {
           created_at: string | null
           experience_goal: number | null
           experience_goal_year: number | null
+          experiences_enabled: boolean
           full_name: string | null
           gender: string | null
           id: string
@@ -2383,6 +2384,7 @@ export type Database = {
           created_at?: string | null
           experience_goal?: number | null
           experience_goal_year?: number | null
+          experiences_enabled?: boolean
           full_name?: string | null
           gender?: string | null
           id: string
@@ -2413,6 +2415,7 @@ export type Database = {
           created_at?: string | null
           experience_goal?: number | null
           experience_goal_year?: number | null
+          experiences_enabled?: boolean
           full_name?: string | null
           gender?: string | null
           id?: string
