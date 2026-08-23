@@ -195,7 +195,7 @@ const BusinessSettings = () => {
               <SettingsRow
                 icon={Sparkles}
                 label="Experiencias"
-                sublabel="Tours, clases y actividades con horarios y pago por adelantado"
+                sublabel={experiencesEnabled ? "Activas · tours, clases y actividades" : "Desactivadas"}
                 onClick={() => navigate("/settings/business/experiences")}
                 delay={0.14}
               />
