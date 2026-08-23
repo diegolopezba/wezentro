@@ -88,6 +88,21 @@ const BusinessExperiences = () => {
           con QR, igual que una entrada.
         </p>
 
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+          <div className="min-w-0">
+            <p className="font-medium text-foreground">Experiencias activas</p>
+            <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
+              Activalas para poder vincular experiencias a tus publicaciones.
+            </p>
+          </div>
+          <Switch
+            checked={experiencesEnabled}
+            onCheckedChange={handleToggleExperiences}
+            disabled={togglingExperiences}
+          />
+        </div>
+
+
         {!hasBeneficiary && (
           <m.div
             initial={{ opacity: 0, y: 6 }}
