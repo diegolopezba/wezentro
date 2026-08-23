@@ -3,6 +3,9 @@ import { m } from "framer-motion";
 import { ArrowLeft, Plus, Sparkles, Pencil, Trash2, HelpCircle, Landmark, Megaphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
@@ -19,8 +22,29 @@ import { EXPERIENCES_INTRO } from "@/components/business/featureIntroSteps";
 /** Business hub for creating and managing bookable experiences. */
 const BusinessExperiences = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   useSwipeBack();
+
+  const experiencesEnabled = (profile as any)?.experiences_enabled === true;
+  const [togglingExperiences, setTogglingExperiences] = useState(false);
+
+  const handleToggleExperiences = async (value: boolean) => {
+    if (!user) return;
+    setTogglingExperiences(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ experiences_enabled: value } as any)
+        .eq("id", user.id);
+      if (error) throw error;
+      await refreshProfile();
+      toast.success(value ? "Experiencias activadas" : "Experiencias desactivadas");
+    } catch (error: any) {
+      toast.error(error.message || "Error al cambiar configuración");
+    } finally {
+      setTogglingExperiences(false);
+    }
+  };
 
   const { data: experiences = [], isLoading } = useBusinessExperiences(user?.id);
   const remove = useDeleteExperience();
@@ -63,6 +87,21 @@ const BusinessExperiences = () => {
           Creá experiencias con horarios, cupos y precios. Tus clientes reservan y pagan por adelantado
           con QR, igual que una entrada.
         </p>
+
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+          <div className="min-w-0">
+            <p className="font-medium text-foreground">Experiencias activas</p>
+            <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
+              Activalas para poder vincular experiencias a tus publicaciones.
+            </p>
+          </div>
+          <Switch
+            checked={experiencesEnabled}
+            onCheckedChange={handleToggleExperiences}
+            disabled={togglingExperiences}
+          />
+        </div>
+
 
         {!hasBeneficiary && (
           <m.div

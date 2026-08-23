@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { haptic } from "@/lib/haptics";
 import { m, AnimatePresence } from "framer-motion";
 import {
@@ -81,6 +81,7 @@ const Create = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isBusiness = profile?.is_business === true;
   const reservationsEnabled = (profile as any)?.reservations_enabled === true;
+  const experiencesEnabled = (profile as any)?.experiences_enabled === true;
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
 
@@ -138,12 +139,17 @@ const Create = () => {
   const { hasBeneficiary } = useHasBeneficiary();
 
   // Optional link to a bookable experience (business only)
-  const { data: myExperiences = [] } = useBusinessExperiences(isBusiness ? user?.id : undefined);
+  const { data: myExperiences = [] } = useBusinessExperiences(
+    isBusiness && experiencesEnabled ? user?.id : undefined,
+  );
   const activeExperiences = myExperiences.filter((e) => e.is_active);
   const [experienceId, setExperienceId] = useState<string | null>(
     ((routerLocation.state as any)?.experienceId as string) ?? null,
   );
   const linkedExperience = myExperiences.find((e) => e.id === experienceId) ?? null;
+  useEffect(() => {
+    if (!experiencesEnabled && experienceId) setExperienceId(null);
+  }, [experiencesEnabled, experienceId]);
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const [beneficiaryGateContext, setBeneficiaryGateContext] = useState<"tickets" | "experience">("tickets");
@@ -782,8 +788,8 @@ const Create = () => {
           </AnimatePresence>
         </m.div>
 
-        {/* ── Link a bookable experience (business only) ── */}
-        {isBusiness && (
+        {/* ── Link a bookable experience (business only, feature enabled) ── */}
+        {isBusiness && experiencesEnabled && (
           <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <Card className="glass border-white/10 p-4 space-y-3">
               <div className="flex items-start gap-3">
