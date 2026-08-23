@@ -147,6 +147,9 @@ const Create = () => {
     ((routerLocation.state as any)?.experienceId as string) ?? null,
   );
   const linkedExperience = myExperiences.find((e) => e.id === experienceId) ?? null;
+  useEffect(() => {
+    if (!experiencesEnabled && experienceId) setExperienceId(null);
+  }, [experiencesEnabled, experienceId]);
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const [beneficiaryGateContext, setBeneficiaryGateContext] = useState<"tickets" | "experience">("tickets");
