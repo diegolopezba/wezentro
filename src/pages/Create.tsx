@@ -785,8 +785,8 @@ const Create = () => {
           </AnimatePresence>
         </m.div>
 
-        {/* ── Link a bookable experience (business only) ── */}
-        {isBusiness && (
+        {/* ── Link a bookable experience (business only, feature enabled) ── */}
+        {isBusiness && experiencesEnabled && (
           <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <Card className="glass border-white/10 p-4 space-y-3">
               <div className="flex items-start gap-3">
