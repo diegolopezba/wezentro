@@ -139,7 +139,9 @@ const Create = () => {
   const { hasBeneficiary } = useHasBeneficiary();
 
   // Optional link to a bookable experience (business only)
-  const { data: myExperiences = [] } = useBusinessExperiences(isBusiness ? user?.id : undefined);
+  const { data: myExperiences = [] } = useBusinessExperiences(
+    isBusiness && experiencesEnabled ? user?.id : undefined,
+  );
   const activeExperiences = myExperiences.filter((e) => e.is_active);
   const [experienceId, setExperienceId] = useState<string | null>(
     ((routerLocation.state as any)?.experienceId as string) ?? null,
