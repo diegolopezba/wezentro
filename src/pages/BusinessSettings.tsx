@@ -35,6 +35,7 @@ const BusinessSettings = () => {
   const showVenueLayouts = false; // Hidden until venue layout feature is more developed
   const menuEnabled = (profile as any)?.menu_enabled !== false;
   const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
+  const experiencesEnabled = (profile as any)?.experiences_enabled === true;
   const isFoodBusiness = isBusiness && isFoodBusinessType((profile as any)?.business_type);
   const { tier, needsActivation } = useSubscriptionTier(isFoodBusiness ? user?.id : undefined);
   const { hasPayouts } = useDashboardAccess();
