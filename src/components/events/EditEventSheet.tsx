@@ -114,9 +114,6 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         waitlist_enabled: event.waitlist_enabled ?? false,
         sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
         waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
-    waitlist_enabled: event.waitlist_enabled ?? false,
-    sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
-    waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
       });
     }
   }, [open, event]);
@@ -171,9 +168,6 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         waitlist_enabled: event.waitlist_enabled ?? false,
         sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
         waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
-    waitlist_enabled: event.waitlist_enabled ?? false,
-    sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
-    waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
       },
       draftTiers: hydratedTiers,
       pricingMode: existingTiers.length > 0 ? "tiers" : "single",
