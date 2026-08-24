@@ -4,7 +4,7 @@
  * create_experience_booking database function.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, json, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
+import { corsHeaders, json, qhantuyCheckoutFetch, splitAmount } from "../_shared/qhantuy.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -88,6 +88,12 @@ Deno.serve(async (req) => {
     const title = `${experience.title}${segment?.name ? ` — ${segment.name}` : ""}`;
     const unitPrice = Number((totalAmount / Math.max(booking.quantity, 1)).toFixed(2));
 
+    // Zentro keeps its commission; the rest is paid out to the organizer.
+    const { bps: feeBps, payoutAmount, platformFee } = splitAmount(totalAmount);
+    if (payoutAmount <= 0) {
+      return json({ error: "El monto es demasiado bajo para procesar el pago", code: "amount_too_low" }, 400);
+    }
+
     const { data: session, error: sessErr } = await supabase
       .from("payment_sessions")
       .insert({
@@ -100,7 +106,11 @@ Deno.serve(async (req) => {
         provider: "qhantuy",
         beneficiary_code: benef.beneficiary_code,
         quantity: booking.quantity,
+        platform_fee_bps: feeBps,
+        platform_fee_amount: platformFee,
+        payout_amount: payoutAmount,
       })
+
       .select("id")
       .single();
     if (sessErr || !session) {
@@ -129,6 +139,8 @@ Deno.serve(async (req) => {
         customer_last_name: buyerProfile?.last_name ?? undefined,
         detail: `${title}${booking.quantity > 1 ? ` x${booking.quantity}` : ""}`.substring(0, 120),
         items: [{ name: title.substring(0, 100), quantity: booking.quantity, price: unitPrice }],
+        // Organizer payout: total minus Zentro's commission (Qhantuy deducts its own fee).
+        custom_payouts: [{ code: benef.beneficiary_code, amount: payoutAmount }],
       }),
     });
 

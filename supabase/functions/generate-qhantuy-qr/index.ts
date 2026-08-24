@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, json, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
+import { corsHeaders, json, qhantuyCheckoutFetch, splitAmount } from "../_shared/qhantuy.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -191,6 +191,12 @@ Deno.serve(async (req) => {
     }
 
     const totalAmount = Number((effectivePrice * quantity).toFixed(2));
+    // Zentro keeps its commission; the rest is paid out to the organizer.
+    const { bps: feeBps, payoutAmount, platformFee } = splitAmount(totalAmount);
+    if (payoutAmount <= 0) {
+      console.error("[qr] payout would be zero", { totalAmount, feeBps });
+      return json({ error: "El monto es demasiado bajo para procesar el pago", code: "amount_too_low" }, 400);
+    }
 
 
     // Load beneficiary for the event creator
@@ -244,6 +250,10 @@ Deno.serve(async (req) => {
         party_size: bookingPartySize,
         quantity,
         assignees: cleanAssignees,
+        platform_fee_bps: feeBps,
+        platform_fee_amount: platformFee,
+        payout_amount: payoutAmount,
+
 
       })
       .select("id")
@@ -285,9 +295,13 @@ Deno.serve(async (req) => {
             price: effectivePrice,
           },
         ],
-
+        // Organizer payout: total minus Zentro's commission (Qhantuy deducts its own fee).
+        custom_payouts: [
+          { code: benef.beneficiary_code, amount: payoutAmount },
+        ],
       }),
     });
+
 
     if (!checkoutRes.ok) {
       console.error("qhantuy checkout failed:", checkoutRes.status, checkoutRes.raw);

@@ -129,10 +129,26 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
 
       {/* Revenue */}
       <div className="grid grid-cols-3 gap-3">
-        <StatsCard title="Ingresos" value={salesLoading ? "..." : formatBs(sales?.revenue || 0)} icon={Coins} delay={0} />
+        <StatsCard title="Bruto" value={salesLoading ? "..." : formatBs(sales?.revenue || 0)} icon={Coins} delay={0} />
         <StatsCard title="Tickets vendidos" value={salesLoading ? "..." : sales?.tickets || 0} icon={Ticket} delay={0.05} />
         <StatsCard title="Ticket prom." value={salesLoading ? "..." : formatBs(sales?.avgTicket || 0)} icon={Receipt} delay={0.1} />
       </div>
+
+      {/* Commission breakdown */}
+      <div className="rounded-2xl border border-border bg-card p-4 space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Comisión Zentro (5%)</span>
+          <span className="text-foreground">{salesLoading ? "..." : `- ${formatBs(sales?.platformFee || 0)}`}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Neto estimado</span>
+          <span className="font-medium text-foreground">{salesLoading ? "..." : formatBs(sales?.netPayout || 0)}</span>
+        </div>
+        <p className="text-[11px] leading-snug text-muted-foreground">
+          Qhantuy descuenta además ~1% de cada cobro al momento de la transferencia.
+        </p>
+      </div>
+
 
       <ConversionFunnel period={period} />
 
