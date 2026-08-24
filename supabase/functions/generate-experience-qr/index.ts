@@ -139,6 +139,8 @@ Deno.serve(async (req) => {
         customer_last_name: buyerProfile?.last_name ?? undefined,
         detail: `${title}${booking.quantity > 1 ? ` x${booking.quantity}` : ""}`.substring(0, 120),
         items: [{ name: title.substring(0, 100), quantity: booking.quantity, price: unitPrice }],
+        // Organizer payout: total minus Zentro's commission (Qhantuy deducts its own fee).
+        custom_payouts: [{ code: benef.beneficiary_code, amount: payoutAmount }],
       }),
     });
 
