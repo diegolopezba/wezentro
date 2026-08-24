@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, UtensilsCrossed, CalendarCheck, ChevronDown, Lock } from "lucide-react";
+import { Loader2, UtensilsCrossed, CalendarCheck, ChevronDown, Lock, Clock } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
