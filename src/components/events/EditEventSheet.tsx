@@ -40,6 +40,10 @@ interface EditEventSheetProps {
     show_menu_button?: boolean | null;
     show_reservation_button?: boolean | null;
     is_location_secret?: boolean | null;
+    waitlist_enabled?: boolean | null;
+    sales_open_at?: string | null;
+    waitlist_early_access_hours?: number | null;
+    waitlist_released_at?: string | null;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
