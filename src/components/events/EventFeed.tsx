@@ -383,6 +383,28 @@ const MasonryCardItemBase = ({
   );
 };
 
+/**
+ * A single card measurement rebuilds every position object, so without this
+ * memo one image finishing load re-rendered every mounted card (quadratic
+ * work as the feed grew). Only re-render when this card's own geometry or
+ * data changed.
+ */
+const MasonryCardItem = memo(MasonryCardItemBase, (prev, next) => {
+  return (
+    prev.event === next.event &&
+    prev.index === next.index &&
+    prev.isMeasured === next.isMeasured &&
+    prev.zIndex === next.zIndex &&
+    prev.followGraph === next.followGraph &&
+    prev.position.top === next.position.top &&
+    prev.position.left === next.position.left &&
+    prev.position.width === next.position.width &&
+    prev.observeCard === next.observeCard &&
+    prev.unobserveCard === next.unobserveCard &&
+    prev.measureElement === next.measureElement
+  );
+});
+
 function getColumnCount(width: number): number {
   if (width >= 1024) return 4;
   if (width >= 640) return 3;
