@@ -11,9 +11,16 @@ interface PullToRefreshProps {
   className?: string;
 }
 
+const atDocumentTop = () =>
+  (window.scrollY || document.documentElement.scrollTop || 0) <= 0;
+
 /**
- * Pull-to-refresh component for mobile feeds and lists.
- * Wrap your scrollable content with this component.
+ * Pull-to-refresh for the page feed.
+ *
+ * The document is the scroll owner — this component is only a positioning
+ * wrapper. It never creates its own scroll container and never intercepts a
+ * touch move unless the page is genuinely at the very top and the finger is
+ * moving down, so ordinary scrolling on Android is left completely untouched.
  */
 export const PullToRefresh = ({
   children,
@@ -24,48 +31,48 @@ export const PullToRefresh = ({
 }: PullToRefreshProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isPulling, setIsPulling] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
-  const currentY = useRef(0);
   const thresholdReached = useRef(false);
 
   const pullDistance = useMotionValue(0);
-  const pullProgress = useTransform(pullDistance, [0, threshold], [0, 1]);
   const rotation = useTransform(pullDistance, [0, threshold], [0, 180]);
   const opacity = useTransform(pullDistance, [0, threshold / 2, threshold], [0, 0.5, 1]);
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (disabled || isRefreshing) return;
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (disabled || isRefreshing) return;
+      if (!atDocumentTop()) return;
+      startY.current = e.touches[0].clientY;
+      thresholdReached.current = false;
+      setIsPulling(true);
+    },
+    [disabled, isRefreshing],
+  );
 
-    const container = containerRef.current;
-    if (!container) return;
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isPulling || disabled || isRefreshing) return;
 
-    if (container.scrollTop > 0) return;
+      // Left the top of the page (normal scroll): bail out entirely and let
+      // the browser own the gesture.
+      if (!atDocumentTop()) {
+        setIsPulling(false);
+        pullDistance.set(0);
+        return;
+      }
 
-    startY.current = e.touches[0].clientY;
-    thresholdReached.current = false;
-    setIsPulling(true);
-  }, [disabled, isRefreshing]);
+      const diff = e.touches[0].clientY - startY.current;
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isPulling || disabled || isRefreshing) return;
+      // Upward movement is a normal scroll — release the gesture.
+      if (diff <= 0) {
+        setIsPulling(false);
+        pullDistance.set(0);
+        return;
+      }
 
-    const container = containerRef.current;
-    if (!container || container.scrollTop > 0) {
-      setIsPulling(false);
-      pullDistance.set(0);
-      return;
-    }
-
-    currentY.current = e.touches[0].clientY;
-    const diff = currentY.current - startY.current;
-
-    if (diff > 0) {
-      const resistance = 0.5;
-      const distance = Math.min(diff * resistance, threshold * 1.5);
+      const distance = Math.min(diff * 0.5, threshold * 1.5);
       pullDistance.set(distance);
 
-      // Fire a subtle haptic once when the user crosses the trigger threshold.
       if (!thresholdReached.current && distance >= threshold) {
         haptic("light");
         thresholdReached.current = true;
@@ -73,23 +80,24 @@ export const PullToRefresh = ({
         thresholdReached.current = false;
       }
 
-      if (diff > 10) {
+      if (diff > 10 && e.cancelable) {
         e.preventDefault();
       }
-    }
-  }, [isPulling, disabled, isRefreshing, threshold, pullDistance]);
+    },
+    [isPulling, disabled, isRefreshing, threshold, pullDistance],
+  );
 
   const handleTouchEnd = useCallback(async () => {
     if (!isPulling || disabled) return;
-    
+
     setIsPulling(false);
     const distance = pullDistance.get();
-    
+
     if (distance >= threshold && !isRefreshing) {
       setIsRefreshing(true);
       pullDistance.set(threshold);
       haptic("medium");
-      
+
       try {
         await onRefresh();
         haptic("success");
@@ -104,19 +112,18 @@ export const PullToRefresh = ({
 
   return (
     <div
-      ref={containerRef}
-      className={`relative overflow-auto ${className}`}
-      style={{ overscrollBehaviorY: "contain" }}
+      className={`relative ${className}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     >
       {/* Pull indicator */}
       <AnimatePresence>
         {(isPulling || isRefreshing) && (
           <m.div
             className="absolute left-0 right-0 flex items-center justify-center z-10 pointer-events-none"
-            style={{ 
+            style={{
               top: 0,
               height: pullDistance,
             }}
@@ -131,11 +138,11 @@ export const PullToRefresh = ({
               <m.div
                 style={{ rotate: isRefreshing ? undefined : rotation }}
                 animate={isRefreshing ? { rotate: 360 } : undefined}
-                transition={isRefreshing ? { 
-                  duration: 1, 
-                  repeat: Infinity, 
-                  ease: "linear" 
-                } : undefined}
+                transition={
+                  isRefreshing
+                    ? { duration: 1, repeat: Infinity, ease: "linear" }
+                    : undefined
+                }
               >
                 <RefreshCw className="w-5 h-5 text-foreground" />
               </m.div>
@@ -146,9 +153,9 @@ export const PullToRefresh = ({
 
       {/* Content with pull offset */}
       <m.div
-        style={{ 
+        style={{
           y: isPulling || isRefreshing ? pullDistance : 0,
-          transition: isPulling ? 'none' : 'transform 0.2s ease-out'
+          transition: isPulling ? "none" : "transform 0.2s ease-out",
         }}
       >
         {children}

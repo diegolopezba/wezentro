@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useMemo, useState } from "react";
+import { useEffect, useRef, useCallback, useMemo, useState, memo } from "react";
 import { EventCard, EventCardProps } from "./EventCard";
 import { useMasonryLayout, useElementWidth, type MasonryPosition } from "@/hooks/useMasonryLayout";
 import { Users } from "lucide-react";
@@ -198,7 +198,10 @@ interface MasonryGridProps {
 // Overscan window above/below viewport (in px). ~1.5 viewports keeps scroll
 // buttery on flings while capping mounted DOM to a small constant, à la
 // Pinterest/Instagram virtualized feeds.
-const OVERSCAN_PX = 1200;
+// Overscan window above/below the viewport (in px). Roughly one viewport is
+// enough to hide fling latency while keeping mounted DOM to a small constant,
+// à la Pinterest/Instagram virtualized feeds.
+const OVERSCAN_PX = 900;
 
 const MasonryGrid = ({ events, followGraph, observeCard, unobserveCard, sentinelRef, isLoadingMore }: MasonryGridProps) => {
   const [containerRef, containerWidth] = useElementWidth<HTMLDivElement>();
@@ -229,50 +232,28 @@ const MasonryGrid = ({ events, followGraph, observeCard, unobserveCard, sentinel
   });
 
   // Virtualization window: [visibleTop, visibleBottom] in container-local px.
-  // Recomputed on scroll of the nearest scrollable ancestor + on resize.
+  // The document is the app's single scroll owner, so we always track window
+  // scroll — walking for a "scroll parent" resolved inconsistently and left
+  // the window frozen, which meant cards never unmounted.
   const [visible, setVisible] = useState<{ top: number; bottom: number }>({
     top: 0,
-    bottom: typeof window !== "undefined" ? window.innerHeight * 2 : 2000,
+    bottom: typeof window !== "undefined" ? window.innerHeight : 1000,
   });
 
   useEffect(() => {
     const containerEl = containerRef.current;
     if (!containerEl) return;
 
-    // Find nearest scrollable ancestor.
-    const findScrollParent = (el: HTMLElement): HTMLElement | Window => {
-      let node: HTMLElement | null = el.parentElement;
-      while (node) {
-        const style = getComputedStyle(node);
-        const oy = style.overflowY;
-        if ((oy === "auto" || oy === "scroll") && node.scrollHeight > node.clientHeight) {
-          return node;
-        }
-        node = node.parentElement;
-      }
-      return window;
-    };
-
-    const scroller = findScrollParent(containerEl);
     let raf: number | null = null;
 
     const compute = () => {
       raf = null;
       const rect = containerEl.getBoundingClientRect();
-      const viewportH =
-        scroller === window
-          ? window.innerHeight
-          : (scroller as HTMLElement).clientHeight;
-      const scrollerTop =
-        scroller === window ? 0 : (scroller as HTMLElement).getBoundingClientRect().top;
       // container-local coord: 0 = top of container.
-      const top = scrollerTop - rect.top;
-      const bottom = top + viewportH;
+      const top = -rect.top;
+      const bottom = top + window.innerHeight;
       setVisible((prev) => {
-        if (
-          Math.abs(prev.top - top) < 50 &&
-          Math.abs(prev.bottom - bottom) < 50
-        ) {
+        if (Math.abs(prev.top - top) < 50 && Math.abs(prev.bottom - bottom) < 50) {
           return prev;
         }
         return { top, bottom };
@@ -285,10 +266,10 @@ const MasonryGrid = ({ events, followGraph, observeCard, unobserveCard, sentinel
     };
 
     compute();
-    scroller.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
-      scroller.removeEventListener("scroll", onScroll as EventListener);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
       if (raf !== null) cancelAnimationFrame(raf);
     };
@@ -314,15 +295,14 @@ const MasonryGrid = ({ events, followGraph, observeCard, unobserveCard, sentinel
         {events.map((event, index) => {
           const pos = positions.get(event.id);
           if (!pos) return null;
-          // Skip cards fully outside the overscan window. Unmeasured cards
-          // must still render so ResizeObserver can measure their height —
-          // otherwise the layout never converges.
+          // Skip cards fully outside the overscan window — including
+          // unmeasured ones, which sit at their estimated aspect-ratio height
+          // until they scroll in. Force-rendering every unmeasured card meant
+          // a whole freshly-fetched page mounted at once.
           const measured = isMeasured(event.id);
-          if (measured) {
-            const cardBottom = pos.top + pos.height;
-            if (cardBottom < windowTop || pos.top > windowBottom) {
-              return null;
-            }
+          const cardBottom = pos.top + pos.height;
+          if (cardBottom < windowTop || pos.top > windowBottom) {
+            return null;
           }
           return (
             <MasonryCardItem
@@ -360,7 +340,7 @@ interface MasonryCardItemProps {
   zIndex: number;
 }
 
-const MasonryCardItem = ({
+const MasonryCardItemBase = ({
   event,
   index,
   position,
@@ -402,6 +382,28 @@ const MasonryCardItem = ({
     </div>
   );
 };
+
+/**
+ * A single card measurement rebuilds every position object, so without this
+ * memo one image finishing load re-rendered every mounted card (quadratic
+ * work as the feed grew). Only re-render when this card's own geometry or
+ * data changed.
+ */
+const MasonryCardItem = memo(MasonryCardItemBase, (prev, next) => {
+  return (
+    prev.event === next.event &&
+    prev.index === next.index &&
+    prev.isMeasured === next.isMeasured &&
+    prev.zIndex === next.zIndex &&
+    prev.followGraph === next.followGraph &&
+    prev.position.top === next.position.top &&
+    prev.position.left === next.position.left &&
+    prev.position.width === next.position.width &&
+    prev.observeCard === next.observeCard &&
+    prev.unobserveCard === next.unobserveCard &&
+    prev.measureElement === next.measureElement
+  );
+});
 
 function getColumnCount(width: number): number {
   if (width >= 1024) return 4;

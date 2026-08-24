@@ -110,12 +110,18 @@ export const FeatureIntroSheet = ({ open, onOpenChange, steps, finishLabel = "En
   );
 };
 
-/** Opens the intro automatically the first time, and lets the header re-open it. */
-export function useFeatureIntro(key: string) {
+/**
+ * Opens the intro automatically the first time, and lets the header re-open it.
+ * `enabled: false` skips the auto-open entirely (e.g. signed-out visitors, who
+ * would otherwise land on a scroll-locked page).
+ */
+export function useFeatureIntro(key: string, options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true;
   const storageKey = `feature-intro:${key}`;
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (!enabled) return;
     try {
       if (localStorage.getItem(storageKey) !== "1") {
         localStorage.setItem(storageKey, "1");
@@ -124,7 +130,7 @@ export function useFeatureIntro(key: string) {
     } catch {
       /* ignore */
     }
-  }, [storageKey]);
+  }, [storageKey, enabled]);
 
   const reopen = useCallback(() => setOpen(true), []);
   return { open, setOpen, reopen };

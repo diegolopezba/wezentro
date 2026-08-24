@@ -50,8 +50,11 @@ export function useMasonryLayout({
   // Must run as layout effect, not during render, to avoid side-effects
   // during render which can break React Strict Mode / concurrent rendering.
   useLayoutEffect(() => {
-    if (columnWidth > 0) {
+    if (columnWidth > 0 && measuredHeights.current.size > 0) {
       measuredHeights.current = new Map();
+      // Positions are memoized on `measureTick`, so a cleared cache must bump
+      // it or the grid keeps stale heights for the new column width.
+      setMeasureTick((t) => t + 1);
     }
   }, [columnWidth]);
 

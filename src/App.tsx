@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
 
 import { KeyboardViewportObserver } from "@/components/KeyboardViewportObserver";
+import { ScrollLockGuard } from "@/components/ScrollLockGuard";
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -164,6 +165,7 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <KeyboardViewportObserver />
+          <ScrollLockGuard />
           <Toaster />
           <Sonner position="top-center" theme="dark" />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
