@@ -250,6 +250,10 @@ Deno.serve(async (req) => {
         party_size: bookingPartySize,
         quantity,
         assignees: cleanAssignees,
+        platform_fee_bps: feeBps,
+        platform_fee_amount: platformFee,
+        payout_amount: payoutAmount,
+
 
       })
       .select("id")
