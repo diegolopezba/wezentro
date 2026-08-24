@@ -7,25 +7,24 @@ Hoy el dashboard muestra el bruto casi en todos lados; el desglose de comisión 
 Regla única en toda la app:
 
 ```text
-Bruto            Bs. 100   (lo que paga el usuario)
-Comisión Zentro  Bs.   5   (5%)
-Neto estimado    Bs.  95   (payout al organizador)
-Nota: Qhantuy descuenta además ~1% al transferir
+Bruto           Bs. 100   (lo que paga el usuario)
+Comisión total  Bs.   6   (6%)
+Neto estimado   Bs.  94   (lo que recibe el organizador)
 ```
 
 Cambios visibles:
 
-1. **Ventas y promotores → Resumen** (`SalesSummary`): la tarjeta principal pasa a mostrar **"Neto estimado"** como número grande, con "Bruto Bs. X · Comisión Zentro (5%) −Bs. Y" debajo, más la nota del ~1% de Qhantuy. Las mini-tarjetas (Ticket prom., Por evento) muestran el neto con el bruto en letra pequeña.
+1. **Ventas y promotores → Resumen** (`SalesSummary`): la tarjeta principal pasa a mostrar **"Neto estimado"** como número grande, con "Bruto Bs. X · Comisión total (6%) −Bs. Y" debajo. Las mini-tarjetas (Ticket prom., Por evento) muestran el neto con el bruto en letra pequeña.
 2. **Gráfico "Ingresos en el tiempo"**: se grafica el neto; el tooltip muestra bruto y neto.
 3. **Origen de los ingresos** (donut promotores/orgánico): se mantiene en bruto porque es atribución, y se etiqueta explícitamente como "montos brutos".
 4. **Ventas → Por evento** (`SalesEvents`): cada tarjeta muestra neto como monto principal y el bruto debajo.
-5. **Dashboard → Resumen** (`OverviewTab`): la tarjeta "Bruto" se acompaña de una tarjeta "Neto"; se conserva el desglose actual de comisión.
-6. **Explicación**: un botón de info junto al neto abre una hoja corta que explica el reparto (5% Zentro, ~1% Qhantuy, resto al organizador) — reutiliza el patrón de hojas informativas existente.
+5. **Dashboard → Resumen** (`OverviewTab`): la tarjeta "Bruto" se acompaña de una tarjeta "Neto"; se actualiza el desglose actual a "Comisión total (6%)".
+6. **Explicación**: un botón de info junto al neto abre una hoja corta que explica que el 6% es la comisión total y que el resto es lo que recibe el organizador — reutiliza el patrón de hojas informativas existente.
 
 ## Detalles técnicos
 
-- Nuevo helper compartido `src/lib/platformFee.ts`: `PLATFORM_FEE_BPS = 500`, `feeOf(gross)`, `netOf(gross)` con redondeo a 2 decimales, espejo de `splitAmount` en `supabase/functions/_shared/qhantuy.ts`. Todo el frontend usa este helper — nada de 0.95 hardcodeado por componente.
-- `useSalesOverview` ya devuelve `platformFee` y `netPayout` desde `payment_sessions`; se mantiene tal cual para `OverviewTab`.
+- Nuevo helper compartido `src/lib/platformFee.ts`: `PLATFORM_FEE_BPS = 600`, `feeOf(gross)`, `netOf(gross)` con redondeo a 2 decimales, espejo de `splitAmount` en `supabase/functions/_shared/qhantuy.ts` para que el cálculo sea coherente. Todo el frontend usa este helper — nada de 0.94 hardcodeado por componente.
+- `useSalesOverview` ya devuelve `platformFee` y `netPayout` desde `payment_sessions`; se actualiza a usar la base de 6% y el split guardado.
 - `SalesSummary` / `SalesEvents` se alimentan de los RPC `get_creator_sales_by_event` y `get_creator_sales_monthly`, que devuelven solo bruto. En esta pasada el neto se **deriva en el cliente** con `netOf()` (equivalente al split guardado, ya que el porcentaje es fijo). No se tocan los RPC.
 - Copys en español, formato `Bs.` vía `formatBs`; el neto siempre etiquetado como "estimado".
 - Sin cambios en las edge functions ni en el reparto real de dinero: esto es solo presentación.
@@ -33,4 +32,5 @@ Cambios visibles:
 ## Verificación
 
 - Typecheck del proyecto.
-- Revisión visual del dashboard y de Ventas y promotores con datos actuales, confirmando que neto = bruto − 5% en cada tarjeta.
+- Revisión visual del dashboard y de Ventas y promotores con datos actuales, confirmando que neto = bruto − 6% en cada tarjeta.
+
