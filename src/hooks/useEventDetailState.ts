@@ -20,6 +20,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { trackCheckoutTap } from "@/lib/analyticsTracking";
 import { format } from "date-fns";
+import { getSalePhase, earlyAccessEndsAt, publicSaleStartsAt } from "@/lib/salePhase";
+import {
+  useEventWaitlist,
+  useJoinWaitlist,
+  useLeaveWaitlist,
+  useReleaseWaitlist,
+} from "@/hooks/useEventWaitlist";
 
 /**
  * Shared hook that centralises all state and logic for event detail views.
