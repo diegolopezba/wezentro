@@ -505,6 +505,61 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                     onCheckedChange={(checked) => setFormData({ ...formData, is_location_secret: checked })}
                   />
                 </div>
+
+                {/* Lista de espera */}
+                <div className="mt-3 pt-3 border-t border-border">
+                  <div className="flex items-start justify-between gap-3 py-2">
+                    <div className="flex items-start gap-2 flex-1">
+                      <Clock className="w-4 h-4 text-primary mt-0.5" />
+                      <div className="flex flex-col">
+                        <Label htmlFor="waitlist-enabled">Lista de espera</Label>
+                        <span className="text-xs text-muted-foreground">
+                          Oculta los precios hasta que abras la venta. Los interesados se anotan y son los primeros en enterarse.
+                        </span>
+                      </div>
+                    </div>
+                    <Switch
+                      id="waitlist-enabled"
+                      checked={formData.waitlist_enabled}
+                      onCheckedChange={(checked) => {
+                        if (checked && !isBusiness) { setShowBusinessGate(true); return; }
+                        if (checked && !hasBeneficiary) { setShowBeneficiaryGate(true); return; }
+                        setFormData({ ...formData, waitlist_enabled: checked });
+                      }}
+                    />
+                  </div>
+
+                  {formData.waitlist_enabled && (
+                    <div className="space-y-3 pt-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="sales-open-at" className="text-xs text-muted-foreground">
+                          Apertura de venta (opcional)
+                        </Label>
+                        <Input
+                          id="sales-open-at"
+                          type="datetime-local"
+                          value={formData.sales_open_at}
+                          onChange={(e) => setFormData({ ...formData, sales_open_at: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="early-access-hours" className="text-xs text-muted-foreground">
+                          Acceso anticipado para la lista (horas)
+                        </Label>
+                        <Input
+                          id="early-access-hours"
+                          type="number"
+                          min="0"
+                          value={formData.waitlist_early_access_hours}
+                          onChange={(e) => setFormData({ ...formData, waitlist_early_access_hours: e.target.value })}
+                        />
+                        <p className="text-[11px] text-muted-foreground">
+                          0 = solo notificación. Más de 0 = solo la lista puede comprar durante ese tiempo.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </CollapsibleContent>
             </Collapsible>
           )}
