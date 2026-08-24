@@ -340,7 +340,7 @@ interface MasonryCardItemProps {
   zIndex: number;
 }
 
-const MasonryCardItem = ({
+const MasonryCardItemBase = ({
   event,
   index,
   position,
