@@ -453,6 +453,15 @@ const Create = () => {
         show_menu_button: isBusiness && hasMenuItems ? formData.showMenuButton : false,
         show_reservation_button: isBusiness && reservationsEnabled && isPost ? formData.showReservationButton : false,
         is_location_secret: !isPost && formData.isLocationSecret,
+        waitlist_enabled: !isPost && isBusiness && hasBeneficiary && formData.waitlistEnabled,
+        sales_open_at:
+          !isPost && formData.waitlistEnabled && formData.salesOpenAt
+            ? new Date(formData.salesOpenAt).toISOString()
+            : null,
+        waitlist_early_access_hours:
+          !isPost && formData.waitlistEnabled
+            ? parseInt(formData.waitlistEarlyAccessHours || "0") || 0
+            : 0,
         experience_id: experienceId
       }).
       select().
