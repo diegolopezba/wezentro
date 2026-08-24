@@ -295,9 +295,13 @@ Deno.serve(async (req) => {
             price: effectivePrice,
           },
         ],
-
+        // Organizer payout: total minus Zentro's commission (Qhantuy deducts its own fee).
+        custom_payouts: [
+          { code: benef.beneficiary_code, amount: payoutAmount },
+        ],
       }),
     });
+
 
     if (!checkoutRes.ok) {
       console.error("qhantuy checkout failed:", checkoutRes.status, checkoutRes.raw);
