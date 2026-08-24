@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { feeOf, netOf } from "@/lib/platformFee";
 import type { Period } from "@/components/dashboard/PeriodSelector";
 
 const periodStart = (period: Period): string | null => {
@@ -13,11 +14,12 @@ export interface SalesOverview {
   revenue: number;
   tickets: number;
   avgTicket: number;
-  /** Zentro commission withheld from the gross revenue. */
+  /** Total commission withheld from the gross revenue (6%). */
   platformFee: number;
-  /** Amount paid out to the organizer (before Qhantuy's own ~1% fee). */
+  /** Amount paid out to the organizer (94% of gross). */
   netPayout: number;
 }
+
 
 /** Period-scoped gross revenue + tickets from confirmed payment sessions. */
 export const useSalesOverview = (period: Period) => {
