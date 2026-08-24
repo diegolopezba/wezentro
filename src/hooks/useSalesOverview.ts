@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { feeOf, netOf } from "@/lib/platformFee";
 import type { Period } from "@/components/dashboard/PeriodSelector";
 
 const periodStart = (period: Period): string | null => {
@@ -13,11 +14,12 @@ export interface SalesOverview {
   revenue: number;
   tickets: number;
   avgTicket: number;
-  /** Zentro commission withheld from the gross revenue. */
+  /** Total commission withheld from the gross revenue (6%). */
   platformFee: number;
-  /** Amount paid out to the organizer (before Qhantuy's own ~1% fee). */
+  /** Amount paid out to the organizer (94% of gross). */
   netPayout: number;
 }
+
 
 /** Period-scoped gross revenue + tickets from confirmed payment sessions. */
 export const useSalesOverview = (period: Period) => {
@@ -29,7 +31,7 @@ export const useSalesOverview = (period: Period) => {
     queryFn: async (): Promise<SalesOverview> => {
       let q = supabase
         .from("payment_sessions")
-        .select("amount, party_size, platform_fee_amount, payout_amount")
+        .select("amount, party_size")
         .eq("business_user_id", user!.id)
         .eq("status", "confirmed");
 
@@ -42,21 +44,9 @@ export const useSalesOverview = (period: Period) => {
       const rows = data || [];
       const revenue = rows.reduce((s, r) => s + Number(r.amount || 0), 0);
       const tickets = rows.reduce((s, r) => s + Math.max(1, Number(r.party_size || 1)), 0);
-      // Older sessions predate the split columns — fall back to the 5% default.
-      const platformFee = rows.reduce((s, r) => {
-        const amount = Number(r.amount || 0);
-        const fee = r.platform_fee_amount != null
-          ? Number(r.platform_fee_amount)
-          : Math.round(amount * 0.05 * 100) / 100;
-        return s + fee;
-      }, 0);
-      const netPayout = rows.reduce((s, r) => {
-        const amount = Number(r.amount || 0);
-        const payout = r.payout_amount != null
-          ? Number(r.payout_amount)
-          : Math.round(amount * 0.95 * 100) / 100;
-        return s + payout;
-      }, 0);
+      const platformFee = rows.reduce((s, r) => s + feeOf(r.amount), 0);
+      const netPayout = rows.reduce((s, r) => s + netOf(r.amount), 0);
+
       return {
         revenue,
         tickets,
@@ -65,6 +55,7 @@ export const useSalesOverview = (period: Period) => {
         netPayout,
       };
     },
+
 
   });
 };

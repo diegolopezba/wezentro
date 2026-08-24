@@ -136,7 +136,7 @@ export const BUSINESS_DASHBOARD_INTRO: FeatureIntroStep[] = [
   {
     title: "De dónde vienen los ingresos",
     items: [
-      { icon: Wallet, label: "Tickets vendidos", desc: "5% de comisión por venta de entradas. El resto es tuyo." },
+      { icon: Wallet, label: "Tickets vendidos", desc: "6% de comisión por venta de entradas. El resto es tuyo." },
       { icon: CalendarCheck, label: "Reservas", desc: "Con un plan activo, no pagás comisión por reserva." },
       { icon: BarChart3, label: "Embudo", desc: "Vistas → clic → compra. Identificá dónde mejorar." },
     ],
@@ -149,12 +149,13 @@ export const SALES_PAYOUTS_INTRO: FeatureIntroStep[] = [
     subtitle: "Cómo se calculan tus ingresos y cuándo llegan a tu cuenta.",
     items: [
       { icon: DollarSign, label: "Ingresos", desc: "Suma de entradas vendidas y reservas confirmadas." },
-      { icon: Percent, label: "Comisión", desc: "5% por ticket vendido. Las reservas no tienen comisión con plan activo." },
+      { icon: Percent, label: "Comisión", desc: "6% por ticket vendido. Las reservas no tienen comisión con plan activo." },
       { icon: Clock, label: "Depósito", desc: "Qhantuy deposita el dinero en tu cuenta al día hábil siguiente." },
       { icon: Landmark, label: "Beneficiario", desc: "Sin datos bancarios no podés publicar eventos ni cobrar." },
     ],
   },
 ];
+
 
 export const PRIVACY_INTRO: FeatureIntroStep[] = [
   {
