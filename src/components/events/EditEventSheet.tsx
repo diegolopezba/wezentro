@@ -88,6 +88,9 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     show_menu_button: event.show_menu_button ?? false,
     show_reservation_button: event.show_reservation_button ?? false,
     is_location_secret: event.is_location_secret ?? false,
+    waitlist_enabled: event.waitlist_enabled ?? false,
+    sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
+    waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
   });
 
   const { isDirty, capture } = useDirtyBaseline({ formData, draftTiers, pricingMode, saleMode });
@@ -108,6 +111,12 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         show_menu_button: event.show_menu_button ?? false,
         show_reservation_button: event.show_reservation_button ?? false,
         is_location_secret: event.is_location_secret ?? false,
+        waitlist_enabled: event.waitlist_enabled ?? false,
+        sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
+        waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
+    waitlist_enabled: event.waitlist_enabled ?? false,
+    sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
+    waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
       });
     }
   }, [open, event]);
@@ -159,6 +168,12 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         show_menu_button: event.show_menu_button ?? false,
         show_reservation_button: event.show_reservation_button ?? false,
         is_location_secret: event.is_location_secret ?? false,
+        waitlist_enabled: event.waitlist_enabled ?? false,
+        sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
+        waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
+    waitlist_enabled: event.waitlist_enabled ?? false,
+    sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
+    waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
       },
       draftTiers: hydratedTiers,
       pricingMode: existingTiers.length > 0 ? "tiers" : "single",
@@ -229,6 +244,13 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           show_menu_button: formData.show_menu_button,
           show_reservation_button: formData.show_reservation_button,
           is_location_secret: formData.is_location_secret,
+          waitlist_enabled: formData.waitlist_enabled,
+          sales_open_at: formData.waitlist_enabled && formData.sales_open_at
+            ? new Date(formData.sales_open_at).toISOString()
+            : null,
+          waitlist_early_access_hours: formData.waitlist_enabled
+            ? parseInt(formData.waitlist_early_access_hours || "0") || 0
+            : 0,
         },
       });
 
