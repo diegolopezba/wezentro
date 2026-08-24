@@ -49,9 +49,10 @@ const STEPS = [
     items: [
       {
         icon: Ticket,
-        label: "Eventos y entradas: 5% por ticket",
+        label: "Eventos y entradas: 6% por ticket",
         desc: "Eventos, discotecas, venues, productores y experiencias con pago por entrada o slot. Sin mensualidad: solo pagás cuando vendés.",
       },
+
       {
         icon: UtensilsCrossed,
         label: `Restaurante, café o bar: desde Bs. ${SUBSCRIPTION_TIERS.basico.price_bob}/mes`,
