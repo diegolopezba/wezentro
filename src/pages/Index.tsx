@@ -149,13 +149,14 @@ const Index = () => {
     });
   };
 
+  // The document is the scroll owner, so the hide-on-scroll header listens to
+  // window scroll (the layout wrapper never scrolls).
   useEffect(() => {
-    const handleScroll = (e: Event) => {
-      const container = e.target as HTMLDivElement;
+    const handleScroll = () => {
       if (scrollRafRef.current !== null) return;
       scrollRafRef.current = requestAnimationFrame(() => {
         scrollRafRef.current = null;
-        const currentScrollY = container.scrollTop;
+        const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
         const shouldShow = currentScrollY < lastScrollY.current || currentScrollY <= 50;
         if (shouldShow !== headerVisibleRef.current) {
           headerVisibleRef.current = shouldShow;
@@ -164,14 +165,11 @@ const Index = () => {
         lastScrollY.current = currentScrollY;
       });
     };
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll, { passive: true });
-      return () => {
-        container.removeEventListener("scroll", handleScroll);
-        if (scrollRafRef.current !== null) cancelAnimationFrame(scrollRafRef.current);
-      };
-    }
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollRafRef.current !== null) cancelAnimationFrame(scrollRafRef.current);
+    };
   }, []);
 
   // Cache transformed cards by id so prop identity is stable across re-renders.
