@@ -191,6 +191,12 @@ Deno.serve(async (req) => {
     }
 
     const totalAmount = Number((effectivePrice * quantity).toFixed(2));
+    // Zentro keeps its commission; the rest is paid out to the organizer.
+    const { bps: feeBps, payoutAmount, platformFee } = splitAmount(totalAmount);
+    if (payoutAmount <= 0) {
+      console.error("[qr] payout would be zero", { totalAmount, feeBps });
+      return json({ error: "El monto es demasiado bajo para procesar el pago", code: "amount_too_low" }, 400);
+    }
 
 
     // Load beneficiary for the event creator
