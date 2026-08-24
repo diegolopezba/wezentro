@@ -17,6 +17,7 @@ import {
   PartyPopper,
   Lock,
   HelpCircle,
+  Clock,
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
