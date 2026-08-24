@@ -295,15 +295,14 @@ const MasonryGrid = ({ events, followGraph, observeCard, unobserveCard, sentinel
         {events.map((event, index) => {
           const pos = positions.get(event.id);
           if (!pos) return null;
-          // Skip cards fully outside the overscan window. Unmeasured cards
-          // must still render so ResizeObserver can measure their height —
-          // otherwise the layout never converges.
+          // Skip cards fully outside the overscan window — including
+          // unmeasured ones, which sit at their estimated aspect-ratio height
+          // until they scroll in. Force-rendering every unmeasured card meant
+          // a whole freshly-fetched page mounted at once.
           const measured = isMeasured(event.id);
-          if (measured) {
-            const cardBottom = pos.top + pos.height;
-            if (cardBottom < windowTop || pos.top > windowBottom) {
-              return null;
-            }
+          const cardBottom = pos.top + pos.height;
+          if (cardBottom < windowTop || pos.top > windowBottom) {
+            return null;
           }
           return (
             <MasonryCardItem
