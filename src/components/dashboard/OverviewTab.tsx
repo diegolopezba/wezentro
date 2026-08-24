@@ -128,16 +128,17 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
       </div>
 
       {/* Revenue */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatsCard title="Bruto" value={salesLoading ? "..." : formatBs(sales?.revenue || 0)} icon={Coins} delay={0} />
-        <StatsCard title="Tickets vendidos" value={salesLoading ? "..." : sales?.tickets || 0} icon={Ticket} delay={0.05} />
-        <StatsCard title="Ticket prom." value={salesLoading ? "..." : formatBs(sales?.avgTicket || 0)} icon={Receipt} delay={0.1} />
+        <StatsCard title="Neto estimado" value={salesLoading ? "..." : formatBs(sales?.netPayout || 0)} icon={Receipt} delay={0.05} />
+        <StatsCard title="Tickets vendidos" value={salesLoading ? "..." : sales?.tickets || 0} icon={Ticket} delay={0.1} />
+        <StatsCard title="Ticket prom." value={salesLoading ? "..." : formatBs(sales?.avgTicket || 0)} icon={Receipt} delay={0.15} />
       </div>
 
       {/* Commission breakdown */}
       <div className="rounded-2xl border border-border bg-card p-4 space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Comisión Zentro (5%)</span>
+          <span className="text-muted-foreground">Comisión total (6%)</span>
           <span className="text-foreground">{salesLoading ? "..." : `- ${formatBs(sales?.platformFee || 0)}`}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
@@ -145,9 +146,10 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
           <span className="font-medium text-foreground">{salesLoading ? "..." : formatBs(sales?.netPayout || 0)}</span>
         </div>
         <p className="text-[11px] leading-snug text-muted-foreground">
-          Qhantuy descuenta además ~1% de cada cobro al momento de la transferencia.
+          El 6% es la comisión total sobre cada cobro. El 94% restante es el monto estimado que recibís.
         </p>
       </div>
+
 
 
       <ConversionFunnel period={period} />
