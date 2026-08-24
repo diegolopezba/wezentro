@@ -164,6 +164,7 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <KeyboardViewportObserver />
+          <ScrollLockGuard />
           <Toaster />
           <Sonner position="top-center" theme="dark" />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
