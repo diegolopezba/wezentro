@@ -2178,6 +2178,9 @@ export type Database = {
           experience_booking_id: string | null
           id: string
           party_size: number | null
+          payout_amount: number | null
+          platform_fee_amount: number | null
+          platform_fee_bps: number
           promoter_id: string | null
           provider: string
           qhantuy_raw_callback: Json | null
@@ -2199,6 +2202,9 @@ export type Database = {
           experience_booking_id?: string | null
           id?: string
           party_size?: number | null
+          payout_amount?: number | null
+          platform_fee_amount?: number | null
+          platform_fee_bps?: number
           promoter_id?: string | null
           provider?: string
           qhantuy_raw_callback?: Json | null
@@ -2220,6 +2226,9 @@ export type Database = {
           experience_booking_id?: string | null
           id?: string
           party_size?: number | null
+          payout_amount?: number | null
+          platform_fee_amount?: number | null
+          platform_fee_bps?: number
           promoter_id?: string | null
           provider?: string
           qhantuy_raw_callback?: Json | null
