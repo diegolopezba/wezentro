@@ -158,7 +158,26 @@ export const useEventDetailState = (
       }`
     : null;
 
+  // ── Waiting list (pre-sale) ──────────────────────────────────────────
+  const waitlistEnabled = !!(event as any)?.waitlist_enabled;
+  const salePhase = getSalePhase(event as any);
+  const isWaitlistPhase = salePhase === "waitlist";
+  const isEarlyAccessPhase = salePhase === "early_access";
+  const { data: waitlistState } = useEventWaitlist(eventId, waitlistEnabled);
+  const isOnWaitlist = !!waitlistState?.isOnWaitlist;
+  const waitlistPosition = waitlistState?.position ?? null;
+  const waitlistTotal = waitlistState?.total ?? 0;
+  const joinWaitlist = useJoinWaitlist();
+  const leaveWaitlist = useLeaveWaitlist();
+  const releaseWaitlist = useReleaseWaitlist();
+  const earlyAccessEnds = earlyAccessEndsAt(event as any);
+  const publicSaleStarts = publicSaleStartsAt(event as any);
+  // Only waitlist members can buy during the exclusive window.
+  const canPurchaseNow = !waitlistEnabled || salePhase === "public" || (isEarlyAccessPhase && isOnWaitlist);
+
   const formattedPrice = (() => {
+    // Prices stay hidden until tickets are released.
+    if (isWaitlistPhase) return "Entradas próximamente";
     if (hasTiers) {
       if (allTiersSoldOut) return "Agotado";
       const prices = purchasableTiers.map((t) => Number(t.price));
@@ -171,6 +190,18 @@ export const useEventDetailState = (
     }
     return event?.price ? `Bs. ${event.price}` : "Gratis";
   })();
+
+  const handleToggleWaitlist = async () => {
+    if (isGuest) { promptAuth({ action: "unirte a la lista de espera" }); return; }
+    if (!eventId) return;
+    if (isOnWaitlist) await leaveWaitlist.mutateAsync(eventId);
+    else await joinWaitlist.mutateAsync(eventId);
+  };
+
+  const handleReleaseTickets = async () => {
+    if (!eventId) return;
+    await releaseWaitlist.mutateAsync(eventId);
+  };
 
   // Media handlers
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
