@@ -20,6 +20,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { trackCheckoutTap } from "@/lib/analyticsTracking";
 import { format } from "date-fns";
+import { getSalePhase, earlyAccessEndsAt, publicSaleStartsAt } from "@/lib/salePhase";
+import {
+  useEventWaitlist,
+  useJoinWaitlist,
+  useLeaveWaitlist,
+  useReleaseWaitlist,
+} from "@/hooks/useEventWaitlist";
 
 /**
  * Shared hook that centralises all state and logic for event detail views.
@@ -151,7 +158,26 @@ export const useEventDetailState = (
       }`
     : null;
 
+  // ── Waiting list (pre-sale) ──────────────────────────────────────────
+  const waitlistEnabled = !!(event as any)?.waitlist_enabled;
+  const salePhase = getSalePhase(event as any);
+  const isWaitlistPhase = salePhase === "waitlist";
+  const isEarlyAccessPhase = salePhase === "early_access";
+  const { data: waitlistState } = useEventWaitlist(eventId, waitlistEnabled);
+  const isOnWaitlist = !!waitlistState?.isOnWaitlist;
+  const waitlistPosition = waitlistState?.position ?? null;
+  const waitlistTotal = waitlistState?.total ?? 0;
+  const joinWaitlist = useJoinWaitlist();
+  const leaveWaitlist = useLeaveWaitlist();
+  const releaseWaitlist = useReleaseWaitlist();
+  const earlyAccessEnds = earlyAccessEndsAt(event as any);
+  const publicSaleStarts = publicSaleStartsAt(event as any);
+  // Only waitlist members can buy during the exclusive window.
+  const canPurchaseNow = !waitlistEnabled || salePhase === "public" || (isEarlyAccessPhase && isOnWaitlist);
+
   const formattedPrice = (() => {
+    // Prices stay hidden until tickets are released.
+    if (isWaitlistPhase) return "Entradas próximamente";
     if (hasTiers) {
       if (allTiersSoldOut) return "Agotado";
       const prices = purchasableTiers.map((t) => Number(t.price));
@@ -164,6 +190,18 @@ export const useEventDetailState = (
     }
     return event?.price ? `Bs. ${event.price}` : "Gratis";
   })();
+
+  const handleToggleWaitlist = async () => {
+    if (isGuest) { promptAuth({ action: "unirte a la lista de espera" }); return; }
+    if (!eventId) return;
+    if (isOnWaitlist) await leaveWaitlist.mutateAsync(eventId);
+    else await joinWaitlist.mutateAsync(eventId);
+  };
+
+  const handleReleaseTickets = async () => {
+    if (!eventId) return;
+    await releaseWaitlist.mutateAsync(eventId);
+  };
 
   // Media handlers
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -276,6 +314,14 @@ export const useEventDetailState = (
 
   const handleBuyTicket = async () => {
     if (isGuest) { promptAuth({ action: "unirte a este evento" }); return; }
+    if (!canPurchaseNow) {
+      toast.error(
+        isWaitlistPhase
+          ? "Las entradas todavía no están a la venta"
+          : "Acceso anticipado solo para la lista de espera"
+      );
+      return;
+    }
     // Funnel: intent tap (fire-and-forget, never blocks the checkout)
     if (eventId) void trackCheckoutTap(eventId, user?.id ?? null);
     // Visual venue layout path → pick an area first
@@ -353,6 +399,13 @@ export const useEventDetailState = (
     isLocationSecret, canSeeLocation,
     isGuest, isAuthenticated: !isGuest,
     formattedDate, formattedPrice, hasEnded,
+    // Waiting list (pre-sale)
+    waitlistEnabled, salePhase, isWaitlistPhase, isEarlyAccessPhase,
+    isOnWaitlist, waitlistPosition, waitlistTotal,
+    earlyAccessEnds, publicSaleStarts, canPurchaseNow,
+    handleToggleWaitlist, handleReleaseTickets,
+    waitlistPending: joinWaitlist.isPending || leaveWaitlist.isPending,
+    releasePending: releaseWaitlist.isPending,
     // Media
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,

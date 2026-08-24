@@ -50,12 +50,47 @@ Deno.serve(async (req) => {
     // Load event
     const { data: event, error: eventErr } = await supabase
       .from("events")
-      .select("id, title, price, creator_id")
+      .select(
+        "id, title, price, creator_id, waitlist_enabled, sales_open_at, waitlist_early_access_hours, waitlist_released_at"
+      )
       .eq("id", eventId)
       .single();
     if (eventErr || !event) {
       console.error("[qr] event not found", eventId, eventErr?.message);
       return json({ error: "No encontramos este evento", code: "event_not_found" }, 404);
+    }
+
+    // ── Waiting-list gating ──────────────────────────────────────────────
+    // While the pre-sale list is open nobody can buy. During the exclusive
+    // early-access window only people on the list can.
+    if (event.waitlist_enabled && event.creator_id !== buyerId) {
+      const now = Date.now();
+      const releasedRaw = event.waitlist_released_at || event.sales_open_at;
+      const releasedAt = releasedRaw ? new Date(releasedRaw).getTime() : NaN;
+      const isReleased = Number.isFinite(releasedAt) && releasedAt <= now;
+
+      if (!isReleased) {
+        return json(
+          { error: "Las entradas todavía no están a la venta", code: "waitlist_open" },
+          403
+        );
+      }
+
+      const hours = Number(event.waitlist_early_access_hours ?? 0);
+      if (hours > 0 && now < releasedAt + hours * 3600_000) {
+        const { data: wl } = await supabase
+          .from("event_waitlist")
+          .select("id")
+          .eq("event_id", eventId)
+          .eq("user_id", buyerId)
+          .maybeSingle();
+        if (!wl) {
+          return json(
+            { error: "Acceso anticipado solo para la lista de espera", code: "early_access_only" },
+            403
+          );
+        }
+      }
     }
 
     // Resolve tier / price

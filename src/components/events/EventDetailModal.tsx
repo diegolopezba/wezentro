@@ -81,6 +81,8 @@ const EventDetailModalInner = () => {
     hasPaidTickets, usesPaidCheckout,
     isLocationSecret, canSeeLocation,
     formattedDate, formattedPrice, hasEnded,
+    isWaitlistPhase, isOnWaitlist, waitlistPosition, waitlistTotal,
+    canPurchaseNow, handleToggleWaitlist, waitlistPending,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
     buyTicketPending, leaveGuestlistPending,
@@ -481,13 +483,30 @@ const EventDetailModalInner = () => {
 
 
                   )
+                ) : isWaitlistPhase ? (
+                  <Button
+                    variant={isOnWaitlist ? "outline" : "sheet-action"}
+                    size="default"
+                    onClick={handleToggleWaitlist}
+                    disabled={waitlistPending}
+                  >
+                    {waitlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isOnWaitlist ? (
+                      <>
+                        <Check className="w-4 h-4 mr-1" /> En la lista{waitlistPosition ? ` #${waitlistPosition}` : ""}
+                      </>
+                    ) : (
+                      <>Unirme a la lista</>
+                    )}
+                  </Button>
                 ) : (allTiersSoldOut || isGuestlistFull) ? (
                   <Button variant="outline" size="default" disabled>
                     Entradas agotadas
                   </Button>
                 ) : (
-                  <Button variant="sheet-action" size="default" onClick={handleBuyTicket} disabled={buyTicketPending}>
-                    {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? (
+                  <Button variant="sheet-action" size="default" onClick={handleBuyTicket} disabled={buyTicketPending || !canPurchaseNow}>
+                    {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : !canPurchaseNow ? (
+                      <>Venta general pronto</>
+                    ) : hasPaidTickets ? (
                       <>
                         <DollarSign className="w-4 h-4 mr-1" /> Comprar
                       </>

@@ -935,6 +935,44 @@ export type Database = {
           },
         ]
       }
+      event_waitlist: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          notified_at: string | null
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          notified_at?: string | null
+          position: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          notified_at?: string | null
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_waitlist_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           category: string | null
@@ -959,11 +997,16 @@ export type Database = {
           max_guestlist_capacity: number | null
           payment_qr_url: string | null
           price: number | null
+          sales_open_at: string | null
           scanner_access_token: string | null
           show_menu_button: boolean | null
           show_reservation_button: boolean | null
           start_datetime: string | null
           title: string | null
+          waitlist_capacity: number | null
+          waitlist_early_access_hours: number
+          waitlist_enabled: boolean
+          waitlist_released_at: string | null
         }
         Insert: {
           category?: string | null
@@ -988,11 +1031,16 @@ export type Database = {
           max_guestlist_capacity?: number | null
           payment_qr_url?: string | null
           price?: number | null
+          sales_open_at?: string | null
           scanner_access_token?: string | null
           show_menu_button?: boolean | null
           show_reservation_button?: boolean | null
           start_datetime?: string | null
           title?: string | null
+          waitlist_capacity?: number | null
+          waitlist_early_access_hours?: number
+          waitlist_enabled?: boolean
+          waitlist_released_at?: string | null
         }
         Update: {
           category?: string | null
@@ -1017,11 +1065,16 @@ export type Database = {
           max_guestlist_capacity?: number | null
           payment_qr_url?: string | null
           price?: number | null
+          sales_open_at?: string | null
           scanner_access_token?: string | null
           show_menu_button?: boolean | null
           show_reservation_button?: boolean | null
           start_datetime?: string | null
           title?: string | null
+          waitlist_capacity?: number | null
+          waitlist_early_access_hours?: number
+          waitlist_enabled?: boolean
+          waitlist_released_at?: string | null
         }
         Relationships: [
           {
@@ -4930,6 +4983,13 @@ export type Database = {
       is_post_owner: {
         Args: { _event_id: string; _user_id: string }
         Returns: boolean
+      }
+      join_event_waitlist: {
+        Args: { _event_id: string }
+        Returns: {
+          wl_position: number
+          wl_total: number
+        }[]
       }
       log_interaction: {
         Args: { _event_id: string; _signal_type: string }

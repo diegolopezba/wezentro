@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, UtensilsCrossed, CalendarCheck, ChevronDown, Lock } from "lucide-react";
+import { Loader2, UtensilsCrossed, CalendarCheck, ChevronDown, Lock, Clock } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
@@ -40,6 +40,10 @@ interface EditEventSheetProps {
     show_menu_button?: boolean | null;
     show_reservation_button?: boolean | null;
     is_location_secret?: boolean | null;
+    waitlist_enabled?: boolean | null;
+    sales_open_at?: string | null;
+    waitlist_early_access_hours?: number | null;
+    waitlist_released_at?: string | null;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -84,6 +88,9 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     show_menu_button: event.show_menu_button ?? false,
     show_reservation_button: event.show_reservation_button ?? false,
     is_location_secret: event.is_location_secret ?? false,
+    waitlist_enabled: event.waitlist_enabled ?? false,
+    sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
+    waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
   });
 
   const { isDirty, capture } = useDirtyBaseline({ formData, draftTiers, pricingMode, saleMode });
@@ -104,6 +111,9 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         show_menu_button: event.show_menu_button ?? false,
         show_reservation_button: event.show_reservation_button ?? false,
         is_location_secret: event.is_location_secret ?? false,
+        waitlist_enabled: event.waitlist_enabled ?? false,
+        sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
+        waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
       });
     }
   }, [open, event]);
@@ -155,6 +165,9 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         show_menu_button: event.show_menu_button ?? false,
         show_reservation_button: event.show_reservation_button ?? false,
         is_location_secret: event.is_location_secret ?? false,
+        waitlist_enabled: event.waitlist_enabled ?? false,
+        sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
+        waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
       },
       draftTiers: hydratedTiers,
       pricingMode: existingTiers.length > 0 ? "tiers" : "single",
@@ -225,6 +238,13 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           show_menu_button: formData.show_menu_button,
           show_reservation_button: formData.show_reservation_button,
           is_location_secret: formData.is_location_secret,
+          waitlist_enabled: formData.waitlist_enabled,
+          sales_open_at: formData.waitlist_enabled && formData.sales_open_at
+            ? new Date(formData.sales_open_at).toISOString()
+            : null,
+          waitlist_early_access_hours: formData.waitlist_enabled
+            ? parseInt(formData.waitlist_early_access_hours || "0") || 0
+            : 0,
         },
       });
 
@@ -484,6 +504,61 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                     checked={formData.is_location_secret}
                     onCheckedChange={(checked) => setFormData({ ...formData, is_location_secret: checked })}
                   />
+                </div>
+
+                {/* Lista de espera */}
+                <div className="mt-3 pt-3 border-t border-border">
+                  <div className="flex items-start justify-between gap-3 py-2">
+                    <div className="flex items-start gap-2 flex-1">
+                      <Clock className="w-4 h-4 text-primary mt-0.5" />
+                      <div className="flex flex-col">
+                        <Label htmlFor="waitlist-enabled">Lista de espera</Label>
+                        <span className="text-xs text-muted-foreground">
+                          Oculta los precios hasta que abras la venta. Los interesados se anotan y son los primeros en enterarse.
+                        </span>
+                      </div>
+                    </div>
+                    <Switch
+                      id="waitlist-enabled"
+                      checked={formData.waitlist_enabled}
+                      onCheckedChange={(checked) => {
+                        if (checked && !isBusiness) { setShowBusinessGate(true); return; }
+                        if (checked && !hasBeneficiary) { setShowBeneficiaryGate(true); return; }
+                        setFormData({ ...formData, waitlist_enabled: checked });
+                      }}
+                    />
+                  </div>
+
+                  {formData.waitlist_enabled && (
+                    <div className="space-y-3 pt-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="sales-open-at" className="text-xs text-muted-foreground">
+                          Apertura de venta (opcional)
+                        </Label>
+                        <Input
+                          id="sales-open-at"
+                          type="datetime-local"
+                          value={formData.sales_open_at}
+                          onChange={(e) => setFormData({ ...formData, sales_open_at: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="early-access-hours" className="text-xs text-muted-foreground">
+                          Acceso anticipado para la lista (horas)
+                        </Label>
+                        <Input
+                          id="early-access-hours"
+                          type="number"
+                          min="0"
+                          value={formData.waitlist_early_access_hours}
+                          onChange={(e) => setFormData({ ...formData, waitlist_early_access_hours: e.target.value })}
+                        />
+                        <p className="text-[11px] text-muted-foreground">
+                          0 = solo notificación. Más de 0 = solo la lista puede comprar durante ese tiempo.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CollapsibleContent>
             </Collapsible>

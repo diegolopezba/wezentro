@@ -82,6 +82,10 @@ const EventDetail = () => {
     isLocationSecret, canSeeLocation,
     isAuthenticated,
     formattedDate, formattedPrice, hasEnded,
+    waitlistEnabled, isWaitlistPhase, isEarlyAccessPhase,
+    isOnWaitlist, waitlistPosition, waitlistTotal,
+    publicSaleStarts, canPurchaseNow,
+    handleToggleWaitlist, handleReleaseTickets, waitlistPending, releasePending,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
     buyTicketPending, leaveGuestlistPending,
@@ -503,23 +507,42 @@ const EventDetail = () => {
               <span className="font-brand text-lg font-semibold text-foreground">
                 {formattedPrice}
               </span>
-              {maxGuestlistCapacity != null && (
+              {isWaitlistPhase ? (
+                <span className="text-xs text-muted-foreground">
+                  Lista de espera{waitlistTotal > 0 ? ` · ${waitlistTotal} interesados` : ""}
+                </span>
+              ) : isEarlyAccessPhase ? (
+                <span className="text-xs text-muted-foreground">
+                  {canPurchaseNow
+                    ? "Acceso anticipado para la lista"
+                    : publicSaleStarts
+                    ? `Venta general ${format(publicSaleStarts, "d MMM • HH:mm", { locale: es })}`
+                    : "Acceso anticipado en curso"}
+                </span>
+              ) : maxGuestlistCapacity != null ? (
                 <span className="text-xs text-muted-foreground">
                   {approvedCount}/{maxGuestlistCapacity} entradas vendidas
                 </span>
-              )}
+              ) : null}
               </>
           }
             </div>
             {isOwner ?
-        <Button variant="sheet-action" size="default" onClick={() => setShowManagement(true)}>
-                Gestionar
-                {pendingCount > 0 &&
-          <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
-                    {pendingCount}
-                  </span>
-          }
-              </Button> :
+        <div className="flex items-center gap-2">
+                {waitlistEnabled && isWaitlistPhase && (
+                  <Button variant="outline" size="default" onClick={handleReleaseTickets} disabled={releasePending}>
+                    {releasePending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Publicar entradas"}
+                  </Button>
+                )}
+                <Button variant="sheet-action" size="default" onClick={() => setShowManagement(true)}>
+                  Gestionar
+                  {pendingCount > 0 &&
+            <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
+                      {pendingCount}
+                    </span>
+            }
+                </Button>
+              </div> :
         isOnGuestlist ?
         isPending ?
         <Button variant="ghost" size="default" disabled>
@@ -535,12 +558,22 @@ const EventDetail = () => {
         <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
                 Aceptar invitación especial
               </Button> :
+        isWaitlistPhase ?
+        <Button
+          variant={isOnWaitlist ? "outline" : "sheet-action"}
+          size="default"
+          onClick={handleToggleWaitlist}
+          disabled={waitlistPending}>
+                {waitlistPending ? <Loader2 className="w-4 h-4 animate-spin" /> :
+                isOnWaitlist ? <><Check className="w-4 h-4 mr-1" /> En la lista{waitlistPosition ? ` #${waitlistPosition}` : ""}</> :
+                <>Unirme a la lista</>}
+              </Button> :
         (allTiersSoldOut || isGuestlistFull) ?
         <Button variant="outline" size="default" disabled>
                 Entradas agotadas
               </Button> :
-        <Button variant="sheet-action" size="default" onClick={handleBuyTicket} disabled={buyTicketPending}>
-                {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <>Free</>}
+        <Button variant="sheet-action" size="default" onClick={handleBuyTicket} disabled={buyTicketPending || !canPurchaseNow}>
+                {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : !canPurchaseNow ? <>Venta general pronto</> : hasPaidTickets ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <>Free</>}
               </Button>
         }
           </div>

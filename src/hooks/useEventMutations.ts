@@ -17,6 +17,9 @@ interface UpdateEventData {
   show_menu_button?: boolean;
   show_reservation_button?: boolean;
   is_location_secret?: boolean;
+  waitlist_enabled?: boolean;
+  sales_open_at?: string | null;
+  waitlist_early_access_hours?: number;
 }
 
 export function useUpdateEvent() {
