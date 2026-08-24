@@ -4,7 +4,7 @@
  * create_experience_booking database function.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, json, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
+import { corsHeaders, json, qhantuyCheckoutFetch, splitAmount } from "../_shared/qhantuy.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
