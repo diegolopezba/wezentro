@@ -314,6 +314,14 @@ export const useEventDetailState = (
 
   const handleBuyTicket = async () => {
     if (isGuest) { promptAuth({ action: "unirte a este evento" }); return; }
+    if (!canPurchaseNow) {
+      toast.error(
+        isWaitlistPhase
+          ? "Las entradas todavía no están a la venta"
+          : "Acceso anticipado solo para la lista de espera"
+      );
+      return;
+    }
     // Funnel: intent tap (fire-and-forget, never blocks the checkout)
     if (eventId) void trackCheckoutTap(eventId, user?.id ?? null);
     // Visual venue layout path → pick an area first
