@@ -32,7 +32,9 @@ const Index = () => {
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
   const isGuest = !user;
-  const intro = useFeatureIntro("home");
+  // Don't auto-open the explainer for signed-out visitors — it scroll-locks
+  // the page before they've even seen the feed.
+  const intro = useFeatureIntro("home", { enabled: !!user });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
