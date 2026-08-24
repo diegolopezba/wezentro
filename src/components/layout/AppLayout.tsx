@@ -9,10 +9,10 @@ export interface AppLayoutProps {
 
 export const AppLayout = forwardRef<HTMLDivElement, AppLayoutProps>(
   ({ children, hideNav = false }, ref) => {
+    // The document is the single scroll owner — no nested scroll container
+    // here, otherwise scroll listeners and virtualization bind to an element
+    // that never scrolls.
     return (
-      {/* The document is the single scroll owner — no nested scroll container
-          here, otherwise scroll listeners and virtualization bind to an
-          element that never scrolls. */}
       <div ref={ref} className="min-h-[100dvh] bg-background">
         <OfflineBanner />
 
