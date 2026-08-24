@@ -4,8 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCreatorSalesByEvent } from "@/hooks/usePromoters";
 import { supabase } from "@/integrations/supabase/client";
+import { netOf } from "@/lib/platformFee";
 import { formatBs } from "./salesUtils";
 import { EmptyChart } from "./SalesSummary";
+
 
 export const SalesEvents = () => {
   const { data, isLoading } = useCreatorSalesByEvent();
