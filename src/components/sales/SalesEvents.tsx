@@ -54,6 +54,7 @@ export const SalesEvents = () => {
         const pct = e.capacity > 0 ? Math.min(100, (e.tickets_sold / e.capacity) * 100) : 0;
         const views = viewsByEvent?.[e.event_id] || 0;
         const conv = views > 0 ? (e.tickets_sold / views) * 100 : null;
+        const net = netOf(e.revenue);
         return (
           <button
             key={e.event_id}
@@ -71,7 +72,8 @@ export const SalesEvents = () => {
                 <p className="text-[11px] text-muted-foreground">
                   {new Date(e.start_datetime).toLocaleDateString("es-BO", { day: "numeric", month: "short", year: "numeric" })}
                 </p>
-                <p className="font-brand text-sm font-medium text-foreground mt-0.5">{formatBs(e.revenue)}</p>
+                <p className="font-brand text-sm font-medium text-foreground mt-0.5">{formatBs(net)}</p>
+                <p className="text-[11px] text-muted-foreground">Bruto {formatBs(e.revenue)}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             </div>
