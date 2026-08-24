@@ -399,6 +399,13 @@ export const useEventDetailState = (
     isLocationSecret, canSeeLocation,
     isGuest, isAuthenticated: !isGuest,
     formattedDate, formattedPrice, hasEnded,
+    // Waiting list (pre-sale)
+    waitlistEnabled, salePhase, isWaitlistPhase, isEarlyAccessPhase,
+    isOnWaitlist, waitlistPosition, waitlistTotal,
+    earlyAccessEnds, publicSaleStarts, canPurchaseNow,
+    handleToggleWaitlist, handleReleaseTickets,
+    waitlistPending: joinWaitlist.isPending || leaveWaitlist.isPending,
+    releasePending: releaseWaitlist.isPending,
     // Media
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
