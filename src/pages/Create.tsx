@@ -123,7 +123,10 @@ const Create = () => {
     capacity: "",
     showMenuButton: false,
     showReservationButton: false,
-    isLocationSecret: false
+    isLocationSecret: false,
+    waitlistEnabled: false,
+    salesOpenAt: "",
+    waitlistEarlyAccessHours: "0"
   });
 
   // Ticket tier state (events only, business accounts)
