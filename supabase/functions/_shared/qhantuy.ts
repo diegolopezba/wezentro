@@ -14,6 +14,28 @@ export const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
+// ── Platform commission ──────────────────────────────────────────────────
+// Zentro keeps 5% of every payment made through the app. The organizer is paid
+// the rest through a Qhantuy custom payout; Qhantuy deducts its own ~1% fee.
+export function platformFeeBps(): number {
+  const raw = Number(Deno.env.get("QHANTUY_PLATFORM_FEE_BPS") ?? 500);
+  if (!Number.isFinite(raw) || raw < 0 || raw >= 10000) return 500;
+  return Math.floor(raw);
+}
+
+export function splitAmount(total: number): {
+  bps: number;
+  payoutAmount: number;
+  platformFee: number;
+} {
+  const bps = platformFeeBps();
+  const gross = Number(total);
+  const payoutAmount = Math.round(gross * (1 - bps / 10000) * 100) / 100;
+  const platformFee = Math.round((gross - payoutAmount) * 100) / 100;
+  return { bps, payoutAmount, platformFee };
+}
+
+
 export function qhantuyAuthHeaders(): Record<string, string> {
   const token = Deno.env.get("QHANTUY_API_TOKEN");
   const appkey = Deno.env.get("QHANTUY_APPKEY");
