@@ -1077,6 +1077,70 @@ const Create = () => {
                         className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
                     </button>
                   </div>
+
+                  {/* Lista de espera (pre-venta) */}
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                          <Clock className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">Lista de espera</h3>
+                          <p className="text-xs text-muted-foreground">
+                            Publica el evento sin precios. Los interesados se anotan y son los primeros en enterarse cuando abras la venta.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!isBusiness) { setShowBusinessGate(true); return; }
+                          if (!hasBeneficiary) { openBeneficiaryGate("tickets"); return; }
+                          setFormData({ ...formData, waitlistEnabled: !formData.waitlistEnabled });
+                        }}
+                        className={`relative w-12 h-7 rounded-full transition-colors shrink-0 ${formData.waitlistEnabled ? "bg-primary" : "bg-secondary"}`}>
+                        <m.div
+                          animate={{ x: formData.waitlistEnabled ? 22 : 2 }}
+                          className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
+                      </button>
+                    </div>
+
+                    {formData.waitlistEnabled && (
+                      <div className="mt-4 space-y-3">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="sales-open-at" className="text-xs text-muted-foreground">
+                            Apertura de venta (opcional)
+                          </Label>
+                          <Input
+                            id="sales-open-at"
+                            type="datetime-local"
+                            value={formData.salesOpenAt}
+                            onChange={(e) => setFormData({ ...formData, salesOpenAt: e.target.value })}
+                          />
+                          <p className="text-[11px] text-muted-foreground">
+                            Si la dejas vacía, las entradas se publican solo cuando tú lo decidas.
+                          </p>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="early-access-hours" className="text-xs text-muted-foreground">
+                            Acceso anticipado para la lista (horas)
+                          </Label>
+                          <Input
+                            id="early-access-hours"
+                            type="number"
+                            min="0"
+                            value={formData.waitlistEarlyAccessHours}
+                            onChange={(e) => setFormData({ ...formData, waitlistEarlyAccessHours: e.target.value })}
+                            placeholder="0"
+                          />
+                          <p className="text-[11px] text-muted-foreground">
+                            0 = solo notificación. Más de 0 = solo la lista puede comprar durante ese tiempo.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </CollapsibleContent>
               </Collapsible>
             </Card>
