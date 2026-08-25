@@ -264,7 +264,49 @@ export const OneSignalProvider = ({ children }: Props) => {
     return () => clearTimeout(timeout);
   }, [initNativeOneSignal, initWebOneSignal, isLoading]);
 
+  // Tie the device to the signed-in account (external ID) and release it on
+  // sign-out, so a re-used device never receives the previous user's pushes.
+  useEffect(() => {
+    if (!isReady) return;
+
+    const sdk = isNative() ? nativeOneSignal : window.OneSignal;
+    if (!sdk) return;
+
+    if (user?.id) {
+      try {
+        sdk.login(user.id);
+        logger.log("[OneSignal] Logged in external id");
+      } catch (e) {
+        logger.error("[OneSignal] login error:", e);
+      }
+      return;
+    }
+
+    // Signed out: detach this device from the previous account.
+    const cleanup = async () => {
+      try {
+        if (playerId) {
+          await supabase
+            .from("push_subscriptions")
+            .delete()
+            .eq("onesignal_player_id", playerId);
+        }
+      } catch (e) {
+        logger.error("[OneSignal] Sign-out cleanup error:", e);
+      }
+      try {
+        sdk.logout();
+      } catch (e) {
+        logger.error("[OneSignal] logout error:", e);
+      }
+    };
+    cleanup();
+    // playerId intentionally omitted from deps: we only react to auth changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, isReady]);
+
   // Sync player ID with database
+
   useEffect(() => {
     const syncPlayerId = async () => {
       if (!user?.id || !playerId) return;
