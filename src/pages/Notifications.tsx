@@ -47,6 +47,9 @@ const getNotificationIcon = (type: string) => {
       return Sparkles;
     case "secret_location_changed":
       return MapPin;
+    case "event_announcement":
+      return Megaphone;
+
     default:
       return Bell;
   }
