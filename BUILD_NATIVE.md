@@ -145,7 +145,12 @@ Minimum age: 18 (enforced at onboarding).
 
 - [ ] `NODE_ENV=production` build was used (no `server.url` in `capacitor.config.ts`)
 - [ ] Tested on a real iPhone via TestFlight
-- [ ] Push notifications work on device (not just simulator)
+- [ ] Push notifications on a real device: explainer sheet appears → iOS/Android system prompt → row created in `push_subscriptions`
+- [ ] Test push received in foreground, background, and app-killed states
+- [ ] Tapping a push opens the correct screen (payload `data.url`), including from a cold start
+- [ ] Signing out stops delivery to that device
+- [ ] `google-services.json` present and FCM service account uploaded to OneSignal (Android)
+- [ ] Notification Service Extension target added with the shared App Group (iOS)
 - [ ] Account deletion works end-to-end
 - [ ] Sign-up blocks anyone under 18
 - [ ] Privacy manifest copied into Xcode project
