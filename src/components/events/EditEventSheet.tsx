@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, UtensilsCrossed, CalendarCheck, ChevronDown, Lock, Clock } from "lucide-react";
+import { Loader2, UtensilsCrossed, CalendarCheck, ChevronDown, Lock, Clock, Sparkles } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
@@ -21,6 +21,8 @@ import { BusinessRequiredSheet } from "@/components/events/BusinessRequiredSheet
 import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
+import { useBusinessExperiences } from "@/hooks/useExperiences";
+import { cn } from "@/lib/utils";
 
 interface EditEventSheetProps {
   event: {
@@ -39,6 +41,7 @@ interface EditEventSheetProps {
     payment_qr_url?: string | null;
     show_menu_button?: boolean | null;
     show_reservation_button?: boolean | null;
+    experience_id?: string | null;
     is_location_secret?: boolean | null;
     waitlist_enabled?: boolean | null;
     sales_open_at?: string | null;
@@ -60,19 +63,25 @@ import { CATEGORIES } from "@/lib/categories";
 
 export function EditEventSheet({ event, open, onOpenChange, isPost = false, embedded = false }: EditEventSheetProps) {
   const updateEvent = useUpdateEvent();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const isBusiness = profile?.is_business === true;
   const reservationsEnabled = (profile as any)?.reservations_enabled === true;
+  const experiencesEnabled = (profile as any)?.experiences_enabled === true;
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
   const { data: existingTiers = [] } = useTicketTiers(event.id);
   const replaceTiers = useReplaceTicketTiers();
   const { hasBeneficiary } = useHasBeneficiary();
+  const { data: myExperiences = [] } = useBusinessExperiences(
+    isBusiness && experiencesEnabled ? user?.id : undefined,
+  );
+  const activeExperiences = myExperiences.filter((e) => e.is_active);
   const [pricingMode, setPricingMode] = useState<TicketPricingMode>("single");
   const [saleMode, setSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
+  const [experienceId, setExperienceId] = useState<string | null>(event.experience_id ?? null);
   
   const [formData, setFormData] = useState({
     title: event.title || "",
@@ -93,10 +102,11 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
   });
 
-  const { isDirty, capture } = useDirtyBaseline({ formData, draftTiers, pricingMode, saleMode });
+  const { isDirty, capture } = useDirtyBaseline({ formData, draftTiers, pricingMode, saleMode, experienceId });
 
   useEffect(() => {
     if (open) {
+      setExperienceId(event.experience_id ?? null);
       setFormData({
         title: event.title || "",
         description: event.description || "",
@@ -175,16 +185,20 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         existingTiers.length > 0 && existingTiers.some((t) => !!t.unlock_after_tier_id)
           ? "sequential"
           : "parallel",
+      experienceId: event.experience_id ?? null,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, event, existingTiers]);
 
   const handleSave = async () => {
     try {
+      // Linked experiences are booked and paid through QR: payouts are required.
+      if (experienceId && !hasBeneficiary) { setShowBeneficiaryGate(true); return; }
+
       // Gate paid tickets: require Business + Qhantuy beneficiary
       const priceNum = parseFloat(formData.price) || 0;
-      const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
-      if (!isPost && (priceNum > 0 || hasPaidTier || pricingMode === "tiers")) {
+      const hasPaidTier = !isPost && !experienceId && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
+      if (!isPost && !experienceId && (priceNum > 0 || hasPaidTier || pricingMode === "tiers")) {
         if (!isBusiness) { setShowBusinessGate(true); return; }
         if (!hasBeneficiary) { setShowBeneficiaryGate(true); return; }
       }
@@ -237,6 +251,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           has_guestlist: isPost ? false : true,
           show_menu_button: formData.show_menu_button,
           show_reservation_button: formData.show_reservation_button,
+          experience_id: experienceId,
           is_location_secret: formData.is_location_secret,
           waitlist_enabled: formData.waitlist_enabled,
           sales_open_at: formData.waitlist_enabled && formData.sales_open_at
@@ -248,7 +263,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         },
       });
 
-      if (!isPost) {
+      if (!isPost && !experienceId) {
         await replaceTiers.mutateAsync({
           eventId: event.id,
           tiers: pricingMode === "tiers" ? cleanTiers : [],
@@ -392,7 +407,13 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
               </div>
 
 
-              {isBusiness ? (
+              {experienceId ? (
+                <div className="rounded-xl bg-secondary/50 border border-border px-4 py-3">
+                  <p className="text-xs text-muted-foreground">
+                    Las entradas están deshabilitadas porque este post vende una experiencia vinculada.
+                  </p>
+                </div>
+              ) : isBusiness ? (
                 <div className="space-y-2">
                   <Label>Entradas</Label>
                   <TicketTiersEditor
@@ -458,6 +479,61 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                 checked={formData.show_menu_button}
                 onCheckedChange={(checked) => setFormData({ ...formData, show_menu_button: checked })}
               />
+            </div>
+          )}
+
+          {/* Experience picker — business accounts with active experiences */}
+          {isBusiness && experiencesEnabled && activeExperiences.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <div className="flex flex-col">
+                  <Label>Vincular una experiencia</Label>
+                  <span className="text-xs text-muted-foreground">
+                    Los visitantes la reservan y pagan desde este post
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setExperienceId(null)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-xs border transition-colors active:scale-[0.97]",
+                    !experienceId
+                      ? "bg-foreground text-background border-foreground"
+                      : "bg-secondary/50 border-border text-muted-foreground",
+                  )}
+                >
+                  Ninguna
+                </button>
+                {activeExperiences.map((exp) => (
+                  <button
+                    key={exp.id}
+                    type="button"
+                    onClick={() => {
+                      if (!hasBeneficiary) {
+                        setShowBeneficiaryGate(true);
+                        return;
+                      }
+                      setExperienceId(experienceId === exp.id ? null : exp.id);
+                    }}
+                    className={cn(
+                      "px-3 py-1.5 rounded-full text-xs border transition-colors active:scale-[0.97]",
+                      experienceId === exp.id
+                        ? "bg-foreground text-background border-foreground"
+                        : "bg-secondary/50 border-border text-muted-foreground",
+                    )}
+                  >
+                    {exp.title}
+                  </button>
+                ))}
+              </div>
+              {!hasBeneficiary && (
+                <p className="text-xs text-muted-foreground">
+                  Configurá tus datos de cobro para vincular una experiencia
+                </p>
+              )}
             </div>
           )}
 

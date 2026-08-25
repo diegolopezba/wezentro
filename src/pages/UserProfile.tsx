@@ -21,6 +21,9 @@ import { TimelineCard } from "@/components/events/TimelineCard";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
+import { ExperienceBookingSheet } from "@/components/experiences/ExperienceBookingSheet";
+import { BookingChooserSheet } from "@/components/experiences/BookingChooserSheet";
+import { usePublicExperiences, type Experience } from "@/hooks/useExperiences";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
@@ -40,6 +43,8 @@ const UserProfile = () => {
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [reservationSheetOpen, setReservationSheetOpen] = useState(false);
+  const [bookingChooserOpen, setBookingChooserOpen] = useState(false);
+  const [activeExperience, setActiveExperience] = useState<Experience | null>(null);
 
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === id;
@@ -76,6 +81,10 @@ const UserProfile = () => {
   const isBusiness = userProfile?.is_business === true;
   const menuEnabled = (userProfile as any)?.menu_enabled !== false;
   const reservationsEnabled = (userProfile as any)?.reservations_enabled !== false;
+  const { data: publicExperiences = [] } = usePublicExperiences(isBusiness ? id : undefined);
+  const experiencesAvailable =
+    (userProfile as any)?.experiences_enabled === true && publicExperiences.length > 0;
+  const tableReservationAvailable = isFoodBusiness && reservationsEnabled;
   const businessType = (userProfile as any)?.business_type as string | null | undefined;
   const hasBusinessInfo = userProfile?.business_address || userProfile?.business_hours || userProfile?.business_phone;
   const followMutation = useFollowUser();
@@ -119,6 +128,25 @@ const UserProfile = () => {
         toast.error("Error al iniciar conversación");
       }
     });
+  };
+
+  /** Reservar: mesa and/or experiencia, with a chooser when both exist. */
+  const handleReserve = () => {
+    if (isGuest) {
+      promptAuth({ action: "hacer una reserva" });
+      return;
+    }
+    const multipleOptions =
+      (tableReservationAvailable ? 1 : 0) + (experiencesAvailable ? publicExperiences.length : 0) > 1;
+    if (multipleOptions) {
+      setBookingChooserOpen(true);
+      return;
+    }
+    if (experiencesAvailable) {
+      setActiveExperience(publicExperiences[0]);
+      return;
+    }
+    setReservationSheetOpen(true);
   };
   if (profileLoading) {
     return <div className="min-h-[100dvh] bg-background flex items-center justify-center">
@@ -235,16 +263,8 @@ const UserProfile = () => {
                   {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent><p>{canMessageData.reason}</p></TooltipContent>}
                 </Tooltip>
 
-                {reservationsEnabled &&
-          <Button
-            variant="secondary" className="flex-1 min-w-0" onClick={() => {
-              if (isGuest) {
-                promptAuth({ action: "hacer una reserva" });
-                return;
-              }
-              setReservationSheetOpen(true);
-            }}>
-            
+                {(tableReservationAvailable || experiencesAvailable) &&
+          <Button variant="secondary" className="flex-1 min-w-0" onClick={handleReserve}>
                     Reservar
                   </Button>
           }
@@ -256,7 +276,13 @@ const UserProfile = () => {
           }
               </> :
 
-        <Tooltip>
+        <>
+                {isBusiness && experiencesAvailable &&
+          <Button variant="secondary" className="flex-1 min-w-0" onClick={handleReserve}>
+                    Reservar
+                  </Button>
+          }
+                <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
                     {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Mensaje"}
@@ -266,6 +292,7 @@ const UserProfile = () => {
                     <p>{canMessageData.reason}</p>
                   </TooltipContent>}
               </Tooltip>
+              </>
         }
           </m.div>}
       </div>
@@ -307,6 +334,31 @@ const UserProfile = () => {
       businessHours={userProfile?.business_hours}
       reservationStartTime={(userProfile as any)?.reservation_start_time}
       reservationEndTime={(userProfile as any)?.reservation_end_time} />
+
+    }
+      {/* Mesa vs Experiencia chooser (shown when the business offers more than one) */}
+      {id && isBusiness &&
+    <BookingChooserSheet
+      open={bookingChooserOpen}
+      onOpenChange={setBookingChooserOpen}
+      showTableReservation={tableReservationAvailable}
+      experiences={publicExperiences}
+      onSelectTable={() => {
+        setBookingChooserOpen(false);
+        setReservationSheetOpen(true);
+      }}
+      onSelectExperience={(exp) => {
+        setBookingChooserOpen(false);
+        setActiveExperience(exp);
+      }} />
+
+    }
+      {/* Experience booking flow */}
+      {activeExperience &&
+    <ExperienceBookingSheet
+      open={!!activeExperience}
+      onOpenChange={(open) => !open && setActiveExperience(null)}
+      experience={activeExperience} />
 
     }
     </AppLayout>;

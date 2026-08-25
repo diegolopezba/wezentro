@@ -16,6 +16,7 @@ interface UpdateEventData {
   payment_qr_url?: string | null;
   show_menu_button?: boolean;
   show_reservation_button?: boolean;
+  experience_id?: string | null;
   is_location_secret?: boolean;
   waitlist_enabled?: boolean;
   sales_open_at?: string | null;
