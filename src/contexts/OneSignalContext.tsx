@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Capacitor } from "@capacitor/core";
 import { logger } from "@/lib/logger";
+import { queuePushNavigation } from "@/lib/pushNavigation";
 
 declare global {
   interface Window {
