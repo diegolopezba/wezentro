@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, UtensilsCrossed, CalendarCheck, ChevronDown, Lock, Clock } from "lucide-react";
+import { Loader2, UtensilsCrossed, CalendarCheck, ChevronDown, Lock, Clock, Sparkles } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
@@ -21,6 +21,8 @@ import { BusinessRequiredSheet } from "@/components/events/BusinessRequiredSheet
 import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
+import { useBusinessExperiences } from "@/hooks/useExperiences";
+import { cn } from "@/lib/utils";
 
 interface EditEventSheetProps {
   event: {
@@ -39,6 +41,7 @@ interface EditEventSheetProps {
     payment_qr_url?: string | null;
     show_menu_button?: boolean | null;
     show_reservation_button?: boolean | null;
+    experience_id?: string | null;
     is_location_secret?: boolean | null;
     waitlist_enabled?: boolean | null;
     sales_open_at?: string | null;
