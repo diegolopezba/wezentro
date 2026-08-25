@@ -263,7 +263,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         },
       });
 
-      if (!isPost) {
+      if (!isPost && !experienceId) {
         await replaceTiers.mutateAsync({
           eventId: event.id,
           tiers: pricingMode === "tiers" ? cleanTiers : [],
