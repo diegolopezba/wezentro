@@ -49,3 +49,8 @@ project_id = "fipdpcitsjpqivljrktj"
     verify_jwt = false
   [functions.send-special-invites]
     verify_jwt = true
+  [functions.send-event-announcement]
+    verify_jwt = true
+  [functions.dispatch-event-announcements]
+    verify_jwt = false
+
