@@ -13,6 +13,10 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import {
+  buildExperienceQrRequest,
+  resolveExperienceBookingId,
+} from "@/lib/experienceCheckout";
+import {
   useExperienceConfig,
   useExperienceAvailability,
   useCreateExperienceBooking,
@@ -135,7 +139,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
       setBookingId(newBookingId);
 
       const { data, error } = await supabase.functions.invoke("generate-experience-qr", {
-        body: { bookingId: newBookingId },
+        body: buildExperienceQrRequest(newBookingId),
       });
 
       let payload: any = data;
@@ -151,11 +155,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
         throw new Error(payload?.error || error?.message);
       }
 
-      setBookingId(
-        typeof payload?.experienceBookingId === "string"
-          ? payload.experienceBookingId
-          : newBookingId,
-      );
+      setBookingId(resolveExperienceBookingId(newBookingId, payload?.experienceBookingId));
       setQrUrl(payload.qrImageUrl);
       setSessionId(payload.paymentSessionId);
       setStep("pay");
