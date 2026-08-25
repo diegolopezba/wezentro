@@ -110,6 +110,11 @@ const EventDetailModalInner = () => {
   const { data: commentCount = 0 } = useCommentCount(id);
   const { data: latestComment = null } = useLatestComment(id);
 
+  // Bookable experience linked to this post/event (only when active).
+  const [showExperienceSheet, setShowExperienceSheet] = useState(false);
+  const { data: rawLinkedExperience = null } = useExperience((event as any)?.experience_id ?? null);
+  const linkedExperience = rawLinkedExperience?.is_active ? rawLinkedExperience : null;
+
   const isVideo = isVideoUrl(event?.image_url);
   const isPost = !!(event?.is_post);
 
