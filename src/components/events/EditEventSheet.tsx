@@ -192,10 +192,13 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
 
   const handleSave = async () => {
     try {
+      // Linked experiences are booked and paid through QR: payouts are required.
+      if (experienceId && !hasBeneficiary) { setShowBeneficiaryGate(true); return; }
+
       // Gate paid tickets: require Business + Qhantuy beneficiary
       const priceNum = parseFloat(formData.price) || 0;
-      const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
-      if (!isPost && (priceNum > 0 || hasPaidTier || pricingMode === "tiers")) {
+      const hasPaidTier = !isPost && !experienceId && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
+      if (!isPost && !experienceId && (priceNum > 0 || hasPaidTier || pricingMode === "tiers")) {
         if (!isBusiness) { setShowBusinessGate(true); return; }
         if (!hasBeneficiary) { setShowBeneficiaryGate(true); return; }
       }
@@ -248,6 +251,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           has_guestlist: isPost ? false : true,
           show_menu_button: formData.show_menu_button,
           show_reservation_button: formData.show_reservation_button,
+          experience_id: experienceId,
           is_location_secret: formData.is_location_secret,
           waitlist_enabled: formData.waitlist_enabled,
           sales_open_at: formData.waitlist_enabled && formData.sales_open_at
