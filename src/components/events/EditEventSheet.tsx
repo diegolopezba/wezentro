@@ -102,10 +102,11 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
   });
 
-  const { isDirty, capture } = useDirtyBaseline({ formData, draftTiers, pricingMode, saleMode });
+  const { isDirty, capture } = useDirtyBaseline({ formData, draftTiers, pricingMode, saleMode, experienceId });
 
   useEffect(() => {
     if (open) {
+      setExperienceId(event.experience_id ?? null);
       setFormData({
         title: event.title || "",
         description: event.description || "",
@@ -184,6 +185,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         existingTiers.length > 0 && existingTiers.some((t) => !!t.unlock_after_tier_id)
           ? "sequential"
           : "parallel",
+      experienceId: event.experience_id ?? null,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, event, existingTiers]);
