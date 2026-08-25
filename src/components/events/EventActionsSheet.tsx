@@ -7,6 +7,7 @@ import {
   Flag,
   Link as LinkIcon,
   Loader2,
+  Megaphone,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import { getEventShareUrl } from "@/lib/shareLinks";
 import { useAuth } from "@/contexts/AuthContext";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
+import { EventAnnouncementSheet } from "@/components/events/EventAnnouncementSheet";
 
 type Step = "root" | "edit" | "delete";
 
@@ -45,6 +47,7 @@ export function EventActionsSheet({
   const { user } = useAuth();
   const [step, setStep] = useState<Step>("root");
   const [showReport, setShowReport] = useState(false);
+  const [showAnnounce, setShowAnnounce] = useState(false);
   const deleteEvent = useDeleteEvent();
   const isPost = !!event?.is_post;
 
@@ -117,6 +120,17 @@ export function EventActionsSheet({
                       label={isPost ? "Editar post" : "Editar evento"}
                       onClick={() => setStep("edit")}
                     />
+                    {!isPost && (
+                      <ActionRow
+                        icon={<Megaphone className="w-5 h-5" />}
+                        label="Mensaje a asistentes"
+                        onClick={() => {
+                          close();
+                          // Let this sheet settle before mounting the next portal.
+                          setTimeout(() => setShowAnnounce(true), 150);
+                        }}
+                      />
+                    )}
                     <ActionRow
                       icon={<Trash2 className="w-5 h-5" />}
                       label={isPost ? "Eliminar post" : "Eliminar evento"}
@@ -225,6 +239,14 @@ export function EventActionsSheet({
           )}
         </SheetContent>
       </Sheet>
+
+      {event?.id && isOwner && !isPost && (
+        <EventAnnouncementSheet
+          open={showAnnounce}
+          onOpenChange={setShowAnnounce}
+          eventId={event.id}
+        />
+      )}
 
       {event?.id && (
         <ReportSheet
