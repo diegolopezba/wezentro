@@ -119,7 +119,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
     if (!dateStr || !time || !segmentId) return;
     setStarting(true);
     try {
-      const bookingId = await createBooking.mutateAsync({
+      const newBookingId = await createBooking.mutateAsync({
         experienceId: experience.id,
         segmentId,
         date: dateStr,
@@ -127,6 +127,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
         quantity,
         notes: notes.trim() || undefined,
       });
+      setBookingId(newBookingId);
 
       const { data, error } = await supabase.functions.invoke("generate-experience-qr", {
         body: { bookingId },

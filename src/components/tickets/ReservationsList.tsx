@@ -240,45 +240,79 @@ const ReservationCard = ({
 
 const PAST_PAGE_SIZE = 10;
 
+type FeedItem =
+  | { kind: "table"; when: number; reservation: ReservationWithBusiness }
+  | { kind: "experience"; when: number; booking: MyExperienceBooking };
+
 export const ReservationsList = () => {
+  const { user } = useAuth();
   const { data: reservations, isLoading } = useAllReservations();
+  const { data: experienceBookings, isLoading: expLoading } =
+    useMyExperienceBookingsCombined(user?.id);
   const [editing, setEditing] = useState<ReservationWithBusiness | null>(null);
   const [pastVisible, setPastVisible] = useState(PAST_PAGE_SIZE);
 
   const now = Date.now();
-  const all = reservations || [];
-  const upcoming = all.filter(
-    (r) => new Date(`${r.reservation_date}T${r.reservation_time}`).getTime() >= now
-  );
-  const past = all
-    .filter((r) => new Date(`${r.reservation_date}T${r.reservation_time}`).getTime() < now)
-    .sort((a, b) =>
-      `${b.reservation_date}T${b.reservation_time}`.localeCompare(
-        `${a.reservation_date}T${a.reservation_time}`
-      )
+
+  const items: FeedItem[] = [
+    ...(reservations || []).map((r) => ({
+      kind: "table" as const,
+      when: new Date(`${r.reservation_date}T${r.reservation_time}`).getTime(),
+      reservation: r,
+    })),
+    ...(experienceBookings || []).map((b) => ({
+      kind: "experience" as const,
+      when: new Date(`${b.booking_date}T${b.booking_time}`).getTime(),
+      booking: b,
+    })),
+  ];
+
+  const upcoming = items
+    .filter((i) => i.when >= now)
+    .sort((a, b) => a.when - b.when);
+  const past = items
+    .filter((i) => i.when < now)
+    .sort((a, b) => b.when - a.when);
+
+  const loading = isLoading || expLoading;
+
+  const renderItem = (item: FeedItem, isPast = false) =>
+    item.kind === "table" ? (
+      <ReservationCard
+        key={item.reservation.id}
+        reservation={item.reservation}
+        onModify={setEditing}
+        isPast={isPast}
+      />
+    ) : (
+      <ExperienceBookingCard
+        key={item.booking.id}
+        booking={item.booking}
+        isPast={isPast}
+      />
     );
 
   return (
     <>
       <div className="px-4 pb-6 pt-2 space-y-3">
-        {isLoading ? (
+        {loading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
-        ) : all.length === 0 ? (
+        ) : items.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground text-sm">
             <CalendarDays className="w-10 h-10 mx-auto mb-3 opacity-40" />
             No tienes reservas
           </div>
         ) : (
           <>
-            {upcoming.map((r) => (
+            {upcoming.map((item) => (
               <m.div
-                key={r.id}
+                key={item.kind === "table" ? item.reservation.id : item.booking.id}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <ReservationCard reservation={r} onModify={setEditing} />
+                {renderItem(item)}
               </m.div>
             ))}
 
@@ -291,9 +325,7 @@ export const ReservationsList = () => {
             {past.length > 0 && (
               <div className="pt-4 space-y-3">
                 <h2 className="text-sm font-semibold text-muted-foreground">Pasadas</h2>
-                {past.slice(0, pastVisible).map((r) => (
-                  <ReservationCard key={r.id} reservation={r} onModify={setEditing} isPast />
-                ))}
+                {past.slice(0, pastVisible).map((item) => renderItem(item, true))}
                 {past.length > pastVisible && (
                   <Button
                     variant="outline"
