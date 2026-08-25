@@ -63,19 +63,25 @@ import { CATEGORIES } from "@/lib/categories";
 
 export function EditEventSheet({ event, open, onOpenChange, isPost = false, embedded = false }: EditEventSheetProps) {
   const updateEvent = useUpdateEvent();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const isBusiness = profile?.is_business === true;
   const reservationsEnabled = (profile as any)?.reservations_enabled === true;
+  const experiencesEnabled = (profile as any)?.experiences_enabled === true;
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
   const { data: existingTiers = [] } = useTicketTiers(event.id);
   const replaceTiers = useReplaceTicketTiers();
   const { hasBeneficiary } = useHasBeneficiary();
+  const { data: myExperiences = [] } = useBusinessExperiences(
+    isBusiness && experiencesEnabled ? user?.id : undefined,
+  );
+  const activeExperiences = myExperiences.filter((e) => e.is_active);
   const [pricingMode, setPricingMode] = useState<TicketPricingMode>("single");
   const [saleMode, setSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
+  const [experienceId, setExperienceId] = useState<string | null>(event.experience_id ?? null);
   
   const [formData, setFormData] = useState({
     title: event.title || "",
