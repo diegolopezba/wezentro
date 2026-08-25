@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,6 +49,7 @@ const money = (n: number) => (n > 0 ? `Bs. ${n.toFixed(2)}` : "Gratis");
 export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props) => {
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
+  const navigate = useNavigate();
   const { data: config } = useExperienceConfig(experience.id);
   const createBooking = useCreateExperienceBooking();
 
@@ -365,9 +367,24 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
               {date && format(date, "EEEE d 'de' MMMM", { locale: es })} · {time} · {quantity}{" "}
               {quantity === 1 ? "persona" : "personas"}
             </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Te enviamos la confirmación a tu correo.
+            </p>
+            {bookingId && (
+              <Button
+                variant="sheet-action"
+                className="mt-6 h-12 w-full rounded-full text-base"
+                onClick={() => {
+                  onOpenChange(false);
+                  navigate(`/experience-booking/${bookingId}`);
+                }}
+              >
+                Ver entrada
+              </Button>
+            )}
             <Button
-              variant="sheet-action"
-              className="mt-6 h-12 w-full rounded-full text-base"
+              variant={bookingId ? "outline" : "sheet-action"}
+              className={cn("h-12 w-full rounded-full text-base", bookingId ? "mt-2" : "mt-6")}
               onClick={() => onOpenChange(false)}
             >
               Listo
