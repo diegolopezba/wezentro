@@ -276,7 +276,13 @@ const UserProfile = () => {
           }
               </> :
 
-        <Tooltip>
+        <>
+                {isBusiness && experiencesAvailable &&
+          <Button variant="secondary" className="flex-1 min-w-0" onClick={handleReserve}>
+                    Reservar
+                  </Button>
+          }
+                <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
                     {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Mensaje"}
@@ -286,6 +292,7 @@ const UserProfile = () => {
                     <p>{canMessageData.reason}</p>
                   </TooltipContent>}
               </Tooltip>
+              </>
         }
           </m.div>}
       </div>
