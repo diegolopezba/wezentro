@@ -142,6 +142,16 @@ export const OneSignalProvider = ({ children }: Props) => {
         setIsSubscribed(event.current.optedIn);
         setPlayerId(event.current.id || null);
       });
+
+      // Tapping a notification must route into the app. This can fire before
+      // the router mounts (cold start), so the path is queued.
+      nativeOneSignal.Notifications.addEventListener('click', (event: any) => {
+        const data = event?.notification?.additionalData || {};
+        const target = data.route || data.url || event?.notification?.launchURL;
+        logger.log("[OneSignal] Notification clicked, target:", target);
+        queuePushNavigation(target);
+      });
+
       
     } catch (error) {
       logger.error("[OneSignal] Native init error:", error);
