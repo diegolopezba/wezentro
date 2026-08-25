@@ -28,6 +28,8 @@ import { MentionText } from "@/components/ui/MentionText";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
+import { ExperienceBookingSheet } from "@/components/experiences/ExperienceBookingSheet";
+import { useExperience } from "@/hooks/useExperiences";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEventDetailState } from "@/hooks/useEventDetailState";
 import { toast } from "sonner";
