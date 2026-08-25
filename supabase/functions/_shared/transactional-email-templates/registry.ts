@@ -24,4 +24,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'reservation-confirmed': reservationConfirmed,
   'reservation-received': reservationReceived,
   'waitlist-released': waitlistReleased,
+  'experience-confirmed': experienceConfirmed,
+  'experience-received': experienceReceived,
 }
