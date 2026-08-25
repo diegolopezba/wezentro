@@ -12,6 +12,11 @@ import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
+import { ExperienceBookingCard } from "@/components/tickets/ExperienceBookingCard";
+import {
+  useMyExperienceBookingsCombined,
+  type MyExperienceBooking,
+} from "@/hooks/useExperiences";
 import {
   AlertDialog,
   AlertDialogAction,

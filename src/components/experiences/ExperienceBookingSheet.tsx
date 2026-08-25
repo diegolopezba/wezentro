@@ -59,6 +59,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
   const [notes, setNotes] = useState("");
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [bookingId, setBookingId] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
 
   useEffect(() => {
@@ -71,6 +72,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
     setNotes("");
     setQrUrl(null);
     setSessionId(null);
+    setBookingId(null);
   }, [open]);
 
   const dateStr = date ? format(date, "yyyy-MM-dd") : undefined;
