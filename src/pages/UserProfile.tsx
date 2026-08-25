@@ -21,6 +21,9 @@ import { TimelineCard } from "@/components/events/TimelineCard";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
+import { ExperienceBookingSheet } from "@/components/experiences/ExperienceBookingSheet";
+import { BookingChooserSheet } from "@/components/experiences/BookingChooserSheet";
+import { usePublicExperiences, type Experience } from "@/hooks/useExperiences";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
@@ -40,6 +43,8 @@ const UserProfile = () => {
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [reservationSheetOpen, setReservationSheetOpen] = useState(false);
+  const [bookingChooserOpen, setBookingChooserOpen] = useState(false);
+  const [activeExperience, setActiveExperience] = useState<Experience | null>(null);
 
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === id;
