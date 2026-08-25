@@ -428,14 +428,16 @@ export const useExperienceBookingDetail = (bookingId: string | undefined) =>
     queryKey: ["experience-booking-detail", bookingId],
     enabled: !!bookingId,
     queryFn: async () => {
+      if (!bookingId) return { booking: null, guests: [] };
       const { data: booking, error } = await db
         .from("experience_bookings")
         .select(
           "*, experience:experiences(id, title, image_url, location_note, duration_minutes, business_id), segment:experience_segments(name, price)",
         )
-        .eq("id", bookingId!)
-        .single();
+        .eq("id", bookingId)
+        .maybeSingle();
       if (error) throw error;
+      if (!booking) return { booking: null, guests: [] };
 
       const [businessRes, guestsRes] = await Promise.all([
         booking.experience?.business_id
@@ -448,7 +450,7 @@ export const useExperienceBookingDetail = (bookingId: string | undefined) =>
         db
           .from("experience_booking_guests")
           .select("user_id, user:profiles!experience_booking_guests_user_id_fkey(id, username, full_name, avatar_url)")
-          .eq("booking_id", bookingId!),
+          .eq("booking_id", bookingId),
       ]);
 
       return {

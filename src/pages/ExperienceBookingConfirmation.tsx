@@ -47,7 +47,7 @@ const ExperienceBookingConfirmation = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { profile } = useAuth();
-  const { data, isLoading, isError } = useExperienceBookingDetail(id);
+  const { data, isLoading, isError, refetch, isFetching } = useExperienceBookingDetail(id);
   const [cancelOpen, setCancelOpen] = useState(false);
   const cancelMutation = useCancelExperienceBooking();
   const createChat = useCreatePrivateChat();
@@ -73,7 +73,29 @@ const ExperienceBookingConfirmation = () => {
     );
   }
 
-  if (isError || !booking) {
+  if (isError) {
+    return (
+      <div className="fixed inset-0 bg-background flex flex-col items-center justify-center z-50 gap-4 px-6 text-center">
+        <p className="text-sm text-muted-foreground">No pudimos cargar tu reserva.</p>
+        <div className="flex gap-2">
+          <Button
+            variant="default"
+            className="rounded-full"
+            disabled={isFetching}
+            onClick={() => refetch()}
+          >
+            {isFetching && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Intentar de nuevo
+          </Button>
+          <Button variant="outline" className="rounded-full" onClick={() => navigate("/tickets")}>
+            Mis entradas
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!booking) {
     return (
       <div className="fixed inset-0 bg-background flex flex-col items-center justify-center z-50 gap-4 px-6 text-center">
         <p className="text-sm text-muted-foreground">No se encontró esta reserva.</p>
