@@ -260,6 +260,7 @@ const AppRoutes = () => {
         <Route path="/settings/referrals" element={<ProtectedRoute requireProfile><LazyRoute><Referrals /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings/reservations" element={<Navigate to="/tickets" replace />} />
         <Route path="/reservation/:id" element={<ProtectedRoute><LazyRoute><ReservationConfirmation /></LazyRoute></ProtectedRoute>} />
+        <Route path="/experience-booking/:id" element={<ProtectedRoute><LazyRoute><ExperienceBookingConfirmation /></LazyRoute></ProtectedRoute>} />
         <Route path="/privacy-policy" element={<LazyRoute><PrivacyPolicy /></LazyRoute>} />
         <Route path="/terms" element={<LazyRoute><TermsOfUse /></LazyRoute>} />
         {/* Public QR scanner route — no auth required, validated by ?key= param */}
