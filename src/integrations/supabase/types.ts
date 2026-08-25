@@ -401,6 +401,59 @@ export type Database = {
           },
         ]
       }
+      event_announcements: {
+        Row: {
+          body: string
+          created_at: string
+          error: string | null
+          event_id: string
+          id: string
+          recipient_count: number
+          scheduled_for: string | null
+          sender_id: string
+          sent_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          error?: string | null
+          event_id: string
+          id?: string
+          recipient_count?: number
+          scheduled_for?: string | null
+          sender_id: string
+          sent_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          error?: string | null
+          event_id?: string
+          id?: string
+          recipient_count?: number
+          scheduled_for?: string | null
+          sender_id?: string
+          sent_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_announcements_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_areas: {
         Row: {
           area_type: Database["public"]["Enums"]["venue_area_type"]
@@ -4609,6 +4662,10 @@ export type Database = {
         Args: { _email: string; _name: string; _token: string }
         Returns: Json
       }
+      count_event_announcements_24h: {
+        Args: { _event_id: string }
+        Returns: number
+      }
       create_experience_booking: {
         Args: {
           _date: string
@@ -4724,6 +4781,12 @@ export type Database = {
           target_categories: string[]
           target_gender: string
           target_radius_km: number
+        }[]
+      }
+      get_event_announcement_recipients: {
+        Args: { _event_id: string }
+        Returns: {
+          user_id: string
         }[]
       }
       get_event_area_availability: {
