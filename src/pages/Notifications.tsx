@@ -5,7 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, AtSign, Heart, Repeat2, MessageCircle, Sparkles, MapPin } from "lucide-react";
+import { ChevronLeft, Bell, Calendar, Check, Loader2, Users, CheckCircle, XCircle, AtSign, Heart, Repeat2, MessageCircle, Sparkles, MapPin, Megaphone } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
