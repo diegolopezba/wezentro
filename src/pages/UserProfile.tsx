@@ -263,16 +263,8 @@ const UserProfile = () => {
                   {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent><p>{canMessageData.reason}</p></TooltipContent>}
                 </Tooltip>
 
-                {reservationsEnabled &&
-          <Button
-            variant="secondary" className="flex-1 min-w-0" onClick={() => {
-              if (isGuest) {
-                promptAuth({ action: "hacer una reserva" });
-                return;
-              }
-              setReservationSheetOpen(true);
-            }}>
-            
+                {(tableReservationAvailable || experiencesAvailable) &&
+          <Button variant="secondary" className="flex-1 min-w-0" onClick={handleReserve}>
                     Reservar
                   </Button>
           }
