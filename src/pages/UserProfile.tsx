@@ -336,6 +336,31 @@ const UserProfile = () => {
       reservationEndTime={(userProfile as any)?.reservation_end_time} />
 
     }
+      {/* Mesa vs Experiencia chooser (shown when the business offers more than one) */}
+      {id && isBusiness &&
+    <BookingChooserSheet
+      open={bookingChooserOpen}
+      onOpenChange={setBookingChooserOpen}
+      showTableReservation={tableReservationAvailable}
+      experiences={publicExperiences}
+      onSelectTable={() => {
+        setBookingChooserOpen(false);
+        setReservationSheetOpen(true);
+      }}
+      onSelectExperience={(exp) => {
+        setBookingChooserOpen(false);
+        setActiveExperience(exp);
+      }} />
+
+    }
+      {/* Experience booking flow */}
+      {activeExperience &&
+    <ExperienceBookingSheet
+      open={!!activeExperience}
+      onOpenChange={(open) => !open && setActiveExperience(null)}
+      experience={activeExperience} />
+
+    }
     </AppLayout>;
 };
 export default UserProfile;
