@@ -81,6 +81,10 @@ const UserProfile = () => {
   const isBusiness = userProfile?.is_business === true;
   const menuEnabled = (userProfile as any)?.menu_enabled !== false;
   const reservationsEnabled = (userProfile as any)?.reservations_enabled !== false;
+  const { data: publicExperiences = [] } = usePublicExperiences(isBusiness ? id : undefined);
+  const experiencesAvailable =
+    (userProfile as any)?.experiences_enabled === true && publicExperiences.length > 0;
+  const tableReservationAvailable = isFoodBusiness && reservationsEnabled;
   const businessType = (userProfile as any)?.business_type as string | null | undefined;
   const hasBusinessInfo = userProfile?.business_address || userProfile?.business_hours || userProfile?.business_phone;
   const followMutation = useFollowUser();
