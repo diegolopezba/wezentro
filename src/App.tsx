@@ -95,6 +95,7 @@ const TermsOfUse = lazyWithRetry(() => import("./pages/TermsOfUse"));
 const Referrals = lazyWithRetry(() => import("./pages/Referrals"));
 
 const ReservationConfirmation = lazyWithRetry(() => import("./pages/ReservationConfirmation"));
+const ExperienceBookingConfirmation = lazyWithRetry(() => import("./pages/ExperienceBookingConfirmation"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const SpecialInvite = lazyWithRetry(() => import("./pages/SpecialInvite"));
 const Unsubscribe = lazyWithRetry(() => import("./pages/Unsubscribe"));
