@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOneSignal } from "@/contexts/OneSignalContext";
 import { logger } from "@/lib/logger";
 
 const PROMPT_DELAY_MS = 4000; // Show explainer ~4s after ready
 const PROMPTED_KEY = "push_notification_prompted_v3"; // Bumped: now uses pre-prompt explainer
+
+const isNative = () => Capacitor.isNativePlatform();
 
 const isPWA = () =>
   window.matchMedia("(display-mode: standalone)").matches ||
@@ -19,6 +22,14 @@ const getIOSVersion = (): number => {
 
 const checkPlatformSupport = (): Promise<boolean> =>
   new Promise((resolve) => {
+    // Native builds: the OneSignal native SDK owns permission state, the
+    // web-only checks below (window.Notification, installed-PWA) never hold
+    // inside a Capacitor WebView and would silently suppress the prompt.
+    if (isNative()) {
+      resolve(true);
+      return;
+    }
+
     const check = () => {
       if (!("Notification" in window)) return false;
       if (Notification.permission === "denied") return false;
@@ -34,6 +45,7 @@ const checkPlatformSupport = (): Promise<boolean> =>
     else if (isIOS()) setTimeout(() => resolve(check()), 1500);
     else resolve(false);
   });
+
 
 /**
  * Apple App Store Guideline 5.1.1(ii) compliance:
