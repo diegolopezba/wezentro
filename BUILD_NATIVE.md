@@ -24,7 +24,9 @@ This guide covers everything you need to do **outside the Lovable codebase** to 
 cd zentro
 npm install
 npx cap add ios
+npx cap sync ios   # registers onesignal-cordova-plugin in the native project
 ```
+
 
 ### 1.3 Copy the privacy manifest
 Apple requires `PrivacyInfo.xcprivacy` for App Store submission.
