@@ -168,6 +168,7 @@ Deno.serve(async (req) => {
 
     return json({
       paymentSessionId: session.id,
+      experienceBookingId: booking.id,
       qrImageUrl: String(imageData),
       amount: totalAmount,
       unitPrice,

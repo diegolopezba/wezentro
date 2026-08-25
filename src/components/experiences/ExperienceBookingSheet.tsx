@@ -101,6 +101,9 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
       });
       if (data?.status === "confirmed") {
         window.clearInterval(id);
+        if (typeof data.experienceBookingId === "string") {
+          setBookingId(data.experienceBookingId);
+        }
         setStep("done");
       } else if (data?.status === "failed" || data?.status === "expired") {
         window.clearInterval(id);
@@ -132,7 +135,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
       setBookingId(newBookingId);
 
       const { data, error } = await supabase.functions.invoke("generate-experience-qr", {
-        body: { bookingId },
+        body: { bookingId: newBookingId },
       });
 
       let payload: any = data;
@@ -148,8 +151,13 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
         throw new Error(payload?.error || error?.message);
       }
 
-      setQrUrl(data.qrImageUrl);
-      setSessionId(data.paymentSessionId);
+      setBookingId(
+        typeof payload?.experienceBookingId === "string"
+          ? payload.experienceBookingId
+          : newBookingId,
+      );
+      setQrUrl(payload.qrImageUrl);
+      setSessionId(payload.paymentSessionId);
       setStep("pay");
     } catch (e: any) {
       toast.error(e?.message || "No se pudo iniciar el pago");
