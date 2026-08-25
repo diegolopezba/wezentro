@@ -110,7 +110,8 @@ const EventDetail = () => {
   } = useEventDetailState(id, () => (window.history.length > 1 ? navigate(-1) : navigate("/")));
 
   const [showExperienceSheet, setShowExperienceSheet] = useState(false);
-  const { data: linkedExperience = null } = useExperience((event as any)?.experience_id ?? null);
+  const { data: rawLinkedExperience = null } = useExperience((event as any)?.experience_id ?? null);
+  const linkedExperience = rawLinkedExperience?.is_active ? rawLinkedExperience : null;
 
   const { data: commentCount = 0 } = useCommentCount(id);
   const { data: latestComment = null } = useLatestComment(id);

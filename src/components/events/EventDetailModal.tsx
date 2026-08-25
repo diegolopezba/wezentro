@@ -527,7 +527,33 @@ const EventDetailModalInner = () => {
             </div>
           )}
 
-          {isPost && event.show_reservation_button && event.creator_id && (
+          {/* Floating experience booking CTA — post/event linked to a bookable experience */}
+          {linkedExperience && (
+            <>
+              <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-brand text-base font-medium text-foreground truncate">
+                      {linkedExperience.title}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {linkedExperience.duration_minutes} min
+                    </span>
+                  </div>
+                  <Button variant="sheet-action" size="default" onClick={() => setShowExperienceSheet(true)}>
+                    <CalendarCheck className="w-4 h-4 mr-1" /> Reservar
+                  </Button>
+                </div>
+              </div>
+              <ExperienceBookingSheet
+                open={showExperienceSheet}
+                onOpenChange={setShowExperienceSheet}
+                experience={linkedExperience}
+              />
+            </>
+          )}
+
+          {isPost && !linkedExperience && event.show_reservation_button && event.creator_id && (
             <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
               <div className="flex items-center justify-between px-4 py-3">
                 <span className="font-brand text-base font-semibold text-foreground">
