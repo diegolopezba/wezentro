@@ -129,6 +129,25 @@ const UserProfile = () => {
       }
     });
   };
+
+  /** Reservar: mesa and/or experiencia, with a chooser when both exist. */
+  const handleReserve = () => {
+    if (isGuest) {
+      promptAuth({ action: "hacer una reserva" });
+      return;
+    }
+    const multipleOptions =
+      (tableReservationAvailable ? 1 : 0) + (experiencesAvailable ? publicExperiences.length : 0) > 1;
+    if (multipleOptions) {
+      setBookingChooserOpen(true);
+      return;
+    }
+    if (experiencesAvailable) {
+      setActiveExperience(publicExperiences[0]);
+      return;
+    }
+    setReservationSheetOpen(true);
+  };
   if (profileLoading) {
     return <div className="min-h-[100dvh] bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
