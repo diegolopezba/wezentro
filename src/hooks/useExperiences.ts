@@ -329,3 +329,163 @@ export const useExperienceBookingsForBusiness = (businessId: string | undefined)
       return data ?? [];
     },
   });
+
+/* ------------------- guest-facing bookings (tickets tab) ------------------- */
+
+export interface MyExperienceBooking {
+  id: string;
+  experience_id: string;
+  segment_id: string | null;
+  user_id: string;
+  booking_date: string;
+  booking_time: string;
+  quantity: number;
+  amount: number;
+  status: string;
+  notes: string | null;
+  check_in_token: string;
+  created_at: string;
+  isTagged?: boolean;
+  experience: {
+    id: string;
+    title: string;
+    image_url: string | null;
+    location_note: string | null;
+    duration_minutes: number;
+    business_id: string;
+  } | null;
+  segment: { name: string; price: number } | null;
+  business: {
+    id: string;
+    username: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
+const BOOKING_SELECT =
+  "*, experience:experiences(id, title, image_url, location_note, duration_minutes, business_id), segment:experience_segments(name, price)";
+
+const attachBusiness = async (rows: any[]): Promise<MyExperienceBooking[]> => {
+  const businessIds = [...new Set(rows.map((r) => r.experience?.business_id).filter(Boolean))];
+  let businessById = new Map<string, any>();
+  if (businessIds.length) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, username, full_name, avatar_url")
+      .in("id", businessIds as string[]);
+    businessById = new Map((data ?? []).map((p: any) => [p.id, p]));
+  }
+  return rows.map((r) => ({
+    ...r,
+    business: r.experience?.business_id ? businessById.get(r.experience.business_id) ?? null : null,
+  }));
+};
+
+/** Own bookings + bookings where the user was tagged as a guest. */
+export const useMyExperienceBookingsCombined = (userId: string | undefined) =>
+  useQuery({
+    queryKey: ["experience-bookings", "combined", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<MyExperienceBooking[]> => {
+      const [mine, taggedRows] = await Promise.all([
+        db
+          .from("experience_bookings")
+          .select(BOOKING_SELECT)
+          .eq("user_id", userId!)
+          .neq("status", "pending_payment"),
+        db.from("experience_booking_guests").select("booking_id").eq("user_id", userId!),
+      ]);
+      if (mine.error) throw mine.error;
+
+      let tagged: any[] = [];
+      const taggedIds = (taggedRows.data ?? [])
+        .map((g: any) => g.booking_id)
+        .filter((id: string) => !(mine.data ?? []).find((m: any) => m.id === id));
+      if (taggedIds.length) {
+        const { data, error } = await db
+          .from("experience_bookings")
+          .select(BOOKING_SELECT)
+          .in("id", taggedIds)
+          .neq("status", "pending_payment")
+          .neq("status", "cancelled");
+        if (error) throw error;
+        tagged = (data ?? []).map((b: any) => ({ ...b, isTagged: true }));
+      }
+
+      const combined = [...(mine.data ?? []), ...tagged];
+      combined.sort((a: any, b: any) => {
+        const d = a.booking_date.localeCompare(b.booking_date);
+        return d !== 0 ? d : a.booking_time.localeCompare(b.booking_time);
+      });
+      return attachBusiness(combined);
+    },
+  });
+
+/** Single booking with experience, segment, business and tagged guests. */
+export const useExperienceBookingDetail = (bookingId: string | undefined) =>
+  useQuery({
+    queryKey: ["experience-booking-detail", bookingId],
+    enabled: !!bookingId,
+    queryFn: async () => {
+      const { data: booking, error } = await db
+        .from("experience_bookings")
+        .select(
+          "*, experience:experiences(id, title, image_url, location_note, duration_minutes, business_id), segment:experience_segments(name, price)",
+        )
+        .eq("id", bookingId!)
+        .single();
+      if (error) throw error;
+
+      const [businessRes, guestsRes] = await Promise.all([
+        booking.experience?.business_id
+          ? supabase
+              .from("profiles")
+              .select("id, username, full_name, avatar_url, business_address")
+              .eq("id", booking.experience.business_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        db
+          .from("experience_booking_guests")
+          .select("user_id, user:profiles!experience_booking_guests_user_id_fkey(id, username, full_name, avatar_url)")
+          .eq("booking_id", bookingId!),
+      ]);
+
+      return {
+        booking: { ...booking, business: businessRes.data } as MyExperienceBooking & {
+          business: any;
+        },
+        guests: (guestsRes.data ?? []) as any[],
+      };
+    },
+  });
+
+/** Fire-and-forget confirmation/cancellation emails; never blocks the flow. */
+const sendExperienceEmails = (bookingId: string, kind: "created" | "cancelled") => {
+  supabase.functions
+    .invoke("send-experience-emails", { body: { experienceBookingId: bookingId, kind } })
+    .catch((e) => console.error("send-experience-emails failed", e));
+};
+
+export const useCancelExperienceBooking = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (bookingId: string) => {
+      const { error } = await db.rpc("set_experience_booking_status", {
+        _booking_id: bookingId,
+        _status: "cancelled",
+      });
+      if (error) throw error;
+      return bookingId;
+    },
+    onSuccess: (bookingId) => {
+      haptic("success");
+      qc.invalidateQueries({ queryKey: ["experience-bookings"] });
+      qc.invalidateQueries({ queryKey: ["experience-booking-detail", bookingId] });
+      qc.invalidateQueries({ queryKey: ["experience-availability"] });
+      toast.success("Reserva cancelada");
+      sendExperienceEmails(bookingId, "cancelled");
+    },
+    onError: (e: any) => toast.error(e?.message || "No se pudo cancelar la reserva"),
+  });
+};

@@ -130,6 +130,17 @@ Deno.serve(async (req) => {
       }
       await supabase.from("notifications").insert(notes);
 
+      // Email buyer, tagged guests and the business now that the booking is confirmed.
+      try {
+        await fetch(`${SUPABASE_URL}/functions/v1/send-experience-emails`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+          body: JSON.stringify({ experienceBookingId: bookingId, kind: "created" }),
+        });
+      } catch (e) {
+        console.error("send-experience-emails dispatch failed", e);
+      }
+
       return new Response("ok", { status: 200, headers: corsHeaders });
     }
 
