@@ -63,7 +63,8 @@ Deno.serve(async (req) => {
 
     console.log(`Sending push notification to ${targetPlayerIds.length} devices`);
 
-    // Send notification via OneSignal API
+    // Send notification via OneSignal API.
+    // v16 / v5 SDKs return *subscription* IDs, so target them explicitly.
     const oneSignalResponse = await fetch("https://onesignal.com/api/v1/notifications", {
       method: "POST",
       headers: {
@@ -72,13 +73,20 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         app_id: ONESIGNAL_APP_ID,
-        include_player_ids: targetPlayerIds,
+        include_subscription_ids: targetPlayerIds,
         headings: { en: title },
         contents: { en: body },
-        data: data || {},
+        data: { ...(data || {}), ...(url ? { url } : {}) },
         url: url,
+        // iOS: increment the app badge so the icon reflects unread items.
+        ios_badgeType: "Increase",
+        ios_badgeCount: 1,
+        // Android: monochrome small icon + default channel behaviour.
+        small_icon: "ic_stat_onesignal_default",
+        android_accent_color: "FFE60023",
       }),
     });
+
 
     const oneSignalResult = await oneSignalResponse.json();
     
