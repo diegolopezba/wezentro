@@ -407,7 +407,13 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
               </div>
 
 
-              {isBusiness ? (
+              {experienceId ? (
+                <div className="rounded-xl bg-secondary/50 border border-border px-4 py-3">
+                  <p className="text-xs text-muted-foreground">
+                    Las entradas están deshabilitadas porque este post vende una experiencia vinculada.
+                  </p>
+                </div>
+              ) : isBusiness ? (
                 <div className="space-y-2">
                   <Label>Entradas</Label>
                   <TicketTiersEditor
