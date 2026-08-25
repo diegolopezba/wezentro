@@ -476,6 +476,61 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             </div>
           )}
 
+          {/* Experience picker — business accounts with active experiences */}
+          {isBusiness && experiencesEnabled && activeExperiences.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <div className="flex flex-col">
+                  <Label>Vincular una experiencia</Label>
+                  <span className="text-xs text-muted-foreground">
+                    Los visitantes la reservan y pagan desde este post
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setExperienceId(null)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-xs border transition-colors active:scale-[0.97]",
+                    !experienceId
+                      ? "bg-foreground text-background border-foreground"
+                      : "bg-secondary/50 border-border text-muted-foreground",
+                  )}
+                >
+                  Ninguna
+                </button>
+                {activeExperiences.map((exp) => (
+                  <button
+                    key={exp.id}
+                    type="button"
+                    onClick={() => {
+                      if (!hasBeneficiary) {
+                        setShowBeneficiaryGate(true);
+                        return;
+                      }
+                      setExperienceId(experienceId === exp.id ? null : exp.id);
+                    }}
+                    className={cn(
+                      "px-3 py-1.5 rounded-full text-xs border transition-colors active:scale-[0.97]",
+                      experienceId === exp.id
+                        ? "bg-foreground text-background border-foreground"
+                        : "bg-secondary/50 border-border text-muted-foreground",
+                    )}
+                  >
+                    {exp.title}
+                  </button>
+                ))}
+              </div>
+              {!hasBeneficiary && (
+                <p className="text-xs text-muted-foreground">
+                  Configurá tus datos de cobro para vincular una experiencia
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Reservation Button Toggle - Only for Business users with reservations enabled */}
           {isBusiness && reservationsEnabled && (
             <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-secondary/50 border border-border">
