@@ -30,7 +30,7 @@ export const usePushNotifications = () => {
     const success = await contextSubscribe();
     if (success) {
       toast.success("Push notifications enabled!");
-    } else if (Notification.permission !== 'denied') {
+    } else if (typeof Notification === "undefined" || Notification.permission !== 'denied') {
       toast.error("Setup timed out. Please try again.");
     }
     return success;

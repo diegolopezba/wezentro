@@ -24,7 +24,9 @@ This guide covers everything you need to do **outside the Lovable codebase** to 
 cd zentro
 npm install
 npx cap add ios
+npx cap sync ios   # registers onesignal-cordova-plugin in the native project
 ```
+
 
 ### 1.3 Copy the privacy manifest
 Apple requires `PrivacyInfo.xcprivacy` for App Store submission.
@@ -37,11 +39,26 @@ Then in Xcode: drag the file into the `App` group in the project navigator and c
 - Apple Developer Portal → **Identifiers → +** → App IDs → App
 - Bundle ID: `app.lovable.a812f800384e4a80818ea38ac62424d4`
 - Capabilities: **Push Notifications**, **Sign in with Apple** *(skip — we don't use it)*, **Associated Domains** *(only if you ship deep links)*
-- In Xcode → **Signing & Capabilities**: select your team. Enable **Push Notifications**.
+- In Xcode → **Signing & Capabilities**: select your team. Enable **Push Notifications** and **Background Modes → Remote notifications**.
 
-### 1.5 OneSignal APNs key
+### 1.5 OneSignal APNs key (iOS)
 - Apple Developer → **Keys → + → APNs**. Download the `.p8`.
 - OneSignal dashboard → app `5b6aae46-50f4-4a83-b3cf-bf62ec1138f1` → Settings → Apple iOS (APNs) → upload the key, Team ID, Key ID, Bundle ID.
+
+### 1.5b iOS Notification Service Extension (required for images + badges)
+- Xcode → **File → New → Target → Notification Service Extension**, name it `OneSignalNotificationServiceExtension`, deployment target = same as the App target. Do **not** activate the scheme when prompted.
+- Signing & Capabilities on **both** the App target and the extension: add **App Groups** with the identical group `group.app.lovable.a812f800384e4a80818ea38ac62424d4.onesignal`.
+- Replace the extension's `NotificationService.swift` with the OneSignal template (see https://documentation.onesignal.com/docs/ios-service-extension).
+- Without this target: no rich media, no confirmed delivery, and badge counts won't update.
+
+### 1.5c OneSignal FCM key (Android — currently missing)
+- Firebase console → create/open a project → add an Android app with package `app.lovable.a812f800384e4a80818ea38ac62424d4`.
+- Download `google-services.json` → place it in `android/app/google-services.json`.
+- Firebase → Project settings → **Service accounts → Generate new private key** (JSON).
+- OneSignal dashboard → Settings → **Google Android (FCM)** → upload that service-account JSON.
+- Android 13+ asks for `POST_NOTIFICATIONS` at runtime; the OneSignal plugin requests it from our in-app explainer, no manifest edit needed.
+
+
 
 ### 1.6 Mapbox token restriction
 - Mapbox dashboard → tokens → restrict your public token to:
@@ -128,7 +145,12 @@ Minimum age: 18 (enforced at onboarding).
 
 - [ ] `NODE_ENV=production` build was used (no `server.url` in `capacitor.config.ts`)
 - [ ] Tested on a real iPhone via TestFlight
-- [ ] Push notifications work on device (not just simulator)
+- [ ] Push notifications on a real device: explainer sheet appears → iOS/Android system prompt → row created in `push_subscriptions`
+- [ ] Test push received in foreground, background, and app-killed states
+- [ ] Tapping a push opens the correct screen (payload `data.url`), including from a cold start
+- [ ] Signing out stops delivery to that device
+- [ ] `google-services.json` present and FCM service account uploaded to OneSignal (Android)
+- [ ] Notification Service Extension target added with the shared App Group (iOS)
 - [ ] Account deletion works end-to-end
 - [ ] Sign-up blocks anyone under 18
 - [ ] Privacy manifest copied into Xcode project

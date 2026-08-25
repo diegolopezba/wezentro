@@ -113,13 +113,17 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               app_id: ONESIGNAL_APP_ID,
-              include_player_ids: playerIds,
+              include_subscription_ids: playerIds,
               headings: { en: title, es: title },
               contents: { en: body, es: body },
               data: {
                 type: "reservation_reminder",
                 reservation_id: r.reservation_id,
+                url: `/reservation/${r.reservation_id}`,
               },
+              ios_badgeType: "Increase",
+              ios_badgeCount: 1,
+              small_icon: "ic_stat_onesignal_default",
               url: `/reservation/${r.reservation_id}`,
             }),
           }
