@@ -17,7 +17,107 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { qr_code_token, event_id } = await req.json();
+    const { qr_code_token, event_id, experience_id } = await req.json();
+
+    // Experience booking check-in: only the owning business (JWT) can check guests in.
+    if (experience_id && qr_code_token) {
+      const authHeaderExp = req.headers.get("Authorization");
+      if (!authHeaderExp?.startsWith("Bearer ")) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const supabaseClientExp = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeaderExp } } }
+      );
+      const { data: claimsExp, error: claimsExpErr } = await supabaseClientExp.auth.getClaims(
+        authHeaderExp.replace("Bearer ", "")
+      );
+      const callerId = claimsExpErr ? null : claimsExp?.claims?.sub;
+      if (!callerId) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: experience } = await supabaseAdmin
+        .from("experiences")
+        .select("id, title, business_id")
+        .eq("id", experience_id)
+        .maybeSingle();
+      if (!experience || experience.business_id !== callerId) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: booking } = await supabaseAdmin
+        .from("experience_bookings")
+        .select("id, status, quantity, user_id")
+        .eq("check_in_token", qr_code_token)
+        .eq("experience_id", experience_id)
+        .maybeSingle();
+
+      if (!booking) {
+        return new Response(
+          JSON.stringify({ success: false, error: "QR inválido o no pertenece a esta experiencia" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: guestProfile } = await supabaseAdmin
+        .from("profiles")
+        .select("username, full_name, avatar_url")
+        .eq("id", booking.user_id)
+        .maybeSingle();
+
+      const guest = { ...(guestProfile ?? {}), quantity: booking.quantity };
+
+      if (booking.status === "cancelled") {
+        return new Response(
+          JSON.stringify({ success: false, error: "Esta reserva fue cancelada", guest }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (booking.status === "completed") {
+        return new Response(
+          JSON.stringify({ success: false, alreadyUsed: true, guest }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (booking.status !== "confirmed") {
+        return new Response(
+          JSON.stringify({ success: false, error: "La reserva no está confirmada", guest }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: updated } = await supabaseAdmin
+        .from("experience_bookings")
+        .update({ status: "completed" })
+        .eq("id", booking.id)
+        .eq("status", "confirmed")
+        .select("id")
+        .maybeSingle();
+
+      if (!updated) {
+        return new Response(
+          JSON.stringify({ success: false, alreadyUsed: true, guest }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, alreadyUsed: false, guest, experienceTitle: experience.title }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!qr_code_token || !event_id) {
       return new Response(
