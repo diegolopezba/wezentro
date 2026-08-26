@@ -19,6 +19,7 @@ import { EventActionsSheet } from "@/components/events/EventActionsSheet";
 import { InvitationsSentSection } from "@/components/events/InvitationsSentSection";
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
+import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
 import { AreaPickerSheet } from "@/components/venue/AreaPickerSheet";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { isVideoUrl } from "@/lib/mediaUtils";
@@ -84,7 +85,7 @@ const EventDetailModalInner = () => {
     isLocationSecret, canSeeLocation,
     formattedDate, formattedPrice, hasEnded,
     isWaitlistPhase, isOnWaitlist, waitlistPosition, waitlistTotal,
-    canPurchaseNow, handleToggleWaitlist, waitlistPending,
+    canPurchaseNow, waitlistTierId, handleToggleWaitlist, waitlistPending,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
     buyTicketPending, leaveGuestlistPending,
@@ -322,7 +323,12 @@ const EventDetailModalInner = () => {
                 </div>
               )}
 
+              {isWaitlistPhase && hasTiers && (
+                <WaitlistTiersPreview tiers={ticketTiers} waitlistTierId={waitlistTierId} />
+              )}
+
               {event.description && (
+
                 <div className="space-y-2">
                   <h2 className="font-brand text-lg font-semibold text-foreground">Acerca de</h2>
                   <MentionText

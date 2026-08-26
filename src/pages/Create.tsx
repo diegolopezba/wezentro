@@ -128,7 +128,8 @@ const Create = () => {
     isLocationSecret: false,
     waitlistEnabled: false,
     salesOpenAt: "",
-    waitlistEarlyAccessHours: "0"
+    waitlistEarlyAccessHours: "0",
+    waitlistTierKey: ""
   });
 
   // Ticket tier state (events only, business accounts)
@@ -489,11 +490,22 @@ const Create = () => {
       // Persist ticket tiers
       if (useTiers && data?.id && cleanTiers.length > 0) {
         try {
-          await replaceTiers.mutateAsync({
+          const createdTiers = await replaceTiers.mutateAsync({
             eventId: data.id,
             tiers: cleanTiers,
             sequential: tierSaleMode === "sequential",
           });
+          // Link the waiting list to the chosen ticket type (Dice-style pre-sale)
+          if (formData.waitlistEnabled && formData.waitlistTierKey) {
+            const idx = draftTiers.findIndex((t) => t.key === formData.waitlistTierKey);
+            const linked = idx >= 0 ? createdTiers[idx] : null;
+            if (linked?.id) {
+              await supabase
+                .from("events")
+                .update({ waitlist_tier_id: linked.id } as any)
+                .eq("id", data.id);
+            }
+          }
         } catch (tierErr: any) {
           console.error("Error saving tiers:", tierErr);
           toast.error("Evento creado, pero falló al guardar las entradas. Edítalas desde el evento.");
@@ -1139,6 +1151,49 @@ const Create = () => {
                           <p className="text-[11px] text-muted-foreground">
                             0 = solo notificación. Más de 0 = solo la lista puede comprar durante ese tiempo.
                           </p>
+                        </div>
+
+                        {/* Entrada asociada a la lista */}
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">
+                            Entrada de la lista de espera
+                          </Label>
+                          {pricingMode === "tiers" && draftTiers.length > 0 ? (
+                            <>
+                              <div className="flex flex-wrap gap-2">
+                                {draftTiers.map((t, i) => {
+                                  const active = formData.waitlistTierKey === t.key;
+                                  return (
+                                    <button
+                                      key={t.key}
+                                      type="button"
+                                      onClick={() =>
+                                        setFormData({
+                                          ...formData,
+                                          waitlistTierKey: active ? "" : t.key,
+                                        })
+                                      }
+                                      className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
+                                        active
+                                          ? "bg-foreground text-background border-transparent"
+                                          : "border-border text-muted-foreground"
+                                      }`}
+                                    >
+                                      {(t.name || `Entrada ${i + 1}`) +
+                                        (t.price ? ` · Bs. ${t.price}` : "")}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              <p className="text-[11px] text-muted-foreground">
+                                Los inscritos compran esta entrada primero durante el acceso anticipado. Los precios se ven desde ya, pero nadie puede comprar hasta que publiques la venta.
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-[11px] text-muted-foreground">
+                              Configurá "Múltiples entradas" arriba para asociar la lista a un nivel de precio (ej. Early Bird).
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}

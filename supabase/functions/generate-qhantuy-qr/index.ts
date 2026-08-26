@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     const { data: event, error: eventErr } = await supabase
       .from("events")
       .select(
-        "id, title, price, creator_id, waitlist_enabled, sales_open_at, waitlist_early_access_hours, waitlist_released_at"
+        "id, title, price, creator_id, waitlist_enabled, sales_open_at, waitlist_early_access_hours, waitlist_released_at, waitlist_tier_id"
       )
       .eq("id", eventId)
       .single();
@@ -87,6 +87,13 @@ Deno.serve(async (req) => {
         if (!wl) {
           return json(
             { error: "Acceso anticipado solo para la lista de espera", code: "early_access_only" },
+            403
+          );
+        }
+        // When the list is attached to a specific ticket type, only that one is on sale.
+        if (event.waitlist_tier_id && ticketTierId !== event.waitlist_tier_id) {
+          return json(
+            { error: "Durante el acceso anticipado solo está a la venta la entrada de la lista", code: "waitlist_tier_only" },
             403
           );
         }

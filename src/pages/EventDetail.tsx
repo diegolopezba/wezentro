@@ -19,6 +19,8 @@ import { InvitationsSentSection } from "@/components/events/InvitationsSentSecti
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { useSpecialInvite, useRedeemSpecialInvite } from "@/hooks/useSpecialInvites";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
+import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
+
 import { AreaPickerSheet } from "@/components/venue/AreaPickerSheet";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
@@ -84,7 +86,7 @@ const EventDetail = () => {
     formattedDate, formattedPrice, hasEnded,
     waitlistEnabled, isWaitlistPhase, isEarlyAccessPhase,
     isOnWaitlist, waitlistPosition, waitlistTotal,
-    publicSaleStarts, canPurchaseNow,
+    publicSaleStarts, canPurchaseNow, waitlistTierId,
     handleToggleWaitlist, handleReleaseTickets, waitlistPending, releasePending,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
@@ -333,11 +335,17 @@ const EventDetail = () => {
             </div>
           )}
 
+          {/* Ticket tiers preview while the pre-sale waiting list is open */}
+          {isWaitlistPhase && hasTiers && (
+            <WaitlistTiersPreview tiers={ticketTiers} waitlistTierId={waitlistTierId} />
+          )}
+
           {/* Description */}
           {event.description && <div className="space-y-2">
               <h2 className="font-brand text-lg font-semibold text-foreground">Acerca de</h2>
               <MentionText text={event.description} className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap" />
             </div>}
+
 
           {/* Comment preview teaser */}
           <div
