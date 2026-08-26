@@ -194,7 +194,7 @@ export function TicketTiersEditor({
                           onFocus={locked ? triggerLock : undefined}
                           onClick={locked ? triggerLock : undefined}
                           onChange={(e) => !locked && updateTier(t.key, { price: e.target.value })}
-                          placeholder={locked ? "Gratis" : "0"}
+                          placeholder={locked ? "Gratis" : "0 (Gratis)"}
                         />
 
                       </div>
