@@ -107,7 +107,9 @@ export const useJoinGuestlist = () => {
 
       return entry;
     },
-    onSuccess: (_, eventId) => {
+    onSuccess: (_, input) => {
+      const { eventId } = asJoinInput(input);
+
       haptic("heavy");
       queryClient.invalidateQueries({ queryKey: ["guestlist-status", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event-guestlist", eventId] });
