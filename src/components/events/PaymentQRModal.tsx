@@ -462,7 +462,13 @@ export function PaymentQRModal({
                   onClick={isFree ? confirmFreeJoin : generateQR}
                   className="w-full h-14 text-base font-bold uppercase tracking-wide"
                 >
-                  {isInvite ? "Confirmar invitación especial" : isFree ? "Sí, quiero unirme" : "Pagar por QR"}
+                  {isInvite
+                    ? "Confirmar invitación especial"
+                    : isFreeTier
+                    ? "Confirmar entrada gratis"
+                    : isFree
+                    ? "Sí, quiero unirme"
+                    : "Pagar por QR"}
                 </Button>
               </div>
             </m.div>
