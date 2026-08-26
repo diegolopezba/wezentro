@@ -322,7 +322,12 @@ const EventDetailModalInner = () => {
                 </div>
               )}
 
+              {isWaitlistPhase && hasTiers && (
+                <WaitlistTiersPreview tiers={ticketTiers} waitlistTierId={waitlistTierId} />
+              )}
+
               {event.description && (
+
                 <div className="space-y-2">
                   <h2 className="font-brand text-lg font-semibold text-foreground">Acerca de</h2>
                   <MentionText
