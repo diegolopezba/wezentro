@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
   let entriesQuery = admin
     .from('guestlist_entries')
     .select('id, user_id, qr_code_token, ticket_tier_id')
-    .order('created_at', { ascending: true })
+    .order('joined_at', { ascending: true })
 
   entriesQuery = isService
     ? entriesQuery.eq('payment_session_id', paymentSessionId!)
