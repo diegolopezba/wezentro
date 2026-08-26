@@ -65,11 +65,15 @@ Deno.serve(async (req) => {
     eventId = freeEventId!
   }
 
-  const { data: event } = await admin
+  const { data: event, error: eventError } = await admin
     .from('events')
     .select('id, title, start_datetime, location_name, image_url')
     .eq('id', eventId)
     .maybeSingle()
+  if (eventError || !event) {
+    console.error('ticket email event lookup failed', eventId, eventError)
+    return json({ error: 'event_not_found' }, 404)
+  }
 
   let entriesQuery = admin
     .from('guestlist_entries')
@@ -80,9 +84,21 @@ Deno.serve(async (req) => {
     ? entriesQuery.eq('payment_session_id', paymentSessionId!)
     : entriesQuery.eq('event_id', eventId).eq('user_id', callerUserId!).eq('status', 'approved')
 
-  const { data: entries } = await entriesQuery
+  const { data: entries, error: entriesError } = await entriesQuery
 
-  if (!entries?.length) return json({ sent: 0 }, 200)
+  if (entriesError) {
+    console.error('ticket email entry lookup failed', { eventId, paymentSessionId, entriesError })
+    return json({ error: 'ticket_lookup_failed' }, 500)
+  }
+
+  if (!entries?.length) {
+    console.error('ticket email skipped because no confirmed ticket was found', {
+      eventId,
+      paymentSessionId,
+      callerUserId,
+    })
+    return json({ error: 'ticket_not_found' }, 404)
+  }
 
 
   const tierId = entries.find((e: any) => e.ticket_tier_id)?.ticket_tier_id ?? null
@@ -99,25 +115,40 @@ Deno.serve(async (req) => {
   const userIds = [...new Set(entries.map((e: any) => e.user_id).filter(Boolean) as string[])]
   if (!userIds.includes(session.buyer_user_id)) userIds.push(session.buyer_user_id)
 
-  const { data: profiles } = await admin
+  const { data: profiles, error: profilesError } = await admin
     .from('profiles')
     .select('id, full_name, username')
     .in('id', userIds)
+  if (profilesError) {
+    console.error('ticket email profile lookup failed', profilesError)
+    return json({ error: 'recipient_lookup_failed' }, 500)
+  }
 
   // `profiles` has no email column — addresses live in auth.users.
   const emailById = new Map<string, string>()
   await Promise.all(
     userIds.map(async (id) => {
-      const { data } = await admin.auth.admin.getUserById(id)
+      const { data, error } = await admin.auth.admin.getUserById(id)
+      if (error) console.error('ticket email auth lookup failed', id, error.message)
       if (data?.user?.email) emailById.set(id, data.user.email)
     }),
   )
 
+  const profileRows = new Map((profiles ?? []).map((profile: any) => [profile.id, profile]))
   const profileById = new Map(
-    (profiles ?? []).map((p: any) => [p.id, { ...p, email: emailById.get(p.id) }]),
+    userIds.map((id) => {
+      const profile = profileRows.get(id) ?? { id, full_name: null, username: null }
+      return [id, { ...profile, email: emailById.get(id) }]
+    }),
   )
-  if (emailById.size === 0) {
-    console.error('no recipient addresses resolved for session', paymentSessionId, userIds)
+  const buyerEmail = emailById.get(session.buyer_user_id)
+  if (!buyerEmail) {
+    console.error('no buyer email resolved for ticket confirmation', {
+      paymentSessionId,
+      eventId,
+      buyerUserId: session.buyer_user_id,
+    })
+    return json({ error: 'buyer_email_not_found' }, 422)
   }
 
 
@@ -165,8 +196,13 @@ Deno.serve(async (req) => {
         templateData,
       }),
     })
-    if (!res.ok) console.error('tickets email failed', res.status, await res.text())
-    return res.ok
+    const responseBody = await res.text()
+    if (!res.ok) {
+      console.error('tickets email failed', res.status, responseBody)
+      return false
+    }
+    console.log('ticket confirmation queued', { idempotencyKey, status: res.status })
+    return true
   }
 
   const baseData = {
@@ -180,7 +216,8 @@ Deno.serve(async (req) => {
 
   const keyPrefix = paymentSessionId ? `tickets-${paymentSessionId}` : `tickets-free-${eventId}`
 
-  let sent = 0
+  let queued = 0
+  let failed = 0
 
   // Buyer: all tickets in one email.
   const buyer = profileById.get(session.buyer_user_id)
@@ -190,7 +227,8 @@ Deno.serve(async (req) => {
       guestName: buyer.full_name || buyer.username || undefined,
       tickets: allTickets,
     })
-    if (ok) sent++
+    if (ok) queued++
+    else failed++
   }
 
 
@@ -210,10 +248,15 @@ Deno.serve(async (req) => {
         },
       ],
     })
-    if (ok) sent++
+    if (ok) queued++
+    else failed++
   }
 
-  return json({ sent, tickets: entries.length }, 200)
+  if (queued === 0 || failed > 0) {
+    return json({ error: 'ticket_email_dispatch_failed', queued, failed, tickets: entries.length }, 502)
+  }
+
+  return json({ queued, failed, tickets: entries.length }, 200)
 })
 
 function json(body: unknown, status = 200) {

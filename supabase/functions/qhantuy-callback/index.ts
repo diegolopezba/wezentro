@@ -259,11 +259,17 @@ Deno.serve(async (req) => {
 
     // Email every ticket (buyer gets all of them, assignees get theirs).
     try {
-      await fetch(`${SUPABASE_URL}/functions/v1/send-purchase-tickets`, {
+      const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-purchase-tickets`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
         body: JSON.stringify({ paymentSessionId: session.id }),
       });
+      const emailBody = await emailResponse.text();
+      if (!emailResponse.ok) {
+        console.error("send-purchase-tickets failed", emailResponse.status, emailBody);
+      } else {
+        console.log("ticket confirmation email dispatched", session.id, emailBody);
+      }
     } catch (e) {
       console.error("send-purchase-tickets dispatch failed", e);
     }
