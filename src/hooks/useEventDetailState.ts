@@ -369,14 +369,14 @@ export const useEventDetailState = (
     setShowPaymentModal(true);
   };
 
-  /** Free tickets never hit the payment callback, so we ask for the email here. */
+  /** Free tickets never hit the payment callback, so dispatch their confirmation here. */
   const sendFreeTicketEmail = async () => {
-    try {
-      await supabase.functions.invoke("send-purchase-tickets", {
-        body: { eventId },
-      });
-    } catch {
-      /* email is best-effort — never block the confirmation UI */
+    const { data, error } = await supabase.functions.invoke("send-purchase-tickets", {
+      body: { eventId },
+    });
+    if (error || !data || data.queued < 1) {
+      console.error("Free ticket confirmation email failed", { error, data });
+      throw new Error("Tu entrada fue confirmada, pero no pudimos enviar el correo. Intentá nuevamente.");
     }
   };
 
@@ -385,11 +385,11 @@ export const useEventDetailState = (
       // Free area booking → confirm the existing hold instead of a plain guestlist join
       if (areaBooking) {
         await confirmFreeAreaBooking(areaBooking.bookingId);
-        void sendFreeTicketEmail();
+        await sendFreeTicketEmail();
         return;
       }
       await joinGuestlist.mutateAsync(eventId!);
-      void sendFreeTicketEmail();
+      await sendFreeTicketEmail();
     } catch (error: any) {
       toast.error(error.message || "Error al unirte");
       throw error;
