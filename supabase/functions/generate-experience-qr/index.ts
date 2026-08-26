@@ -81,9 +81,14 @@ Deno.serve(async (req) => {
 
     const { data: buyerProfile } = await supabase
       .from("profiles")
-      .select("first_name, last_name, email")
+      .select("full_name")
       .eq("id", buyerId)
       .maybeSingle();
+
+    // profiles only stores a single full_name; split it for Qhantuy's customer fields.
+    const buyerNameParts = String(buyerProfile?.full_name ?? "").trim().split(/\s+/).filter(Boolean);
+    const buyerFirstName = buyerNameParts[0] || undefined;
+    const buyerLastName = buyerNameParts.slice(1).join(" ") || undefined;
 
     const title = `${experience.title}${segment?.name ? ` — ${segment.name}` : ""}`;
     const unitPrice = Number((totalAmount / Math.max(booking.quantity, 1)).toFixed(2));
@@ -134,9 +139,9 @@ Deno.serve(async (req) => {
         currency_code: "BOB",
         internal_code: session.id,
         callback_url: callbackUrl,
-        customer_email: buyerProfile?.email ?? userData.user.email ?? undefined,
-        customer_first_name: buyerProfile?.first_name ?? undefined,
-        customer_last_name: buyerProfile?.last_name ?? undefined,
+        customer_email: userData.user.email ?? undefined,
+        customer_first_name: buyerFirstName,
+        customer_last_name: buyerLastName,
         detail: `${title}${booking.quantity > 1 ? ` x${booking.quantity}` : ""}`.substring(0, 120),
         items: [{ name: title.substring(0, 100), quantity: booking.quantity, price: unitPrice }],
         // Organizer payout: total minus Zentro's commission (Qhantuy deducts its own fee).

@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
   const { data: booking } = await admin
     .from('experience_bookings')
     .select(
-      'id, experience_id, segment_id, user_id, booking_date, booking_time, quantity, amount, notes, status, cancelled_by',
+      'id, experience_id, segment_id, user_id, booking_date, booking_time, quantity, amount, notes, status',
     )
     .eq('id', bookingId)
     .maybeSingle()
@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
     notes: booking.notes ?? undefined,
     bookingUrl: `${SITE}/experience-booking/${bookingId}`,
     cancelled,
-    cancelledBy: booking.cancelled_by ?? undefined,
+    
   }
 
   let sent = 0
@@ -206,7 +206,7 @@ Deno.serve(async (req) => {
           .filter(Boolean),
         dashboardUrl: `${SITE}/dashboard`,
         cancelled,
-        cancelledBy: booking.cancelled_by ?? undefined,
+        
       },
     )
     if (ok) sent++
