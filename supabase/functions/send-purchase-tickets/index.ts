@@ -69,9 +69,25 @@ Deno.serve(async (req) => {
 
   const { data: profiles } = await admin
     .from('profiles')
-    .select('id, full_name, username, email')
+    .select('id, full_name, username')
     .in('id', userIds)
-  const profileById = new Map((profiles ?? []).map((p: any) => [p.id, p]))
+
+  // `profiles` has no email column — addresses live in auth.users.
+  const emailById = new Map<string, string>()
+  await Promise.all(
+    userIds.map(async (id) => {
+      const { data } = await admin.auth.admin.getUserById(id)
+      if (data?.user?.email) emailById.set(id, data.user.email)
+    }),
+  )
+
+  const profileById = new Map(
+    (profiles ?? []).map((p: any) => [p.id, { ...p, email: emailById.get(p.id) }]),
+  )
+  if (emailById.size === 0) {
+    console.error('no recipient addresses resolved for session', paymentSessionId, userIds)
+  }
+
 
   const eventDate = event?.start_datetime
     ? new Intl.DateTimeFormat('es-BO', {
