@@ -35,8 +35,23 @@ Deno.serve(async (req) => {
       return new Response("not found", { status: 404, headers: corsHeaders });
     }
 
-    // Idempotent: already confirmed
+    // Idempotent: retry the email handoff before acknowledging. The email queue
+    // deduplicates by the stable payment-session key, so callback retries cannot
+    // create duplicate emails but can recover from a transient dispatch failure.
     if (session.status === "confirmed") {
+      if (!(session as any).experience_booking_id) {
+        const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-purchase-tickets`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+          body: JSON.stringify({ paymentSessionId: session.id }),
+        });
+        const emailBody = await emailResponse.text();
+        if (!emailResponse.ok) {
+          console.error("confirmed callback email retry failed", emailResponse.status, emailBody);
+        } else {
+          console.log("confirmed callback email retry queued", session.id, emailBody);
+        }
+      }
       return new Response("ok", { status: 200, headers: corsHeaders });
     }
 
