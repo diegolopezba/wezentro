@@ -84,7 +84,7 @@ const EventDetail = () => {
     formattedDate, formattedPrice, hasEnded,
     waitlistEnabled, isWaitlistPhase, isEarlyAccessPhase,
     isOnWaitlist, waitlistPosition, waitlistTotal,
-    publicSaleStarts, canPurchaseNow,
+    publicSaleStarts, canPurchaseNow, waitlistTierId,
     handleToggleWaitlist, handleReleaseTickets, waitlistPending, releasePending,
     videoRef, mediaLoaded, aspectRatio, isMuted,
     handleImageLoad, handleVideoMetadata, toggleMute, togglePlayPause,
