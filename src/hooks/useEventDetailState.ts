@@ -422,6 +422,8 @@ export const useEventDetailState = (
     waitlistEnabled, salePhase, isWaitlistPhase, isEarlyAccessPhase,
     isOnWaitlist, waitlistPosition, waitlistTotal,
     earlyAccessEnds, publicSaleStarts, canPurchaseNow,
+    waitlistTierId, waitlistTier,
+
     handleToggleWaitlist, handleReleaseTickets,
     waitlistPending: joinWaitlist.isPending || leaveWaitlist.isPending,
     releasePending: releaseWaitlist.isPending,
