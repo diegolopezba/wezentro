@@ -157,7 +157,7 @@ export function TicketTiersEditor({
                         {t.name || `Entrada ${idx + 1}`}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {t.price ? `Bs. ${t.price}` : "Sin precio"}
+                        {Number(t.price) > 0 ? `Bs. ${t.price}` : "Gratis"}
                         {t.capacity ? ` · ${t.capacity} cupos` : " · Ilimitado"}
                       </div>
                     </div>
