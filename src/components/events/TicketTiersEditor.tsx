@@ -157,7 +157,7 @@ export function TicketTiersEditor({
                         {t.name || `Entrada ${idx + 1}`}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {t.price ? `Bs. ${t.price}` : "Sin precio"}
+                        {Number(t.price) > 0 ? `Bs. ${t.price}` : "Gratis"}
                         {t.capacity ? ` · ${t.capacity} cupos` : " · Ilimitado"}
                       </div>
                     </div>
@@ -194,7 +194,7 @@ export function TicketTiersEditor({
                           onFocus={locked ? triggerLock : undefined}
                           onClick={locked ? triggerLock : undefined}
                           onChange={(e) => !locked && updateTier(t.key, { price: e.target.value })}
-                          placeholder={locked ? "Gratis" : "0"}
+                          placeholder={locked ? "Gratis" : "0 (Gratis)"}
                         />
 
                       </div>

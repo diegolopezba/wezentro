@@ -381,7 +381,8 @@ const Create = () => {
           toast.error("Cada entrada necesita un nombre");
           return;
         }
-        const price = parseFloat(t.price);
+        // Empty price = free tier (Bs. 0)
+        const price = t.price.trim() === "" ? 0 : parseFloat(t.price);
         if (isNaN(price) || price < 0) {
           toast.error(`Precio inválido para "${t.name}"`);
           return;
@@ -1180,7 +1181,7 @@ const Create = () => {
                                       }`}
                                     >
                                       {(t.name || `Entrada ${i + 1}`) +
-                                        (t.price ? ` · Bs. ${t.price}` : "")}
+                                        (Number(t.price) > 0 ? ` · Bs. ${t.price}` : " · Gratis")}
                                     </button>
                                   );
                                 })}
