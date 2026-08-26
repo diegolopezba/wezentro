@@ -175,21 +175,24 @@ Deno.serve(async (req) => {
     eventLocation: event?.location_name ?? undefined,
     eventImageUrl: event?.image_url ?? undefined,
     tierName,
-    ticketUrl: `${SITE}/going/${session.event_id}`,
+    ticketUrl: `${SITE}/going/${eventId}`,
   }
+
+  const keyPrefix = paymentSessionId ? `tickets-${paymentSessionId}` : `tickets-free-${eventId}`
 
   let sent = 0
 
   // Buyer: all tickets in one email.
   const buyer = profileById.get(session.buyer_user_id)
   if (buyer?.email) {
-    const ok = await sendEmail(buyer.email, `tickets-${paymentSessionId}-buyer`, {
+    const ok = await sendEmail(buyer.email, `${keyPrefix}-buyer-${entries[0].id}`, {
       ...baseData,
       guestName: buyer.full_name || buyer.username || undefined,
       tickets: allTickets,
     })
     if (ok) sent++
   }
+
 
   // Tagged users: their own ticket.
   for (const entry of entries as any[]) {
