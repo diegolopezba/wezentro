@@ -676,7 +676,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                                         : "border-border text-muted-foreground"
                                     }`}
                                   >
-                                    {(t.name || `Entrada ${i + 1}`) + (t.price ? ` · Bs. ${t.price}` : "")}
+                                    {(t.name || `Entrada ${i + 1}`) + (Number(t.price) > 0 ? ` · Bs. ${t.price}` : " · Gratis")}
                                   </button>
                                 );
                               })}

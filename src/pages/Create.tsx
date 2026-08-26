@@ -1181,7 +1181,7 @@ const Create = () => {
                                       }`}
                                     >
                                       {(t.name || `Entrada ${i + 1}`) +
-                                        (t.price ? ` · Bs. ${t.price}` : "")}
+                                        (Number(t.price) > 0 ? ` · Bs. ${t.price}` : " · Gratis")}
                                     </button>
                                   );
                                 })}
