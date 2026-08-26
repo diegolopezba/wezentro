@@ -171,22 +171,44 @@ export const useEventDetailState = (
   const publicSaleStarts = publicSaleStartsAt(event as any);
   // Only waitlist members can buy during the exclusive window.
   const canPurchaseNow = !waitlistEnabled || salePhase === "public" || (isEarlyAccessPhase && isOnWaitlist);
+  /** Tier the waiting list is attached to (Dice-style pre-sale on one ticket type). */
+  const waitlistTierId: string | null = (event as any)?.waitlist_tier_id ?? null;
+  const waitlistTier = useMemo(
+    () => (waitlistTierId ? ticketTiers.find((t) => t.id === waitlistTierId) ?? null : null),
+    [waitlistTierId, ticketTiers]
+  );
+
+  /** Buyable right now: during early access only the waitlist tier is on sale. */
+  const purchasableTiers = useMemo(() => {
+    if (isEarlyAccessPhase && waitlistTierId) {
+      const only = openTiers.filter((t) => t.id === waitlistTierId);
+      if (only.length > 0) return only;
+    }
+    return openTiers;
+  }, [openTiers, isEarlyAccessPhase, waitlistTierId]);
+  const cheapestPurchasableTier: TicketTier | null = useMemo(() => {
+    if (purchasableTiers.length === 0) return null;
+    return [...purchasableTiers].sort((a, b) => Number(a.price) - Number(b.price))[0];
+  }, [purchasableTiers]);
 
   const formattedPrice = (() => {
-    // Prices stay hidden until tickets are released.
-    if (isWaitlistPhase) return "Entradas próximamente";
     if (hasTiers) {
-      if (allTiersSoldOut) return "Agotado";
-      const prices = purchasableTiers.map((t) => Number(t.price));
+      // During the pre-sale, prices are visible (Dice-style) but nothing is buyable yet.
+      const source = isWaitlistPhase ? ticketTiers : purchasableTiers;
+      if (!isWaitlistPhase && allTiersSoldOut) return "Agotado";
+      if (source.length === 0) return "Agotado";
+      const prices = source.map((t) => Number(t.price));
       const min = Math.min(...prices);
       const max = Math.max(...prices);
-      if (purchasableTiers.length === 1 || min === max) {
+      if (source.length === 1 || min === max) {
         return min > 0 ? `Bs. ${min}` : "Gratis";
       }
       return `Desde Bs. ${min}`;
     }
+    if (isWaitlistPhase) return "Entradas próximamente";
     return event?.price ? `Bs. ${event.price}` : "Gratis";
   })();
+
 
   const handleToggleWaitlist = async () => {
     if (isGuest) { promptAuth({ action: "unirte a la lista de espera" }); return; }
