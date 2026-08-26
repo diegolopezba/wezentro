@@ -16,6 +16,7 @@ import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useRepo
 import { useFollowingGoing } from "@/hooks/useFollowingGoing";
 import { useTicketTiers, computeTierAvailability, type TicketTier } from "@/hooks/useTicketTiers";
 import { useEventAreas, confirmFreeAreaBooking, type EventArea } from "@/hooks/useVenueLayouts";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { trackCheckoutTap } from "@/lib/analyticsTracking";
@@ -368,19 +369,33 @@ export const useEventDetailState = (
     setShowPaymentModal(true);
   };
 
+  /** Free tickets never hit the payment callback, so we ask for the email here. */
+  const sendFreeTicketEmail = async () => {
+    try {
+      await supabase.functions.invoke("send-purchase-tickets", {
+        body: { eventId },
+      });
+    } catch {
+      /* email is best-effort — never block the confirmation UI */
+    }
+  };
+
   const handleConfirmFreeJoin = async () => {
     try {
       // Free area booking → confirm the existing hold instead of a plain guestlist join
       if (areaBooking) {
         await confirmFreeAreaBooking(areaBooking.bookingId);
+        void sendFreeTicketEmail();
         return;
       }
       await joinGuestlist.mutateAsync(eventId!);
+      void sendFreeTicketEmail();
     } catch (error: any) {
       toast.error(error.message || "Error al unirte");
       throw error;
     }
   };
+
 
   const handlePaymentSubmitted = async () => {
     // Qhantuy callback already upserts the guestlist entry and inserts the notification.
