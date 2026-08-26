@@ -28,13 +28,19 @@ export const useIsOnGuestlist = (eventId: string | undefined) => {
   });
 };
 
+type JoinGuestlistInput = string | { eventId: string; ticketTierId?: string | null };
+
+const asJoinInput = (input: JoinGuestlistInput) =>
+  typeof input === "string" ? { eventId: input, ticketTierId: null } : input;
+
 export const useJoinGuestlist = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (eventId: string) => {
+    mutationFn: async (input: JoinGuestlistInput) => {
       if (!user) throw new Error("Must be logged in");
+      const { eventId, ticketTierId } = asJoinInput(input);
 
       // Get user's profile and event details for notifications + capacity check
       const [{ data: userProfile }, { data: event }] = await Promise.all([
@@ -69,11 +75,21 @@ export const useJoinGuestlist = () => {
           user_id: user.id,
           status: "approved",
           promoter_id: promoterId,
+          ticket_tier_id: ticketTierId ?? null,
         } as any)
         .select()
         .single();
 
       if (entryError) throw entryError;
+
+      // Free tier claims still consume the tier's limited inventory.
+      if (ticketTierId) {
+        const { error: tierError } = await supabase.rpc("increment_tier_sold", {
+          _tier_id: ticketTierId,
+        });
+        if (tierError) console.error("increment_tier_sold failed", tierError);
+      }
+
 
       // Notify event creator about the new joiner
       if (event && event.creator_id !== user.id) {
