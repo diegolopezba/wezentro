@@ -333,11 +333,17 @@ const EventDetail = () => {
             </div>
           )}
 
+          {/* Ticket tiers preview while the pre-sale waiting list is open */}
+          {isWaitlistPhase && hasTiers && (
+            <WaitlistTiersPreview tiers={ticketTiers} waitlistTierId={waitlistTierId} />
+          )}
+
           {/* Description */}
           {event.description && <div className="space-y-2">
               <h2 className="font-brand text-lg font-semibold text-foreground">Acerca de</h2>
               <MentionText text={event.description} className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap" />
             </div>}
+
 
           {/* Comment preview teaser */}
           <div
