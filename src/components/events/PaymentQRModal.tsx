@@ -55,7 +55,9 @@ export function PaymentQRModal({
 }: PaymentQRModalProps) {
   const navigate = useNavigate();
   const isInvite = mode === "invite";
-  const isFree = mode === "free" || isInvite;
+  /** A paid checkout whose selected tier/area costs Bs. 0 behaves as a free confirmation. */
+  const isFreeTier = mode === "paid" && Number(price || 0) <= 0;
+  const isFree = mode === "free" || isInvite || isFreeTier;
   const [step, setStep] = useState<Step>("details");
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
@@ -460,7 +462,13 @@ export function PaymentQRModal({
                   onClick={isFree ? confirmFreeJoin : generateQR}
                   className="w-full h-14 text-base font-bold uppercase tracking-wide"
                 >
-                  {isInvite ? "Confirmar invitación especial" : isFree ? "Sí, quiero unirme" : "Pagar por QR"}
+                  {isInvite
+                    ? "Confirmar invitación especial"
+                    : isFreeTier
+                    ? "Confirmar entrada gratis"
+                    : isFree
+                    ? "Sí, quiero unirme"
+                    : "Pagar por QR"}
                 </Button>
               </div>
             </m.div>
