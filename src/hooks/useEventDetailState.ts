@@ -101,15 +101,12 @@ export const useEventDetailState = (
     () => ticketTiers.some((t) => !!t.unlock_after_tier_id),
     [ticketTiers]
   );
-  const purchasableTiers = useMemo(
+  const openTiers = useMemo(
     () => tierAvailability.filter((a) => a.unlocked && !a.soldOut).map((a) => a.tier),
     [tierAvailability]
   );
-  const cheapestPurchasableTier: TicketTier | null = useMemo(() => {
-    if (purchasableTiers.length === 0) return null;
-    return [...purchasableTiers].sort((a, b) => Number(a.price) - Number(b.price))[0];
-  }, [purchasableTiers]);
-  const allTiersSoldOut = hasTiers && purchasableTiers.length === 0;
+  const allTiersSoldOut = hasTiers && openTiers.length === 0;
+
 
   // Derived state
   const isOnGuestlist = !!guestlistStatus;
