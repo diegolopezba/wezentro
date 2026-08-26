@@ -46,6 +46,7 @@ interface EditEventSheetProps {
     waitlist_enabled?: boolean | null;
     sales_open_at?: string | null;
     waitlist_early_access_hours?: number | null;
+    waitlist_tier_id?: string | null;
     waitlist_released_at?: string | null;
   };
   open: boolean;
@@ -100,6 +101,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     waitlist_enabled: event.waitlist_enabled ?? false,
     sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
     waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
+    waitlist_tier_key: event.waitlist_tier_id ?? "",
   });
 
   const { isDirty, capture } = useDirtyBaseline({ formData, draftTiers, pricingMode, saleMode, experienceId });
@@ -124,6 +126,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         waitlist_enabled: event.waitlist_enabled ?? false,
         sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
         waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
+        waitlist_tier_key: event.waitlist_tier_id ?? "",
       });
     }
   }, [open, event]);
@@ -178,6 +181,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
         waitlist_enabled: event.waitlist_enabled ?? false,
         sales_open_at: event.sales_open_at ? format(new Date(event.sales_open_at), "yyyy-MM-dd'T'HH:mm") : "",
         waitlist_early_access_hours: String(event.waitlist_early_access_hours ?? 0),
+        waitlist_tier_key: event.waitlist_tier_id ?? "",
       },
       draftTiers: hydratedTiers,
       pricingMode: existingTiers.length > 0 ? "tiers" : "single",
@@ -264,11 +268,23 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       });
 
       if (!isPost && !experienceId) {
-        await replaceTiers.mutateAsync({
+        const createdTiers = await replaceTiers.mutateAsync({
           eventId: event.id,
           tiers: pricingMode === "tiers" ? cleanTiers : [],
           sequential: saleMode === "sequential",
         });
+        // Re-link the waiting list to the (re-created) chosen ticket type
+        const idx =
+          formData.waitlist_enabled && formData.waitlist_tier_key && pricingMode === "tiers"
+            ? draftTiers.findIndex((t) => t.key === formData.waitlist_tier_key)
+            : -1;
+        const linkedId = idx >= 0 ? createdTiers?.[idx]?.id ?? null : null;
+        if (linkedId !== (event.waitlist_tier_id ?? null)) {
+          await supabase
+            .from("events")
+            .update({ waitlist_tier_id: linkedId } as any)
+            .eq("id", event.id);
+        }
       }
       // Parse @mentions from description and insert into event_tags
       if (formData.description.trim()) {
@@ -632,6 +648,47 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                         <p className="text-[11px] text-muted-foreground">
                           0 = solo notificación. Más de 0 = solo la lista puede comprar durante ese tiempo.
                         </p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">
+                          Entrada de la lista de espera
+                        </Label>
+                        {pricingMode === "tiers" && draftTiers.length > 0 ? (
+                          <>
+                            <div className="flex flex-wrap gap-2">
+                              {draftTiers.map((t, i) => {
+                                const active = formData.waitlist_tier_key === t.key;
+                                return (
+                                  <button
+                                    key={t.key}
+                                    type="button"
+                                    onClick={() =>
+                                      setFormData({
+                                        ...formData,
+                                        waitlist_tier_key: active ? "" : t.key,
+                                      })
+                                    }
+                                    className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
+                                      active
+                                        ? "bg-foreground text-background border-transparent"
+                                        : "border-border text-muted-foreground"
+                                    }`}
+                                  >
+                                    {(t.name || `Entrada ${i + 1}`) + (t.price ? ` · Bs. ${t.price}` : "")}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground">
+                              Los inscritos compran esta entrada primero durante el acceso anticipado.
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-[11px] text-muted-foreground">
+                            Configurá "Múltiples entradas" para asociar la lista a un nivel de precio.
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
