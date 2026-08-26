@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
     if (!entry.user_id || entry.user_id === session.buyer_user_id) continue
     const p = profileById.get(entry.user_id)
     if (!p?.email) continue
-    const ok = await sendEmail(p.email, `tickets-${paymentSessionId}-${entry.id}`, {
+    const ok = await sendEmail(p.email, `${keyPrefix}-${entry.id}`, {
       ...baseData,
       guestName: p.full_name || p.username || undefined,
       isRecipientCopy: true,
