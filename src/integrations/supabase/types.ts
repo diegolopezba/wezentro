@@ -1060,6 +1060,7 @@ export type Database = {
           waitlist_early_access_hours: number
           waitlist_enabled: boolean
           waitlist_released_at: string | null
+          waitlist_tier_id: string | null
         }
         Insert: {
           category?: string | null
@@ -1094,6 +1095,7 @@ export type Database = {
           waitlist_early_access_hours?: number
           waitlist_enabled?: boolean
           waitlist_released_at?: string | null
+          waitlist_tier_id?: string | null
         }
         Update: {
           category?: string | null
@@ -1128,6 +1130,7 @@ export type Database = {
           waitlist_early_access_hours?: number
           waitlist_enabled?: boolean
           waitlist_released_at?: string | null
+          waitlist_tier_id?: string | null
         }
         Relationships: [
           {
@@ -1149,6 +1152,13 @@ export type Database = {
             columns: ["experience_id"]
             isOneToOne: false
             referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_waitlist_tier_id_fkey"
+            columns: ["waitlist_tier_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_tiers"
             referencedColumns: ["id"]
           },
         ]
