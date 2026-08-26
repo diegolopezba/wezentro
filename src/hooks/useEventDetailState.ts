@@ -369,14 +369,22 @@ export const useEventDetailState = (
     setShowPaymentModal(true);
   };
 
-  /** Free tickets never hit the payment callback, so dispatch their confirmation here. */
+  /**
+   * Free tickets never hit the payment callback, so dispatch their confirmation here.
+   * Email problems must never block the ticket: the entry already exists.
+   */
   const sendFreeTicketEmail = async () => {
-    const { data, error } = await supabase.functions.invoke("send-purchase-tickets", {
-      body: { eventId },
-    });
-    if (error || !data || data.queued < 1) {
-      console.error("Free ticket confirmation email failed", { error, data });
-      throw new Error("Tu entrada fue confirmada, pero no pudimos enviar el correo. Intentá nuevamente.");
+    try {
+      const { data, error } = await supabase.functions.invoke("send-purchase-tickets", {
+        body: { eventId },
+      });
+      if (error || !data || data.queued < 1) {
+        console.error("Free ticket confirmation email failed", { error, data });
+        toast.message("Tu entrada está confirmada. El correo puede demorar en llegar.");
+      }
+    } catch (e) {
+      console.error("Free ticket confirmation email failed", e);
+      toast.message("Tu entrada está confirmada. El correo puede demorar en llegar.");
     }
   };
 
@@ -388,13 +396,17 @@ export const useEventDetailState = (
         await sendFreeTicketEmail();
         return;
       }
-      await joinGuestlist.mutateAsync(eventId!);
+      await joinGuestlist.mutateAsync({
+        eventId: eventId!,
+        ticketTierId: selectedTier?.id ?? null,
+      });
       await sendFreeTicketEmail();
     } catch (error: any) {
       toast.error(error.message || "Error al unirte");
       throw error;
     }
   };
+
 
 
   const handlePaymentSubmitted = async () => {
