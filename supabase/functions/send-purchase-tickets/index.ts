@@ -13,45 +13,77 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
   const authHeader = req.headers.get('Authorization') ?? ''
-  if (authHeader !== `Bearer ${serviceKey}`) {
-    return json({ error: 'not_authorized' }, 401)
-  }
+  const isService = authHeader === `Bearer ${serviceKey}`
 
-  let paymentSessionId: string | undefined
+  let body: any = {}
   try {
-    paymentSessionId = (await req.json())?.paymentSessionId
+    body = (await req.json()) ?? {}
   } catch {
     return json({ error: 'Invalid JSON body' }, 400)
   }
-  if (!paymentSessionId || typeof paymentSessionId !== 'string') {
-    return json({ error: 'paymentSessionId is required' }, 400)
-  }
+
+  const paymentSessionId: string | undefined = body.paymentSessionId
+  const freeEventId: string | undefined = body.eventId
 
   const admin = createClient(supabaseUrl, serviceKey)
 
-  const { data: session } = await admin
-    .from('payment_sessions')
-    .select('id, event_id, buyer_user_id, status')
-    .eq('id', paymentSessionId)
-    .maybeSingle()
-  if (!session || session.status !== 'confirmed') {
-    return json({ error: 'session_not_confirmed' }, 404)
+  // Free-entry mode: an authenticated user asks for the email of their own ticket.
+  let callerUserId: string | null = null
+  if (!isService) {
+    if (!authHeader.startsWith('Bearer ')) return json({ error: 'not_authorized' }, 401)
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    })
+    const { data: userData } = await authClient.auth.getUser()
+    if (!userData?.user) return json({ error: 'not_authorized' }, 401)
+    callerUserId = userData.user.id
+    if (!freeEventId || typeof freeEventId !== 'string') {
+      return json({ error: 'eventId is required' }, 400)
+    }
+  } else if (!paymentSessionId || typeof paymentSessionId !== 'string') {
+    return json({ error: 'paymentSessionId is required' }, 400)
+  }
+
+  let session: any = null
+  let eventId: string | null = null
+
+  if (isService) {
+    const { data } = await admin
+      .from('payment_sessions')
+      .select('id, event_id, buyer_user_id, status')
+      .eq('id', paymentSessionId!)
+      .maybeSingle()
+    session = data
+    if (!session || session.status !== 'confirmed') {
+      return json({ error: 'session_not_confirmed' }, 404)
+    }
+    eventId = session.event_id
+  } else {
+    session = { id: null, event_id: freeEventId!, buyer_user_id: callerUserId }
+    eventId = freeEventId!
   }
 
   const { data: event } = await admin
     .from('events')
     .select('id, title, start_datetime, location_name, image_url')
-    .eq('id', session.event_id)
+    .eq('id', eventId)
     .maybeSingle()
 
-  const { data: entries } = await admin
+  let entriesQuery = admin
     .from('guestlist_entries')
     .select('id, user_id, qr_code_token, ticket_tier_id')
-    .eq('payment_session_id', paymentSessionId)
     .order('created_at', { ascending: true })
 
+  entriesQuery = isService
+    ? entriesQuery.eq('payment_session_id', paymentSessionId!)
+    : entriesQuery.eq('event_id', eventId).eq('user_id', callerUserId!).eq('status', 'approved')
+
+  const { data: entries } = await entriesQuery
+
   if (!entries?.length) return json({ sent: 0 }, 200)
+
 
   const tierId = entries.find((e: any) => e.ticket_tier_id)?.ticket_tier_id ?? null
   let tierName: string | undefined
