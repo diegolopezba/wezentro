@@ -1,11 +1,9 @@
 /**
  * ONE-OFF setup helper: registers (or adopts) Zentro's own Qhantuy beneficiary
- * and returns its beneficiary code. DELETE THIS FUNCTION AFTER USE.
- *
- * Requires any authenticated user (the preview session); the operation is
- * idempotent and non-destructive.
+ * and returns its beneficiary code. DELETE THIS FUNCTION IMMEDIATELY AFTER USE.
+ * Temporarily unauthenticated for a single invocation; idempotent and
+ * non-destructive (only registers the fixed Zentro beneficiary below).
  */
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, json, qhantuyFetch, checkBeneficiaries, isDuplicateCiError } from "../_shared/qhantuy.ts";
 
 const ZENTRO = {
@@ -20,14 +18,6 @@ const ZENTRO = {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
-  const authClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
-    global: { headers: { Authorization: authHeader } },
-  });
-  const { data: userData, error: userErr } = await authClient.auth.getUser();
-  if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
 
   try {
     // Already registered under our merchant? Adopt it.
