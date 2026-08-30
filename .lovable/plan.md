@@ -8,35 +8,42 @@ Every checkout (tickets and experiences) builds a single payout instruction:
 custom_payouts: [ { code: <organizer beneficiary>, amount: 94% } ]
 ```
 
-The 6% commission is never assigned to anyone. It is simply the part of the
-payment that is not covered by a payout instruction, so it stays inside the
-Qhantuy merchant account and is settled according to Qhantuy's default rule for
-the remainder — which, in the tests you ran, ended up with the organizer rather
-than with Zentro.
+The 6% commission is never assigned to anyone. It stays inside the Qhantuy
+merchant account and settles by Qhantuy's default rule for the uncovered
+remainder — which, in the tests you ran, ended up with the organizer rather
+than with Zentro. Yes, `custom_payouts` is already in use, just with a single
+entry; the fix is to add Zentro's own beneficiary as a second payout line.
 
-Note: the exact settlement rule for the uncovered remainder is not something the
-code can prove, so step 1 below confirms it with Qhantuy before changing the
-split.
+## Zentro beneficiary details (provided)
+
+```text
+Titular:  Gerardo Diego Lopez Barrientos
+CI:       6244221
+Banco:    Banco Mercantil Santa Cruz
+Cuenta:   1007026017
+Tipo:     Caja de Ahorro
+```
 
 ## Plan
 
-1. Confirm the remainder behaviour
-   - Read the current beneficiary list from Qhantuy (`check-beneficiaries`) and
-     the settlement record for one of the test payments, to confirm the
-     uncovered 6% is being paid to the organizer.
-
-2. Register Zentro's bank account as a beneficiary
-   - Zentro's own account must exist as a Qhantuy beneficiary to receive a
-     payout. If it is not registered yet, register it once (same data a business
-     provides: name, CI/NIT, bank, account number, account type).
+1. Register Zentro's bank account as a Qhantuy beneficiary
+   - Look up Banco Mercantil Santa Cruz's `bank_id` via `qhantuy-list-banks`.
+   - Register the beneficiary through Qhantuy's `create-beneficiary` API
+     (same endpoint `qhantuy-register-beneficiary` already wraps). If the CI
+     already exists under our merchant, adopt the existing beneficiary code
+     (the function already has that duplicate-CI recovery path).
+   - An email is required by Qhantuy for the beneficiary; I'll use
+     hello@zentro.com unless you prefer another one.
    - Store the resulting beneficiary code as a backend secret
-     (`QHANTUY_PLATFORM_BENEFICIARY_CODE`). It is not stored per-user and is not
-     exposed to the app.
+     (`QHANTUY_PLATFORM_BENEFICIARY_CODE`). It is never exposed to the app.
+   - These bank details are used only for this one-time registration call;
+     they are not written to the codebase or the database beyond what the
+     beneficiary registration already stores.
 
-3. Send an explicit two-way split on every checkout
-   - In the shared Qhantuy helper, add a function that returns both payout
-     lines. In `generate-qhantuy-qr` and `generate-experience-qr`, replace the
-     single payout with:
+2. Send an explicit two-way split on every checkout
+   - In the shared Qhantuy helper (`_shared/qhantuy.ts`), add a function that
+     returns both payout lines. In `generate-qhantuy-qr` and
+     `generate-experience-qr`, replace the single payout with:
 
 ```text
 custom_payouts: [
@@ -45,16 +52,17 @@ custom_payouts: [
 ]
 ```
 
-   - Guard: if the platform beneficiary code is missing, or the commission
+   - Guard: if the platform beneficiary secret is missing, or the commission
      rounds to 0, fall back to the current single-payout behaviour and log a
      warning rather than blocking the sale.
-   - Rounding: the two amounts must always sum exactly to the charged total; the
-     commission line absorbs the rounding remainder.
+   - Rounding: the two amounts must always sum exactly to the charged total;
+     the commission line absorbs the rounding remainder.
 
-4. Verify
-   - Run one live paid ticket purchase and one experience booking, then check the
-     Qhantuy transaction detail shows two payout lines with the right amounts and
-     the right destination accounts, and that `payment_sessions` records match.
+3. Verify
+   - Run one live paid ticket purchase and one experience booking, then check
+     the Qhantuy transaction detail shows two payout lines with the right
+     amounts and the right destination accounts, and that `payment_sessions`
+     records match.
 
 ## Technical notes
 
@@ -62,12 +70,8 @@ custom_payouts: [
   `supabase/functions/generate-qhantuy-qr/index.ts`,
   `supabase/functions/generate-experience-qr/index.ts`.
 - No database schema change. `payment_sessions.platform_fee_amount` /
-  `payout_amount` already record the split correctly, so dashboards and the net
-  figures shown to organizers stay as they are.
+  `payout_amount` already record the split correctly, so dashboards and the
+  net figures shown to organizers stay as they are.
 - Free tickets and Bs. 0 tiers never reach this code path.
-
-## What I need from you
-
-Zentro's bank details for the platform beneficiary (account holder name, CI/NIT,
-bank, account number, account type) — or the existing beneficiary code if that
-account is already registered in Qhantuy.
+- Edge functions redeployed at the end: `generate-qhantuy-qr`,
+  `generate-experience-qr` (and `_shared` rides along with each).
