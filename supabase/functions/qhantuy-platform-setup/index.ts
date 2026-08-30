@@ -1,10 +1,11 @@
 /**
  * ONE-OFF setup helper: registers (or adopts) Zentro's own Qhantuy beneficiary
- * and returns its beneficiary code. Delete after use.
+ * and returns its beneficiary code. DELETE THIS FUNCTION AFTER USE.
  *
- * Protected by a shared secret header to avoid public invocation:
- *   X-Setup-Key must match the PLATFORM_SETUP_KEY secret.
+ * Requires any authenticated user (the preview session); the operation is
+ * idempotent and non-destructive.
  */
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, json, qhantuyFetch, checkBeneficiaries, isDuplicateCiError } from "../_shared/qhantuy.ts";
 
 const ZENTRO = {
@@ -20,10 +21,13 @@ const ZENTRO = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  const key = Deno.env.get("PLATFORM_SETUP_KEY");
-  if (!key || req.headers.get("X-Setup-Key") !== key) {
-    return json({ error: "Unauthorized" }, 401);
-  }
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
+  const authClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: userData, error: userErr } = await authClient.auth.getUser();
+  if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
 
   try {
     // Already registered under our merchant? Adopt it.
