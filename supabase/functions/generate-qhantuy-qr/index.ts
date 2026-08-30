@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, json, qhantuyCheckoutFetch, splitAmount } from "../_shared/qhantuy.ts";
+import { corsHeaders, json, platformPayouts, qhantuyCheckoutFetch, splitAmount } from "../_shared/qhantuy.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -307,10 +307,8 @@ Deno.serve(async (req) => {
             price: effectivePrice,
           },
         ],
-        // Organizer payout: total minus Zentro's commission (Qhantuy deducts its own fee).
-        custom_payouts: [
-          { code: benef.beneficiary_code, amount: payoutAmount },
-        ],
+        // Organizer payout (94%) + Zentro commission (6%) to its own beneficiary.
+        custom_payouts: platformPayouts(benef.beneficiary_code, payoutAmount, platformFee),
       }),
     });
 
