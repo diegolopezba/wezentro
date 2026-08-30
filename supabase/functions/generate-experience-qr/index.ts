@@ -4,7 +4,7 @@
  * create_experience_booking database function.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, json, qhantuyCheckoutFetch, splitAmount } from "../_shared/qhantuy.ts";
+import { corsHeaders, json, platformPayouts, qhantuyCheckoutFetch, splitAmount } from "../_shared/qhantuy.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -144,8 +144,8 @@ Deno.serve(async (req) => {
         customer_last_name: buyerLastName,
         detail: `${title}${booking.quantity > 1 ? ` x${booking.quantity}` : ""}`.substring(0, 120),
         items: [{ name: title.substring(0, 100), quantity: booking.quantity, price: unitPrice }],
-        // Organizer payout: total minus Zentro's commission (Qhantuy deducts its own fee).
-        custom_payouts: [{ code: benef.beneficiary_code, amount: payoutAmount }],
+        // Organizer payout (94%) + Zentro commission (6%) to its own beneficiary.
+        custom_payouts: platformPayouts(benef.beneficiary_code, payoutAmount, platformFee),
       }),
     });
 
