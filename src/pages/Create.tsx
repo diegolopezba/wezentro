@@ -1123,7 +1123,7 @@ const Create = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          if (!isBusiness) { setShowBusinessGate(true); return; }
+                          if (!isBusiness) { openBusinessGate("tickets"); return; }
                           if (!hasBeneficiary) { openBeneficiaryGate("tickets"); return; }
                           setFormData({ ...formData, waitlistEnabled: !formData.waitlistEnabled });
                         }}
