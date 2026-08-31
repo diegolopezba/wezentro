@@ -45,7 +45,7 @@ const AdminLogin = () => {
 
   if (checking) {
     return (
-      <div className="min-h-[100dvh] bg-background flex items-center justify-center">
+      <div className="light min-h-[100dvh] bg-background flex items-center justify-center">
         <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
       </div>
     );
