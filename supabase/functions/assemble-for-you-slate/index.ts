@@ -418,6 +418,7 @@ Deno.serve(async (req) => {
       collabBoosts,
       isNewUser,
       sessionSeed: seed,
+      premiumBusinessIds,
       _mutualSet: mutualSet,
     };
 
