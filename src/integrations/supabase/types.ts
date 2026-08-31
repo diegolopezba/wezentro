@@ -4752,15 +4752,6 @@ export type Database = {
         }
         Returns: string
       }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
-      email_queue_dispatch: { Args: never; Returns: undefined }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
-      }
       enqueue_reservation_reminders: {
         Args: { _reservation_id: string }
         Returns: undefined
@@ -5141,24 +5132,7 @@ export type Database = {
         Returns: undefined
       }
       maintain_daily_partitions: { Args: never; Returns: undefined }
-      move_to_dlq: {
-        Args: {
-          dlq_name: string
-          message_id: number
-          payload: Json
-          source_queue: string
-        }
-        Returns: number
-      }
       owns_experience: { Args: { _experience_id: string }; Returns: boolean }
-      read_email_batch: {
-        Args: { batch_size: number; queue_name: string; vt: number }
-        Returns: {
-          message: Json
-          msg_id: number
-          read_ct: number
-        }[]
-      }
       redeem_special_invite: { Args: { _token: string }; Returns: Json }
       refresh_trending_scores_cache: { Args: never; Returns: undefined }
       refresh_user_collab_boosts: {
