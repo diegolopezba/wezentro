@@ -1,6 +1,6 @@
-# Conectar los 3 gates de Premium
+# Conectar 2 gates de Premium
 
-Waiting list de reservas queda fuera de este pase (sigue solo como texto en los planes).
+Waiting list de reservas y plano visual del local quedan fuera de este pase (siguen solo como texto en los planes).
 
 ## 1. Prioridad en discovery (Premium)
 
