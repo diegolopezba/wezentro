@@ -992,8 +992,9 @@ const Create = () => {
                         className="pl-10"
                         value=""
                         readOnly
-                        onFocus={(e) => { e.target.blur(); setShowBusinessGate(true); }}
-                        onClick={() => setShowBusinessGate(true)}
+                        onFocus={(e) => { e.target.blur(); openBusinessGate("tickets"); }}
+                        onClick={() => openBusinessGate("tickets")}
+
                         onChange={() => {}}
                         min="0" step="0.01" />
                     </div>
