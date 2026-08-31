@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { m, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, Briefcase } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
+import { setBusinessIntent } from "@/lib/businessIntent";
 
 const emailSchema = z.string().email("Por favor ingresa un correo válido");
 const passwordSchema = z.string().min(8, "La contraseña debe tener al menos 8 caracteres");
@@ -16,6 +17,7 @@ interface LocationState {
   from?: { pathname: string };
   mode?: "signin" | "signup";
   returnTo?: string;
+  businessIntent?: boolean;
 }
 
 const Auth = () => {
