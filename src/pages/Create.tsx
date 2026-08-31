@@ -1234,7 +1234,7 @@ const Create = () => {
         </div>
       </div>
 
-      <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
+      <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} context={businessGateContext} />
       <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} context={beneficiaryGateContext} />
       <FeatureIntroSheet
         open={introOpen && !showBusinessGate && !showBeneficiaryGate}
