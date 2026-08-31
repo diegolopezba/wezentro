@@ -62,6 +62,8 @@ interface PlanSelectorProps {
   footerSlot?: React.ReactNode;
   /** Ask "how many tables do you have?" first and pre-select the matching plan. */
   askRecommendation?: boolean;
+  /** No paid plan yet: CTA always reads as an activation. */
+  needsActivation?: boolean;
 }
 
 /**
@@ -78,6 +80,7 @@ export const PlanSelector = ({
   subtitle,
   footerSlot,
   askRecommendation = false,
+  needsActivation = false,
 }: PlanSelectorProps) => {
   const [selected, setSelected] = useState<TierKey>(initialTier ?? currentTier);
   const [interval, setInterval] = useState<BillingInterval>("month");
