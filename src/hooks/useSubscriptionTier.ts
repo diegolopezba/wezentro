@@ -82,6 +82,11 @@ export const useSubscriptionTier = (businessId?: string) => {
       data.status !== "past_due",
     /** Max reservable tables allowed by the plan (null = unlimited). */
     maxTables: isSubscriptionGated ? SUBSCRIPTION_TIERS[tier].maxTables : null,
+    /** Paid period ended: features still work until grace_until. */
+    inGracePeriod: data?.status === "past_due",
+    graceUntil: data?.grace_until ?? null,
+    renewsOn: data?.billing_period_end ?? null,
+    billingInterval: (data?.billing_interval ?? "month") as "month" | "year",
     isLoading,
     hasFeature,
   };
