@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
-import { setBusinessIntent } from "@/lib/businessIntent";
+import { setBusinessIntent, hasBusinessIntent } from "@/lib/businessIntent";
 
 const emailSchema = z.string().email("Por favor ingresa un correo válido");
 const passwordSchema = z.string().min(8, "La contraseña debe tener al menos 8 caracteres");
