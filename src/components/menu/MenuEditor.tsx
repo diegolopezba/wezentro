@@ -529,6 +529,9 @@ export const MenuEditor = () => {
                 onMoveDown={() => handleMoveItem(index, "down")}
                 isFirst={index === 0}
                 isLast={index === menu.items.length - 1}
+                userId={user?.id ?? ""}
+                canUseImages={canUseImages}
+                currentTier={tier}
               />
             ))}
           </div>
