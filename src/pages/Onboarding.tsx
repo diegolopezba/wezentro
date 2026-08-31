@@ -11,6 +11,7 @@ import { useProcessReferral } from "@/hooks/useReferrals";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
 
 import { takePendingSpecialInvite } from "@/hooks/useSpecialInvites";
+import { hasBusinessIntent } from "@/lib/businessIntent";
 
 const genderOptions = [
   { value: "male", label: "Masculino" },
@@ -181,7 +182,13 @@ const Onboarding = () => {
       toast.success("¡Bienvenido a Zentro!");
       setIsLoading(false);
       const pendingInvite = takePendingSpecialInvite();
-      navigate(pendingInvite ? `/i/${pendingInvite}` : "/");
+      if (pendingInvite) {
+        navigate(`/i/${pendingInvite}`);
+      } else if (hasBusinessIntent()) {
+        navigate("/business/setup", { replace: true });
+      } else {
+        navigate("/");
+      }
     } catch (e) {
       console.error("[Onboarding] handleComplete threw:", e);
       toast.error("No pudimos guardar tu perfil. Intenta de nuevo.");

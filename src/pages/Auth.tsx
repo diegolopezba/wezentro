@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { m, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, Briefcase } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
+import { setBusinessIntent } from "@/lib/businessIntent";
 
 const emailSchema = z.string().email("Por favor ingresa un correo válido");
 const passwordSchema = z.string().min(8, "La contraseña debe tener al menos 8 caracteres");
@@ -16,6 +17,7 @@ interface LocationState {
   from?: { pathname: string };
   mode?: "signin" | "signup";
   returnTo?: string;
+  businessIntent?: boolean;
 }
 
 const Auth = () => {
@@ -119,6 +121,13 @@ const Auth = () => {
       localStorage.setItem("zentro_referral_code", refCode);
     }
   }, [location.search]);
+
+  // Remember that this signup came from the "Soy empresa" flow, so onboarding
+  // can route the user into the business setup wizard afterwards.
+  useEffect(() => {
+    if (locationState?.businessIntent) setBusinessIntent();
+  }, [locationState?.businessIntent]);
+
 
   // Determine where to redirect after auth
   const getRedirectPath = () => {
@@ -540,6 +549,24 @@ const Auth = () => {
                     </>
                   )}
                 </Button>
+
+                {/* Business entry point */}
+                {mode !== "reset" && (
+                  <div className="pt-1 space-y-1.5">
+                    <Button
+                      variant="outline"
+                      className="w-full bg-transparent border-foreground/25 text-foreground"
+                      onClick={() => navigate("/business")}
+                      disabled={isLoading}
+                    >
+                      <Briefcase className="w-4 h-4 mr-2" />
+                      Soy empresa
+                    </Button>
+                    <p className="text-center text-xs text-muted-foreground">
+                      Creá la cuenta de tu bar, restaurante, club o productora
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
