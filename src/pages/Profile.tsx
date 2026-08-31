@@ -104,7 +104,7 @@ const Profile = () => {
           </div>
 
           <div className="flex-1">
-            <p className="text-sm text-muted-foreground mb-2">
+            <p className="text-sm text-foreground mb-2">
               {profile?.full_name || profile?.username}
             </p>
             {/* Stats */}
