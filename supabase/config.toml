@@ -59,5 +59,7 @@ project_id = "fipdpcitsjpqivljrktj"
     verify_jwt = true
   [functions.subscription-lifecycle]
     verify_jwt = false
+  [functions.send-invite-confirmed]
+    verify_jwt = false
 
 
