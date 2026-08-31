@@ -211,7 +211,7 @@ export const maxTablesForTier = (tier: TierKey): number | null =>
 export const tableLimitLabel = (tier: TierKey): string => {
   const max = maxTablesForTier(tier);
   if (max == null) return "";
-  const next = tier === "basico" ? "Profesional" : "Elite";
+  const next = tier === "basico" ? "Profesional" : "Premium";
   return `Tu plan ${SUBSCRIPTION_TIERS[tier].name} permite hasta ${max} mesas. Pasá a ${next} para agregar más.`;
 };
 
