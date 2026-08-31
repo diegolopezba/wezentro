@@ -89,6 +89,7 @@ const VenueLayouts = lazyWithRetry(() => import("./pages/VenueLayouts"));
 const BusinessPlans = lazyWithRetry(() => import("./pages/BusinessPlans"));
 const BusinessExperiences = lazyWithRetry(() => import("./pages/BusinessExperiences"));
 const BusinessLanding = lazyWithRetry(() => import("./pages/BusinessLanding"));
+const BusinessPlansPublic = lazyWithRetry(() => import("./pages/BusinessPlansPublic"));
 const BusinessSetup = lazyWithRetry(() => import("./pages/BusinessSetup"));
 const JoinedEvents = lazyWithRetry(() => import("./pages/JoinedEvents"));
 const Help = lazyWithRetry(() => import("./pages/Help"));
@@ -227,6 +228,7 @@ const AppRoutes = () => {
         <Route path="/auth" element={<LazyRoute><Auth /></LazyRoute>} />
         <Route path="/reset-password" element={<LazyRoute><ResetPassword /></LazyRoute>} />
         <Route path="/business" element={<LazyRoute><BusinessLanding /></LazyRoute>} />
+        <Route path="/business/planes" element={<LazyRoute><BusinessPlansPublic /></LazyRoute>} />
         <Route path="/business/setup" element={<ProtectedRoute requireProfile><LazyRoute><BusinessSetup /></LazyRoute></ProtectedRoute>} />
 
         {/* Private admin console */}

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
-import { setBusinessIntent } from "@/lib/businessIntent";
+import { setBusinessIntent, hasBusinessIntent } from "@/lib/businessIntent";
 
 const emailSchema = z.string().email("Por favor ingresa un correo válido");
 const passwordSchema = z.string().min(8, "La contraseña debe tener al menos 8 caracteres");
@@ -36,8 +36,16 @@ const Auth = () => {
     isLoading: authLoading
   } = useAuth();
   
+  // Arriving from the "Soy empresa" flow (nav state, or a flag that survived
+  // the email-code round trip).
+  const [businessMode] = useState<boolean>(
+    () => !!locationState?.businessIntent || hasBusinessIntent(),
+  );
+
   // Initialize mode from navigation state (from AuthPromptModal)
   const [mode, setMode] = useState<"login" | "signup" | "reset">(() => {
+    if (locationState?.businessIntent || (hasBusinessIntent() && locationState?.mode !== "signin"))
+      return "signup";
     if (locationState?.mode === "signup") return "signup";
     if (locationState?.mode === "signin") return "login";
     return "login";
@@ -131,6 +139,8 @@ const Auth = () => {
 
   // Determine where to redirect after auth
   const getRedirectPath = () => {
+    // Business flow always lands in the setup wizard
+    if (businessMode) return "/business/setup";
     // Priority: returnTo from modal > from state > default
     if (locationState?.returnTo) return locationState.returnTo;
     if (locationState?.from?.pathname) return locationState.from.pathname;
@@ -348,6 +358,19 @@ const Auth = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             className="max-w-sm mx-auto space-y-6" >
+            {/* Business flow context */}
+            {businessMode && mode !== "reset" && (
+              <div className="rounded-2xl border border-foreground/15 bg-foreground/5 px-4 py-3 text-center">
+                <div className="flex items-center justify-center gap-2 text-foreground">
+                  <Briefcase className="w-4 h-4" />
+                  <span className="text-sm font-semibold">Creá tu cuenta Business</span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Primero creás tu cuenta, después configuramos tu negocio.
+                </p>
+              </div>
+            )}
+
             {/* Toggle */}
             {mode !== "reset" && !awaitingCode && (
               <div className="flex p-1 rounded-xl bg-secondary">
@@ -551,7 +574,7 @@ const Auth = () => {
                 </Button>
 
                 {/* Business entry point */}
-                {mode !== "reset" && (
+                {mode !== "reset" && !businessMode && (
                   <div className="pt-1 space-y-1.5">
                     <Button
                       variant="outline"
@@ -566,6 +589,19 @@ const Auth = () => {
                       Creá la cuenta de tu bar, restaurante, club o productora
                     </p>
                   </div>
+                )}
+
+                {mode !== "reset" && businessMode && (
+                  <p className="text-center text-xs text-muted-foreground pt-1">
+                    Siguiente paso: configurar tu negocio ·{" "}
+                    <button
+                      type="button"
+                      className="text-foreground underline underline-offset-2"
+                      onClick={() => navigate("/business")}
+                    >
+                      Ver beneficios
+                    </button>
+                  </p>
                 )}
               </div>
             )}

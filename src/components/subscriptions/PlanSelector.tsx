@@ -64,6 +64,12 @@ interface PlanSelectorProps {
   askRecommendation?: boolean;
   /** No paid plan yet: CTA always reads as an activation. */
   needsActivation?: boolean;
+  /** Public/preview mode: no purchase, the CTA delegates to onCtaClick. */
+  readOnly?: boolean;
+  /** CTA label override (used with readOnly). */
+  ctaLabel?: string;
+  /** CTA handler override (used with readOnly). */
+  onCtaClick?: () => void;
 }
 
 /**
@@ -81,6 +87,9 @@ export const PlanSelector = ({
   footerSlot,
   askRecommendation = false,
   needsActivation = false,
+  readOnly = false,
+  ctaLabel,
+  onCtaClick,
 }: PlanSelectorProps) => {
   const [selected, setSelected] = useState<TierKey>(initialTier ?? currentTier);
   const [interval, setInterval] = useState<BillingInterval>("month");
@@ -100,7 +109,7 @@ export const PlanSelector = ({
   }, [selected]);
 
   const tier = SUBSCRIPTION_TIERS[selected];
-  const isCurrent = selected === currentTier;
+  const isCurrent = !readOnly && selected === currentTier;
   const isSheet = variant === "sheet";
 
   const goTo = (dir: 1 | -1) => {
@@ -404,23 +413,27 @@ export const PlanSelector = ({
           type="button"
           variant="sheet-action"
           className="h-12 w-full rounded-full text-base"
-          onClick={() => setConfirmOpen(true)}
+          onClick={() => (readOnly ? onCtaClick?.() : setConfirmOpen(true))}
         >
-          {isCurrent && !needsActivation
+          {readOnly
+            ? (ctaLabel ?? "Crear mi cuenta Business")
+            : isCurrent && !needsActivation
             ? interval === "year"
               ? "Pasar a 12 meses"
               : "Renovar mi plan"
-            : `Quiero ${tier.name}`}
+              : `Quiero ${tier.name}`}
         </Button>
       </div>
 
-      <PlanConfirmSheet
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        tier={selected}
-        interval={interval}
-        isUpgrade={!needsActivation && !isCurrent}
-      />
+      {!readOnly && (
+        <PlanConfirmSheet
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          tier={selected}
+          interval={interval}
+          isUpgrade={!needsActivation && !isCurrent}
+        />
+      )}
     </div>
   );
 };
