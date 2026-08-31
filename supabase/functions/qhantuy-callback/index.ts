@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
 
     const { data: session, error: sessErr } = await supabase
       .from("payment_sessions")
-      .select("id, event_id, experience_booking_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees")
+      .select("id, event_id, experience_booking_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees, subscription_business_id, subscription_tier, subscription_interval")
       .eq("id", internalCode)
       .maybeSingle();
     if (sessErr || !session) {
@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     // deduplicates by the stable payment-session key, so callback retries cannot
     // create duplicate emails but can recover from a transient dispatch failure.
     if (session.status === "confirmed") {
-      if (!(session as any).experience_booking_id) {
+      if (!(session as any).experience_booking_id && !(session as any).subscription_business_id) {
         const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-purchase-tickets`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
@@ -104,6 +104,50 @@ Deno.serve(async (req) => {
         qhantuy_raw_callback: params,
       })
       .eq("id", session.id);
+
+    // Business plan checkout: activate / extend the subscription and stop here.
+    if ((session as any).subscription_business_id) {
+      const businessId = (session as any).subscription_business_id as string;
+      const tier = String((session as any).subscription_tier ?? "basico");
+      const rawInterval = String((session as any).subscription_interval ?? "month");
+      const prorated = rawInterval === "prorated";
+      const interval = prorated ? "month" : rawInterval;
+
+      const { data: act, error: actErr } = await supabase.rpc("activate_business_subscription", {
+        _business_id: businessId,
+        _tier: tier,
+        _interval: interval,
+        _session_id: session.id,
+        _amount: Number(session.amount),
+        _prorated: prorated,
+      });
+      if (actErr) console.error("activate_business_subscription failed:", actErr);
+
+      const planName =
+        tier === "elite" ? "Premium" : tier === "profesional" ? "Profesional" : "Básico";
+
+      await supabase.from("notifications").insert({
+        user_id: businessId,
+        type: "payment_confirmed",
+        title: "Plan activado",
+        body: `Tu plan ${planName} ya está activo.`,
+        entity_type: "subscription",
+        entity_id: businessId,
+      });
+
+      try {
+        await fetch(`${SUPABASE_URL}/functions/v1/send-subscription-emails`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+          body: JSON.stringify({ businessId, kind: "activated", paymentSessionId: session.id }),
+        });
+      } catch (e) {
+        console.error("send-subscription-emails dispatch failed", e);
+      }
+
+      console.log("subscription activated", businessId, tier, act);
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
 
     // Experience booking checkout: confirm the booking and stop here (no event tickets).
     if ((session as any).experience_booking_id) {

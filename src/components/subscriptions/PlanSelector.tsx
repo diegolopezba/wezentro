@@ -221,18 +221,18 @@ export const PlanSelector = ({
                   isSheet ? "text-background" : "text-foreground",
                 )}
               >
-                {formatTierPrice(selected)}
+                {formatTierPrice(selected, interval)}
               </p>
-              {dailyPriceLabel(selected) && (
-                <p
-                  className={cn(
-                    "mt-0.5 text-[13px]",
-                    isSheet ? "text-background/60" : "text-muted-foreground",
-                  )}
-                >
-                  {dailyPriceLabel(selected)}
-                </p>
-              )}
+              <p
+                className={cn(
+                  "mt-0.5 text-[13px]",
+                  isSheet ? "text-background/60" : "text-muted-foreground",
+                )}
+              >
+                {interval === "year"
+                  ? `${yearlyEquivalentLabel(selected)} · ahorrás ${formatBs(yearlySavings(selected))} al año`
+                  : dailyPriceLabel(selected)}
+              </p>
               <p
                 className={cn(
                   "mt-1 text-sm",
@@ -242,6 +242,36 @@ export const PlanSelector = ({
                 {tier.sizeLabel} · {tier.tagline}
               </p>
 
+              {/* Billing interval */}
+              <div
+                className={cn(
+                  "mt-4 flex gap-1 rounded-full p-1",
+                  isSheet ? "bg-background/15" : "bg-muted",
+                )}
+              >
+                {(["month", "year"] as BillingInterval[]).map((opt) => {
+                  const active = interval === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setInterval(opt)}
+                      className={cn(
+                        "flex-1 rounded-full py-2 text-[13px] font-medium transition-colors",
+                        active
+                          ? isSheet
+                            ? "bg-background text-foreground"
+                            : "bg-foreground text-background"
+                          : isSheet
+                            ? "text-background/70"
+                            : "text-muted-foreground",
+                      )}
+                    >
+                      {opt === "month" ? "Mensual" : "12 meses · -5%"}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Highlights */}
