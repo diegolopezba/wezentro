@@ -20,7 +20,7 @@ Hoy el menú es solo texto y precio. Los planes Profesional y Premium podrán ag
 
 **Vista pública (`MenuSheet.tsx`)**
 - Si el ítem tiene `image_url`, se muestra el thumbnail a la izquierda del nombre/descripción, con `loading="lazy"` y fallback al layout actual cuando no hay foto.
-- No se gatea la lectura: si un negocio baja a Básico, las fotos ya subidas se siguen viendo pero no puede agregar ni cambiar nuevas.
+- Si un negocio baja a Básico, las fotos se pierden: dejan de verse en el menú público y el ítem vuelve a ser solo texto. Las URLs almacenadas se limpian (`image_url` a NULL) y se borran los archivos del bucket para no acumular imágenes huérfanas.
 
 **Hook `useMenu.ts`**
 - `MenuItem` incluye `image_url`; `useUpdateMenuItem` acepta `image_url`.
