@@ -358,6 +358,19 @@ const Auth = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             className="max-w-sm mx-auto space-y-6" >
+            {/* Business flow context */}
+            {businessMode && mode !== "reset" && (
+              <div className="rounded-2xl border border-foreground/15 bg-foreground/5 px-4 py-3 text-center">
+                <div className="flex items-center justify-center gap-2 text-foreground">
+                  <Briefcase className="w-4 h-4" />
+                  <span className="text-sm font-semibold">Creá tu cuenta Business</span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Primero creás tu cuenta, después configuramos tu negocio.
+                </p>
+              </div>
+            )}
+
             {/* Toggle */}
             {mode !== "reset" && !awaitingCode && (
               <div className="flex p-1 rounded-xl bg-secondary">
