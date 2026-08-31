@@ -358,6 +358,8 @@ export const PlanSelector = ({
         {!isCurrent && (
           <p className="pb-2 text-center text-[11px] text-muted-foreground">
             Sin permanencia · Sin comisión por reserva · Cancelás cuando quieras
+            <br />
+            Los eventos y experiencias con ticketing tienen 6% de comisión por entrada vendida.
           </p>
         )}
         <Button
