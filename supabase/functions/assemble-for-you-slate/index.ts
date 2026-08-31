@@ -198,6 +198,29 @@ const socialProofScore = (entries: any[], mutuals: Set<string>) => {
   return n >= 4 ? 100 : n >= 3 ? 80 : n >= 2 ? 60 : n >= 1 ? 40 : 0;
 };
 
+// ──────────────── Premium discovery priority ────────────────
+// Businesses on the Premium plan get a gentle placement boost. Cached in
+// function memory for 5 minutes so this never costs a query per request.
+let premiumCache: { ids: Set<string>; at: number } | null = null;
+const PREMIUM_TTL_MS = 5 * 60_000;
+
+const getPremiumBusinessIds = async (supabase: any): Promise<Set<string>> => {
+  if (premiumCache && Date.now() - premiumCache.at < PREMIUM_TTL_MS) {
+    return premiumCache.ids;
+  }
+  try {
+    const { data, error } = await supabase.rpc("get_premium_business_ids");
+    if (error) throw error;
+    const ids = new Set<string>(((data || []) as any[]).map((r) => r.business_id));
+    premiumCache = { ids, at: Date.now() };
+    return ids;
+  } catch (_e) {
+    return premiumCache?.ids ?? new Set<string>();
+  }
+};
+
+
+
 // Tiny deterministic hash → [0,1). Used as a stable per-seed jitter so
 // different sessions get different orderings without random() shuffling.
 const hashJitter = (seed: string, id: string): number => {
