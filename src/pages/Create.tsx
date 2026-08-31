@@ -51,6 +51,8 @@ import { useReplaceTicketTiers } from "@/hooks/useTicketTiers";
 import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSection";
 import { useReplaceEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
+import { readCreateDraft, usePersistCreateDraft, clearCreateDraft } from "@/hooks/useCreateDraft";
+
 import { useBusinessExperiences } from "@/hooks/useExperiences";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
 import { CREATE_INTRO } from "@/components/business/featureIntroSteps";
