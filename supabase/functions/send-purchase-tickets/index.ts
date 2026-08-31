@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
+import { sendAppEmail } from '../_shared/send-app-email.ts'
 
 const SITE = 'https://zentro.today'
 
@@ -186,22 +187,20 @@ Deno.serve(async (req) => {
     idempotencyKey: string,
     templateData: Record<string, unknown>,
   ) => {
-    const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${serviceKey}` },
-      body: JSON.stringify({
-        templateName: 'tickets-purchased',
-        recipientEmail,
+    try {
+      const result = await sendAppEmail(admin, 'tickets-purchased', recipientEmail, {
         idempotencyKey,
         templateData,
-      }),
-    })
-    const responseBody = await res.text()
-    if (!res.ok) {
-      console.error('tickets email failed', res.status, responseBody)
+      })
+      if (!result.sent) {
+        console.warn('tickets email not sent', { idempotencyKey, reason: result.reason })
+        return false
+      }
+    } catch (error) {
+      console.error('tickets email failed', (error as Error).message)
       return false
     }
-    console.log('ticket confirmation queued', { idempotencyKey, status: res.status })
+    console.log('ticket confirmation sent', { idempotencyKey })
     return true
   }
 

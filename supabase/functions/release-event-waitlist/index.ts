@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { sendAppEmail } from '../_shared/send-app-email.ts'
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -87,20 +88,16 @@ async function releaseEvent(admin: ReturnType<typeof createClient>, event: Event
         const { data: authUser } = await admin.auth.admin.getUserById(uid);
         const email = authUser?.user?.email;
         if (!email) continue;
-        await admin.functions.invoke("send-transactional-email", {
-          body: {
-            templateName: "waitlist-released",
-            recipientEmail: email,
-            idempotencyKey: `waitlist-${event.id}-${uid}`,
-            templateData: {
-              guestName: nameById.get(uid) ?? undefined,
-              eventTitle: title,
-              eventDate: event.start_datetime ?? undefined,
-              eventLocation: event.location_name ?? undefined,
-              eventImageUrl: event.image_url ?? undefined,
-              eventUrl: `${SITE_URL}/event/${event.id}`,
-              earlyAccessHours: hours,
-            },
+        await sendAppEmail(admin, "waitlist-released", email, {
+          idempotencyKey: `waitlist-${event.id}-${uid}`,
+          templateData: {
+            guestName: nameById.get(uid) ?? undefined,
+            eventTitle: title,
+            eventDate: event.start_datetime ?? undefined,
+            eventLocation: event.location_name ?? undefined,
+            eventImageUrl: event.image_url ?? undefined,
+            eventUrl: `${SITE_URL}/event/${event.id}`,
+            earlyAccessHours: hours,
           },
         });
       } catch (e) {
