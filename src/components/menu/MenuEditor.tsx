@@ -44,6 +44,7 @@ import {
   MenuCategory,
 } from "@/hooks/useMenu";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { LockedFeature } from "@/components/subscriptions/LockedFeature";
 
