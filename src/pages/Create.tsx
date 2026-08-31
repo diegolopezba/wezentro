@@ -157,6 +157,7 @@ const Create = () => {
     if (!experiencesEnabled && experienceId) setExperienceId(null);
   }, [experiencesEnabled, experienceId]);
   const [showBusinessGate, setShowBusinessGate] = useState(false);
+  const [businessGateContext, setBusinessGateContext] = useState<"tickets" | "event">("tickets");
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const [beneficiaryGateContext, setBeneficiaryGateContext] = useState<"tickets" | "experience">("tickets");
   const { open: introOpen, setOpen: setIntroOpen, reopen: reopenIntro } = useFeatureIntro("create");
@@ -164,10 +165,15 @@ const Create = () => {
     setBeneficiaryGateContext(ctx);
     setShowBeneficiaryGate(true);
   };
+  const openBusinessGate = (ctx: "tickets" | "event" = "tickets") => {
+    setBusinessGateContext(ctx);
+    setShowBusinessGate(true);
+  };
   const gatePaidAction = () => {
-    if (!isBusiness) setShowBusinessGate(true);
+    if (!isBusiness) openBusinessGate("tickets");
     else if (!hasBeneficiary) openBeneficiaryGate("tickets");
   };
+
 
 
   const handleTypeChange = (type: ContentType) => {
