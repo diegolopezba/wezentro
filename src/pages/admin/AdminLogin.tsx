@@ -45,14 +45,14 @@ const AdminLogin = () => {
 
   if (checking) {
     return (
-      <div className="min-h-[100dvh] bg-background flex items-center justify-center">
+      <div className="light min-h-[100dvh] bg-background flex items-center justify-center">
         <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background flex items-center justify-center px-6">
+    <div className="light min-h-[100dvh] bg-background flex items-center justify-center px-6">
       <form onSubmit={submit} className="w-full max-w-sm space-y-5">
         <div className="flex flex-col items-center gap-3 mb-2">
           <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center">

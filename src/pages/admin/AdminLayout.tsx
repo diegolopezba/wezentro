@@ -21,7 +21,7 @@ const AdminLayout = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[100dvh] bg-background flex items-center justify-center">
+      <div className="light min-h-[100dvh] bg-background flex items-center justify-center">
         <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
       </div>
     );
@@ -34,7 +34,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background text-foreground flex">
+    <div className="light min-h-[100dvh] bg-background text-foreground flex">
       <aside className="w-56 shrink-0 border-r border-border hidden md:flex flex-col p-4 gap-1">
         <div className="px-3 py-4">
           <p className="text-sm font-medium">Zentro Admin</p>
