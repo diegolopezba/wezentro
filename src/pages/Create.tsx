@@ -345,6 +345,11 @@ const Create = () => {
       navigate("/auth");
       return;
     }
+    // Events are a Business-only feature. Posts stay open to everyone.
+    if (!isPost && !isBusiness) {
+      openBusinessGate("event");
+      return;
+    }
     if (mediaItems.length === 0) {
       toast.error("Por favor sube al menos una imagen o video");
       return;
@@ -367,12 +372,13 @@ const Create = () => {
     const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
     if (experienceId) {
       // Linked experiences are booked and paid through QR too: payouts are required.
-      if (!isBusiness) { setShowBusinessGate(true); return; }
+      if (!isBusiness) { openBusinessGate("tickets"); return; }
       if (!hasBeneficiary) { openBeneficiaryGate("experience"); return; }
     } else if (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers")) {
-      if (!isBusiness) { setShowBusinessGate(true); return; }
+      if (!isBusiness) { openBusinessGate("tickets"); return; }
       if (!hasBeneficiary) { openBeneficiaryGate("tickets"); return; }
     }
+
 
     // Validate ticket tiers (events only, business + tiers mode)
     const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
