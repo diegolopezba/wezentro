@@ -122,11 +122,17 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
     bullets: [
       "Hasta 20 mesas",
       "Todo lo de Básico: reservas y menús completos",
+      "Menú completo con fotos de cada plato",
       "Múltiples turnos: desayuno, almuerzo y cena por separado",
       "Analíticas completas: no-shows, cancelaciones, horarios que más se llenan y demografía",
     ],
     badge: "Recomendado",
     highlights: [
+      {
+        icon: "menu",
+        title: "Menú con fotos",
+        description: "Cada plato con su foto: mucho más fácil de vender.",
+      },
       {
         icon: "sparkles",
         title: "Todo lo de Básico",
@@ -259,6 +265,10 @@ export const TIER_COMPARISON: readonly {
   {
     label: "Mesas configurables",
     values: { basico: "Hasta 9", profesional: "Hasta 20", elite: "Ilimitadas" },
+  },
+  {
+    label: "Fotos en el menú",
+    values: { basico: "—", profesional: "Sí", elite: "Sí" },
   },
   {
     label: "Turnos por día",
