@@ -276,8 +276,13 @@ const calculateScore = (event: any, ctx: any, nowMs: number): number => {
   // V7: multiplicative quality penalty for dead content.
   const qm = qualityMultiplier(likes, saves, joins, impressions, event.created_at, nowMs);
 
+  // Premium plan: gentle discovery priority for Premium businesses. Only when
+  // quality is untouched (qm === 1), so a paid plan can never lift dead content.
+  const premiumBoost =
+    qm === 1 && ctx.premiumBusinessIds?.has(event.creator_id) ? 1.08 : 1;
+
   // Tiny per-seed jitter (<2 pts) for stable per-session tiebreaks.
-  return base * qm + hashJitter(ctx.sessionSeed, event.id) * 2;
+  return base * qm * premiumBoost + hashJitter(ctx.sessionSeed, event.id) * 2;
 };
 
 // ──────────────── cursor codec ────────────────
