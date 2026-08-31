@@ -13,6 +13,7 @@ export type FeatureKey =
   | "table_joining"
   | "full_reservation_policy"
   | "reservas_analytics_full"
+  | "reservation_waitlist"
   | "priority_placement"
   | "venue_layout"
   | "city_insights";
