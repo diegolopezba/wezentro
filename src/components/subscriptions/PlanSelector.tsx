@@ -109,7 +109,7 @@ export const PlanSelector = ({
   }, [selected]);
 
   const tier = SUBSCRIPTION_TIERS[selected];
-  const isCurrent = selected === currentTier;
+  const isCurrent = !readOnly && selected === currentTier;
   const isSheet = variant === "sheet";
 
   const goTo = (dir: 1 | -1) => {
