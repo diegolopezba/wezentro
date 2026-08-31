@@ -300,6 +300,7 @@ export const useUpdateMenuItem = () => {
       name,
       description,
       price,
+      image_url,
       is_available,
       category_id,
     }: {
@@ -307,6 +308,7 @@ export const useUpdateMenuItem = () => {
       name?: string;
       description?: string | null;
       price?: number | null;
+      image_url?: string | null;
       is_available?: boolean;
       category_id?: string | null;
     }) => {
@@ -314,6 +316,7 @@ export const useUpdateMenuItem = () => {
       if (name !== undefined) updates.name = name;
       if (description !== undefined) updates.description = description;
       if (price !== undefined) updates.price = price;
+      if (image_url !== undefined) updates.image_url = image_url;
       if (is_available !== undefined) updates.is_available = is_available;
       if (category_id !== undefined) updates.category_id = category_id;
 
@@ -338,13 +341,14 @@ export const useDeleteMenuItem = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, imageUrl }: { id: string; imageUrl?: string | null }) => {
       const { error } = await supabase
         .from("menu_items")
         .delete()
         .eq("id", id);
 
       if (error) throw error;
+      await deleteMenuItemImageFile(imageUrl ?? null);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menu", user?.id] });
