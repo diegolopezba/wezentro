@@ -4736,6 +4736,7 @@ export type Database = {
           unread_count: number
         }[]
       }
+      get_city_benchmarks: { Args: { _business_id: string }; Returns: Json }
       get_collab_boosts: {
         Args: { _user_id: string }
         Returns: {
@@ -4936,6 +4937,12 @@ export type Database = {
       get_or_create_private_chat: {
         Args: { _other_user_id: string; _user_id: string }
         Returns: string
+      }
+      get_premium_business_ids: {
+        Args: never
+        Returns: {
+          business_id: string
+        }[]
       }
       get_public_invite: {
         Args: { _token: string }

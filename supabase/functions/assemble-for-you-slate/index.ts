@@ -198,6 +198,29 @@ const socialProofScore = (entries: any[], mutuals: Set<string>) => {
   return n >= 4 ? 100 : n >= 3 ? 80 : n >= 2 ? 60 : n >= 1 ? 40 : 0;
 };
 
+// ──────────────── Premium discovery priority ────────────────
+// Businesses on the Premium plan get a gentle placement boost. Cached in
+// function memory for 5 minutes so this never costs a query per request.
+let premiumCache: { ids: Set<string>; at: number } | null = null;
+const PREMIUM_TTL_MS = 5 * 60_000;
+
+const getPremiumBusinessIds = async (supabase: any): Promise<Set<string>> => {
+  if (premiumCache && Date.now() - premiumCache.at < PREMIUM_TTL_MS) {
+    return premiumCache.ids;
+  }
+  try {
+    const { data, error } = await supabase.rpc("get_premium_business_ids");
+    if (error) throw error;
+    const ids = new Set<string>(((data || []) as any[]).map((r) => r.business_id));
+    premiumCache = { ids, at: Date.now() };
+    return ids;
+  } catch (_e) {
+    return premiumCache?.ids ?? new Set<string>();
+  }
+};
+
+
+
 // Tiny deterministic hash → [0,1). Used as a stable per-seed jitter so
 // different sessions get different orderings without random() shuffling.
 const hashJitter = (seed: string, id: string): number => {
@@ -276,8 +299,13 @@ const calculateScore = (event: any, ctx: any, nowMs: number): number => {
   // V7: multiplicative quality penalty for dead content.
   const qm = qualityMultiplier(likes, saves, joins, impressions, event.created_at, nowMs);
 
+  // Premium plan: gentle discovery priority for Premium businesses. Only when
+  // quality is untouched (qm === 1), so a paid plan can never lift dead content.
+  const premiumBoost =
+    qm === 1 && ctx.premiumBusinessIds?.has(event.creator_id) ? 1.08 : 1;
+
   // Tiny per-seed jitter (<2 pts) for stable per-session tiebreaks.
-  return base * qm + hashJitter(ctx.sessionSeed, event.id) * 2;
+  return base * qm * premiumBoost + hashJitter(ctx.sessionSeed, event.id) * 2;
 };
 
 // ──────────────── cursor codec ────────────────
@@ -348,6 +376,7 @@ Deno.serve(async (req) => {
       ? supabase.rpc("get_for_you_context", { _user_id: userId })
       : Promise.resolve({ data: {} as any, error: null });
     const trendingPromise = supabase.rpc("get_trending_scores");
+    const premiumPromise = getPremiumBusinessIds(supabase);
     const collabPromise = userId
       ? (async () => {
           supabase.rpc("ensure_collab_boosts_fresh", { _user_id: userId }).then(() => {});
@@ -366,10 +395,10 @@ Deno.serve(async (req) => {
       ? supabase.from("user_creator_preferences").select("creator_id, score").eq("user_id", userId)
       : Promise.resolve({ data: [], error: null });
 
-    const [candidatesRes, contextRes, trendingRes, collabRes, sponsoredRes, prefsRes, creatorPrefsRes] =
+    const [candidatesRes, contextRes, trendingRes, collabRes, sponsoredRes, prefsRes, creatorPrefsRes, premiumBusinessIds] =
       await Promise.all([
         candidatesPromise, contextPromise, trendingPromise, collabPromise,
-        sponsoredPromise, prefsPromise, creatorPrefsPromise,
+        sponsoredPromise, prefsPromise, creatorPrefsPromise, premiumPromise,
       ]);
 
     if (candidatesRes.error) throw candidatesRes.error;
@@ -412,6 +441,7 @@ Deno.serve(async (req) => {
       collabBoosts,
       isNewUser,
       sessionSeed: seed,
+      premiumBusinessIds,
       _mutualSet: mutualSet,
     };
 
