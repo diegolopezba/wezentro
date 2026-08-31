@@ -372,10 +372,10 @@ Deno.serve(async (req) => {
       ? supabase.from("user_creator_preferences").select("creator_id, score").eq("user_id", userId)
       : Promise.resolve({ data: [], error: null });
 
-    const [candidatesRes, contextRes, trendingRes, collabRes, sponsoredRes, prefsRes, creatorPrefsRes] =
+    const [candidatesRes, contextRes, trendingRes, collabRes, sponsoredRes, prefsRes, creatorPrefsRes, premiumBusinessIds] =
       await Promise.all([
         candidatesPromise, contextPromise, trendingPromise, collabPromise,
-        sponsoredPromise, prefsPromise, creatorPrefsPromise,
+        sponsoredPromise, prefsPromise, creatorPrefsPromise, premiumPromise,
       ]);
 
     if (candidatesRes.error) throw candidatesRes.error;
