@@ -250,7 +250,10 @@ const CategoryRow = ({
 };
 
 export const MenuEditor = () => {
+  const { user } = useAuth();
   const { data: menu, isLoading } = useMyMenu();
+  const { tier, hasFeature, isLoading: tierLoading } = useSubscriptionTier(user?.id);
+  const canUseImages = hasFeature("menu_images");
   const createMenuMutation = useCreateMenu();
   const createItemMutation = useCreateMenuItem();
   const updateItemMutation = useUpdateMenuItem();
