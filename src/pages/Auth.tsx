@@ -122,6 +122,13 @@ const Auth = () => {
     }
   }, [location.search]);
 
+  // Remember that this signup came from the "Soy empresa" flow, so onboarding
+  // can route the user into the business setup wizard afterwards.
+  useEffect(() => {
+    if (locationState?.businessIntent) setBusinessIntent();
+  }, [locationState?.businessIntent]);
+
+
   // Determine where to redirect after auth
   const getRedirectPath = () => {
     // Priority: returnTo from modal > from state > default
