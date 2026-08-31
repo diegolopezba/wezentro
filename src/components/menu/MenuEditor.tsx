@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,8 @@ import {
   Pencil,
   FolderPlus,
   Folder,
+  ImagePlus,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -36,9 +38,15 @@ import {
   useUpdateMenuCategory,
   useDeleteMenuCategory,
   useReorderMenuCategories,
+  uploadMenuItemImage,
+  deleteMenuItemImageFile,
   MenuItem,
   MenuCategory,
 } from "@/hooks/useMenu";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { LockedFeature } from "@/components/subscriptions/LockedFeature";
 
 interface ItemFormData {
   name: string;
@@ -51,6 +59,90 @@ interface CategoryFormData {
   name: string;
 }
 
+const MenuItemImage = ({
+  item,
+  userId,
+  canUseImages,
+  currentTier,
+}: {
+  item: MenuItem;
+  userId: string;
+  canUseImages: boolean;
+  currentTier: "basico" | "profesional" | "elite";
+}) => {
+  const updateMutation = useUpdateMenuItem();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFile = async (file: File | undefined) => {
+    if (!file || !canUseImages) return;
+    setUploading(true);
+    try {
+      await deleteMenuItemImageFile(item.image_url);
+      const url = await uploadMenuItemImage(userId, item.id, file);
+      await updateMutation.mutateAsync({ id: item.id, image_url: url });
+      toast.success("Foto actualizada");
+    } catch (e: any) {
+      toast.error(e?.message || "Error al subir la foto");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const handleRemove = async () => {
+    try {
+      await deleteMenuItemImageFile(item.image_url);
+      await updateMutation.mutateAsync({ id: item.id, image_url: null });
+    } catch {
+      toast.error("Error al quitar la foto");
+    }
+  };
+
+  const thumb = (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => fileRef.current?.click()}
+        disabled={uploading}
+        className="w-[72px] h-[72px] rounded-xl overflow-hidden bg-secondary flex items-center justify-center shrink-0 active:opacity-70"
+        aria-label={item.image_url ? "Cambiar foto" : "Agregar foto"}
+      >
+        {uploading ? (
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        ) : item.image_url ? (
+          <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+        ) : (
+          <ImagePlus className="w-5 h-5 text-muted-foreground" />
+        )}
+      </button>
+      {item.image_url && !uploading && (
+        <button
+          type="button"
+          onClick={handleRemove}
+          aria-label="Quitar foto"
+          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-white flex items-center justify-center"
+        >
+          <X className="w-3 h-3" />
+        </button>
+      )}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files?.[0])}
+      />
+    </div>
+  );
+
+  return (
+    <LockedFeature feature="menu_images" currentTier={currentTier} locked={!canUseImages}>
+      {thumb}
+    </LockedFeature>
+  );
+};
+
 const MenuItemRow = ({
   item,
   onEdit,
@@ -59,6 +151,9 @@ const MenuItemRow = ({
   onMoveDown,
   isFirst,
   isLast,
+  userId,
+  canUseImages,
+  currentTier,
 }: {
   item: MenuItem;
   onEdit: () => void;
@@ -67,13 +162,17 @@ const MenuItemRow = ({
   onMoveDown: () => void;
   isFirst: boolean;
   isLast: boolean;
+  userId: string;
+  canUseImages: boolean;
+  currentTier: "basico" | "profesional" | "elite";
 }) => {
   const updateMutation = useUpdateMenuItem();
   const handleAvailabilityChange = (checked: boolean) => {
     updateMutation.mutate({ id: item.id, is_available: checked });
   };
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-border last:border-b-0">
+    <div className="py-3 border-b border-border last:border-b-0">
+      <div className="flex items-center gap-3">
       <div className="flex flex-col gap-1">
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onMoveUp} disabled={isFirst}>
           <ChevronUp className="w-4 h-4" />
@@ -82,6 +181,7 @@ const MenuItemRow = ({
           <ChevronDown className="w-4 h-4" />
         </Button>
       </div>
+      <MenuItemImage item={item} userId={userId} canUseImages={canUseImages} currentTier={currentTier} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <h4 className="font-medium text-foreground truncate">{item.name}</h4>
@@ -105,6 +205,7 @@ const MenuItemRow = ({
         <Button variant="ghost" size="icon" onClick={onDelete}>
           <Trash2 className="w-4 h-4 text-destructive" />
         </Button>
+      </div>
       </div>
     </div>
   );
@@ -150,7 +251,10 @@ const CategoryRow = ({
 };
 
 export const MenuEditor = () => {
+  const { user } = useAuth();
   const { data: menu, isLoading } = useMyMenu();
+  const { tier, hasFeature, isLoading: tierLoading } = useSubscriptionTier(user?.id);
+  const canUseImages = hasFeature("menu_images");
   const createMenuMutation = useCreateMenu();
   const createItemMutation = useCreateMenuItem();
   const updateItemMutation = useUpdateMenuItem();
@@ -173,6 +277,23 @@ export const MenuEditor = () => {
   });
   const [categoryForm, setCategoryForm] = useState<CategoryFormData>({ name: "" });
   const [activeTab, setActiveTab] = useState<"items" | "categories">("items");
+
+  // Downgrade cleanup: Básico has no menu photos — strip image_url and delete
+  // the stored files so no orphaned images remain.
+  const cleanupDone = useRef(false);
+  useEffect(() => {
+    if (cleanupDone.current || tierLoading || canUseImages || !menu) return;
+    const withImages = menu.items.filter((i) => i.image_url);
+    if (withImages.length === 0) return;
+    cleanupDone.current = true;
+    (async () => {
+      for (const item of withImages) {
+        await deleteMenuItemImageFile(item.image_url);
+        await supabase.from("menu_items").update({ image_url: null } as any).eq("id", item.id);
+      }
+      toast.info("Las fotos del menú no están incluidas en el plan Básico y fueron eliminadas.");
+    })();
+  }, [tierLoading, canUseImages, menu]);
 
   const handleCreateMenu = async () => {
     try {
@@ -270,8 +391,9 @@ export const MenuEditor = () => {
   };
 
   const handleDeleteItem = async (id: string) => {
+    const item = menu?.items.find((i) => i.id === id);
     try {
-      await deleteItemMutation.mutateAsync(id);
+      await deleteItemMutation.mutateAsync({ id, imageUrl: item?.image_url });
       toast.success("Item eliminado");
     } catch {
       toast.error("Error al eliminar item");
@@ -425,6 +547,9 @@ export const MenuEditor = () => {
                 onMoveDown={() => handleMoveItem(index, "down")}
                 isFirst={index === 0}
                 isLast={index === menu.items.length - 1}
+                userId={user?.id ?? ""}
+                canUseImages={canUseImages}
+                currentTier={tier}
               />
             ))}
           </div>

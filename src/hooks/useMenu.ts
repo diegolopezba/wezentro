@@ -1,6 +1,45 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { compressImage, blobToFile } from "@/lib/mediaCompression";
+
+const MENU_IMAGES_BUCKET = "event-images";
+
+/** Path inside the bucket for a menu item image. */
+const menuImagePath = (userId: string, itemId: string) =>
+  `${userId}/menu/${itemId}-${Date.now()}.webp`;
+
+/** Extract the storage object path from a public menu image URL. */
+export const menuImagePathFromUrl = (url: string): string | null => {
+  const marker = `/${MENU_IMAGES_BUCKET}/`;
+  const idx = url.indexOf(marker);
+  return idx >= 0 ? url.slice(idx + marker.length) : null;
+};
+
+/** Compress + upload a menu item photo and return its public URL. */
+export const uploadMenuItemImage = async (
+  userId: string,
+  itemId: string,
+  file: File
+): Promise<string> => {
+  if (file.size > 5 * 1024 * 1024) throw new Error("La imagen no puede pesar más de 5 MB");
+  const { blob } = await compressImage(file, 800, 0.8);
+  const path = menuImagePath(userId, itemId);
+  const { error } = await supabase.storage
+    .from(MENU_IMAGES_BUCKET)
+    .upload(path, blobToFile(blob, `${itemId}.webp`), { upsert: true, contentType: blob.type });
+  if (error) throw error;
+  const { data } = supabase.storage.from(MENU_IMAGES_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+};
+
+/** Best-effort delete of a menu item's stored photo. */
+export const deleteMenuItemImageFile = async (imageUrl: string | null): Promise<void> => {
+  if (!imageUrl) return;
+  const path = menuImagePathFromUrl(imageUrl);
+  if (!path) return;
+  await supabase.storage.from(MENU_IMAGES_BUCKET).remove([path]);
+};
 
 export interface MenuCategory {
   id: string;
@@ -17,6 +56,7 @@ export interface MenuItem {
   name: string;
   description: string | null;
   price: number | null;
+  image_url: string | null;
   display_order: number;
   is_available: boolean;
   created_at: string;
@@ -260,6 +300,7 @@ export const useUpdateMenuItem = () => {
       name,
       description,
       price,
+      image_url,
       is_available,
       category_id,
     }: {
@@ -267,6 +308,7 @@ export const useUpdateMenuItem = () => {
       name?: string;
       description?: string | null;
       price?: number | null;
+      image_url?: string | null;
       is_available?: boolean;
       category_id?: string | null;
     }) => {
@@ -274,6 +316,7 @@ export const useUpdateMenuItem = () => {
       if (name !== undefined) updates.name = name;
       if (description !== undefined) updates.description = description;
       if (price !== undefined) updates.price = price;
+      if (image_url !== undefined) updates.image_url = image_url;
       if (is_available !== undefined) updates.is_available = is_available;
       if (category_id !== undefined) updates.category_id = category_id;
 
@@ -298,13 +341,14 @@ export const useDeleteMenuItem = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, imageUrl }: { id: string; imageUrl?: string | null }) => {
       const { error } = await supabase
         .from("menu_items")
         .delete()
         .eq("id", id);
 
       if (error) throw error;
+      await deleteMenuItemImageFile(imageUrl ?? null);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menu", user?.id] });

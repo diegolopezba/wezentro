@@ -29,6 +29,13 @@
       "when": 1788195569372,
       "tag": "0003_allow_subscription_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788211222465,
+      "tag": "0004_menu_item_images",
+      "breakpoints": true
     }
   ]
 }

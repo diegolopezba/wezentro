@@ -3,6 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UtensilsCrossed } from "lucide-react";
 import { useUserMenu, MenuItem, MenuCategory } from "@/hooks/useMenu";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
 interface MenuSheetProps {
   open: boolean;
@@ -11,10 +12,18 @@ interface MenuSheetProps {
   businessName?: string | null;
 }
 
-const MenuItemCard = ({ item }: { item: MenuItem }) => {
+const MenuItemCard = ({ item, showImages }: { item: MenuItem; showImages: boolean }) => {
   return (
-    <div className="flex justify-between items-start py-3 border-b border-border last:border-b-0">
-      <div className="flex-1 pr-4">
+    <div className="flex justify-between items-start gap-3 py-3 border-b border-border last:border-b-0">
+      {showImages && item.image_url && (
+        <img
+          src={item.image_url}
+          alt={item.name}
+          loading="lazy"
+          className="w-[72px] h-[72px] rounded-xl object-cover shrink-0"
+        />
+      )}
+      <div className="flex-1 pr-4 min-w-0">
         <div className="flex items-center gap-2">
           <h4 className="font-medium text-foreground">{item.name}</h4>
           {!item.is_available && (
@@ -30,7 +39,7 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => {
   );
 };
 
-const CategorySection = ({ category, items }: { category: MenuCategory | null; items: MenuItem[] }) => {
+const CategorySection = ({ category, items, showImages }: { category: MenuCategory | null; items: MenuItem[]; showImages: boolean }) => {
   if (items.length === 0) return null;
 
   return (
@@ -40,7 +49,7 @@ const CategorySection = ({ category, items }: { category: MenuCategory | null; i
       )}
       <div className="divide-y divide-border">
         {items.map((item) => (
-          <MenuItemCard key={item.id} item={item} />
+          <MenuItemCard key={item.id} item={item} showImages={showImages} />
         ))}
       </div>
     </div>
@@ -49,6 +58,8 @@ const CategorySection = ({ category, items }: { category: MenuCategory | null; i
 
 export const MenuSheet = ({ open, onOpenChange, userId, businessName }: MenuSheetProps) => {
   const { data: menu, isLoading } = useUserMenu(userId);
+  const { hasFeature } = useSubscriptionTier(userId);
+  const showImages = hasFeature("menu_images");
 
   // Group items by category
   const getGroupedItems = (): {
@@ -111,10 +122,10 @@ export const MenuSheet = ({ open, onOpenChange, userId, businessName }: MenuShee
             <div>
               {/* Categorized items */}
               {categorized.map(({ category, items }) => (
-                <CategorySection key={category.id} category={category} items={items} />
+                <CategorySection key={category.id} category={category} items={items} showImages={showImages} />
               ))}
               {/* Uncategorized items */}
-              {uncategorized.length > 0 && <CategorySection category={null} items={uncategorized} />}
+              {uncategorized.length > 0 && <CategorySection category={null} items={uncategorized} showImages={showImages} />}
             </div>
           )}
         </ScrollArea>
