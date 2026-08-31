@@ -103,6 +103,13 @@ const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
 const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
 const EventPromoterDashboard = lazyWithRetry(() => import("./pages/EventPromoterDashboard"));
 
+// Private admin console (own subdomain, never linked from the app UI)
+const AdminLogin = lazyWithRetry(() => import("./pages/admin/AdminLogin"));
+const AdminLayout = lazyWithRetry(() => import("./pages/admin/AdminLayout"));
+const AdminOverview = lazyWithRetry(() => import("./pages/admin/AdminOverview"));
+const AdminPayments = lazyWithRetry(() => import("./pages/admin/AdminPayments"));
+const AdminBusinesses = lazyWithRetry(() => import("./pages/admin/AdminBusinesses"));
+
 // Lazily-imported, but pre-loadable for instant tap response
 const eventDetailImport = () => import("./pages/EventDetail");
 const userProfileImport = () => import("./pages/UserProfile");
