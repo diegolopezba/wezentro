@@ -139,6 +139,8 @@ const Auth = () => {
 
   // Determine where to redirect after auth
   const getRedirectPath = () => {
+    // Business flow always lands in the setup wizard
+    if (businessMode) return "/business/setup";
     // Priority: returnTo from modal > from state > default
     if (locationState?.returnTo) return locationState.returnTo;
     if (locationState?.from?.pathname) return locationState.from.pathname;
