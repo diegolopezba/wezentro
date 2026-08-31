@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
+import { sendAppEmail } from '../_shared/send-app-email.ts'
 
 const SITE = 'https://zentro.today'
 
@@ -92,41 +93,20 @@ Deno.serve(async (req) => {
 
   for (const invite of invites) {
     try {
-      const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${serviceKey}`,
+      await sendAppEmail(admin, 'special-invite', invite.guest_email, {
+        idempotencyKey: `special-invite-${invite.id}`,
+        templateData: {
+          guestName: invite.guest_name ?? undefined,
+          eventTitle: event.title,
+          eventDate,
+          eventLocation: event.location_name ?? undefined,
+          eventImageUrl: event.image_url ?? undefined,
+          segment: invite.segment ?? undefined,
+          inviteUrl: `${SITE}/i/${invite.token}`,
+          hostName,
+          deliveryMode: invite.delivery_mode ?? 'app',
         },
-        body: JSON.stringify({
-          templateName: 'special-invite',
-          recipientEmail: invite.guest_email,
-          idempotencyKey: `special-invite-${invite.id}`,
-          templateData: {
-            guestName: invite.guest_name ?? undefined,
-            eventTitle: event.title,
-            eventDate,
-            eventLocation: event.location_name ?? undefined,
-            eventImageUrl: event.image_url ?? undefined,
-            segment: invite.segment ?? undefined,
-            inviteUrl: `${SITE}/i/${invite.token}`,
-            hostName,
-            deliveryMode: invite.delivery_mode ?? 'app',
-          },
-
-        }),
       })
-
-      if (!res.ok) {
-        const details = await res.text()
-        console.error(`send-transactional-email failed [${res.status}]: ${details}`)
-        failed++
-        await admin
-          .from('event_special_invites')
-          .update({ email_status: 'failed' })
-          .eq('id', invite.id)
-        continue
-      }
 
       sent++
       await admin

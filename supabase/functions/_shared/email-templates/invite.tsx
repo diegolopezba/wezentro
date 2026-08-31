@@ -72,7 +72,8 @@ const button = {
   backgroundColor: '#E60023',
   color: '#ffffff',
   fontSize: '14px',
-  borderRadius: '9999px', fontWeight: 600 as const,
+  borderRadius: '9999px',
+  fontWeight: 600 as const,
   padding: '12px 20px',
   textDecoration: 'none',
 }
