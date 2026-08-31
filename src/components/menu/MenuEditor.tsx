@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,8 @@ import {
   Pencil,
   FolderPlus,
   Folder,
+  ImagePlus,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -36,9 +38,14 @@ import {
   useUpdateMenuCategory,
   useDeleteMenuCategory,
   useReorderMenuCategories,
+  uploadMenuItemImage,
+  deleteMenuItemImageFile,
   MenuItem,
   MenuCategory,
 } from "@/hooks/useMenu";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { LockedFeature } from "@/components/subscriptions/LockedFeature";
 
 interface ItemFormData {
   name: string;
