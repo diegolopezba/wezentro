@@ -177,7 +177,7 @@ const BusinessLanding = () => {
               {isLast && (
                 <button
                   type="button"
-                  onClick={() => navigate("/settings/business/plans")}
+                  onClick={() => navigate("/business/planes")}
                   className="mt-1 text-sm font-medium text-foreground underline underline-offset-4"
                 >
                   Ver planes en detalle
