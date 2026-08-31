@@ -10,7 +10,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   usePublicInvite,
   useConfirmInviteRsvp,
-  getInviteQrImageUrl,
   setPendingSpecialInvite,
 } from "@/hooks/useSpecialInvites";
 
