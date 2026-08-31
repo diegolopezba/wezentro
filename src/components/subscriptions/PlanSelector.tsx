@@ -80,6 +80,7 @@ export const PlanSelector = ({
   askRecommendation = false,
 }: PlanSelectorProps) => {
   const [selected, setSelected] = useState<TierKey>(initialTier ?? currentTier);
+  const [interval, setInterval] = useState<BillingInterval>("month");
   const [showRecommendation, setShowRecommendation] = useState(askRecommendation);
   const [recommended, setRecommended] = useState<TierKey | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
