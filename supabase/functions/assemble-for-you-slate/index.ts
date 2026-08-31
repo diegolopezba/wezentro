@@ -353,6 +353,7 @@ Deno.serve(async (req) => {
       ? supabase.rpc("get_for_you_context", { _user_id: userId })
       : Promise.resolve({ data: {} as any, error: null });
     const trendingPromise = supabase.rpc("get_trending_scores");
+    const premiumPromise = getPremiumBusinessIds(supabase);
     const collabPromise = userId
       ? (async () => {
           supabase.rpc("ensure_collab_boosts_fresh", { _user_id: userId }).then(() => {});
