@@ -103,6 +103,13 @@ const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
 const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
 const EventPromoterDashboard = lazyWithRetry(() => import("./pages/EventPromoterDashboard"));
 
+// Private admin console (own subdomain, never linked from the app UI)
+const AdminLogin = lazyWithRetry(() => import("./pages/admin/AdminLogin"));
+const AdminLayout = lazyWithRetry(() => import("./pages/admin/AdminLayout"));
+const AdminOverview = lazyWithRetry(() => import("./pages/admin/AdminOverview"));
+const AdminPayments = lazyWithRetry(() => import("./pages/admin/AdminPayments"));
+const AdminBusinesses = lazyWithRetry(() => import("./pages/admin/AdminBusinesses"));
+
 // Lazily-imported, but pre-loadable for instant tap response
 const eventDetailImport = () => import("./pages/EventDetail");
 const userProfileImport = () => import("./pages/UserProfile");
@@ -218,6 +225,14 @@ const AppRoutes = () => {
       <Routes location={backgroundLocation || location}>
         <Route path="/auth" element={<LazyRoute><Auth /></LazyRoute>} />
         <Route path="/reset-password" element={<LazyRoute><ResetPassword /></LazyRoute>} />
+
+        {/* Private admin console */}
+        <Route path="/admin/login" element={<LazyRoute><AdminLogin /></LazyRoute>} />
+        <Route path="/admin" element={<LazyRoute><AdminLayout /></LazyRoute>}>
+          <Route index element={<LazyRoute><AdminOverview /></LazyRoute>} />
+          <Route path="payments" element={<LazyRoute><AdminPayments /></LazyRoute>} />
+          <Route path="businesses" element={<LazyRoute><AdminBusinesses /></LazyRoute>} />
+        </Route>
         <Route path="/onboarding" element={<ProtectedRoute><ErrorBoundary><LazyRoute><Onboarding /></LazyRoute></ErrorBoundary></ProtectedRoute>} />
 
         {/* Keep-alive enabled routes - 4 core navigation pages */}
