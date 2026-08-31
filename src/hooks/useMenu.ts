@@ -1,6 +1,45 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { compressImage, blobToFile } from "@/lib/mediaCompression";
+
+const MENU_IMAGES_BUCKET = "event-images";
+
+/** Path inside the bucket for a menu item image. */
+const menuImagePath = (userId: string, itemId: string) =>
+  `${userId}/menu/${itemId}-${Date.now()}.webp`;
+
+/** Extract the storage object path from a public menu image URL. */
+export const menuImagePathFromUrl = (url: string): string | null => {
+  const marker = `/${MENU_IMAGES_BUCKET}/`;
+  const idx = url.indexOf(marker);
+  return idx >= 0 ? url.slice(idx + marker.length) : null;
+};
+
+/** Compress + upload a menu item photo and return its public URL. */
+export const uploadMenuItemImage = async (
+  userId: string,
+  itemId: string,
+  file: File
+): Promise<string> => {
+  if (file.size > 5 * 1024 * 1024) throw new Error("La imagen no puede pesar más de 5 MB");
+  const { blob } = await compressImage(file, 800, 0.8);
+  const path = menuImagePath(userId, itemId);
+  const { error } = await supabase.storage
+    .from(MENU_IMAGES_BUCKET)
+    .upload(path, blobToFile(blob, `${itemId}.webp`), { upsert: true, contentType: blob.type });
+  if (error) throw error;
+  const { data } = supabase.storage.from(MENU_IMAGES_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+};
+
+/** Best-effort delete of a menu item's stored photo. */
+export const deleteMenuItemImageFile = async (imageUrl: string | null): Promise<void> => {
+  if (!imageUrl) return;
+  const path = menuImagePathFromUrl(imageUrl);
+  if (!path) return;
+  await supabase.storage.from(MENU_IMAGES_BUCKET).remove([path]);
+};
 
 export interface MenuCategory {
   id: string;
@@ -17,6 +56,7 @@ export interface MenuItem {
   name: string;
   description: string | null;
   price: number | null;
+  image_url: string | null;
   display_order: number;
   is_available: boolean;
   created_at: string;
