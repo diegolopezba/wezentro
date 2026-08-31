@@ -22,6 +22,9 @@ export interface BusinessSubscription {
   billing_period_end: string | null;
   activation_method: "manual" | "qhantuy";
   notes: string | null;
+  billing_interval: "month" | "year" | null;
+  grace_until: string | null;
+  amount_paid_bob: number | null;
 }
 
 /**
