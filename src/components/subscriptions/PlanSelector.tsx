@@ -400,15 +400,24 @@ export const PlanSelector = ({
         <Button
           type="button"
           variant="sheet-action"
-          disabled={isCurrent}
           className="h-12 w-full rounded-full text-base"
           onClick={() => setConfirmOpen(true)}
         >
-          {isCurrent ? "Tu plan actual" : `Quiero ${tier.name}`}
+          {isCurrent && !needsActivation
+            ? interval === "year"
+              ? "Pasar a 12 meses"
+              : "Renovar mi plan"
+            : `Quiero ${tier.name}`}
         </Button>
       </div>
 
-      <PlanConfirmSheet open={confirmOpen} onOpenChange={setConfirmOpen} tier={selected} />
+      <PlanConfirmSheet
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        tier={selected}
+        interval={interval}
+        isUpgrade={!needsActivation && !isCurrent}
+      />
     </div>
   );
 };
