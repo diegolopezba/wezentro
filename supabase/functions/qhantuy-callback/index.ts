@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
 
       await supabase.from("notifications").insert({
         user_id: businessId,
-        type: "payment_confirmed",
+        type: "subscription_activated",
         title: "Plan activado",
         body: `Tu plan ${planName} ya está activo.`,
         entity_type: "subscription",

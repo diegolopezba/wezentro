@@ -29,10 +29,10 @@ Deno.serve(async (req) => {
   const now = new Date()
   const result = { reminded: 0, pastDue: 0, cancelled: 0 }
 
-  const notify = async (userId: string, title: string, body: string) => {
+  const notify = async (userId: string, title: string, body: string, type = 'subscription_renewal') => {
     await admin.from('notifications').insert({
       user_id: userId,
-      type: 'system',
+      type,
       title,
       body,
       entity_type: 'subscription',
@@ -100,6 +100,7 @@ Deno.serve(async (req) => {
           sub.business_id,
           'Tu plan venció',
           `Tenés ${GRACE_DAYS} días para renovar tu plan ${planName}.`,
+          'subscription_expired',
         )
         await email(sub.business_id, 'expired')
         result.pastDue++
@@ -120,6 +121,7 @@ Deno.serve(async (req) => {
             sub.business_id,
             'Plan desactivado',
             'Tu plan se desactivó por falta de pago. Podés reactivarlo cuando quieras.',
+            'subscription_expired',
           )
           result.cancelled++
         }
