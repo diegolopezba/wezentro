@@ -36,8 +36,16 @@ const Auth = () => {
     isLoading: authLoading
   } = useAuth();
   
+  // Arriving from the "Soy empresa" flow (nav state, or a flag that survived
+  // the email-code round trip).
+  const [businessMode] = useState<boolean>(
+    () => !!locationState?.businessIntent || hasBusinessIntent(),
+  );
+
   // Initialize mode from navigation state (from AuthPromptModal)
   const [mode, setMode] = useState<"login" | "signup" | "reset">(() => {
+    if (locationState?.businessIntent || (hasBusinessIntent() && locationState?.mode !== "signin"))
+      return "signup";
     if (locationState?.mode === "signup") return "signup";
     if (locationState?.mode === "signin") return "login";
     return "login";
