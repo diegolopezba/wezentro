@@ -231,7 +231,7 @@ const Index = () => {
 
 
   return <AppLayout ref={scrollContainerRef}>
-        <header className="sticky top-0 z-30 safe-top bg-background">
+        <header className={cn("sticky top-0 z-30 safe-top bg-background transition-transform duration-300 ease-out", !headerVisible && "-translate-y-full")}>
           <div className="flex items-center justify-between px-4 py-4">
             <m.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
               <h1 className="font-brand text-2xl text-foreground font-semibold">zentro</h1>
@@ -260,48 +260,39 @@ const Index = () => {
                 <Input placeholder="Buscar eventos, lugares..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
               </div>
             </m.div>}
-          <m.div
-            animate={{ height: headerVisible ? "auto" : 0, opacity: headerVisible ? 1 : 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="overflow-hidden"
-          >
-            <div
-              className="flex px-4 pb-3 gap-2 overflow-x-auto no-scrollbar"
-              style={{ pointerEvents: headerVisible ? "auto" : "none" }}
+          <div className="flex px-4 pb-3 gap-2 overflow-x-auto no-scrollbar">
+            <m.button
+              whileTap={{ scale: 0.95 }}
+              onClick={resetToForYou}
+              className={cn(
+                "px-3 py-1.5 text-sm font-medium rounded-full whitespace-nowrap transition-colors duration-150",
+                !isFiltering
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-secondary-foreground",
+              )}
             >
-              <m.button
-                whileTap={{ scale: 0.95 }}
-                onClick={resetToForYou}
-                className={cn(
-                  "px-3 py-1.5 text-sm font-medium rounded-full whitespace-nowrap transition-colors duration-150",
-                  !isFiltering
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground",
-                )}
-              >
-                Para Ti
-              </m.button>
-              {CATEGORIES.map((category) => {
-                const isSelected = filters.categories.includes(category.id);
-                return (
-                  <m.button
-                    key={category.id}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => toggleCategory(category.id)}
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full whitespace-nowrap transition-colors duration-150",
-                      isSelected
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-secondary-foreground",
-                    )}
-                  >
-                    <span>{category.emoji}</span>
-                    <span className="font-medium">{category.label}</span>
-                  </m.button>
-                );
-              })}
-            </div>
-          </m.div>
+              Para Ti
+            </m.button>
+            {CATEGORIES.map((category) => {
+              const isSelected = filters.categories.includes(category.id);
+              return (
+                <m.button
+                  key={category.id}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => toggleCategory(category.id)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full whitespace-nowrap transition-colors duration-150",
+                    isSelected
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-secondary-foreground",
+                  )}
+                >
+                  <span>{category.emoji}</span>
+                  <span className="font-medium">{category.label}</span>
+                </m.button>
+              );
+            })}
+          </div>
         </header>
         <PullToRefresh onRefresh={handleRefresh} className="flex-1">
           {isSearching && searchedUsers.length > 0 && (
