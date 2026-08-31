@@ -7,6 +7,7 @@
 export type TierKey = "basico" | "profesional" | "elite";
 
 export type FeatureKey =
+  | "menu_images"
   | "multi_shift"
   | "blackout_dates"
   | "covers_pacing"
@@ -59,6 +60,7 @@ export interface TierHighlight {
 const BASICO_FEATURES: readonly FeatureKey[] = [];
 
 const PROFESIONAL_FEATURES: readonly FeatureKey[] = [
+  "menu_images",
   "multi_shift",
   "blackout_dates",
   "covers_pacing",
@@ -87,7 +89,7 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
     bullets: [
       "Hasta 9 mesas",
       "Reservas online básicas con confirmación automática",
-      "Menú básico",
+      "Menú de texto (sin fotos)",
       "Conteos del día: total de reservas e invitados",
     ],
     badge: "Locales pequeños",
@@ -99,8 +101,8 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
       },
       {
         icon: "menu",
-        title: "Menú básico",
-        description: "Publicá tu menú con cada publicación que hagas.",
+        title: "Menú de texto",
+        description: "Publicá tu menú con nombre, descripción y precio.",
       },
       {
         icon: "chart",
