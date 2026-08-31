@@ -6,17 +6,20 @@ import { Briefcase, Check } from "lucide-react";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Adapts the copy to the flow that triggered the gate. */
+  context?: "tickets" | "event";
 }
 
 const PERKS = [
+  "Publicar eventos con fecha y lugar",
   "Vender entradas con pago QR",
   "Listas de invitados y check-in",
   "Dashboard con analíticas",
-  "Menú y reservas",
 ];
 
-export function BusinessRequiredSheet({ open, onOpenChange }: Props) {
+export function BusinessRequiredSheet({ open, onOpenChange, context = "tickets" }: Props) {
   const navigate = useNavigate();
+  const isEvent = context === "event";
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -28,14 +31,18 @@ export function BusinessRequiredSheet({ open, onOpenChange }: Props) {
             <Briefcase className="w-7 h-7 text-primary" />
           </div>
           <SheetTitle className="text-xl text-foreground">
-            Solo cuentas Business pueden vender entradas
+            {isEvent
+              ? "Solo cuentas Business pueden crear eventos"
+              : "Solo cuentas Business pueden vender entradas"}
           </SheetTitle>
         </SheetHeader>
 
         <p className="text-sm text-muted-foreground text-center mt-3 leading-relaxed">
-          Cualquier persona puede crear eventos gratis. Para cobrar entradas
-          necesitas activar tu cuenta Business — es gratis y toma menos de un minuto.
+          {isEvent
+            ? "Los eventos son una herramienta para organizadores. Activá tu cuenta Business para publicarlos — es gratis y toma menos de un minuto. Tu borrador se guarda."
+            : "Cualquier persona puede crear eventos gratis. Para cobrar entradas necesitas activar tu cuenta Business — es gratis y toma menos de un minuto."}
         </p>
+
 
         <ul className="mt-5 space-y-2">
           {PERKS.map((p) => (

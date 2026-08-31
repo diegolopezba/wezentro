@@ -51,6 +51,8 @@ import { useReplaceTicketTiers } from "@/hooks/useTicketTiers";
 import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSection";
 import { useReplaceEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
+import { readCreateDraft, usePersistCreateDraft, clearCreateDraft } from "@/hooks/useCreateDraft";
+
 import { useBusinessExperiences } from "@/hooks/useExperiences";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
 import { CREATE_INTRO } from "@/components/business/featureIntroSteps";
@@ -157,6 +159,7 @@ const Create = () => {
     if (!experiencesEnabled && experienceId) setExperienceId(null);
   }, [experiencesEnabled, experienceId]);
   const [showBusinessGate, setShowBusinessGate] = useState(false);
+  const [businessGateContext, setBusinessGateContext] = useState<"tickets" | "event">("tickets");
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const [beneficiaryGateContext, setBeneficiaryGateContext] = useState<"tickets" | "experience">("tickets");
   const { open: introOpen, setOpen: setIntroOpen, reopen: reopenIntro } = useFeatureIntro("create");
@@ -164,10 +167,37 @@ const Create = () => {
     setBeneficiaryGateContext(ctx);
     setShowBeneficiaryGate(true);
   };
+  const openBusinessGate = (ctx: "tickets" | "event" = "tickets") => {
+    setBusinessGateContext(ctx);
+    setShowBusinessGate(true);
+  };
   const gatePaidAction = () => {
-    if (!isBusiness) setShowBusinessGate(true);
+    if (!isBusiness) openBusinessGate("tickets");
     else if (!hasBeneficiary) openBeneficiaryGate("tickets");
   };
+
+  // ── Draft persistence (text fields only — media files can't be serialized) ──
+  const draftRestored = useRef(false);
+  useEffect(() => {
+    if (draftRestored.current) return;
+    draftRestored.current = true;
+    const draft = readCreateDraft<any>();
+    if (!draft) return;
+    if (draft.contentType) setContentType(draft.contentType);
+    if (draft.formData) setFormData((prev) => ({ ...prev, ...draft.formData }));
+    if (draft.location) setLocation(draft.location);
+    if (draft.pricingMode) setPricingMode(draft.pricingMode);
+    if (Array.isArray(draft.draftTiers)) setDraftTiers(draft.draftTiers);
+    if (Array.isArray(draft.draftAreas)) setDraftAreas(draft.draftAreas);
+    if (typeof draft.useAreas === "boolean") setUseAreas(draft.useAreas);
+  }, []);
+
+  usePersistCreateDraft(
+    { contentType, formData, location, pricingMode, draftTiers, draftAreas, useAreas },
+    draftRestored.current && (!!formData.title || !!formData.description || !!location.address),
+  );
+
+
 
 
   const handleTypeChange = (type: ContentType) => {
@@ -339,6 +369,11 @@ const Create = () => {
       navigate("/auth");
       return;
     }
+    // Events are a Business-only feature. Posts stay open to everyone.
+    if (!isPost && !isBusiness) {
+      openBusinessGate("event");
+      return;
+    }
     if (mediaItems.length === 0) {
       toast.error("Por favor sube al menos una imagen o video");
       return;
@@ -361,12 +396,13 @@ const Create = () => {
     const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
     if (experienceId) {
       // Linked experiences are booked and paid through QR too: payouts are required.
-      if (!isBusiness) { setShowBusinessGate(true); return; }
+      if (!isBusiness) { openBusinessGate("tickets"); return; }
       if (!hasBeneficiary) { openBeneficiaryGate("experience"); return; }
     } else if (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers")) {
-      if (!isBusiness) { setShowBusinessGate(true); return; }
+      if (!isBusiness) { openBusinessGate("tickets"); return; }
       if (!hasBeneficiary) { openBeneficiaryGate("tickets"); return; }
     }
+
 
     // Validate ticket tiers (events only, business + tiers mode)
     const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
@@ -554,7 +590,9 @@ const Create = () => {
         }
       }
 
+      clearCreateDraft();
       toast.success(isPost ? "¡Post publicado!" : "¡Evento creado exitosamente!");
+
       haptic("success");
       invalidateAfterCreate();
       navigate(`/event/${data.id}`, { state: { fromCreate: true }, replace: true });
@@ -980,8 +1018,9 @@ const Create = () => {
                         className="pl-10"
                         value=""
                         readOnly
-                        onFocus={(e) => { e.target.blur(); setShowBusinessGate(true); }}
-                        onClick={() => setShowBusinessGate(true)}
+                        onFocus={(e) => { e.target.blur(); openBusinessGate("tickets"); }}
+                        onClick={() => openBusinessGate("tickets")}
+
                         onChange={() => {}}
                         min="0" step="0.01" />
                     </div>
@@ -1110,7 +1149,7 @@ const Create = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          if (!isBusiness) { setShowBusinessGate(true); return; }
+                          if (!isBusiness) { openBusinessGate("tickets"); return; }
                           if (!hasBeneficiary) { openBeneficiaryGate("tickets"); return; }
                           setFormData({ ...formData, waitlistEnabled: !formData.waitlistEnabled });
                         }}
@@ -1221,7 +1260,7 @@ const Create = () => {
         </div>
       </div>
 
-      <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} />
+      <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} context={businessGateContext} />
       <BeneficiaryRequiredSheet open={showBeneficiaryGate} onOpenChange={setShowBeneficiaryGate} context={beneficiaryGateContext} />
       <FeatureIntroSheet
         open={introOpen && !showBusinessGate && !showBeneficiaryGate}
