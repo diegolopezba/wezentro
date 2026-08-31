@@ -252,8 +252,16 @@ export const TIER_COMPARISON: readonly {
     values: { basico: "Conteos", profesional: "Completas", elite: "Completas" },
   },
   {
-    label: "Prioridad en Discover",
-    values: { basico: "—", profesional: "Sí", elite: "Sí" },
+    label: "Waiting List de reservas",
+    values: { basico: "—", profesional: "—", elite: "Sí" },
+  },
+  {
+    label: "Prioridad en discovery",
+    values: { basico: "—", profesional: "—", elite: "Sí" },
+  },
+  {
+    label: "Insights de la ciudad",
+    values: { basico: "—", profesional: "—", elite: "Sí" },
   },
 ];
 
