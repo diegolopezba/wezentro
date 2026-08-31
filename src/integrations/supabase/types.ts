@@ -106,42 +106,60 @@ export type Database = {
       business_subscriptions: {
         Row: {
           activation_method: string
+          amount_paid_bob: number | null
+          auto_renew: boolean
+          billing_interval: string
           billing_period_end: string | null
           billing_period_start: string | null
           business_id: string
           cancelled_at: string | null
           created_at: string
+          grace_until: string | null
           id: string
+          last_payment_session_id: string | null
           notes: string | null
           qhantuy_subscription_id: string | null
+          reminders_sent: Json
           status: string
           tier: string
           updated_at: string
         }
         Insert: {
           activation_method?: string
+          amount_paid_bob?: number | null
+          auto_renew?: boolean
+          billing_interval?: string
           billing_period_end?: string | null
           billing_period_start?: string | null
           business_id: string
           cancelled_at?: string | null
           created_at?: string
+          grace_until?: string | null
           id?: string
+          last_payment_session_id?: string | null
           notes?: string | null
           qhantuy_subscription_id?: string | null
+          reminders_sent?: Json
           status?: string
           tier?: string
           updated_at?: string
         }
         Update: {
           activation_method?: string
+          amount_paid_bob?: number | null
+          auto_renew?: boolean
+          billing_interval?: string
           billing_period_end?: string | null
           billing_period_start?: string | null
           business_id?: string
           cancelled_at?: string | null
           created_at?: string
+          grace_until?: string | null
           id?: string
+          last_payment_session_id?: string | null
           notes?: string | null
           qhantuy_subscription_id?: string | null
+          reminders_sent?: Json
           status?: string
           tier?: string
           updated_at?: string
@@ -2250,6 +2268,9 @@ export type Database = {
           qhantuy_transaction_id: number | null
           quantity: number
           status: string
+          subscription_business_id: string | null
+          subscription_interval: string | null
+          subscription_tier: string | null
           ticket_tier_id: string | null
         }
         Insert: {
@@ -2274,6 +2295,9 @@ export type Database = {
           qhantuy_transaction_id?: number | null
           quantity?: number
           status?: string
+          subscription_business_id?: string | null
+          subscription_interval?: string | null
+          subscription_tier?: string | null
           ticket_tier_id?: string | null
         }
         Update: {
@@ -2298,6 +2322,9 @@ export type Database = {
           qhantuy_transaction_id?: number | null
           quantity?: number
           status?: string
+          subscription_business_id?: string | null
+          subscription_interval?: string | null
+          subscription_tier?: string | null
           ticket_tier_id?: string | null
         }
         Relationships: [
@@ -2327,6 +2354,20 @@ export type Database = {
             columns: ["promoter_id"]
             isOneToOne: false
             referencedRelation: "event_promoters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_subscription_business_id_fkey"
+            columns: ["subscription_business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_subscription_business_id_fkey"
+            columns: ["subscription_business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
           {
@@ -4604,6 +4645,17 @@ export type Database = {
       }
     }
     Functions: {
+      activate_business_subscription: {
+        Args: {
+          _amount: number
+          _business_id: string
+          _interval: string
+          _prorated?: boolean
+          _session_id: string
+          _tier: string
+        }
+        Returns: Json
+      }
       bulk_create_special_invites: {
         Args: {
           _batch_id?: string

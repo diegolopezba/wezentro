@@ -22,6 +22,9 @@ export interface BusinessSubscription {
   billing_period_end: string | null;
   activation_method: "manual" | "qhantuy";
   notes: string | null;
+  billing_interval: "month" | "year" | null;
+  grace_until: string | null;
+  amount_paid_bob: number | null;
 }
 
 /**
@@ -44,7 +47,7 @@ export const useSubscriptionTier = (businessId?: string) => {
       const { data, error } = await supabase
         .from("business_subscriptions" as any)
         .select(
-          "tier, status, billing_period_start, billing_period_end, activation_method, notes"
+          "tier, status, billing_period_start, billing_period_end, activation_method, notes, billing_interval, grace_until, amount_paid_bob"
         )
         .eq("business_id", businessId!)
         .maybeSingle();
@@ -79,6 +82,11 @@ export const useSubscriptionTier = (businessId?: string) => {
       data.status !== "past_due",
     /** Max reservable tables allowed by the plan (null = unlimited). */
     maxTables: isSubscriptionGated ? SUBSCRIPTION_TIERS[tier].maxTables : null,
+    /** Paid period ended: features still work until grace_until. */
+    inGracePeriod: data?.status === "past_due",
+    graceUntil: data?.grace_until ?? null,
+    renewsOn: data?.billing_period_end ?? null,
+    billingInterval: (data?.billing_interval ?? "month") as "month" | "year",
     isLoading,
     hasFeature,
   };

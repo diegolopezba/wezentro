@@ -198,10 +198,37 @@ export const featureUpgradeLabel = (feature: FeatureKey): string => {
   return tier ? `Disponible en el plan ${SUBSCRIPTION_TIERS[tier].name}` : "";
 };
 
-export const formatTierPrice = (tier: TierKey): string => {
-  const price = SUBSCRIPTION_TIERS[tier].price_bob;
-  return price > 0 ? `Bs. ${price}/mes` : "Gratis";
+export type BillingInterval = "month" | "year";
+
+/** Paying 12 months up front saves 5%. Mirrored in the edge functions. */
+export const YEARLY_DISCOUNT = 0.05;
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Total charged for one billing cycle. */
+export const cyclePrice = (tier: TierKey, interval: BillingInterval): number => {
+  const monthly = SUBSCRIPTION_TIERS[tier].price_bob;
+  return interval === "year" ? round2(monthly * 12 * (1 - YEARLY_DISCOUNT)) : round2(monthly);
 };
+
+/** How much a business saves per year by paying annually. */
+export const yearlySavings = (tier: TierKey): number =>
+  round2(SUBSCRIPTION_TIERS[tier].price_bob * 12 - cyclePrice(tier, "year"));
+
+export const formatBs = (amount: number): string =>
+  `Bs. ${Number(amount).toFixed(2).replace(/\.00$/, "")}`;
+
+export const formatTierPrice = (tier: TierKey, interval: BillingInterval = "month"): string => {
+  const price = SUBSCRIPTION_TIERS[tier].price_bob;
+  if (price <= 0) return "Gratis";
+  return interval === "year"
+    ? `${formatBs(cyclePrice(tier, "year"))}/año`
+    : `${formatBs(price)}/mes`;
+};
+
+/** "Bs. 25/mes equivalente" for the annual option. */
+export const yearlyEquivalentLabel = (tier: TierKey): string =>
+  `${formatBs(round2(cyclePrice(tier, "year") / 12))}/mes equivalente`;
 
 /** Max tables a plan allows (null = unlimited). */
 export const maxTablesForTier = (tier: TierKey): number | null =>
@@ -268,7 +295,11 @@ export const TIER_COMPARISON: readonly {
 export const PLAN_FAQ: readonly { q: string; a: string }[] = [
   {
     q: "¿Cómo pago el plan?",
-    a: "Por ahora la activación es manual: nos escribís, coordinamos el pago y te dejamos el plan activo el mismo día.",
+    a: "Con QR desde la app. Elegís el plan, escaneás el QR con tu banco y se activa al instante. Podés pagar mes a mes o 12 meses por adelantado con 5% de descuento.",
+  },
+  {
+    q: "¿Se renueva solo?",
+    a: "No hacemos débito automático: te avisamos 3 días antes del vencimiento y pagás con QR de nuevo. Si se vence, tenés 5 días de gracia antes de que se desactiven las funciones.",
   },
   {
     q: "¿Me cobran comisión por reserva?",

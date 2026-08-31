@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: session, error } = await supabase
       .from("payment_sessions")
-      .select("id, buyer_user_id, status, experience_booking_id")
+      .select("id, buyer_user_id, status, experience_booking_id, subscription_business_id, subscription_tier")
       .eq("id", paymentSessionId)
       .maybeSingle();
     if (error || !session) return json({ error: "Not found" }, 404);
@@ -34,6 +34,8 @@ Deno.serve(async (req) => {
     return json({
       status: session.status,
       experienceBookingId: session.experience_booking_id,
+      subscriptionTier: (session as any).subscription_tier ?? null,
+      isSubscription: !!(session as any).subscription_business_id,
     });
   } catch (err) {
     console.error("check-qhantuy-payment-status error:", err);

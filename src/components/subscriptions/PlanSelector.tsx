@@ -22,7 +22,11 @@ import {
   TIER_ORDER,
   TierHighlightIcon,
   TierKey,
+  BillingInterval,
   formatTierPrice,
+  formatBs,
+  yearlySavings,
+  yearlyEquivalentLabel,
   dailyPriceLabel,
   TIER_COMPARISON,
   PLAN_FAQ,
@@ -58,6 +62,8 @@ interface PlanSelectorProps {
   footerSlot?: React.ReactNode;
   /** Ask "how many tables do you have?" first and pre-select the matching plan. */
   askRecommendation?: boolean;
+  /** No paid plan yet: CTA always reads as an activation. */
+  needsActivation?: boolean;
 }
 
 /**
@@ -74,8 +80,10 @@ export const PlanSelector = ({
   subtitle,
   footerSlot,
   askRecommendation = false,
+  needsActivation = false,
 }: PlanSelectorProps) => {
   const [selected, setSelected] = useState<TierKey>(initialTier ?? currentTier);
+  const [interval, setInterval] = useState<BillingInterval>("month");
   const [showRecommendation, setShowRecommendation] = useState(askRecommendation);
   const [recommended, setRecommended] = useState<TierKey | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -221,18 +229,18 @@ export const PlanSelector = ({
                   isSheet ? "text-background" : "text-foreground",
                 )}
               >
-                {formatTierPrice(selected)}
+                {formatTierPrice(selected, interval)}
               </p>
-              {dailyPriceLabel(selected) && (
-                <p
-                  className={cn(
-                    "mt-0.5 text-[13px]",
-                    isSheet ? "text-background/60" : "text-muted-foreground",
-                  )}
-                >
-                  {dailyPriceLabel(selected)}
-                </p>
-              )}
+              <p
+                className={cn(
+                  "mt-0.5 text-[13px]",
+                  isSheet ? "text-background/60" : "text-muted-foreground",
+                )}
+              >
+                {interval === "year"
+                  ? `${yearlyEquivalentLabel(selected)} · ahorrás ${formatBs(yearlySavings(selected))} al año`
+                  : dailyPriceLabel(selected)}
+              </p>
               <p
                 className={cn(
                   "mt-1 text-sm",
@@ -242,6 +250,36 @@ export const PlanSelector = ({
                 {tier.sizeLabel} · {tier.tagline}
               </p>
 
+              {/* Billing interval */}
+              <div
+                className={cn(
+                  "mt-4 flex gap-1 rounded-full p-1",
+                  isSheet ? "bg-background/15" : "bg-muted",
+                )}
+              >
+                {(["month", "year"] as BillingInterval[]).map((opt) => {
+                  const active = interval === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setInterval(opt)}
+                      className={cn(
+                        "flex-1 rounded-full py-2 text-[13px] font-medium transition-colors",
+                        active
+                          ? isSheet
+                            ? "bg-background text-foreground"
+                            : "bg-foreground text-background"
+                          : isSheet
+                            ? "text-background/70"
+                            : "text-muted-foreground",
+                      )}
+                    >
+                      {opt === "month" ? "Mensual" : "12 meses · -5%"}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Highlights */}
@@ -365,15 +403,24 @@ export const PlanSelector = ({
         <Button
           type="button"
           variant="sheet-action"
-          disabled={isCurrent}
           className="h-12 w-full rounded-full text-base"
           onClick={() => setConfirmOpen(true)}
         >
-          {isCurrent ? "Tu plan actual" : `Quiero ${tier.name}`}
+          {isCurrent && !needsActivation
+            ? interval === "year"
+              ? "Pasar a 12 meses"
+              : "Renovar mi plan"
+            : `Quiero ${tier.name}`}
         </Button>
       </div>
 
-      <PlanConfirmSheet open={confirmOpen} onOpenChange={setConfirmOpen} tier={selected} />
+      <PlanConfirmSheet
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        tier={selected}
+        interval={interval}
+        isUpgrade={!needsActivation && !isCurrent}
+      />
     </div>
   );
 };
