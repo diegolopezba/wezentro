@@ -15,7 +15,7 @@ import { ActionsTab } from "@/components/dashboard/ActionsTab";
 import { SalesTab } from "@/components/dashboard/SalesTab";
 import { PromotersTab } from "@/components/dashboard/PromotersTab";
 import { ReservasTab } from "@/components/dashboard/ReservasTab";
-import { ComingSoonTab } from "@/components/dashboard/ComingSoonTab";
+import { CityInsightsTab } from "@/components/dashboard/CityInsightsTab";
 import { m } from "framer-motion";
 import type { Period } from "@/components/dashboard/PeriodSelector";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
@@ -29,7 +29,7 @@ const TABS = [
   { value: "content", label: "Contenido" },
   { value: "actions", label: "Acciones" },
   { value: "reservas", label: "Reservas" },
-  { value: "soon", label: "Próximamente" },
+  { value: "soon", label: "Insights" },
 ];
 
 const BusinessDashboard = () => {
@@ -177,7 +177,7 @@ const BusinessDashboard = () => {
             <ReservasTab period={period} onPeriodChange={setPeriod} />
           </TabsContent>
           <TabsContent value="soon">
-            <ComingSoonTab />
+            <CityInsightsTab />
           </TabsContent>
         </Tabs>
       </div>
