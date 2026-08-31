@@ -19,8 +19,6 @@ project_id = "fipdpcitsjpqivljrktj"
     verify_jwt = false
   [functions.get-mapbox-token]
     verify_jwt = false
-  [functions.process-email-queue]
-    verify_jwt = true
   [functions.qhantuy-callback]
     verify_jwt = false
   [functions.qhantuy-delete-beneficiary]
@@ -39,13 +37,7 @@ project_id = "fipdpcitsjpqivljrktj"
     verify_jwt = true
   [functions.stripe-webhook]
     verify_jwt = false
-  [functions.send-transactional-email]
-    verify_jwt = true
   [functions.preview-transactional-email]
-    verify_jwt = false
-  [functions.handle-email-unsubscribe]
-    verify_jwt = false
-  [functions.handle-email-suppression]
     verify_jwt = false
   [functions.send-special-invites]
     verify_jwt = true
