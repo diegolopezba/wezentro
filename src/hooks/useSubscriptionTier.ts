@@ -47,7 +47,7 @@ export const useSubscriptionTier = (businessId?: string) => {
       const { data, error } = await supabase
         .from("business_subscriptions" as any)
         .select(
-          "tier, status, billing_period_start, billing_period_end, activation_method, notes"
+          "tier, status, billing_period_start, billing_period_end, activation_method, notes, billing_interval, grace_until, amount_paid_bob"
         )
         .eq("business_id", businessId!)
         .maybeSingle();
