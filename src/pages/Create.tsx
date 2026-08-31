@@ -590,7 +590,9 @@ const Create = () => {
         }
       }
 
+      clearCreateDraft();
       toast.success(isPost ? "¡Post publicado!" : "¡Evento creado exitosamente!");
+
       haptic("success");
       invalidateAfterCreate();
       navigate(`/event/${data.id}`, { state: { fromCreate: true }, replace: true });
