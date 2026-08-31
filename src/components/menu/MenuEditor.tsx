@@ -277,6 +277,23 @@ export const MenuEditor = () => {
   const [categoryForm, setCategoryForm] = useState<CategoryFormData>({ name: "" });
   const [activeTab, setActiveTab] = useState<"items" | "categories">("items");
 
+  // Downgrade cleanup: Básico has no menu photos — strip image_url and delete
+  // the stored files so no orphaned images remain.
+  const cleanupDone = useRef(false);
+  useEffect(() => {
+    if (cleanupDone.current || tierLoading || canUseImages || !menu) return;
+    const withImages = menu.items.filter((i) => i.image_url);
+    if (withImages.length === 0) return;
+    cleanupDone.current = true;
+    (async () => {
+      for (const item of withImages) {
+        await deleteMenuItemImageFile(item.image_url);
+        await supabase.from("menu_items").update({ image_url: null } as any).eq("id", item.id);
+      }
+      toast.info("Las fotos del menú no están incluidas en el plan Básico y fueron eliminadas.");
+    })();
+  }, [tierLoading, canUseImages, menu]);
+
   const handleCreateMenu = async () => {
     try {
       await createMenuMutation.mutateAsync("Menú");
