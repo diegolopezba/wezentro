@@ -225,6 +225,14 @@ const AppRoutes = () => {
       <Routes location={backgroundLocation || location}>
         <Route path="/auth" element={<LazyRoute><Auth /></LazyRoute>} />
         <Route path="/reset-password" element={<LazyRoute><ResetPassword /></LazyRoute>} />
+
+        {/* Private admin console */}
+        <Route path="/admin/login" element={<LazyRoute><AdminLogin /></LazyRoute>} />
+        <Route path="/admin" element={<LazyRoute><AdminLayout /></LazyRoute>}>
+          <Route index element={<LazyRoute><AdminOverview /></LazyRoute>} />
+          <Route path="payments" element={<LazyRoute><AdminPayments /></LazyRoute>} />
+          <Route path="businesses" element={<LazyRoute><AdminBusinesses /></LazyRoute>} />
+        </Route>
         <Route path="/onboarding" element={<ProtectedRoute><ErrorBoundary><LazyRoute><Onboarding /></LazyRoute></ErrorBoundary></ProtectedRoute>} />
 
         {/* Keep-alive enabled routes - 4 core navigation pages */}
