@@ -22,6 +22,13 @@
       "when": 1788194710611,
       "tag": "0002_subscription_activate_prorated",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788195569372,
+      "tag": "0003_allow_subscription_notifications",
+      "breakpoints": true
     }
   ]
 }
