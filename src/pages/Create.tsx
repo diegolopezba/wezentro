@@ -174,6 +174,28 @@ const Create = () => {
     else if (!hasBeneficiary) openBeneficiaryGate("tickets");
   };
 
+  // ── Draft persistence (text fields only — media files can't be serialized) ──
+  const draftRestored = useRef(false);
+  useEffect(() => {
+    if (draftRestored.current) return;
+    draftRestored.current = true;
+    const draft = readCreateDraft<any>();
+    if (!draft) return;
+    if (draft.contentType) setContentType(draft.contentType);
+    if (draft.formData) setFormData((prev) => ({ ...prev, ...draft.formData }));
+    if (draft.location) setLocation(draft.location);
+    if (draft.pricingMode) setPricingMode(draft.pricingMode);
+    if (Array.isArray(draft.draftTiers)) setDraftTiers(draft.draftTiers);
+    if (Array.isArray(draft.draftAreas)) setDraftAreas(draft.draftAreas);
+    if (typeof draft.useAreas === "boolean") setUseAreas(draft.useAreas);
+  }, []);
+
+  usePersistCreateDraft(
+    { contentType, formData, location, pricingMode, draftTiers, draftAreas, useAreas },
+    draftRestored.current && (!!formData.title || !!formData.description || !!location.address),
+  );
+
+
 
 
   const handleTypeChange = (type: ContentType) => {
