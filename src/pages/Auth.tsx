@@ -540,6 +540,24 @@ const Auth = () => {
                     </>
                   )}
                 </Button>
+
+                {/* Business entry point */}
+                {mode !== "reset" && (
+                  <div className="pt-1 space-y-1.5">
+                    <Button
+                      variant="outline"
+                      className="w-full bg-transparent border-foreground/25 text-foreground"
+                      onClick={() => navigate("/business")}
+                      disabled={isLoading}
+                    >
+                      <Briefcase className="w-4 h-4 mr-2" />
+                      Soy empresa
+                    </Button>
+                    <p className="text-center text-xs text-muted-foreground">
+                      Creá la cuenta de tu bar, restaurante, club o productora
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

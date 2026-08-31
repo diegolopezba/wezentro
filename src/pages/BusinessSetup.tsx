@@ -69,6 +69,16 @@ const BusinessSetup = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id]);
 
+  // Entering this wizard means the user opted into a Business account.
+  useEffect(() => {
+    if (!user || !profile || profile.is_business) return;
+    (async () => {
+      const { error } = await supabase.from("profiles").update({ is_business: true }).eq("id", user.id);
+      if (!error) await refreshProfile();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, profile?.is_business]);
+
   const go = (next: number) => {
     setDir(next > step ? 1 : -1);
     setStep(next);
