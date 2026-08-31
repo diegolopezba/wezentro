@@ -574,7 +574,7 @@ const Auth = () => {
                 </Button>
 
                 {/* Business entry point */}
-                {mode !== "reset" && (
+                {mode !== "reset" && !businessMode && (
                   <div className="pt-1 space-y-1.5">
                     <Button
                       variant="outline"
@@ -589,6 +589,19 @@ const Auth = () => {
                       Creá la cuenta de tu bar, restaurante, club o productora
                     </p>
                   </div>
+                )}
+
+                {mode !== "reset" && businessMode && (
+                  <p className="text-center text-xs text-muted-foreground pt-1">
+                    Siguiente paso: configurar tu negocio ·{" "}
+                    <button
+                      type="button"
+                      className="text-foreground underline underline-offset-2"
+                      onClick={() => navigate("/business")}
+                    >
+                      Ver beneficios
+                    </button>
+                  </p>
                 )}
               </div>
             )}
