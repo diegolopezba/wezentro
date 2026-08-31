@@ -79,26 +79,9 @@ const SpecialInvite = () => {
     try {
       const res = await confirmRsvp.mutateAsync({ token, name, email });
       if (!res.already_confirmed) {
-        // Fire-and-forget confirmation email with the ticket QR
+        // Fire-and-forget confirmation email with the ticket QR (sent server-side)
         supabase.functions
-          .invoke("send-transactional-email", {
-            body: {
-              templateName: "invite-confirmed",
-              recipientEmail: email.trim().toLowerCase(),
-              idempotencyKey: `invite-confirmed-${res.invite_id}`,
-              templateData: {
-                guestName: name.trim(),
-                eventTitle: invite?.event_title ?? undefined,
-                eventDate: eventDate ?? undefined,
-                eventLocation: invite?.event_location ?? undefined,
-                eventImageUrl: invite?.event_image_url ?? undefined,
-                segment: invite?.segment ?? undefined,
-                hostName: invite?.host_name ?? undefined,
-                ticketUrl: `${window.location.origin}/i/${token}`,
-                qrImageUrl: getInviteQrImageUrl(res.qr_code_token),
-              },
-            },
-          })
+          .invoke("send-invite-confirmed", { body: { token } })
           .catch(() => undefined);
       }
       toast.success(`Te enviamos la entrada a ${email.trim().toLowerCase()}`);
