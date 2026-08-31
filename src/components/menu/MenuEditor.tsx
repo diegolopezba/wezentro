@@ -270,8 +270,9 @@ export const MenuEditor = () => {
   };
 
   const handleDeleteItem = async (id: string) => {
+    const item = menu?.items.find((i) => i.id === id);
     try {
-      await deleteItemMutation.mutateAsync(id);
+      await deleteItemMutation.mutateAsync({ id, imageUrl: item?.image_url });
       toast.success("Item eliminado");
     } catch {
       toast.error("Error al eliminar item");
