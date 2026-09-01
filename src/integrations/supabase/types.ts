@@ -2512,6 +2512,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: string
           avatar_url: string | null
           bio: string | null
           birth_date: string | null
@@ -2543,6 +2544,7 @@ export type Database = {
           username: string
         }
         Insert: {
+          account_type?: string
           avatar_url?: string | null
           bio?: string | null
           birth_date?: string | null
@@ -2574,6 +2576,7 @@ export type Database = {
           username: string
         }
         Update: {
+          account_type?: string
           avatar_url?: string | null
           bio?: string | null
           birth_date?: string | null
