@@ -19,7 +19,7 @@ const BusinessMenu = () => {
 
   useSwipeBack();
 
-  const menuEnabled = (profile as any)?.menu_enabled !== false;
+  const menuEnabled = (profile as any)?.menu_enabled === true;
   const intro = useFeatureIntro("menu");
 
   const handleToggleMenu = async (value: boolean) => {

@@ -24,7 +24,7 @@ const BusinessReservations = () => {
 
   useSwipeBack();
 
-  const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
+  const reservationsEnabled = (profile as any)?.reservations_enabled === true;
   const { needsActivation } = useSubscriptionTier(user?.id);
   const intro = useFeatureIntro("reservations");
 

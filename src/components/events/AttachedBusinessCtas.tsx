@@ -19,8 +19,8 @@ const BusinessCtaRow = ({ req }: { req: BusinessCtaRequest }) => {
   if (!biz) return null;
   const name = biz.full_name || biz.username;
   const isFood = isFoodBusinessType((biz as any).business_type) || !!biz.is_food_business;
-  const showMenu = isFood && biz.menu_enabled !== false;
-  const showRes = isFood && biz.reservations_enabled !== false;
+  const showMenu = isFood && biz.menu_enabled === true && hasActivePlan;
+  const showRes = isFood && biz.reservations_enabled === true && hasActivePlan;
   if (!showMenu && !showRes) return null;
 
   return (
