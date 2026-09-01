@@ -167,13 +167,21 @@ const Create = () => {
     isBusiness && experiencesEnabled ? user?.id : undefined,
   );
   const activeExperiences = myExperiences.filter((e) => e.is_active);
-  const [experienceId, setExperienceId] = useState<string | null>(
-    ((routerLocation.state as any)?.experienceId as string) ?? null,
-  );
+  const [experienceId, setExperienceId] = useState<string | null>(preselectedExperienceId);
   const linkedExperience = myExperiences.find((e) => e.id === experienceId) ?? null;
+  const canPublishExperiences = isBusiness && experiencesEnabled;
   useEffect(() => {
-    if (!experiencesEnabled && experienceId) setExperienceId(null);
-  }, [experiencesEnabled, experienceId]);
+    if (!canPublishExperiences && (experienceId || contentType === "experience")) {
+      setExperienceId(null);
+      if (contentType === "experience") setContentType("post");
+    }
+  }, [canPublishExperiences, experienceId, contentType]);
+  // Auto-pick when the business has exactly one active experience
+  useEffect(() => {
+    if (isExperience && !experienceId && activeExperiences.length === 1) {
+      setExperienceId(activeExperiences[0].id);
+    }
+  }, [isExperience, experienceId, activeExperiences]);
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [businessGateContext, setBusinessGateContext] = useState<"tickets" | "event">("tickets");
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
