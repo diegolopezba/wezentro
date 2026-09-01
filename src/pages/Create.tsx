@@ -951,7 +951,7 @@ const Create = () => {
 
         {/* ── Event-only fields (date, time, location, price, capacity) ── */}
         <AnimatePresence>
-          {!isPost &&
+          {isEvent &&
           <m.div
             key="event-fields" initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
