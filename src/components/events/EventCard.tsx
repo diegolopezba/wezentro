@@ -64,6 +64,7 @@ const EventCardComponent = ({
   compact = false,
   media,
   followGraph,
+  experience_id,
 }: EventCardProps) => {
   const openEvent = useOpenEvent();
   const { user } = useAuth();
