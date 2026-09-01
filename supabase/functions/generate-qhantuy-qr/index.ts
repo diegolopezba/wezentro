@@ -277,6 +277,7 @@ Deno.serve(async (req) => {
         platform_fee_bps: feeBps,
         platform_fee_amount: platformFee,
         payout_amount: payoutAmount,
+        payment_method: method,
 
 
       })
