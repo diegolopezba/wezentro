@@ -13,7 +13,7 @@ Hoy una experiencia se "pega" a un post o evento con un selector dentro de Crear
 ## Detalle y feed
 
 - La publicación se ve como una tarjeta normal en el feed y en el perfil, con una etiqueta "Experiencia".
-- En el detalle, el CTA principal es **Reservar**, que abre la hoja de reserva actual (fecha → horario → opción → personas → pago QR o tarjeta). Se muestran duración y precio desde la experiencia en lugar de precio de entrada.
+- En el detalle, el CTA principal es **Reservar Experiencia**, que abre la hoja de reserva actual (fecha → horario → opción → personas → pago QR o tarjeta). Se muestran duración y precio desde la experiencia en lugar de precio de entrada.
 
 ## Publicaciones existentes
 
