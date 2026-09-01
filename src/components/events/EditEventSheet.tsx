@@ -77,6 +77,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     isBusiness && experiencesEnabled ? user?.id : undefined,
   );
   const activeExperiences = myExperiences.filter((e) => e.is_active);
+  const isExperiencePost = !!event.experience_id;
+  const linkedExperience = myExperiences.find((e) => e.id === event.experience_id) ?? null;
   const [pricingMode, setPricingMode] = useState<TicketPricingMode>("single");
   const [saleMode, setSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
