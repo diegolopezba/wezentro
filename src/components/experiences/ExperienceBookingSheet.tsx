@@ -379,13 +379,32 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
 
         {step === "pay" && (
           <div className="flex flex-col items-center py-6 pb-[max(env(safe-area-inset-bottom),16px)]">
-            <p className="text-sm text-muted-foreground">Escaneá el QR con tu app bancaria</p>
-            {qrUrl && (
-              <img
-                src={qrUrl}
-                alt={`QR de pago para ${experience.title}`}
-                className="mt-4 h-64 w-64 rounded-2xl bg-white object-contain p-2"
-              />
+            {payMethod === "card" ? (
+              <>
+                <p className="px-4 text-center text-sm text-muted-foreground">
+                  Completá el pago con tu tarjeta en la ventana segura de Qhantuy.
+                </p>
+                {cardUrl && (
+                  <Button
+                    variant="outline"
+                    className="mt-4 h-12 rounded-full"
+                    onClick={() => window.open(cardUrl, "_blank")}
+                  >
+                    Volver a abrir el pago
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">Escaneá el QR con tu app bancaria</p>
+                {qrUrl && (
+                  <img
+                    src={qrUrl}
+                    alt={`QR de pago para ${experience.title}`}
+                    className="mt-4 h-64 w-64 rounded-2xl bg-white object-contain p-2"
+                  />
+                )}
+              </>
             )}
             <p className="mt-4 font-brand text-xl font-medium text-foreground">{money(total)}</p>
             <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
@@ -393,6 +412,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
             </div>
           </div>
         )}
+
 
         {step === "done" && (
           <div className="flex flex-col items-center py-10 pb-[max(env(safe-area-inset-bottom),16px)] text-center">
