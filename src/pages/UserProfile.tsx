@@ -24,6 +24,7 @@ import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { ExperienceBookingSheet } from "@/components/experiences/ExperienceBookingSheet";
 import { BookingChooserSheet } from "@/components/experiences/BookingChooserSheet";
 import { usePublicExperiences, type Experience } from "@/hooks/useExperiences";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
