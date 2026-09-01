@@ -11,6 +11,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { BillingInterval, TierKey } from "./subscriptionTiers";
+import type { CheckoutMethod } from "./cardCheckout";
 
 export const BILLING_CONTACT_EMAIL = "hello@zentro.com";
 
