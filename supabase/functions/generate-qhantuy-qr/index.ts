@@ -287,12 +287,11 @@ Deno.serve(async (req) => {
     const projectRef = SUPABASE_URL.replace(/^https?:\/\//, "").split(".")[0];
     const callbackUrl = `https://${projectRef}.supabase.co/functions/v1/qhantuy-callback`;
 
-    // Fire Qhantuy checkout
+    // Fire Qhantuy checkout (QR or Cybersource card redirect)
     const checkoutRes = await qhantuyCheckoutFetch("/v2/checkout", {
       method: "POST",
       body: JSON.stringify({
-        payment_method: "QRSIMPLE",
-        image_method: "URL",
+        ...checkoutMethodFields(method, returnUrl),
         currency_code: "BOB",
         internal_code: session.id,
         callback_url: callbackUrl,
@@ -312,40 +311,43 @@ Deno.serve(async (req) => {
       }),
     });
 
+    const failLabel = method === "card" ? "No se pudo iniciar el pago con tarjeta" : "No se pudo generar el QR";
 
     if (!checkoutRes.ok) {
-      console.error("qhantuy checkout failed:", checkoutRes.status, checkoutRes.raw);
+      console.error("qhantuy checkout failed:", method, checkoutRes.status, checkoutRes.raw);
       // Best-effort cleanup: mark session failed
       await supabase.from("payment_sessions")
         .update({ status: "failed" })
         .eq("id", session.id);
-      return json({ error: "No se pudo generar el QR", detail: checkoutRes.data }, 502);
+      return json({ error: failLabel, detail: checkoutRes.data }, 502);
     }
 
     if (checkoutRes.data?.process === false) {
-      console.error("qhantuy checkout rejected:", checkoutRes.raw);
+      console.error("qhantuy checkout rejected:", method, checkoutRes.raw);
       await supabase.from("payment_sessions").update({ status: "failed" }).eq("id", session.id);
-      return json({ error: checkoutRes.data?.message || "No se pudo generar el QR" }, 400);
+      return json({ error: checkoutRes.data?.message || failLabel }, 400);
     }
 
-    const d = checkoutRes.data ?? {};
-    const transactionId = d.transaction_id ?? d.transactionId ?? d.data?.transaction_id;
-    const imageData = d.qr_url ?? d.image_data ?? d.imageData ?? d.data?.qr_url ?? d.data?.image_data ?? d.qr ?? d.image;
+    const parsed = parseCheckoutResponse(checkoutRes.data);
+    const missing = !parsed.transactionId ||
+      (method === "card" ? !parsed.paymentUrl : !parsed.qrImageUrl);
 
-    if (!transactionId || !imageData) {
-      console.error("checkout response missing fields:", checkoutRes.raw);
+    if (missing) {
+      console.error("checkout response missing fields:", method, checkoutRes.raw);
       await supabase.from("payment_sessions").update({ status: "failed" }).eq("id", session.id);
       return json({ error: "Respuesta inválida de Qhantuy" }, 502);
     }
 
     await supabase
       .from("payment_sessions")
-      .update({ qhantuy_transaction_id: Number(transactionId) })
+      .update({ qhantuy_transaction_id: parsed.transactionId })
       .eq("id", session.id);
 
     return json({
       paymentSessionId: session.id,
-      qrImageUrl: String(imageData),
+      method,
+      qrImageUrl: parsed.qrImageUrl,
+      paymentUrl: parsed.paymentUrl,
       amount: totalAmount,
       unitPrice: effectivePrice,
       quantity,
@@ -353,6 +355,7 @@ Deno.serve(async (req) => {
       ticketTierId: tierId,
 
     });
+
   } catch (err) {
     console.error("generate-qhantuy-qr error:", err);
     return json({ error: "Internal error" }, 500);
