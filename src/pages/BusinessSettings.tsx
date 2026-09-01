@@ -182,32 +182,36 @@ const BusinessSettings = () => {
                 onClick={() => navigate("/settings/business/info")}
                 delay={0.06}
               />
-              <SettingsRow
-                icon={UtensilsCrossed}
-                label="Menú"
-                sublabel={
-                  planLocked
-                    ? "Requiere un plan activo"
-                    : menuEnabled
-                      ? "Activo · editar carta"
-                      : "Desactivado"
-                }
-                onClick={() => navigate("/settings/business/menu")}
-                delay={0.09}
-              />
-              <SettingsRow
-                icon={CalendarCheck}
-                label="Reservas"
-                sublabel={
-                  planLocked
-                    ? "Requiere un plan activo"
-                    : reservationsEnabled
-                      ? "Activas · configurar horario"
-                      : "Desactivadas"
-                }
-                onClick={() => navigate("/settings/business/reservations")}
-                delay={0.12}
-              />
+              {isFoodBusiness && (
+                <>
+                <SettingsRow
+                  icon={UtensilsCrossed}
+                  label="Menú"
+                  sublabel={
+                    planLocked
+                      ? "Requiere un plan activo"
+                      : menuEnabled
+                        ? "Activo · editar carta"
+                        : "Desactivado"
+                  }
+                  onClick={() => navigate("/settings/business/menu")}
+                  delay={0.09}
+                />
+                <SettingsRow
+                  icon={CalendarCheck}
+                  label="Reservas"
+                  sublabel={
+                    planLocked
+                      ? "Requiere un plan activo"
+                      : reservationsEnabled
+                        ? "Activas · configurar horario"
+                        : "Desactivadas"
+                  }
+                  onClick={() => navigate("/settings/business/reservations")}
+                  delay={0.12}
+                />
+                </>
+              )}
               <SettingsRow
                 icon={Sparkles}
                 label="Experiencias"
