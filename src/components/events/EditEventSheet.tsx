@@ -482,7 +482,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           )}
 
           {/* Menu Button Toggle - Only for Business users with menu items */}
-          {isBusiness && hasMenuItems && (
+          {isBusiness && hasMenuItems && !isExperiencePost && (
             <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-secondary/50 border border-border">
               <div className="flex items-center gap-2">
                 <UtensilsCrossed className="w-4 h-4 text-primary" />
