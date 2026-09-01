@@ -477,7 +477,7 @@ const Create = () => {
 
       let startDatetime: string | null = null;
       let endDatetime: string | null = null;
-      if (!isPost && formData.date && formData.time) {
+      if (isEvent && formData.date && formData.time) {
         const start = new Date(`${formData.date}T${formData.time}`);
         startDatetime = start.toISOString();
         if (formData.endTime) {
@@ -499,40 +499,40 @@ const Create = () => {
         ? Math.min(...cleanTiers.map((t) => t.price))
         : useLayout
         ? Math.min(...draftAreas.map((a) => a.price ?? 0))
-        : (!isPost && formData.price ? parseFloat(formData.price) : 0);
+        : (isEvent && formData.price ? parseFloat(formData.price) : 0);
 
       const { data, error } = await supabase.
       from("events").
       insert({
         title: formData.title.trim() || null,
         description: formData.description.trim() || null,
-        category: formData.category || null,
+        category: isExperience ? null : formData.category || null,
         start_datetime: startDatetime,
         end_datetime: endDatetime,
-        location_name: isPost ? null : location.address.trim() || null,
-        latitude: isPost ? null : location.latitude,
-        longitude: isPost ? null : location.longitude,
+        location_name: isEvent ? location.address.trim() || null : null,
+        latitude: isEvent ? location.latitude : null,
+        longitude: isEvent ? location.longitude : null,
         price: insertPrice,
-        max_guestlist_capacity: formData.capacity ? parseInt(formData.capacity) : null,
-        has_guestlist: !isPost,
+        max_guestlist_capacity: isEvent && formData.capacity ? parseInt(formData.capacity) : null,
+        has_guestlist: isEvent,
         image_url: imageUrl,
         creator_id: user.id,
         is_public: true,
-        is_post: isPost,
+        is_post: !isEvent,
         description_tags: descriptionTags.length > 0 ? descriptionTags : null,
-        show_menu_button: isBusiness && hasMenuItems ? formData.showMenuButton : false,
+        show_menu_button: !isExperience && isBusiness && hasMenuItems ? formData.showMenuButton : false,
         show_reservation_button: isBusiness && reservationsEnabled && isPost ? formData.showReservationButton : false,
-        is_location_secret: !isPost && formData.isLocationSecret,
-        waitlist_enabled: !isPost && isBusiness && hasBeneficiary && formData.waitlistEnabled,
+        is_location_secret: isEvent && formData.isLocationSecret,
+        waitlist_enabled: isEvent && isBusiness && hasBeneficiary && formData.waitlistEnabled,
         sales_open_at:
-          !isPost && formData.waitlistEnabled && formData.salesOpenAt
+          isEvent && formData.waitlistEnabled && formData.salesOpenAt
             ? new Date(formData.salesOpenAt).toISOString()
             : null,
         waitlist_early_access_hours:
-          !isPost && formData.waitlistEnabled
+          isEvent && formData.waitlistEnabled
             ? parseInt(formData.waitlistEarlyAccessHours || "0") || 0
             : 0,
-        experience_id: experienceId
+        experience_id: isExperience ? experienceId : null
       }).
       select().
       single();
