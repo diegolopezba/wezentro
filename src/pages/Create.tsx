@@ -396,7 +396,7 @@ const Create = () => {
       navigate("/auth");
       return;
     }
-    // Events are a Business-only feature. Posts stay open to everyone.
+    // Events and experiences are Business-only features. Posts stay open to everyone.
     if (!isPost && !isBusiness) {
       openBusinessGate("event");
       return;
@@ -405,27 +405,30 @@ const Create = () => {
       toast.error("Por favor sube al menos una imagen o video");
       return;
     }
-    if (!isPost && (!formData.date || !formData.time)) {
+    if (isEvent && (!formData.date || !formData.time)) {
       toast.error("Por favor ingresa la fecha y hora del evento");
+      return;
+    }
+    if (isExperience && !experienceId) {
+      toast.error("Elegí qué experiencia querés publicar");
       return;
     }
 
     // Optional visual layout (events only, business accounts)
-    const useLayout = !isPost && isBusiness && useAreas && draftAreas.length > 0;
-    if (!isPost && isBusiness && useAreas && draftAreas.length === 0) {
+    const useLayout = isEvent && isBusiness && useAreas && draftAreas.length > 0;
+    if (isEvent && isBusiness && useAreas && draftAreas.length === 0) {
       toast.error("Añade al menos un área al plano o desactiva la venta por áreas");
       return;
     }
     const hasPaidArea = useLayout && draftAreas.some((a) => (a.price ?? 0) > 0);
 
     // Gate paid tickets: require Business + Qhantuy beneficiary
-    const hasPaidSingle = !isPost && formData.price && parseFloat(formData.price) > 0;
-    const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
-    if (experienceId) {
-      // Linked experiences are booked and paid through QR too: payouts are required.
-      if (!isBusiness) { openBusinessGate("tickets"); return; }
+    const hasPaidSingle = isEvent && formData.price && parseFloat(formData.price) > 0;
+    const hasPaidTier = isEvent && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
+    if (isExperience) {
+      // Experiences are booked and paid up front: payouts are required.
       if (!hasBeneficiary) { openBeneficiaryGate("experience"); return; }
-    } else if (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers")) {
+    } else if (hasPaidSingle || hasPaidTier || hasPaidArea || (isEvent && isBusiness && pricingMode === "tiers")) {
       if (!isBusiness) { openBusinessGate("tickets"); return; }
       if (!hasBeneficiary) { openBeneficiaryGate("tickets"); return; }
     }
