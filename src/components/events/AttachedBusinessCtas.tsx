@@ -5,6 +5,7 @@ import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { useAcceptedBusinessCtas, type BusinessCtaRequest } from "@/hooks/useBusinessCtaRequest";
 import { isFoodBusinessType } from "@/lib/businessTypes";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 
 interface Props {
   eventId: string | undefined;
