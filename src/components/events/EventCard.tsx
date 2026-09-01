@@ -46,6 +46,8 @@ export interface EventCardProps {
   compact?: boolean;
   media?: CarouselMediaItem[];
   followGraph?: ViewerFollowGraph;
+  /** Non-null when the publication is a bookable experience. */
+  experience_id?: string | null;
 }
 
 const EventCardComponent = ({
