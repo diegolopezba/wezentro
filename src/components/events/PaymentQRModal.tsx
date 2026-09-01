@@ -60,9 +60,14 @@ export function PaymentQRModal({
   const isFree = mode === "free" || isInvite || isFreeTier;
   const [step, setStep] = useState<Step>("details");
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
+  const [cardUrl, setCardUrl] = useState<string | null>(null);
+  const [payMethod, setPayMethod] = useState<"qr" | "card">("qr");
+  const payMethodRef = useRef<"qr" | "card">("qr");
+  payMethodRef.current = payMethod;
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [needsLogin, setNeedsLogin] = useState(false);
+
 
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
