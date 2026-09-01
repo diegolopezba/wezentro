@@ -30,6 +30,8 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const bookingId = typeof body.bookingId === "string" ? body.bookingId : null;
+    const method = parseCheckoutMethod(body.method);
+    const returnUrl = safeReturnUrl(body.returnUrl);
     if (!bookingId) return json({ error: "Falta la reserva", code: "no_booking_id" }, 400);
 
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
