@@ -1123,7 +1123,7 @@ const Create = () => {
         }
 
         {/* ── Opciones avanzadas (events only) ── */}
-        {!isPost && (
+        {isEvent && (
           <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26 }}>
             <Card className="glass border-white/10 p-0 overflow-hidden">
               <Collapsible>
