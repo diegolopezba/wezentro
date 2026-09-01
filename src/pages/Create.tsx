@@ -658,9 +658,9 @@ const Create = () => {
         <m.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-2 gap-3">
+          className={cn("grid gap-3", canPublishExperiences ? "grid-cols-3" : "grid-cols-2")}>
           
-          {TYPE_OPTIONS.map((option) => {
+          {TYPE_OPTIONS.filter((o) => o.id !== "experience" || canPublishExperiences).map((option) => {
             const active = contentType === option.id;
             return (
               <m.button
