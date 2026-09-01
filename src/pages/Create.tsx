@@ -58,7 +58,7 @@ import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/Featur
 import { CREATE_INTRO } from "@/components/business/featureIntroSteps";
 
 
-type ContentType = "post" | "event";
+type ContentType = "post" | "event" | "experience";
 
 const TYPE_OPTIONS: {id: ContentType;label: string;description: string;icon: React.ReactNode;color: string;}[] = [
 {
@@ -73,6 +73,13 @@ const TYPE_OPTIONS: {id: ContentType;label: string;description: string;icon: Rea
   label: "Evento",
   description: "Crea un evento con fecha, lugar y lista de invitados",
   icon: <PartyPopper className="w-5 h-5" />,
+  color: "from-neutral-200 to-neutral-400"
+},
+{
+  id: "experience",
+  label: "Experiencia",
+  description: "Publicá una experiencia para que la reserven",
+  icon: <Sparkles className="w-5 h-5" />,
   color: "from-neutral-200 to-neutral-400"
 }];
 
