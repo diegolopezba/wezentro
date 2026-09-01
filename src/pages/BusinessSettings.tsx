@@ -141,6 +141,8 @@ const BusinessSettings = () => {
           <>
             <BusinessSetupChecklist steps={setupSteps} />
 
+            {isFoodBusiness && hasActivePlan && <PlanStatusCard />}
+
             <SettingsGroup>
               <SettingsRow
                 icon={BarChart3}
