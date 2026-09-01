@@ -117,6 +117,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
         toast.error("El pago no se completó. Intentá de nuevo.");
         setStep("quantity");
         setQrUrl(null);
+        setCardUrl(null);
         setSessionId(null);
       }
     }, 4000);
