@@ -86,22 +86,46 @@ export const SubscriptionQRSheet = ({ open, onOpenChange, checkout }: Props) => 
               Plan {planName} · {checkout.label}
             </p>
 
-            <div className="mt-4 flex justify-center">
-              <img
-                src={checkout.qrImageUrl}
-                alt={`QR de pago del plan ${planName}`}
-                className="h-64 w-64 rounded-2xl bg-white object-contain p-2"
-              />
-            </div>
+            {checkout.method === "card" ? (
+              <div className="mt-4 flex flex-col items-center gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-foreground" />
+                <p className="text-center text-[13px] text-muted-foreground">
+                  Completá el pago con tu tarjeta en la ventana segura de Qhantuy.
+                  La activación es automática.
+                </p>
+                {checkout.paymentUrl && (
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-full"
+                    onClick={() => window.open(checkout.paymentUrl!, "_blank")}
+                  >
+                    Volver a abrir el pago
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="mt-4 flex justify-center">
+                  {checkout.qrImageUrl && (
+                    <img
+                      src={checkout.qrImageUrl}
+                      alt={`QR de pago del plan ${planName}`}
+                      className="h-64 w-64 rounded-2xl bg-white object-contain p-2"
+                    />
+                  )}
+                </div>
 
-            <p className="mt-3 text-center text-[13px] text-muted-foreground">
-              Escaneá el QR con la app de tu banco. La activación es automática.
-            </p>
+                <p className="mt-3 text-center text-[13px] text-muted-foreground">
+                  Escaneá el QR con la app de tu banco. La activación es automática.
+                </p>
+              </>
+            )}
+
 
             <div className="mt-5 pb-[max(env(safe-area-inset-bottom),12px)]">
               {failed ? (
                 <p className="pb-3 text-center text-[13px] text-muted-foreground">
-                  El pago no se completó. Cerrá y generá un QR nuevo.
+                  El pago no se completó. Cerrá e intentá de nuevo.
                 </p>
               ) : (
                 <div className="flex items-center justify-center gap-2 pb-3 text-[13px] text-muted-foreground">

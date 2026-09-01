@@ -14,7 +14,8 @@ import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { TicketAssigneeRow } from "./TicketAssigneeRow";
 import type { SearchUser } from "@/hooks/useSearchUsers";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, CreditCard, ExternalLink } from "lucide-react";
+import { openPaymentGateway, buildReturnUrl } from "@/lib/cardCheckout";
 
 
 interface PaymentQRModalProps {
@@ -36,7 +37,7 @@ interface PaymentQRModalProps {
   onPaymentConfirmed: () => Promise<void>;
 }
 
-type Step = "details" | "loading" | "revealed" | "success" | "expired" | "error";
+type Step = "details" | "loading" | "revealed" | "card" | "success" | "expired" | "error";
 
 export function PaymentQRModal({
   open,
@@ -60,9 +61,14 @@ export function PaymentQRModal({
   const isFree = mode === "free" || isInvite || isFreeTier;
   const [step, setStep] = useState<Step>("details");
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
+  const [cardUrl, setCardUrl] = useState<string | null>(null);
+  const [payMethod, setPayMethod] = useState<"qr" | "card">("qr");
+  const payMethodRef = useRef<"qr" | "card">("qr");
+  payMethodRef.current = payMethod;
   const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [needsLogin, setNeedsLogin] = useState(false);
+
 
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
@@ -132,14 +138,18 @@ export function PaymentQRModal({
     }
   }, []);
 
-  const generateQR = useCallback(async () => {
+  const generateCheckout = useCallback(async (method: "qr" | "card" = "qr") => {
     if (!isActiveRef.current) return;
+    // The placeholder tab must be opened inside the click, before any await.
+    const gateway = method === "card" ? openPaymentGateway() : null;
     setStep("loading");
+    setPayMethod(method);
     setErrorMsg(null);
     setNeedsLogin(false);
     try {
       const fresh = await ensureFreshSession();
       if (!fresh) {
+        gateway?.abort();
         setErrorMsg("Tu sesión expiró. Inicia sesión de nuevo para continuar.");
         setNeedsLogin(true);
         setStep("error");
@@ -161,6 +171,8 @@ export function PaymentQRModal({
           areaBookingId: areaBookingId ?? null,
           quantity: canBuyMultiple ? quantity : 1,
           assignees: canBuyMultiple ? assignees.slice(0, quantity - 1).map((a) => a?.id ?? null) : [],
+          method,
+          returnUrl: method === "card" ? buildReturnUrl(`/going/${eventId}`) : undefined,
         },
       });
       if (error || !data || (data as any).error) {
@@ -179,20 +191,44 @@ export function PaymentQRModal({
         if (serverCode === "session_expired" || serverCode === "no_auth_header") {
           setNeedsLogin(true);
         }
-        setErrorMsg(serverMsg || error?.message || "No se pudo generar el QR");
+        gateway?.abort();
+        setErrorMsg(serverMsg || error?.message || "No se pudo iniciar el pago");
         setStep("error");
         return;
       }
       const sessionId = (data as any).paymentSessionId;
+      const paymentUrl = (data as any).paymentUrl as string | null;
+
+      if (method === "card") {
+        if (!paymentUrl) {
+          gateway?.abort();
+          setErrorMsg("No se pudo abrir el pago con tarjeta. Probá con QR.");
+          setStep("error");
+          return;
+        }
+        setPaymentSessionId(sessionId);
+        setCardUrl(paymentUrl);
+        setStep("card");
+        startPolling(sessionId);
+        gateway?.navigate(paymentUrl);
+        return;
+      }
+
       setQrImageUrl((data as any).qrImageUrl);
       setPaymentSessionId(sessionId);
       setStep("revealed");
       startPolling(sessionId);
     } catch (err: any) {
-      setErrorMsg(err?.message || "No se pudo generar el QR");
+      gateway?.abort();
+      setErrorMsg(err?.message || "No se pudo iniciar el pago");
       setStep("error");
     }
   }, [eventId, ticketTierId, eventAreaId, areaBookingId, startPolling, ensureFreshSession, canBuyMultiple, quantity, assignees]);
+
+  const generateQR = useCallback(() => generateCheckout("qr"), [generateCheckout]);
+  const generateCardCheckout = useCallback(() => generateCheckout("card"), [generateCheckout]);
+  const retryCheckout = useCallback(() => generateCheckout(payMethodRef.current), [generateCheckout]);
+
 
   const confirmFreeJoin = useCallback(async () => {
     if (!isActiveRef.current || !onJoinFree) return;
@@ -226,6 +262,9 @@ export function PaymentQRModal({
       setTimeout(() => {
         setStep("details");
         setQrImageUrl(null);
+        setCardUrl(null);
+        setPayMethod("qr");
+
         setPaymentSessionId(null);
         setErrorMsg(null);
         setQuantity(1);
@@ -470,6 +509,17 @@ export function PaymentQRModal({
                     ? "Sí, quiero unirme"
                     : "Pagar por QR"}
                 </Button>
+                {!isFree && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={generateCardCheckout}
+                    className="w-full h-14 text-base font-bold uppercase tracking-wide rounded-full gap-2"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Pagar con tarjeta
+                  </Button>
+                )}
               </div>
             </m.div>
           )}
@@ -477,9 +527,44 @@ export function PaymentQRModal({
           {step === "loading" && (
             <m.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-16 px-6 flex flex-col items-center gap-4">
               <Loader2 className="w-10 h-10 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Generando tu QR de pago…</p>
+              <p className="text-sm text-muted-foreground">
+                {payMethod === "card" ? "Abriendo el pago seguro…" : "Generando tu QR de pago…"}
+              </p>
             </m.div>
           )}
+
+          {step === "card" && cardUrl && (
+            <m.div key="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pt-6 pb-8 space-y-4 text-center">
+              <div className="space-y-1">
+                <h2 className="text-lg font-brand font-medium text-foreground">{eventTitle}</h2>
+                <p className="text-lg font-semibold text-primary">Bs. {total}</p>
+              </div>
+              <div className="flex flex-col items-center gap-3 py-4">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">
+                  Completá el pago con tu tarjeta en la ventana segura de Qhantuy.
+                  Apenas se confirme, tu entrada aparece acá automáticamente.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="sheet-action"
+                onClick={() => window.open(cardUrl, "_blank")}
+                className="w-full h-14 font-bold uppercase gap-2"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Volver a abrir el pago
+              </Button>
+              <button
+                type="button"
+                onClick={generateQR}
+                className="text-xs text-muted-foreground underline underline-offset-4"
+              >
+                Prefiero pagar con QR
+              </button>
+            </m.div>
+          )}
+
 
           {step === "revealed" && qrImageUrl && (
             <m.div key="revealed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pt-6 pb-8 space-y-4 text-center overflow-y-auto max-h-[92dvh]">
@@ -580,7 +665,7 @@ export function PaymentQRModal({
               </div>
               <h2 className="text-xl font-brand font-medium text-foreground">QR Expirado</h2>
               <p className="text-muted-foreground text-sm">El código QR expiró sin detectar un pago.</p>
-                <Button variant="sheet-action" onClick={generateQR} className="w-full h-14 font-bold uppercase">
+                <Button variant="sheet-action" onClick={retryCheckout} className="w-full h-14 font-bold uppercase">
                   <RefreshCw className="w-4 h-4 mr-2" />Generar nuevo QR
                 </Button>
               <Button variant="ghost" className="w-full" onClick={handleClose}>Cancelar</Button>
@@ -599,7 +684,7 @@ export function PaymentQRModal({
                     Iniciar sesión
                   </Button>
                 ) : (
-                  <Button variant="sheet-action" onClick={isFree ? confirmFreeJoin : generateQR} className="w-full h-14 font-bold uppercase">
+                  <Button variant="sheet-action" onClick={isFree ? confirmFreeJoin : retryCheckout} className="w-full h-14 font-bold uppercase">
                     <RefreshCw className="w-4 h-4 mr-2" />Reintentar
                   </Button>
                 )}

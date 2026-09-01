@@ -43,6 +43,13 @@
       "when": 1788238176233,
       "tag": "0005_public_business_tier_lookup",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788278561452,
+      "tag": "0006_payment_sessions_payment_method",
+      "breakpoints": true
     }
   ]
 }

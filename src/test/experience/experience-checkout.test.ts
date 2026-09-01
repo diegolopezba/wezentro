@@ -11,7 +11,7 @@ describe("experience checkout booking identity", () => {
 
     const request = buildExperienceQrRequest(newBookingId);
 
-    expect(request).toEqual({ bookingId: newBookingId });
+    expect(request).toEqual({ bookingId: newBookingId, method: "qr" });
     expect(request.bookingId).not.toBe(staleStateBookingId);
   });
 

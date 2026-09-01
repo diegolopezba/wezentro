@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
+import { openPaymentGateway, buildReturnUrl } from "@/lib/cardCheckout";
 import {
   buildExperienceQrRequest,
   resolveExperienceBookingId,
@@ -64,6 +65,8 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
   const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [cardUrl, setCardUrl] = useState<string | null>(null);
+  const [payMethod, setPayMethod] = useState<"qr" | "card">("qr");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
@@ -114,19 +117,23 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
         toast.error("El pago no se completó. Intentá de nuevo.");
         setStep("quantity");
         setQrUrl(null);
+        setCardUrl(null);
         setSessionId(null);
       }
     }, 4000);
     return () => window.clearInterval(id);
   }, [sessionId, step]);
 
-  const startPayment = async () => {
+  const startPayment = async (method: "qr" | "card" = "qr") => {
     if (!user) {
       promptAuth({ action: "reservar esta experiencia" });
       return;
     }
     if (!dateStr || !time || !segmentId) return;
+    // Placeholder tab must open inside the user gesture, before any await.
+    const gateway = method === "card" ? openPaymentGateway() : null;
     setStarting(true);
+    setPayMethod(method);
     try {
       const newBookingId = await createBooking.mutateAsync({
         experienceId: experience.id,
@@ -139,7 +146,11 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
       setBookingId(newBookingId);
 
       const { data, error } = await supabase.functions.invoke("generate-experience-qr", {
-        body: buildExperienceQrRequest(newBookingId),
+        body: buildExperienceQrRequest(
+          newBookingId,
+          method,
+          method === "card" ? buildReturnUrl("/tickets") : undefined,
+        ),
       });
 
       let payload: any = data;
@@ -147,6 +158,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
         payload = await (error as any)?.context?.json?.().catch(() => null);
       }
       if (error || payload?.error) {
+        gateway?.abort();
         if (payload?.code === "no_beneficiary") {
           toast.error("El organizador todavía no habilitó los pagos. Intentá más tarde.");
           setStep("quantity");
@@ -156,15 +168,31 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
       }
 
       setBookingId(resolveExperienceBookingId(newBookingId, payload?.experienceBookingId));
-      setQrUrl(payload.qrImageUrl);
       setSessionId(payload.paymentSessionId);
+
+      if (method === "card") {
+        if (!payload?.paymentUrl) {
+          gateway?.abort();
+          throw new Error("No se pudo abrir el pago con tarjeta. Probá con QR.");
+        }
+        setCardUrl(payload.paymentUrl);
+        setQrUrl(null);
+        setStep("pay");
+        gateway?.navigate(payload.paymentUrl);
+        return;
+      }
+
+      setCardUrl(null);
+      setQrUrl(payload.qrImageUrl);
       setStep("pay");
     } catch (e: any) {
+      gateway?.abort();
       toast.error(e?.message || "No se pudo iniciar el pago");
     } finally {
       setStarting(false);
     }
   };
+
 
 
   const canContinue =
@@ -346,19 +374,49 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
                   "Continuar"
                 )}
               </Button>
+              {step === "quantity" && (
+                <Button
+                  variant="outline"
+                  className="mt-2 h-12 w-full rounded-full text-base"
+                  disabled={!canContinue || starting || createBooking.isPending}
+                  onClick={() => startPayment("card")}
+                >
+                  Pagar con tarjeta
+                </Button>
+              )}
             </div>
+
           </>
         )}
 
         {step === "pay" && (
           <div className="flex flex-col items-center py-6 pb-[max(env(safe-area-inset-bottom),16px)]">
-            <p className="text-sm text-muted-foreground">Escaneá el QR con tu app bancaria</p>
-            {qrUrl && (
-              <img
-                src={qrUrl}
-                alt={`QR de pago para ${experience.title}`}
-                className="mt-4 h-64 w-64 rounded-2xl bg-white object-contain p-2"
-              />
+            {payMethod === "card" ? (
+              <>
+                <p className="px-4 text-center text-sm text-muted-foreground">
+                  Completá el pago con tu tarjeta en la ventana segura de Qhantuy.
+                </p>
+                {cardUrl && (
+                  <Button
+                    variant="outline"
+                    className="mt-4 h-12 rounded-full"
+                    onClick={() => window.open(cardUrl, "_blank")}
+                  >
+                    Volver a abrir el pago
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">Escaneá el QR con tu app bancaria</p>
+                {qrUrl && (
+                  <img
+                    src={qrUrl}
+                    alt={`QR de pago para ${experience.title}`}
+                    className="mt-4 h-64 w-64 rounded-2xl bg-white object-contain p-2"
+                  />
+                )}
+              </>
             )}
             <p className="mt-4 font-brand text-xl font-medium text-foreground">{money(total)}</p>
             <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
@@ -366,6 +424,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
             </div>
           </div>
         )}
+
 
         {step === "done" && (
           <div className="flex flex-col items-center py-10 pb-[max(env(safe-area-inset-bottom),16px)] text-center">

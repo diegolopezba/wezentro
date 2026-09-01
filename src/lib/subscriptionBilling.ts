@@ -11,12 +11,17 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { BillingInterval, TierKey } from "./subscriptionTiers";
+import type { CheckoutMethod } from "./cardCheckout";
 
 export const BILLING_CONTACT_EMAIL = "hello@zentro.com";
 
 export interface SubscriptionCheckout {
   paymentSessionId: string;
-  qrImageUrl: string;
+  /** Present for the QR rail. */
+  qrImageUrl: string | null;
+  /** Present for the card rail: Qhantuy's hosted Cybersource page. */
+  paymentUrl: string | null;
+  method: CheckoutMethod;
   amount: number;
   prorated: boolean;
   label: string;
@@ -24,24 +29,35 @@ export interface SubscriptionCheckout {
   interval: BillingInterval;
 }
 
-/** Creates a Qhantuy QR for the selected plan. Throws with a Spanish message. */
+/**
+ * Creates the Qhantuy checkout for the selected plan (QR or card redirect).
+ * Throws with a Spanish message.
+ */
 export const startSubscriptionCheckout = async (
   tier: TierKey,
   interval: BillingInterval = "month",
+  method: CheckoutMethod = "qr",
+  returnUrl?: string,
 ): Promise<SubscriptionCheckout> => {
   const { data, error } = await supabase.functions.invoke("generate-subscription-qr", {
-    body: { tier, interval },
+    body: { tier, interval, method, ...(returnUrl ? { returnUrl } : {}) },
   });
+
+  const fallback = method === "card"
+    ? "No pudimos iniciar el pago con tarjeta. Intentá de nuevo."
+    : "No pudimos generar el QR. Intentá de nuevo.";
 
   if (error) {
     const detail = (data as any)?.error;
-    throw new Error(detail || "No pudimos generar el QR. Intentá de nuevo.");
+    throw new Error(detail || fallback);
   }
-  if (!data?.qrImageUrl || !data?.paymentSessionId) {
-    throw new Error((data as any)?.error || "No pudimos generar el QR. Intentá de nuevo.");
+  const hasRail = method === "card" ? !!data?.paymentUrl : !!data?.qrImageUrl;
+  if (!hasRail || !data?.paymentSessionId) {
+    throw new Error((data as any)?.error || fallback);
   }
-  return data as SubscriptionCheckout;
+  return { ...(data as SubscriptionCheckout), method };
 };
+
 
 export type SubscriptionPaymentStatus = "pending" | "confirmed" | "failed" | "expired";
 

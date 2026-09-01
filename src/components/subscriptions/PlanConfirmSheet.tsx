@@ -16,6 +16,7 @@ import {
   startSubscriptionCheckout,
 } from "@/lib/subscriptionBilling";
 import { SubscriptionQRSheet } from "@/components/subscriptions/SubscriptionQRSheet";
+import { openPaymentGateway, buildReturnUrl } from "@/lib/cardCheckout";
 
 interface Props {
   open: boolean;
@@ -39,19 +40,30 @@ export const PlanConfirmSheet = ({
   const [checkout, setCheckout] = useState<SubscriptionCheckout | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
 
-  const pay = async () => {
+  const pay = async (method: "qr" | "card" = "qr") => {
+    // Placeholder tab must open inside the click, before any await.
+    const gateway = method === "card" ? openPaymentGateway() : null;
     setLoading(true);
     try {
-      const result = await startSubscriptionCheckout(tier, interval);
+      const result = await startSubscriptionCheckout(
+        tier,
+        interval,
+        method,
+        method === "card" ? buildReturnUrl("/dashboard") : undefined,
+      );
       setCheckout(result);
       onOpenChange(false);
       setQrOpen(true);
+      if (method === "card" && result.paymentUrl) gateway?.navigate(result.paymentUrl);
+      else gateway?.abort();
     } catch (e: any) {
-      toast.error(e?.message || "No pudimos generar el QR");
+      gateway?.abort();
+      toast.error(e?.message || "No pudimos iniciar el pago");
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <>
@@ -94,17 +106,26 @@ export const PlanConfirmSheet = ({
               variant="sheet-action"
               disabled={loading}
               className="h-12 w-full rounded-full text-base"
-              onClick={pay}
+              onClick={() => pay("qr")}
             >
               {loading ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Generando QR…
+                  Procesando…
                 </span>
               ) : (
                 "Pagar con QR"
               )}
             </Button>
+            <Button
+              variant="outline"
+              disabled={loading}
+              className="mt-2 h-12 w-full rounded-full text-base"
+              onClick={() => pay("card")}
+            >
+              Pagar con tarjeta
+            </Button>
+
             <button
               type="button"
               onClick={() => onOpenChange(false)}
