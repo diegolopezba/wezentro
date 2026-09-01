@@ -106,17 +106,26 @@ export const PlanConfirmSheet = ({
               variant="sheet-action"
               disabled={loading}
               className="h-12 w-full rounded-full text-base"
-              onClick={pay}
+              onClick={() => pay("qr")}
             >
               {loading ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Generando QR…
+                  Procesando…
                 </span>
               ) : (
                 "Pagar con QR"
               )}
             </Button>
+            <Button
+              variant="outline"
+              disabled={loading}
+              className="mt-2 h-12 w-full rounded-full text-base"
+              onClick={() => pay("card")}
+            >
+              Pagar con tarjeta
+            </Button>
+
             <button
               type="button"
               onClick={() => onOpenChange(false)}
