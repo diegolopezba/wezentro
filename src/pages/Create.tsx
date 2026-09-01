@@ -1277,7 +1277,7 @@ const Create = () => {
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 {isUploading ? `Subiendo... ${uploadProgress}%` : "Creando..."}
               </> :
-            isPost ? "Publicar Post" : "Crear Evento" }
+            isEvent ? "Crear Evento" : isExperience ? "Publicar Experiencia" : "Publicar Post" }
           </Button>
         </div>
       </div>
