@@ -5065,6 +5065,10 @@ export type Database = {
           event_id: string
         }[]
       }
+      has_active_business_plan: {
+        Args: { _business_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
