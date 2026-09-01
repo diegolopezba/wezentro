@@ -132,14 +132,18 @@ export function PaymentQRModal({
     }
   }, []);
 
-  const generateQR = useCallback(async () => {
+  const generateCheckout = useCallback(async (method: "qr" | "card" = "qr") => {
     if (!isActiveRef.current) return;
+    // The placeholder tab must be opened inside the click, before any await.
+    const gateway = method === "card" ? openPaymentGateway() : null;
     setStep("loading");
+    setPayMethod(method);
     setErrorMsg(null);
     setNeedsLogin(false);
     try {
       const fresh = await ensureFreshSession();
       if (!fresh) {
+        gateway?.abort();
         setErrorMsg("Tu sesión expiró. Inicia sesión de nuevo para continuar.");
         setNeedsLogin(true);
         setStep("error");
@@ -161,6 +165,8 @@ export function PaymentQRModal({
           areaBookingId: areaBookingId ?? null,
           quantity: canBuyMultiple ? quantity : 1,
           assignees: canBuyMultiple ? assignees.slice(0, quantity - 1).map((a) => a?.id ?? null) : [],
+          method,
+          returnUrl: method === "card" ? buildReturnUrl(`/going/${eventId}`) : undefined,
         },
       });
       if (error || !data || (data as any).error) {
@@ -179,20 +185,44 @@ export function PaymentQRModal({
         if (serverCode === "session_expired" || serverCode === "no_auth_header") {
           setNeedsLogin(true);
         }
-        setErrorMsg(serverMsg || error?.message || "No se pudo generar el QR");
+        gateway?.abort();
+        setErrorMsg(serverMsg || error?.message || "No se pudo iniciar el pago");
         setStep("error");
         return;
       }
       const sessionId = (data as any).paymentSessionId;
+      const paymentUrl = (data as any).paymentUrl as string | null;
+
+      if (method === "card") {
+        if (!paymentUrl) {
+          gateway?.abort();
+          setErrorMsg("No se pudo abrir el pago con tarjeta. Probá con QR.");
+          setStep("error");
+          return;
+        }
+        setPaymentSessionId(sessionId);
+        setCardUrl(paymentUrl);
+        setStep("card");
+        startPolling(sessionId);
+        gateway?.navigate(paymentUrl);
+        return;
+      }
+
       setQrImageUrl((data as any).qrImageUrl);
       setPaymentSessionId(sessionId);
       setStep("revealed");
       startPolling(sessionId);
     } catch (err: any) {
-      setErrorMsg(err?.message || "No se pudo generar el QR");
+      gateway?.abort();
+      setErrorMsg(err?.message || "No se pudo iniciar el pago");
       setStep("error");
     }
   }, [eventId, ticketTierId, eventAreaId, areaBookingId, startPolling, ensureFreshSession, canBuyMultiple, quantity, assignees]);
+
+  const generateQR = useCallback(() => generateCheckout("qr"), [generateCheckout]);
+  const generateCardCheckout = useCallback(() => generateCheckout("card"), [generateCheckout]);
+  const retryCheckout = useCallback(() => generateCheckout(payMethodRef.current), [generateCheckout]);
+
 
   const confirmFreeJoin = useCallback(async () => {
     if (!isActiveRef.current || !onJoinFree) return;
