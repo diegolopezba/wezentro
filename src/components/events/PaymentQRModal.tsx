@@ -262,6 +262,9 @@ export function PaymentQRModal({
       setTimeout(() => {
         setStep("details");
         setQrImageUrl(null);
+        setCardUrl(null);
+        setPayMethod("qr");
+
         setPaymentSessionId(null);
         setErrorMsg(null);
         setQuantity(1);
