@@ -366,7 +366,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             />
           </div>
 
-          <div className="space-y-2">
+          <div className={cn("space-y-2", isExperiencePost && "hidden")}>
             <Label htmlFor="category">Categoría</Label>
             <Select
               value={formData.category}
