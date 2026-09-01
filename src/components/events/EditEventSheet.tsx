@@ -77,6 +77,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     isBusiness && experiencesEnabled ? user?.id : undefined,
   );
   const activeExperiences = myExperiences.filter((e) => e.is_active);
+  const isExperiencePost = !!event.experience_id;
+  const linkedExperience = myExperiences.find((e) => e.id === event.experience_id) ?? null;
   const [pricingMode, setPricingMode] = useState<TicketPricingMode>("single");
   const [saleMode, setSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
@@ -364,7 +366,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             />
           </div>
 
-          <div className="space-y-2">
+          <div className={cn("space-y-2", isExperiencePost && "hidden")}>
             <Label htmlFor="category">Categoría</Label>
             <Select
               value={formData.category}
@@ -480,7 +482,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           )}
 
           {/* Menu Button Toggle - Only for Business users with menu items */}
-          {isBusiness && hasMenuItems && (
+          {isBusiness && hasMenuItems && !isExperiencePost && (
             <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-secondary/50 border border-border">
               <div className="flex items-center gap-2">
                 <UtensilsCrossed className="w-4 h-4 text-primary" />
@@ -499,63 +501,21 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             </div>
           )}
 
-          {/* Experience picker — business accounts with active experiences */}
-          {isBusiness && experiencesEnabled && activeExperiences.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <div className="flex flex-col">
-                  <Label>Vincular una experiencia</Label>
-                  <span className="text-xs text-muted-foreground">
-                    Los visitantes la reservan y pagan desde este post
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setExperienceId(null)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-full text-xs border transition-colors active:scale-[0.97]",
-                    !experienceId
-                      ? "bg-foreground text-background border-foreground"
-                      : "bg-secondary/50 border-border text-muted-foreground",
-                  )}
-                >
-                  Ninguna
-                </button>
-                {activeExperiences.map((exp) => (
-                  <button
-                    key={exp.id}
-                    type="button"
-                    onClick={() => {
-                      if (!hasBeneficiary) {
-                        setShowBeneficiaryGate(true);
-                        return;
-                      }
-                      setExperienceId(experienceId === exp.id ? null : exp.id);
-                    }}
-                    className={cn(
-                      "px-3 py-1.5 rounded-full text-xs border transition-colors active:scale-[0.97]",
-                      experienceId === exp.id
-                        ? "bg-foreground text-background border-foreground"
-                        : "bg-secondary/50 border-border text-muted-foreground",
-                    )}
-                  >
-                    {exp.title}
-                  </button>
-                ))}
-              </div>
-              {!hasBeneficiary && (
-                <p className="text-xs text-muted-foreground">
-                  Configurá tus datos de cobro para vincular una experiencia
+          {/* Linked experience (read-only: experiences are their own publication type) */}
+          {isExperiencePost && (
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-secondary/50 px-4 py-3">
+              <Sparkles className="w-4 h-4 text-primary shrink-0" />
+              <div className="min-w-0">
+                <Label>Experiencia vinculada</Label>
+                <p className="text-xs text-muted-foreground truncate">
+                  {linkedExperience?.title ?? "Experiencia"} · horarios y precios se editan en Ajustes
                 </p>
-              )}
+              </div>
             </div>
           )}
 
           {/* Reservation Button Toggle - Only for Business users with reservations enabled */}
-          {isBusiness && reservationsEnabled && (
+          {isBusiness && reservationsEnabled && !isExperiencePost && (
             <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-secondary/50 border border-border">
               <div className="flex items-center gap-2">
                 <CalendarCheck className="w-4 h-4 text-primary" />

@@ -547,7 +547,7 @@ const EventDetailModalInner = () => {
                     </span>
                   </div>
                   <Button variant="sheet-action" size="default" onClick={() => setShowExperienceSheet(true)}>
-                    <CalendarCheck className="w-4 h-4 mr-1" /> Reservar
+                    <CalendarCheck className="w-4 h-4 mr-1" /> Reservar Experiencia
                   </Button>
                 </div>
               </div>

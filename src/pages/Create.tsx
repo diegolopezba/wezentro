@@ -58,7 +58,7 @@ import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/Featur
 import { CREATE_INTRO } from "@/components/business/featureIntroSteps";
 
 
-type ContentType = "post" | "event";
+type ContentType = "post" | "event" | "experience";
 
 const TYPE_OPTIONS: {id: ContentType;label: string;description: string;icon: React.ReactNode;color: string;}[] = [
 {
@@ -73,6 +73,13 @@ const TYPE_OPTIONS: {id: ContentType;label: string;description: string;icon: Rea
   label: "Evento",
   description: "Crea un evento con fecha, lugar y lista de invitados",
   icon: <PartyPopper className="w-5 h-5" />,
+  color: "from-neutral-200 to-neutral-400"
+},
+{
+  id: "experience",
+  label: "Experiencia",
+  description: "Publicá una experiencia para que la reserven",
+  icon: <Sparkles className="w-5 h-5" />,
   color: "from-neutral-200 to-neutral-400"
 }];
 
@@ -91,9 +98,18 @@ const Create = () => {
 
   const { invalidateAfterCreate } = useCreateEvent();
 
-  // ── Type selection state — pre-seeded from ?type= query param ──
-  const initialType = (searchParams.get("type") === "event" ? "event" : "post") as ContentType;
+  // ── Type selection state — pre-seeded from ?type= query param / router state ──
+  const typeParam = searchParams.get("type");
+  const preselectedExperienceId = ((routerLocation.state as any)?.experienceId as string) ?? null;
+  const initialType: ContentType =
+    preselectedExperienceId || typeParam === "experience"
+      ? "experience"
+      : typeParam === "event"
+      ? "event"
+      : "post";
   const [contentType, setContentType] = useState<ContentType>(initialType);
+  const isExperience = contentType === "experience";
+  const isEvent = contentType === "event";
   const isPost = contentType === "post";
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -151,13 +167,21 @@ const Create = () => {
     isBusiness && experiencesEnabled ? user?.id : undefined,
   );
   const activeExperiences = myExperiences.filter((e) => e.is_active);
-  const [experienceId, setExperienceId] = useState<string | null>(
-    ((routerLocation.state as any)?.experienceId as string) ?? null,
-  );
+  const [experienceId, setExperienceId] = useState<string | null>(preselectedExperienceId);
   const linkedExperience = myExperiences.find((e) => e.id === experienceId) ?? null;
+  const canPublishExperiences = isBusiness && experiencesEnabled;
   useEffect(() => {
-    if (!experiencesEnabled && experienceId) setExperienceId(null);
-  }, [experiencesEnabled, experienceId]);
+    if (!canPublishExperiences && (experienceId || contentType === "experience")) {
+      setExperienceId(null);
+      if (contentType === "experience") setContentType("post");
+    }
+  }, [canPublishExperiences, experienceId, contentType]);
+  // Auto-pick when the business has exactly one active experience
+  useEffect(() => {
+    if (isExperience && !experienceId && activeExperiences.length === 1) {
+      setExperienceId(activeExperiences[0].id);
+    }
+  }, [isExperience, experienceId, activeExperiences]);
   const [showBusinessGate, setShowBusinessGate] = useState(false);
   const [businessGateContext, setBusinessGateContext] = useState<"tickets" | "event">("tickets");
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
@@ -184,6 +208,7 @@ const Create = () => {
     const draft = readCreateDraft<any>();
     if (!draft) return;
     if (draft.contentType) setContentType(draft.contentType);
+    if (draft.experienceId && !preselectedExperienceId) setExperienceId(draft.experienceId);
     if (draft.formData) setFormData((prev) => ({ ...prev, ...draft.formData }));
     if (draft.location) setLocation(draft.location);
     if (draft.pricingMode) setPricingMode(draft.pricingMode);
@@ -193,7 +218,7 @@ const Create = () => {
   }, []);
 
   usePersistCreateDraft(
-    { contentType, formData, location, pricingMode, draftTiers, draftAreas, useAreas },
+    { contentType, formData, location, pricingMode, draftTiers, draftAreas, useAreas, experienceId },
     draftRestored.current && (!!formData.title || !!formData.description || !!location.address),
   );
 
@@ -202,8 +227,8 @@ const Create = () => {
 
   const handleTypeChange = (type: ContentType) => {
     setContentType(type);
-    // Reset event-only fields when switching to post
-    if (type === "post") {
+    // Reset event-only fields when switching away from Evento
+    if (type !== "event") {
       setFormData((prev) => ({
         ...prev,
         date: "",
@@ -211,10 +236,13 @@ const Create = () => {
         endTime: "",
         price: "",
         capacity: "",
-            showReservationButton: false
+        showReservationButton: false,
+        waitlistEnabled: false,
       }));
       setLocation({ address: "", latitude: null, longitude: null });
     }
+    // Experience publications never carry a linked experience outside their own tab
+    if (type !== "experience") setExperienceId(null);
   };
 
   const fileToDataUrl = (file: File): Promise<string> =>
@@ -369,7 +397,7 @@ const Create = () => {
       navigate("/auth");
       return;
     }
-    // Events are a Business-only feature. Posts stay open to everyone.
+    // Events and experiences are Business-only features. Posts stay open to everyone.
     if (!isPost && !isBusiness) {
       openBusinessGate("event");
       return;
@@ -378,27 +406,30 @@ const Create = () => {
       toast.error("Por favor sube al menos una imagen o video");
       return;
     }
-    if (!isPost && (!formData.date || !formData.time)) {
+    if (isEvent && (!formData.date || !formData.time)) {
       toast.error("Por favor ingresa la fecha y hora del evento");
+      return;
+    }
+    if (isExperience && !experienceId) {
+      toast.error("Elegí qué experiencia querés publicar");
       return;
     }
 
     // Optional visual layout (events only, business accounts)
-    const useLayout = !isPost && isBusiness && useAreas && draftAreas.length > 0;
-    if (!isPost && isBusiness && useAreas && draftAreas.length === 0) {
+    const useLayout = isEvent && isBusiness && useAreas && draftAreas.length > 0;
+    if (isEvent && isBusiness && useAreas && draftAreas.length === 0) {
       toast.error("Añade al menos un área al plano o desactiva la venta por áreas");
       return;
     }
     const hasPaidArea = useLayout && draftAreas.some((a) => (a.price ?? 0) > 0);
 
     // Gate paid tickets: require Business + Qhantuy beneficiary
-    const hasPaidSingle = !isPost && formData.price && parseFloat(formData.price) > 0;
-    const hasPaidTier = !isPost && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
-    if (experienceId) {
-      // Linked experiences are booked and paid through QR too: payouts are required.
-      if (!isBusiness) { openBusinessGate("tickets"); return; }
+    const hasPaidSingle = isEvent && formData.price && parseFloat(formData.price) > 0;
+    const hasPaidTier = isEvent && pricingMode === "tiers" && draftTiers.some((t) => parseFloat(t.price || "0") > 0);
+    if (isExperience) {
+      // Experiences are booked and paid up front: payouts are required.
       if (!hasBeneficiary) { openBeneficiaryGate("experience"); return; }
-    } else if (hasPaidSingle || hasPaidTier || hasPaidArea || (!isPost && isBusiness && pricingMode === "tiers")) {
+    } else if (hasPaidSingle || hasPaidTier || hasPaidArea || (isEvent && isBusiness && pricingMode === "tiers")) {
       if (!isBusiness) { openBusinessGate("tickets"); return; }
       if (!hasBeneficiary) { openBeneficiaryGate("tickets"); return; }
     }
@@ -406,7 +437,7 @@ const Create = () => {
 
     // Validate ticket tiers (events only, business + tiers mode)
     const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
-    const useTiers = !isPost && isBusiness && !experienceId && pricingMode === "tiers";
+    const useTiers = isEvent && isBusiness && pricingMode === "tiers";
     if (useTiers) {
       if (draftTiers.length === 0) {
         toast.error("Añade al menos un tipo de entrada");
@@ -447,7 +478,7 @@ const Create = () => {
 
       let startDatetime: string | null = null;
       let endDatetime: string | null = null;
-      if (!isPost && formData.date && formData.time) {
+      if (isEvent && formData.date && formData.time) {
         const start = new Date(`${formData.date}T${formData.time}`);
         startDatetime = start.toISOString();
         if (formData.endTime) {
@@ -469,40 +500,40 @@ const Create = () => {
         ? Math.min(...cleanTiers.map((t) => t.price))
         : useLayout
         ? Math.min(...draftAreas.map((a) => a.price ?? 0))
-        : (!isPost && formData.price ? parseFloat(formData.price) : 0);
+        : (isEvent && formData.price ? parseFloat(formData.price) : 0);
 
       const { data, error } = await supabase.
       from("events").
       insert({
         title: formData.title.trim() || null,
         description: formData.description.trim() || null,
-        category: formData.category || null,
+        category: isExperience ? null : formData.category || null,
         start_datetime: startDatetime,
         end_datetime: endDatetime,
-        location_name: isPost ? null : location.address.trim() || null,
-        latitude: isPost ? null : location.latitude,
-        longitude: isPost ? null : location.longitude,
+        location_name: isEvent ? location.address.trim() || null : null,
+        latitude: isEvent ? location.latitude : null,
+        longitude: isEvent ? location.longitude : null,
         price: insertPrice,
-        max_guestlist_capacity: formData.capacity ? parseInt(formData.capacity) : null,
-        has_guestlist: !isPost,
+        max_guestlist_capacity: isEvent && formData.capacity ? parseInt(formData.capacity) : null,
+        has_guestlist: isEvent,
         image_url: imageUrl,
         creator_id: user.id,
         is_public: true,
-        is_post: isPost,
+        is_post: !isEvent,
         description_tags: descriptionTags.length > 0 ? descriptionTags : null,
-        show_menu_button: isBusiness && hasMenuItems ? formData.showMenuButton : false,
+        show_menu_button: !isExperience && isBusiness && hasMenuItems ? formData.showMenuButton : false,
         show_reservation_button: isBusiness && reservationsEnabled && isPost ? formData.showReservationButton : false,
-        is_location_secret: !isPost && formData.isLocationSecret,
-        waitlist_enabled: !isPost && isBusiness && hasBeneficiary && formData.waitlistEnabled,
+        is_location_secret: isEvent && formData.isLocationSecret,
+        waitlist_enabled: isEvent && isBusiness && hasBeneficiary && formData.waitlistEnabled,
         sales_open_at:
-          !isPost && formData.waitlistEnabled && formData.salesOpenAt
+          isEvent && formData.waitlistEnabled && formData.salesOpenAt
             ? new Date(formData.salesOpenAt).toISOString()
             : null,
         waitlist_early_access_hours:
-          !isPost && formData.waitlistEnabled
+          isEvent && formData.waitlistEnabled
             ? parseInt(formData.waitlistEarlyAccessHours || "0") || 0
             : 0,
-        experience_id: experienceId
+        experience_id: isExperience ? experienceId : null
       }).
       select().
       single();
@@ -591,7 +622,7 @@ const Create = () => {
       }
 
       clearCreateDraft();
-      toast.success(isPost ? "¡Post publicado!" : "¡Evento creado exitosamente!");
+      toast.success(isEvent ? "¡Evento creado exitosamente!" : isExperience ? "¡Experiencia publicada!" : "¡Post publicado!");
 
       haptic("success");
       invalidateAfterCreate();
@@ -628,9 +659,9 @@ const Create = () => {
         <m.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-2 gap-3">
+          className={cn("grid gap-3", canPublishExperiences ? "grid-cols-3" : "grid-cols-2")}>
           
-          {TYPE_OPTIONS.map((option) => {
+          {TYPE_OPTIONS.filter((o) => o.id !== "experience" || canPublishExperiences).map((option) => {
             const active = contentType === option.id;
             return (
               <m.button
@@ -689,7 +720,7 @@ const Create = () => {
                 <>
                   <Upload className="w-10 h-10 text-muted-foreground mb-2" />
                   <span className="text-sm text-muted-foreground">
-                    {isPost ? "Sube fotos o videos" : "Portada del evento"}
+                    {isEvent ? "Portada del evento" : isExperience ? "Fotos de la experiencia" : "Sube fotos o videos"}
                   </span>
                   <span className="text-xs text-muted-foreground/60 mt-1">
                     Hasta {MAX_MEDIA} archivos · máx. 30s por video
@@ -783,10 +814,10 @@ const Create = () => {
           
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
-              {isPost ? "Título" : "Nombre del evento"}
+              {isEvent ? "Nombre del evento" : isExperience ? "Título de la publicación" : "Título"}
             </label>
             <Input
-              placeholder={isPost ? "Dale un título a tu post" : "Dale un nombre atractivo"}
+              placeholder={isEvent ? "Dale un nombre atractivo" : isExperience ? "Ej. Buceo al amanecer en el lago" : "Dale un título a tu post"}
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               maxLength={100} />
@@ -795,7 +826,7 @@ const Create = () => {
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">Descripción</label>
             <MentionTextarea
-              placeholder={isPost ? "Cuéntalo, usa @usuario para mencionar..." : "Describe tu evento... usa @usuario para mencionar"}
+              placeholder={isEvent ? "Describe tu evento... usa @usuario para mencionar" : isExperience ? "Contá qué incluye la experiencia..." : "Cuéntalo, usa @usuario para mencionar..."}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               maxLength={2000}
@@ -805,7 +836,8 @@ const Create = () => {
           </div>
         </m.div>
 
-        {/* ── Category ── */}
+        {/* ── Category (posts & events only) ── */}
+        {!isExperience && (
         <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <button
             type="button" onClick={() => setCategoryOpen((o) => !o)}
@@ -852,9 +884,10 @@ const Create = () => {
             }
           </AnimatePresence>
         </m.div>
+        )}
 
-        {/* ── Link a bookable experience (business only, feature enabled) ── */}
-        {isBusiness && experiencesEnabled && (
+        {/* ── Which experience is being published (experience tab only) ── */}
+        {isExperience && (
           <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <Card className="glass border-white/10 p-4 space-y-3">
               <div className="flex items-start gap-3">
@@ -862,9 +895,9 @@ const Create = () => {
                   <Sparkles className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-foreground">Reservar una experiencia</h3>
+                  <h3 className="font-semibold text-foreground">¿Qué experiencia publicás?</h3>
                   <p className="text-xs text-muted-foreground">
-                    Vinculá esta publicación a una experiencia para que la gente reserve y pague por adelantado.
+                    Los horarios, cupos y precios salen de la experiencia que configuraste en Ajustes.
                   </p>
                 </div>
               </div>
@@ -880,16 +913,6 @@ const Create = () => {
                 </Button>
               ) : (
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setExperienceId(null)}
-                    className={cn(
-                      "px-3 py-2 rounded-full text-sm border transition-colors",
-                      !experienceId ? "bg-foreground text-background border-transparent" : "border-border text-muted-foreground",
-                    )}
-                  >
-                    Ninguna
-                  </button>
                   {activeExperiences.map((exp) => (
                     <button
                       key={exp.id}
@@ -920,7 +943,7 @@ const Create = () => {
 
               {linkedExperience && (
                 <p className="text-xs text-muted-foreground">
-                  El precio y los horarios vienen de “{linkedExperience.title}”. No hace falta configurar entradas.
+                  {linkedExperience.duration_minutes} min · el precio y los horarios vienen de “{linkedExperience.title}”.
                 </p>
               )}
             </Card>
@@ -929,7 +952,7 @@ const Create = () => {
 
         {/* ── Event-only fields (date, time, location, price, capacity) ── */}
         <AnimatePresence>
-          {!isPost &&
+          {isEvent &&
           <m.div
             key="event-fields" initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
@@ -1043,7 +1066,7 @@ const Create = () => {
 
         {/* ── Collaborator section ── */}
         {/* ── Menu button toggle (business only) ── */}
-        {isBusiness && hasMenuItems &&
+        {isBusiness && hasMenuItems && !isExperience &&
         <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
             <Card className="glass border-white/10 p-4">
               <div className="flex items-center justify-between">
@@ -1101,7 +1124,7 @@ const Create = () => {
         }
 
         {/* ── Opciones avanzadas (events only) ── */}
-        {!isPost && (
+        {isEvent && (
           <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26 }}>
             <Card className="glass border-white/10 p-0 overflow-hidden">
               <Collapsible>
@@ -1255,7 +1278,7 @@ const Create = () => {
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 {isUploading ? `Subiendo... ${uploadProgress}%` : "Creando..."}
               </> :
-            isPost ? "Publicar Post" : "Crear Evento" }
+            isEvent ? "Crear Evento" : isExperience ? "Publicar Experiencia" : "Publicar Post" }
           </Button>
         </div>
       </div>

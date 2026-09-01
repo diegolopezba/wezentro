@@ -46,6 +46,8 @@ export interface EventCardProps {
   compact?: boolean;
   media?: CarouselMediaItem[];
   followGraph?: ViewerFollowGraph;
+  /** Non-null when the publication is a bookable experience. */
+  experience_id?: string | null;
 }
 
 const EventCardComponent = ({
@@ -62,6 +64,7 @@ const EventCardComponent = ({
   compact = false,
   media,
   followGraph,
+  experience_id,
 }: EventCardProps) => {
   const openEvent = useOpenEvent();
   const { user } = useAuth();
@@ -194,6 +197,12 @@ const EventCardComponent = ({
               </DropdownMenu>
             )}
 
+            {experience_id && (
+              <span className="absolute left-2 top-2 z-10 rounded-full bg-background/85 px-2 py-0.5 text-[10px] font-medium text-foreground backdrop-blur-sm">
+                Experiencia
+              </span>
+            )}
+
             <CardLikeButton eventId={id} />
           </div>
 
@@ -258,6 +267,7 @@ export const EventCard = memo(EventCardComponent, (prev, next) => {
     prev.isSponsored === next.isSponsored &&
     prev.sponsoredPostId === next.sponsoredPostId &&
     prev.compact === next.compact &&
+    prev.experience_id === next.experience_id &&
     prev.index === next.index &&
     prev.followGraph === next.followGraph && // followGraph is usually stable due to react-query's structural sharing
     (prev.media?.length || 0) === (next.media?.length || 0) &&
