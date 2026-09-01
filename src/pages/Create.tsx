@@ -218,7 +218,7 @@ const Create = () => {
   }, []);
 
   usePersistCreateDraft(
-    { contentType, formData, location, pricingMode, draftTiers, draftAreas, useAreas },
+    { contentType, formData, location, pricingMode, draftTiers, draftAreas, useAreas, experienceId },
     draftRestored.current && (!!formData.title || !!formData.description || !!location.address),
   );
 
