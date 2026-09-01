@@ -158,7 +158,15 @@ Deno.serve(async (req) => {
     if (missing) {
       console.error("[sub-qr] invalid checkout response:", method, checkoutRes.raw);
       await supabase.from("payment_sessions").update({ status: "failed" }).eq("id", session.id);
-      return json({ error: "Respuesta inválida de Qhantuy" }, 502);
+      return json(
+        {
+          error: method === "card"
+            ? "Qhantuy no devolvió el enlace de pago con tarjeta. Probá con QR."
+            : "Respuesta inválida de Qhantuy",
+          code: "invalid_checkout_response",
+        },
+        502,
+      );
     }
 
     await supabase
