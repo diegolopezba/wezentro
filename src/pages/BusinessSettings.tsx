@@ -65,8 +65,8 @@ const BusinessSettings = () => {
               {
                 key: "plan",
                 label: "Activá tu plan",
-                hint: `Desde Bs. ${SUBSCRIPTION_TIERS.basico.price_bob}/mes · desbloquea reservas`,
-                done: !needsActivation,
+                hint: `Desde Bs. ${SUBSCRIPTION_TIERS.basico.price_bob}/mes · desbloquea menú y reservas`,
+                done: hasActivePlan,
                 onClick: () => navigate("/settings/business/plans"),
               } as SetupStep,
             ]
