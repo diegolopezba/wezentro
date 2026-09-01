@@ -681,7 +681,7 @@ export function PaymentQRModal({
                     Iniciar sesión
                   </Button>
                 ) : (
-                  <Button variant="sheet-action" onClick={isFree ? confirmFreeJoin : generateQR} className="w-full h-14 font-bold uppercase">
+                  <Button variant="sheet-action" onClick={isFree ? confirmFreeJoin : retryCheckout} className="w-full h-14 font-bold uppercase">
                     <RefreshCw className="w-4 h-4 mr-2" />Reintentar
                   </Button>
                 )}
