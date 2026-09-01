@@ -37,6 +37,8 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId } = body;
+    const method = parseCheckoutMethod(body.method);
+    const returnUrl = safeReturnUrl(body.returnUrl);
     const MAX_QTY = 10;
     const rawQty = Number(body.quantity ?? 1);
     const quantity = Number.isFinite(rawQty) ? Math.floor(rawQty) : 1;
@@ -45,7 +47,7 @@ Deno.serve(async (req) => {
     const assignees: (string | null)[] = Array.isArray(rawAssignees)
       ? rawAssignees.map((a) => (typeof a === "string" && /^[0-9a-f-]{36}$/i.test(a) ? a : null))
       : [];
-    console.log("[qr] request", { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId, buyerId, quantity });
+    console.log("[qr] request", { eventId, ticketTierId, promoterId, eventAreaId, areaBookingId, buyerId, quantity, method });
     if (!eventId) return json({ error: "Falta el evento", code: "no_event_id" }, 400);
     if (quantity < 1 || quantity > MAX_QTY) {
       return json({ error: `Podés comprar entre 1 y ${MAX_QTY} entradas`, code: "bad_quantity" }, 400);
