@@ -16,6 +16,7 @@ const BusinessCtaRow = ({ req }: { req: BusinessCtaRequest }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [resOpen, setResOpen] = useState(false);
   const biz = req.business;
+  const { hasActivePlan } = useBusinessPlanAccess(biz?.id);
   if (!biz) return null;
   const name = biz.full_name || biz.username;
   const isFood = isFoodBusinessType((biz as any).business_type) || !!biz.is_food_business;
