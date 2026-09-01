@@ -36,6 +36,13 @@
       "when": 1788211222465,
       "tag": "0004_menu_item_images",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788238176233,
+      "tag": "0005_public_business_tier_lookup",
+      "breakpoints": true
     }
   ]
 }
