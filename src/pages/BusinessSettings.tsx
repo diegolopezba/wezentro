@@ -18,6 +18,7 @@ import { useDashboardAccess } from "@/hooks/useDashboardAccess";
 import { BusinessIntroSheet } from "@/components/business/BusinessIntroSheet";
 import { BusinessTypePickerSheet } from "@/components/business/BusinessTypePickerSheet";
 import { BusinessSetupChecklist, SetupStep } from "@/components/business/BusinessSetupChecklist";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 import { SettingsGroup, SettingsRow } from "@/components/settings/SettingsRow";
 
 const BusinessSettings = () => {
@@ -37,7 +38,9 @@ const BusinessSettings = () => {
   const reservationsEnabled = (profile as any)?.reservations_enabled === true;
   const experiencesEnabled = (profile as any)?.experiences_enabled === true;
   const isFoodBusiness = isBusiness && isFoodBusinessType((profile as any)?.business_type);
-  const { tier, needsActivation } = useSubscriptionTier(isFoodBusiness ? user?.id : undefined);
+  const { tier } = useSubscriptionTier(isFoodBusiness ? user?.id : undefined);
+  const { hasActivePlan } = useBusinessPlanAccess(user?.id, isFoodBusiness);
+  const planLocked = isFoodBusiness && !hasActivePlan;
   const { hasPayouts } = useDashboardAccess();
   const businessType = (profile as any)?.business_type as string | undefined;
 
@@ -182,21 +185,39 @@ const BusinessSettings = () => {
               <SettingsRow
                 icon={UtensilsCrossed}
                 label="Menú"
-                sublabel={menuEnabled ? "Activo · editar carta" : "Desactivado"}
+                sublabel={
+                  planLocked
+                    ? "Requiere un plan activo"
+                    : menuEnabled
+                      ? "Activo · editar carta"
+                      : "Desactivado"
+                }
                 onClick={() => navigate("/settings/business/menu")}
                 delay={0.09}
               />
               <SettingsRow
                 icon={CalendarCheck}
                 label="Reservas"
-                sublabel={reservationsEnabled ? "Activas · configurar horario" : "Desactivadas"}
+                sublabel={
+                  planLocked
+                    ? "Requiere un plan activo"
+                    : reservationsEnabled
+                      ? "Activas · configurar horario"
+                      : "Desactivadas"
+                }
                 onClick={() => navigate("/settings/business/reservations")}
                 delay={0.12}
               />
               <SettingsRow
                 icon={Sparkles}
                 label="Experiencias"
-                sublabel={experiencesEnabled ? "Activas · tours, clases y actividades" : "Desactivadas"}
+                sublabel={
+                  experiencesEnabled
+                    ? "Activas · tours, clases y actividades"
+                    : hasPayouts
+                      ? "Desactivadas"
+                      : "Requiere datos bancarios"
+                }
                 onClick={() => navigate("/settings/business/experiences")}
                 delay={0.14}
               />
@@ -247,6 +268,7 @@ const BusinessSettings = () => {
         isActivating={togglingBusiness}
       />
       <BusinessTypePickerSheet
+        requireChoice
         open={typePickerOpen}
         onOpenChange={setTypePickerOpen}
         initialType={businessType}
