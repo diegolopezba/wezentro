@@ -436,7 +436,7 @@ const Create = () => {
 
     // Validate ticket tiers (events only, business + tiers mode)
     const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
-    const useTiers = !isPost && isBusiness && !experienceId && pricingMode === "tiers";
+    const useTiers = isEvent && isBusiness && pricingMode === "tiers";
     if (useTiers) {
       if (draftTiers.length === 0) {
         toast.error("Añade al menos un tipo de entrada");
