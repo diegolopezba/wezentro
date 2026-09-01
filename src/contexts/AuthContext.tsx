@@ -11,6 +11,7 @@ interface Profile {
   city: string | null;
   interests: string[] | null;
   is_business: boolean;
+  account_type: string | null;
   birth_date: string | null;
   gender: string | null;
   is_food_business: boolean | null;
