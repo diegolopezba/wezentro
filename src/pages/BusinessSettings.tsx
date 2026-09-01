@@ -19,6 +19,7 @@ import { BusinessIntroSheet } from "@/components/business/BusinessIntroSheet";
 import { BusinessTypePickerSheet } from "@/components/business/BusinessTypePickerSheet";
 import { BusinessSetupChecklist, SetupStep } from "@/components/business/BusinessSetupChecklist";
 import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
+import { PlanStatusCard } from "@/components/business/PlanStatusCard";
 import { SettingsGroup, SettingsRow } from "@/components/settings/SettingsRow";
 
 const BusinessSettings = () => {
