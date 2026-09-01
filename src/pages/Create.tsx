@@ -208,6 +208,7 @@ const Create = () => {
     const draft = readCreateDraft<any>();
     if (!draft) return;
     if (draft.contentType) setContentType(draft.contentType);
+    if (draft.experienceId && !preselectedExperienceId) setExperienceId(draft.experienceId);
     if (draft.formData) setFormData((prev) => ({ ...prev, ...draft.formData }));
     if (draft.location) setLocation(draft.location);
     if (draft.pricingMode) setPricingMode(draft.pricingMode);
