@@ -52,7 +52,7 @@ const YouAreGoing = () => {
         .eq("event_id", id)
         .eq("purchased_by_user_id", user.id)
         .is("user_id", null)
-        .order("created_at", { ascending: true });
+        .order("joined_at", { ascending: true });
       if (error) throw error;
       return data || [];
     },

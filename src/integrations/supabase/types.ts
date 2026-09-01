@@ -4768,6 +4768,10 @@ export type Database = {
         Returns: undefined
       }
       generate_referral_code: { Args: { _user_id: string }; Returns: string }
+      get_business_public_tier: {
+        Args: { _business_id: string }
+        Returns: string
+      }
       get_chat_list_with_unread: {
         Args: { _user_id: string }
         Returns: {
