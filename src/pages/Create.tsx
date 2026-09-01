@@ -813,10 +813,10 @@ const Create = () => {
           
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
-              {isPost ? "Título" : "Nombre del evento"}
+              {isEvent ? "Nombre del evento" : isExperience ? "Título de la publicación" : "Título"}
             </label>
             <Input
-              placeholder={isPost ? "Dale un título a tu post" : "Dale un nombre atractivo"}
+              placeholder={isEvent ? "Dale un nombre atractivo" : isExperience ? "Ej. Buceo al amanecer en el lago" : "Dale un título a tu post"}
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               maxLength={100} />
@@ -825,7 +825,7 @@ const Create = () => {
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">Descripción</label>
             <MentionTextarea
-              placeholder={isPost ? "Cuéntalo, usa @usuario para mencionar..." : "Describe tu evento... usa @usuario para mencionar"}
+              placeholder={isEvent ? "Describe tu evento... usa @usuario para mencionar" : isExperience ? "Contá qué incluye la experiencia..." : "Cuéntalo, usa @usuario para mencionar..."}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               maxLength={2000}
