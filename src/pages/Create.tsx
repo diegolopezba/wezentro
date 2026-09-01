@@ -98,9 +98,18 @@ const Create = () => {
 
   const { invalidateAfterCreate } = useCreateEvent();
 
-  // ── Type selection state — pre-seeded from ?type= query param ──
-  const initialType = (searchParams.get("type") === "event" ? "event" : "post") as ContentType;
+  // ── Type selection state — pre-seeded from ?type= query param / router state ──
+  const typeParam = searchParams.get("type");
+  const preselectedExperienceId = ((routerLocation.state as any)?.experienceId as string) ?? null;
+  const initialType: ContentType =
+    preselectedExperienceId || typeParam === "experience"
+      ? "experience"
+      : typeParam === "event"
+      ? "event"
+      : "post";
   const [contentType, setContentType] = useState<ContentType>(initialType);
+  const isExperience = contentType === "experience";
+  const isEvent = contentType === "event";
   const isPost = contentType === "post";
 
   const [isSubmitting, setIsSubmitting] = useState(false);
