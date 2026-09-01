@@ -13,8 +13,9 @@ import { RESERVATIONS_INTRO } from "@/components/business/featureIntroSteps";
 import { TablesEditor } from "@/components/reservations/TablesEditor";
 import { ReservationScheduleEditor } from "@/components/reservations/ReservationScheduleEditor";
 import { ReservationRulesEditor } from "@/components/reservations/ReservationRulesEditor";
-import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscriptionTiers";
+import { isFoodBusinessType } from "@/lib/businessTypes";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
+import { PlanRequiredCard } from "@/components/subscriptions/PlanRequiredCard";
 
 
 const BusinessReservations = () => {
@@ -24,12 +25,14 @@ const BusinessReservations = () => {
 
   useSwipeBack();
 
-  const reservationsEnabled = (profile as any)?.reservations_enabled === true;
-  const { needsActivation } = useSubscriptionTier(user?.id);
+  const isFoodBusiness = isFoodBusinessType((profile as any)?.business_type);
+  const { hasActivePlan, isLoading: planLoading } = useBusinessPlanAccess(user?.id, isFoodBusiness);
+  const planLocked = isFoodBusiness && !hasActivePlan && !planLoading;
+  const reservationsEnabled = (profile as any)?.reservations_enabled === true && !planLocked;
   const intro = useFeatureIntro("reservations");
 
   const handleToggleReservations = async (value: boolean) => {
-    if (!user) return;
+    if (!user || planLocked) return;
     setTogglingReservations(true);
     try {
       const { error } = await supabase
@@ -82,35 +85,19 @@ const BusinessReservations = () => {
           <Switch
             checked={reservationsEnabled}
             onCheckedChange={handleToggleReservations}
-            disabled={togglingReservations}
+            disabled={togglingReservations || planLocked}
           />
         </m.div>
 
-        {needsActivation && (
-          <m.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-border bg-card p-4"
-          >
-            <h2 className="font-brand text-base font-medium text-foreground">
-              Activá un plan para recibir reservas
-            </h2>
-            <p className="mt-1.5 text-[13px] leading-snug text-muted-foreground">
-              Las reservas online van con un plan desde Bs. {SUBSCRIPTION_TIERS.basico.price_bob}/mes.
-              Sin comisión por reserva y sin permanencia.
-            </p>
-            <Button
-              variant="sheet-action"
-              className="mt-4 h-11 w-full rounded-full"
-              onClick={() => navigate("/settings/business/plans")}
-            >
-              Ver planes
-            </Button>
-          </m.div>
+        {planLocked && (
+          <PlanRequiredCard
+            title="Activá un plan para recibir reservas"
+            description="Las reservas online van con un plan mensual, sin comisión por reserva y sin permanencia."
+          />
         )}
 
         {/* Inventory, schedules & policies — only when enabled */}
-        {reservationsEnabled && user && !needsActivation && (
+        {reservationsEnabled && user && !planLocked && (
           <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
