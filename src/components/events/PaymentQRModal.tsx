@@ -8,6 +8,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Sheet, SheetContent } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import { PersonalAccountOnlyNotice } from "@/components/business/PersonalAccountOnlyNotice";
+import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 import { ChevronLeft, ChevronDown, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
@@ -495,6 +497,9 @@ export function PaymentQRModal({
                     <p className="text-2xl font-brand font-medium text-foreground">Bs. {total}</p>
                   )}
                 </div>
+                {isBusinessAccount ? (
+                  <PersonalAccountOnlyNotice action="comprar entradas" />
+                ) : (
                 <Button
                   type="button"
                   variant="sheet-action"
@@ -509,7 +514,8 @@ export function PaymentQRModal({
                     ? "Sí, quiero unirme"
                     : "Pagar por QR"}
                 </Button>
-                {!isFree && (
+                )}
+                {!isFree && !isBusinessAccount && (
                   <Button
                     type="button"
                     variant="outline"

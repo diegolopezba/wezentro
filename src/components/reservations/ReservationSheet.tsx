@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { PersonalAccountOnlyNotice } from "@/components/business/PersonalAccountOnlyNotice";
+import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, Users, CalendarDays, Clock, StickyNote, UserPlus, X, ChevronRight, Sparkles } from "lucide-react";
@@ -591,6 +593,8 @@ export const ReservationSheet = ({
               Continuar
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
+          ) : isBusinessAccount ? (
+            <PersonalAccountOnlyNotice action="reservar una mesa" />
           ) : (
             <Button
               variant="sheet-action"
