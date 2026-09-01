@@ -64,6 +64,13 @@
       "when": 1788285273091,
       "tag": "0008_has_active_business_plan",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788287775670,
+      "tag": "0009_add_account_type",
+      "breakpoints": true
     }
   ]
 }

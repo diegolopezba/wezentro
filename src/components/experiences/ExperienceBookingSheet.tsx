@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import { PersonalAccountOnlyNotice } from "@/components/business/PersonalAccountOnlyNotice";
+import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, CalendarDays, Clock, Tag, Users, CheckCircle2, Minus, Plus } from "lucide-react";
@@ -52,6 +54,7 @@ const money = (n: number) => (n > 0 ? `Bs. ${n.toFixed(2)}` : "Gratis");
 
 /** Guest-facing booking flow for a paid experience: date → hora → opción → personas → pago QR. */
 export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props) => {
+  const isBusinessAccount = useIsBusinessAccount();
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
   const navigate = useNavigate();
@@ -360,6 +363,9 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
             </div>
 
             <div className="sticky bottom-0 mt-4 bg-background/95 pb-[max(env(safe-area-inset-bottom),12px)] pt-3 backdrop-blur">
+              {isBusinessAccount ? (
+                <PersonalAccountOnlyNotice action="reservar una experiencia" />
+              ) : (
               <Button
                 variant="sheet-action"
                 className="h-12 w-full rounded-full text-base"
@@ -374,7 +380,8 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
                   "Continuar"
                 )}
               </Button>
-              {step === "quantity" && (
+              )}
+              {step === "quantity" && !isBusinessAccount && (
                 <Button
                   variant="outline"
                   className="mt-2 h-12 w-full rounded-full text-base"

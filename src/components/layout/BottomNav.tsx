@@ -1,4 +1,4 @@
-import { Home, Map, Plus, Ticket, User } from "lucide-react";
+import { Home, Map, Plus, Ticket, User, LayoutGrid } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,6 +7,7 @@ import { m } from "framer-motion";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useState } from "react";
 import { haptic } from "@/lib/haptics";
+import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 
 const navItems = [
   { icon: Home, label: "Inicio", path: "/", requiresAuth: false },
@@ -16,6 +17,12 @@ const navItems = [
   { icon: User, label: "Perfil", path: "/profile", requiresAuth: true, authAction: "ver tu perfil" },
 ];
 
+const businessNavItems = navItems.map((item) =>
+  item.path === "/tickets"
+    ? { ...item, icon: LayoutGrid, label: "Gestión", path: "/gestion", authAction: "gestionar tu negocio" }
+    : item,
+);
+
 
 export const BottomNav = () => {
   const location = useLocation();
@@ -23,9 +30,11 @@ export const BottomNav = () => {
   const { user } = useAuth();
   const authPrompt = useAuthPromptSafe();
   const isGuest = !user;
+  const isBusinessAccount = useIsBusinessAccount();
+  const items = isBusinessAccount ? businessNavItems : navItems;
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
-  const handleNavClick = (e: React.MouseEvent, item: typeof navItems[0]) => {
+  const handleNavClick = (e: React.MouseEvent, item: (typeof navItems)[0]) => {
     void haptic("light");
     if (item.isCenter) {
       e.preventDefault();
@@ -70,7 +79,7 @@ export const BottomNav = () => {
 
       <nav className="fixed bottom-0 left-0 right-0 z-40 glass-strong safe-bottom">
         <div className="flex items-center justify-around px-2 py-3 max-w-lg mx-auto">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
 

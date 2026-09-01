@@ -128,7 +128,12 @@ describe("Auth page - signup → code → verify flow", () => {
     await submitSignup(user);
 
     await waitFor(() => {
-      expect(signUpMock).toHaveBeenCalledWith("zoe@test.com", "password123");
+      expect(signUpMock).toHaveBeenCalledWith(
+        "zoe@test.com",
+        "password123",
+        undefined,
+        "personal",
+      );
     });
     expect(await screen.findByText(/verifica tu correo/i)).toBeInTheDocument();
     expect(

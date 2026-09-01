@@ -89,9 +89,8 @@ const BusinessSettings = () => {
   }, [location.state, profile?.is_business]);
 
   const activateBusiness = async () => {
-    await handleToggleBusiness(true);
     setIntroOpen(false);
-    setTypePickerOpen(true);
+    navigate("/business");
   };
 
   const saveBusinessType = async (value: string, isFood: boolean) => {
@@ -113,24 +112,6 @@ const BusinessSettings = () => {
     }
   };
 
-  const handleToggleBusiness = async (value: boolean) => {
-    if (!user) return;
-    setTogglingBusiness(true);
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ is_business: value })
-        .eq("id", user.id);
-      if (error) throw error;
-      await refreshProfile();
-      toast.success(value ? "¡Cuenta Business activada!" : "Cuenta Business desactivada");
-    } catch (error: any) {
-      toast.error(error.message || "Error al cambiar tipo de cuenta");
-    } finally {
-      setTogglingBusiness(false);
-    }
-  };
-
   return (
     <div className="min-h-[100dvh] bg-background">
       {/* Header */}
@@ -144,21 +125,16 @@ const BusinessSettings = () => {
       </header>
 
       <div className="px-4 py-4 space-y-5">
-        {/* Business Account Toggle */}
-        <SettingsGroup>
-          <SettingsRow
-            icon={Briefcase}
-            label="Cuenta Business"
-            sublabel="Guestlists, dashboard, menú y reservas"
-            right={
-              <Switch
-                checked={isBusiness}
-                onCheckedChange={(v) => (v ? setIntroOpen(true) : handleToggleBusiness(false))}
-                disabled={togglingBusiness}
-              />
-            }
-          />
-        </SettingsGroup>
+        {!isBusiness && (
+          <SettingsGroup>
+            <SettingsRow
+              icon={Briefcase}
+              label="Crear una cuenta Business"
+              sublabel="Es una cuenta aparte, con su propio inicio de sesión"
+              onClick={() => navigate("/business")}
+            />
+          </SettingsGroup>
+        )}
 
         {isBusiness && (
           <>

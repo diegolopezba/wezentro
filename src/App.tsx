@@ -77,6 +77,7 @@ const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const Onboarding = lazyWithRetry(() => import("./pages/Onboarding"));
 const UserProfile = lazyWithRetry(() => import("./pages/UserProfile"));
 const MyTickets = lazy(() => import("./pages/MyTickets"));
+const BusinessHub = lazy(() => import("./pages/BusinessHub"));
 const YouAreGoing = lazyWithRetry(() => import("./pages/YouAreGoing"));
 const BusinessDashboard = lazyWithRetry(() => import("./pages/BusinessDashboard"));
 const BusinessSettings = lazyWithRetry(() => import("./pages/BusinessSettings"));
@@ -245,6 +246,7 @@ const AppRoutes = () => {
           <Route path="/" element={<GuestAllowedRoute><Index /></GuestAllowedRoute>} />
           <Route path="/discover" element={<GuestAllowedRoute><Discover /></GuestAllowedRoute>} />
           <Route path="/tickets" element={<ProtectedRoute requireProfile><MyTickets /></ProtectedRoute>} />
+          <Route path="/gestion" element={<ProtectedRoute requireProfile><BusinessHub /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute requireProfile><Profile /></ProtectedRoute>} />
         </Route>
 

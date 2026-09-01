@@ -71,9 +71,10 @@ const STEPS = [
 
 const BusinessLanding = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
+  const [separateOpen, setSeparateOpen] = useState(false);
 
   const isLast = step === STEPS.length - 1;
   const current = STEPS[step];
@@ -92,11 +93,19 @@ const BusinessLanding = () => {
       navigate("/auth", { state: { mode: "signup", businessIntent: true } });
       return;
     }
-    if (profile?.is_business) {
+    if (profile?.is_business || (profile as any)?.account_type === "business") {
       navigate("/settings/business");
       return;
     }
-    navigate("/business/setup");
+    // Business accounts are separate from personal ones: the user must sign out
+    // and register the business with its own login.
+    setSeparateOpen(true);
+  };
+
+  const startSeparateAccount = async () => {
+    setBusinessIntent();
+    await signOut();
+    navigate("/auth", { state: { mode: "signup", businessIntent: true } });
   };
 
   return (
@@ -187,6 +196,34 @@ const BusinessLanding = () => {
           </m.div>
         </AnimatePresence>
       </div>
+
+      {separateOpen && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 px-4 pb-6">
+          <div className="light-sheet w-full max-w-md rounded-[24px] bg-background p-5 text-foreground">
+            <h2 className="font-brand text-lg font-medium">Tu cuenta Business es aparte</h2>
+            <p className="mt-2 text-sm text-muted-foreground leading-snug">
+              Las cuentas Business tienen su propio inicio de sesión. Vas a cerrar sesión en tu
+              cuenta personal para crear la cuenta de tu negocio con otro email.
+            </p>
+            <div className="mt-5 space-y-2">
+              <Button
+                variant="sheet-action"
+                className="h-12 w-full rounded-full text-base"
+                onClick={startSeparateAccount}
+              >
+                Cerrar sesión y continuar
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-11 w-full rounded-full"
+                onClick={() => setSeparateOpen(false)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CTA */}
       <div className="px-5 pt-2 pb-[max(env(safe-area-inset-bottom),16px)] bg-background">
