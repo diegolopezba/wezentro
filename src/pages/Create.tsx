@@ -226,8 +226,8 @@ const Create = () => {
 
   const handleTypeChange = (type: ContentType) => {
     setContentType(type);
-    // Reset event-only fields when switching to post
-    if (type === "post") {
+    // Reset event-only fields when switching away from Evento
+    if (type !== "event") {
       setFormData((prev) => ({
         ...prev,
         date: "",
@@ -235,10 +235,13 @@ const Create = () => {
         endTime: "",
         price: "",
         capacity: "",
-            showReservationButton: false
+        showReservationButton: false,
+        waitlistEnabled: false,
       }));
       setLocation({ address: "", latitude: null, longitude: null });
     }
+    // Experience publications never carry a linked experience outside their own tab
+    if (type !== "experience") setExperienceId(null);
   };
 
   const fileToDataUrl = (file: File): Promise<string> =>
