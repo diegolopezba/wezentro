@@ -5,6 +5,7 @@ import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { useAcceptedBusinessCtas, type BusinessCtaRequest } from "@/hooks/useBusinessCtaRequest";
 import { isFoodBusinessType } from "@/lib/businessTypes";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 
 interface Props {
   eventId: string | undefined;
@@ -16,11 +17,12 @@ const BusinessCtaRow = ({ req }: { req: BusinessCtaRequest }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [resOpen, setResOpen] = useState(false);
   const biz = req.business;
+  const { hasActivePlan } = useBusinessPlanAccess(biz?.id);
   if (!biz) return null;
   const name = biz.full_name || biz.username;
   const isFood = isFoodBusinessType((biz as any).business_type) || !!biz.is_food_business;
-  const showMenu = isFood && biz.menu_enabled !== false;
-  const showRes = isFood && biz.reservations_enabled !== false;
+  const showMenu = isFood && biz.menu_enabled === true && hasActivePlan;
+  const showRes = isFood && biz.reservations_enabled === true && hasActivePlan;
   if (!showMenu && !showRes) return null;
 
   return (

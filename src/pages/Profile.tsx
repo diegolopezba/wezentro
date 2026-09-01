@@ -40,8 +40,8 @@ const Profile = () => {
   } = useUserTimeline(user?.id);
   const isBusiness = profile?.is_business === true;
   const isFoodBusiness = isFoodBusinessType(profile?.business_type);
-  const menuEnabled = (profile as any)?.menu_enabled !== false;
-  const reservationsEnabled = (profile as any)?.reservations_enabled !== false;
+  const menuEnabled = (profile as any)?.menu_enabled === true;
+  const reservationsEnabled = (profile as any)?.reservations_enabled === true;
 
   // Check if user has business info to show
   const hasBusinessInfo = profile?.business_address || profile?.business_hours || profile?.business_phone;
