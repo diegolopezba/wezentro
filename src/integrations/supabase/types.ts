@@ -2262,6 +2262,7 @@ export type Database = {
           experience_booking_id: string | null
           id: string
           party_size: number | null
+          payment_method: string
           payout_amount: number | null
           platform_fee_amount: number | null
           platform_fee_bps: number
@@ -2289,6 +2290,7 @@ export type Database = {
           experience_booking_id?: string | null
           id?: string
           party_size?: number | null
+          payment_method?: string
           payout_amount?: number | null
           platform_fee_amount?: number | null
           platform_fee_bps?: number
@@ -2316,6 +2318,7 @@ export type Database = {
           experience_booking_id?: string | null
           id?: string
           party_size?: number | null
+          payment_method?: string
           payout_amount?: number | null
           platform_fee_amount?: number | null
           platform_fee_bps?: number
