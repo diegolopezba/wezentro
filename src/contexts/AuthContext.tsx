@@ -33,7 +33,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   isLoading: boolean;
-  signUp: (email: string, password: string, username?: string) => Promise<{ data: { user: User | null; session: Session | null } | null; error: Error | null }>;
+  signUp: (email: string, password: string, username?: string, accountType?: "personal" | "business") => Promise<{ data: { user: User | null; session: Session | null } | null; error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -133,19 +133,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
 
-  const signUp = async (email: string, password: string, username?: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    username?: string,
+    accountType?: "personal" | "business",
+  ) => {
     const redirectUrl = `${window.location.origin}/`;
+
+    const metadata: Record<string, string> = {};
+    if (username) metadata.username = username;
+    if (accountType) metadata.account_type = accountType;
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        ...(username && {
-          data: {
-            username,
-          },
-        }),
+        ...(Object.keys(metadata).length > 0 && { data: metadata }),
       },
     });
 

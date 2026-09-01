@@ -73,7 +73,7 @@ const BusinessSetup = () => {
   useEffect(() => {
     if (!user || !profile || profile.is_business) return;
     (async () => {
-      const { error } = await supabase.from("profiles").update({ is_business: true }).eq("id", user.id);
+      const { error } = await supabase.from("profiles").update({ is_business: true, account_type: "business" } as any).eq("id", user.id);
       if (!error) await refreshProfile();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,7 +91,7 @@ const BusinessSetup = () => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ is_business: true, business_type: type, is_food_business: isFood } as any)
+        .update({ is_business: true, account_type: "business", business_type: type, is_food_business: isFood } as any)
         .eq("id", user.id);
       if (error) throw error;
       await refreshProfile();

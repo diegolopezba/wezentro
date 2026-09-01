@@ -203,7 +203,12 @@ const Auth = () => {
       setNeedsConfirmation(false);
       toast.success("¡Bienvenido de vuelta!");
     } else {
-      const { data, error } = await signUp(formData.email, formData.password);
+      const { data, error } = await signUp(
+        formData.email,
+        formData.password,
+        undefined,
+        businessMode ? "business" : "personal",
+      );
       if (error) {
         toast.error(friendlyAuthError(error));
         // If we hit the email rate limit, start cooldown so the user can resend later
