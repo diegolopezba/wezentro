@@ -48,7 +48,15 @@ export const startSubscriptionCheckout = async (
     : "No pudimos generar el QR. Intentá de nuevo.";
 
   if (error) {
-    const detail = (data as any)?.error;
+    // supabase-js throws on any non-2xx and drops the body, so read the real
+    // server message out of error.context before falling back.
+    let detail: string | null = (data as any)?.error ?? null;
+    const ctx = (error as any)?.context;
+    if (!detail && ctx && typeof ctx.json === "function") {
+      try {
+        detail = (await ctx.json())?.error ?? null;
+      } catch { /* body not json */ }
+    }
     throw new Error(detail || fallback);
   }
   const hasRail = method === "card" ? !!data?.paymentUrl : !!data?.qrImageUrl;
