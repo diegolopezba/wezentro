@@ -36,7 +36,7 @@ interface PaymentQRModalProps {
   onPaymentConfirmed: () => Promise<void>;
 }
 
-type Step = "details" | "loading" | "revealed" | "success" | "expired" | "error";
+type Step = "details" | "loading" | "revealed" | "card" | "success" | "expired" | "error";
 
 export function PaymentQRModal({
   open,
