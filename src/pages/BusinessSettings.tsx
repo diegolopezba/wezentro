@@ -144,21 +144,16 @@ const BusinessSettings = () => {
       </header>
 
       <div className="px-4 py-4 space-y-5">
-        {/* Business Account Toggle */}
-        <SettingsGroup>
-          <SettingsRow
-            icon={Briefcase}
-            label="Cuenta Business"
-            sublabel="Guestlists, dashboard, menú y reservas"
-            right={
-              <Switch
-                checked={isBusiness}
-                onCheckedChange={(v) => (v ? setIntroOpen(true) : handleToggleBusiness(false))}
-                disabled={togglingBusiness}
-              />
-            }
-          />
-        </SettingsGroup>
+        {!isBusiness && (
+          <SettingsGroup>
+            <SettingsRow
+              icon={Briefcase}
+              label="Crear una cuenta Business"
+              sublabel="Es una cuenta aparte, con su propio inicio de sesión"
+              onClick={() => navigate("/business")}
+            />
+          </SettingsGroup>
+        )}
 
         {isBusiness && (
           <>
