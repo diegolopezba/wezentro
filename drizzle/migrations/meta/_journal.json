@@ -50,6 +50,13 @@
       "when": 1788278561452,
       "tag": "0006_payment_sessions_payment_method",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788285239960,
+      "tag": "0007_business_tools_default_off",
+      "breakpoints": true
     }
   ]
 }
