@@ -120,13 +120,16 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
     return () => window.clearInterval(id);
   }, [sessionId, step]);
 
-  const startPayment = async () => {
+  const startPayment = async (method: "qr" | "card" = "qr") => {
     if (!user) {
       promptAuth({ action: "reservar esta experiencia" });
       return;
     }
     if (!dateStr || !time || !segmentId) return;
+    // Placeholder tab must open inside the user gesture, before any await.
+    const gateway = method === "card" ? openPaymentGateway() : null;
     setStarting(true);
+    setPayMethod(method);
     try {
       const newBookingId = await createBooking.mutateAsync({
         experienceId: experience.id,
@@ -139,7 +142,11 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
       setBookingId(newBookingId);
 
       const { data, error } = await supabase.functions.invoke("generate-experience-qr", {
-        body: buildExperienceQrRequest(newBookingId),
+        body: buildExperienceQrRequest(
+          newBookingId,
+          method,
+          method === "card" ? buildReturnUrl("/tickets") : undefined,
+        ),
       });
 
       let payload: any = data;
@@ -147,6 +154,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
         payload = await (error as any)?.context?.json?.().catch(() => null);
       }
       if (error || payload?.error) {
+        gateway?.abort();
         if (payload?.code === "no_beneficiary") {
           toast.error("El organizador todavía no habilitó los pagos. Intentá más tarde.");
           setStep("quantity");
@@ -156,15 +164,31 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
       }
 
       setBookingId(resolveExperienceBookingId(newBookingId, payload?.experienceBookingId));
-      setQrUrl(payload.qrImageUrl);
       setSessionId(payload.paymentSessionId);
+
+      if (method === "card") {
+        if (!payload?.paymentUrl) {
+          gateway?.abort();
+          throw new Error("No se pudo abrir el pago con tarjeta. Probá con QR.");
+        }
+        setCardUrl(payload.paymentUrl);
+        setQrUrl(null);
+        setStep("pay");
+        gateway?.navigate(payload.paymentUrl);
+        return;
+      }
+
+      setCardUrl(null);
+      setQrUrl(payload.qrImageUrl);
       setStep("pay");
     } catch (e: any) {
+      gateway?.abort();
       toast.error(e?.message || "No se pudo iniciar el pago");
     } finally {
       setStarting(false);
     }
   };
+
 
 
   const canContinue =
