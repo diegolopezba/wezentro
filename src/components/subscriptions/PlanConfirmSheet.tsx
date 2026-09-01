@@ -16,6 +16,7 @@ import {
   startSubscriptionCheckout,
 } from "@/lib/subscriptionBilling";
 import { SubscriptionQRSheet } from "@/components/subscriptions/SubscriptionQRSheet";
+import { openPaymentGateway, buildReturnUrl } from "@/lib/cardCheckout";
 
 interface Props {
   open: boolean;
