@@ -39,19 +39,30 @@ export const PlanConfirmSheet = ({
   const [checkout, setCheckout] = useState<SubscriptionCheckout | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
 
-  const pay = async () => {
+  const pay = async (method: "qr" | "card" = "qr") => {
+    // Placeholder tab must open inside the click, before any await.
+    const gateway = method === "card" ? openPaymentGateway() : null;
     setLoading(true);
     try {
-      const result = await startSubscriptionCheckout(tier, interval);
+      const result = await startSubscriptionCheckout(
+        tier,
+        interval,
+        method,
+        method === "card" ? buildReturnUrl("/dashboard") : undefined,
+      );
       setCheckout(result);
       onOpenChange(false);
       setQrOpen(true);
+      if (method === "card" && result.paymentUrl) gateway?.navigate(result.paymentUrl);
+      else gateway?.abort();
     } catch (e: any) {
-      toast.error(e?.message || "No pudimos generar el QR");
+      gateway?.abort();
+      toast.error(e?.message || "No pudimos iniciar el pago");
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <>
