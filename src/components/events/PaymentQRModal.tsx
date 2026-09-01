@@ -14,7 +14,8 @@ import { m, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { TicketAssigneeRow } from "./TicketAssigneeRow";
 import type { SearchUser } from "@/hooks/useSearchUsers";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, CreditCard, ExternalLink } from "lucide-react";
+import { openPaymentGateway, buildReturnUrl } from "@/lib/cardCheckout";
 
 
 interface PaymentQRModalProps {
