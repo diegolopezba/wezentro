@@ -11,6 +11,9 @@ import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
 import { MENU_INTRO } from "@/components/business/featureIntroSteps";
 import { MenuEditor } from "@/components/menu/MenuEditor";
+import { isFoodBusinessType } from "@/lib/businessTypes";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
+import { PlanRequiredCard } from "@/components/subscriptions/PlanRequiredCard";
 
 const BusinessMenu = () => {
   const navigate = useNavigate();
@@ -19,11 +22,14 @@ const BusinessMenu = () => {
 
   useSwipeBack();
 
-  const menuEnabled = (profile as any)?.menu_enabled === true;
+  const isFoodBusiness = isFoodBusinessType((profile as any)?.business_type);
+  const { hasActivePlan, isLoading: planLoading } = useBusinessPlanAccess(user?.id, isFoodBusiness);
+  const planLocked = isFoodBusiness && !hasActivePlan && !planLoading;
+  const menuEnabled = (profile as any)?.menu_enabled === true && !planLocked;
   const intro = useFeatureIntro("menu");
 
   const handleToggleMenu = async (value: boolean) => {
-    if (!user) return;
+    if (!user || planLocked) return;
     setTogglingMenu(true);
     try {
       const { error } = await supabase
@@ -79,9 +85,16 @@ const BusinessMenu = () => {
           <Switch
             checked={menuEnabled}
             onCheckedChange={handleToggleMenu}
-            disabled={togglingMenu}
+            disabled={togglingMenu || planLocked}
           />
         </m.div>
+
+        {planLocked && (
+          <PlanRequiredCard
+            title="Activá un plan para publicar tu menú"
+            description="El menú digital va con un plan mensual, sin comisiones y sin permanencia."
+          />
+        )}
 
         {/* Editor */}
         {menuEnabled && (
