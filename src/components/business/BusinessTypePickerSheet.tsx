@@ -32,7 +32,7 @@ export const BusinessTypePickerSheet = ({
   const isFood = isFoodBusinessType(type);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={onOpenChange} dismissible={!requireChoice}>
       <SheetContent
         side="bottom"
         className="light-sheet rounded-t-3xl pb-0"
