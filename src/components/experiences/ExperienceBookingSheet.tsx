@@ -373,7 +373,18 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
                   "Continuar"
                 )}
               </Button>
+              {step === "quantity" && (
+                <Button
+                  variant="outline"
+                  className="mt-2 h-12 w-full rounded-full text-base"
+                  disabled={!canContinue || starting || createBooking.isPending}
+                  onClick={() => startPayment("card")}
+                >
+                  Pagar con tarjeta
+                </Button>
+              )}
             </div>
+
           </>
         )}
 
