@@ -12,6 +12,8 @@ interface Props {
   /** Persists the type; the caller decides what happens next. */
   onSelect: (type: string, isFood: boolean) => void | Promise<void>;
   isSaving?: boolean;
+  /** When true the sheet only closes through its own buttons. */
+  requireChoice?: boolean;
 }
 
 /**
@@ -24,13 +26,19 @@ export const BusinessTypePickerSheet = ({
   initialType,
   onSelect,
   isSaving,
+  requireChoice,
 }: Props) => {
   const [type, setType] = useState<string>(initialType ?? "");
   const isFood = isFoodBusinessType(type);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="light-sheet rounded-t-3xl pb-0">
+      <SheetContent
+        side="bottom"
+        className="light-sheet rounded-t-3xl pb-0"
+        onInteractOutside={(e) => requireChoice && e.preventDefault()}
+        onEscapeKeyDown={(e) => requireChoice && e.preventDefault()}
+      >
         <SheetTitle className="sr-only">Tipo de negocio</SheetTitle>
 
         <h2 className="font-brand text-[26px] font-medium leading-tight text-foreground">
@@ -79,6 +87,15 @@ export const BusinessTypePickerSheet = ({
           >
             Continuar
           </Button>
+          {requireChoice && (
+            <Button
+              variant="ghost"
+              className="mt-2 h-11 w-full rounded-full"
+              onClick={() => onOpenChange(false)}
+            >
+              Elegir después
+            </Button>
+          )}
         </div>
       </SheetContent>
     </Sheet>
