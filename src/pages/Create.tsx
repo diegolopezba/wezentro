@@ -719,7 +719,7 @@ const Create = () => {
                 <>
                   <Upload className="w-10 h-10 text-muted-foreground mb-2" />
                   <span className="text-sm text-muted-foreground">
-                    {isPost ? "Sube fotos o videos" : "Portada del evento"}
+                    {isEvent ? "Portada del evento" : isExperience ? "Fotos de la experiencia" : "Sube fotos o videos"}
                   </span>
                   <span className="text-xs text-muted-foreground/60 mt-1">
                     Hasta {MAX_MEDIA} archivos · máx. 30s por video
