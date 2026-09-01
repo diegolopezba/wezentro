@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
     const interval = (body?.interval ?? "month") as BillingInterval;
     const method = parseCheckoutMethod(body?.method);
     const returnUrl = safeReturnUrl(body?.returnUrl);
+    console.log("[sub-qr] request", { tier, interval, method, hasReturnUrl: !!returnUrl });
     if (!isTierKey(tier)) return json({ error: "Plan inválido", code: "bad_tier" }, 400);
     if (!isInterval(interval)) return json({ error: "Ciclo inválido", code: "bad_interval" }, 400);
 
