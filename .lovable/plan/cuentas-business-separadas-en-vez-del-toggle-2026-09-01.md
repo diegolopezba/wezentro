@@ -30,8 +30,8 @@ Inicio · Explorar · Crear · Gestión · Perfil
 ```
 
 - **Gestión** reemplaza **Entradas**: una sola página con pestañas de Reservas, Ventas/entradas del evento, Experiencias y acceso al Dashboard — reutilizando las vistas de negocio que ya existen.
-- El negocio sigue pudiendo navegar el feed, guardar, seguir y chatear; lo que sale de su camino es la compra de entradas y las reservas como cliente (los botones de compra/reserva se ocultan o llevan a "esto es para cuentas personales").
-- El botón Crear, para business, va directo al flujo de evento/post sin el gate de "necesitás cuenta Business".
+- El negocio sigue pudiendo navegar el feed, guardar, seguir y chatear; lo que sale de su camino es la compra de entradas y las reservas como cliente (los botones de compra/reserva siguen vijentes y pueden hacer la mayor parte del flow de compra, vista de menú o reserva, pero justo antes de pagar/reservar/unirse a guestlist, aparece en el bottomsheet el mensaje que les dice que solo las cuentas personales pueden comprar tickets/reservar/booking.
+- El botón Crear, para business, va directo al flujo de evento/post sin el gate de "necesitás cuenta Business", ( pero si aparece el gate al intentar crear el evento si el business todavia no ha agregado sus datos de beneficiario)
 
 ## 4. Gates que se mantienen
 
