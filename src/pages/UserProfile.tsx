@@ -79,8 +79,11 @@ const UserProfile = () => {
   } = useCanMessageUser(id);
   const isFoodBusiness = isFoodBusinessType((userProfile as any)?.business_type);
   const isBusiness = userProfile?.is_business === true;
-  const menuEnabled = (userProfile as any)?.menu_enabled !== false;
-  const reservationsEnabled = (userProfile as any)?.reservations_enabled !== false;
+  const { hasActivePlan } = useBusinessPlanAccess(id, isBusiness && isFoodBusiness);
+  const menuEnabled =
+    (userProfile as any)?.menu_enabled === true && isFoodBusiness && hasActivePlan;
+  const reservationsEnabled =
+    (userProfile as any)?.reservations_enabled === true && hasActivePlan;
   const { data: publicExperiences = [] } = usePublicExperiences(isBusiness ? id : undefined);
   const experiencesAvailable =
     (userProfile as any)?.experiences_enabled === true && publicExperiences.length > 0;
