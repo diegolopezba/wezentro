@@ -45,7 +45,7 @@ export const CREATE_INTRO: FeatureIntroStep[] = [
     items: [
       { icon: Sparkles, label: "Post", desc: "Un momento, aventura o contenido. Podés activar botón de menú o reservas si tenés un negocio." },
       { icon: PartyPopper, label: "Evento", desc: "Fecha, lugar y gente. Con lista de invitados, entradas o layout del lugar." },
-      { icon: CalendarCheck, label: "Experiencia", desc: "Evento vinculado a una experiencia con horarios, opciones y pago por QR." },
+      { icon: CalendarCheck, label: "Experiencia", desc: "Publicación propia: solo media, título y descripción. Los horarios, cupos y precios salen de la experiencia que configuraste en Ajustes." },
     ],
   },
 ];
