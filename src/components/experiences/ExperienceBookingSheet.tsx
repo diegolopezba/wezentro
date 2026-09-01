@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/hooks/useAuthPrompt";
+import { openPaymentGateway, buildReturnUrl } from "@/lib/cardCheckout";
 import {
   buildExperienceQrRequest,
   resolveExperienceBookingId,
