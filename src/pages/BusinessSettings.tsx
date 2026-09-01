@@ -89,9 +89,8 @@ const BusinessSettings = () => {
   }, [location.state, profile?.is_business]);
 
   const activateBusiness = async () => {
-    await handleToggleBusiness(true);
     setIntroOpen(false);
-    setTypePickerOpen(true);
+    navigate("/business");
   };
 
   const saveBusinessType = async (value: string, isFood: boolean) => {
@@ -110,24 +109,6 @@ const BusinessSettings = () => {
       toast.error(error.message || "Error al guardar el tipo de negocio");
     } finally {
       setSavingType(false);
-    }
-  };
-
-  const handleToggleBusiness = async (value: boolean) => {
-    if (!user) return;
-    setTogglingBusiness(true);
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ is_business: value })
-        .eq("id", user.id);
-      if (error) throw error;
-      await refreshProfile();
-      toast.success(value ? "¡Cuenta Business activada!" : "Cuenta Business desactivada");
-    } catch (error: any) {
-      toast.error(error.message || "Error al cambiar tipo de cuenta");
-    } finally {
-      setTogglingBusiness(false);
     }
   };
 

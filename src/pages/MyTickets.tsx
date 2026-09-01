@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
+import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
 import { TicketsList } from "@/components/tickets/TicketsList";
@@ -12,6 +14,9 @@ type Tab = "entradas" | "reservas";
 const MyTickets = () => {
   const [tab, setTab] = useState<Tab>("entradas");
   const intro = useFeatureIntro("tickets");
+  const isBusinessAccount = useIsBusinessAccount();
+
+  if (isBusinessAccount) return <Navigate to="/gestion" replace />;
 
   return (
     <AppLayout>
