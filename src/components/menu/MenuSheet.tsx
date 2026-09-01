@@ -60,8 +60,21 @@ const CategorySection = ({ category, items, showImages }: { category: MenuCatego
 
 export const MenuSheet = ({ open, onOpenChange, userId, businessName }: MenuSheetProps) => {
   const { data: menu, isLoading } = useUserMenu(userId);
-  const { hasFeature } = useSubscriptionTier(userId);
-  const showImages = hasFeature("menu_images");
+  // Public tier lookup: business_subscriptions is owner-only under RLS, so
+  // visitors resolve the plan through a security-definer function.
+  const { data: publicTier } = useQuery({
+    queryKey: ["business-public-tier", userId],
+    enabled: !!userId && open,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_business_public_tier", {
+        _business_id: userId,
+      });
+      if (error) throw error;
+      return (data as TierKey | null) ?? "basico";
+    },
+  });
+  const showImages = tierHasFeature((publicTier ?? "basico") as TierKey, "menu_images");
 
   // Group items by category
   const getGroupedItems = (): {
