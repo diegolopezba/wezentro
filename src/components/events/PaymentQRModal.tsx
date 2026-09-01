@@ -662,7 +662,7 @@ export function PaymentQRModal({
               </div>
               <h2 className="text-xl font-brand font-medium text-foreground">QR Expirado</h2>
               <p className="text-muted-foreground text-sm">El código QR expiró sin detectar un pago.</p>
-                <Button variant="sheet-action" onClick={generateQR} className="w-full h-14 font-bold uppercase">
+                <Button variant="sheet-action" onClick={retryCheckout} className="w-full h-14 font-bold uppercase">
                   <RefreshCw className="w-4 h-4 mr-2" />Generar nuevo QR
                 </Button>
               <Button variant="ghost" className="w-full" onClick={handleClose}>Cancelar</Button>
