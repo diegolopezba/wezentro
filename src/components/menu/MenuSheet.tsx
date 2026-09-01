@@ -3,7 +3,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UtensilsCrossed } from "lucide-react";
 import { useUserMenu, MenuItem, MenuCategory } from "@/hooks/useMenu";
-import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { TierKey, tierHasFeature } from "@/lib/subscriptionTiers";
 
 interface MenuSheetProps {
   open: boolean;
