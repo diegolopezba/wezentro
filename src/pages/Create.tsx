@@ -621,7 +621,7 @@ const Create = () => {
       }
 
       clearCreateDraft();
-      toast.success(isPost ? "¡Post publicado!" : "¡Evento creado exitosamente!");
+      toast.success(isEvent ? "¡Evento creado exitosamente!" : isExperience ? "¡Experiencia publicada!" : "¡Post publicado!");
 
       haptic("success");
       invalidateAfterCreate();
