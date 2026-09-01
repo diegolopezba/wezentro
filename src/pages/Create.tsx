@@ -835,7 +835,8 @@ const Create = () => {
           </div>
         </m.div>
 
-        {/* ── Category ── */}
+        {/* ── Category (posts & events only) ── */}
+        {!isExperience && (
         <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <button
             type="button" onClick={() => setCategoryOpen((o) => !o)}
@@ -882,9 +883,10 @@ const Create = () => {
             }
           </AnimatePresence>
         </m.div>
+        )}
 
-        {/* ── Link a bookable experience (business only, feature enabled) ── */}
-        {isBusiness && experiencesEnabled && (
+        {/* ── Which experience is being published (experience tab only) ── */}
+        {isExperience && (
           <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <Card className="glass border-white/10 p-4 space-y-3">
               <div className="flex items-start gap-3">
@@ -892,9 +894,9 @@ const Create = () => {
                   <Sparkles className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-foreground">Reservar una experiencia</h3>
+                  <h3 className="font-semibold text-foreground">¿Qué experiencia publicás?</h3>
                   <p className="text-xs text-muted-foreground">
-                    Vinculá esta publicación a una experiencia para que la gente reserve y pague por adelantado.
+                    Los horarios, cupos y precios salen de la experiencia que configuraste en Ajustes.
                   </p>
                 </div>
               </div>
@@ -910,16 +912,6 @@ const Create = () => {
                 </Button>
               ) : (
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setExperienceId(null)}
-                    className={cn(
-                      "px-3 py-2 rounded-full text-sm border transition-colors",
-                      !experienceId ? "bg-foreground text-background border-transparent" : "border-border text-muted-foreground",
-                    )}
-                  >
-                    Ninguna
-                  </button>
                   {activeExperiences.map((exp) => (
                     <button
                       key={exp.id}
@@ -950,7 +942,7 @@ const Create = () => {
 
               {linkedExperience && (
                 <p className="text-xs text-muted-foreground">
-                  El precio y los horarios vienen de “{linkedExperience.title}”. No hace falta configurar entradas.
+                  {linkedExperience.duration_minutes} min · el precio y los horarios vienen de “{linkedExperience.title}”.
                 </p>
               )}
             </Card>
