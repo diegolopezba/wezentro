@@ -57,6 +57,7 @@ export function PaymentQRModal({
   onPaymentConfirmed,
 }: PaymentQRModalProps) {
   const navigate = useNavigate();
+  const isBusinessAccount = useIsBusinessAccount();
   const isInvite = mode === "invite";
   /** A paid checkout whose selected tier/area costs Bs. 0 behaves as a free confirmation. */
   const isFreeTier = mode === "paid" && Number(price || 0) <= 0;

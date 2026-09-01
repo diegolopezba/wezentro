@@ -54,6 +54,7 @@ const money = (n: number) => (n > 0 ? `Bs. ${n.toFixed(2)}` : "Gratis");
 
 /** Guest-facing booking flow for a paid experience: date → hora → opción → personas → pago QR. */
 export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props) => {
+  const isBusinessAccount = useIsBusinessAccount();
   const { user } = useAuth();
   const { promptAuth } = useAuthPrompt();
   const navigate = useNavigate();

@@ -92,6 +92,7 @@ export const ReservationSheet = ({
   const isEditMode = !!editingReservation;
 
   const { user } = useAuth();
+  const isBusinessAccount = useIsBusinessAccount();
   const navigate = useNavigate();
   const { promptAuth } = useAuthPrompt();
   const joinWaitlist = useJoinWaitlist();
