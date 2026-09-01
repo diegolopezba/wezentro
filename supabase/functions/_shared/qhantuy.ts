@@ -54,6 +54,79 @@ export function platformPayouts(
   return payouts;
 }
 
+// ── Payment method (QR vs card) ──────────────────────────────────────────
+// Qhantuy's /v2/checkout serves both rails from the same request; only the
+// method fields change. Cards go through Cybersource in REDIRECT mode so no
+// card data ever touches Zentro (stays out of PCI scope) and Qhantuy handles
+// 3-D Secure. QR stays the default.
+export type CheckoutMethod = "qr" | "card";
+
+export function parseCheckoutMethod(raw: unknown): CheckoutMethod {
+  return raw === "card" ? "card" : "qr";
+}
+
+const ALLOWED_RETURN_HOSTS = [
+  "zentro.today",
+  "www.zentro.today",
+  "admin.zentro.today",
+  "wezentro.lovable.app",
+  "localhost",
+];
+
+/** Only ever hand Qhantuy a return_url we own. */
+export function safeReturnUrl(raw: unknown): string | undefined {
+  if (typeof raw !== "string" || !raw) return undefined;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" && url.hostname !== "localhost") return undefined;
+    const ok =
+      ALLOWED_RETURN_HOSTS.includes(url.hostname) || url.hostname.endsWith(".lovable.app");
+    return ok ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Method-specific fields to spread into the /v2/checkout body. */
+export function checkoutMethodFields(
+  method: CheckoutMethod,
+  returnUrl?: string,
+): Record<string, unknown> {
+  if (method === "card") {
+    return {
+      payment_method: "CYBERSOURCE",
+      payment_type: "REDIRECT",
+      ...(returnUrl ? { return_url: returnUrl } : {}),
+    };
+  }
+  return { payment_method: "QRSIMPLE", image_method: "URL" };
+}
+
+export type ParsedCheckout = {
+  transactionId: number | null;
+  qrImageUrl: string | null;
+  paymentUrl: string | null;
+  paymentStatus: string | null;
+};
+
+/** Normalises the /v2/checkout response across both rails. */
+export function parseCheckoutResponse(data: any): ParsedCheckout {
+  const d = data ?? {};
+  const nested = d.data ?? {};
+  const transactionRaw = d.transaction_id ?? d.transactionId ?? nested.transaction_id;
+  const image = d.qr_url ?? d.image_data ?? d.imageData ?? nested.qr_url ?? nested.image_data ??
+    d.qr ?? d.image;
+  const paymentUrl = d.payment_url ?? d.paymentUrl ?? nested.payment_url;
+  const status = d.payment_status ?? nested.payment_status;
+  return {
+    transactionId: transactionRaw != null && Number.isFinite(Number(transactionRaw))
+      ? Number(transactionRaw)
+      : null,
+    qrImageUrl: image ? String(image) : null,
+    paymentUrl: paymentUrl ? String(paymentUrl) : null,
+    paymentStatus: status ? String(status) : null,
+  };
+}
 
 
 export function qhantuyAuthHeaders(): Record<string, string> {
