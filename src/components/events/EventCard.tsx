@@ -267,6 +267,7 @@ export const EventCard = memo(EventCardComponent, (prev, next) => {
     prev.isSponsored === next.isSponsored &&
     prev.sponsoredPostId === next.sponsoredPostId &&
     prev.compact === next.compact &&
+    prev.experience_id === next.experience_id &&
     prev.index === next.index &&
     prev.followGraph === next.followGraph && // followGraph is usually stable due to react-query's structural sharing
     (prev.media?.length || 0) === (next.media?.length || 0) &&
