@@ -506,6 +506,17 @@ export function PaymentQRModal({
                     ? "Sí, quiero unirme"
                     : "Pagar por QR"}
                 </Button>
+                {!isFree && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={generateCardCheckout}
+                    className="w-full h-14 text-base font-bold uppercase tracking-wide rounded-full gap-2"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Pagar con tarjeta
+                  </Button>
+                )}
               </div>
             </m.div>
           )}
@@ -513,9 +524,44 @@ export function PaymentQRModal({
           {step === "loading" && (
             <m.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-16 px-6 flex flex-col items-center gap-4">
               <Loader2 className="w-10 h-10 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Generando tu QR de pago…</p>
+              <p className="text-sm text-muted-foreground">
+                {payMethod === "card" ? "Abriendo el pago seguro…" : "Generando tu QR de pago…"}
+              </p>
             </m.div>
           )}
+
+          {step === "card" && cardUrl && (
+            <m.div key="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pt-6 pb-8 space-y-4 text-center">
+              <div className="space-y-1">
+                <h2 className="text-lg font-brand font-medium text-foreground">{eventTitle}</h2>
+                <p className="text-lg font-semibold text-primary">Bs. {total}</p>
+              </div>
+              <div className="flex flex-col items-center gap-3 py-4">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">
+                  Completá el pago con tu tarjeta en la ventana segura de Qhantuy.
+                  Apenas se confirme, tu entrada aparece acá automáticamente.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="sheet-action"
+                onClick={() => window.open(cardUrl, "_blank")}
+                className="w-full h-14 font-bold uppercase gap-2"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Volver a abrir el pago
+              </Button>
+              <button
+                type="button"
+                onClick={generateQR}
+                className="text-xs text-muted-foreground underline underline-offset-4"
+              >
+                Prefiero pagar con QR
+              </button>
+            </m.div>
+          )}
+
 
           {step === "revealed" && qrImageUrl && (
             <m.div key="revealed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pt-6 pb-8 space-y-4 text-center overflow-y-auto max-h-[92dvh]">
