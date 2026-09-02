@@ -204,29 +204,6 @@ export const ReservasGestionTab = () => {
 
   return (
     <div className="space-y-4">
-      {/* Header: title + view toggle + jump-to-date */}
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="font-brand text-lg font-semibold text-foreground">Reservas</h2>
-        <div className="flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8 rounded-full">
-                <CalendarDays className="w-4 h-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="single"
-                selected={selected}
-                onSelect={(d) => d && setSelected(d)}
-                locale={es}
-                className="pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
       {/* Navigation arrows + current label */}
       <div className="flex items-center justify-between">
         <button
