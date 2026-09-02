@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { BarChart3, Sparkles, ChevronRight, CalendarCheck, UtensilsCrossed } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
-import { ReservasTab } from "@/components/dashboard/ReservasTab";
+import { ReservasGestionTab } from "@/components/business/ReservasGestionTab";
 import { SalesTab } from "@/components/dashboard/SalesTab";
-import type { Period } from "@/components/dashboard/PeriodSelector";
 import { SettingsGroup, SettingsRow } from "@/components/settings/SettingsRow";
 
 type Tab = "reservas" | "ventas" | "experiencias";
