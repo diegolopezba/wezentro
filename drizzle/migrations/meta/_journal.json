@@ -78,6 +78,13 @@
       "when": 1788362924477,
       "tag": "0010_reservation_shifts_tier_aware",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788367680920,
+      "tag": "0011_publish_reservation_inventory_realtime",
+      "breakpoints": true
     }
   ]
 }
