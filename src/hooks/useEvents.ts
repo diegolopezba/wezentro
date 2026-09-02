@@ -242,3 +242,25 @@ export const useFollowingEvents = () => {
     },
   });
 };
+
+/** Upcoming (future) events created by the signed-in business, including paused ones. */
+export const useBusinessUpcomingEvents = (userId: string | undefined) => {
+  return useQuery({
+    queryKey: ["business-upcoming-events", userId],
+    enabled: !!userId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("creator_id", userId!)
+        .eq("is_post", false)
+        .is("deleted_at", null)
+        .gte("start_datetime", new Date().toISOString())
+        .order("start_datetime", { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as Event[];
+    },
+  });
+};

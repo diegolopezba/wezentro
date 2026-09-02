@@ -84,3 +84,28 @@ export function useCreateEvent() {
     },
   };
 }
+
+/** Pause (hide from feed/search) or resume an event. */
+export function useToggleEventVisibility() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ eventId, isPublic }: { eventId: string; isPublic: boolean }) => {
+      const { error } = await supabase
+        .from("events")
+        .update({ is_public: isPublic })
+        .eq("id", eventId);
+      if (error) throw error;
+      return { eventId, isPublic };
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["business-upcoming-events"] });
+      queryClient.invalidateQueries({ queryKey: ["event", variables.eventId] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["user-timeline"] });
+      queryClient.invalidateQueries({ queryKey: ["for-you-events"] });
+      queryClient.invalidateQueries({ queryKey: ["nearby-events"] });
+      queryClient.invalidateQueries({ queryKey: ["following-events"] });
+    },
+  });
+}
