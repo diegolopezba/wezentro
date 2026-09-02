@@ -71,6 +71,13 @@
       "when": 1788287775670,
       "tag": "0009_add_account_type",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788362924477,
+      "tag": "0010_reservation_shifts_tier_aware",
+      "breakpoints": true
     }
   ]
 }
