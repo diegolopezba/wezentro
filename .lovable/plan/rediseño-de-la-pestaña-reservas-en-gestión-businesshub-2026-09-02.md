@@ -13,27 +13,32 @@ Solo la pestaña Reservas dentro de `BusinessHub.tsx`. `BusinessDashboard.tsx` s
 Reemplaza al `ReservasTab` dentro de `BusinessHub` (se crea uno nuevo en vez de modificar el actual, para no romper el dashboard analítico).
 
 **Header**
+
 - Título "Reservas" a la izquierda.
 - A la derecha (en lugar del PeriodSelector 7d/30d/Todo): un toggle de vista tipo pill con dos opciones: **Día** y **Semana**, más un botón de calendario (Popover con el `Calendar` existente) para saltar a cualquier fecha.
 
 **Vista Día (por defecto)**
+
 - Calendario mensual inline (componente `Calendar` / react-day-picker ya existente) con la fecha seleccionada; los días con reservas muestran un indicador (punto/contador pequeño).
 - Flechas ‹ › junto a la etiqueta de fecha ("Hoy", "Mañana", "mar 3 sep") para avanzar/retroceder un día.
 
 **Vista Semana**
+
 - Tira horizontal de 7 días (dom–sáb, etiquetas `DAYS_ES`) con el número de reservas por día; al tocar un día se selecciona y se muestra su agenda. Flechas ‹ › para cambiar de semana.
 
 **Totales compactos (ambas vistas)**
+
 - Una sola línea pequeña bajo el calendario/semana: "N reservas · M personas" para el día seleccionado (excluye canceladas). Sin StatsCards grandes.
 
 **Lista cronológica del día**
+
 - Tarjetas de reserva ordenadas por `reservation_time` ascendente, solo del día seleccionado.
 - Cada tarjeta muestra:
   - Izquierda: avatares circulares apilados (owner + invitados de `reservation_guests`), máximo 3; si hay más, un burbuja "+N".
   - Nombre de quien reservó (`full_name || username`).
   - Hora (`HH:mm`), party size ("4 personas") y notas si existen (truncadas a 1 línea).
   - Badge de estado cuando no es `confirmed` (Sentada / Completada / No-show / Cancelada).
-- Al tocar una tarjeta se abre un sheet de detalle con las acciones ya existentes: Sentada, Completar, No-show, Mensaje, Cancelar (se extrae la lógica de acciones de `ReservationsManagementSheet` en un `ReservationDetailSheet` reutilizable, sin duplicar mutaciones).
+- Al tocar una tarjeta se abre un bottomsheet de detalle con las acciones ya existentes: Sentada, Completar, No-show, Mensaje, Cancelar (se extrae la lógica de acciones de `ReservationsManagementSheet` en un `ReservationDetailSheet` reutilizable, sin duplicar mutaciones).
 
 ### 2. Datos
 

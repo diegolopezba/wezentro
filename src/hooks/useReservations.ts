@@ -130,6 +130,53 @@ export const useBusinessReservations = (businessId: string | undefined) => {
   });
 };
 
+export interface ReservationWithGuests extends ReservationWithProfile {
+  guests: {
+    user_id: string;
+    user: {
+      id: string;
+      username: string;
+      full_name: string | null;
+      avatar_url: string | null;
+    } | null;
+  }[];
+}
+
+/**
+ * Business reservations within a date range (inclusive), including cancelled
+ * ones so operational views can show their status badge. Guests are joined in
+ * the same query to avoid N+1 per card.
+ */
+export const useBusinessReservationsByDate = (
+  businessId: string | undefined,
+  from: string,
+  to: string,
+) => {
+  return useQuery({
+    queryKey: ["reservations", "business-range", businessId, from, to],
+    queryFn: async () => {
+      if (!businessId) return [];
+
+      const { data, error } = await supabase
+        .from("reservations")
+        .select(`
+          *,
+          user:profiles!reservations_user_id_fkey(id, username, full_name, avatar_url),
+          guests:reservation_guests(user_id, user:profiles!reservation_guests_user_id_fkey(id, username, full_name, avatar_url))
+        `)
+        .eq("business_id", businessId)
+        .gte("reservation_date", from)
+        .lte("reservation_date", to)
+        .order("reservation_date", { ascending: true })
+        .order("reservation_time", { ascending: true });
+
+      if (error) throw error;
+      return data as unknown as ReservationWithGuests[];
+    },
+    enabled: !!businessId,
+  });
+};
+
 export const useCancelReservation = () => {
   const queryClient = useQueryClient();
 
