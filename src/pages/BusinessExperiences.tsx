@@ -50,7 +50,9 @@ const BusinessExperiences = () => {
 
   const { data: experiences = [], isLoading } = useBusinessExperiences(user?.id);
   const remove = useDeleteExperience();
+  useExperienceBookingsRealtime(user?.id);
   const { hasBeneficiary } = useHasBeneficiary();
+
   const intro = useFeatureIntro("experiences");
 
   const [editorOpen, setEditorOpen] = useState(false);
