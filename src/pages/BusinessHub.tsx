@@ -19,7 +19,6 @@ const TABS: { id: Tab; label: string }[] = [
 const BusinessHub = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("reservas");
-  const [period, setPeriod] = useState<Period>("30d");
 
   return (
     <AppLayout>
