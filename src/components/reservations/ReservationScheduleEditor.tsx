@@ -140,6 +140,14 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
         <Label className="text-foreground font-semibold">Horarios por día</Label>
       </div>
 
+      {neverConfigured && (
+        <div className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs text-foreground">
+          Todavía no publicaste tus horarios. Hasta que los guardes, tus clientes
+          no verán horarios disponibles para reservar.
+        </div>
+      )}
+
+
       <div className="space-y-3">
         {days.map((d, i) => (
           <div key={i} className="rounded-lg border border-border p-3 space-y-2">
