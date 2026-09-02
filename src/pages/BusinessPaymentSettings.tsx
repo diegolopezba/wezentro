@@ -13,8 +13,8 @@ const BusinessPaymentSettings = () => {
   useSwipeBack();
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
+    <div className="light-surface min-h-[100dvh] bg-background">
+      <header className="dark-island sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
             <Button

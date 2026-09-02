@@ -71,8 +71,8 @@ const BusinessReservations = () => {
 
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
+    <div className="light-surface min-h-[100dvh] bg-background">
+      <header className="dark-island sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-4">
           <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
             <ArrowLeft className="w-5 h-5" />

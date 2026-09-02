@@ -59,8 +59,8 @@ const BusinessDashboard = () => {
     cta,
     to,
   }: { icon: any; title: string; body: string; cta: string; to: string }) => (
-    <div className="min-h-[100dvh] bg-background flex flex-col">
-      <header className="sticky top-0 z-40 safe-top">
+    <div className="light-surface min-h-[100dvh] bg-background flex flex-col">
+      <header className="dark-island sticky top-0 z-40 safe-top">
         <div className="flex items-center gap-3 px-4 py-4 bg-background">
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="w-5 h-5" />
@@ -85,7 +85,7 @@ const BusinessDashboard = () => {
 
   if (accessLoading) {
     return (
-      <div className="min-h-[100dvh] bg-background flex items-center justify-center">
+      <div className="light-surface min-h-[100dvh] bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
@@ -116,9 +116,9 @@ const BusinessDashboard = () => {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background pb-8">
+    <div className="light-surface min-h-[100dvh] bg-background pb-8">
       {/* Header */}
-      <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
+      <header className="dark-island sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={goBack}>
