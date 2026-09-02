@@ -5,13 +5,13 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
 import { ReservasGestionTab } from "@/components/business/ReservasGestionTab";
 import { ExperienciasGestionTab } from "@/components/business/ExperienciasGestionTab";
-import { SalesTab } from "@/components/dashboard/SalesTab";
+import { EventosGestionTab } from "@/components/business/EventosGestionTab";
 
-type Tab = "reservas" | "ventas" | "experiencias";
+type Tab = "reservas" | "eventos" | "experiencias";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "reservas", label: "Reservas" },
-  { id: "ventas", label: "Ventas" },
+  { id: "eventos", label: "Eventos" },
   { id: "experiencias", label: "Experiencias" },
 ];
 
@@ -55,7 +55,7 @@ const BusinessHub = () => {
 
       <div className="px-4 pt-2 pb-28 space-y-5">
         {tab === "reservas" && <ReservasGestionTab />}
-        {tab === "ventas" && <SalesTab />}
+        {tab === "eventos" && <EventosGestionTab />}
         {tab === "experiencias" && <ExperienciasGestionTab />}
       </div>
     </AppLayout>
