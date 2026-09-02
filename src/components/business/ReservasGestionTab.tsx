@@ -52,7 +52,7 @@ const DayPill = ({ date, selected, count, onSelect }: DayPillProps) => (
     data-selected={selected || undefined}
     onClick={() => onSelect(date)}
     className={cn(
-      "flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-full border transition-colors select-none [-webkit-tap-highlight-color:transparent] active:scale-95 shrink-0",
+      "flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-full border transition-colors select-none [-webkit-tap-highlight-color:transparent] active:scale-95 shrink-0 min-w-[3rem]",
       selected
         ? "bg-foreground text-background border-foreground"
         : "bg-transparent text-foreground border-border",
@@ -60,16 +60,16 @@ const DayPill = ({ date, selected, count, onSelect }: DayPillProps) => (
   >
     <span
       className={cn(
-        "text-[10px] font-semibold uppercase tracking-wide",
+        "text-[9px] font-semibold uppercase tracking-wide",
         selected ? "text-background/70" : "text-muted-foreground",
       )}
     >
       {isToday(date) ? "Hoy" : DAYS_ES[date.getDay()]}
     </span>
-    <span className="text-lg font-bold leading-none">{date.getDate()}</span>
+    <span className="text-base font-bold leading-none">{date.getDate()}</span>
     <span
       className={cn(
-        "text-[10px] leading-none",
+        "text-[9px] leading-none",
         selected ? "text-background/70" : "text-muted-foreground",
       )}
     >
