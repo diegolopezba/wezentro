@@ -144,6 +144,38 @@ export const ReservasGestionTab = () => {
   const activeRows = dayRows.filter((r) => r.status !== "cancelled");
   const totalGuests = activeRows.reduce((s, r) => s + Number(r.party_size || 0), 0);
 
+  const filterCounts = useMemo(() => {
+    const counts = {} as Record<StatusFilter, number>;
+    FILTERS.forEach((f) => {
+      counts[f.key] = dayRows.filter((r) => matchesFilter(r.status, f.key)).length;
+    });
+    return counts;
+  }, [dayRows]);
+
+  const visibleRows = dayRows.filter((r) => matchesFilter(r.status, filter));
+
+  // Group by time slot; empty slots are never rendered.
+  const slots = useMemo(() => {
+    const map = new Map<string, ReservationWithGuests[]>();
+    visibleRows.forEach((r) => {
+      const t = r.reservation_time.slice(0, 5);
+      const arr = map.get(t) || [];
+      arr.push(r);
+      map.set(t, arr);
+    });
+    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reservations, selectedKey, filter]);
+
+  const viewingToday = isToday(selected);
+  const nowHHmm = format(new Date(), "HH:mm");
+  const pastSlots = viewingToday ? slots.filter(([t]) => t < nowHHmm) : [];
+  const upcomingSlots = viewingToday ? slots.filter(([t]) => t >= nowHHmm) : slots;
+
+  // Reset the collapsed-past toggle when the context changes.
+  useEffect(() => setShowPast(false), [selectedKey, filter]);
+
+
   const weekStart = startOfWeek(selected, { weekStartsOn: 0 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
