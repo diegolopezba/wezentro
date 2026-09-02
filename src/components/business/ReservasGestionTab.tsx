@@ -12,8 +12,6 @@ import {
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarDays, ChevronLeft, ChevronRight, StickyNote, Users } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
