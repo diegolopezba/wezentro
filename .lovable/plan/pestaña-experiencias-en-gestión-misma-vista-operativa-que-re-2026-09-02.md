@@ -5,30 +5,33 @@ Hoy la pestaña "Experiencias" de `/business-hub` es solo una lista de accesos a
 ## Vista
 
 ### 1. Day picker + totales
+
 - Misma tira horizontal de 7 días con punto indicador cuando hay reservas activas, flechas de semana y popover de calendario.
-- Línea compacta: "N reservas · M personas · Bs. X" (personas = suma de `quantity`, monto = suma de `amount` de las no canceladas).
+- Línea compacta: "N reservas · M personas · Bs. X" (personas = suma de `quantity`, monto = suma de `amount` de las no canceladas), y el tipo de experiencia
 
 ### 2. Filtros pill
-Activas (confirmed + seated) por defecto, Sentadas, Completadas, No-shows, Canceladas — con contador por pill. Las completadas/canceladas salen de la vista por defecto, igual que en Reservas.
+
+Los filtros pill deben ser el tipo de experiencia que ofrece el business, porque un mismo business puede ofrecer diferentes tipos de experiencias.
 
 ### 3. Timeline vertical por hora
+
 - Agrupado por `booking_time`, solo horas con reservas, orden ascendente.
 - Si el día es hoy: marca "Ahora", y las horas pasadas se colapsan bajo "Ver N horas anteriores".
 
 ### 4. Tarjeta de reserva de experiencia
+
 Información relevante propia de experiencias (más que en mesas):
+
 - Avatares de los invitados etiquetados (hasta 3 + "+N") o el avatar del titular si no hay etiquetados.
 - Nombre del titular + hora.
 - **Título de la experiencia** y **segmento** (ej. "Tour al amanecer · VIP") — clave cuando el negocio corre varias experiencias a la misma hora.
 - Cantidad de personas (`quantity`) y monto (`amount`, formato "Bs. ").
 - Notas si existen.
-- Pill de estado con los mismos colores que Reservas (sentada verde, completada azul, no-show ámbar, cancelada destructive).
+- Pill de estado con los mismos colores que Reservas (Comenzada verde, completada azul, no-show ámbar, cancelada destructive).
 
 ### 5. Detalle y acciones
-Al tocar la tarjeta se abre una hoja de detalle con los datos completos (experiencia, segmento, punto de encuentro, duración, invitados, notas, monto) y los botones de estado: Sentada, Completada, No-show, Cancelar — usando el RPC existente `set_experience_booking_status`.
 
-### 6. Accesos a configuración
-Los enlaces actuales (Experiencias, Configurar reservas, Menú, Ajustes Business) se mantienen, pero debajo del timeline, en un bloque compacto.
+Al tocar la tarjeta se abre una hoja de detalle con los datos completos (experiencia, segmento, punto de encuentro, duración, invitados, notas, monto) y los botones de estado: Comenzada, Completada, No-show, Cancelar — usando el RPC existente `set_experience_booking_status`.
 
 ## Notas técnicas
 
