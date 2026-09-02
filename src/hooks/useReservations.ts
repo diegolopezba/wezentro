@@ -113,6 +113,9 @@ export const useCreateReservation = () => {
     },
     onError: (error: any) => {
       console.error("Error creating reservation:", error);
+      // A capacity/availability failure means our cached slots are stale —
+      // refetch so the guest immediately sees the real state.
+      queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
       toast.error(error?.message || "Error al crear la reserva");
     },
   });

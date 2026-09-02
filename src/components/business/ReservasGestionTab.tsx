@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBusinessReservationsByDate, type ReservationWithGuests } from "@/hooks/useReservations";
+import { useBusinessReservationsByDate, useReservationRealtime, type ReservationWithGuests } from "@/hooks/useReservations";
 import { ReservationDetailSheet } from "@/components/reservations/ReservationDetailSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
@@ -101,6 +101,9 @@ export const ReservasGestionTab = () => {
     rangeFrom,
     rangeTo,
   );
+
+  // New guest bookings appear instantly without manual refresh.
+  useReservationRealtime(user?.id);
 
   const byDate = useMemo(() => {
     const map: Record<string, ReservationWithGuests[]> = {};
