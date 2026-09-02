@@ -85,6 +85,13 @@
       "when": 1788367680920,
       "tag": "0011_publish_reservation_inventory_realtime",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788368208721,
+      "tag": "0012_publish_experience_bookings_realtime",
+      "breakpoints": true
     }
   ]
 }
