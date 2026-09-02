@@ -12,8 +12,10 @@ import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import {
   useBusinessExperiences,
   useDeleteExperience,
+  useExperienceBookingsRealtime,
   type Experience,
 } from "@/hooks/useExperiences";
+
 import { ExperienceEditorSheet } from "@/components/experiences/ExperienceEditorSheet";
 import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
