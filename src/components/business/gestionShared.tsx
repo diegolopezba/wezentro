@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export const DAYS_ES = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
 
 export const STATUS_LABEL: Record<string, string> = {
-  seated: "Comenzada",
+  seated: "Sentada",
   completed: "Completada",
   cancelled: "Cancelada",
   no_show: "No-show",
@@ -20,6 +20,9 @@ export const STATUS_STYLE: Record<string, string> = {
   no_show: "bg-amber-500/15 text-amber-600",
   cancelled: "bg-destructive/15 text-destructive",
 };
+
+/** Experiences use "Comenzada" instead of the table-service "Sentada". */
+export const EXPERIENCE_STATUS_LABEL: Record<string, string> = { ...STATUS_LABEL, seated: "Comenzada" };
 
 export const dayLabel = (d: Date) => {
   if (isToday(d)) return "Hoy";

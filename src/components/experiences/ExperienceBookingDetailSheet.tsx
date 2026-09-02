@@ -18,7 +18,7 @@ import {
 import { useCreatePrivateChat } from "@/hooks/useChats";
 import { useSetExperienceBookingStatus, type ExperienceBookingRow } from "@/hooks/useExperiences";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
-import { STATUS_LABEL, STATUS_STYLE } from "@/components/business/gestionShared";
+import { EXPERIENCE_STATUS_LABEL, STATUS_STYLE } from "@/components/business/gestionShared";
 import { cn } from "@/lib/utils";
 
 const dateLabel = (dateStr: string) => {
@@ -123,7 +123,7 @@ export const ExperienceBookingDetailSheet = ({ booking, open, onOpenChange }: Pr
                 STATUS_STYLE[booking.status] ?? "bg-secondary text-muted-foreground",
               )}
             >
-              {STATUS_LABEL[booking.status] ?? booking.status}
+              {EXPERIENCE_STATUS_LABEL[booking.status] ?? booking.status}
             </span>
           )}
 

@@ -24,7 +24,7 @@ import {
   type ExperienceBookingRow,
 } from "@/hooks/useExperiences";
 import { ExperienceBookingDetailSheet } from "@/components/experiences/ExperienceBookingDetailSheet";
-import { DayPill, STATUS_LABEL, STATUS_STYLE, TimelineSlot, dayLabel } from "./gestionShared";
+import { DayPill, EXPERIENCE_STATUS_LABEL, STATUS_STYLE, TimelineSlot, dayLabel } from "./gestionShared";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 /** Operational day view of the business' experience bookings. */
@@ -188,7 +188,7 @@ export const ExperienciasGestionTab = () => {
               STATUS_STYLE[b.status] ?? "bg-secondary text-muted-foreground",
             )}
           >
-            {STATUS_LABEL[b.status] ?? b.status}
+            {EXPERIENCE_STATUS_LABEL[b.status] ?? b.status}
           </span>
         )}
       </button>
