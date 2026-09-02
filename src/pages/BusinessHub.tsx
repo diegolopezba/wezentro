@@ -54,7 +54,7 @@ const BusinessHub = () => {
       </header>
 
       <div className="px-4 pt-2 pb-28 space-y-5">
-        {tab === "reservas" && <ReservasTab period={period} onPeriodChange={setPeriod} />}
+        {tab === "reservas" && <ReservasGestionTab />}
         {tab === "ventas" && <SalesTab />}
         {tab === "experiencias" && (
           <SettingsGroup title="Tus herramientas">
