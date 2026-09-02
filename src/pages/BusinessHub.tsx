@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BarChart3, Sparkles, ChevronRight, CalendarCheck, UtensilsCrossed } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
 import { ReservasGestionTab } from "@/components/business/ReservasGestionTab";
 import { ExperienciasGestionTab } from "@/components/business/ExperienciasGestionTab";
 import { SalesTab } from "@/components/dashboard/SalesTab";
-import { SettingsGroup, SettingsRow } from "@/components/settings/SettingsRow";
 
 type Tab = "reservas" | "ventas" | "experiencias";
 
