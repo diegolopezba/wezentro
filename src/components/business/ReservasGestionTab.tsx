@@ -32,7 +32,7 @@ const STATUS_LABEL: Record<string, string> = {
   no_show: "No-show",
 };
 
-type ViewMode = "day" | "week";
+
 
 const dayLabel = (d: Date) => {
   if (isToday(d)) return "Hoy";
@@ -87,7 +87,6 @@ const DayPill = ({ date, selected, count, onSelect }: DayPillProps) => (
 
 export const ReservasGestionTab = () => {
   const { user } = useAuth();
-  const [view, setView] = useState<ViewMode>("day");
   const [selected, setSelected] = useState<Date>(new Date());
   const [detail, setDetail] = useState<ReservationWithGuests | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -126,7 +125,7 @@ export const ReservasGestionTab = () => {
   useEffect(() => {
     const el = stripRef.current?.querySelector<HTMLElement>("[data-selected]");
     el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [selected, view]);
+  }, [selected]);
 
   // Both views show 7 days, so arrows always move by week.
   const shift = (dir: 1 | -1) => setSelected((d) => addWeeks(d, dir));
@@ -142,22 +141,6 @@ export const ReservasGestionTab = () => {
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-brand text-lg font-semibold text-foreground">Reservas</h2>
         <div className="flex items-center gap-2">
-          <div className="inline-flex rounded-full bg-secondary p-1 gap-1">
-            {(["day", "week"] as ViewMode[]).map((v) => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium transition-colors select-none [-webkit-tap-highlight-color:transparent] active:scale-95",
-                  view === v
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground",
-                )}
-              >
-                {v === "day" ? "Día" : "Semana"}
-              </button>
-            ))}
-          </div>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon" className="h-8 w-8 rounded-full">
@@ -186,11 +169,7 @@ export const ReservasGestionTab = () => {
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <p className="text-sm font-medium text-foreground capitalize">
-          {view === "day"
-            ? dayLabel(selected)
-            : `${format(weekStart, "d MMM", { locale: es })} – ${format(addDays(weekStart, 6), "d MMM", { locale: es })}`}
-        </p>
+        <p className="text-sm font-medium text-foreground capitalize">{dayLabel(selected)}</p>
         <button
           onClick={() => shift(1)}
           className="p-2 rounded-full text-muted-foreground active:opacity-60 [-webkit-tap-highlight-color:transparent]"
