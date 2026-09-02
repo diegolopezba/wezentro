@@ -31,25 +31,6 @@ const BusinessReservations = () => {
   const reservationsEnabled = (profile as any)?.reservations_enabled === true && !planLocked;
   const intro = useFeatureIntro("reservations");
 
-  const seedDefaultSchedules = async () => {
-    if (!user) return;
-    const { count, error } = await supabase
-      .from("reservation_schedules")
-      .select("id", { count: "exact", head: true })
-      .eq("business_id", user.id);
-    if (error || (count ?? 0) > 0) return;
-    await supabase.from("reservation_schedules").insert(
-      Array.from({ length: 7 }, (_, weekday) => ({
-        business_id: user.id,
-        weekday,
-        shift_name: "Cena",
-        start_time: "18:00",
-        end_time: "23:00",
-        is_closed: false,
-      }))
-    );
-  };
-
   const handleToggleReservations = async (value: boolean) => {
     if (!user || planLocked) return;
     setTogglingReservations(true);
@@ -59,7 +40,7 @@ const BusinessReservations = () => {
         .update({ reservations_enabled: value } as any)
         .eq("id", user.id);
       if (error) throw error;
-      if (value) await seedDefaultSchedules();
+
       await refreshProfile();
       toast.success(value ? "Reservas activadas" : "Reservas desactivadas");
     } catch (error: any) {
