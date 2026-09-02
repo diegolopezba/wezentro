@@ -179,10 +179,10 @@ export const ReservasGestionTab = () => {
         </button>
       </div>
 
-      {/* Horizontal day-picker strip (both views) */}
+      {/* Horizontal day-picker strip */}
       <div
         ref={stripRef}
-        className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {weekDays.map((d) => (
           <DayPill
