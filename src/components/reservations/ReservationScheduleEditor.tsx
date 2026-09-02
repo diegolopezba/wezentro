@@ -218,12 +218,12 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
       </div>
 
       <Button
-        variant={saveVariant(isDirty)}
+        variant={saveVariant(isDirty || neverConfigured)}
         className="w-full rounded-full"
         onClick={() => { handleSave(); capture(days); }}
-        disabled={!isDirty || save.isPending}
+        disabled={(!isDirty && !neverConfigured) || save.isPending}
       >
-        Guardar horarios
+        {neverConfigured ? "Publicar horarios" : "Guardar horarios"}
       </Button>
 
       {/* Blackouts */}
