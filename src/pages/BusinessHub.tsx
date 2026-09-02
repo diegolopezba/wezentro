@@ -4,6 +4,7 @@ import { BarChart3, Sparkles, ChevronRight, CalendarCheck, UtensilsCrossed } fro
 import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
 import { ReservasGestionTab } from "@/components/business/ReservasGestionTab";
+import { ExperienciasGestionTab } from "@/components/business/ExperienciasGestionTab";
 import { SalesTab } from "@/components/dashboard/SalesTab";
 import { SettingsGroup, SettingsRow } from "@/components/settings/SettingsRow";
 
@@ -57,7 +58,9 @@ const BusinessHub = () => {
         {tab === "reservas" && <ReservasGestionTab />}
         {tab === "ventas" && <SalesTab />}
         {tab === "experiencias" && (
-          <SettingsGroup title="Tus herramientas">
+          <>
+            <ExperienciasGestionTab />
+            <SettingsGroup title="Tus herramientas">
             <SettingsRow
               icon={Sparkles}
               label="Experiencias"
@@ -85,7 +88,8 @@ const BusinessHub = () => {
               onClick={() => navigate("/settings/business")}
               delay={0.09}
             />
-          </SettingsGroup>
+            </SettingsGroup>
+          </>
         )}
       </div>
     </AppLayout>
