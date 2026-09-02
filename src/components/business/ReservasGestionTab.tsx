@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   addDays,
   addWeeks,
@@ -8,7 +8,6 @@ import {
   isToday,
   isTomorrow,
   isSameDay,
-  parseISO,
   startOfMonth,
   startOfWeek,
 } from "date-fns";
@@ -41,14 +40,60 @@ const dayLabel = (d: Date) => {
   return format(d, "EEE d MMM", { locale: es });
 };
 
+interface DayPillProps {
+  date: Date;
+  selected: boolean;
+  count: number;
+  onSelect: (d: Date) => void;
+}
+
+const DayPill = ({ date, selected, count, onSelect }: DayPillProps) => (
+  <button
+    data-selected={selected || undefined}
+    onClick={() => onSelect(date)}
+    className={cn(
+      "flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-full border transition-colors select-none [-webkit-tap-highlight-color:transparent] active:scale-95 shrink-0",
+      selected
+        ? "bg-foreground text-background border-foreground"
+        : "bg-transparent text-foreground border-border",
+    )}
+  >
+    <span
+      className={cn(
+        "text-[10px] font-semibold uppercase tracking-wide",
+        selected ? "text-background/70" : "text-muted-foreground",
+      )}
+    >
+      {isToday(date) ? "Hoy" : DAYS_ES[date.getDay()]}
+    </span>
+    <span className="text-lg font-bold leading-none">{date.getDate()}</span>
+    <span
+      className={cn(
+        "text-[10px] leading-none",
+        selected ? "text-background/70" : "text-muted-foreground",
+      )}
+    >
+      {format(date, "MMM", { locale: es })}
+    </span>
+    <span
+      className={cn(
+        "w-1 h-1 rounded-full mt-0.5",
+        count === 0 && "invisible",
+        selected ? "bg-background" : "bg-primary",
+      )}
+    />
+  </button>
+);
+
 export const ReservasGestionTab = () => {
   const { user } = useAuth();
   const [view, setView] = useState<ViewMode>("day");
   const [selected, setSelected] = useState<Date>(new Date());
   const [detail, setDetail] = useState<ReservationWithGuests | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const stripRef = useRef<HTMLDivElement>(null);
 
-  // One generous range covers both the month calendar indicators and the week strip.
+  // One generous range covers both the week strip indicators and any month jumps.
   const rangeFrom = format(startOfWeek(startOfMonth(selected), { weekStartsOn: 0 }), "yyyy-MM-dd");
   const rangeTo = format(endOfWeek(endOfMonth(selected), { weekStartsOn: 0 }), "yyyy-MM-dd");
 
@@ -74,19 +119,17 @@ export const ReservasGestionTab = () => {
   const activeRows = dayRows.filter((r) => r.status !== "cancelled");
   const totalGuests = activeRows.reduce((s, r) => s + Number(r.party_size || 0), 0);
 
-  const daysWithReservations = useMemo(
-    () =>
-      Object.entries(byDate)
-        .filter(([, rows]) => rows.some((r) => r.status !== "cancelled"))
-        .map(([d]) => parseISO(d)),
-    [byDate],
-  );
-
   const weekStart = startOfWeek(selected, { weekStartsOn: 0 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-  const shift = (dir: 1 | -1) =>
-    setSelected((d) => (view === "day" ? addDays(d, dir) : addWeeks(d, dir)));
+  // Keep the selected day visible in the horizontal strip.
+  useEffect(() => {
+    const el = stripRef.current?.querySelector<HTMLElement>("[data-selected]");
+    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [selected, view]);
+
+  // Both views show 7 days, so arrows always move by week.
+  const shift = (dir: 1 | -1) => setSelected((d) => addWeeks(d, dir));
 
   const openDetail = (r: ReservationWithGuests) => {
     setDetail(r);
@@ -139,7 +182,7 @@ export const ReservasGestionTab = () => {
         <button
           onClick={() => shift(-1)}
           className="p-2 rounded-full text-muted-foreground active:opacity-60 [-webkit-tap-highlight-color:transparent]"
-          aria-label="Anterior"
+          aria-label="Semana anterior"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -151,69 +194,27 @@ export const ReservasGestionTab = () => {
         <button
           onClick={() => shift(1)}
           className="p-2 rounded-full text-muted-foreground active:opacity-60 [-webkit-tap-highlight-color:transparent]"
-          aria-label="Siguiente"
+          aria-label="Semana siguiente"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Calendar / week strip */}
-      {view === "day" ? (
-        <section className="rounded-2xl bg-card border border-border p-2 flex justify-center">
-          <Calendar
-            mode="single"
-            selected={selected}
-            onSelect={(d) => d && setSelected(d)}
-            month={startOfMonth(selected)}
-            onMonthChange={(m) => setSelected((cur) => (isSameDay(cur, m) ? cur : m))}
-            locale={es}
-            modifiers={{ hasReservations: daysWithReservations }}
-            modifiersClassNames={{
-              hasReservations:
-                "relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:rounded-full after:bg-primary",
-            }}
+      {/* Horizontal day-picker strip (both views) */}
+      <div
+        ref={stripRef}
+        className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {weekDays.map((d) => (
+          <DayPill
+            key={format(d, "yyyy-MM-dd")}
+            date={d}
+            selected={isSameDay(d, selected)}
+            count={activeCountFor(format(d, "yyyy-MM-dd"))}
+            onSelect={setSelected}
           />
-        </section>
-      ) : (
-        <section className="rounded-2xl bg-card border border-border p-3">
-          <div className="grid grid-cols-7 gap-1">
-            {weekDays.map((d) => {
-              const key = format(d, "yyyy-MM-dd");
-              const count = activeCountFor(key);
-              const isSelected = isSameDay(d, selected);
-              return (
-                <button
-                  key={key}
-                  onClick={() => setSelected(d)}
-                  className={cn(
-                    "flex flex-col items-center gap-1 py-2 rounded-xl transition-colors select-none [-webkit-tap-highlight-color:transparent] active:scale-95",
-                    isSelected ? "bg-foreground text-background" : "text-foreground",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "text-[10px] uppercase",
-                      isSelected ? "text-background/70" : "text-muted-foreground",
-                    )}
-                  >
-                    {DAYS_ES[d.getDay()]}
-                  </span>
-                  <span className="text-sm font-semibold">{d.getDate()}</span>
-                  <span
-                    className={cn(
-                      "text-[10px] leading-none h-3",
-                      count === 0 && "invisible",
-                      isSelected ? "text-background/70" : "text-muted-foreground",
-                    )}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
+        ))}
+      </div>
 
       {/* Compact totals for the selected day */}
       <p className="text-xs text-muted-foreground px-1">
