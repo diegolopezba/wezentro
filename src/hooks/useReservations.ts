@@ -1,8 +1,44 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
+
+/**
+ * Live updates for the business reservation view: any change to this
+ * business's reservations triggers a refetch of the range list and slot
+ * availability. Mounted only in owner-facing management UI — guests rely on
+ * server-side locking instead (cost-effective: very few concurrent channels).
+ */
+export const useReservationRealtime = (businessId: string | undefined) => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!businessId) return;
+
+    const channel = supabase
+      .channel(`reservations-biz-${businessId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "reservations",
+          filter: `business_id=eq.${businessId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["reservations"] });
+          queryClient.invalidateQueries({ queryKey: ["slot-availability"] });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [businessId, queryClient]);
+};
 
 export interface Reservation {
   id: string;
