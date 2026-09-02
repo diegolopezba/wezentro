@@ -41,6 +41,8 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
   const { tier, hasFeature } = useSubscriptionTier(businessId);
   const canMultiShift = hasFeature("multi_shift");
   const canBlackouts = hasFeature("blackout_dates");
+  /** Nothing saved yet: the defaults on screen are not what customers see. */
+  const neverConfigured = !isLoading && schedules.length === 0;
 
   const [days, setDays] = useState<DayState[]>(() =>
     Array.from({ length: 7 }, () => defaultDay())
