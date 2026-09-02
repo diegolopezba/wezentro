@@ -5,8 +5,8 @@ import {
   endOfMonth,
   endOfWeek,
   format,
-  isToday,
   isSameDay,
+  isToday,
   startOfMonth,
   startOfWeek,
 } from "date-fns";
@@ -18,135 +18,129 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBusinessReservationsByDate, useReservationRealtime, type ReservationWithGuests } from "@/hooks/useReservations";
-import { ReservationDetailSheet } from "@/components/reservations/ReservationDetailSheet";
+import {
+  useBusinessExperienceBookingsByDate,
+  useExperienceBookingsRealtime,
+  type ExperienceBookingRow,
+} from "@/hooks/useExperiences";
+import { ExperienceBookingDetailSheet } from "@/components/experiences/ExperienceBookingDetailSheet";
+import { DayPill, EXPERIENCE_STATUS_LABEL, STATUS_STYLE, TimelineSlot, dayLabel } from "./gestionShared";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
-import { DayPill, STATUS_LABEL, STATUS_STYLE, TimelineSlot, dayLabel } from "./gestionShared";
 
-type StatusFilter = "active" | "seated" | "completed" | "no_show" | "cancelled";
-
-const FILTERS: { key: StatusFilter; label: string }[] = [
-  { key: "active", label: "Activas" },
-  { key: "seated", label: "Sentadas" },
-  { key: "completed", label: "Completadas" },
-  { key: "no_show", label: "No-shows" },
-  { key: "cancelled", label: "Canceladas" },
-];
-
-const matchesFilter = (status: string, f: StatusFilter) =>
-  f === "active" ? status === "confirmed" || status === "seated" : status === f;
-
-
-
-export const ReservasGestionTab = () => {
+/** Operational day view of the business' experience bookings. */
+export const ExperienciasGestionTab = () => {
   const { user } = useAuth();
   const [selected, setSelected] = useState<Date>(new Date());
-  const [detail, setDetail] = useState<ReservationWithGuests | null>(null);
+  const [detail, setDetail] = useState<ExperienceBookingRow | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [filter, setFilter] = useState<StatusFilter>("active");
+  const [experienceFilter, setExperienceFilter] = useState<string>("all");
   const [showPast, setShowPast] = useState(false);
   const stripRef = useRef<HTMLDivElement>(null);
 
-  // One generous range covers both the week strip indicators and any month jumps.
   const rangeFrom = format(startOfWeek(startOfMonth(selected), { weekStartsOn: 0 }), "yyyy-MM-dd");
   const rangeTo = format(endOfWeek(endOfMonth(selected), { weekStartsOn: 0 }), "yyyy-MM-dd");
 
-  const { data: reservations, isLoading } = useBusinessReservationsByDate(
+  const { data: bookings, isLoading } = useBusinessExperienceBookingsByDate(
     user?.id,
     rangeFrom,
     rangeTo,
   );
 
-  // New guest bookings appear instantly without manual refresh.
-  useReservationRealtime(user?.id);
+  // Owner-only realtime: new bookings appear without manual refresh.
+  useExperienceBookingsRealtime(user?.id);
 
   const byDate = useMemo(() => {
-    const map: Record<string, ReservationWithGuests[]> = {};
-    (reservations || []).forEach((r) => {
-      (map[r.reservation_date] ||= []).push(r);
+    const map: Record<string, ExperienceBookingRow[]> = {};
+    (bookings || []).forEach((b) => {
+      (map[b.booking_date] ||= []).push(b);
     });
     return map;
-  }, [reservations]);
+  }, [bookings]);
 
   const activeCountFor = (dateStr: string) =>
-    (byDate[dateStr] || []).filter((r) => r.status !== "cancelled").length;
+    (byDate[dateStr] || []).filter((b) => b.status !== "cancelled").length;
 
   const selectedKey = format(selected, "yyyy-MM-dd");
-  const dayRows = (byDate[selectedKey] || []).slice(); // already sorted by time
-  const activeRows = dayRows.filter((r) => r.status !== "cancelled");
-  const totalGuests = activeRows.reduce((s, r) => s + Number(r.party_size || 0), 0);
+  const dayRows = byDate[selectedKey] || [];
+  const activeRows = dayRows.filter((b) => b.status !== "cancelled");
+  const totalPeople = activeRows.reduce((s, b) => s + Number(b.quantity || 0), 0);
+  const totalAmount = activeRows.reduce((s, b) => s + Number(b.amount || 0), 0);
 
-  const filterCounts = useMemo(() => {
-    const counts = {} as Record<StatusFilter, number>;
-    FILTERS.forEach((f) => {
-      counts[f.key] = dayRows.filter((r) => matchesFilter(r.status, f.key)).length;
+  // Filters are the business' own experiences: one business can run several.
+  const experienceFilters = useMemo(() => {
+    const map = new Map<string, { id: string; title: string; count: number }>();
+    activeRows.forEach((b) => {
+      const id = b.experience?.id;
+      if (!id) return;
+      const prev = map.get(id);
+      map.set(id, {
+        id,
+        title: b.experience?.title || "Experiencia",
+        count: (prev?.count ?? 0) + 1,
+      });
     });
-    return counts;
-  }, [dayRows]);
+    return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title));
+  }, [activeRows]);
 
-  const visibleRows = dayRows.filter((r) => matchesFilter(r.status, filter));
+  // A filter for an experience with no bookings today would strand the view.
+  useEffect(() => {
+    if (experienceFilter !== "all" && !experienceFilters.some((f) => f.id === experienceFilter)) {
+      setExperienceFilter("all");
+    }
+  }, [experienceFilters, experienceFilter]);
+
+  const visibleRows = activeRows.filter(
+    (b) => experienceFilter === "all" || b.experience?.id === experienceFilter,
+  );
 
   // Group by time slot; empty slots are never rendered.
   const slots = useMemo(() => {
-    const map = new Map<string, ReservationWithGuests[]>();
-    visibleRows.forEach((r) => {
-      const t = r.reservation_time.slice(0, 5);
+    const map = new Map<string, ExperienceBookingRow[]>();
+    visibleRows.forEach((b) => {
+      const t = b.booking_time.slice(0, 5);
       const arr = map.get(t) || [];
-      arr.push(r);
+      arr.push(b);
       map.set(t, arr);
     });
     return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reservations, selectedKey, filter]);
+  }, [bookings, selectedKey, experienceFilter]);
 
   const viewingToday = isToday(selected);
   const nowHHmm = format(new Date(), "HH:mm");
   const pastSlots = viewingToday ? slots.filter(([t]) => t < nowHHmm) : [];
   const upcomingSlots = viewingToday ? slots.filter(([t]) => t >= nowHHmm) : slots;
 
-  // Reset the collapsed-past toggle when the context changes.
-  useEffect(() => setShowPast(false), [selectedKey, filter]);
-
+  useEffect(() => setShowPast(false), [selectedKey, experienceFilter]);
 
   const weekStart = startOfWeek(selected, { weekStartsOn: 0 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-  // Keep the selected day visible in the horizontal strip.
   useEffect(() => {
     const el = stripRef.current?.querySelector<HTMLElement>("[data-selected]");
     el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }, [selected]);
 
-  // Both views show 7 days, so arrows always move by week.
   const shift = (dir: 1 | -1) => setSelected((d) => addWeeks(d, dir));
 
-  const openDetail = (r: ReservationWithGuests) => {
-    setDetail(r);
+  const openDetail = (b: ExperienceBookingRow) => {
+    setDetail(b);
     setDetailOpen(true);
   };
 
-  const renderCard = (r: ReservationWithGuests) => {
+  const renderCard = (b: ExperienceBookingRow) => {
     const people = [
-      r.user ? { id: r.user.id, ...r.user } : null,
-      ...(r.guests || []).map((g) => (g.user ? { id: g.user.id, ...g.user } : null)),
-    ].filter(Boolean) as {
-      id: string;
-      username: string;
-      full_name: string | null;
-      avatar_url: string | null;
-    }[];
+      b.user ? { ...b.user } : null,
+      ...(b.guests || []).map((g) => (g.user ? { ...g.user } : null)),
+    ].filter(Boolean) as { id: string; username: string; avatar_url: string | null }[];
     const extra = Math.max(0, people.length - 3);
 
     return (
       <button
-        key={r.id}
-        onClick={() => openDetail(r)}
-        className={cn(
-          "w-full text-left p-3 rounded-2xl bg-card border border-border flex items-center gap-3 select-none [-webkit-tap-highlight-color:transparent] active:opacity-70",
-          r.status === "cancelled" && "opacity-60",
-        )}
+        key={b.id}
+        onClick={() => openDetail(b)}
+        className="w-full text-left p-3 rounded-2xl bg-card border border-border flex items-center gap-3 select-none [-webkit-tap-highlight-color:transparent] active:opacity-70"
       >
-        {/* Stacked avatars (max 3, then +N) */}
         <div className="flex -space-x-2 shrink-0">
           {people.slice(0, 3).map((p) => (
             <img
@@ -165,69 +159,64 @@ export const ReservasGestionTab = () => {
 
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-foreground truncate">
-            {r.user?.full_name || r.user?.username || "Usuario"}
+            {b.user?.full_name || b.user?.username || "Usuario"}
+          </p>
+          <p className="text-[11px] text-muted-foreground truncate">
+            {b.experience?.title || "Experiencia"}
+            {b.segment?.name ? ` · ${b.segment.name}` : ""}
           </p>
           <p className="text-xs text-muted-foreground flex items-center gap-2">
-            <span>{r.reservation_time.slice(0, 5)}</span>
+            <span>{b.booking_time.slice(0, 5)}</span>
             <span className="flex items-center gap-1">
               <Users className="w-3 h-3" />
-              {r.party_size}
+              {b.quantity}
             </span>
+            <span>{Number(b.amount) > 0 ? `Bs. ${Number(b.amount)}` : "Gratis"}</span>
           </p>
-          {r.notes && (
+          {b.notes && (
             <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
               <StickyNote className="w-3 h-3 shrink-0" />
-              {r.notes}
+              {b.notes}
             </p>
           )}
         </div>
 
-        {r.status !== "confirmed" && (
+        {b.status !== "confirmed" && (
           <span
             className={cn(
               "shrink-0 text-[10px] px-2 py-0.5 rounded-full font-medium",
-              STATUS_STYLE[r.status] ?? "bg-secondary text-muted-foreground",
+              STATUS_STYLE[b.status] ?? "bg-secondary text-muted-foreground",
             )}
           >
-            {STATUS_LABEL[r.status] ?? r.status}
+            {EXPERIENCE_STATUS_LABEL[b.status] ?? b.status}
           </span>
         )}
       </button>
     );
   };
 
-  const renderSlot = (time: string, rows: ReservationWithGuests[], past: boolean) => (
-    <TimelineSlot key={time} time={time} past={past}>
-      {rows.map(renderCard)}
-    </TimelineSlot>
-  );
-
   return (
     <div className="space-y-4">
-      {/* Header: title + view toggle + jump-to-date */}
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-brand text-lg font-semibold text-foreground">Reservas</h2>
-        <div className="flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8 rounded-full">
-                <CalendarDays className="w-4 h-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="single"
-                selected={selected}
-                onSelect={(d) => d && setSelected(d)}
-                locale={es}
-                className="pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+        <h2 className="font-brand text-lg font-semibold text-foreground">Experiencias</h2>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full">
+              <CalendarDays className="w-4 h-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="single"
+              selected={selected}
+              onSelect={(d) => d && setSelected(d)}
+              locale={es}
+              className="pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
-      {/* Navigation arrows + current label */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => shift(-1)}
@@ -246,7 +235,6 @@ export const ReservasGestionTab = () => {
         </button>
       </div>
 
-      {/* Horizontal day-picker strip */}
       <div
         ref={stripRef}
         className="flex gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -262,32 +250,31 @@ export const ReservasGestionTab = () => {
         ))}
       </div>
 
-      {/* Compact totals for the selected day */}
       <p className="text-xs text-muted-foreground px-1">
-        <span className="font-semibold text-foreground">{activeRows.length}</span>{" "}
-        reservas · <span className="font-semibold text-foreground">{totalGuests}</span>{" "}
-        personas
+        <span className="font-semibold text-foreground">{activeRows.length}</span> reservas ·{" "}
+        <span className="font-semibold text-foreground">{totalPeople}</span> personas ·{" "}
+        <span className="font-semibold text-foreground">Bs. {totalAmount}</span>
       </p>
 
-      {/* Status filters */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={cn(
-              "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium select-none [-webkit-tap-highlight-color:transparent] active:scale-95 transition-colors",
-              filter === f.key
-                ? "bg-foreground text-background border-foreground"
-                : "bg-transparent text-muted-foreground border-border",
-            )}
-          >
-            {f.label} {filterCounts[f.key] ?? 0}
-          </button>
-        ))}
-      </div>
+      {experienceFilters.length > 1 && (
+        <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {[{ id: "all", title: "Todas", count: activeRows.length }, ...experienceFilters].map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setExperienceFilter(f.id)}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium select-none [-webkit-tap-highlight-color:transparent] active:scale-95 transition-colors",
+                experienceFilter === f.id
+                  ? "bg-foreground text-background border-foreground"
+                  : "bg-transparent text-muted-foreground border-border",
+              )}
+            >
+              {f.title} {f.count}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* Vertical timeline, only slots that have reservations */}
       {isLoading ? (
         <div className="space-y-2">
           <Skeleton className="h-20 rounded-2xl" />
@@ -296,20 +283,23 @@ export const ReservasGestionTab = () => {
       ) : visibleRows.length === 0 ? (
         <div className="rounded-2xl bg-card border border-border p-5 text-center">
           <CalendarDays className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Sin reservas para este filtro</p>
+          <p className="text-sm text-muted-foreground">Sin reservas de experiencias este día</p>
         </div>
       ) : (
         <div className="space-y-4">
           {viewingToday && pastSlots.length > 0 && (
             <>
-              {showPast && pastSlots.map(([time, rows]) => renderSlot(time, rows, true))}
+              {showPast &&
+                pastSlots.map(([time, rows]) => (
+                  <TimelineSlot key={time} time={time} past>
+                    {rows.map(renderCard)}
+                  </TimelineSlot>
+                ))}
               <button
                 onClick={() => setShowPast((v) => !v)}
                 className="text-xs text-muted-foreground underline underline-offset-2 active:opacity-60 [-webkit-tap-highlight-color:transparent]"
               >
-                {showPast
-                  ? "Ocultar horas anteriores"
-                  : `Ver ${pastSlots.length} horas anteriores`}
+                {showPast ? "Ocultar horas anteriores" : `Ver ${pastSlots.length} horas anteriores`}
               </button>
             </>
           )}
@@ -323,16 +313,15 @@ export const ReservasGestionTab = () => {
             </div>
           )}
 
-          {upcomingSlots.map(([time, rows]) => renderSlot(time, rows, false))}
+          {upcomingSlots.map(([time, rows]) => (
+            <TimelineSlot key={time} time={time}>
+              {rows.map(renderCard)}
+            </TimelineSlot>
+          ))}
         </div>
       )}
 
-
-      <ReservationDetailSheet
-        reservation={detail}
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-      />
+      <ExperienceBookingDetailSheet booking={detail} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>
   );
 };

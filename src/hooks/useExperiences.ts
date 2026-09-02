@@ -522,3 +522,83 @@ export const useCancelExperienceBooking = () => {
     onError: (e: any) => toast.error(e?.message || "No se pudo cancelar la reserva"),
   });
 };
+
+/* ------------------ business day-view bookings (Gestión) ------------------ */
+
+export interface ExperienceBookingRow {
+  id: string;
+  experience_id: string;
+  booking_date: string;
+  booking_time: string;
+  quantity: number;
+  amount: number;
+  status: string;
+  notes: string | null;
+  experience: {
+    id: string;
+    title: string;
+    business_id: string;
+    location_note: string | null;
+    duration_minutes: number;
+  } | null;
+  segment: { name: string; price: number } | null;
+  user: { id: string; username: string; full_name: string | null; avatar_url: string | null } | null;
+  guests: { user: { id: string; username: string; full_name: string | null; avatar_url: string | null } | null }[];
+}
+
+/** All experience bookings for the owner within a date range, ordered chronologically. */
+export const useBusinessExperienceBookingsByDate = (
+  businessId: string | undefined,
+  from: string,
+  to: string,
+) =>
+  useQuery({
+    queryKey: ["experience-bookings", "business-range", businessId, from, to],
+    enabled: !!businessId,
+    queryFn: async (): Promise<ExperienceBookingRow[]> => {
+      const { data, error } = await db
+        .from("experience_bookings")
+        .select(
+          "*, experience:experiences!inner(id, title, business_id, location_note, duration_minutes), segment:experience_segments(name, price), user:profiles!experience_bookings_user_id_fkey(id, username, full_name, avatar_url), guests:experience_booking_guests(user:profiles!experience_booking_guests_user_id_fkey(id, username, full_name, avatar_url))",
+        )
+        .eq("experience.business_id", businessId)
+        .gte("booking_date", from)
+        .lte("booking_date", to)
+        .neq("status", "pending_payment")
+        .order("booking_date", { ascending: true })
+        .order("booking_time", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ExperienceBookingRow[];
+    },
+  });
+
+const EXPERIENCE_STATUS_TOAST: Record<string, string> = {
+  seated: "Marcada como comenzada",
+  completed: "Marcada como completada",
+  no_show: "Marcada como no-show",
+  cancelled: "Reserva cancelada",
+};
+
+/** Owner lifecycle actions on an experience booking. */
+export const useSetExperienceBookingStatus = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ bookingId, status }: { bookingId: string; status: string }) => {
+      const { error } = await db.rpc("set_experience_booking_status", {
+        _booking_id: bookingId,
+        _status: status,
+      });
+      if (error) throw error;
+      return { bookingId, status };
+    },
+    onSuccess: ({ bookingId, status }) => {
+      haptic("success");
+      qc.invalidateQueries({ queryKey: ["experience-bookings"] });
+      qc.invalidateQueries({ queryKey: ["experience-booking-detail", bookingId] });
+      qc.invalidateQueries({ queryKey: ["experience-availability"] });
+      toast.success(EXPERIENCE_STATUS_TOAST[status] ?? "Estado actualizado");
+      if (status === "cancelled") sendExperienceEmails(bookingId, "cancelled");
+    },
+    onError: (e: any) => toast.error(e?.message || "No se pudo actualizar el estado"),
+  });
+};
