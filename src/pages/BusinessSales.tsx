@@ -26,8 +26,8 @@ const BusinessSales = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
+    <div className="light-surface min-h-screen bg-background pb-24">
+      <header className="dark-island sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-3">
             <button
