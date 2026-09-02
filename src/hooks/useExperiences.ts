@@ -1,7 +1,38 @@
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
+
+/**
+ * Live updates for the business-side experience booking views.
+ * RLS scopes the stream to rows this owner can already read, so no filter is needed.
+ * Guests intentionally do NOT subscribe (cost): their availability refetches on open.
+ */
+export const useExperienceBookingsRealtime = (businessId: string | undefined) => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!businessId) return;
+
+    const channel = supabase
+      .channel(`experience-bookings-biz-${businessId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "experience_bookings" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["experience-bookings"] });
+          queryClient.invalidateQueries({ queryKey: ["experience-availability"] });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [businessId, queryClient]);
+};
+
 
 /** Bookable experience owned by a business (tours, clases, buceo, etc.). */
 export interface Experience {

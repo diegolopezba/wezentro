@@ -12,8 +12,10 @@ import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import {
   useBusinessExperiences,
   useDeleteExperience,
+  useExperienceBookingsRealtime,
   type Experience,
 } from "@/hooks/useExperiences";
+
 import { ExperienceEditorSheet } from "@/components/experiences/ExperienceEditorSheet";
 import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
@@ -48,7 +50,9 @@ const BusinessExperiences = () => {
 
   const { data: experiences = [], isLoading } = useBusinessExperiences(user?.id);
   const remove = useDeleteExperience();
+  useExperienceBookingsRealtime(user?.id);
   const { hasBeneficiary } = useHasBeneficiary();
+
   const intro = useFeatureIntro("experiences");
 
   const [editorOpen, setEditorOpen] = useState(false);

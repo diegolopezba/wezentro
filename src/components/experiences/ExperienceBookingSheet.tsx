@@ -88,11 +88,17 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
   }, [open]);
 
   const dateStr = date ? format(date, "yyyy-MM-dd") : undefined;
-  const { data: slots = [], isLoading: loadingSlots } = useExperienceAvailability(
-    experience.id,
-    dateStr,
-    quantity,
-  );
+  const { data: slots = [], isLoading: loadingSlots, refetch: refetchSlots } =
+    useExperienceAvailability(experience.id, dateStr, quantity);
+
+  // Availability is cached briefly; make sure the guest never books against a
+  // stale slot list when the sheet opens or the date changes.
+  useEffect(() => {
+    if (!open || !dateStr) return;
+    refetchSlots();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, dateStr, experience.id]);
+
 
   const segments = useMemo(
     () => (config?.segments ?? []).filter((s) => s.is_active),
@@ -190,7 +196,15 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
       setStep("pay");
     } catch (e: any) {
       gateway?.abort();
-      toast.error(e?.message || "No se pudo iniciar el pago");
+      const msg = e?.message || "No se pudo iniciar el pago";
+      // Someone took the spots first: refresh slots so the full time is disabled.
+      if (/lugares|cupo|disponible/i.test(msg)) {
+        await refetchSlots();
+        setTime("");
+        setStep("time");
+      }
+      toast.error(msg);
+
     } finally {
       setStarting(false);
     }
