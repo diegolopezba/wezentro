@@ -71,7 +71,6 @@ const PROFESIONAL_FEATURES: readonly FeatureKey[] = [
 
 const PREMIUM_FEATURES: readonly FeatureKey[] = [
   ...PROFESIONAL_FEATURES,
-  "reservation_waitlist",
   "priority_placement",
   "venue_layout",
   "city_insights",
@@ -160,9 +159,8 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
     tagline: "Para lugares que quieren ir un paso adelante",
     features: PREMIUM_FEATURES,
     bullets: [
-      "Más de 20 mesas",
+      "Mesas ilimitadas",
       "Todo lo de Profesional: reservas, menús, analíticas y turnos",
-      "Waiting List para aprovechar cancelaciones",
       "Prioridad en discovery",
       "Insights de la ciudad",
     ],
@@ -173,9 +171,9 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
         description: "Reservas, menús, analíticas, turnos, todo completo.",
       },
       {
-        icon: "clock",
-        title: "Waiting List",
-        description: "Aprovechá la cancelación de un cliente para notificar a otro.",
+        icon: "table",
+        title: "Mesas ilimitadas",
+        description: "Configurá todas las mesas que necesites, sin tope.",
       },
       {
         icon: "trending",
@@ -289,10 +287,6 @@ export const TIER_COMPARISON: readonly {
   {
     label: "Analíticas de reservas",
     values: { basico: "Conteos", profesional: "Completas", elite: "Completas" },
-  },
-  {
-    label: "Waiting List de reservas",
-    values: { basico: "—", profesional: "—", elite: "Sí" },
   },
   {
     label: "Prioridad en discovery",
