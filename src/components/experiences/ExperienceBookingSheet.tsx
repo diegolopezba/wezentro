@@ -196,7 +196,15 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
       setStep("pay");
     } catch (e: any) {
       gateway?.abort();
-      toast.error(e?.message || "No se pudo iniciar el pago");
+      const msg = e?.message || "No se pudo iniciar el pago";
+      // Someone took the spots first: refresh slots so the full time is disabled.
+      if (/lugares|cupo|disponible/i.test(msg)) {
+        await refetchSlots();
+        setTime("");
+        setStep("time");
+      }
+      toast.error(msg);
+
     } finally {
       setStarting(false);
     }
