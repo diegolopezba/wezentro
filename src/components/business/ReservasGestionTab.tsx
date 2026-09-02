@@ -260,86 +260,64 @@ export const ReservasGestionTab = () => {
         personas
       </p>
 
-      {/* Chronological list */}
+      {/* Status filters */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={cn(
+              "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium select-none [-webkit-tap-highlight-color:transparent] active:scale-95 transition-colors",
+              filter === f.key
+                ? "bg-foreground text-background border-foreground"
+                : "bg-transparent text-muted-foreground border-border",
+            )}
+          >
+            {f.label} {filterCounts[f.key] ?? 0}
+          </button>
+        ))}
+      </div>
+
+      {/* Vertical timeline, only slots that have reservations */}
       {isLoading ? (
         <div className="space-y-2">
           <Skeleton className="h-20 rounded-2xl" />
           <Skeleton className="h-20 rounded-2xl" />
         </div>
-      ) : dayRows.length === 0 ? (
+      ) : visibleRows.length === 0 ? (
         <div className="rounded-2xl bg-card border border-border p-5 text-center">
           <CalendarDays className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Sin reservas para este día</p>
+          <p className="text-sm text-muted-foreground">Sin reservas para este filtro</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {dayRows.map((r) => {
-            const people = [
-              r.user ? { id: r.user.id, ...r.user } : null,
-              ...(r.guests || []).map((g) => (g.user ? { id: g.user.id, ...g.user } : null)),
-            ].filter(Boolean) as {
-              id: string;
-              username: string;
-              full_name: string | null;
-              avatar_url: string | null;
-            }[];
-            const extra = Math.max(0, people.length - 3);
-
-            return (
+        <div className="space-y-4">
+          {viewingToday && pastSlots.length > 0 && (
+            <>
+              {showPast && pastSlots.map(([time, rows]) => renderSlot(time, rows, true))}
               <button
-                key={r.id}
-                onClick={() => openDetail(r)}
-                className={cn(
-                  "w-full text-left p-3 rounded-2xl bg-card border border-border flex items-center gap-3 select-none [-webkit-tap-highlight-color:transparent] active:opacity-70",
-                  r.status === "cancelled" && "opacity-60",
-                )}
+                onClick={() => setShowPast((v) => !v)}
+                className="text-xs text-muted-foreground underline underline-offset-2 active:opacity-60 [-webkit-tap-highlight-color:transparent]"
               >
-                {/* Stacked avatars (max 3, then +N) */}
-                <div className="flex -space-x-2 shrink-0">
-                  {people.slice(0, 3).map((p) => (
-                    <img
-                      key={p.id}
-                      src={p.avatar_url || DEFAULT_AVATAR}
-                      alt={p.username}
-                      className="w-8 h-8 rounded-full border-2 border-background object-cover bg-secondary"
-                    />
-                  ))}
-                  {extra > 0 && (
-                    <span className="w-8 h-8 rounded-full border-2 border-background bg-secondary text-[10px] font-semibold text-muted-foreground flex items-center justify-center">
-                      +{extra}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {r.user?.full_name || r.user?.username || "Usuario"}
-                  </p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-2">
-                    <span>{r.reservation_time.slice(0, 5)}</span>
-                    <span className="flex items-center gap-1">
-                      <Users className="w-3 h-3" />
-                      {r.party_size}
-                    </span>
-                  </p>
-                  {r.notes && (
-                    <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
-                      <StickyNote className="w-3 h-3 shrink-0" />
-                      {r.notes}
-                    </p>
-                  )}
-                </div>
-
-                {r.status !== "confirmed" && (
-                  <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
-                    {STATUS_LABEL[r.status] ?? r.status}
-                  </span>
-                )}
+                {showPast
+                  ? "Ocultar horas anteriores"
+                  : `Ver ${pastSlots.length} horas anteriores`}
               </button>
-            );
-          })}
+            </>
+          )}
+
+          {viewingToday && upcomingSlots.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-primary">
+                Ahora {nowHHmm}
+              </span>
+              <span className="flex-1 h-px bg-primary/40" />
+            </div>
+          )}
+
+          {upcomingSlots.map(([time, rows]) => renderSlot(time, rows, false))}
         </div>
       )}
+
 
       <ReservationDetailSheet
         reservation={detail}
