@@ -4778,6 +4778,13 @@ export type Database = {
         Args: { _business_id: string }
         Returns: string
       }
+      get_business_shifts: {
+        Args: { _business_id: string; _weekday: number }
+        Returns: {
+          end_time: string
+          start_time: string
+        }[]
+      }
       get_chat_list_with_unread: {
         Args: { _user_id: string }
         Returns: {

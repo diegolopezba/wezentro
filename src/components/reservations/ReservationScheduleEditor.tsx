@@ -41,6 +41,8 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
   const { tier, hasFeature } = useSubscriptionTier(businessId);
   const canMultiShift = hasFeature("multi_shift");
   const canBlackouts = hasFeature("blackout_dates");
+  /** Nothing saved yet: the defaults on screen are not what customers see. */
+  const neverConfigured = !isLoading && schedules.length === 0;
 
   const [days, setDays] = useState<DayState[]>(() =>
     Array.from({ length: 7 }, () => defaultDay())
@@ -138,6 +140,14 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
         <Label className="text-foreground font-semibold">Horarios por día</Label>
       </div>
 
+      {neverConfigured && (
+        <div className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs text-foreground">
+          Todavía no publicaste tus horarios. Hasta que los guardes, tus clientes
+          no verán horarios disponibles para reservar.
+        </div>
+      )}
+
+
       <div className="space-y-3">
         {days.map((d, i) => (
           <div key={i} className="rounded-lg border border-border p-3 space-y-2">
@@ -208,12 +218,12 @@ export const ReservationScheduleEditor = ({ businessId }: Props) => {
       </div>
 
       <Button
-        variant={saveVariant(isDirty)}
+        variant={saveVariant(isDirty || neverConfigured)}
         className="w-full rounded-full"
         onClick={() => { handleSave(); capture(days); }}
-        disabled={!isDirty || save.isPending}
+        disabled={(!isDirty && !neverConfigured) || save.isPending}
       >
-        Guardar horarios
+        {neverConfigured ? "Publicar horarios" : "Guardar horarios"}
       </Button>
 
       {/* Blackouts */}

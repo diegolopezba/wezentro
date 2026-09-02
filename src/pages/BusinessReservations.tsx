@@ -31,6 +31,25 @@ const BusinessReservations = () => {
   const reservationsEnabled = (profile as any)?.reservations_enabled === true && !planLocked;
   const intro = useFeatureIntro("reservations");
 
+  const seedDefaultSchedules = async () => {
+    if (!user) return;
+    const { count, error } = await supabase
+      .from("reservation_schedules")
+      .select("id", { count: "exact", head: true })
+      .eq("business_id", user.id);
+    if (error || (count ?? 0) > 0) return;
+    await supabase.from("reservation_schedules").insert(
+      Array.from({ length: 7 }, (_, weekday) => ({
+        business_id: user.id,
+        weekday,
+        shift_name: "Cena",
+        start_time: "18:00",
+        end_time: "23:00",
+        is_closed: false,
+      }))
+    );
+  };
+
   const handleToggleReservations = async (value: boolean) => {
     if (!user || planLocked) return;
     setTogglingReservations(true);
@@ -40,6 +59,7 @@ const BusinessReservations = () => {
         .update({ reservations_enabled: value } as any)
         .eq("id", user.id);
       if (error) throw error;
+      if (value) await seedDefaultSchedules();
       await refreshProfile();
       toast.success(value ? "Reservas activadas" : "Reservas desactivadas");
     } catch (error: any) {
@@ -51,8 +71,8 @@ const BusinessReservations = () => {
 
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <header className="sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
+    <div className="light-surface min-h-[100dvh] bg-background">
+      <header className="dark-island sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-4">
           <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
             <ArrowLeft className="w-5 h-5" />

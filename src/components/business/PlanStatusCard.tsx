@@ -53,7 +53,7 @@ export const PlanStatusCard = () => {
     <m.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-2xl border bg-card p-4 ${
+      className={`dark-island rounded-2xl border bg-card p-4 ${
         urgent ? "border-destructive/40" : "border-border"
       }`}
     >
