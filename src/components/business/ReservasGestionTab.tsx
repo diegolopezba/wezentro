@@ -193,6 +193,89 @@ export const ReservasGestionTab = () => {
     setDetailOpen(true);
   };
 
+  const renderCard = (r: ReservationWithGuests) => {
+    const people = [
+      r.user ? { id: r.user.id, ...r.user } : null,
+      ...(r.guests || []).map((g) => (g.user ? { id: g.user.id, ...g.user } : null)),
+    ].filter(Boolean) as {
+      id: string;
+      username: string;
+      full_name: string | null;
+      avatar_url: string | null;
+    }[];
+    const extra = Math.max(0, people.length - 3);
+
+    return (
+      <button
+        key={r.id}
+        onClick={() => openDetail(r)}
+        className={cn(
+          "w-full text-left p-3 rounded-2xl bg-card border border-border flex items-center gap-3 select-none [-webkit-tap-highlight-color:transparent] active:opacity-70",
+          r.status === "cancelled" && "opacity-60",
+        )}
+      >
+        {/* Stacked avatars (max 3, then +N) */}
+        <div className="flex -space-x-2 shrink-0">
+          {people.slice(0, 3).map((p) => (
+            <img
+              key={p.id}
+              src={p.avatar_url || DEFAULT_AVATAR}
+              alt={p.username}
+              className="w-8 h-8 rounded-full border-2 border-background object-cover bg-secondary"
+            />
+          ))}
+          {extra > 0 && (
+            <span className="w-8 h-8 rounded-full border-2 border-background bg-secondary text-[10px] font-semibold text-muted-foreground flex items-center justify-center">
+              +{extra}
+            </span>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground truncate">
+            {r.user?.full_name || r.user?.username || "Usuario"}
+          </p>
+          <p className="text-xs text-muted-foreground flex items-center gap-2">
+            <span>{r.reservation_time.slice(0, 5)}</span>
+            <span className="flex items-center gap-1">
+              <Users className="w-3 h-3" />
+              {r.party_size}
+            </span>
+          </p>
+          {r.notes && (
+            <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
+              <StickyNote className="w-3 h-3 shrink-0" />
+              {r.notes}
+            </p>
+          )}
+        </div>
+
+        {r.status !== "confirmed" && (
+          <span
+            className={cn(
+              "shrink-0 text-[10px] px-2 py-0.5 rounded-full font-medium",
+              STATUS_STYLE[r.status] ?? "bg-secondary text-muted-foreground",
+            )}
+          >
+            {STATUS_LABEL[r.status] ?? r.status}
+          </span>
+        )}
+      </button>
+    );
+  };
+
+  const renderSlot = (time: string, rows: ReservationWithGuests[], past: boolean) => (
+    <div key={time} className={cn("flex gap-3", past && "opacity-60")}>
+      <div className="w-12 shrink-0 flex flex-col items-center">
+        <span className="text-xs font-semibold text-foreground tabular-nums">{time}</span>
+        <span className="w-1.5 h-1.5 rounded-full bg-foreground/40 mt-1" />
+        <span className="flex-1 w-px bg-border mt-1" />
+      </div>
+      <div className="flex-1 min-w-0 space-y-2">{rows.map(renderCard)}</div>
+    </div>
+  );
+
+
   return (
     <div className="space-y-4">
       {/* Header: title + view toggle + jump-to-date */}
