@@ -56,40 +56,7 @@ const BusinessHub = () => {
       <div className="px-4 pt-2 pb-28 space-y-5">
         {tab === "reservas" && <ReservasGestionTab />}
         {tab === "ventas" && <SalesTab />}
-        {tab === "experiencias" && (
-          <>
-            <ExperienciasGestionTab />
-            <SettingsGroup title="Tus herramientas">
-            <SettingsRow
-              icon={Sparkles}
-              label="Experiencias"
-              sublabel="Creá y editá tours, clases y actividades"
-              onClick={() => navigate("/settings/business/experiences")}
-            />
-            <SettingsRow
-              icon={CalendarCheck}
-              label="Configurar reservas"
-              sublabel="Mesas, horarios y reglas"
-              onClick={() => navigate("/settings/business/reservations")}
-              delay={0.03}
-            />
-            <SettingsRow
-              icon={UtensilsCrossed}
-              label="Menú"
-              sublabel="Editá tu carta"
-              onClick={() => navigate("/settings/business/menu")}
-              delay={0.06}
-            />
-            <SettingsRow
-              icon={ChevronRight}
-              label="Ajustes Business"
-              sublabel="Información, plan y pagos"
-              onClick={() => navigate("/settings/business")}
-              delay={0.09}
-            />
-            </SettingsGroup>
-          </>
-        )}
+        {tab === "experiencias" && <ExperienciasGestionTab />}
       </div>
     </AppLayout>
   );
