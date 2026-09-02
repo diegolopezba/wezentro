@@ -1,6 +1,54 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+/**
+ * Live updates for table & schedule editors: if the owner edits their
+ * inventory from another session/device, this one refetches instead of
+ * overwriting stale data. Only mounted in owner-facing settings UI.
+ */
+export const useReservationConfigRealtime = (businessId: string | undefined) => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!businessId) return;
+
+    const channel = supabase
+      .channel(`reservation-config-${businessId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "restaurant_tables",
+          filter: `business_id=eq.${businessId}`,
+        },
+        () =>
+          queryClient.invalidateQueries({
+            queryKey: ["restaurant-tables", businessId],
+          }),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "reservation_schedules",
+          filter: `business_id=eq.${businessId}`,
+        },
+        () =>
+          queryClient.invalidateQueries({
+            queryKey: ["reservation-schedules", businessId],
+          }),
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [businessId, queryClient]);
+};
 
 export interface RestaurantTable {
   id: string;

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { PersonalAccountOnlyNotice } from "@/components/business/PersonalAccountOnlyNotice";
@@ -118,6 +119,17 @@ export const ReservationSheet = ({
   }, [open, editingReservation]);
 
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined;
+
+  // Availability can change while the sheet is closed or the guest browses
+  // dates — always fetch fresh slots when the sheet opens or the date changes.
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (open && dateStr) {
+      queryClient.invalidateQueries({
+        queryKey: ["slot-availability", businessId, dateStr],
+      });
+    }
+  }, [open, dateStr, businessId, queryClient]);
 
   // Server-side availability for the picked date & party size
   const { data: slots = [], isLoading: loadingSlots } = useReservationAvailability(

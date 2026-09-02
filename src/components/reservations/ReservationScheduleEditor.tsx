@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { CalendarClock, Plus, Trash2 } from "lucide-react";
 import {
   useReservationSchedules,
+  useReservationConfigRealtime,
   useSaveSchedules,
   useReservationBlackouts,
   useToggleBlackout,
@@ -35,6 +36,7 @@ interface Props {
 
 export const ReservationScheduleEditor = ({ businessId }: Props) => {
   const { data: schedules = [], isLoading } = useReservationSchedules(businessId);
+  useReservationConfigRealtime(businessId);
   const save = useSaveSchedules(businessId);
   const { data: blackouts = [] } = useReservationBlackouts(businessId);
   const toggleBlackout = useToggleBlackout(businessId);

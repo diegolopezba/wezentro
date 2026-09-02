@@ -9,6 +9,7 @@ import {
   useUpsertTable,
   useBulkCreateTables,
   useDeleteTable,
+  useReservationConfigRealtime,
   type RestaurantTable,
 } from "@/hooks/useReservationConfig";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
@@ -23,6 +24,7 @@ const ZONES = ["Interior", "Terraza", "Barra", "Privado"];
 
 export const TablesEditor = ({ businessId }: Props) => {
   const { data: tables = [], isLoading } = useRestaurantTables(businessId);
+  useReservationConfigRealtime(businessId);
   const upsert = useUpsertTable(businessId);
   const bulkCreate = useBulkCreateTables(businessId);
   const remove = useDeleteTable(businessId);
