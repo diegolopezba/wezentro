@@ -111,6 +111,8 @@ export const ReservasGestionTab = () => {
   const [selected, setSelected] = useState<Date>(new Date());
   const [detail, setDetail] = useState<ReservationWithGuests | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [filter, setFilter] = useState<StatusFilter>("active");
+  const [showPast, setShowPast] = useState(false);
   const stripRef = useRef<HTMLDivElement>(null);
 
   // One generous range covers both the week strip indicators and any month jumps.
