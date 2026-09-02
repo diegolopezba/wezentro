@@ -32,6 +32,27 @@ const STATUS_LABEL: Record<string, string> = {
   no_show: "No-show",
 };
 
+// Color-coded so the host reads the room at a glance.
+const STATUS_STYLE: Record<string, string> = {
+  seated: "bg-emerald-500/15 text-emerald-600",
+  completed: "bg-sky-500/15 text-sky-600",
+  no_show: "bg-amber-500/15 text-amber-600",
+  cancelled: "bg-destructive/15 text-destructive",
+};
+
+type StatusFilter = "active" | "seated" | "completed" | "no_show" | "cancelled";
+
+const FILTERS: { key: StatusFilter; label: string }[] = [
+  { key: "active", label: "Activas" },
+  { key: "seated", label: "Sentadas" },
+  { key: "completed", label: "Completadas" },
+  { key: "no_show", label: "No-shows" },
+  { key: "cancelled", label: "Canceladas" },
+];
+
+const matchesFilter = (status: string, f: StatusFilter) =>
+  f === "active" ? status === "confirmed" || status === "seated" : status === f;
+
 
 
 const dayLabel = (d: Date) => {
