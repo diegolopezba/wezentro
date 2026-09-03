@@ -10,7 +10,7 @@ import {
   json,
   parseCheckoutMethod,
   parseCheckoutResponse,
-  platformPayouts,
+  organizerPayouts,
   qhantuyCheckoutFetch,
   safeReturnUrl,
   buildCharge,
@@ -166,8 +166,9 @@ Deno.serve(async (req) => {
             ? [{ name: "Comisión de procesamiento", quantity: 1, price: gatewayFee }]
             : []),
         ],
-        // Organizer payout (94%) + Zentro commission (6%) to its own beneficiary.
-        custom_payouts: platformPayouts(benef.beneficiary_code, payoutAmount, platformFee),
+        // Only the organizer is an external beneficiary. Zentro's 6% remains
+        // in the merchant balance, where Qhantuy also deducts its gateway fee.
+        custom_payouts: organizerPayouts(benef.beneficiary_code, payoutAmount),
       }),
     });
 
@@ -176,7 +177,15 @@ Deno.serve(async (req) => {
       : "No se pudo generar el QR";
 
     if (!checkoutRes.ok || checkoutRes.data?.process === false) {
-      console.error("[experience-qr] checkout failed", method, checkoutRes.status, checkoutRes.raw);
+      console.error("[experience-qr] checkout failed", method, checkoutRes.status, {
+        sessionId: session.id,
+        baseAmount: totalAmount,
+        gatewayFee,
+        chargedAmount,
+        payoutAmount,
+        platformFee,
+        providerResponse: checkoutRes.data,
+      });
       await supabase.from("payment_sessions").update({ status: "failed" }).eq("id", session.id);
       return json({ error: checkoutRes.data?.message || failLabel }, 502);
     }

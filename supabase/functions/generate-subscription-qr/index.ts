@@ -151,7 +151,8 @@ Deno.serve(async (req) => {
             ? [{ name: "Comisión de procesamiento", quantity: 1, price: gatewayFee }]
             : []),
         ],
-        custom_payouts: [{ code: platformCode, amount: quote.amount }],
+        // Subscription revenue already belongs to the Zentro merchant account;
+        // a self-payout would consume the balance needed for Qhantuy's fee.
       }),
     });
 
@@ -160,7 +161,13 @@ Deno.serve(async (req) => {
       : "No se pudo generar el QR";
 
     if (!checkoutRes.ok || checkoutRes.data?.process === false) {
-      console.error("[sub-qr] checkout failed:", method, checkoutRes.status, checkoutRes.raw);
+      console.error("[sub-qr] checkout failed:", method, checkoutRes.status, {
+        sessionId: session.id,
+        baseAmount: quote.amount,
+        gatewayFee,
+        chargedAmount,
+        providerResponse: checkoutRes.data,
+      });
       await supabase.from("payment_sessions").update({ status: "failed" }).eq("id", session.id);
       return json({ error: checkoutRes.data?.message || failLabel }, 502);
     }
