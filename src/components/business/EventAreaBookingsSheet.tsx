@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CheckCircle2, Loader2, Armchair } from "lucide-react";
 import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
-import { defaultAvatar } from "@/lib/defaultAvatar";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import {
   useEventAreaBookings,
   useEventAreaBookingsRealtime,
