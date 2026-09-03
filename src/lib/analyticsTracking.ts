@@ -106,13 +106,13 @@ export const trackEventImpression = async (eventId: string, _userId: string | nu
  */
 export const trackCheckoutTap = async (eventId: string, userId: string | null) => {
   if (!userId) return;
-  try {
-    await supabase.from("event_interactions").insert({
-      event_id: eventId,
-      user_id: userId,
-      type: "checkout_tap",
-    });
-  } catch (error) {
-    console.error("Failed to track checkout tap:", error);
-  }
+  const { error } = await supabase.from("event_interactions").insert({
+    event_id: eventId,
+    user_id: userId,
+    type: "checkout_tap",
+  });
+  // Never blocks checkout, but must not fail silently: a rejected insert here
+  // silently zeroes out the conversion funnel.
+  if (error) console.error("Failed to track checkout tap:", error.message);
 };
+
