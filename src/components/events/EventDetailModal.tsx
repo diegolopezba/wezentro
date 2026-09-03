@@ -422,8 +422,10 @@ const EventDetailModalInner = () => {
               areas={eventAreas}
               tiers={ticketTiers}
               sequential={isSequential}
-              onSelectTier={openPaymentForTier}
-              onAreaHeld={openPaymentForArea}
+              onSelectTier={(tier) => openPaymentForTier(tier, { inline: true })}
+              onAreaHeld={(args) => openPaymentForArea({ ...args, inline: true })}
+              onJoinFree={handleConfirmFreeJoin}
+              onPaymentConfirmed={handlePaymentSubmitted}
             />
           )}
           {hasTiers && (

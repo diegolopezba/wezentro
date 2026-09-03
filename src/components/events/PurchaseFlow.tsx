@@ -23,6 +23,7 @@ import { useEventPurchaseQuestions } from "@/hooks/useEventPurchaseQuestions";
 import { computeTierAvailability, type TicketTier } from "@/hooks/useTicketTiers";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { CheckoutSteps } from "./CheckoutSteps";
 
 interface Props {
   open: boolean;
@@ -34,6 +35,9 @@ interface Props {
   sequential: boolean;
   onSelectTier: (tier: TicketTier) => void;
   onAreaHeld: (args: { area: EventArea; partySize: number; bookingId: string }) => void;
+  /** Free tickets/areas confirm here instead of hitting the payment gateway. */
+  onJoinFree?: () => Promise<void>;
+  onPaymentConfirmed: () => Promise<void>;
 }
 
 /**
@@ -51,6 +55,8 @@ export function PurchaseFlow({
   sequential,
   onSelectTier,
   onAreaHeld,
+  onJoinFree,
+  onPaymentConfirmed,
 }: Props) {
   const sellableAreas = useMemo(() => areas.filter((a) => !a.is_decor), [areas]);
   const hasAreas = sellableAreas.length > 0;
@@ -62,7 +68,11 @@ export function PurchaseFlow({
   );
   const { data: questions = [] } = useEventPurchaseQuestions(open ? eventId : undefined);
 
-  const [step, setStep] = useState<"select" | "details">("select");
+  const [step, setStep] = useState<"select" | "details" | "checkout">("select");
+  const [checkoutTier, setCheckoutTier] = useState<TicketTier | null>(null);
+  const [checkout, setCheckout] = useState<
+    { area: EventArea; partySize: number; bookingId: string } | null
+  >(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [partySize, setPartySize] = useState(1);
   const [holding, setHolding] = useState(false);
@@ -74,6 +84,8 @@ export function PurchaseFlow({
       setSelectedId(null);
       setPartySize(1);
       setAnswers({});
+      setCheckoutTier(null);
+      setCheckout(null);
     }
   }, [open]);
 
@@ -123,6 +135,9 @@ export function PurchaseFlow({
         }
       }
       onAreaHeld({ area: selected, partySize: size, bookingId: booking.id });
+      setCheckoutTier(null);
+      setCheckout({ area: selected, partySize: size, bookingId: booking.id });
+      setStep("checkout");
     } catch (err: any) {
       toast.error(err?.message || "No se pudo reservar esta área.");
       refetch();
@@ -136,11 +151,11 @@ export function PurchaseFlow({
       <div className="flex items-center gap-2 px-4 h-14">
         <button
           type="button"
-          onClick={() => (step === "details" ? setStep("select") : onOpenChange(false))}
+          onClick={() => (step === "select" ? onOpenChange(false) : setStep("select"))}
           className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center active:opacity-70"
-          aria-label={step === "details" ? "Volver" : "Cerrar"}
+          aria-label={step === "select" ? "Cerrar" : "Volver"}
         >
-          {step === "details" ? (
+          {step !== "select" ? (
             <ChevronLeft className="w-5 h-5 text-foreground" />
           ) : (
             <X className="w-5 h-5 text-foreground" />
@@ -173,7 +188,12 @@ export function PurchaseFlow({
                   key={tier.id}
                   type="button"
                   disabled={disabled}
-                  onClick={() => onSelectTier(tier)}
+                  onClick={() => {
+                    onSelectTier(tier);
+                    setCheckout(null);
+                    setCheckoutTier(tier);
+                    setStep("checkout");
+                  }}
                   className={cn(
                     "w-full text-left rounded-2xl border border-border p-4 transition-colors",
                     disabled
@@ -500,20 +520,47 @@ export function PurchaseFlow({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="light-sheet rounded-t-3xl border-border bg-background p-0 h-[67dvh] flex flex-col"
+        className="light-sheet rounded-t-3xl border-border bg-background p-0 h-[85dvh] flex flex-col overflow-hidden"
       >
         <SheetTitle className="sr-only">Comprar — {eventTitle}</SheetTitle>
         <SheetDescription className="sr-only">
           Elegí una entrada o un área y completá tus datos.
         </SheetDescription>
-        {header}
-        <div
-          data-vaul-no-drag
-          className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
-        >
-          {step === "select" ? selectStep : detailsStep}
-        </div>
-        {footer}
+        {step === "checkout" ? (
+          <CheckoutSteps
+            active={open && step === "checkout"}
+            onClose={() => onOpenChange(false)}
+            onBack={() => setStep(checkout ? "details" : "select")}
+            eventId={eventId}
+            eventTitle={eventTitle}
+            price={
+              checkout
+                ? Number(checkout.area.price)
+                : checkoutTier
+                  ? Number(checkoutTier.price)
+                  : 0
+            }
+            ticketTierId={checkoutTier?.id ?? null}
+            ticketTierName={checkout?.area.name ?? checkoutTier?.name ?? null}
+            eventAreaId={checkout?.area.id ?? null}
+            areaBookingId={checkout?.bookingId ?? null}
+            partySize={checkout?.partySize ?? null}
+            mode="paid"
+            onJoinFree={onJoinFree}
+            onPaymentConfirmed={onPaymentConfirmed}
+          />
+        ) : (
+          <>
+            {header}
+            <div
+              data-vaul-no-drag
+              className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+            >
+              {step === "select" ? selectStep : detailsStep}
+            </div>
+            {footer}
+          </>
+        )}
       </SheetContent>
     </Sheet>
   );
