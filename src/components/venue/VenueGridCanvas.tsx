@@ -43,6 +43,7 @@ export function VenueGridCanvas({
     startX: number;
     startY: number;
     origin: DraftArea;
+    moved: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -61,24 +62,29 @@ export function VenueGridCanvas({
       if (!editable) return;
       e.stopPropagation();
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
-      onSelect?.(area.id);
       dragRef.current = {
         id: area.id,
         mode,
         startX: e.clientX,
         startY: e.clientY,
         origin: { ...area },
+        moved: false,
       };
     },
-    [editable, onSelect],
+    [editable],
   );
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
       const d = dragRef.current;
       if (!d || !onChange || scale === 0) return;
-      const dx = (e.clientX - d.startX) / scale;
-      const dy = (e.clientY - d.startY) / scale;
+      const rawDx = e.clientX - d.startX;
+      const rawDy = e.clientY - d.startY;
+      // Tap threshold: only treat as drag once the pointer travels ~8px.
+      if (!d.moved && Math.hypot(rawDx, rawDy) < 8) return;
+      d.moved = true;
+      const dx = rawDx / scale;
+      const dy = rawDy / scale;
       if (d.mode === "move") {
         onChange(d.id, {
           pos_x: clamp(snap(d.origin.pos_x + dx), 0, CANVAS_UNITS - d.origin.width),
@@ -102,9 +108,20 @@ export function VenueGridCanvas({
     [onChange, scale],
   );
 
-  const endDrag = useCallback(() => {
-    dragRef.current = null;
-  }, []);
+  const endDrag = useCallback(
+    (e: React.PointerEvent) => {
+      const d = dragRef.current;
+      dragRef.current = null;
+      if (!d || !editable) return;
+      // Tap (no movement) on the box body selects it; drags and resize-handle
+      // releases never open selection/edit UI.
+      if (!d.moved && d.mode === "move") {
+        onSelect?.(d.id);
+      }
+      void e;
+    },
+    [editable, onSelect],
+  );
 
   return (
     <div
@@ -135,6 +152,9 @@ export function VenueGridCanvas({
             onPointerDown={(e) => onPointerDown(e, a, "move")}
             onClick={(e) => {
               e.stopPropagation();
+              // In editable mode selection happens on pointer-up tap detection;
+              // ignore the synthetic click (it also fires after a drag ends).
+              if (editable) return;
               onSelect?.(a.id);
             }}
             className={cn(

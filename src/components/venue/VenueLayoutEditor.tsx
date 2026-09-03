@@ -91,8 +91,13 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
         editable
         selectedId={selectedId}
         onSelect={(id) => {
-          setSelectedId(id);
-          if (id) setEditingId(id);
+          // First tap selects (ring highlight); tapping the already-selected
+          // area opens the edit sheet. Drags never reach this callback.
+          if (id && id === selectedId) {
+            setEditingId(id);
+          } else {
+            setSelectedId(id);
+          }
         }}
         onChange={updateArea}
         renderLabel={(a) =>
@@ -115,7 +120,7 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
       {areas.length === 0 && (
         <p className="text-xs text-muted-foreground">
           Añade mesas, lounges o secciones y arrástralas para dibujar tu espacio.
-          Toca un área para editar su nombre, capacidad y precio.
+          Toca un área para seleccionarla y tócala de nuevo para editarla.
         </p>
       )}
 
