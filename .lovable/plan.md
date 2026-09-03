@@ -2,6 +2,8 @@
 
 En lugar de crear un sistema paralelo (lounge_plans / event_lounge_inventory / lounge_bookings), extendemos el sistema de planos ya construido: `venue_layouts` + `venue_layout_areas` (catálogo reutilizable), `event_areas` (inventario por evento) y `area_bookings` (reservas con hold atómico de 10 min, ya conectado a `payment_sessions.event_area_id` y al checkout QR/tarjeta).
 
+La reserva de lounge **no tiene selección de horario**: vale para todo el evento (fecha y hora las define el evento), a diferencia de las reservas de restaurante que sí tienen turnos. El invitado solo elige área, tamaño de grupo y paga.
+
 ## Qué ya existe y se reutiliza
 
 - Catálogo reutilizable por negocio con nombre, capacidad, `default_price` y `is_exclusive` (`venue_layout_areas`).
