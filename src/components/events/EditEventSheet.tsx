@@ -366,6 +366,13 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             .eq("id", event.id);
         }
       }
+
+      if (!isPost && !experienceId) {
+        await syncEventAreas.mutateAsync({
+          eventId: event.id,
+          areas: useAreas ? draftAreas : [],
+        });
+      }
       // Parse @mentions from description and insert into event_tags
       if (formData.description.trim()) {
         const { data: { session } } = await supabase.auth.getSession();
