@@ -480,6 +480,18 @@ export const holdEventArea = async (
   return data as any;
 };
 
+/** Guarda las respuestas del comprador en su reserva (RLS: solo el dueño). */
+export const saveAreaBookingAnswers = async (
+  bookingId: string,
+  answers: Record<string, string>,
+) => {
+  const { error } = await db
+    .from("area_bookings")
+    .update({ answers })
+    .eq("id", bookingId);
+  if (error) throw error;
+};
+
 export const cancelAreaBooking = async (
   bookingId: string,
   options: { cancelledBy?: "user" | "business"; reason?: string } = {},
@@ -514,6 +526,8 @@ export interface EventAreaBooking {
   buyer_avatar_url: string | null;
   amount: number | null;
   payment_method: string | null;
+  /** Respuestas a las preguntas del organizador: { [questionId]: valor }. */
+  answers: Record<string, string> | null;
 }
 
 /** All bookings for an event's areas (owner view; RLS restricts to owners). */
@@ -535,7 +549,7 @@ export const useEventAreaBookings = (eventId: string | undefined) =>
       const { data, error } = await db
         .from("area_bookings")
         .select(
-          "id, event_area_id, user_id, party_size, included_tickets, status, cancelled_by, cancellation_reason, hold_expires_at, created_at, payment_session_id, profiles:user_id(username, full_name, avatar_url), payment_sessions:payment_session_id(amount, payment_method)",
+          "id, event_area_id, user_id, party_size, included_tickets, answers, status, cancelled_by, cancellation_reason, hold_expires_at, created_at, payment_session_id, profiles:user_id(username, full_name, avatar_url), payment_sessions:payment_session_id(amount, payment_method)",
         )
         .in("event_area_id", areaIds)
         .order("created_at", { ascending: false });
@@ -558,6 +572,7 @@ export const useEventAreaBookings = (eventId: string | undefined) =>
         buyer_avatar_url: b.profiles?.avatar_url ?? null,
         amount: b.payment_sessions?.amount != null ? Number(b.payment_sessions.amount) : null,
         payment_method: b.payment_sessions?.payment_method ?? null,
+        answers: (b.answers ?? null) as Record<string, string> | null,
       }));
     },
     staleTime: 10_000,
@@ -647,3 +662,53 @@ export const confirmFreeAreaBooking = async (bookingId: string) => {
   }
 };
 
+
+/* ─────────────────────── Reservas del comprador ─────────────────────── */
+
+export interface MyAreaBooking {
+  id: string;
+  status: string;
+  party_size: number;
+  included_tickets: number;
+  created_at: string;
+  answers: Record<string, string> | null;
+  area: EventArea;
+  event: {
+    id: string;
+    title: string;
+    image_url: string | null;
+    start_datetime: string;
+    location_name: string | null;
+  };
+}
+
+/** Reservas de lounge/área del usuario actual, con datos del área y del evento. */
+export const useMyAreaBookings = (userId: string | undefined) =>
+  useQuery({
+    queryKey: ["my-area-bookings", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<MyAreaBooking[]> => {
+      const { data, error } = await db
+        .from("area_bookings")
+        .select(
+          "id, status, party_size, included_tickets, created_at, answers, event_areas:event_area_id(*, events:event_id(id, title, image_url, start_datetime, location_name))",
+        )
+        .eq("user_id", userId)
+        .in("status", ["confirmed", "checked_in"])
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return ((data ?? []) as any[])
+        .filter((b) => b.event_areas?.events)
+        .map((b) => ({
+          id: b.id,
+          status: b.status,
+          party_size: b.party_size,
+          included_tickets: b.included_tickets ?? 0,
+          created_at: b.created_at,
+          answers: b.answers ?? null,
+          area: { ...b.event_areas, price: Number(b.event_areas.price ?? 0) } as EventArea,
+          event: b.event_areas.events,
+        }));
+    },
+    staleTime: 30_000,
+  });
