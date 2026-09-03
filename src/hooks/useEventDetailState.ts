@@ -330,10 +330,13 @@ export const useEventDetailState = (
     }
   };
 
-  const openPaymentForTier = (tier: TicketTier) => {
+  /** `inline` keeps the unified purchase sheet open (checkout renders inside it). */
+  const openPaymentForTier = (tier: TicketTier, opts?: { inline?: boolean }) => {
     setSelectedTier(tier);
+    setSelectedArea(null);
+    setAreaBooking(null);
     setShowTierPicker(false);
-    setShowPaymentModal(true);
+    if (!opts?.inline) setShowPaymentModal(true);
   };
 
   /** Called by the visual layout picker once the area is atomically held. */
@@ -341,12 +344,15 @@ export const useEventDetailState = (
     area,
     partySize,
     bookingId,
-  }: { area: EventArea; partySize: number; bookingId: string }) => {
+    inline,
+  }: { area: EventArea; partySize: number; bookingId: string; inline?: boolean }) => {
     setSelectedTier(null);
     setSelectedArea(area);
     setAreaBooking({ bookingId, partySize });
-    setShowAreaPicker(false);
-    setShowPaymentModal(true);
+    if (!inline) {
+      setShowAreaPicker(false);
+      setShowPaymentModal(true);
+    }
   };
 
   const handleBuyTicket = async () => {
