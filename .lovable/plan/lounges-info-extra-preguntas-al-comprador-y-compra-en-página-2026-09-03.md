@@ -11,6 +11,7 @@ Tomamos lo mismo: descripción/perks por área + preguntas configurables por eve
 ## Qué se construye
 
 ### 1. Compra en páginas, no en bottom sheet
+
 Reemplazar `PurchaseSheet` por un flujo de pantallas completas (mismo estilo de overlay iOS que ya usa la app):
 
 ```text
@@ -18,22 +19,28 @@ Reemplazar `PurchaseSheet` por un flujo de pantallas completas (mismo estilo de 
 /evento/:id/comprar/datos   → cantidad/personas + preguntas del organizador
 /evento/:id/comprar/pago    → resumen (subtotal, comisión 1%, total) + QR o tarjeta
 ```
+
 Scroll natural de página, header con volver, botón de acción fijo abajo. El QR de pago actual se muestra en la última pantalla.
 
 ### 2. Info extra del área (lado negocio)
+
 En "Editar área" (catálogo y por evento) se agregan campos opcionales:
+
 - **Descripción** (qué incluye el lounge, ubicación, mínimo de consumo).
 - **Lista de beneficios** (chips: botella, mesero, acceso preferente…).
 - **Nota de llegada** (instrucciones que solo ve quien compró).
 
 ### 3. Preguntas al comprador
+
 Editor de preguntas en el evento (sección "Preguntas al comprar"): texto corto, texto largo, teléfono, sí/no y opción múltiple; cada una obligatoria u opcional, y con alcance **solo lounges** o **todas las compras**. Se responden en la pantalla "datos" antes de pagar y se guardan con la reserva.
 
 ### 4. Lado negocio: ver quién compró qué
+
 La hoja de "Reservas de lounge" pasa a una vista con detalle por reserva: comprador (avatar, nombre, usuario, contacto), área, personas, entradas incluidas, monto pagado, hora de compra, estado, y **las respuestas a las preguntas**. Acciones existentes (check-in, no-show, cancelar) se mantienen. Además, en Gestión > Eventos la tarjeta del evento muestra "X/Y lounges vendidos" para que la venta sea visible sin abrir nada.
 
 ### 5. Lado comprador: entrada de lounge real
-- En Entradas aparece una tarjeta propia "Reserva de lounge" con el nombre del área, personas, entradas incluidas, descripción/beneficios, nota de llegada y QR de acceso.
+
+- En Entradas aparece una tarjeta propia "Reserva de lounge" con el nombre del área, personas, entradas incluidas, descripción/beneficios, nota de llegada y QR de acceso. (También aparece un lounge icon que al apretarlo muestra un bottomsheet con el area plan visual y el lounge comprado, asi puede saber exactamente que lounge les toca)
 - Nuevo correo `lounge-confirmed` con los mismos datos + respuestas enviadas.
 
 ## Detalles técnicos
