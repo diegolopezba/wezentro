@@ -220,6 +220,12 @@ export const EventosGestionTab = () => {
                   label="Invitados y check-in"
                   onClick={() => { setGuestlistFor(actionsFor); setActionsFor(null); }}
                 />
+                <ActionRow
+                  icon={Armchair}
+                  label="Reservas de lounge"
+                  sub="Áreas vendidas, check-in y cancelaciones"
+                  onClick={() => { setLoungeFor(actionsFor); setActionsFor(null); }}
+                />
               </div>
             </div>
           )}

@@ -172,7 +172,7 @@ export function EventAreaBookingsSheet({ eventId, eventTitle, open, onOpenChange
                       <Avatar className="w-10 h-10 shrink-0">
                         <AvatarImage src={b.buyer_avatar_url ?? undefined} />
                         <AvatarFallback>
-                          <img src={defaultAvatar} alt="" className="w-full h-full object-cover" />
+                          <img src={DEFAULT_AVATAR} alt="" className="w-full h-full object-cover" />
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
