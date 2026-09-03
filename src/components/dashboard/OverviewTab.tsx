@@ -132,7 +132,7 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
         <StatsCard title="Bruto" value={salesLoading ? "..." : formatBs(sales?.revenue || 0)} icon={Coins} delay={0} />
         <StatsCard title="Neto estimado" value={salesLoading ? "..." : formatBs(sales?.netPayout || 0)} icon={Receipt} delay={0.05} />
         <StatsCard title="Tickets vendidos" value={salesLoading ? "..." : sales?.tickets || 0} icon={Ticket} delay={0.1} />
-        <StatsCard title="Ticket prom." value={salesLoading ? "..." : formatBs(sales?.avgTicket || 0)} icon={Receipt} delay={0.15} />
+        <StatsCard title="Ticket promedio" value={salesLoading ? "..." : formatBs(sales?.avgTicket || 0)} icon={Receipt} delay={0.15} />
       </div>
 
       {/* Commission breakdown */}
