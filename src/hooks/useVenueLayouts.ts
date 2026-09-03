@@ -56,6 +56,8 @@ export interface DraftArea {
   capacity: number;
   is_exclusive: boolean;
   price: number | null;
+  /** Entradas incluidas con la reserva del área (0/null = ninguna). */
+  included_tickets?: number | null;
   pos_x: number;
   pos_y: number;
   width: number;
@@ -192,6 +194,7 @@ export const useSaveVenueLayout = () => {
           area_type: a.area_type,
           capacity: a.capacity,
           is_exclusive: a.is_exclusive,
+          included_tickets: a.included_tickets ?? null,
           pos_x: a.pos_x,
           pos_y: a.pos_y,
           width: a.width,
@@ -288,6 +291,7 @@ export const useReplaceEventAreas = () => {
         area_type: a.area_type,
         capacity: a.capacity,
         is_exclusive: a.is_exclusive,
+        included_tickets: a.included_tickets ?? null,
         price: a.price ?? 0,
         pos_x: a.pos_x,
         pos_y: a.pos_y,
