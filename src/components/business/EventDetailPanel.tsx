@@ -16,7 +16,7 @@ import { EventGuestsPanel } from "@/components/business/EventGuestsPanel";
 import { EventPromotersPanel } from "@/components/business/EventPromotersPanel";
 import { EventAreaBookingsSheet } from "@/components/business/EventAreaBookingsSheet";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
-import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
+
 import { getEventShareUrl } from "@/lib/shareLinks";
 import { haptic } from "@/lib/haptics";
 import { formatBs } from "@/components/sales/salesUtils";
