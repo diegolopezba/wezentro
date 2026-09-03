@@ -9,7 +9,10 @@ export interface FunnelData {
   checkoutTaps: number;
   checkoutStarted: number;
   purchases: number;
+  /** First day with daily impression/view data, when the period predates it. */
+  statsSince: string | null;
 }
+
 
 const periodStart = (period: Period): string | null => {
   if (period === "all") return null;
@@ -46,15 +49,39 @@ export const useConversionFunnel = (period: Period, eventId?: string) => {
       }
 
       if (eventIds.length === 0) {
-        return { impressions: 0, views: 0, checkoutTaps: 0, checkoutStarted: 0, purchases: 0 };
+        return {
+          impressions: 0,
+          views: 0,
+          checkoutTaps: 0,
+          checkoutStarted: 0,
+          purchases: 0,
+          statsSince: null,
+        };
       }
 
       const start = periodStart(period);
 
-      const statsQ = supabase
-        .from("event_stats")
-        .select("impression_count, view_count")
-        .in("event_id", eventIds);
+      // Impressions/views: daily rollup when a period is selected, all-time
+      // denormalized counters when the period is "all".
+      const statsQ = start
+        ? supabase
+            .from("event_stats_daily")
+            .select("impressions, views")
+            .in("event_id", eventIds)
+            .gte("day", start.slice(0, 10))
+        : supabase.from("event_stats").select("impression_count, view_count").in("event_id", eventIds);
+
+      // Earliest day we have daily data for — used to warn when the selected
+      // window starts before the rollup existed.
+      const sinceQ = start
+        ? supabase
+            .from("event_stats_daily")
+            .select("day")
+            .in("event_id", eventIds)
+            .order("day", { ascending: true })
+            .limit(1)
+            .maybeSingle()
+        : null;
 
       let tapsQ = supabase
         .from("event_interactions")
@@ -69,12 +96,24 @@ export const useConversionFunnel = (period: Period, eventId?: string) => {
         .in("event_id", eventIds);
       if (start) sessionsQ = sessionsQ.gte("created_at", start);
 
-      const [statsRes, tapsRes, sessionsRes] = await Promise.all([statsQ, tapsQ, sessionsQ]);
+      const [statsRes, tapsRes, sessionsRes, sinceRes] = await Promise.all([
+        statsQ,
+        tapsQ,
+        sessionsQ,
+        sinceQ ?? Promise.resolve(null),
+      ]);
 
-      const impressions = (statsRes.data || []).reduce((s, r) => s + Number(r.impression_count || 0), 0);
-      const views = (statsRes.data || []).reduce((s, r) => s + Number(r.view_count || 0), 0);
+      const statsRows = (statsRes.data || []) as Array<Record<string, number | null>>;
+      const impressions = statsRows.reduce(
+        (s, r) => s + Number(r.impressions ?? r.impression_count ?? 0),
+        0
+      );
+      const views = statsRows.reduce((s, r) => s + Number(r.views ?? r.view_count ?? 0), 0);
       const sessions = sessionsRes.data || [];
       const purchases = sessions.filter((s) => s.status === "confirmed").length;
+
+      const firstDay = (sinceRes as { data?: { day: string } | null } | null)?.data?.day ?? null;
+      const statsSince = start && firstDay && firstDay > start.slice(0, 10) ? firstDay : null;
 
       return {
         impressions,
@@ -82,7 +121,9 @@ export const useConversionFunnel = (period: Period, eventId?: string) => {
         checkoutTaps: tapsRes.count || 0,
         checkoutStarted: sessions.length,
         purchases,
+        statsSince,
       };
+
     },
   });
 };

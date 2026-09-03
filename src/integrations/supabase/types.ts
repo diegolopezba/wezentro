@@ -1014,6 +1014,35 @@ export type Database = {
           },
         ]
       }
+      event_stats_daily: {
+        Row: {
+          day: string
+          event_id: string
+          impressions: number
+          views: number
+        }
+        Insert: {
+          day?: string
+          event_id: string
+          impressions?: number
+          views?: number
+        }
+        Update: {
+          day?: string
+          event_id?: string
+          impressions?: number
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_stats_daily_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_tags: {
         Row: {
           created_at: string | null

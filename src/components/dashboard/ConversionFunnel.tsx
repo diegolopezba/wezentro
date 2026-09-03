@@ -73,9 +73,21 @@ export const ConversionFunnel = ({ period, eventId, title = "Embudo de conversi�
         ))}
       </div>
 
-      <p className="text-[10px] text-muted-foreground leading-tight">
-        Impresiones y vistas son acumuladas desde la publicación del evento. Los taps, checkouts y compras siguen el período seleccionado.
-      </p>
+      {period === "all" ? (
+        <p className="text-[10px] text-muted-foreground leading-tight">
+          Impresiones y vistas son acumuladas desde la publicación del evento.
+        </p>
+      ) : data.statsSince ? (
+        <p className="text-[10px] text-muted-foreground leading-tight">
+          Impresiones y vistas disponibles desde el{" "}
+          {new Date(`${data.statsSince}T00:00:00`).toLocaleDateString("es-BO", {
+            day: "2-digit",
+            month: "2-digit",
+          })}
+          .
+        </p>
+      ) : null}
+
     </m.section>
   );
 };
