@@ -93,6 +93,31 @@ export function AreaEditSheet({ area, onOpenChange, onChange, onDuplicate, onDel
                 </div>
               </div>
 
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Entradas incluidas
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={area.capacity}
+                  value={area.included_tickets ?? ""}
+                  placeholder="0"
+                  onChange={(e) =>
+                    onChange({
+                      included_tickets:
+                        e.target.value === ""
+                          ? null
+                          : Math.max(0, parseInt(e.target.value, 10) || 0),
+                    })
+                  }
+                />
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Entradas al evento incluidas con la reserva de esta área. 0 = sin entradas incluidas.
+                </p>
+              </div>
+
+
               <div className="flex items-center justify-between gap-3 rounded-2xl border border-border p-4">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold">Área exclusiva</p>

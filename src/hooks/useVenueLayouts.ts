@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -56,6 +57,8 @@ export interface DraftArea {
   capacity: number;
   is_exclusive: boolean;
   price: number | null;
+  /** Entradas incluidas con la reserva del área (0/null = ninguna). */
+  included_tickets?: number | null;
   pos_x: number;
   pos_y: number;
   width: number;
@@ -192,6 +195,7 @@ export const useSaveVenueLayout = () => {
           area_type: a.area_type,
           capacity: a.capacity,
           is_exclusive: a.is_exclusive,
+          included_tickets: a.included_tickets ?? null,
           pos_x: a.pos_x,
           pos_y: a.pos_y,
           width: a.width,
@@ -288,6 +292,7 @@ export const useReplaceEventAreas = () => {
         area_type: a.area_type,
         capacity: a.capacity,
         is_exclusive: a.is_exclusive,
+        included_tickets: a.included_tickets ?? null,
         price: a.price ?? 0,
         pos_x: a.pos_x,
         pos_y: a.pos_y,
@@ -335,8 +340,158 @@ export const holdEventArea = async (
   return data as any;
 };
 
-export const cancelAreaBooking = async (bookingId: string) => {
-  await db.from("area_bookings").update({ status: "cancelled" }).eq("id", bookingId);
+export const cancelAreaBooking = async (
+  bookingId: string,
+  options: { cancelledBy?: "user" | "business"; reason?: string } = {},
+) => {
+  const { error } = await db
+    .from("area_bookings")
+    .update({
+      status: "cancelled",
+      cancelled_by: options.cancelledBy ?? "user",
+      cancellation_reason: options.reason ?? null,
+    })
+    .eq("id", bookingId);
+  if (error) throw error;
+};
+
+/* ───────────────────── Business booking management ───────────────────── */
+
+export interface EventAreaBooking {
+  id: string;
+  event_area_id: string;
+  area_name: string;
+  user_id: string;
+  party_size: number;
+  included_tickets: number;
+  status: "held" | "confirmed" | "cancelled" | "checked_in" | "no_show";
+  cancelled_by: "user" | "business" | null;
+  cancellation_reason: string | null;
+  hold_expires_at: string | null;
+  created_at: string;
+  buyer_username: string | null;
+  buyer_full_name: string | null;
+  buyer_avatar_url: string | null;
+  amount: number | null;
+  payment_method: string | null;
+}
+
+/** All bookings for an event's areas (owner view; RLS restricts to owners). */
+export const useEventAreaBookings = (eventId: string | undefined) =>
+  useQuery({
+    queryKey: ["event-area-bookings", eventId],
+    enabled: !!eventId,
+    queryFn: async (): Promise<EventAreaBooking[]> => {
+      const { data: areas, error: aErr } = await db
+        .from("event_areas")
+        .select("id, name")
+        .eq("event_id", eventId);
+      if (aErr) throw aErr;
+      const areaIds = (areas ?? []).map((a: any) => a.id);
+      if (areaIds.length === 0) return [];
+      const areaName: Record<string, string> = {};
+      for (const a of areas ?? []) areaName[a.id] = a.name;
+
+      const { data, error } = await db
+        .from("area_bookings")
+        .select(
+          "id, event_area_id, user_id, party_size, included_tickets, status, cancelled_by, cancellation_reason, hold_expires_at, created_at, payment_session_id, profiles:user_id(username, full_name, avatar_url), payment_sessions:payment_session_id(amount, payment_method)",
+        )
+        .in("event_area_id", areaIds)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+
+      return ((data ?? []) as any[]).map((b) => ({
+        id: b.id,
+        event_area_id: b.event_area_id,
+        area_name: areaName[b.event_area_id] ?? "Área",
+        user_id: b.user_id,
+        party_size: b.party_size,
+        included_tickets: b.included_tickets ?? 0,
+        status: b.status,
+        cancelled_by: b.cancelled_by,
+        cancellation_reason: b.cancellation_reason,
+        hold_expires_at: b.hold_expires_at,
+        created_at: b.created_at,
+        buyer_username: b.profiles?.username ?? null,
+        buyer_full_name: b.profiles?.full_name ?? null,
+        buyer_avatar_url: b.profiles?.avatar_url ?? null,
+        amount: b.payment_sessions?.amount != null ? Number(b.payment_sessions.amount) : null,
+        payment_method: b.payment_sessions?.payment_method ?? null,
+      }));
+    },
+    staleTime: 10_000,
+  });
+
+export type AreaBookingAction = "checked_in" | "no_show";
+
+export const useSetAreaBookingStatus = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      bookingId,
+      status,
+    }: {
+      bookingId: string;
+      status: AreaBookingAction;
+    }) => {
+      const { error } = await db
+        .from("area_bookings")
+        .update({ status })
+        .eq("id", bookingId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["event-area-bookings"] });
+      qc.invalidateQueries({ queryKey: ["event-area-availability"] });
+    },
+  });
+};
+
+export const useCancelAreaBookingAsBusiness = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      bookingId,
+      reason,
+    }: {
+      bookingId: string;
+      reason: string;
+    }) => {
+      await cancelAreaBooking(bookingId, {
+        cancelledBy: "business",
+        reason: reason || undefined,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["event-area-bookings"] });
+      qc.invalidateQueries({ queryKey: ["event-area-availability"] });
+    },
+  });
+};
+
+/** Realtime owner-only: refresca la lista de reservas de áreas del evento. */
+export const useEventAreaBookingsRealtime = (eventId: string | undefined) => {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!eventId) return;
+    const channel = supabase
+      .channel(`event-area-bookings:${eventId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "area_bookings" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["event-area-bookings", eventId] });
+          qc.invalidateQueries({
+            queryKey: ["event-area-availability", eventId],
+          });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [eventId, qc]);
 };
 
 /** Confirm a hold on a free (price 0) area — no payment involved. */

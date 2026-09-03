@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { VenueLayoutEditor } from "@/components/venue/VenueLayoutEditor";
+import { AreaListEditor } from "@/components/venue/AreaListEditor";
+import { cn } from "@/lib/utils";
 import {
   useVenueLayouts,
   useVenueLayoutAreas,
@@ -25,6 +27,7 @@ const VenueLayouts = () => {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const [areas, setAreas] = useState<DraftArea[]>([]);
+  const [editorMode, setEditorMode] = useState<"canvas" | "list">("canvas");
 
   const { data: loadedAreas } = useVenueLayoutAreas(editingId ?? undefined);
   const save = useSaveVenueLayout();
@@ -154,7 +157,38 @@ const VenueLayouts = () => {
               />
             </div>
 
-            <VenueLayoutEditor areas={areas} onChange={setAreas} />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setEditorMode("canvas")}
+                className={cn(
+                  "px-3 py-1.5 rounded-full text-xs font-medium border",
+                  editorMode === "canvas"
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-secondary/50 border-border text-foreground",
+                )}
+              >
+                Plano visual
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditorMode("list")}
+                className={cn(
+                  "px-3 py-1.5 rounded-full text-xs font-medium border",
+                  editorMode === "list"
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-secondary/50 border-border text-foreground",
+                )}
+              >
+                Solo lista
+              </button>
+            </div>
+
+            {editorMode === "canvas" ? (
+              <VenueLayoutEditor areas={areas} onChange={setAreas} />
+            ) : (
+              <AreaListEditor areas={areas} onChange={setAreas} />
+            )}
 
             <Button
               onClick={handleSave}

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  MoreHorizontal, Users, Play, Pause, Pencil, Share2, BarChart3, QrCode, CalendarPlus,
+  MoreHorizontal, Users, Play, Pause, Pencil, Share2, BarChart3, QrCode, CalendarPlus, Armchair,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/bottom-sheet";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +14,7 @@ import { useCreatorSalesByEvent } from "@/hooks/usePromoters";
 import { useToggleEventVisibility } from "@/hooks/useEventMutations";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
+import { EventAreaBookingsSheet } from "./EventAreaBookingsSheet";
 import { getEventShareUrl } from "@/lib/shareLinks";
 import { haptic } from "@/lib/haptics";
 import { netOf } from "@/lib/platformFee";
@@ -36,6 +37,7 @@ export const EventosGestionTab = () => {
   const [actionsFor, setActionsFor] = useState<Event | null>(null);
   const [editEvent, setEditEvent] = useState<Event | null>(null);
   const [guestlistFor, setGuestlistFor] = useState<Event | null>(null);
+  const [loungeFor, setLoungeFor] = useState<Event | null>(null);
 
   const salesById = useMemo(() => {
     const map: Record<string, any> = {};
@@ -220,6 +222,12 @@ export const EventosGestionTab = () => {
                   label="Invitados y check-in"
                   onClick={() => { setGuestlistFor(actionsFor); setActionsFor(null); }}
                 />
+                <ActionRow
+                  icon={Armchair}
+                  label="Reservas de lounge"
+                  sub="Áreas vendidas, check-in y cancelaciones"
+                  onClick={() => { setLoungeFor(actionsFor); setActionsFor(null); }}
+                />
               </div>
             </div>
           )}
@@ -240,6 +248,15 @@ export const EventosGestionTab = () => {
           eventHasPaymentQr={!!guestlistFor.payment_qr_url}
           open={!!guestlistFor}
           onOpenChange={(o) => !o && setGuestlistFor(null)}
+        />
+      )}
+
+      {loungeFor && (
+        <EventAreaBookingsSheet
+          eventId={loungeFor.id}
+          eventTitle={loungeFor.title}
+          open={!!loungeFor}
+          onOpenChange={(o) => !o && setLoungeFor(null)}
         />
       )}
     </div>

@@ -92,6 +92,27 @@
       "when": 1788368208721,
       "tag": "0012_publish_experience_bookings_realtime",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788397666937,
+      "tag": "0013_lounge_included_tickets_and_cancellation",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1788397715179,
+      "tag": "0014_area_bookings_management_policies",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1788397828376,
+      "tag": "0015_free_area_booking_included_tickets",
+      "breakpoints": true
     }
   ]
 }
