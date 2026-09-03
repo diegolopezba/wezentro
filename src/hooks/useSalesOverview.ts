@@ -21,7 +21,13 @@ export interface SalesOverview {
 }
 
 
-/** Period-scoped gross revenue + tickets from confirmed payment sessions. */
+/**
+ * Period-scoped gross revenue + tickets from confirmed customer payments.
+ *
+ * Subscription charges (the business paying Zentro for its plan) are excluded:
+ * they share the `payment_sessions` table but are not sales to customers.
+ * One lounge/area booking counts as one unit, not `party_size` guests.
+ */
 export const useSalesOverview = (period: Period) => {
   const { user } = useAuth();
   return useQuery({
@@ -31,9 +37,11 @@ export const useSalesOverview = (period: Period) => {
     queryFn: async (): Promise<SalesOverview> => {
       let q = supabase
         .from("payment_sessions")
-        .select("amount, party_size")
+        .select("amount, base_amount, quantity, event_id, event_area_id, subscription_tier")
         .eq("business_user_id", user!.id)
-        .eq("status", "confirmed");
+        .eq("status", "confirmed")
+        .is("subscription_tier", null)
+        .not("event_id", "is", null);
 
       const start = periodStart(period);
       if (start) q = q.gte("created_at", start);
@@ -42,10 +50,18 @@ export const useSalesOverview = (period: Period) => {
       if (error) throw error;
 
       const rows = data || [];
-      const revenue = rows.reduce((s, r) => s + Number(r.amount || 0), 0);
-      const tickets = rows.reduce((s, r) => s + Math.max(1, Number(r.party_size || 1)), 0);
-      const platformFee = rows.reduce((s, r) => s + feeOf(r.amount), 0);
-      const netPayout = rows.reduce((s, r) => s + netOf(r.amount), 0);
+      // Revenue is what the buyer paid for the ticket/lounge itself; the
+      // gateway fee added on top is not organizer revenue.
+      const gross = (r: { amount: number | null; base_amount: number | null }) =>
+        Number(r.base_amount ?? r.amount ?? 0);
+
+      const revenue = rows.reduce((s, r) => s + gross(r), 0);
+      const tickets = rows.reduce(
+        (s, r) => s + (r.event_area_id ? 1 : Math.max(1, Number(r.quantity || 1))),
+        0
+      );
+      const platformFee = rows.reduce((s, r) => s + feeOf(gross(r)), 0);
+      const netPayout = rows.reduce((s, r) => s + netOf(gross(r)), 0);
 
       return {
         revenue,
@@ -55,10 +71,9 @@ export const useSalesOverview = (period: Period) => {
         netPayout,
       };
     },
-
-
   });
 };
+
 
 export interface PaceRow {
   eventId: string;
