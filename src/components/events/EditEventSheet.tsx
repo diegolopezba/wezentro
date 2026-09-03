@@ -117,7 +117,45 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     waitlist_tier_key: event.waitlist_tier_id ?? "",
   });
 
-  const { isDirty, capture } = useDirtyBaseline({ formData, draftTiers, pricingMode, saleMode, experienceId });
+  const { isDirty, capture } = useDirtyBaseline({
+    formData,
+    draftTiers,
+    pricingMode,
+    saleMode,
+    experienceId,
+    draftAreas,
+    useAreas,
+  });
+
+  // Hydrate the area editor with the event's current inventory
+  useEffect(() => {
+    if (!open || isPost) return;
+    setDraftAreas(existingAreas.map((a, i) => ({ ...a, display_order: i })));
+    setUseAreas(existingAreas.length > 0);
+  }, [open, isPost, existingAreas]);
+
+  // Which areas already have real bookings (cannot be removed)
+  useEffect(() => {
+    if (!open || isPost || existingAreas.length === 0) {
+      setBookedAreaIds([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("area_bookings")
+        .select("event_area_id")
+        .in("event_area_id", existingAreas.map((a) => a.id))
+        .in("status", ["confirmed", "checked_in", "no_show"]);
+      if (!cancelled)
+        setBookedAreaIds(
+          Array.from(new Set(((data ?? []) as any[]).map((b) => b.event_area_id))),
+        );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, isPost, existingAreas]);
 
   useEffect(() => {
     if (open) {
