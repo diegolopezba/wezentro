@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
-import { m, AnimatePresence } from "framer-motion";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -73,15 +77,6 @@ export function PurchaseFlow({
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
-
   const availMap = useMemo(() => {
     const m: Record<string, AreaAvailability> = {};
     for (const a of availability) m[a.event_area_id] = a;
@@ -136,10 +131,8 @@ export function PurchaseFlow({
     }
   };
 
-  if (!open) return null;
-
   const header = (
-    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
+    <div className="shrink-0 bg-background border-b border-border rounded-t-3xl">
       <div className="flex items-center gap-2 px-4 h-14">
         <button
           type="button"
@@ -164,7 +157,7 @@ export function PurchaseFlow({
   );
 
   const selectStep = (
-    <div className="pb-32">
+    <div className="pb-6">
       {hasTiers && (
         <div className="px-5 pt-5">
           {hasAreas && (
@@ -343,7 +336,7 @@ export function PurchaseFlow({
   );
 
   const detailsStep = selected && (
-    <div className="px-5 pt-5 pb-32 space-y-5">
+    <div className="px-5 pt-5 pb-6 space-y-5">
       <div className="rounded-2xl border border-border p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -471,14 +464,14 @@ export function PurchaseFlow({
   );
 
   const footer = (
-    <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+    <div className="shrink-0 border-t border-border bg-background px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
       {step === "select" ? (
         <Button
           type="button"
           variant="sheet-action"
           disabled={!selected || soldOut}
           onClick={() => setStep("details")}
-          className="w-full h-14 text-base font-bold uppercase tracking-wide"
+          className="w-full h-13 text-base font-bold uppercase tracking-wide"
         >
           {!selected
             ? hasTiers
@@ -494,7 +487,7 @@ export function PurchaseFlow({
           variant="sheet-action"
           disabled={soldOut || holding}
           onClick={handleConfirm}
-          className="w-full h-14 text-base font-bold uppercase tracking-wide"
+          className="w-full h-13 text-base font-bold uppercase tracking-wide"
         >
           {holding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           Ir a pagar
@@ -503,21 +496,25 @@ export function PurchaseFlow({
     </div>
   );
 
-  return createPortal(
-    <AnimatePresence>
-      <m.div
-        key="purchase-flow"
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 24 }}
-        transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
-        className="fixed inset-0 z-[70] bg-background overflow-y-auto overscroll-contain"
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="light-sheet rounded-t-3xl border-border bg-background p-0 h-[67dvh] flex flex-col"
       >
+        <SheetTitle className="sr-only">Comprar — {eventTitle}</SheetTitle>
+        <SheetDescription className="sr-only">
+          Elegí una entrada o un área y completá tus datos.
+        </SheetDescription>
         {header}
-        {step === "select" ? selectStep : detailsStep}
+        <div
+          data-vaul-no-drag
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+        >
+          {step === "select" ? selectStep : detailsStep}
+        </div>
         {footer}
-      </m.div>
-    </AnimatePresence>,
-    document.body,
+      </SheetContent>
+    </Sheet>
   );
 }
