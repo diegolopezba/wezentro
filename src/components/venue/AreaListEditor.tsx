@@ -21,8 +21,8 @@ export function AreaListEditor({ areas, onChange }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const editing = areas.find((a) => a.id === editingId) ?? null;
 
-  const patch = (id: string, p: Partial<DraftArea>) =>
-    onChange(areas.map((a) => (a.id === id ? { ...a, ...p } : a)));
+  const saveArea = (updated: DraftArea) =>
+    onChange(areas.map((a) => (a.id === updated.id ? updated : a)));
 
   const addArea = () => {
     const draft = makeDraftArea({}, areas.length);
