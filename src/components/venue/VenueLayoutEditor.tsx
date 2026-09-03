@@ -25,9 +25,15 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
     [areas, editingId],
   );
 
-  const patch = useCallback(
+  const updateArea = useCallback(
     (id: string, p: Partial<DraftArea>) =>
       onChange(areas.map((a) => (a.id === id ? { ...a, ...p } : a))),
+    [areas, onChange],
+  );
+
+  const saveArea = useCallback(
+    (updated: DraftArea) =>
+      onChange(areas.map((a) => (a.id === updated.id ? updated : a))),
     [areas, onChange],
   );
 
@@ -88,7 +94,7 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
           setSelectedId(id);
           if (id) setEditingId(id);
         }}
-        onChange={patch}
+        onChange={updateArea}
         renderLabel={(a) =>
           `${AREA_TYPE_LABELS[a.area_type]} · ${a.capacity}p${
             a.price ? ` · Bs. ${a.price}` : ""
@@ -116,7 +122,7 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
       <AreaEditSheet
         area={editing}
         onOpenChange={(open) => !open && setEditingId(null)}
-        onChange={(p) => editing && patch(editing.id, p)}
+        onSave={saveArea}
         onDuplicate={duplicate}
         onDelete={remove}
       />

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,24 +11,46 @@ import {
   type DraftArea,
   type VenueAreaType,
 } from "@/hooks/useVenueLayouts";
+import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
 import { cn } from "@/lib/utils";
 
 interface Props {
   area: DraftArea | null;
   onOpenChange: (open: boolean) => void;
-  onChange: (patch: Partial<DraftArea>) => void;
+  onSave: (area: DraftArea) => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }
 
-export function AreaEditSheet({ area, onOpenChange, onChange, onDuplicate, onDelete }: Props) {
+export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelete }: Props) {
+  const [draft, setDraft] = useState<DraftArea | null>(area);
+  const { isDirty, capture } = useDirtyBaseline(draft);
+
+  useEffect(() => {
+    if (area) {
+      setDraft(area);
+      capture(area);
+    } else {
+      setDraft(null);
+    }
+  }, [area?.id]);
+
+  const update = (patch: Partial<DraftArea>) =>
+    setDraft((prev) => (prev ? { ...prev, ...patch } : prev));
+
+  const handleSave = () => {
+    if (!draft) return;
+    onSave(draft);
+    onOpenChange(false);
+  };
+
   return (
     <Sheet open={!!area} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
         className="light-sheet rounded-t-3xl max-h-[85dvh] overflow-y-auto"
       >
-        {area && (
+        {draft && (
           <>
             <SheetHeader className="mb-4">
               <SheetTitle>Editar área</SheetTitle>
@@ -37,8 +60,8 @@ export function AreaEditSheet({ area, onOpenChange, onChange, onDuplicate, onDel
               <div>
                 <label className="text-sm font-medium mb-2 block">Nombre</label>
                 <Input
-                  value={area.name}
-                  onChange={(e) => onChange({ name: e.target.value })}
+                  value={draft.name}
+                  onChange={(e) => update({ name: e.target.value })}
                   placeholder="Mesa 1"
                 />
               </div>
@@ -51,11 +74,11 @@ export function AreaEditSheet({ area, onOpenChange, onChange, onDuplicate, onDel
                       key={t}
                       type="button"
                       onClick={() =>
-                        onChange({ area_type: t, is_exclusive: AREA_TYPE_DEFAULT_EXCLUSIVE[t] })
+                        update({ area_type: t, is_exclusive: AREA_TYPE_DEFAULT_EXCLUSIVE[t] })
                       }
                       className={cn(
                         "px-3 py-1.5 rounded-full text-sm font-medium border",
-                        area.area_type === t
+                        draft.area_type === t
                           ? "bg-foreground text-background border-foreground"
                           : "bg-secondary/50 border-border text-foreground",
                       )}
@@ -72,9 +95,9 @@ export function AreaEditSheet({ area, onOpenChange, onChange, onDuplicate, onDel
                   <Input
                     type="number"
                     min={1}
-                    value={area.capacity}
+                    value={draft.capacity}
                     onChange={(e) =>
-                      onChange({ capacity: Math.max(1, parseInt(e.target.value || "1", 10)) })
+                      update({ capacity: Math.max(1, parseInt(e.target.value || "1", 10)) })
                     }
                   />
                 </div>
@@ -84,10 +107,10 @@ export function AreaEditSheet({ area, onOpenChange, onChange, onDuplicate, onDel
                     type="number"
                     min={0}
                     step="0.01"
-                    value={area.price ?? ""}
+                    value={draft.price ?? ""}
                     placeholder="0"
                     onChange={(e) =>
-                      onChange({ price: e.target.value === "" ? null : parseFloat(e.target.value) })
+                      update({ price: e.target.value === "" ? null : parseFloat(e.target.value) })
                     }
                   />
                 </div>
@@ -100,11 +123,11 @@ export function AreaEditSheet({ area, onOpenChange, onChange, onDuplicate, onDel
                 <Input
                   type="number"
                   min={0}
-                  max={area.capacity}
-                  value={area.included_tickets ?? ""}
+                  max={draft.capacity}
+                  value={draft.included_tickets ?? ""}
                   placeholder="0"
                   onChange={(e) =>
-                    onChange({
+                    update({
                       included_tickets:
                         e.target.value === ""
                           ? null
@@ -117,19 +140,18 @@ export function AreaEditSheet({ area, onOpenChange, onChange, onDuplicate, onDel
                 </p>
               </div>
 
-
               <div className="flex items-center justify-between gap-3 rounded-2xl border border-border p-4">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold">Área exclusiva</p>
                   <p className="text-xs text-muted-foreground">
-                    {area.is_exclusive
+                    {draft.is_exclusive
                       ? "Se vende completa: una reserva bloquea el área."
                       : "Capacidad compartida: varias reservas hasta llenarla."}
                   </p>
                 </div>
                 <Switch
-                  checked={area.is_exclusive}
-                  onCheckedChange={(v) => onChange({ is_exclusive: v })}
+                  checked={draft.is_exclusive}
+                  onCheckedChange={(v) => update({ is_exclusive: v })}
                 />
               </div>
 
@@ -140,11 +162,11 @@ export function AreaEditSheet({ area, onOpenChange, onChange, onDuplicate, onDel
                     <button
                       key={c}
                       type="button"
-                      onClick={() => onChange({ color: c })}
+                      onClick={() => update({ color: c })}
                       style={{ backgroundColor: c }}
                       className={cn(
                         "w-8 h-8 rounded-full border-2",
-                        area.color === c ? "border-foreground" : "border-transparent",
+                        draft.color === c ? "border-foreground" : "border-transparent",
                       )}
                       aria-label={c}
                     />
@@ -159,11 +181,21 @@ export function AreaEditSheet({ area, onOpenChange, onChange, onDuplicate, onDel
                   min={0}
                   max={90}
                   step={15}
-                  value={area.rotation}
-                  onChange={(e) => onChange({ rotation: parseInt(e.target.value, 10) })}
+                  value={draft.rotation}
+                  onChange={(e) => update({ rotation: parseInt(e.target.value, 10) })}
                   className="w-full"
                 />
               </div>
+
+              <Button
+                type="button"
+                variant={saveVariant(isDirty)}
+                disabled={!isDirty}
+                onClick={handleSave}
+                className="w-full rounded-full h-12"
+              >
+                Guardar cambios
+              </Button>
 
               <div className="flex gap-2 pt-2">
                 <Button
