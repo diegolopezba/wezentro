@@ -13,6 +13,7 @@ import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 import { ChevronLeft, ChevronDown, QrCode, CheckCircle, Camera, Loader2, RefreshCw, AlertCircle, Sparkles, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
+import { chargeBreakdown, GATEWAY_FEE_LABEL, formatBs } from "@/lib/gatewayFee";
 import { supabase } from "@/integrations/supabase/client";
 import { TicketAssigneeRow } from "./TicketAssigneeRow";
 import type { SearchUser } from "@/hooks/useSearchUsers";
@@ -81,6 +82,8 @@ export function PaymentQRModal({
   // Multi-ticket buying only applies to paid general/tier checkout, not venue areas.
   const canBuyMultiple = !isFree && !eventAreaId;
   const total = Number(price) * (canBuyMultiple ? quantity : 1);
+  // Qhantuy's commission is added on top of the price and paid by the buyer.
+  const charge = chargeBreakdown(total);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isActiveRef = useRef(false);
 
@@ -495,9 +498,23 @@ export function PaymentQRModal({
                       <span className="text-lg leading-none" role="img" aria-label="guiño">😉</span>
                     </p>
                   ) : (
-                    <p className="text-2xl font-brand font-medium text-foreground">Bs. {total}</p>
+                    <p className="text-2xl font-brand font-medium text-foreground">
+                      {formatBs(charge.total)}
+                    </p>
                   )}
                 </div>
+                {!isFree && charge.fee > 0 && (
+                  <div className="mb-3 space-y-1 text-xs">
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span>Subtotal</span>
+                      <span>{formatBs(charge.subtotal)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span>{GATEWAY_FEE_LABEL}</span>
+                      <span>{formatBs(charge.fee)}</span>
+                    </div>
+                  </div>
+                )}
                 {isBusinessAccount ? (
                   <PersonalAccountOnlyNotice action="comprar entradas" />
                 ) : (
@@ -544,7 +561,7 @@ export function PaymentQRModal({
             <m.div key="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pt-6 pb-8 space-y-4 text-center">
               <div className="space-y-1">
                 <h2 className="text-lg font-brand font-medium text-foreground">{eventTitle}</h2>
-                <p className="text-lg font-semibold text-primary">Bs. {total}</p>
+                <p className="text-lg font-semibold text-primary">{formatBs(charge.total)}</p>
               </div>
               <div className="flex flex-col items-center gap-3 py-4">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -577,7 +594,7 @@ export function PaymentQRModal({
             <m.div key="revealed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pt-6 pb-8 space-y-4 text-center overflow-y-auto max-h-[92dvh]">
               <div className="space-y-1">
                 <h2 className="text-lg font-brand font-medium text-foreground">{eventTitle}</h2>
-                <p className="text-lg font-semibold text-primary">Bs. {price}</p>
+                <p className="text-lg font-semibold text-primary">{formatBs(charge.total)}</p>
               </div>
 
               <div className="mx-auto w-56 h-56 rounded-2xl overflow-hidden bg-white p-2 border border-border">
@@ -619,7 +636,7 @@ export function PaymentQRModal({
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="w-5 h-5 flex items-center justify-center shrink-0 text-base leading-none">💵</span>
-                  <p className="text-sm text-foreground"><span className="font-semibold">3.</span> Paga Bs. {price} y vuelve</p>
+                  <p className="text-sm text-foreground"><span className="font-semibold">3.</span> Paga {formatBs(charge.total)} y vuelve</p>
                 </div>
               </div>
 

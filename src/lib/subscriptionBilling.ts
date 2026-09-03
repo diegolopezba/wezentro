@@ -22,7 +22,12 @@ export interface SubscriptionCheckout {
   /** Present for the card rail: Qhantuy's hosted Cybersource page. */
   paymentUrl: string | null;
   method: CheckoutMethod;
+  /** Total charged to the business (base price + gateway fee). */
   amount: number;
+  /** Plan price without the gateway commission. */
+  baseAmount?: number;
+  /** Qhantuy commission added on top and paid by the buyer. */
+  gatewayFee?: number;
   prorated: boolean;
   label: string;
   tier: TierKey;

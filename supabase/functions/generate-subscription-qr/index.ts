@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
+  buildCharge,
   checkoutMethodFields,
   corsHeaders,
   json,
@@ -8,6 +9,7 @@ import {
   qhantuyCheckoutFetch,
   safeReturnUrl,
 } from "../_shared/qhantuy.ts";
+
 import {
   BillingInterval,
   TIER_NAMES,
@@ -84,6 +86,11 @@ Deno.serve(async (req) => {
       return json({ error: "Monto inválido", code: "bad_amount" }, 400);
     }
 
+    // Qhantuy's commission is added on top of the plan price (PRE_CHARGE).
+    const charge = buildCharge(quote.amount);
+    const chargedAmount = charge.totalAmount;
+    const gatewayFee = charge.gatewayFee;
+
     const platformCode = Deno.env.get("QHANTUY_PLATFORM_BENEFICIARY_CODE")?.trim();
     if (!platformCode) {
       console.error("[sub-qr] QHANTUY_PLATFORM_BENEFICIARY_CODE missing");
@@ -96,7 +103,9 @@ Deno.serve(async (req) => {
       .insert({
         buyer_user_id: userId,
         business_user_id: userId,
-        amount: quote.amount,
+        amount: chargedAmount,
+        base_amount: quote.amount,
+        gateway_fee_amount: gatewayFee,
         status: "pending",
         provider: "qhantuy",
         beneficiary_code: platformCode,
@@ -136,7 +145,12 @@ Deno.serve(async (req) => {
         customer_first_name: nameParts[0] || undefined,
         customer_last_name: nameParts.slice(1).join(" ") || undefined,
         detail: detail.substring(0, 120),
-        items: [{ name: detail.substring(0, 100), quantity: 1, price: quote.amount }],
+        items: [
+          { name: detail.substring(0, 100), quantity: 1, price: quote.amount },
+          ...(gatewayFee > 0
+            ? [{ name: "Comisión de procesamiento", quantity: 1, price: gatewayFee }]
+            : []),
+        ],
         custom_payouts: [{ code: platformCode, amount: quote.amount }],
       }),
     });
@@ -179,7 +193,9 @@ Deno.serve(async (req) => {
       method,
       qrImageUrl: parsed.qrImageUrl,
       paymentUrl: parsed.paymentUrl,
-      amount: quote.amount,
+      amount: chargedAmount,
+      baseAmount: quote.amount,
+      gatewayFee,
       prorated: quote.prorated,
       label: quote.label,
       tier,

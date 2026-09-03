@@ -85,6 +85,12 @@ export const SubscriptionQRSheet = ({ open, onOpenChange, checkout }: Props) => 
             <p className="mt-1 text-sm text-muted-foreground">
               Plan {planName} · {checkout.label}
             </p>
+            {(checkout.gatewayFee ?? 0) > 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {formatBs(checkout.baseAmount ?? 0)} + {formatBs(checkout.gatewayFee ?? 0)} de comisión de procesamiento (1%)
+              </p>
+            )}
+
 
             {checkout.method === "card" ? (
               <div className="mt-4 flex flex-col items-center gap-3">

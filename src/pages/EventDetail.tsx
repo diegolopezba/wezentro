@@ -21,7 +21,7 @@ import { useSpecialInvite, useRedeemSpecialInvite } from "@/hooks/useSpecialInvi
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
 
-import { AreaPickerSheet } from "@/components/venue/AreaPickerSheet";
+import { PurchaseSheet } from "@/components/events/PurchaseSheet";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
@@ -446,14 +446,17 @@ const EventDetail = () => {
         onPaymentConfirmed={handlePaymentSubmitted}
       />
 
-      {/* Visual venue layout picker (opt-in per event) */}
+      {/* Unified purchase sheet — tiers + venue areas in one step */}
       {hasAreas && (
-        <AreaPickerSheet
+        <PurchaseSheet
           open={showAreaPicker}
           onOpenChange={setShowAreaPicker}
           eventId={id!}
           eventTitle={event.title || "Evento"}
           areas={eventAreas}
+          tiers={ticketTiers}
+          sequential={isSequential}
+          onSelectTier={openPaymentForTier}
           onAreaHeld={openPaymentForArea}
         />
       )}

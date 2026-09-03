@@ -13,7 +13,7 @@ import {
   platformPayouts,
   qhantuyCheckoutFetch,
   safeReturnUrl,
-  splitAmount,
+  buildCharge,
 } from "../_shared/qhantuy.ts";
 
 Deno.serve(async (req) => {
@@ -105,8 +105,11 @@ Deno.serve(async (req) => {
     const title = `${experience.title}${segment?.name ? ` — ${segment.name}` : ""}`;
     const unitPrice = Number((totalAmount / Math.max(booking.quantity, 1)).toFixed(2));
 
-    // Zentro keeps its commission; the rest is paid out to the organizer.
-    const { bps: feeBps, payoutAmount, platformFee } = splitAmount(totalAmount);
+    // Zentro keeps its commission out of the base price; Qhantuy's commission
+    // is added on top (PRE_CHARGE) and paid by the buyer.
+    const charge = buildCharge(totalAmount);
+    const { bps: feeBps, payoutAmount, platformFee, gatewayFee } = charge;
+    const chargedAmount = charge.totalAmount;
     if (payoutAmount <= 0) {
       return json({ error: "El monto es demasiado bajo para procesar el pago", code: "amount_too_low" }, 400);
     }
@@ -118,7 +121,9 @@ Deno.serve(async (req) => {
         experience_booking_id: booking.id,
         buyer_user_id: buyerId,
         business_user_id: experience.business_id,
-        amount: totalAmount,
+        amount: chargedAmount,
+        base_amount: totalAmount,
+        gateway_fee_amount: gatewayFee,
         status: "pending",
         provider: "qhantuy",
         beneficiary_code: benef.beneficiary_code,
@@ -155,7 +160,12 @@ Deno.serve(async (req) => {
         customer_first_name: buyerFirstName,
         customer_last_name: buyerLastName,
         detail: `${title}${booking.quantity > 1 ? ` x${booking.quantity}` : ""}`.substring(0, 120),
-        items: [{ name: title.substring(0, 100), quantity: booking.quantity, price: unitPrice }],
+        items: [
+          { name: title.substring(0, 100), quantity: booking.quantity, price: unitPrice },
+          ...(gatewayFee > 0
+            ? [{ name: "Comisión de procesamiento", quantity: 1, price: gatewayFee }]
+            : []),
+        ],
         // Organizer payout (94%) + Zentro commission (6%) to its own beneficiary.
         custom_payouts: platformPayouts(benef.beneficiary_code, payoutAmount, platformFee),
       }),
@@ -192,7 +202,9 @@ Deno.serve(async (req) => {
       method,
       qrImageUrl: parsed.qrImageUrl,
       paymentUrl: parsed.paymentUrl,
-      amount: totalAmount,
+      amount: chargedAmount,
+      baseAmount: totalAmount,
+      gatewayFee,
       unitPrice,
       quantity: booking.quantity,
       title,

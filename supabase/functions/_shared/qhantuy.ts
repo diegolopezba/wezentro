@@ -23,17 +23,60 @@ export function platformFeeBps(): number {
   return Math.floor(raw);
 }
 
+// ── Gateway (Qhantuy) commission ─────────────────────────────────────────
+// Qhantuy charges its own commission on every transaction and deducts it from
+// the charged amount BEFORE distributing custom_payouts. Since Zentro's split
+// already assigns 100% of the base price (94% organizer + 6% Zentro), the
+// gateway commission is charged PRE_CHARGE: it is added on top of the base
+// price and paid by the buyer, so payouts still sum to the full base price.
+export function gatewayFeeBps(): number {
+  const raw = Number(Deno.env.get("QHANTUY_GATEWAY_FEE_BPS") ?? 100);
+  if (!Number.isFinite(raw) || raw < 0 || raw >= 5000) return 100;
+  return Math.floor(raw);
+}
+
+/** Cents-safe rounding up, so the gateway commission is always fully covered. */
+const ceil2 = (n: number) => Math.ceil(Number((n * 100).toFixed(4))) / 100;
+
+export type ChargeBreakdown = {
+  /** Price the seller set (what payouts are distributed from). */
+  baseAmount: number;
+  /** Qhantuy commission added on top, paid by the buyer. */
+  gatewayFee: number;
+  /** What the buyer actually pays. */
+  totalAmount: number;
+  gatewayBps: number;
+  bps: number;
+  payoutAmount: number;
+  platformFee: number;
+};
+
+/**
+ * Builds the full charge breakdown for a base price.
+ * payoutAmount + platformFee === baseAmount, and totalAmount === baseAmount + gatewayFee.
+ */
+export function buildCharge(base: number): ChargeBreakdown {
+  const bps = platformFeeBps();
+  const gatewayBps = gatewayFeeBps();
+  const baseAmount = Math.round(Number(base) * 100) / 100;
+  const payoutAmount = Math.round(baseAmount * (1 - bps / 10000) * 100) / 100;
+  const platformFee = Math.round((baseAmount - payoutAmount) * 100) / 100;
+  // fee = base * r / (1 - r) so that gatewayFee >= r * totalAmount.
+  const r = gatewayBps / 10000;
+  const gatewayFee = gatewayBps > 0 ? ceil2((baseAmount * r) / (1 - r)) : 0;
+  const totalAmount = Math.round((baseAmount + gatewayFee) * 100) / 100;
+  return { baseAmount, gatewayFee, totalAmount, gatewayBps, bps, payoutAmount, platformFee };
+}
+
 export function splitAmount(total: number): {
   bps: number;
   payoutAmount: number;
   platformFee: number;
 } {
-  const bps = platformFeeBps();
-  const gross = Number(total);
-  const payoutAmount = Math.round(gross * (1 - bps / 10000) * 100) / 100;
-  const platformFee = Math.round((gross - payoutAmount) * 100) / 100;
+  const { bps, payoutAmount, platformFee } = buildCharge(total);
   return { bps, payoutAmount, platformFee };
 }
+
 
 // Builds the custom_payouts array for a checkout: the organizer gets their
 // share, and Zentro's commission is explicitly routed to Zentro's own
