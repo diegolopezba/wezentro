@@ -446,7 +446,7 @@ const EventDetail = () => {
         onPaymentConfirmed={handlePaymentSubmitted}
       />
 
-      {/* Visual venue layout picker (opt-in per event) */}
+      {/* Unified purchase sheet — tiers + venue areas in one step */}
       {hasAreas && (
         <PurchaseSheet
           open={showAreaPicker}
@@ -454,6 +454,9 @@ const EventDetail = () => {
           eventId={id!}
           eventTitle={event.title || "Evento"}
           areas={eventAreas}
+          tiers={ticketTiers}
+          sequential={isSequential}
+          onSelectTier={openPaymentForTier}
           onAreaHeld={openPaymentForArea}
         />
       )}

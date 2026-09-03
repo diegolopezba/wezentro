@@ -420,6 +420,9 @@ const EventDetailModalInner = () => {
               eventId={id!}
               eventTitle={event.title || "Evento"}
               areas={eventAreas}
+              tiers={ticketTiers}
+              sequential={isSequential}
+              onSelectTier={openPaymentForTier}
               onAreaHeld={openPaymentForArea}
             />
           )}
