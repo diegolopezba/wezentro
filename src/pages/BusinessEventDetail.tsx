@@ -188,11 +188,10 @@ const BusinessEventDetail = () => {
   );
 };
 
-const Stat = ({ label, value, sub }: { label: string; value: string; sub?: string }) => (
-  <div className="rounded-xl bg-secondary/50 px-2.5 py-2">
-    <p className="text-[10px] text-muted-foreground">{label}</p>
-    <p className="font-brand text-sm font-semibold text-foreground truncate">{value}</p>
-    {sub && <p className="text-[10px] text-muted-foreground truncate">{sub}</p>}
+const Stat = ({ label, value }: { label: string; value: string }) => (
+  <div className="min-w-0">
+    <p className="font-brand text-2xl font-semibold text-foreground leading-none truncate">{value}</p>
+    <p className="text-xs text-muted-foreground mt-1.5">{label}</p>
   </div>
 );
 
