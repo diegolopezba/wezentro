@@ -192,7 +192,24 @@ export const useEventDetailState = (
     return [...purchasableTiers].sort((a, b) => Number(a.price) - Number(b.price))[0];
   }, [purchasableTiers]);
 
+  const areaPrices = useMemo(
+    () => eventAreas.filter((a) => !a.is_decor).map((a) => Number(a.price ?? 0)),
+    [eventAreas],
+  );
+
   const formattedPrice = (() => {
+    if (hasAreas) {
+      // Areas and tiers are sold side by side — show the cheapest of both.
+      const tierPrices = (isWaitlistPhase ? ticketTiers : purchasableTiers).map((t) =>
+        Number(t.price),
+      );
+      const all = [...areaPrices, ...tierPrices];
+      if (all.length === 0) return "Gratis";
+      const min = Math.min(...all);
+      const max = Math.max(...all);
+      if (all.length === 1 || min === max) return min > 0 ? `Bs. ${min}` : "Gratis";
+      return `Desde Bs. ${min}`;
+    }
     if (hasTiers) {
       // During the pre-sale, prices are visible (Dice-style) but nothing is buyable yet.
       const source = isWaitlistPhase ? ticketTiers : purchasableTiers;
@@ -344,9 +361,10 @@ export const useEventDetailState = (
     }
     // Funnel: intent tap (fire-and-forget, never blocks the checkout)
     if (eventId) void trackCheckoutTap(eventId, user?.id ?? null);
-    // Visual venue layout path → pick an area first
+    // Unified purchase sheet: every category (tiers + areas) shown at once.
     if (hasAreas) {
       setSelectedArea(null);
+      setSelectedTier(null);
       setAreaBooking(null);
       setShowAreaPicker(true);
       return;

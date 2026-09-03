@@ -21,7 +21,7 @@ import { useSpecialInvite, useRedeemSpecialInvite } from "@/hooks/useSpecialInvi
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
 
-import { AreaPickerSheet } from "@/components/venue/AreaPickerSheet";
+import { PurchaseSheet } from "@/components/events/PurchaseSheet";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
@@ -448,7 +448,7 @@ const EventDetail = () => {
 
       {/* Visual venue layout picker (opt-in per event) */}
       {hasAreas && (
-        <AreaPickerSheet
+        <PurchaseSheet
           open={showAreaPicker}
           onOpenChange={setShowAreaPicker}
           eventId={id!}

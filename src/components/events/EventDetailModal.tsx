@@ -20,7 +20,7 @@ import { InvitationsSentSection } from "@/components/events/InvitationsSentSecti
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
-import { AreaPickerSheet } from "@/components/venue/AreaPickerSheet";
+import { PurchaseSheet } from "@/components/events/PurchaseSheet";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { MediaCarousel } from "@/components/events/MediaCarousel";
@@ -414,7 +414,7 @@ const EventDetailModalInner = () => {
             onPaymentConfirmed={handlePaymentSubmitted}
           />
           {hasAreas && (
-            <AreaPickerSheet
+            <PurchaseSheet
               open={showAreaPicker}
               onOpenChange={setShowAreaPicker}
               eventId={id!}
