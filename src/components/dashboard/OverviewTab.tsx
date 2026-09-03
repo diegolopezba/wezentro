@@ -135,20 +135,6 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
         <StatsCard title="Ticket promedio" value={salesLoading ? "..." : formatBs(sales?.avgTicket || 0)} icon={Receipt} delay={0.15} />
       </div>
 
-      {/* Commission breakdown */}
-      <div className="rounded-2xl border border-border bg-card p-4 space-y-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Comisión total (6%)</span>
-          <span className="text-foreground">{salesLoading ? "..." : `- ${formatBs(sales?.platformFee || 0)}`}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Neto estimado</span>
-          <span className="font-medium text-foreground">{salesLoading ? "..." : formatBs(sales?.netPayout || 0)}</span>
-        </div>
-        <p className="text-[11px] leading-snug text-muted-foreground">
-          El 6% es la comisión total sobre cada cobro. El 94% restante es el monto estimado que recibís.
-        </p>
-      </div>
 
 
 
