@@ -264,3 +264,44 @@ export const useBusinessUpcomingEvents = (userId: string | undefined) => {
     },
   });
 };
+
+/** All events created by the business (recent past + all upcoming), ascending. */
+export const useBusinessAllEvents = (userId: string | undefined) => {
+  return useQuery({
+    queryKey: ["business-all-events", userId],
+    enabled: !!userId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const now = new Date().toISOString();
+
+      const [past, upcoming] = await Promise.all([
+        supabase
+          .from("events")
+          .select("*")
+          .eq("creator_id", userId!)
+          .eq("is_post", false)
+          .is("deleted_at", null)
+          .lt("start_datetime", now)
+          .order("start_datetime", { ascending: false })
+          .limit(30),
+        supabase
+          .from("events")
+          .select("*")
+          .eq("creator_id", userId!)
+          .eq("is_post", false)
+          .is("deleted_at", null)
+          .gte("start_datetime", now)
+          .order("start_datetime", { ascending: true }),
+      ]);
+
+      if (past.error) throw past.error;
+      if (upcoming.error) throw upcoming.error;
+
+      const pastAsc = [...((past.data || []) as Event[])].reverse();
+      return {
+        events: [...pastAsc, ...((upcoming.data || []) as Event[])],
+        firstUpcomingIndex: pastAsc.length,
+      };
+    },
+  });
+};
