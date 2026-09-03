@@ -94,7 +94,7 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
           setSelectedId(id);
           if (id) setEditingId(id);
         }}
-        onChange={patch}
+        onChange={updateArea}
         renderLabel={(a) =>
           `${AREA_TYPE_LABELS[a.area_type]} · ${a.capacity}p${
             a.price ? ` · Bs. ${a.price}` : ""
