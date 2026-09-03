@@ -41,7 +41,6 @@ export const EventDetailPanel = ({ eventId }: Props) => {
   const [loungeSheet, setLoungeSheet] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [guestsSheet, setGuestsSheet] = useState(false);
   const toggle = useToggleEventVisibility();
 
   const { data: event, isLoading } = useQuery({
