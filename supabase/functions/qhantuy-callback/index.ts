@@ -328,6 +328,17 @@ Deno.serve(async (req) => {
       } catch (e) {
         console.error("included tickets generation failed:", e);
       }
+
+      // Lounge confirmation email with area detail, perks and answers.
+      try {
+        await fetch(`${SUPABASE_URL}/functions/v1/send-lounge-email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+          body: JSON.stringify({ areaBookingId: areaBooking.id }),
+        });
+      } catch (e) {
+        console.error("send-lounge-email dispatch failed", e);
+      }
     }
 
     const notifications = [
