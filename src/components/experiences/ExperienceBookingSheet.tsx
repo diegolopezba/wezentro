@@ -1,3 +1,4 @@
+import { chargeBreakdown, GATEWAY_FEE_LABEL } from "@/lib/gatewayFee";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/bottom-sheet";
@@ -107,6 +108,8 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
   const segment = segments.find((s) => s.id === segmentId) ?? null;
   const maxPerBooking = config?.policies?.max_per_booking ?? 8;
   const total = segment ? Number(segment.price) * quantity : 0;
+  // Qhantuy's commission is added on top of the price and paid by the buyer.
+  const charge = chargeBreakdown(total);
 
   // Poll the payment session until the callback confirms it.
   useEffect(() => {
@@ -368,9 +371,25 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
                     <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
                   </div>
 
-                  <div className="flex items-center justify-between rounded-2xl bg-muted/60 p-4">
-                    <span className="text-sm text-muted-foreground">Total</span>
-                    <span className="font-brand text-lg font-medium text-foreground">{money(total)}</span>
+                  <div className="space-y-2 rounded-2xl bg-muted/60 p-4">
+                    {charge.fee > 0 && (
+                      <>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Subtotal</span>
+                          <span>{money(charge.subtotal)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{GATEWAY_FEE_LABEL}</span>
+                          <span>{money(charge.fee)}</span>
+                        </div>
+                      </>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Total</span>
+                      <span className="font-brand text-lg font-medium text-foreground">
+                        {money(charge.total)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -389,7 +408,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
                 {starting || createBooking.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : step === "quantity" ? (
-                  `Pagar ${money(total)}`
+                  `Pagar ${money(charge.total)}`
                 ) : (
                   "Continuar"
                 )}
@@ -439,7 +458,7 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
                 )}
               </>
             )}
-            <p className="mt-4 font-brand text-xl font-medium text-foreground">{money(total)}</p>
+            <p className="mt-4 font-brand text-xl font-medium text-foreground">{money(charge.total)}</p>
             <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Esperando confirmación del pago…
             </div>
