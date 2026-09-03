@@ -24,7 +24,7 @@ export const EventTiersPanel = ({ eventId }: { eventId: string }) => {
   const { data: tiers, isLoading } = useTicketBreakdown(eventId);
 
   if (isLoading) {
-    return <div className="space-y-2">{[0, 1].map((i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}</div>;
+    return <Skeleton className="h-40 rounded-3xl" />;
   }
 
   if (!tiers?.length) {
@@ -36,32 +36,35 @@ export const EventTiersPanel = ({ eventId }: { eventId: string }) => {
   }
 
   return (
-    <div className="space-y-2">
-      {tiers.map((t) => {
-        const cap = t.capacity ?? null;
-        const o = occupancy(t.sold, cap);
-        return (
-          <div key={t.tier_id} className="rounded-2xl bg-card border border-border p-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground truncate">{t.name}</p>
-                  {o.label && (
-                    <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-semibold", o.chip)}>
-                      {o.label}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {formatBs(t.price)} · {t.sold}{cap ? ` / ${cap}` : ""} vendidas
+    <div className="rounded-3xl bg-card border border-border/60 p-5">
+      <p className="font-brand text-base font-semibold text-foreground mb-4">Por tipo de entrada</p>
+      <div className="space-y-4">
+        {tiers.map((t) => {
+          const cap = t.capacity ?? null;
+          const o = occupancy(t.sold, cap);
+          return (
+            <div key={t.tier_id}>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-sm font-medium text-foreground truncate">{t.name}</p>
+                <p className="text-sm text-muted-foreground flex-shrink-0">
+                  {t.sold}{cap ? ` / ${cap}` : ""}
+                  {o.label ? ` · ${o.label.toLowerCase()}` : ""}
                 </p>
               </div>
-              <p className="text-sm font-semibold text-foreground">{formatBs(t.revenue_bs)}</p>
+              {o.pct !== null ? (
+                <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <div
+                    className={cn("h-full rounded-full", o.pct >= 100 ? "bg-destructive" : o.pct >= 85 ? "bg-amber-500" : "bg-foreground")}
+                    style={{ width: `${o.pct}%` }}
+                  />
+                </div>
+              ) : (
+                <p className="text-[11px] text-muted-foreground mt-1">{formatBs(t.price)}</p>
+              )}
             </div>
-            {o.pct !== null && <OccupancyBar pct={o.pct} bar={o.bar} />}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };
