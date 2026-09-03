@@ -241,9 +241,11 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           ? "sequential"
           : "parallel",
       experienceId: event.experience_id ?? null,
+      draftAreas: existingAreas.map((a, i) => ({ ...a, display_order: i })),
+      useAreas: existingAreas.length > 0,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, event, existingTiers]);
+  }, [open, event, existingTiers, existingAreas]);
 
   const handleSave = async () => {
     try {
