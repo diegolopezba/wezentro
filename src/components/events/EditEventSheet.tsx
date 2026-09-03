@@ -262,9 +262,10 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       experienceId: event.experience_id ?? null,
       draftAreas: existingAreas.map((a, i) => ({ ...a, display_order: i })),
       useAreas: existingAreas.length > 0,
+      draftQuestions: existingQuestions,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, event, existingTiers, existingAreas]);
+  }, [open, event, existingTiers, existingAreas, existingQuestions]);
 
   const handleSave = async () => {
     // Areas with real bookings cannot disappear from the event inventory
