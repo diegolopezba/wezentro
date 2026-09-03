@@ -17,6 +17,7 @@ import {
   useEventAreas,
   type EventAreaBooking,
 } from "@/hooks/useVenueLayouts";
+import { useEventPurchaseQuestions } from "@/hooks/useEventPurchaseQuestions";
 import { cn } from "@/lib/utils";
 
 const STATUS_STYLES: Record<string, { label: string; cls: string }> = {
@@ -48,6 +49,12 @@ export function EventAreaBookingsSheet({ eventId, eventTitle, open, onOpenChange
   const { data: bookings = [], isLoading } = useEventAreaBookings(eventId);
   const { data: areas = [] } = useEventAreas(eventId);
   useEventAreaBookingsRealtime(open ? eventId : undefined);
+  const { data: questions = [] } = useEventPurchaseQuestions(open ? eventId : undefined);
+  const questionLabels = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const q of questions) m[q.id] = q.label;
+    return m;
+  }, [questions]);
 
   const setStatus = useSetAreaBookingStatus();
   const cancelBooking = useCancelAreaBookingAsBusiness();
@@ -211,6 +218,19 @@ export function EventAreaBookingsSheet({ eventId, eventTitle, open, onOpenChange
                         )}
                       </div>
                     </div>
+
+                    {b.answers && Object.keys(b.answers).length > 0 && (
+                      <div className="rounded-xl bg-secondary/50 p-2.5 space-y-1">
+                        {Object.entries(b.answers).map(([qid, value]) => (
+                          <div key={qid} className="text-[11px] leading-snug">
+                            <span className="text-muted-foreground">
+                              {questionLabels[qid] ?? "Respuesta"}:{" "}
+                            </span>
+                            <span className="text-foreground font-medium">{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {(b.status === "confirmed" || b.status === "checked_in") && (
                       <div className="flex gap-2">
