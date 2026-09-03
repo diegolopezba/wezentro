@@ -122,6 +122,8 @@ export const makeDraftArea = (
     capacity: 4,
     is_exclusive: AREA_TYPE_DEFAULT_EXCLUSIVE[type],
     price: null,
+    shape: "rect",
+    is_decor: false,
     pos_x: 60,
     pos_y: 60,
     width: 160,
@@ -132,6 +134,30 @@ export const makeDraftArea = (
     ...overrides,
   };
 };
+
+/** Bloque de referencia del plano (escenario, barra, baños…). */
+export const makeDecorArea = (
+  preset: (typeof DECOR_PRESETS)[number],
+  index = 0,
+  position: { pos_x: number; pos_y: number } = { pos_x: 60, pos_y: 60 },
+): DraftArea =>
+  makeDraftArea(
+    {
+      name: preset.label,
+      area_type: "section",
+      capacity: 0,
+      is_exclusive: false,
+      price: null,
+      included_tickets: null,
+      is_decor: true,
+      shape: preset.shape,
+      width: preset.width,
+      height: preset.height,
+      color: "#64748B",
+      ...position,
+    },
+    index,
+  );
 
 /* ─────────────────────────── Layout templates ─────────────────────────── */
 
