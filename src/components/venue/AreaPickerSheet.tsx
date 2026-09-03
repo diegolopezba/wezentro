@@ -163,6 +163,12 @@ export function AreaPickerSheet({
                       ? `hasta ${selected.capacity} personas`
                       : `${remaining} lugares disponibles`}
                   </p>
+                  {(selected.included_tickets ?? 0) > 0 && (
+                    <p className="text-xs font-semibold text-emerald-600 mt-1">
+                      Incluye {selected.included_tickets}{" "}
+                      {selected.included_tickets === 1 ? "entrada" : "entradas"} al evento
+                    </p>
+                  )}
                 </div>
                 <p className="text-lg font-brand font-medium text-foreground shrink-0">
                   {Number(selected.price) > 0 ? `Bs. ${selected.price}` : "Gratis"}
