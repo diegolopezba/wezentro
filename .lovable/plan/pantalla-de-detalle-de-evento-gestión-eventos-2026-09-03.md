@@ -5,14 +5,17 @@ Nueva pantalla para operar un evento desde el celular: cabecera con la salud del
 ## Qué se construye
 
 ### 1. Nueva ruta `/business/event/:eventId`
+
 - Página `BusinessEventDetail.tsx` con cabecera resumen + pestañas.
 - En `EventosGestionTab.tsx` solo cambia el destino de los taps (imagen, título y acción "Ver promotores") de `/business/event/:id/promoters` a `/business/event/:id`. El resto de la lista queda igual.
 - La ruta antigua `/business/event/:eventId/promoters` se mantiene (enlaces existentes) pero deja de ser el destino principal.
 
 ### 2. Cabecera resumen (siempre visible)
+
 Imagen, título, fecha, badge Publicado/Pausado (mismo estilo que la tarjeta de la lista) y tres bloques: entradas vendidas / capacidad, neto (`netOf` + `formatBs`, con bruto pequeño debajo) y conversión. Datos de la fila de `get_creator_sales_by_event` (`useCreatorSalesByEvent`) y de `event_stats.view_count`, exactamente como ya los calcula la lista.
 
 ### 3. Pestañas
+
 Se usan `Tabs/TabsList/TabsTrigger/TabsContent` siguiendo el patrón de `GuestlistManagementSheet.tsx`.
 
 **Entradas** — una fila por tier con nombre, precio, barra fina `sold/capacity`. Sin capacidad: solo el número vendido, sin barra. Al 100%: barra en `bg-destructive` y etiqueta "Agotado"; a partir del 85%: `bg-amber-500` y etiqueta "Casi agotado". Datos vía el hook existente `useTicketBreakdown(eventId)`.
@@ -21,7 +24,8 @@ Se usan `Tabs/TabsList/TabsTrigger/TabsContent` siguiendo el patrón de `Guestli
 
 **Invitados** — buscador arriba (mismo patrón del sheet actual), lista desde `useEventGuestlist(eventId)` con nombre, tipo de entrada o área y estado de check-in. Las entradas generadas por una reserva de lounge se agrupan bajo el comprador ("Camila Rojas +5") usando `guestlist_entries.area_booking_id`. Pie con total de invitados, check-ins y botón de exportar (XLSX, reutilizando `downloadXlsx` de `src/lib/inviteImport.ts`, igual que `SpecialInvitesPanel`).
 
-**Promotores** — se renderiza el contenido actual de `EventPromoterDashboard` sin tocar su lógica: se extrae su cuerpo a un componente `EventPromotersPanel` y tanto la ruta antigua como esta pestaña lo usan.
+- **Promotores** — se renderiza el contenido actual de `EventPromoterDashboard` sin tocar su lógica: se extrae su cuerpo a un componente `EventPromotersPanel` y tanto la ruta antigua como esta pestaña lo usan.  
+
 
 ## Detalles técnicos
 
