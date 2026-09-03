@@ -32,7 +32,7 @@ export function AreaListEditor({ areas, onChange }: Props) {
 
   return (
     <div className="space-y-2">
-      {areas.map((a) => (
+      {areas.filter((a) => !a.is_decor).map((a) => (
         <div
           key={a.id}
           className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3"
