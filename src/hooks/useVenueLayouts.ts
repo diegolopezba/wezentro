@@ -625,6 +625,78 @@ export const useCancelAreaBookingAsBusiness = () => {
   });
 };
 
+export interface EventAreaSalesSummary {
+  sold: number;
+  totalAreas: number;
+  gross: number;
+}
+
+/** Per-event lounge sales summary for the Gestión > Eventos cards. */
+export const useEventAreaSalesSummary = (eventIds: string[]) => {
+  const key = [...eventIds].sort();
+  return useQuery({
+    queryKey: ["area-sales-summary", key],
+    enabled: key.length > 0,
+    staleTime: 15_000,
+    queryFn: async (): Promise<Record<string, EventAreaSalesSummary>> => {
+      const { data: areas, error: aErr } = await db
+        .from("event_areas")
+        .select("id, event_id, is_decor")
+        .in("event_id", key);
+      if (aErr) throw aErr;
+
+      const sellable = (areas ?? []).filter((a: any) => !a.is_decor);
+      const result: Record<string, EventAreaSalesSummary> = {};
+      const areaToEvent: Record<string, string> = {};
+      for (const a of sellable) {
+        areaToEvent[a.id] = a.event_id;
+        result[a.event_id] ??= { sold: 0, totalAreas: 0, gross: 0 };
+        result[a.event_id].totalAreas += 1;
+      }
+      const areaIds = Object.keys(areaToEvent);
+      if (areaIds.length === 0) return result;
+
+      const { data: bookings, error: bErr } = await db
+        .from("area_bookings")
+        .select("event_area_id, status, payment_sessions:payment_session_id(amount)")
+        .in("event_area_id", areaIds)
+        .in("status", ["confirmed", "checked_in"]);
+      if (bErr) throw bErr;
+
+      for (const b of (bookings ?? []) as any[]) {
+        const evId = areaToEvent[b.event_area_id];
+        if (!evId) continue;
+        result[evId].sold += 1;
+        result[evId].gross += Number(b.payment_sessions?.amount ?? 0);
+      }
+      return result;
+    },
+  });
+};
+
+/** Realtime owner-only (Gestión > Eventos): un solo canal para toda la lista. */
+export const useAreaSalesSummaryRealtime = (enabled: boolean) => {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!enabled) return;
+    const channel = supabase
+      .channel("area-sales-summary")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "area_bookings" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["area-sales-summary"] });
+          qc.invalidateQueries({ queryKey: ["event-area-bookings"] });
+          qc.invalidateQueries({ queryKey: ["event-area-availability"] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [enabled, qc]);
+};
+
 /** Realtime owner-only: refresca la lista de reservas de áreas del evento. */
 export const useEventAreaBookingsRealtime = (eventId: string | undefined) => {
   const qc = useQueryClient();
