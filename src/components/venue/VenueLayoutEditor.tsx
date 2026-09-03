@@ -91,8 +91,13 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
         editable
         selectedId={selectedId}
         onSelect={(id) => {
-          setSelectedId(id);
-          if (id) setEditingId(id);
+          // First tap selects (ring highlight); tapping the already-selected
+          // area opens the edit sheet. Drags never reach this callback.
+          if (id && id === selectedId) {
+            setEditingId(id);
+          } else {
+            setSelectedId(id);
+          }
         }}
         onChange={updateArea}
         renderLabel={(a) =>

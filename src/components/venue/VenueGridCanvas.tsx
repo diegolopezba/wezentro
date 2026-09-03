@@ -45,8 +45,6 @@ export function VenueGridCanvas({
     origin: DraftArea;
     moved: boolean;
   } | null>(null);
-  /** Swallows the synthetic click that fires right after a drag ends. */
-  const suppressClickRef = useRef(false);
 
   useEffect(() => {
     const el = wrapRef.current;
