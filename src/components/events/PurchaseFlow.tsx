@@ -140,10 +140,8 @@ export function PurchaseFlow({
     }
   };
 
-  if (!open) return null;
-
   const header = (
-    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
+    <div className="shrink-0 bg-background border-b border-border rounded-t-3xl">
       <div className="flex items-center gap-2 px-4 h-14">
         <button
           type="button"
