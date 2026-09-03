@@ -156,6 +156,12 @@ export function VenueGridCanvas({
             onPointerDown={(e) => onPointerDown(e, a, "move")}
             onClick={(e) => {
               e.stopPropagation();
+              // In editable mode selection happens on pointer-up tap detection;
+              // ignore the synthetic click (it also fires after a drag ends).
+              if (editable) {
+                suppressClickRef.current = false;
+                return;
+              }
               onSelect?.(a.id);
             }}
             className={cn(
