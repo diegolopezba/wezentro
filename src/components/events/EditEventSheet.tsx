@@ -549,6 +549,31 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                 </div>
               )}
 
+              {isBusiness && !isPost && !experienceId && user && (
+                <div className="space-y-2">
+                  <EventVenueLayoutSection
+                    businessId={user.id}
+                    enabled={useAreas}
+                    onEnabledChange={(v) => {
+                      if (!v && bookedAreaIds.length > 0) {
+                        toast.error("Este evento ya tiene reservas de lounge activas");
+                        return;
+                      }
+                      setUseAreas(v);
+                      if (!v) setDraftAreas([]);
+                    }}
+                    areas={draftAreas}
+                    onAreasChange={setDraftAreas}
+                  />
+                  {bookedAreaIds.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Hay áreas con reservas activas: podés editar precio y detalles, pero no eliminarlas.
+                    </p>
+                  )}
+                </div>
+              )}
+
+
               {isBusiness && (
                 <div className="space-y-2">
                   <Label htmlFor="capacity">Capacidad total (opcional)</Label>
