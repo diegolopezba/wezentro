@@ -53,7 +53,7 @@ export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelet
         {draft && (
           <>
             <SheetHeader className="mb-4 shrink-0">
-              <SheetTitle>Editar área</SheetTitle>
+              <SheetTitle>{draft.is_decor ? "Editar elemento" : "Editar área"}</SheetTitle>
             </SheetHeader>
 
             <div
@@ -65,98 +65,127 @@ export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelet
                 <Input
                   value={draft.name}
                   onChange={(e) => update({ name: e.target.value })}
-                  placeholder="Mesa 1"
+                  placeholder={draft.is_decor ? "Escenario" : "Mesa 1"}
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Tipo</label>
-                <div className="flex flex-wrap gap-2">
-                  {(Object.keys(AREA_TYPE_LABELS) as VenueAreaType[]).map((t) => (
+                <label className="text-sm font-medium mb-2 block">Forma</label>
+                <div className="flex gap-2">
+                  {(["rect", "circle"] as const).map((s) => (
                     <button
-                      key={t}
+                      key={s}
                       type="button"
-                      onClick={() =>
-                        update({ area_type: t, is_exclusive: AREA_TYPE_DEFAULT_EXCLUSIVE[t] })
-                      }
+                      onClick={() => update({ shape: s })}
                       className={cn(
                         "px-3 py-1.5 rounded-full text-sm font-medium border",
-                        draft.area_type === t
+                        (draft.shape ?? "rect") === s
                           ? "bg-foreground text-background border-foreground"
                           : "bg-secondary/50 border-border text-foreground",
                       )}
                     >
-                      {AREA_TYPE_LABELS[t]}
+                      {s === "rect" ? "Rectángulo" : "Círculo"}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {!draft.is_decor && (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Capacidad</label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={draft.capacity}
-                    onChange={(e) =>
-                      update({ capacity: Math.max(1, parseInt(e.target.value || "1", 10)) })
-                    }
-                  />
+                  <label className="text-sm font-medium mb-2 block">Tipo</label>
+                  <div className="flex flex-wrap gap-2">
+                    {(Object.keys(AREA_TYPE_LABELS) as VenueAreaType[]).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() =>
+                          update({ area_type: t, is_exclusive: AREA_TYPE_DEFAULT_EXCLUSIVE[t] })
+                        }
+                        className={cn(
+                          "px-3 py-1.5 rounded-full text-sm font-medium border",
+                          draft.area_type === t
+                            ? "bg-foreground text-background border-foreground"
+                            : "bg-secondary/50 border-border text-foreground",
+                        )}
+                      >
+                        {AREA_TYPE_LABELS[t]}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {!draft.is_decor && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Capacidad</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={draft.capacity}
+                      onChange={(e) =>
+                        update({ capacity: Math.max(1, parseInt(e.target.value || "1", 10)) })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Precio (Bs.)</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={draft.price ?? ""}
+                      placeholder="0"
+                      onChange={(e) =>
+                        update({ price: e.target.value === "" ? null : parseFloat(e.target.value) })
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+
+              {!draft.is_decor && (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Precio (Bs.)</label>
+                  <label className="text-sm font-medium mb-2 block">
+                    Entradas incluidas
+                  </label>
                   <Input
                     type="number"
                     min={0}
-                    step="0.01"
-                    value={draft.price ?? ""}
+                    max={draft.capacity}
+                    value={draft.included_tickets ?? ""}
                     placeholder="0"
                     onChange={(e) =>
-                      update({ price: e.target.value === "" ? null : parseFloat(e.target.value) })
+                      update({
+                        included_tickets:
+                          e.target.value === ""
+                            ? null
+                            : Math.max(0, parseInt(e.target.value, 10) || 0),
+                      })
                     }
                   />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Entradas incluidas
-                </label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={draft.capacity}
-                  value={draft.included_tickets ?? ""}
-                  placeholder="0"
-                  onChange={(e) =>
-                    update({
-                      included_tickets:
-                        e.target.value === ""
-                          ? null
-                          : Math.max(0, parseInt(e.target.value, 10) || 0),
-                    })
-                  }
-                />
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  Entradas al evento incluidas con la reserva de esta área. 0 = sin entradas incluidas.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between gap-3 rounded-2xl border border-border p-4">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold">Área exclusiva</p>
-                  <p className="text-xs text-muted-foreground">
-                    {draft.is_exclusive
-                      ? "Se vende completa: una reserva bloquea el área."
-                      : "Capacidad compartida: varias reservas hasta llenarla."}
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    Entradas al evento incluidas con la reserva de esta área. 0 = sin entradas incluidas.
                   </p>
                 </div>
-                <Switch
-                  checked={draft.is_exclusive}
-                  onCheckedChange={(v) => update({ is_exclusive: v })}
-                />
-              </div>
+              )}
+
+              {!draft.is_decor && (
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-border p-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">Área exclusiva</p>
+                    <p className="text-xs text-muted-foreground">
+                      {draft.is_exclusive
+                        ? "Se vende completa: una reserva bloquea el área."
+                        : "Capacidad compartida: varias reservas hasta llenarla."}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={draft.is_exclusive}
+                    onCheckedChange={(v) => update({ is_exclusive: v })}
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="text-sm font-medium mb-2 block">Color</label>
