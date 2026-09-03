@@ -1,6 +1,6 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
-  buildCharge, createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import {
+  buildCharge,
   checkoutMethodFields,
   corsHeaders,
   json,
@@ -9,6 +9,7 @@ import {
   qhantuyCheckoutFetch,
   safeReturnUrl,
 } from "../_shared/qhantuy.ts";
+
 import {
   BillingInterval,
   TIER_NAMES,
