@@ -48,6 +48,25 @@ export interface VenueLayout {
   updated_at: string;
 }
 
+export type AreaShape = "rect" | "circle";
+
+/** Elementos no vendibles que solo dan contexto visual al plano. */
+export const DECOR_PRESETS: {
+  key: string;
+  label: string;
+  width: number;
+  height: number;
+  shape: AreaShape;
+}[] = [
+  { key: "stage", label: "Escenario", width: 400, height: 140, shape: "rect" },
+  { key: "bar", label: "Barra", width: 320, height: 100, shape: "rect" },
+  { key: "dj", label: "DJ", width: 140, height: 140, shape: "circle" },
+  { key: "dancefloor", label: "Pista", width: 300, height: 300, shape: "rect" },
+  { key: "entrance", label: "Entrada", width: 180, height: 80, shape: "rect" },
+  { key: "restrooms", label: "Baños", width: 160, height: 120, shape: "rect" },
+  { key: "other", label: "Otro", width: 200, height: 120, shape: "rect" },
+];
+
 /** Shape shared by template areas, event areas and in-editor drafts. */
 export interface DraftArea {
   /** Local id while editing; equals the DB id for persisted rows. */
@@ -59,6 +78,10 @@ export interface DraftArea {
   price: number | null;
   /** Entradas incluidas con la reserva del área (0/null = ninguna). */
   included_tickets?: number | null;
+  /** Forma dibujada en el plano. */
+  shape?: AreaShape;
+  /** true = elemento decorativo (escenario, barra…), no reservable. */
+  is_decor?: boolean;
   pos_x: number;
   pos_y: number;
   width: number;
@@ -99,6 +122,8 @@ export const makeDraftArea = (
     capacity: 4,
     is_exclusive: AREA_TYPE_DEFAULT_EXCLUSIVE[type],
     price: null,
+    shape: "rect",
+    is_decor: false,
     pos_x: 60,
     pos_y: 60,
     width: 160,
@@ -109,6 +134,30 @@ export const makeDraftArea = (
     ...overrides,
   };
 };
+
+/** Bloque de referencia del plano (escenario, barra, baños…). */
+export const makeDecorArea = (
+  preset: (typeof DECOR_PRESETS)[number],
+  index = 0,
+  position: { pos_x: number; pos_y: number } = { pos_x: 60, pos_y: 60 },
+): DraftArea =>
+  makeDraftArea(
+    {
+      name: preset.label,
+      area_type: "section",
+      capacity: 0,
+      is_exclusive: false,
+      price: null,
+      included_tickets: null,
+      is_decor: true,
+      shape: preset.shape,
+      width: preset.width,
+      height: preset.height,
+      color: "#64748B",
+      ...position,
+    },
+    index,
+  );
 
 /* ─────────────────────────── Layout templates ─────────────────────────── */
 
@@ -196,6 +245,8 @@ export const useSaveVenueLayout = () => {
           capacity: a.capacity,
           is_exclusive: a.is_exclusive,
           included_tickets: a.included_tickets ?? null,
+          shape: a.shape ?? "rect",
+          is_decor: a.is_decor ?? false,
           pos_x: a.pos_x,
           pos_y: a.pos_y,
           width: a.width,
@@ -293,6 +344,8 @@ export const useReplaceEventAreas = () => {
         capacity: a.capacity,
         is_exclusive: a.is_exclusive,
         included_tickets: a.included_tickets ?? null,
+        shape: a.shape ?? "rect",
+        is_decor: a.is_decor ?? false,
         price: a.price ?? 0,
         pos_x: a.pos_x,
         pos_y: a.pos_y,

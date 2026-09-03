@@ -113,6 +113,20 @@
       "when": 1788397828376,
       "tag": "0015_free_area_booking_included_tickets",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1788401336526,
+      "tag": "0016_add_area_shape_and_decor",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788401375419,
+      "tag": "0017_exclude_decor_areas_from_booking",
+      "breakpoints": true
     }
   ]
 }

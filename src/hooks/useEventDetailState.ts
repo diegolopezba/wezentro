@@ -125,7 +125,7 @@ export const useEventDetailState = (
 
   const legacyHasPaid = (event?.price ?? 0) > 0;
   // Visual venue layout mode (opt-in per event) takes over the checkout when present.
-  const hasAreas = eventAreas.length > 0;
+  const hasAreas = eventAreas.some((a) => !a.is_decor);
   const hasPaidTickets = hasAreas
     ? eventAreas.some((a) => Number(a.price) > 0)
     : hasTiers

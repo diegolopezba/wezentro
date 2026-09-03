@@ -1,11 +1,19 @@
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Shapes } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { VenueGridCanvas } from "./VenueGridCanvas";
 import { AreaEditSheet } from "./AreaEditSheet";
 import {
   CANVAS_UNITS,
   makeDraftArea,
+  makeDecorArea,
+  DECOR_PRESETS,
   AREA_TYPE_LABELS,
   type DraftArea,
 } from "@/hooks/useVenueLayouts";
@@ -82,7 +90,23 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
     setSelectedId(null);
   }, [areas, editing, onChange]);
 
-  const totalCapacity = areas.reduce((s, a) => s + (a.capacity || 0), 0);
+  const addDecor = useCallback(
+    (preset: (typeof DECOR_PRESETS)[number]) => {
+      const index = areas.length;
+      const col = index % 4;
+      const row = Math.floor(index / 4);
+      const next = makeDecorArea(preset, index, {
+        pos_x: Math.min(40 + col * 220, CANVAS_UNITS - preset.width),
+        pos_y: Math.min(40 + row * 200, CANVAS_UNITS - preset.height),
+      });
+      onChange([...areas, next]);
+      setSelectedId(next.id);
+    },
+    [areas, onChange],
+  );
+
+  const bookable = areas.filter((a) => !a.is_decor);
+  const totalCapacity = bookable.reduce((s, a) => s + (a.capacity || 0), 0);
 
   return (
     <div className="space-y-3">
@@ -107,14 +131,31 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
         }
       />
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">
-          {areas.length} área{areas.length === 1 ? "" : "s"} · {totalCapacity} personas
+          {bookable.length} área{bookable.length === 1 ? "" : "s"} · {totalCapacity} personas
         </p>
-        <Button type="button" onClick={addArea} className="rounded-full h-9">
-          <Plus className="w-4 h-4 mr-1" />
-          Añadir área
-        </Button>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" className="rounded-full h-9">
+                <Shapes className="w-4 h-4 mr-1" />
+                Añadir elemento
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="rounded-2xl">
+              {DECOR_PRESETS.map((p) => (
+                <DropdownMenuItem key={p.key} onSelect={() => addDecor(p)}>
+                  {p.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button type="button" onClick={addArea} className="rounded-full h-9">
+            <Plus className="w-4 h-4 mr-1" />
+            Añadir área
+          </Button>
+        </div>
       </div>
 
       {areas.length === 0 && (

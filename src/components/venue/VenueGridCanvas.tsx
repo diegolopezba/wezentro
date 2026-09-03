@@ -142,10 +142,12 @@ export function VenueGridCanvas({
       }}
     >
       {areas.map((a) => {
-        const state = states?.[a.id];
+        const decor = !!a.is_decor;
+        const state = decor ? undefined : states?.[a.id];
         const unavailable = state === "unavailable";
-        const label = renderLabel?.(a);
+        const label = decor ? null : renderLabel?.(a);
         const selected = selectedId === a.id;
+        const circle = a.shape === "circle";
         return (
           <div
             key={a.id}
@@ -158,11 +160,13 @@ export function VenueGridCanvas({
               onSelect?.(a.id);
             }}
             className={cn(
-              "absolute rounded-xl flex flex-col items-center justify-center text-center px-1 overflow-hidden",
+              "absolute flex flex-col items-center justify-center text-center px-1 overflow-hidden",
               "transition-shadow",
+              circle ? "rounded-full" : "rounded-xl",
               selected ? "ring-2 ring-offset-1 ring-black/70 z-10" : "",
               unavailable ? "opacity-45" : "",
-              editable ? "cursor-move" : "cursor-pointer",
+              editable ? "cursor-move" : decor ? "pointer-events-none" : "cursor-pointer",
+              decor ? "z-0" : "",
             )}
             style={{
               left: `${(a.pos_x / CANVAS_UNITS) * 100}%`,
@@ -170,13 +174,22 @@ export function VenueGridCanvas({
               width: `${(a.width / CANVAS_UNITS) * 100}%`,
               height: `${(a.height / CANVAS_UNITS) * 100}%`,
               transform: a.rotation ? `rotate(${a.rotation}deg)` : undefined,
-              backgroundColor: `${a.color}22`,
-              border: `2px solid ${
-                state === "partial" ? "#F59E0B" : unavailable ? "#94A3B8" : a.color
-              }`,
+              backgroundColor: decor ? "rgba(0,0,0,0.05)" : `${a.color}22`,
+              border: decor
+                ? "2px dashed rgba(0,0,0,0.28)"
+                : `2px solid ${
+                    state === "partial" ? "#F59E0B" : unavailable ? "#94A3B8" : a.color
+                  }`,
             }}
           >
-            <span className="text-[10px] font-semibold leading-tight text-black/80 line-clamp-2">
+            <span
+              className={cn(
+                "text-[10px] leading-tight line-clamp-2",
+                decor
+                  ? "font-medium uppercase tracking-wider text-black/45"
+                  : "font-semibold text-black/80",
+              )}
+            >
               {a.name}
             </span>
             {label && (

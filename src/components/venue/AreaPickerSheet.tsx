@@ -52,7 +52,7 @@ export function AreaPickerSheet({
     return m;
   }, [areas, availMap]);
 
-  const selected = areas.find((a) => a.id === selectedId) || null;
+  const selected = areas.find((a) => a.id === selectedId && !a.is_decor) || null;
   const selectedAvail = selected ? availMap[selected.id] : null;
   const remaining = selectedAvail?.remaining ?? selected?.capacity ?? 0;
   const soldOut = selected ? states[selected.id] === "unavailable" : false;
