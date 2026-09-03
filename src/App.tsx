@@ -105,6 +105,7 @@ const SpecialInvite = lazyWithRetry(() => import("./pages/SpecialInvite"));
 const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
 const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
 const EventPromoterDashboard = lazyWithRetry(() => import("./pages/EventPromoterDashboard"));
+const BusinessEventDetail = lazyWithRetry(() => import("./pages/BusinessEventDetail"));
 
 // Private admin console (own subdomain, never linked from the app UI)
 const AdminLogin = lazyWithRetry(() => import("./pages/admin/AdminLogin"));
