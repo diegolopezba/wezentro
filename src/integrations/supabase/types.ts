@@ -493,12 +493,14 @@ export type Database = {
           id: string
           included_tickets: number | null
           is_active: boolean
+          is_decor: boolean
           is_exclusive: boolean
           name: string
           pos_x: number
           pos_y: number
           price: number
           rotation: number
+          shape: string
           source_layout_area_id: string | null
           updated_at: string
           width: number
@@ -514,12 +516,14 @@ export type Database = {
           id?: string
           included_tickets?: number | null
           is_active?: boolean
+          is_decor?: boolean
           is_exclusive?: boolean
           name: string
           pos_x?: number
           pos_y?: number
           price?: number
           rotation?: number
+          shape?: string
           source_layout_area_id?: string | null
           updated_at?: string
           width?: number
@@ -535,12 +539,14 @@ export type Database = {
           id?: string
           included_tickets?: number | null
           is_active?: boolean
+          is_decor?: boolean
           is_exclusive?: boolean
           name?: string
           pos_x?: number
           pos_y?: number
           price?: number
           rotation?: number
+          shape?: string
           source_layout_area_id?: string | null
           updated_at?: string
           width?: number
@@ -3987,12 +3993,14 @@ export type Database = {
           height: number
           id: string
           included_tickets: number | null
+          is_decor: boolean
           is_exclusive: boolean
           layout_id: string
           name: string
           pos_x: number
           pos_y: number
           rotation: number
+          shape: string
           updated_at: string
           width: number
         }
@@ -4006,12 +4014,14 @@ export type Database = {
           height?: number
           id?: string
           included_tickets?: number | null
+          is_decor?: boolean
           is_exclusive?: boolean
           layout_id: string
           name: string
           pos_x?: number
           pos_y?: number
           rotation?: number
+          shape?: string
           updated_at?: string
           width?: number
         }
@@ -4025,12 +4035,14 @@ export type Database = {
           height?: number
           id?: string
           included_tickets?: number | null
+          is_decor?: boolean
           is_exclusive?: boolean
           layout_id?: string
           name?: string
           pos_x?: number
           pos_y?: number
           rotation?: number
+          shape?: string
           updated_at?: string
           width?: number
         }
