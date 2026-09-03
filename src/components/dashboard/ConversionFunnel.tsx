@@ -9,8 +9,9 @@ interface ConversionFunnelProps {
   title?: string;
 }
 
-const pct = (n: number, base: number) => (base > 0 ? (n / base) * 100 : 0);
-const fmtPct = (v: number) => `${v.toFixed(1).replace(".", ",")}%`;
+const pct = (n: number, base: number) => (base > 0 ? (n / base) * 100 : null);
+const fmtPct = (v: number | null) => (v === null ? "–" : `${v.toFixed(1).replace(".", ",")}%`);
+
 
 export const ConversionFunnel = ({ period, eventId, title = "Embudo de conversión" }: ConversionFunnelProps) => {
   const { data, isLoading } = useConversionFunnel(period, eventId);
