@@ -21,7 +21,7 @@ import { useSpecialInvite, useRedeemSpecialInvite } from "@/hooks/useSpecialInvi
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
 
-import { PurchaseSheet } from "@/components/events/PurchaseSheet";
+import { PurchaseFlow } from "@/components/events/PurchaseFlow";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isVideoUrl } from "@/lib/mediaUtils";
@@ -448,7 +448,7 @@ const EventDetail = () => {
 
       {/* Unified purchase sheet — tiers + venue areas in one step */}
       {hasAreas && (
-        <PurchaseSheet
+        <PurchaseFlow
           open={showAreaPicker}
           onOpenChange={setShowAreaPicker}
           eventId={id!}
