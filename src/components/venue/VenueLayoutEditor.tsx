@@ -122,7 +122,7 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
       <AreaEditSheet
         area={editing}
         onOpenChange={(open) => !open && setEditingId(null)}
-        onChange={(p) => editing && patch(editing.id, p)}
+        onSave={saveArea}
         onDuplicate={duplicate}
         onDelete={remove}
       />
