@@ -48,15 +48,18 @@ export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelet
     <Sheet open={!!area} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="light-sheet rounded-t-3xl max-h-[85dvh] overflow-y-auto"
+        className="light-sheet rounded-t-3xl max-h-[85dvh] overflow-hidden"
       >
         {draft && (
           <>
-            <SheetHeader className="mb-4">
+            <SheetHeader className="mb-4 shrink-0">
               <SheetTitle>Editar área</SheetTitle>
             </SheetHeader>
 
-            <div className="space-y-4 pb-6">
+            <div
+              data-vaul-no-drag
+              className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-4"
+            >
               <div>
                 <label className="text-sm font-medium mb-2 block">Nombre</label>
                 <Input
