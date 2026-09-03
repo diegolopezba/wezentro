@@ -1,11 +1,19 @@
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Shapes } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { VenueGridCanvas } from "./VenueGridCanvas";
 import { AreaEditSheet } from "./AreaEditSheet";
 import {
   CANVAS_UNITS,
   makeDraftArea,
+  makeDecorArea,
+  DECOR_PRESETS,
   AREA_TYPE_LABELS,
   type DraftArea,
 } from "@/hooks/useVenueLayouts";
