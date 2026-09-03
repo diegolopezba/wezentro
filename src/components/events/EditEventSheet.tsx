@@ -248,6 +248,32 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
   }, [open, event, existingTiers, existingAreas]);
 
   const handleSave = async () => {
+    // Areas with real bookings cannot disappear from the event inventory
+    const keptIds = new Set(draftAreas.map((a) => a.id));
+    const removedBooked = bookedAreaIds.filter((id) => !useAreas || !keptIds.has(id));
+    if (removedBooked.length > 0) {
+      const names = existingAreas
+        .filter((a) => removedBooked.includes(a.id))
+        .map((a) => a.name)
+        .join(", ");
+      toast.error(`No podés eliminar áreas con reservas activas: ${names}`);
+      return;
+    }
+    if (!isPost && !experienceId && useAreas && draftAreas.filter((a) => !a.is_decor).length === 0) {
+      toast.error("Añade al menos un área o desactiva la venta por áreas");
+      return;
+    }
+    if (
+      !isPost &&
+      !experienceId &&
+      useAreas &&
+      draftAreas.some((a) => !a.is_decor && (a.price ?? 0) > 0) &&
+      !hasBeneficiary
+    ) {
+      setShowBeneficiaryGate(true);
+      return;
+    }
+
     try {
       // Linked experiences are booked and paid through QR: payouts are required.
       if (experienceId && !hasBeneficiary) { setShowBeneficiaryGate(true); return; }
