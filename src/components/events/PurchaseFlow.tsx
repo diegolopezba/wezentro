@@ -475,14 +475,14 @@ export function PurchaseFlow({
   );
 
   const footer = (
-    <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+    <div className="shrink-0 border-t border-border bg-background px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
       {step === "select" ? (
         <Button
           type="button"
           variant="sheet-action"
           disabled={!selected || soldOut}
           onClick={() => setStep("details")}
-          className="w-full h-14 text-base font-bold uppercase tracking-wide"
+          className="w-full h-13 text-base font-bold uppercase tracking-wide"
         >
           {!selected
             ? hasTiers
@@ -498,7 +498,7 @@ export function PurchaseFlow({
           variant="sheet-action"
           disabled={soldOut || holding}
           onClick={handleConfirm}
-          className="w-full h-14 text-base font-bold uppercase tracking-wide"
+          className="w-full h-13 text-base font-bold uppercase tracking-wide"
         >
           {holding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           Ir a pagar
@@ -507,21 +507,25 @@ export function PurchaseFlow({
     </div>
   );
 
-  return createPortal(
-    <AnimatePresence>
-      <m.div
-        key="purchase-flow"
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 24 }}
-        transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
-        className="fixed inset-0 z-[70] bg-background overflow-y-auto overscroll-contain"
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="light-sheet rounded-t-3xl border-border bg-background p-0 h-[67dvh] flex flex-col"
       >
+        <SheetTitle className="sr-only">Comprar — {eventTitle}</SheetTitle>
+        <SheetDescription className="sr-only">
+          Elegí una entrada o un área y completá tus datos.
+        </SheetDescription>
         {header}
-        {step === "select" ? selectStep : detailsStep}
+        <div
+          data-vaul-no-drag
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+        >
+          {step === "select" ? selectStep : detailsStep}
+        </div>
         {footer}
-      </m.div>
-    </AnimatePresence>,
-    document.body,
+      </SheetContent>
+    </Sheet>
   );
 }
