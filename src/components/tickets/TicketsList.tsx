@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MyLoungeBookings } from "@/components/tickets/MyLoungeBookings";
 import { cn } from "@/lib/utils";
 
 const PAST_PAGE_SIZE = 10;
@@ -197,7 +198,9 @@ export const TicketsList = () => {
   };
 
   return (
-    <div className="px-4 py-2">
+    <div className="py-2">
+      <MyLoungeBookings />
+      <div className="px-4">
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
@@ -275,6 +278,7 @@ export const TicketsList = () => {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };
