@@ -78,6 +78,12 @@ export interface DraftArea {
   price: number | null;
   /** Entradas incluidas con la reserva del área (0/null = ninguna). */
   included_tickets?: number | null;
+  /** Descripción visible al comprador (qué incluye, ubicación, consumo mínimo). */
+  description?: string | null;
+  /** Beneficios en chips: botella, mesero, acceso preferente… */
+  perks?: string[] | null;
+  /** Instrucciones que solo ve quien reservó el área. */
+  arrival_note?: string | null;
   /** Forma dibujada en el plano. */
   shape?: AreaShape;
   /** true = elemento decorativo (escenario, barra…), no reservable. */
