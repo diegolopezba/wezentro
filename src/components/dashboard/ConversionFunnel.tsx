@@ -45,7 +45,7 @@ export const ConversionFunnel = ({ period, eventId, title = "Embudo de conversi√
 
       <div className="space-y-2.5">
         {stages.map((s) => {
-          const share = pct(s.value, base);
+          const share = pct(s.value, base) ?? 0;
           return (
             <div key={s.label} className="space-y-1">
               <div className="flex items-baseline justify-between gap-2">
@@ -58,6 +58,7 @@ export const ConversionFunnel = ({ period, eventId, title = "Embudo de conversi√
               <div className="h-2 rounded-full bg-secondary overflow-hidden">
                 <div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(share, s.value > 0 ? 2 : 0)}%` }} />
               </div>
+
             </div>
           );
         })}
