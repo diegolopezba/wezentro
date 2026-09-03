@@ -25,9 +25,15 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
     [areas, editingId],
   );
 
-  const patch = useCallback(
+  const updateArea = useCallback(
     (id: string, p: Partial<DraftArea>) =>
       onChange(areas.map((a) => (a.id === id ? { ...a, ...p } : a))),
+    [areas, onChange],
+  );
+
+  const saveArea = useCallback(
+    (updated: DraftArea) =>
+      onChange(areas.map((a) => (a.id === updated.id ? updated : a))),
     [areas, onChange],
   );
 
