@@ -162,6 +162,13 @@
       "when": 1788474964644,
       "tag": "0022_event_stats_daily_rollup",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788475883509,
+      "tag": "0023_drop_guestlist_request_trigger",
+      "breakpoints": true
     }
   ]
 }
