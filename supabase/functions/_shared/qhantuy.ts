@@ -78,23 +78,14 @@ export function splitAmount(total: number): {
 }
 
 
-// Builds the custom_payouts array for a checkout: the organizer gets their
-// share, and Zentro's commission is explicitly routed to Zentro's own
-// beneficiary (QHANTUY_PLATFORM_BENEFICIARY_CODE). The two amounts always sum
-// exactly to the charged total (splitAmount guarantees this).
-export function platformPayouts(
+// Qhantuy treats custom_payouts as external-beneficiary distributions. Zentro
+// is the merchant that owns the checkout, so its platform fee must remain in
+// the undistributed merchant balance rather than being sent as a second payout.
+export function organizerPayouts(
   organizerBeneficiaryCode: string,
   payoutAmount: number,
-  platformFee: number,
 ): { code: string; amount: number }[] {
-  const payouts = [{ code: organizerBeneficiaryCode, amount: payoutAmount }];
-  const platformCode = Deno.env.get("QHANTUY_PLATFORM_BENEFICIARY_CODE")?.trim();
-  if (platformCode && platformFee > 0) {
-    payouts.push({ code: platformCode, amount: platformFee });
-  } else if (!platformCode && platformFee > 0) {
-    console.warn("[qhantuy] QHANTUY_PLATFORM_BENEFICIARY_CODE missing; commission left unassigned");
-  }
-  return payouts;
+  return [{ code: organizerBeneficiaryCode, amount: payoutAmount }];
 }
 
 // ── Payment method (QR vs card) ──────────────────────────────────────────
