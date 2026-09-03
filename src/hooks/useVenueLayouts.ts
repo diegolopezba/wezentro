@@ -365,6 +365,78 @@ export const useReplaceEventAreas = () => {
   });
 };
 
+/**
+ * Diff-based save for events that may already have bookings: updates existing
+ * rows in place, inserts new ones and only deletes areas the editor dropped.
+ */
+export const useSyncEventAreas = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      eventId,
+      areas,
+    }: {
+      eventId: string;
+      areas: DraftArea[];
+    }) => {
+      const { data: current, error: curErr } = await db
+        .from("event_areas")
+        .select("id")
+        .eq("event_id", eventId);
+      if (curErr) throw curErr;
+      const currentIds = new Set(((current ?? []) as any[]).map((a) => a.id));
+      const keptIds = new Set(areas.map((a) => a.id).filter((id) => currentIds.has(id)));
+
+      const toDelete = [...currentIds].filter((id) => !keptIds.has(id));
+      if (toDelete.length > 0) {
+        const { error } = await db.from("event_areas").delete().in("id", toDelete);
+        if (error) throw error;
+      }
+
+      const payload = (a: DraftArea, i: number) => ({
+        event_id: eventId,
+        source_layout_area_id: a.source_layout_area_id ?? null,
+        name: a.name,
+        area_type: a.area_type,
+        capacity: a.capacity,
+        is_exclusive: a.is_exclusive,
+        included_tickets: a.included_tickets ?? null,
+        shape: a.shape ?? "rect",
+        is_decor: a.is_decor ?? false,
+        price: a.price ?? 0,
+        pos_x: a.pos_x,
+        pos_y: a.pos_y,
+        width: a.width,
+        height: a.height,
+        rotation: a.rotation,
+        color: a.color,
+        display_order: i,
+        is_active: true,
+      });
+
+      const inserts: any[] = [];
+      for (let i = 0; i < areas.length; i++) {
+        const a = areas[i];
+        if (currentIds.has(a.id)) {
+          const { event_id, source_layout_area_id, ...rest } = payload(a, i);
+          const { error } = await db.from("event_areas").update(rest).eq("id", a.id);
+          if (error) throw error;
+        } else {
+          inserts.push(payload(a, i));
+        }
+      }
+      if (inserts.length > 0) {
+        const { error } = await db.from("event_areas").insert(inserts);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["event-areas", vars.eventId] });
+      qc.invalidateQueries({ queryKey: ["event-area-availability", vars.eventId] });
+    },
+  });
+};
+
 /* ────────────────────────────── Booking ────────────────────────────── */
 
 const HOLD_ERRORS: Record<string, string> = {
