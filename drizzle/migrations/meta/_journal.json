@@ -99,6 +99,13 @@
       "when": 1788397666937,
       "tag": "0013_lounge_included_tickets_and_cancellation",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1788397715179,
+      "tag": "0014_area_bookings_management_policies",
+      "breakpoints": true
     }
   ]
 }
