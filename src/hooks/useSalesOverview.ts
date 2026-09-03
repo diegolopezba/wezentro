@@ -84,7 +84,11 @@ export interface PaceRow {
   daysLeft: number;
 }
 
-/** Tickets sold vs capacity for upcoming events (sales pace). */
+/**
+ * Sales pace for upcoming events: tickets sold plus lounge/area bookings,
+ * against the combined capacity. Events with no capacity configured still
+ * appear (capacity 0 → the UI shows the sold count without a percentage).
+ */
 export const useSalesPace = () => {
   const { user } = useAuth();
   return useQuery({
@@ -105,17 +109,46 @@ export const useSalesPace = () => {
       const ids = (events || []).map((e) => e.id);
       if (!ids.length) return [];
 
-      const { data: tiers, error: tErr } = await supabase
-        .from("ticket_tiers")
-        .select("event_id, capacity, sold_count")
-        .in("event_id", ids);
-      if (tErr) throw tErr;
+      const [tiersRes, areasRes] = await Promise.all([
+        supabase.from("ticket_tiers").select("event_id, capacity, sold_count").in("event_id", ids),
+        supabase
+          .from("event_areas")
+          .select("id, event_id, is_active, is_decor, price")
+          .in("event_id", ids),
+      ]);
+      if (tiersRes.error) throw tiersRes.error;
+      if (areasRes.error) throw areasRes.error;
+
+      const sellableAreas = (areasRes.data || []).filter((a) => a.is_active && !a.is_decor);
+      const areaIds = sellableAreas.map((a) => a.id);
+
+      let bookings: { event_area_id: string }[] = [];
+      if (areaIds.length) {
+        const { data: b, error: bErr } = await supabase
+          .from("area_bookings")
+          .select("event_area_id")
+          .in("event_area_id", areaIds)
+          .eq("status", "confirmed");
+        if (bErr) throw bErr;
+        bookings = b || [];
+      }
+
+      const areaEventById = new Map(sellableAreas.map((a) => [a.id, a.event_id]));
 
       const agg: Record<string, { sold: number; capacity: number }> = {};
-      (tiers || []).forEach((t) => {
-        const a = (agg[t.event_id] ||= { sold: 0, capacity: 0 });
+      const bucket = (id: string) => (agg[id] ||= { sold: 0, capacity: 0 });
+
+      (tiersRes.data || []).forEach((t) => {
+        const a = bucket(t.event_id);
         a.sold += Number(t.sold_count || 0);
         a.capacity += Number(t.capacity || 0);
+      });
+      sellableAreas.forEach((area) => {
+        bucket(area.event_id).capacity += 1;
+      });
+      bookings.forEach((b) => {
+        const eventId = areaEventById.get(b.event_area_id);
+        if (eventId) bucket(eventId).sold += 1;
       });
 
       return (events || [])
@@ -132,5 +165,6 @@ export const useSalesPace = () => {
           ),
         }));
     },
+
   });
 };
