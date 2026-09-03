@@ -186,6 +186,23 @@ export const EventosGestionTab = () => {
                   <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
                 </div>
               )}
+
+              {areaSummary?.[e.id] && areaSummary[e.id].totalAreas > 0 && (
+                <button
+                  onClick={() => { haptic("light"); setLoungeFor(e); }}
+                  className="mt-2.5 w-full flex items-center gap-2 rounded-xl bg-secondary/60 px-3 py-2 text-left active:opacity-70 transition-opacity"
+                >
+                  <Armchair className="w-4 h-4 text-foreground flex-shrink-0" />
+                  <span className="text-[11px] font-medium text-foreground">
+                    Lounges: {areaSummary[e.id].sold}/{areaSummary[e.id].totalAreas} vendidos
+                  </span>
+                  {areaSummary[e.id].gross > 0 && (
+                    <span className="ml-auto text-[11px] font-semibold text-foreground">
+                      {formatBs(areaSummary[e.id].gross)}
+                    </span>
+                  )}
+                </button>
+              )}
             </div>
           );
         })}
