@@ -148,6 +148,13 @@
       "when": 1788446902302,
       "tag": "0020_lounge_extra_info_and_purchase_questions",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1788474415273,
+      "tag": "0021_allow_checkout_tap_interaction",
+      "breakpoints": true
     }
   ]
 }
