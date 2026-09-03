@@ -7,7 +7,6 @@ import {
   QUESTION_TYPE_LABELS,
   makeDraftQuestion,
   type PurchaseQuestion,
-  type QuestionScope,
   type QuestionType,
 } from "@/hooks/useEventPurchaseQuestions";
 
@@ -33,7 +32,8 @@ export function PurchaseQuestionsEditor({ questions, onChange }: Props) {
       <div>
         <p className="text-sm font-semibold text-foreground">Preguntas al comprar</p>
         <p className="text-xs text-muted-foreground">
-          Datos extra que le pedís al comprador antes de pagar. Las respuestas quedan en la reserva.
+          Datos extra que le pedís a quien reserva un lounge o área, antes de pagar. Las respuestas
+          quedan en la reserva.
         </p>
       </div>
 
@@ -86,24 +86,6 @@ export function PurchaseQuestionsEditor({ questions, onChange }: Props) {
               }
             />
           )}
-
-          <div className="flex flex-wrap gap-2">
-            {(["areas", "all"] as QuestionScope[]).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => update(q.id, { scope: s })}
-                className={cn(
-                  "px-3 py-1.5 rounded-full text-xs font-medium border",
-                  q.scope === s
-                    ? "bg-foreground text-background border-foreground"
-                    : "bg-secondary/50 border-border text-foreground",
-                )}
-              >
-                {s === "areas" ? "Solo lounges" : "Todas las compras"}
-              </button>
-            ))}
-          </div>
 
           <div className="flex items-center justify-between">
             <span className="text-sm">Obligatoria</span>
