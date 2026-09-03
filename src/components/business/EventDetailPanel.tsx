@@ -218,15 +218,6 @@ export const EventDetailPanel = ({ eventId }: Props) => {
         <EditEventSheet event={event as any} open={editOpen} onOpenChange={setEditOpen} />
       )}
 
-      {guestsSheet && (
-        <GuestlistManagementSheet
-          eventId={eventId}
-          eventHasPaymentQr={!!event?.payment_qr_url}
-          open={guestsSheet}
-          onOpenChange={setGuestsSheet}
-        />
-      )}
-
       {loungeSheet && (
         <EventAreaBookingsSheet
           eventId={eventId}
