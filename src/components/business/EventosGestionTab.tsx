@@ -205,6 +205,7 @@ export const EventosGestionTab = () => {
                 <ActionRow
                   icon={Pencil}
                   label="Editar evento"
+                  sub="Incluye el plano y las áreas de lounge"
                   onClick={() => { setEditEvent(actionsFor); setActionsFor(null); }}
                 />
                 <ActionRow

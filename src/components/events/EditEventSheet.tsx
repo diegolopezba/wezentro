@@ -22,6 +22,8 @@ import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequire
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
 import { useBusinessExperiences } from "@/hooks/useExperiences";
+import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSection";
+import { useEventAreas, useSyncEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { cn } from "@/lib/utils";
 
 interface EditEventSheetProps {
@@ -86,6 +88,15 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const [experienceId, setExperienceId] = useState<string | null>(event.experience_id ?? null);
   
+  // ── Venue areas (lounge) ──
+  const { data: existingAreas = [] } = useEventAreas(
+    open && !isPost ? event.id : undefined,
+  );
+  const syncEventAreas = useSyncEventAreas();
+  const [useAreas, setUseAreas] = useState(false);
+  const [draftAreas, setDraftAreas] = useState<DraftArea[]>([]);
+  const [bookedAreaIds, setBookedAreaIds] = useState<string[]>([]);
+
   const [formData, setFormData] = useState({
     title: event.title || "",
     description: event.description || "",
@@ -106,7 +117,45 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     waitlist_tier_key: event.waitlist_tier_id ?? "",
   });
 
-  const { isDirty, capture } = useDirtyBaseline({ formData, draftTiers, pricingMode, saleMode, experienceId });
+  const { isDirty, capture } = useDirtyBaseline({
+    formData,
+    draftTiers,
+    pricingMode,
+    saleMode,
+    experienceId,
+    draftAreas,
+    useAreas,
+  });
+
+  // Hydrate the area editor with the event's current inventory
+  useEffect(() => {
+    if (!open || isPost) return;
+    setDraftAreas(existingAreas.map((a, i) => ({ ...a, display_order: i })));
+    setUseAreas(existingAreas.length > 0);
+  }, [open, isPost, existingAreas]);
+
+  // Which areas already have real bookings (cannot be removed)
+  useEffect(() => {
+    if (!open || isPost || existingAreas.length === 0) {
+      setBookedAreaIds([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("area_bookings")
+        .select("event_area_id")
+        .in("event_area_id", existingAreas.map((a) => a.id))
+        .in("status", ["confirmed", "checked_in", "no_show"]);
+      if (!cancelled)
+        setBookedAreaIds(
+          Array.from(new Set(((data ?? []) as any[]).map((b) => b.event_area_id))),
+        );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, isPost, existingAreas]);
 
   useEffect(() => {
     if (open) {
@@ -192,11 +241,39 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           ? "sequential"
           : "parallel",
       experienceId: event.experience_id ?? null,
+      draftAreas: existingAreas.map((a, i) => ({ ...a, display_order: i })),
+      useAreas: existingAreas.length > 0,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, event, existingTiers]);
+  }, [open, event, existingTiers, existingAreas]);
 
   const handleSave = async () => {
+    // Areas with real bookings cannot disappear from the event inventory
+    const keptIds = new Set(draftAreas.map((a) => a.id));
+    const removedBooked = bookedAreaIds.filter((id) => !useAreas || !keptIds.has(id));
+    if (removedBooked.length > 0) {
+      const names = existingAreas
+        .filter((a) => removedBooked.includes(a.id))
+        .map((a) => a.name)
+        .join(", ");
+      toast.error(`No podés eliminar áreas con reservas activas: ${names}`);
+      return;
+    }
+    if (!isPost && !experienceId && useAreas && draftAreas.filter((a) => !a.is_decor).length === 0) {
+      toast.error("Añade al menos un área o desactiva la venta por áreas");
+      return;
+    }
+    if (
+      !isPost &&
+      !experienceId &&
+      useAreas &&
+      draftAreas.some((a) => !a.is_decor && (a.price ?? 0) > 0) &&
+      !hasBeneficiary
+    ) {
+      setShowBeneficiaryGate(true);
+      return;
+    }
+
     try {
       // Linked experiences are booked and paid through QR: payouts are required.
       if (experienceId && !hasBeneficiary) { setShowBeneficiaryGate(true); return; }
@@ -288,6 +365,13 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             .update({ waitlist_tier_id: linkedId } as any)
             .eq("id", event.id);
         }
+      }
+
+      if (!isPost && !experienceId) {
+        await syncEventAreas.mutateAsync({
+          eventId: event.id,
+          areas: useAreas ? draftAreas : [],
+        });
       }
       // Parse @mentions from description and insert into event_tags
       if (formData.description.trim()) {
@@ -464,6 +548,31 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                   />
                 </div>
               )}
+
+              {isBusiness && !isPost && !experienceId && user && (
+                <div className="space-y-2">
+                  <EventVenueLayoutSection
+                    businessId={user.id}
+                    enabled={useAreas}
+                    onEnabledChange={(v) => {
+                      if (!v && bookedAreaIds.length > 0) {
+                        toast.error("Este evento ya tiene reservas de lounge activas");
+                        return;
+                      }
+                      setUseAreas(v);
+                      if (!v) setDraftAreas([]);
+                    }}
+                    areas={draftAreas}
+                    onAreasChange={setDraftAreas}
+                  />
+                  {bookedAreaIds.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Hay áreas con reservas activas: podés editar precio y detalles, pero no eliminarlas.
+                    </p>
+                  )}
+                </div>
+              )}
+
 
               {isBusiness && (
                 <div className="space-y-2">

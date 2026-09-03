@@ -1005,8 +1005,8 @@ const Create = () => {
                     />
                   </div>
                   )}
-                  {/* Vender por áreas — hidden for now, will re-enable later */}
-                  {/* {user && (
+                  {/* Vender por áreas (lounge) */}
+                  {user && !experienceId && (
                     <EventVenueLayoutSection
                       businessId={user.id}
                       enabled={useAreas}
@@ -1017,7 +1017,7 @@ const Create = () => {
                       areas={draftAreas}
                       onAreasChange={setDraftAreas}
                     />
-                  )} */}
+                  )}
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">Capacidad total (opcional)</label>
                     <div className="relative">
