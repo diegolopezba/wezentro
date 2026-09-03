@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Copy, Trash2 } from "lucide-react";
@@ -169,6 +170,66 @@ export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelet
                   </p>
                 </div>
               )}
+
+              {!draft.is_decor && (
+                <>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Descripción <span className="text-muted-foreground font-normal">(opcional)</span>
+                    </label>
+                    <Textarea
+                      rows={3}
+                      value={draft.description ?? ""}
+                      placeholder="Qué incluye, ubicación dentro del local, consumo mínimo…"
+                      onChange={(e) => update({ description: e.target.value || null })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Beneficios <span className="text-muted-foreground font-normal">(separados por coma)</span>
+                    </label>
+                    <Input
+                      value={(draft.perks ?? []).join(", ")}
+                      placeholder="Botella, mesero, acceso preferente"
+                      onChange={(e) =>
+                        update({
+                          perks: e.target.value
+                            .split(",")
+                            .map((p) => p.trim())
+                            .filter(Boolean),
+                        })
+                      }
+                    />
+                    {(draft.perks ?? []).length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {(draft.perks ?? []).map((p) => (
+                          <span
+                            key={p}
+                            className="px-2.5 py-1 rounded-full bg-secondary text-xs font-medium"
+                          >
+                            {p}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Nota de llegada <span className="text-muted-foreground font-normal">(solo la ve quien reserva)</span>
+                    </label>
+                    <Textarea
+                      rows={2}
+                      value={draft.arrival_note ?? ""}
+                      placeholder="Presentate en la puerta VIP y mostrá tu QR."
+                      onChange={(e) => update({ arrival_note: e.target.value || null })}
+                    />
+                  </div>
+                </>
+              )}
+
+
 
               {!draft.is_decor && (
                 <div className="flex items-center justify-between gap-3 rounded-2xl border border-border p-4">
