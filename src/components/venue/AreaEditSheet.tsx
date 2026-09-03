@@ -190,6 +190,9 @@ export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelet
                 />
               </div>
 
+            </div>
+
+            <div className="shrink-0 pt-3 pb-2 space-y-2">
               <Button
                 type="button"
                 variant={saveVariant(isDirty)}
@@ -200,7 +203,7 @@ export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelet
                 Guardar cambios
               </Button>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-2">
                 <Button
                   type="button"
                   variant="outline"
