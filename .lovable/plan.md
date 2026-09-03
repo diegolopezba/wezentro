@@ -1,46 +1,42 @@
-# Lounge manager para eventos
+# Lounge manager: construir sobre el sistema de venue layouts existente
 
-Sistema de mesas/lounges para eventos, en dos capas: un catálogo reutilizable a nivel negocio y el inventario por evento, con reserva pagada y check-in en la misma puerta que las entradas normales.
+En lugar de crear un sistema paralelo (lounge_plans / event_lounge_inventory / lounge_bookings), extendemos el sistema de planos ya construido: `venue_layouts` + `venue_layout_areas` (catálogo reutilizable), `event_areas` (inventario por evento) y `area_bookings` (reservas con hold atómico de 10 min, ya conectado a `payment_sessions.event_area_id` y al checkout QR/tarjeta).
 
-## Nota sobre lo que ya existe
+## Qué ya existe y se reutiliza
 
-El proyecto ya tiene un sistema de áreas visual (`event_areas` + `area_bookings`, con planos y posiciones), pero está oculto (`showVenueLayouts = false` en Business Settings) y depende del editor visual de planos. El lounge manager que se describe acá es la versión sin plano visual (solo lista), así que se construyen tablas nuevas según lo pedido y el sistema visual queda intacto y sigue oculto.
+- Catálogo reutilizable por negocio con nombre, capacidad, `default_price` y `is_exclusive` (`venue_layout_areas`).
+- Inventario por evento con precio propio (`event_areas`), plantillas aplicables al crear el evento.
+- Reserva atómica `hold_event_area` con expiración, y `confirm_free_area_booking` para áreas gratis.
+- Checkout existente: `payment_sessions.event_area_id` ya pasa por `generate-qhantuy-qr`, tarjeta y `qhantuy-callback` con el split 94/6.
 
-## Base de datos
+## Base de datos (una migración)
 
-Tres tablas nuevas, con las mismas convenciones que `restaurant_tables` / `reservations`: RLS por `auth.uid()`, trigger `update_updated_at_column()`, GRANTs explícitos y publicación en realtime.
-
-- `lounge_plans` — catálogo del negocio: nombre, capacidad, entradas incluidas (opcional), precio sugerido (opcional), activo, orden. Lectura pública, escritura solo del dueño.
-- `event_lounge_inventory` — plan atado a un evento: precio, entradas incluidas, inventario total y disponible, activo. Único por (evento, plan). Lectura pública, escritura del creador del evento.
-- `lounge_bookings` — la reserva pagada: inventario, evento, negocio, comprador, tamaño de grupo, entradas incluidas (snapshot), monto, sesión de pago, estado (`confirmed` / `checked_in` / `cancelled` / `no_show`), `cancelled_by` (`user` / `business`) y motivo.
-- `guestlist_entries` suma una columna nullable `lounge_booking_id` para rastrear las entradas generadas por un lounge.
-- `payment_sessions` suma una columna nullable `event_lounge_inventory_id` para poder cerrar el pago contra el inventario correcto.
-
-Lógica en base de datos:
-
-- RPC `book_lounge(...)` con lock de fila sobre el inventario: valida `available_inventory > 0`, descuenta 1, inserta la reserva y genera las `guestlist_entries` incluidas — todo en la misma transacción.
-- Trigger de cancelación: al pasar a `cancelled` o `no_show`, devuelve 1 al inventario y, siguiendo el mismo patrón que `handle_reservation_status_change`, notifica a la contraparte según `cancelled_by` (cancelación del negocio: sin notificación in-app al invitado, el negocio contacta directo).
+- `venue_layout_areas`: agregar `included_tickets integer` nullable (0/NULL = sin entradas incluidas).
+- `event_areas`: agregar `included_tickets integer` nullable (override por evento).
+- `area_bookings`: agregar `included_tickets integer NOT NULL DEFAULT 0` (snapshot), `cancelled_by text CHECK (cancelled_by IN ('user','business'))`, `cancellation_reason text`, y estados `checked_in` / `no_show` si no existen.
+- `guestlist_entries`: agregar `area_booking_id uuid` nullable para rastrear las entradas generadas.
+- En `qhantuy-callback` (código, no SQL): al confirmar un pago de área con `included_tickets > 0`, generar esas `guestlist_entries` ligadas al comprador y a `area_booking_id`, para que la puerta use el mismo escáner.
+- Trigger de cancelación siguiendo el patrón de `handle_reservation_status_change`: al cancelar/liberar, notificar a la contraparte según `cancelled_by` (cancelación del negocio: sin notificación in-app al invitado).
 
 ## Pantallas
 
-1. **Gestor de lounge plans** (nueva subsección oculta en Business Settings, `/settings/business/lounges`): misma estética y patrón de `TablesEditor.tsx` — lista con nombre, capacidad, entradas incluidas, precio sugerido, switch de activo y borrar; alta rápida arriba; realtime con un hook nuevo `useLoungeConfigRealtime` calcado de `useReservationConfigRealtime`.
+1. **Manager del catálogo** — subsección oculta en Business Settings (`/settings/business/layouts`, reactivar `showVenueLayouts`): lista de planos guardados con sus áreas; editar nombre, capacidad, precio sugerido y entradas incluidas por área. Patrón de `TablesEditor.tsx` (lista, switch activo, borrar), sin canvas obligatorio.
 
-2. **Adjuntar planes al evento**: dentro del flujo de crear/editar evento, junto a `TicketTiersEditor`, un bloque donde el negocio elige planes existentes y define precio, entradas incluidas (precargadas del plan, editables) e inventario total para ese evento.
+2. **Adjuntar al evento** — `EventVenueLayoutSection` ya existe en crear/editar evento: sumar campo "entradas incluidas" por área (precargado del plano, editable) en `AreaEditSheet`, y una alternativa "solo lista" (sin canvas) para agregar áreas rápidamente tipo TablesEditor.
 
-3. **Reserva del invitado en la página del evento**: tarjetas seleccionables con nombre, precio, capacidad y "incluye N entradas" (solo si aplica); las agotadas se ocultan/deshabilitan. Resumen de orden y "Pagar y reservar" por el mismo checkout de `payment_sessions` (QR y tarjeta), sin ruta de pago paralela.
+3. **Reserva del invitado en la página del evento** — tarjetas por área con nombre, precio, capacidad y "incluye N entradas" (solo si > 0); agotadas deshabilitadas. Reutiliza el flujo actual de hold + checkout QR/tarjeta; sin ruta de pago paralela.
 
-4. **Gestión de reservas de lounge por evento** (nueva pestaña/sección en la gestión del evento): tarjetas con comprador, plan, tamaño de grupo, entradas incluidas, estado de pago, monto y hora; acciones "Check in" y "Cancelar" (hoja que exige elegir `cancelled_by` y escribir motivo). Arriba, resumen reservas vs inventario, en vivo por realtime.
+4. **Gestión por evento** — sección en la gestión del evento: tarjetas por reserva (comprador, área, tamaño de grupo, entradas incluidas, monto, hora), acciones "Check in" y "Cancelar" (hoja que exige `cancelled_by` + motivo), y resumen reservas vs capacidad con realtime sobre `area_bookings` / `event_areas`.
 
 ## Detalles técnicos
 
-- Migración única con las tres tablas + columnas nuevas + GRANTs + RLS + policies + triggers + `ALTER PUBLICATION supabase_realtime`.
-- Hooks nuevos en `src/hooks/useLounges.ts`: planes (CRUD), inventario por evento (CRUD), disponibilidad pública, reservas por evento y mutación de estado.
-- Checkout: se extiende `generate-qhantuy-qr` y el flujo de tarjeta con el caso lounge (monto = precio del inventario), y `qhantuy-callback` llama a `book_lounge` al confirmar el pago, igual que hoy hace con entradas y experiencias. Comisión y payout siguen el split 94/6 actual.
-- Check-in reutiliza `guestlist_entries` y el escáner existente, así que la puerta no cambia de flujo.
+- Migración única: columnas nuevas (todas nullable o con DEFAULT — cero downtime), trigger de cancelación, GRANTs donde falten y `ALTER PUBLICATION supabase_realtime ADD TABLE area_bookings` si aún no está.
+- Hooks: extender `useVenueLayouts.ts` con `useEventAreaBookings`, `useSetAreaBookingStatus` y realtime owner-only, siguiendo `useReservationConfigRealtime`.
+- `showVenueLayouts` pasa a `true` solo en Business Settings para acceder al manager; la sección de plano en crear evento queda opcional como hoy.
 
-## Fuera de alcance (según lo pedido)
+## Fuera de alcance
 
-- Reservas de lounge sin evento asociado.
+- Reservas de lounge sin evento.
 - Escrow, depósitos o reembolsos automáticos.
-- Captura de nombres por invitado al reservar.
-- Recargo cuando el grupo supera las entradas incluidas — queda como hueco conocido.
+- Nombres por invitado al reservar.
+- Recargo si el grupo supera las entradas incluidas — hueco conocido.
