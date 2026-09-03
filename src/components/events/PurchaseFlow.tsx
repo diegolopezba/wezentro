@@ -77,15 +77,6 @@ export function PurchaseFlow({
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
-
   const availMap = useMemo(() => {
     const m: Record<string, AreaAvailability> = {};
     for (const a of availability) m[a.event_area_id] = a;
@@ -166,7 +157,7 @@ export function PurchaseFlow({
   );
 
   const selectStep = (
-    <div className="pb-32">
+    <div className="pb-6">
       {hasTiers && (
         <div className="px-5 pt-5">
           {hasAreas && (
@@ -345,7 +336,7 @@ export function PurchaseFlow({
   );
 
   const detailsStep = selected && (
-    <div className="px-5 pt-5 pb-32 space-y-5">
+    <div className="px-5 pt-5 pb-6 space-y-5">
       <div className="rounded-2xl border border-border p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
