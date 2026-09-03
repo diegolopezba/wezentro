@@ -23,6 +23,12 @@ import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
 import { useBusinessExperiences } from "@/hooks/useExperiences";
 import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSection";
+import { PurchaseQuestionsEditor } from "@/components/events/PurchaseQuestionsEditor";
+import {
+  useEventPurchaseQuestions,
+  useSaveEventPurchaseQuestions,
+  type PurchaseQuestion,
+} from "@/hooks/useEventPurchaseQuestions";
 import { useEventAreas, useSyncEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { cn } from "@/lib/utils";
 
@@ -97,6 +103,13 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
   const [draftAreas, setDraftAreas] = useState<DraftArea[]>([]);
   const [bookedAreaIds, setBookedAreaIds] = useState<string[]>([]);
 
+  // ── Preguntas al comprar ──
+  const { data: existingQuestions = [] } = useEventPurchaseQuestions(
+    open && !isPost ? event.id : undefined,
+  );
+  const saveQuestions = useSaveEventPurchaseQuestions();
+  const [draftQuestions, setDraftQuestions] = useState<PurchaseQuestion[]>([]);
+
   const [formData, setFormData] = useState({
     title: event.title || "",
     description: event.description || "",
@@ -125,6 +138,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     experienceId,
     draftAreas,
     useAreas,
+    draftQuestions,
   });
 
   // Hydrate the area editor with the event's current inventory
@@ -133,6 +147,11 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
     setDraftAreas(existingAreas.map((a, i) => ({ ...a, display_order: i })));
     setUseAreas(existingAreas.length > 0);
   }, [open, isPost, existingAreas]);
+
+  useEffect(() => {
+    if (!open || isPost) return;
+    setDraftQuestions(existingQuestions);
+  }, [open, isPost, existingQuestions]);
 
   // Which areas already have real bookings (cannot be removed)
   useEffect(() => {
@@ -372,6 +391,10 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           eventId: event.id,
           areas: useAreas ? draftAreas : [],
         });
+        await saveQuestions.mutateAsync({
+          eventId: event.id,
+          questions: draftQuestions,
+        });
       }
       // Parse @mentions from description and insert into event_tags
       if (formData.description.trim()) {
@@ -564,6 +587,10 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                     }}
                     areas={draftAreas}
                     onAreasChange={setDraftAreas}
+                  />
+                  <PurchaseQuestionsEditor
+                    questions={draftQuestions}
+                    onChange={setDraftQuestions}
                   />
                   {bookedAreaIds.length > 0 && (
                     <p className="text-xs text-muted-foreground">
