@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       area_bookings: {
         Row: {
+          answers: Json
           cancellation_reason: string | null
           cancelled_by: string | null
           created_at: string
@@ -31,6 +32,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          answers?: Json
           cancellation_reason?: string | null
           cancelled_by?: string | null
           created_at?: string
@@ -46,6 +48,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          answers?: Json
           cancellation_reason?: string | null
           cancelled_by?: string | null
           created_at?: string
@@ -484,9 +487,11 @@ export type Database = {
       event_areas: {
         Row: {
           area_type: Database["public"]["Enums"]["venue_area_type"]
+          arrival_note: string | null
           capacity: number
           color: string
           created_at: string
+          description: string | null
           display_order: number
           event_id: string
           height: number
@@ -496,6 +501,7 @@ export type Database = {
           is_decor: boolean
           is_exclusive: boolean
           name: string
+          perks: string[] | null
           pos_x: number
           pos_y: number
           price: number
@@ -507,9 +513,11 @@ export type Database = {
         }
         Insert: {
           area_type?: Database["public"]["Enums"]["venue_area_type"]
+          arrival_note?: string | null
           capacity?: number
           color?: string
           created_at?: string
+          description?: string | null
           display_order?: number
           event_id: string
           height?: number
@@ -519,6 +527,7 @@ export type Database = {
           is_decor?: boolean
           is_exclusive?: boolean
           name: string
+          perks?: string[] | null
           pos_x?: number
           pos_y?: number
           price?: number
@@ -530,9 +539,11 @@ export type Database = {
         }
         Update: {
           area_type?: Database["public"]["Enums"]["venue_area_type"]
+          arrival_note?: string | null
           capacity?: number
           color?: string
           created_at?: string
+          description?: string | null
           display_order?: number
           event_id?: string
           height?: number
@@ -542,6 +553,7 @@ export type Database = {
           is_decor?: boolean
           is_exclusive?: boolean
           name?: string
+          perks?: string[] | null
           pos_x?: number
           pos_y?: number
           price?: number
@@ -829,6 +841,50 @@ export type Database = {
           },
           {
             foreignKeyName: "event_promoters_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_purchase_questions: {
+        Row: {
+          created_at: string
+          display_order: number
+          event_id: string
+          id: string
+          label: string
+          options: Json
+          required: boolean
+          scope: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          event_id: string
+          id?: string
+          label: string
+          options?: Json
+          required?: boolean
+          scope?: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          event_id?: string
+          id?: string
+          label?: string
+          options?: Json
+          required?: boolean
+          scope?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_purchase_questions_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
@@ -3991,10 +4047,12 @@ export type Database = {
       venue_layout_areas: {
         Row: {
           area_type: Database["public"]["Enums"]["venue_area_type"]
+          arrival_note: string | null
           capacity: number
           color: string
           created_at: string
           default_price: number | null
+          description: string | null
           display_order: number
           height: number
           id: string
@@ -4003,6 +4061,7 @@ export type Database = {
           is_exclusive: boolean
           layout_id: string
           name: string
+          perks: string[] | null
           pos_x: number
           pos_y: number
           rotation: number
@@ -4012,10 +4071,12 @@ export type Database = {
         }
         Insert: {
           area_type?: Database["public"]["Enums"]["venue_area_type"]
+          arrival_note?: string | null
           capacity?: number
           color?: string
           created_at?: string
           default_price?: number | null
+          description?: string | null
           display_order?: number
           height?: number
           id?: string
@@ -4024,6 +4085,7 @@ export type Database = {
           is_exclusive?: boolean
           layout_id: string
           name: string
+          perks?: string[] | null
           pos_x?: number
           pos_y?: number
           rotation?: number
@@ -4033,10 +4095,12 @@ export type Database = {
         }
         Update: {
           area_type?: Database["public"]["Enums"]["venue_area_type"]
+          arrival_note?: string | null
           capacity?: number
           color?: string
           created_at?: string
           default_price?: number | null
+          description?: string | null
           display_order?: number
           height?: number
           id?: string
@@ -4045,6 +4109,7 @@ export type Database = {
           is_exclusive?: boolean
           layout_id?: string
           name?: string
+          perks?: string[] | null
           pos_x?: number
           pos_y?: number
           rotation?: number
@@ -4754,6 +4819,7 @@ export type Database = {
       confirm_free_area_booking: {
         Args: { _booking_id: string }
         Returns: {
+          answers: Json
           cancellation_reason: string | null
           cancelled_by: string | null
           created_at: string
@@ -5135,6 +5201,7 @@ export type Database = {
       hold_event_area: {
         Args: { _event_area_id: string; _party_size: number }
         Returns: {
+          answers: Json
           cancellation_reason: string | null
           cancelled_by: string | null
           created_at: string
