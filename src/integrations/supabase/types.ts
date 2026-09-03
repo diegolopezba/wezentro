@@ -2280,6 +2280,7 @@ export type Database = {
         Row: {
           amount: number
           assignees: Json | null
+          base_amount: number | null
           beneficiary_code: string | null
           business_user_id: string
           buyer_user_id: string
@@ -2288,6 +2289,7 @@ export type Database = {
           event_area_id: string | null
           event_id: string | null
           experience_booking_id: string | null
+          gateway_fee_amount: number
           id: string
           party_size: number | null
           payment_method: string
@@ -2308,6 +2310,7 @@ export type Database = {
         Insert: {
           amount: number
           assignees?: Json | null
+          base_amount?: number | null
           beneficiary_code?: string | null
           business_user_id: string
           buyer_user_id: string
@@ -2316,6 +2319,7 @@ export type Database = {
           event_area_id?: string | null
           event_id?: string | null
           experience_booking_id?: string | null
+          gateway_fee_amount?: number
           id?: string
           party_size?: number | null
           payment_method?: string
@@ -2336,6 +2340,7 @@ export type Database = {
         Update: {
           amount?: number
           assignees?: Json | null
+          base_amount?: number | null
           beneficiary_code?: string | null
           business_user_id?: string
           buyer_user_id?: string
@@ -2344,6 +2349,7 @@ export type Database = {
           event_area_id?: string | null
           event_id?: string | null
           experience_booking_id?: string | null
+          gateway_fee_amount?: number
           id?: string
           party_size?: number | null
           payment_method?: string
