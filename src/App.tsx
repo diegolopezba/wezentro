@@ -105,6 +105,7 @@ const SpecialInvite = lazyWithRetry(() => import("./pages/SpecialInvite"));
 const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
 const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
 const EventPromoterDashboard = lazyWithRetry(() => import("./pages/EventPromoterDashboard"));
+const BusinessEventDetail = lazyWithRetry(() => import("./pages/BusinessEventDetail"));
 
 // Private admin console (own subdomain, never linked from the app UI)
 const AdminLogin = lazyWithRetry(() => import("./pages/admin/AdminLogin"));
@@ -288,6 +289,7 @@ const AppRoutes = () => {
         {/* Public QR scanner route — no auth required, validated by ?key= param */}
         <Route path="/scan/:eventId" element={<LazyRoute><ScanQR /></LazyRoute>} />
         <Route path="/settings/blocks" element={<ProtectedRoute requireProfile><LazyRoute><BlockedUsers /></LazyRoute></ProtectedRoute>} />
+        <Route path="/business/event/:eventId" element={<ProtectedRoute requireProfile><LazyRoute><BusinessEventDetail /></LazyRoute></ProtectedRoute>} />
         <Route path="/business/event/:eventId/promoters" element={<ProtectedRoute requireProfile><LazyRoute><EventPromoterDashboard /></LazyRoute></ProtectedRoute>} />
         <Route path="/i/:token" element={<LazyRoute><SpecialInvite /></LazyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -131,7 +131,7 @@ export const EventosGestionTab = () => {
             <div key={e.id} className="rounded-2xl bg-card border border-border p-3">
               <div className="flex items-start gap-3">
                 <button
-                  onClick={() => navigate(`/business/event/${e.id}/promoters`)}
+                  onClick={() => navigate(`/business/event/${e.id}`)}
                   className="flex-shrink-0 active:scale-[0.98] transition-transform"
                   aria-label={`Ver ${e.title}`}
                 >
@@ -143,7 +143,7 @@ export const EventosGestionTab = () => {
                 </button>
 
                 <button
-                  onClick={() => navigate(`/business/event/${e.id}/promoters`)}
+                  onClick={() => navigate(`/business/event/${e.id}`)}
                   className="min-w-0 flex-1 text-left"
                 >
                   <div className="flex items-center gap-2">
@@ -239,7 +239,7 @@ export const EventosGestionTab = () => {
                 <ActionRow
                   icon={BarChart3}
                   label="Ver promotores"
-                  onClick={() => { const id = actionsFor.id; setActionsFor(null); navigate(`/business/event/${id}/promoters`); }}
+                  onClick={() => { const id = actionsFor.id; setActionsFor(null); navigate(`/business/event/${id}`); }}
                 />
                 <ActionRow
                   icon={QrCode}
