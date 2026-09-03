@@ -280,7 +280,7 @@ Deno.serve(async (req) => {
     }
 
     // Visual venue layout: turn the held area booking into a confirmed one.
-    const { error: abErr } = await supabase
+    const { data: areaBookings, error: abErr } = await supabase
       .from("area_bookings")
       .update({
         status: "confirmed",
@@ -288,8 +288,47 @@ Deno.serve(async (req) => {
         guestlist_entry_id: buyerEntryId,
       })
       .eq("payment_session_id", session.id)
-      .eq("status", "held");
+      .eq("status", "held")
+      .select("id, event_area_id, user_id");
     if (abErr) console.error("area booking confirm failed:", abErr);
+
+    // Lounge areas with bundled tickets: generate one guestlist entry per
+    // included ticket so door staff use the same check-in flow. The buyer's
+    // own entry already exists (created by the loop above); the extras stay
+    // unassigned — the buyer receives all of them by email and forwards them.
+    const areaBooking = areaBookings?.[0];
+    if (areaBooking) {
+      try {
+        const { data: area } = await supabase
+          .from("event_areas")
+          .select("included_tickets")
+          .eq("id", areaBooking.event_area_id)
+          .maybeSingle();
+        const included = Math.max(Number(area?.included_tickets ?? 0) || 0, 0);
+        if (included > 0) {
+          await supabase
+            .from("area_bookings")
+            .update({ included_tickets: included })
+            .eq("id", areaBooking.id);
+          if (buyerEntryId) {
+            await supabase
+              .from("guestlist_entries")
+              .update({ area_booking_id: areaBooking.id })
+              .eq("id", buyerEntryId);
+          }
+          for (let i = 1; i < included; i++) {
+            const { error } = await supabase.from("guestlist_entries").insert({
+              ...baseRow,
+              user_id: null,
+              area_booking_id: areaBooking.id,
+            });
+            if (error) console.error("included ticket insert failed:", error);
+          }
+        }
+      } catch (e) {
+        console.error("included tickets generation failed:", e);
+      }
+    }
 
     const notifications = [
       {
