@@ -112,28 +112,37 @@ const BusinessEventDetail = () => {
           <Skeleton className="h-32 rounded-3xl" />
         ) : (
           <section className="rounded-3xl bg-card border border-border/60 p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="font-brand text-xl font-semibold text-foreground leading-tight truncate">
-                  {event?.title}
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {dateLabel(event?.start_datetime ?? null)}
-                </p>
-              </div>
-              <span
-                className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${
-                  event?.is_public ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"
-                }`}
-              >
-                {event?.is_public ? "Publicado" : "Pausado"}
-              </span>
-            </div>
+            <div className="flex items-start gap-4">
+              <img
+                src={event?.image_url || "/placeholder.svg"}
+                alt={event?.title || "Evento"}
+                className="w-20 h-20 rounded-2xl object-cover flex-shrink-0 bg-muted"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="font-brand text-xl font-semibold text-foreground leading-tight truncate">
+                      {event?.title}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {dateLabel(event?.start_datetime ?? null)}
+                    </p>
+                  </div>
+                  <span
+                    className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${
+                      event?.is_public ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"
+                    }`}
+                  >
+                    {event?.is_public ? "Publicado" : "Pausado"}
+                  </span>
+                </div>
 
-            <div className="flex items-start gap-6 mt-5">
-              <Stat label="vendidos" value={`${sold}`} />
-              <Stat label="ingreso neto" value={formatBs(netOf(revenue))} />
-              <Stat label="conversión" value={conv !== null ? `${conv.toFixed(1).replace(".", ",")}%` : "—"} />
+                <div className="flex items-start gap-4 mt-4">
+                  <Stat label="vendidos" value={`${sold}`} />
+                  <Stat label="ingreso neto" value={formatBs(netOf(revenue))} />
+                  <Stat label="conversión" value={conv !== null ? `${conv.toFixed(1).replace(".", ",")}%` : "—"} />
+                </div>
+              </div>
             </div>
           </section>
         )}
