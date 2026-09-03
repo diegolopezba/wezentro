@@ -8,7 +8,7 @@ import {
   platformPayouts,
   qhantuyCheckoutFetch,
   safeReturnUrl,
-  splitAmount,
+  buildCharge,
 } from "../_shared/qhantuy.ts";
 
 Deno.serve(async (req) => {
@@ -209,11 +209,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    const totalAmount = Number((effectivePrice * quantity).toFixed(2));
-    // Zentro keeps its commission; the rest is paid out to the organizer.
-    const { bps: feeBps, payoutAmount, platformFee } = splitAmount(totalAmount);
+    const baseAmount = Number((effectivePrice * quantity).toFixed(2));
+    // Zentro keeps its commission out of the base price; Qhantuy's own
+    // commission is added on top (PRE_CHARGE) and paid by the buyer.
+    const charge = buildCharge(baseAmount);
+    const { bps: feeBps, payoutAmount, platformFee, gatewayFee, totalAmount } = charge;
     if (payoutAmount <= 0) {
-      console.error("[qr] payout would be zero", { totalAmount, feeBps });
+      console.error("[qr] payout would be zero", { baseAmount, feeBps });
       return json({ error: "El monto es demasiado bajo para procesar el pago", code: "amount_too_low" }, 400);
     }
 
@@ -265,6 +267,8 @@ Deno.serve(async (req) => {
         buyer_user_id: buyerId,
         business_user_id: event.creator_id,
         amount: totalAmount,
+        base_amount: baseAmount,
+        gateway_fee_amount: gatewayFee,
         status: "pending",
         ticket_tier_id: tierId,
         promoter_id: safePromoterId,
@@ -318,6 +322,9 @@ Deno.serve(async (req) => {
             quantity,
             price: effectivePrice,
           },
+          ...(gatewayFee > 0
+            ? [{ name: "Comisión de procesamiento", quantity: 1, price: gatewayFee }]
+            : []),
         ],
         // Organizer payout (94%) + Zentro commission (6%) to its own beneficiary.
         custom_payouts: platformPayouts(benef.beneficiary_code, payoutAmount, platformFee),
@@ -362,6 +369,8 @@ Deno.serve(async (req) => {
       qrImageUrl: parsed.qrImageUrl,
       paymentUrl: parsed.paymentUrl,
       amount: totalAmount,
+      baseAmount,
+      gatewayFee,
       unitPrice: effectivePrice,
       quantity,
       eventTitle: effectiveTitle,
