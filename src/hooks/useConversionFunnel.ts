@@ -9,7 +9,10 @@ export interface FunnelData {
   checkoutTaps: number;
   checkoutStarted: number;
   purchases: number;
+  /** First day with daily impression/view data, when the period predates it. */
+  statsSince: string | null;
 }
+
 
 const periodStart = (period: Period): string | null => {
   if (period === "all") return null;
