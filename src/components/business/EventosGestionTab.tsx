@@ -12,6 +12,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBusinessUpcomingEvents, type Event } from "@/hooks/useEvents";
 import { useCreatorSalesByEvent } from "@/hooks/usePromoters";
 import { useToggleEventVisibility } from "@/hooks/useEventMutations";
+import {
+  useEventAreaSalesSummary,
+  useAreaSalesSummaryRealtime,
+} from "@/hooks/useVenueLayouts";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
 import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { EventAreaBookingsSheet } from "./EventAreaBookingsSheet";
@@ -46,6 +50,8 @@ export const EventosGestionTab = () => {
   }, [sales]);
 
   const eventIds = (events || []).map((e) => e.id);
+  const { data: areaSummary } = useEventAreaSalesSummary(eventIds);
+  useAreaSalesSummaryRealtime(eventIds.length > 0);
 
   const { data: viewsByEvent } = useQuery({
     queryKey: ["gestion-events-views", eventIds],
