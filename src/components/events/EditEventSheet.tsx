@@ -22,6 +22,8 @@ import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequire
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import { useDirtyBaseline, saveVariant } from "@/hooks/useDirtyBaseline";
 import { useBusinessExperiences } from "@/hooks/useExperiences";
+import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSection";
+import { useEventAreas, useReplaceEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { cn } from "@/lib/utils";
 
 interface EditEventSheetProps {
