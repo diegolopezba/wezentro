@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { MoreHorizontal, Play, Pause, Pencil, Share2, QrCode, Armchair } from "lucide-react";
+import { MoreHorizontal, Play, Pause, Pencil, Share2, Armchair } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/bottom-sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,7 +16,7 @@ import { EventGuestsPanel } from "@/components/business/EventGuestsPanel";
 import { EventPromotersPanel } from "@/components/business/EventPromotersPanel";
 import { EventAreaBookingsSheet } from "@/components/business/EventAreaBookingsSheet";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
-import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
+
 import { getEventShareUrl } from "@/lib/shareLinks";
 import { haptic } from "@/lib/haptics";
 import { formatBs } from "@/components/sales/salesUtils";
@@ -41,7 +41,6 @@ export const EventDetailPanel = ({ eventId }: Props) => {
   const [loungeSheet, setLoungeSheet] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [guestsSheet, setGuestsSheet] = useState(false);
   const toggle = useToggleEventVisibility();
 
   const { data: event, isLoading } = useQuery({
@@ -202,11 +201,6 @@ export const EventDetailPanel = ({ eventId }: Props) => {
                 onClick={() => { setActionsOpen(false); setEditOpen(true); }}
               />
               <ActionRow icon={Share2} label="Compartir / copiar link" onClick={handleShare} />
-              <ActionRow
-                icon={QrCode}
-                label="Invitados y check-in"
-                onClick={() => { setActionsOpen(false); setGuestsSheet(true); }}
-              />
               {hasLounges && (
                 <ActionRow
                   icon={Armchair}
@@ -222,15 +216,6 @@ export const EventDetailPanel = ({ eventId }: Props) => {
 
       {editOpen && event && (
         <EditEventSheet event={event as any} open={editOpen} onOpenChange={setEditOpen} />
-      )}
-
-      {guestsSheet && (
-        <GuestlistManagementSheet
-          eventId={eventId}
-          eventHasPaymentQr={!!event?.payment_qr_url}
-          open={guestsSheet}
-          onOpenChange={setGuestsSheet}
-        />
       )}
 
       {loungeSheet && (
