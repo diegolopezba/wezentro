@@ -81,7 +81,7 @@ export function AreaListEditor({ areas, onChange }: Props) {
         onOpenChange={(open) => {
           if (!open) setEditingId(null);
         }}
-        onChange={(p) => editing && patch(editing.id, p)}
+        onSave={saveArea}
         onDuplicate={() => {
           if (!editing) return;
           const copy = makeDraftArea(
