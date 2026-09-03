@@ -88,6 +88,15 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const [experienceId, setExperienceId] = useState<string | null>(event.experience_id ?? null);
   
+  // ── Venue areas (lounge) ──
+  const { data: existingAreas = [] } = useEventAreas(
+    open && !isPost ? event.id : undefined,
+  );
+  const replaceEventAreas = useReplaceEventAreas();
+  const [useAreas, setUseAreas] = useState(false);
+  const [draftAreas, setDraftAreas] = useState<DraftArea[]>([]);
+  const [bookedAreaIds, setBookedAreaIds] = useState<string[]>([]);
+
   const [formData, setFormData] = useState({
     title: event.title || "",
     description: event.description || "",
