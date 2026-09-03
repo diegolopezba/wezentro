@@ -113,8 +113,6 @@ export function VenueGridCanvas({
       const d = dragRef.current;
       dragRef.current = null;
       if (!d || !editable) return;
-      // Any pointer release on an area swallows the trailing click.
-      suppressClickRef.current = true;
       // Tap (no movement) on the box body selects it; drags and resize-handle
       // releases never open selection/edit UI.
       if (!d.moved && d.mode === "move") {
@@ -156,10 +154,7 @@ export function VenueGridCanvas({
               e.stopPropagation();
               // In editable mode selection happens on pointer-up tap detection;
               // ignore the synthetic click (it also fires after a drag ends).
-              if (editable) {
-                suppressClickRef.current = false;
-                return;
-              }
+              if (editable) return;
               onSelect?.(a.id);
             }}
             className={cn(
