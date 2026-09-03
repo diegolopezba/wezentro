@@ -4,6 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid } from "lucide-react";
 import { VenueLayoutEditor } from "./VenueLayoutEditor";
+import { AreaListEditor } from "./AreaListEditor";
 import {
   useVenueLayouts,
   useVenueLayoutAreas,
@@ -37,6 +38,7 @@ export function EventVenueLayoutSection({
   const { data: templateAreas } = useVenueLayoutAreas(pickedLayoutId ?? undefined);
   const saveLayout = useSaveVenueLayout();
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [editorMode, setEditorMode] = useState<"canvas" | "list">("canvas");
 
   const applyTemplate = (layoutId: string) => {
     setPickedLayoutId(layoutId);
@@ -109,7 +111,38 @@ export function EventVenueLayoutSection({
             </div>
           )}
 
-          <VenueLayoutEditor areas={areas} onChange={onAreasChange} />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setEditorMode("canvas")}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-xs font-medium border",
+                editorMode === "canvas"
+                  ? "bg-foreground text-background border-foreground"
+                  : "bg-secondary/50 border-border text-foreground",
+              )}
+            >
+              Plano visual
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditorMode("list")}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-xs font-medium border",
+                editorMode === "list"
+                  ? "bg-foreground text-background border-foreground"
+                  : "bg-secondary/50 border-border text-foreground",
+              )}
+            >
+              Solo lista
+            </button>
+          </div>
+
+          {editorMode === "canvas" ? (
+            <VenueLayoutEditor areas={areas} onChange={onAreasChange} />
+          ) : (
+            <AreaListEditor areas={areas} onChange={onAreasChange} />
+          )}
 
           {areas.length > 0 && (
             <Button
