@@ -201,11 +201,6 @@ export const EventDetailPanel = ({ eventId }: Props) => {
                 onClick={() => { setActionsOpen(false); setEditOpen(true); }}
               />
               <ActionRow icon={Share2} label="Compartir / copiar link" onClick={handleShare} />
-              <ActionRow
-                icon={QrCode}
-                label="Invitados y check-in"
-                onClick={() => { setActionsOpen(false); setGuestsSheet(true); }}
-              />
               {hasLounges && (
                 <ActionRow
                   icon={Armchair}
