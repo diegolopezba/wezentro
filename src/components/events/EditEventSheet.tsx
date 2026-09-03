@@ -92,7 +92,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
   const { data: existingAreas = [] } = useEventAreas(
     open && !isPost ? event.id : undefined,
   );
-  const replaceEventAreas = useReplaceEventAreas();
+  const syncEventAreas = useSyncEventAreas();
   const [useAreas, setUseAreas] = useState(false);
   const [draftAreas, setDraftAreas] = useState<DraftArea[]>([]);
   const [bookedAreaIds, setBookedAreaIds] = useState<string[]>([]);
