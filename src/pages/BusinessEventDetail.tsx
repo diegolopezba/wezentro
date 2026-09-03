@@ -109,44 +109,51 @@ const BusinessEventDetail = () => {
 
       <div className="px-4 pt-4 space-y-4">
         {isLoading ? (
-          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-32 rounded-3xl" />
         ) : (
-          <section className="rounded-2xl bg-card border border-border p-3">
-            <div className="flex items-start gap-3">
-              {event?.image_url ? (
-                <img src={event.image_url} alt={event.title} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
-              ) : (
-                <div className="w-16 h-16 rounded-xl bg-secondary flex-shrink-0" />
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground truncate">{event?.title}</p>
-                  <span
-                    className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                      event?.is_public ? "bg-emerald-500/15 text-emerald-600" : "bg-amber-500/15 text-amber-600"
-                    }`}
-                  >
-                    {event?.is_public ? "Publicado" : "Pausado"}
-                  </span>
-                </div>
-                <p className="text-[11px] text-muted-foreground">{dateLabel(event?.start_datetime ?? null)}</p>
+          <section className="rounded-3xl bg-card border border-border/60 p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="font-brand text-xl font-semibold text-foreground leading-tight truncate">
+                  {event?.title}
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {dateLabel(event?.start_datetime ?? null)}
+                </p>
               </div>
+              <span
+                className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${
+                  event?.is_public ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"
+                }`}
+              >
+                {event?.is_public ? "Publicado" : "Pausado"}
+              </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              <Stat label="Vendidas" value={`${sold}${capacity > 0 ? `/${capacity}` : ""}`} />
-              <Stat label="Neto" value={formatBs(netOf(revenue))} sub={`Bruto ${formatBs(revenue)}`} />
-              <Stat label="Conversión" value={conv !== null ? `${conv.toFixed(1).replace(".", ",")}%` : "—"} />
+            <div className="flex items-start gap-6 mt-5">
+              <Stat label="vendidos" value={`${sold}`} />
+              <Stat label="ingreso neto" value={formatBs(netOf(revenue))} />
+              <Stat label="conversión" value={conv !== null ? `${conv.toFixed(1).replace(".", ",")}%` : "—"} />
             </div>
           </section>
         )}
 
         <Tabs defaultValue="entradas">
-          <TabsList className="w-full overflow-x-auto scrollbar-hide">
-            <TabsTrigger value="entradas" className="flex-1">Entradas</TabsTrigger>
-            {hasLounges && <TabsTrigger value="lounges" className="flex-1">Lounges</TabsTrigger>}
-            <TabsTrigger value="invitados" className="flex-1">Invitados</TabsTrigger>
-            <TabsTrigger value="promotores" className="flex-1">Promotores</TabsTrigger>
+          <TabsList className="w-full justify-start gap-1 h-auto bg-transparent p-0 overflow-x-auto scrollbar-hide">
+            {[
+              ["entradas", "Entradas"],
+              ...(hasLounges ? [["lounges", "Lounges"]] : []),
+              ["invitados", "Invitados"],
+              ["promotores", "Promotores"],
+            ].map(([v, label]) => (
+              <TabsTrigger
+                key={v}
+                value={v}
+                className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-none"
+              >
+                {label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="entradas" className="mt-4">
