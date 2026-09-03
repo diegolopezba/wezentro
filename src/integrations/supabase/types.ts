@@ -16,11 +16,14 @@ export type Database = {
     Tables: {
       area_bookings: {
         Row: {
+          cancellation_reason: string | null
+          cancelled_by: string | null
           created_at: string
           event_area_id: string
           guestlist_entry_id: string | null
           hold_expires_at: string | null
           id: string
+          included_tickets: number
           party_size: number
           payment_session_id: string | null
           status: string
@@ -28,11 +31,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cancellation_reason?: string | null
+          cancelled_by?: string | null
           created_at?: string
           event_area_id: string
           guestlist_entry_id?: string | null
           hold_expires_at?: string | null
           id?: string
+          included_tickets?: number
           party_size?: number
           payment_session_id?: string | null
           status?: string
@@ -40,11 +46,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cancellation_reason?: string | null
+          cancelled_by?: string | null
           created_at?: string
           event_area_id?: string
           guestlist_entry_id?: string | null
           hold_expires_at?: string | null
           id?: string
+          included_tickets?: number
           party_size?: number
           payment_session_id?: string | null
           status?: string
@@ -482,6 +491,7 @@ export type Database = {
           event_id: string
           height: number
           id: string
+          included_tickets: number | null
           is_active: boolean
           is_exclusive: boolean
           name: string
@@ -502,6 +512,7 @@ export type Database = {
           event_id: string
           height?: number
           id?: string
+          included_tickets?: number | null
           is_active?: boolean
           is_exclusive?: boolean
           name: string
@@ -522,6 +533,7 @@ export type Database = {
           event_id?: string
           height?: number
           id?: string
+          included_tickets?: number | null
           is_active?: boolean
           is_exclusive?: boolean
           name?: string
@@ -1562,6 +1574,7 @@ export type Database = {
       }
       guestlist_entries: {
         Row: {
+          area_booking_id: string | null
           attended: boolean | null
           checked_in_at: string | null
           event_id: string
@@ -1582,6 +1595,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          area_booking_id?: string | null
           attended?: boolean | null
           checked_in_at?: string | null
           event_id: string
@@ -1602,6 +1616,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          area_booking_id?: string | null
           attended?: boolean | null
           checked_in_at?: string | null
           event_id?: string
@@ -1622,6 +1637,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "guestlist_entries_area_booking_id_fkey"
+            columns: ["area_booking_id"]
+            isOneToOne: false
+            referencedRelation: "area_bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "guestlist_entries_event_id_fkey"
             columns: ["event_id"]
@@ -3964,6 +3986,7 @@ export type Database = {
           display_order: number
           height: number
           id: string
+          included_tickets: number | null
           is_exclusive: boolean
           layout_id: string
           name: string
@@ -3982,6 +4005,7 @@ export type Database = {
           display_order?: number
           height?: number
           id?: string
+          included_tickets?: number | null
           is_exclusive?: boolean
           layout_id: string
           name: string
@@ -4000,6 +4024,7 @@ export type Database = {
           display_order?: number
           height?: number
           id?: string
+          included_tickets?: number | null
           is_exclusive?: boolean
           layout_id?: string
           name?: string
@@ -4711,11 +4736,14 @@ export type Database = {
       confirm_free_area_booking: {
         Args: { _booking_id: string }
         Returns: {
+          cancellation_reason: string | null
+          cancelled_by: string | null
           created_at: string
           event_area_id: string
           guestlist_entry_id: string | null
           hold_expires_at: string | null
           id: string
+          included_tickets: number
           party_size: number
           payment_session_id: string | null
           status: string
@@ -5089,11 +5117,14 @@ export type Database = {
       hold_event_area: {
         Args: { _event_area_id: string; _party_size: number }
         Returns: {
+          cancellation_reason: string | null
+          cancelled_by: string | null
           created_at: string
           event_area_id: string
           guestlist_entry_id: string | null
           hold_expires_at: string | null
           id: string
+          included_tickets: number
           party_size: number
           payment_session_id: string | null
           status: string
