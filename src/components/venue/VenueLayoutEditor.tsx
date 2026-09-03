@@ -120,7 +120,7 @@ export function VenueLayoutEditor({ areas, onChange }: Props) {
       {areas.length === 0 && (
         <p className="text-xs text-muted-foreground">
           Añade mesas, lounges o secciones y arrástralas para dibujar tu espacio.
-          Toca un área para editar su nombre, capacidad y precio.
+          Toca un área para seleccionarla y tócala de nuevo para editarla.
         </p>
       )}
 
