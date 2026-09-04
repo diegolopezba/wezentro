@@ -94,7 +94,14 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
     if (!result) return;
     try {
       const res = await sendEmails.mutateAsync({ eventId, batchId: result.batchId });
-      toast.success(`${res.sent} correos enviados${res.failed ? `, ${res.failed} fallaron` : ""}`);
+      if (res.failed) {
+        const invalid = (res.results ?? []).filter((r) => r.status === "invalid_email").length;
+        toast.warning(
+          `${res.sent} correos enviados · ${res.failed} sin enviar${invalid ? ` (${invalid} con correo inválido)` : ""}. Podés reintentar los pendientes.`,
+        );
+      } else {
+        toast.success(`${res.sent} correos enviados`);
+      }
     } catch {
       toast.error("No se pudieron enviar los correos");
     }
