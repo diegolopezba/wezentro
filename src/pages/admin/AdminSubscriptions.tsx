@@ -242,19 +242,55 @@ const AdminSubscriptions = () => {
                         <tr className="border-b border-border/60 bg-muted/40">
                           <td colSpan={12} className="px-3 py-3">
                             <div className="flex flex-wrap gap-2 mb-3">
-                              <Button variant="outline" size="sm" className="rounded-full" disabled>
-                                Renovar / extender
+                              {r.status !== "active" && (
+                                <Button
+                                  size="sm"
+                                  className="rounded-full"
+                                  disabled={busy}
+                                  onClick={() => run(r, "activate")}
+                                >
+                                  {busy && pending?.id === r.id && pending.op === "activate" && (
+                                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                                  )}
+                                  Activar
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-full"
+                                disabled={busy}
+                                onClick={() => run(r, "extend", 30)}
+                              >
+                                Extender 30 días
                               </Button>
+                              {r.status === "active" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="rounded-full"
+                                  disabled={busy}
+                                  onClick={() => run(r, "past_due")}
+                                >
+                                  Marcar en mora
+                                </Button>
+                              )}
+                              {r.status !== "cancelled" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="rounded-full text-destructive"
+                                  disabled={busy}
+                                  onClick={() => run(r, "cancel")}
+                                >
+                                  Detener (cancelar)
+                                </Button>
+                              )}
                               <Button variant="outline" size="sm" className="rounded-full" disabled>
                                 Cambiar plan
                               </Button>
-                              <Button variant="outline" size="sm" className="rounded-full" disabled>
-                                Cancelar
-                              </Button>
-                              <span className="text-xs text-muted-foreground self-center">
-                                Acciones por definir
-                              </span>
                             </div>
+
                             <p className="text-xs text-muted-foreground mb-2">Historial de pagos</p>
                             {r.payments.length === 0 ? (
                               <p className="text-sm text-muted-foreground">Sin pagos registrados.</p>
