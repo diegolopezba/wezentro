@@ -98,7 +98,7 @@ const BusinessInfo = () => {
   return (
     <div className="light-surface min-h-[100dvh] bg-background">
       <header className="dark-island sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-3 px-4 py-4">
+        <div className="flex items-center gap-3 px-4 py-4 lg:mx-auto lg:max-w-3xl lg:px-8">
           <Button variant="ghost" size="icon" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -106,7 +106,7 @@ const BusinessInfo = () => {
         </div>
       </header>
 
-      <div className="px-4 py-4 space-y-3">
+      <div className="px-4 py-4 space-y-3 lg:mx-auto lg:max-w-3xl lg:px-8">
         {/* Business Type */}
         <m.div
           initial={{ opacity: 0, y: 10 }}

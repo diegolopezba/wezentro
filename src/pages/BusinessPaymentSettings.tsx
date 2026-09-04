@@ -15,7 +15,7 @@ const BusinessPaymentSettings = () => {
   return (
     <div className="light-surface min-h-[100dvh] bg-background">
       <header className="dark-island sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center justify-between px-4 py-4">
+        <div className="flex items-center justify-between px-4 py-4 lg:mx-auto lg:max-w-3xl lg:px-8">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
@@ -32,7 +32,7 @@ const BusinessPaymentSettings = () => {
         </div>
       </header>
 
-      <div className="px-4 py-4 space-y-4">
+      <div className="px-4 py-4 space-y-4 lg:mx-auto lg:max-w-3xl lg:px-8">
         <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

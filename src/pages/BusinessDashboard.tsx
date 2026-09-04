@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, BarChart3, Wallet, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BusinessPageContainer } from "@/components/layout/BusinessPageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -119,7 +120,7 @@ const BusinessDashboard = () => {
     <div className="light-surface min-h-[100dvh] bg-background pb-8">
       {/* Header */}
       <header className="dark-island sticky top-0 z-40 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center justify-between px-4 py-4">
+        <BusinessPageContainer className="flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={goBack}>
               <ArrowLeft className="w-5 h-5" />
@@ -134,10 +135,10 @@ const BusinessDashboard = () => {
           <Button variant="ghost" size="icon" onClick={intro.reopen} aria-label="¿Cómo funciona?">
             <HelpCircle className="w-5 h-5" />
           </Button>
-        </div>
+        </BusinessPageContainer>
       </header>
 
-      <div className="px-4 mt-4 space-y-4">
+      <BusinessPageContainer className="px-4 mt-4 space-y-4">
         <QuickActions onBoostClick={handleBoostClick} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -180,7 +181,7 @@ const BusinessDashboard = () => {
             <CityInsightsTab />
           </TabsContent>
         </Tabs>
-      </div>
+      </BusinessPageContainer>
       <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={BUSINESS_DASHBOARD_INTRO} />
     </div>
   );

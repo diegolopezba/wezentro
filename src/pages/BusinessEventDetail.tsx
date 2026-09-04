@@ -46,7 +46,7 @@ const BusinessEventDetail = () => {
   return (
     <div className="min-h-[100dvh] bg-background pb-24">
       <header className="sticky top-0 z-30 safe-top bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex items-center gap-3 px-4 py-3 lg:mx-auto lg:max-w-3xl lg:px-8">
           <Button
             variant="ghost"
             size="icon"
@@ -59,7 +59,7 @@ const BusinessEventDetail = () => {
         </div>
       </header>
 
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-4 lg:mx-auto lg:max-w-3xl lg:px-8">
         {eventId && <EventDetailPanel eventId={eventId} />}
       </div>
     </div>

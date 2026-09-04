@@ -194,7 +194,8 @@ export const ExperienciasGestionTab = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 lg:flex lg:items-start lg:gap-6 lg:space-y-0">
+      <div className="space-y-4 lg:w-[300px] lg:shrink-0 lg:sticky lg:top-28">
       <div className="flex items-center justify-between">
         <button
           onClick={() => shift(-1)}
@@ -253,6 +254,9 @@ export const ExperienciasGestionTab = () => {
         </div>
       )}
 
+      </div>
+
+      <div className="space-y-4 lg:flex-1 lg:min-w-0">
       {isLoading ? (
         <div className="space-y-2">
           <Skeleton className="h-20 rounded-2xl" />
@@ -298,6 +302,7 @@ export const ExperienciasGestionTab = () => {
           ))}
         </div>
       )}
+      </div>
 
       <ExperienceBookingDetailSheet booking={detail} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>

@@ -61,10 +61,11 @@ export const EventosGestionTab = () => {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 lg:flex lg:items-start lg:gap-6 lg:space-y-0">
+      {/* Mobile: horizontal pill strip */}
       <div
         ref={scrollerRef}
-        className="-mx-4 px-4 flex gap-2 overflow-x-auto scrollbar-hide snap-x"
+        className="-mx-4 px-4 flex gap-2 overflow-x-auto scrollbar-hide snap-x lg:hidden"
       >
         {events.map((e) => {
           const active = e.id === selectedId;
@@ -91,7 +92,37 @@ export const EventosGestionTab = () => {
         })}
       </div>
 
-      {selectedId && <EventDetailPanel key={selectedId} eventId={selectedId} />}
+      {/* Desktop: vertical event list */}
+      <aside className="hidden lg:block lg:w-[300px] lg:shrink-0 lg:sticky lg:top-28 lg:max-h-[calc(100dvh-9rem)] lg:overflow-y-auto scrollbar-hide space-y-1.5">
+        {events.map((e) => {
+          const active = e.id === selectedId;
+          return (
+            <button
+              key={e.id}
+              onClick={() => setSelectedId(e.id)}
+              className={`w-full flex items-center gap-3 p-2 rounded-2xl border text-left transition-colors ${
+                active ? "bg-secondary border-foreground/20" : "bg-card border-border"
+              }`}
+            >
+              {e.image_url ? (
+                <img src={e.image_url} alt="" className="w-11 h-11 rounded-xl object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-11 h-11 rounded-xl bg-secondary flex-shrink-0" />
+              )}
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-foreground truncate">{e.title}</span>
+                <span className="block text-[11px] text-muted-foreground">
+                  {pillDate(e.start_datetime)} · {e.is_public ? "Publicado" : "Pausado"}
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </aside>
+
+      <div className="lg:flex-1 lg:min-w-0">
+        {selectedId && <EventDetailPanel key={selectedId} eventId={selectedId} />}
+      </div>
     </div>
   );
 };

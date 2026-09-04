@@ -67,7 +67,7 @@ const BusinessExperiences = () => {
   return (
     <div className="light-surface min-h-[100dvh] bg-background">
       <header className="dark-island sticky top-0 z-40 safe-top border-b border-border/50 bg-background/80 backdrop-blur-lg">
-        <div className="flex items-center gap-3 px-4 py-4">
+        <div className="flex items-center gap-3 px-4 py-4 lg:mx-auto lg:max-w-3xl lg:px-8">
           <Button
             variant="ghost"
             size="icon"
@@ -86,7 +86,7 @@ const BusinessExperiences = () => {
         </div>
       </header>
 
-      <div className="space-y-3 px-4 py-4">
+      <div className="space-y-3 px-4 py-4 lg:mx-auto lg:max-w-3xl lg:px-8">
         <p className="text-[13px] leading-snug text-muted-foreground">
           Creá experiencias con horarios, cupos y precios. Tus clientes reservan y pagan por adelantado
           con QR, igual que una entrada.

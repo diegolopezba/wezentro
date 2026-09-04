@@ -201,7 +201,8 @@ export const ReservasGestionTab = () => {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 lg:flex lg:items-start lg:gap-6 lg:space-y-0">
+      <div className="space-y-4 lg:w-[300px] lg:shrink-0 lg:sticky lg:top-28">
       {/* Navigation arrows + current label */}
       <div className="flex items-center justify-between">
         <button
@@ -262,6 +263,9 @@ export const ReservasGestionTab = () => {
         ))}
       </div>
 
+      </div>
+
+      <div className="space-y-4 lg:flex-1 lg:min-w-0">
       {/* Vertical timeline, only slots that have reservations */}
       {isLoading ? (
         <div className="space-y-2">
@@ -301,7 +305,7 @@ export const ReservasGestionTab = () => {
           {upcomingSlots.map(([time, rows]) => renderSlot(time, rows, false))}
         </div>
       )}
-
+      </div>
 
       <ReservationDetailSheet
         reservation={detail}

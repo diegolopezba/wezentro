@@ -65,7 +65,7 @@ const BusinessSales = () => {
         </div>
       </header>
 
-      <main className="px-4 pt-4">
+      <main className="px-4 pt-4 lg:mx-auto lg:max-w-3xl lg:px-8">
         {tab === "overview" && <SalesSummary />}
         {tab === "events" && <SalesEvents />}
         {tab === "promoters" && <SalesPromoters />}
