@@ -13,6 +13,8 @@ export interface DraftTier {
   price: string;
   capacity: string;
   description: string;
+  /** optional `yyyy-MM-dd'T'HH:mm` moment when this tier stops selling */
+  salesEndAt?: string;
 }
 
 export type TicketPricingMode = "single" | "tiers";
@@ -37,7 +39,9 @@ const blankTier = (): DraftTier => ({
   price: "",
   capacity: "",
   description: "",
+  salesEndAt: "",
 });
+
 
 export function TicketTiersEditor({
   mode,
