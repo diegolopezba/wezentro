@@ -46,7 +46,7 @@ const BusinessPlans = () => {
   return (
     <div className="light-surface flex h-[100dvh] flex-col bg-background">
       <header className="dark-island safe-top shrink-0 border-b border-border/50 bg-background/80 backdrop-blur-lg">
-        <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex items-center gap-3 px-4 py-3 lg:mx-auto lg:max-w-3xl lg:px-8">
           <Button variant="ghost" size="icon" onClick={goBack} aria-label="Volver">
             <ArrowLeft className="h-5 w-5" />
           </Button>
