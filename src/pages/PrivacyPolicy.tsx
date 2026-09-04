@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
-  const lastUpdated = "22 de abril de 2026";
+  const lastUpdated = "4 de septiembre de 2026";
 
   return (
     <AppLayout hideNav>
@@ -56,9 +56,11 @@ const PrivacyPolicy = () => {
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Información de registro: nombre, correo electrónico, nombre de usuario, fecha de nacimiento y género</li>
               <li>Información de perfil: foto de perfil, biografía e intereses</li>
-              <li>Contenido generado: eventos, publicaciones, mensajes y comentarios</li>
+              <li>Contenido generado: eventos, publicaciones, experiencias y comentarios</li>
               <li>Información de ubicación cuando crea eventos o utiliza funciones basadas en ubicación</li>
-              <li>Categoría de entrada seleccionada al comprar tickets a un evento (por ejemplo: "General", "VIP", "Early Bird")</li>
+              <li>Categoría de entrada o lounge/área seleccionada al comprar (por ejemplo: "General", "VIP", "Early Bird")</li>
+              <li>Respuestas a las preguntas que el organizador configura al comprar un lounge o área</li>
+              <li>Para cuentas Business: número de teléfono de contacto (público si el negocio decide publicarlo), datos de beneficiario y cuenta bancaria para la distribución de pagos, y tipo de plan de suscripción con sus fechas de vigencia</li>
             </ul>
 
             <h3 className="text-base font-medium text-foreground">2.2 Información recopilada automáticamente</h3>
@@ -79,7 +81,7 @@ const PrivacyPolicy = () => {
               <li>Proporcionar, mantener y mejorar nuestros servicios</li>
               <li>Personalizar su experiencia y mostrar contenido relevante</li>
               <li>Procesar transacciones y gestionar suscripciones</li>
-              <li>Enviar notificaciones sobre eventos, mensajes y actualizaciones</li>
+              <li>Enviar notificaciones sobre eventos, compras, reservas y actualizaciones</li>
               <li>Detectar y prevenir fraudes, spam y actividades maliciosas</li>
               <li>Cumplir con obligaciones legales</li>
               <li>Comunicarnos con usted sobre cambios en nuestros servicios</li>
@@ -93,8 +95,8 @@ const PrivacyPolicy = () => {
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li><strong>Información pública:</strong> nombre de usuario, nombre, foto de perfil, biografía, ciudad, eventos públicos que haya creado, seguidores, likes y reposts</li>
-              <li><strong>Solo para usuarios registrados:</strong> su configuración de mensajería (quién puede escribirle) solo es visible para usuarios con sesión iniciada — los visitantes no registrados no pueden acceder a esta información</li>
-              <li><strong>Solo para usted:</strong> sus mensajes privados, eventos guardados, reservaciones, datos de pago y preferencias de contenido</li>
+              <li><strong>Negocios:</strong> el número de teléfono de contacto que el negocio publica es visible públicamente para cualquier visitante</li>
+              <li><strong>Solo para usted:</strong> sus eventos guardados, reservaciones, entradas, respuestas a preguntas de organizadores, datos de pago y preferencias de contenido</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
               No vendemos su información personal a terceros.
@@ -121,8 +123,8 @@ const PrivacyPolicy = () => {
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li><strong>Infraestructura en la nube:</strong> para autenticación segura y almacenamiento de datos con cifrado en reposo</li>
-              <li><strong>Stripe:</strong> para procesamiento de pagos de suscripciones — los datos de tarjetas nunca pasan por nuestros servidores</li>
-              <li><strong>Qhantuy:</strong> para generación de códigos QR de pago dinámicos en eventos presenciales — los datos de beneficiario y cuenta bancaria son compartidos con Qhantuy para que pueda distribuir los pagos al día hábil siguiente; Qhantuy recibe y procesa los fondos temporalmente, y Zentro nunca retiene ni tiene acceso al dinero de las transacciones</li>
+              <li><strong>Cybersource:</strong> para procesamiento de pagos con tarjeta — los datos de tarjetas nunca pasan por nuestros servidores</li>
+              <li><strong>Qhantuy:</strong> para generación de códigos QR de pago dinámicos — los datos de beneficiario y cuenta bancaria son compartidos con Qhantuy para que pueda distribuir el 94% correspondiente al negocio al día hábil siguiente; Qhantuy recibe y procesa los fondos, cobra al comprador un cargo de procesamiento del 1%, y Zentro retiene únicamente su comisión de plataforma del 6%</li>
               <li><strong>Mapbox:</strong> para servicios de mapas y ubicación</li>
               <li><strong>OneSignal:</strong> para notificaciones push — solo compartimos identificadores de dispositivo anonimizados</li>
             </ul>
@@ -152,9 +154,9 @@ const PrivacyPolicy = () => {
               Con su consentimiento, enviamos notificaciones push para informarle sobre:
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li>Nuevos mensajes y solicitudes de chat</li>
               <li>Actualizaciones de eventos a los que asistirá</li>
               <li>Nuevos seguidores y actividad social</li>
+              <li>Confirmaciones de compras, reservas e invitaciones especiales</li>
               <li>Recordatorios de eventos próximos</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -170,8 +172,8 @@ const PrivacyPolicy = () => {
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Cifrado de datos en tránsito (HTTPS/TLS) y en reposo</li>
               <li>Controles de acceso a nivel de fila (Row-Level Security) — cada usuario solo puede acceder a sus propios datos privados</li>
-              <li>La configuración de mensajería y preferencias privadas solo son accesibles para usuarios autenticados</li>
-              <li>Los datos de pago (tarjetas) nunca son almacenados en nuestros servidores — son gestionados exclusivamente por Stripe</li>
+              <li>Las preferencias privadas solo son accesibles para usuarios autenticados</li>
+              <li>Los datos de pago (tarjetas) nunca son almacenados en nuestros servidores — son gestionados exclusivamente por Cybersource</li>
               <li>Los datos de beneficiario de Qhantuy (información bancaria y código de beneficiario) se almacenan cifrados y solo son accesibles por el titular de la cuenta business</li>
               <li>Los tokens QR de guestlist son únicos y solo visibles para el titular y el organizador del evento</li>
               <li>Monitoreo regular de seguridad y auditorías de acceso</li>
@@ -189,8 +191,9 @@ const PrivacyPolicy = () => {
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Zentro actúa únicamente como <strong>facilitador técnico</strong> — no retiene, procesa ni tiene acceso al dinero de las transacciones</li>
               <li>Qhantuy recibe y procesa los fondos del usuario y los distribuye al banco del negocio al día hábil siguiente, utilizando los datos de beneficiario proporcionados por el organizador</li>
-              <li>Zentro registra el monto, el estado de la transacción y el identificador de la sesión de pago para confirmar su entrada al evento</li>
+              <li>Zentro registra el monto, el estado de la transacción, el cargo de procesamiento de Qhantuy (1%) y el identificador de la sesión de pago para confirmar su entrada al evento</li>
               <li>Para eventos con múltiples categorías de entradas, también se registra la categoría adquirida (por ejemplo: "General", "VIP") como parte del comprobante de compra</li>
+              <li>Para lounges y áreas, se registra el área adquirida y las respuestas del comprador a las preguntas del organizador, visibles para el organizador del evento</li>
               <li>No se almacenan datos bancarios del usuario pagador (número de cuenta, contraseñas bancarias)</li>
               <li>Los registros de pago se conservan durante el período requerido por la normativa fiscal aplicable, para verificación de asistencia y resolución de disputas</li>
             </ul>
@@ -221,7 +224,7 @@ const PrivacyPolicy = () => {
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Sus datos personales serán eliminados de forma inmediata</li>
-              <li>Se eliminarán todos sus eventos, mensajes, fotos y contenido asociado</li>
+              <li>Se eliminarán todos sus eventos, publicaciones, fotos y contenido asociado</li>
               <li>Esta acción es permanente e irreversible</li>
               <li>Algunos datos pueden retenerse para cumplir con obligaciones legales</li>
             </ul>
