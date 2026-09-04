@@ -806,6 +806,10 @@ const Create = () => {
             className="hidden"
           />
         </m.div>
+        </div>
+
+        {/* Right column on desktop: all form fields */}
+        <div className="space-y-6 lg:w-[45%] lg:min-w-0">
 
         {/* ── Text fields ── */}
         <m.div
