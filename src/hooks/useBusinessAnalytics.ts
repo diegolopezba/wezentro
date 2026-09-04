@@ -209,6 +209,39 @@ export const useRepeatAttendees = () => {
   });
 };
 
+export interface FanBaseEntry {
+  user_id: string;
+  full_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+  score: number;
+  events_attended: number;
+  tickets: number;
+  lounges: number;
+  experiences: number;
+  reservations: number;
+  comments: number;
+  likes: number;
+  follows: number;
+}
+
+export const useFanBase = (limit = 10) => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["business-fan-base", user?.id, limit],
+    queryFn: async (): Promise<FanBaseEntry[]> => {
+      if (!user?.id) throw new Error("User not authenticated");
+      const { data, error } = await supabase.rpc("get_business_fan_base", {
+        _business_id: user.id,
+        _limit: limit,
+      });
+      if (error) throw error;
+      return (data || []) as FanBaseEntry[];
+    },
+    enabled: !!user?.id,
+  });
+};
+
 // ==================== NEW HOOKS ====================
 
 export const useAccountsReached = (period: Period) => {
