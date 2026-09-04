@@ -123,9 +123,14 @@ async function overview(period: string) {
   ]);
 
   const sessions = await fetchSessions(since);
-  const confirmed = sessions.filter((s) => s.status === "confirmed");
+  const confirmedAll = sessions.filter((s) => s.status === "confirmed");
+  // Two distinct revenue channels: marketplace sales (Zentro keeps 6%) and
+  // business subscriptions (Zentro keeps 100%).
+  const confirmed = confirmedAll.filter((s) => !isSubscription(s));
+  const subs = confirmedAll.filter(isSubscription);
   const gross = confirmed.reduce((a, s) => a + num(s.amount), 0);
   const commission = confirmed.reduce((a, s) => a + feeOf(s), 0);
+  const subscriptionRevenue = subs.reduce((a, s) => a + num(s.amount), 0);
 
   // Daily trend (gross + commission) for the selected window.
   const byDay: Record<string, { date: string; gross: number; commission: number; orders: number }> = {};
@@ -144,7 +149,14 @@ async function overview(period: string) {
     users: { total: usersTotal, today: usersToday, last7d: users7d, last30d: users30d, businesses },
     content: { events: eventsCount, posts: postsCount, experiences },
     engagement: { likes, comments, saves, reservations, bookings },
-    sales: { gross: round2(gross), commission: round2(commission), orders: confirmed.length },
+    sales: {
+      gross: round2(gross),
+      commission: round2(commission),
+      orders: confirmed.length,
+      subscriptionRevenue: round2(subscriptionRevenue),
+      subscriptionPayments: subs.length,
+      totalRevenue: round2(commission + subscriptionRevenue),
+    },
     trend,
   };
 }
