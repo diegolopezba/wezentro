@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPromptSafe } from "@/hooks/useAuthPrompt";
 import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
-import { useUnreadNotificationCount } from "@/hooks/useNotifications";
+import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface RailItem {
@@ -36,7 +36,7 @@ export const DesktopNavRail = () => {
   const { user } = useAuth();
   const authPrompt = useAuthPromptSafe();
   const isBusinessAccount = useIsBusinessAccount();
-  const { data: unreadCount = 0 } = useUnreadNotificationCount();
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount();
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const items = baseItems.map((item) =>
