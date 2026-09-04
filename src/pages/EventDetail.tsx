@@ -31,6 +31,7 @@ import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
+import { DetailSplitLayout } from "@/components/layout/DetailSplitLayout";
 import { MentionText } from "@/components/ui/MentionText";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
