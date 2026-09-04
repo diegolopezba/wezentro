@@ -1287,6 +1287,7 @@ const Create = () => {
             isEvent ? "Crear Evento" : isExperience ? "Publicar Experiencia" : "Publicar Post" }
           </Button>
         </div>
+        </div>
       </div>
 
       <BusinessRequiredSheet open={showBusinessGate} onOpenChange={setShowBusinessGate} context={businessGateContext} />
