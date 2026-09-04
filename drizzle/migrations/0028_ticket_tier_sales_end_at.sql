@@ -1,0 +1,1 @@
+ALTER TABLE public.ticket_tiers ADD COLUMN IF NOT EXISTS sales_end_at TIMESTAMPTZ;
