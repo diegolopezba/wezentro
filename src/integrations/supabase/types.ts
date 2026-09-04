@@ -4959,6 +4959,7 @@ export type Database = {
         }[]
       }
       get_city_benchmarks: { Args: { _business_id: string }; Returns: Json }
+      get_city_benchmarks_v2: { Args: { _business_id: string }; Returns: Json }
       get_collab_boosts: {
         Args: { _user_id: string }
         Returns: {
