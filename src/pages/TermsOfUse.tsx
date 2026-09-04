@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const TermsOfUse = () => {
   const navigate = useNavigate();
-  const lastUpdated = "22 de abril de 2026";
+  const lastUpdated = "4 de septiembre de 2026";
 
   return (
     <AppLayout hideNav>
@@ -52,14 +52,19 @@ const TermsOfUse = () => {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-foreground">2. Descripción del Servicio</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Zentro es una plataforma social para descubrir, crear y compartir eventos. El Servicio permite a los usuarios:
+              Zentro es una plataforma social para descubrir, crear y compartir eventos y experiencias. El Servicio permite a los usuarios:
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li>Crear y gestionar eventos públicos y privados</li>
-              <li>Descubrir eventos cercanos y de interés</li>
-              <li>Conectar con otros usuarios mediante seguimiento y mensajería directa</li>
+              <li>Descubrir eventos, publicaciones y experiencias cercanas y de interés</li>
+              <li>Crear y gestionar eventos públicos</li>
+              <li>Comprar entradas por categorías (tiers) y lounges/áreas con plano visual del local</li>
+              <li>Reservar mesas y experiencias en negocios afiliados</li>
+              <li>Recibir invitaciones especiales gratuitas mediante enlaces del organizador</li>
+              <li>Conectar con otros usuarios mediante seguimiento e interacciones sociales</li>
+              <li>Contactar a negocios mediante el número de teléfono que estos publican voluntariamente</li>
               <li>Gestionar listas de invitados (guestlists) y reservaciones</li>
-              <li>Acceder a funciones premium mediante suscripciones Business o Zentro Places</li>
+              <li>Operar cuentas Business con planes Básico, Profesional y Elite/Premium</li>
+              <li>Impulsar publicaciones mediante sponsored posts</li>
               <li>Explorar negocios, restaurantes y lugares en el mapa</li>
               <li>Recibir notificaciones push sobre actividad social y eventos</li>
             </ul>
