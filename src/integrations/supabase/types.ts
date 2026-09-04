@@ -4915,6 +4915,24 @@ export type Database = {
         Returns: undefined
       }
       generate_referral_code: { Args: { _user_id: string }; Returns: string }
+      get_business_fan_base: {
+        Args: { _business_id: string; _limit?: number }
+        Returns: {
+          avatar_url: string
+          comments: number
+          events_attended: number
+          experiences: number
+          follows: number
+          full_name: string
+          likes: number
+          lounges: number
+          reservations: number
+          score: number
+          tickets: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_business_public_tier: {
         Args: { _business_id: string }
         Returns: string

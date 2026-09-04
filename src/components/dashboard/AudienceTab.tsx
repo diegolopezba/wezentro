@@ -1,6 +1,6 @@
 import { DemographicsCharts } from "./DemographicsCharts";
 import { FollowerGrowthChart } from "./FollowerGrowthChart";
-import { AudienceInsights } from "./AudienceInsights";
+import { FanBaseSection } from "./FanBaseSection";
 import { useAudienceDemographics, useRepeatAttendees } from "@/hooks/useBusinessAnalytics";
 import { Repeat } from "lucide-react";
 
@@ -33,7 +33,7 @@ export const AudienceTab = () => {
 
       <FollowerGrowthChart />
 
-      <AudienceInsights />
+      <FanBaseSection />
     </div>
   );
 };
