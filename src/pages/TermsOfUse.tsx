@@ -83,6 +83,9 @@ const TermsOfUse = () => {
               <li>Tener al menos 18 años de edad. Zentro está orientado a la vida nocturna y solo está disponible para personas mayores de edad.</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
+              Las cuentas Business son cuentas separadas con su propio inicio de sesión, distintas de las cuentas de usuario. Para vender entradas, lounges o experiencias con precio, la cuenta Business debe registrar obligatoriamente sus datos de beneficiario bancario dentro de la aplicación.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Nos reservamos el derecho de suspender o terminar su cuenta si se proporciona información falsa o se violan estos Términos.
             </p>
           </section>
