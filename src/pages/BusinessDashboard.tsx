@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BarChart3, Wallet, HelpCircle } from "lucide-react";
+import {
+  ArrowLeft, BarChart3, Wallet, HelpCircle, LayoutDashboard, DollarSign,
+  Megaphone, Users, FileText, Zap, CalendarCheck, Lightbulb,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { BusinessPageContainer } from "@/components/layout/BusinessPageContainer";
 import { Badge } from "@/components/ui/badge";
@@ -23,14 +27,14 @@ import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/Featur
 import { BUSINESS_DASHBOARD_INTRO } from "@/components/business/featureIntroSteps";
 
 const TABS = [
-  { value: "overview", label: "Overview" },
-  { value: "sales", label: "Ventas" },
-  { value: "promotores", label: "Promotores" },
-  { value: "audience", label: "Audiencia" },
-  { value: "content", label: "Contenido" },
-  { value: "actions", label: "Acciones" },
-  { value: "reservas", label: "Reservas" },
-  { value: "soon", label: "Insights" },
+  { value: "overview", label: "Overview", icon: LayoutDashboard },
+  { value: "sales", label: "Ventas", icon: DollarSign },
+  { value: "promotores", label: "Promotores", icon: Megaphone },
+  { value: "audience", label: "Audiencia", icon: Users },
+  { value: "content", label: "Contenido", icon: FileText },
+  { value: "actions", label: "Acciones", icon: Zap },
+  { value: "reservas", label: "Reservas", icon: CalendarCheck },
+  { value: "soon", label: "Insights", icon: Lightbulb },
 ];
 
 const BusinessDashboard = () => {
