@@ -145,7 +145,7 @@ const EventDetailModalInner = () => {
   return (
     <m.div
       ref={scrollRef}
-      className="fixed inset-0 z-[60] bg-background overflow-auto"
+      className="fixed inset-0 z-[60] bg-background overflow-auto lg:inset-y-8 lg:left-1/2 lg:right-auto lg:w-[min(1000px,92vw)] lg:-translate-x-1/2 lg:rounded-3xl lg:shadow-2xl"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
@@ -172,7 +172,7 @@ const EventDetailModalInner = () => {
                 }))
               : [{ media_url: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80", media_type: undefined as any }];
             return (
-              <div className="relative w-full overflow-hidden rounded-b-3xl">
+              <div className="relative w-full overflow-hidden rounded-b-3xl lg:rounded-t-3xl">
                 <MediaCarousel items={items} isHero />
                 {/* Close button */}
                 <div className="absolute top-0 left-0 right-0 safe-top z-20">
@@ -188,7 +188,7 @@ const EventDetailModalInner = () => {
 
           {/* Content */}
           <m.div
-            className="relative px-4 pt-3 pb-28"
+            className="relative px-4 pt-3 pb-28 lg:mx-auto lg:max-w-3xl lg:px-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
