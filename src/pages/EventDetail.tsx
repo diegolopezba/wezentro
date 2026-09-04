@@ -182,8 +182,10 @@ const EventDetail = () => {
       }))
     : [{ media_url: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80", media_type: undefined as any }];
   return <div className="min-h-[100dvh] bg-background">
-      {/* Hero media carousel */}
-      <div className="relative w-full overflow-hidden rounded-b-3xl">
+      <DetailSplitLayout
+        className="lg:mx-auto lg:max-w-6xl"
+        media={
+      <div className="relative w-full overflow-hidden rounded-b-3xl lg:rounded-b-none">
         <MediaCarousel items={carouselItems} isHero />
         {/* Back button */}
         <div className="absolute top-0 left-0 right-0 safe-top z-20 pointer-events-none">
@@ -202,9 +204,14 @@ const EventDetail = () => {
           </div>
         </div>
       </div>
-
-      {/* Content */}
-      <div className="relative px-4 pt-3 pb-28">
+        }
+        below={
+          <div className="px-4 pb-28 lg:px-8">
+            <RelatedEventsFeed eventId={id!} category={event.category} creatorId={event.creator_id} />
+          </div>
+        }
+        content={
+      <div className="relative px-4 pt-3 pb-28 lg:px-8">
         <m.div initial={{
         opacity: 0,
         y: 20
