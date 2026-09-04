@@ -1,4 +1,4 @@
-import { Home, Map, Plus, Ticket, User, LayoutGrid, Bell } from "lucide-react";
+import { Home, Map, Plus, Ticket, User, LayoutGrid, Bell, Settings } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ const baseItems: RailItem[] = [
   { icon: Ticket, label: "Entradas", path: "/tickets", requiresAuth: true, authAction: "ver tus entradas" },
   { icon: Bell, label: "Notificaciones", path: "/notifications", requiresAuth: true, authAction: "ver tus notificaciones" },
   { icon: User, label: "Perfil", path: "/profile", requiresAuth: true, authAction: "ver tu perfil" },
+  { icon: Settings, label: "Configuración", path: "/settings", requiresAuth: true, authAction: "abrir la configuración" },
 ];
 
 /**
