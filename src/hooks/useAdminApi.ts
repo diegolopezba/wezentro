@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type AdminPeriod = "today" | "7d" | "30d" | "90d" | "all";
@@ -159,6 +159,24 @@ export const useAdminSubscriptions = (period: AdminPeriod) =>
     staleTime: 60_000,
     queryFn: () => callAdminApi<AdminSubscriptions>({ action: "subscriptions", period }),
   });
+
+export type AdminSubscriptionOp = "activate" | "cancel" | "past_due" | "extend";
+
+/** Admin action on a subscription. Refreshes subscription + payment views. */
+export const useAdminSubscriptionAction = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { subscriptionId: string; op: AdminSubscriptionOp; days?: number }) =>
+      callAdminApi<{ ok: boolean }>({ action: "subscription_update", ...vars }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-subscriptions"] });
+      qc.invalidateQueries({ queryKey: ["admin-payments"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    },
+  });
+};
+
+
 
 export const useAdminBusinesses = (search: string) =>
   useQuery({
