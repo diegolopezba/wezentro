@@ -64,7 +64,6 @@ const Create = lazy(createImport);
 const Profile = lazy(profileImport);
 
 // Secondary pages - lazy loaded with retry on chunk failures
-const ChatDetail = lazyWithRetry(() => import("./pages/ChatDetail"));
 const Settings = lazyWithRetry(() => import("./pages/Settings"));
 const Saved = lazyWithRetry(() => import("./pages/Saved"));
 const Notifications = lazyWithRetry(() => import("./pages/Notifications"));
