@@ -146,7 +146,8 @@ const BusinessDashboard = () => {
         <QuickActions onBoostClick={handleBoostClick} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="-mx-4 px-4 overflow-x-auto scrollbar-hide">
+          {/* Mobile: horizontal pills */}
+          <div className="lg:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide">
             <TabsList className="inline-flex w-max gap-1 bg-transparent p-0">
               {TABS.map((t) => (
                 <TabsTrigger
@@ -160,30 +161,60 @@ const BusinessDashboard = () => {
             </TabsList>
           </div>
 
-          <TabsContent value="overview">
-            <OverviewTab period={period} onPeriodChange={setPeriod} />
-          </TabsContent>
-          <TabsContent value="sales">
-            <SalesTab />
-          </TabsContent>
-          <TabsContent value="promotores">
-            <PromotersTab />
-          </TabsContent>
-          <TabsContent value="audience">
-            <AudienceTab />
-          </TabsContent>
-          <TabsContent value="content">
-            <ContentTab />
-          </TabsContent>
-          <TabsContent value="actions">
-            <ActionsTab period={period} openBoostWizard={openBoostWizard} />
-          </TabsContent>
-          <TabsContent value="reservas">
-            <ReservasTab period={period} onPeriodChange={setPeriod} />
-          </TabsContent>
-          <TabsContent value="soon">
-            <CityInsightsTab />
-          </TabsContent>
+          <div className="lg:flex lg:gap-8 lg:items-start">
+            {/* Desktop: vertical left menu */}
+            <aside className="hidden lg:block w-52 shrink-0 sticky top-24">
+              <nav className="flex flex-col gap-1 rounded-2xl border border-border/60 bg-card p-2">
+                {TABS.map((t) => {
+                  const Icon = t.icon;
+                  const active = activeTab === t.value;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setActiveTab(t.value)}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-full px-4 py-2.5 text-left text-sm font-medium transition-colors",
+                        active
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground active:bg-secondary",
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </aside>
+
+            <div className="min-w-0 flex-1">
+              <TabsContent value="overview">
+                <OverviewTab period={period} onPeriodChange={setPeriod} />
+              </TabsContent>
+              <TabsContent value="sales">
+                <SalesTab />
+              </TabsContent>
+              <TabsContent value="promotores">
+                <PromotersTab />
+              </TabsContent>
+              <TabsContent value="audience">
+                <AudienceTab />
+              </TabsContent>
+              <TabsContent value="content">
+                <ContentTab />
+              </TabsContent>
+              <TabsContent value="actions">
+                <ActionsTab period={period} openBoostWizard={openBoostWizard} />
+              </TabsContent>
+              <TabsContent value="reservas">
+                <ReservasTab period={period} onPeriodChange={setPeriod} />
+              </TabsContent>
+              <TabsContent value="soon">
+                <CityInsightsTab />
+              </TabsContent>
+            </div>
+          </div>
         </Tabs>
       </BusinessPageContainer>
       <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={BUSINESS_DASHBOARD_INTRO} />
