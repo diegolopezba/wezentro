@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/bottom-sheet";
-import { Ticket, Lock } from "lucide-react";
+import { Ticket, Lock, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { computeTierAvailability, type TicketTier } from "@/hooks/useTicketTiers";
+import { computeTierAvailability, formatSalesEnd, type TicketTier } from "@/hooks/useTicketTiers";
 
 interface Props {
   open: boolean;
@@ -28,8 +28,9 @@ export function TicketTierPicker({ open, onOpenChange, tiers, sequential, onSele
         </SheetHeader>
 
         <div className="space-y-2 pb-6">
-          {visible.map(({ tier, soldOut, remaining, unlocked }) => {
-            const disabled = soldOut || !unlocked;
+          {visible.map(({ tier, soldOut, remaining, unlocked, closed }) => {
+            const disabled = soldOut || !unlocked || closed;
+            const endsLabel = formatSalesEnd(tier.sales_end_at);
             return (
               <button
                 key={tier.id}
@@ -64,6 +65,8 @@ export function TicketTierPicker({ open, onOpenChange, tiers, sequential, onSele
                       <div className="mt-1 text-xs">
                         {soldOut ? (
                           <span className="text-destructive font-medium">Agotado</span>
+                        ) : closed ? (
+                          <span className="text-destructive font-medium">Venta cerrada</span>
                         ) : remaining != null && remaining <= 10 ? (
                           <span className="text-orange-500 font-medium">
                             Quedan {remaining}
@@ -72,6 +75,12 @@ export function TicketTierPicker({ open, onOpenChange, tiers, sequential, onSele
                           <span className="text-muted-foreground">Disponible</span>
                         )}
                       </div>
+                      {endsLabel && !closed && (
+                        <div className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          Se vende hasta el {endsLabel}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="text-right shrink-0">

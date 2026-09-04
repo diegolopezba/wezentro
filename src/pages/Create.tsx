@@ -436,7 +436,7 @@ const Create = () => {
 
 
     // Validate ticket tiers (events only, business + tiers mode)
-    const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
+    const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number; sales_end_at: string | null }[] = [];
     const useTiers = isEvent && isBusiness && pricingMode === "tiers";
     if (useTiers) {
       if (draftTiers.length === 0) {
@@ -460,6 +460,7 @@ const Create = () => {
           capacity: t.capacity ? parseInt(t.capacity) : null,
           description: t.description.trim() || null,
           display_order: cleanTiers.length,
+          sales_end_at: t.salesEndAt ? new Date(t.salesEndAt).toISOString() : null,
         });
       }
     }

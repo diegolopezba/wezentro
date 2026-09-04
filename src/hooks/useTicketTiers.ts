@@ -12,6 +12,8 @@ export interface TicketTier {
   display_order: number;
   unlock_after_tier_id: string | null;
   is_active: boolean;
+  /** Optional moment when this tier stops selling. */
+  sales_end_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -23,7 +25,9 @@ export interface TicketTierInput {
   capacity?: number | null;
   display_order: number;
   unlock_after_tier_id?: string | null;
+  sales_end_at?: string | null;
 }
+
 
 const TIERS_KEY = (eventId?: string) => ["ticket-tiers", eventId] as const;
 
@@ -51,19 +55,35 @@ export const useTicketTiers = (eventId: string | undefined) => {
  *  - parallel mode: all tiers visible at once.
  *  - sequential mode: a tier with `unlock_after_tier_id` is hidden until that tier is sold out.
  */
-export const computeTierAvailability = (tiers: TicketTier[]) => {
+export const computeTierAvailability = (tiers: TicketTier[], now: Date = new Date()) => {
   const byId = new Map(tiers.map((t) => [t.id, t]));
   return tiers.map((t) => {
     const soldOut = t.capacity != null && t.sold_count >= t.capacity;
     const remaining = t.capacity != null ? Math.max(t.capacity - t.sold_count, 0) : null;
+    const endsAt = t.sales_end_at ? new Date(t.sales_end_at) : null;
+    const closed = !!endsAt && !isNaN(endsAt.getTime()) && endsAt.getTime() <= now.getTime();
     let unlocked = true;
     if (t.unlock_after_tier_id) {
       const parent = byId.get(t.unlock_after_tier_id);
       unlocked = !!parent && parent.capacity != null && parent.sold_count >= parent.capacity;
     }
-    return { tier: t, soldOut, remaining, unlocked };
+    return { tier: t, soldOut, remaining, unlocked, closed, endsAt: closed ? endsAt : endsAt };
   });
 };
+
+/** "hasta el 5 sep, 22:00" style label for a tier sales deadline. */
+export const formatSalesEnd = (iso: string | null | undefined) => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleString("es-BO", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 
 export const useReplaceTicketTiers = () => {
   const qc = useQueryClient();
@@ -100,7 +120,9 @@ export const useReplaceTicketTiers = () => {
           capacity: t.capacity ?? null,
           display_order: t.display_order,
           unlock_after_tier_id: sequential ? prevId : null,
+          sales_end_at: t.sales_end_at ?? null,
         };
+
         const { data, error } = await supabase
           .from("ticket_tiers" as any)
           .insert(row)

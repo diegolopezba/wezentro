@@ -13,6 +13,8 @@ export interface DraftTier {
   price: string;
   capacity: string;
   description: string;
+  /** optional `yyyy-MM-dd'T'HH:mm` moment when this tier stops selling */
+  salesEndAt?: string;
 }
 
 export type TicketPricingMode = "single" | "tiers";
@@ -37,7 +39,9 @@ const blankTier = (): DraftTier => ({
   price: "",
   capacity: "",
   description: "",
+  salesEndAt: "",
 });
+
 
 export function TicketTiersEditor({
   mode,
@@ -217,6 +221,18 @@ export function TicketTiersEditor({
                         placeholder="Ej. Acceso al área VIP"
                       />
                     </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Deja de venderse (opcional)</Label>
+                      <Input
+                        type="datetime-local"
+                        value={t.salesEndAt ?? ""}
+                        onChange={(e) => updateTier(t.key, { salesEndAt: e.target.value })}
+                      />
+                      <p className="text-[11px] text-muted-foreground">
+                        Los compradores verán hasta cuándo se vende esta entrada.
+                      </p>
+                    </div>
+
                   </div>
                 )}
               </div>

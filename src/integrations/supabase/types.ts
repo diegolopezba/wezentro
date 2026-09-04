@@ -3767,6 +3767,7 @@ export type Database = {
           is_active: boolean
           name: string
           price: number
+          sales_end_at: string | null
           sold_count: number
           unlock_after_tier_id: string | null
           updated_at: string
@@ -3781,6 +3782,7 @@ export type Database = {
           is_active?: boolean
           name: string
           price?: number
+          sales_end_at?: string | null
           sold_count?: number
           unlock_after_tier_id?: string | null
           updated_at?: string
@@ -3795,6 +3797,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           price?: number
+          sales_end_at?: string | null
           sold_count?: number
           unlock_after_tier_id?: string | null
           updated_at?: string

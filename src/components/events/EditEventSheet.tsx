@@ -10,6 +10,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
 import { format } from "date-fns";
+
+/** ISO timestamp -> value accepted by <input type="datetime-local"> */
+const toLocalInput = (iso: string) => {
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? "" : format(d, "yyyy-MM-dd'T'HH:mm");
+};
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
@@ -214,6 +220,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           price: String(t.price ?? ""),
           capacity: t.capacity != null ? String(t.capacity) : "",
           description: t.description ?? "",
+          salesEndAt: t.sales_end_at ? toLocalInput(t.sales_end_at) : "",
         }))
       );
     } else {
@@ -232,6 +239,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       price: String(t.price ?? ""),
       capacity: t.capacity != null ? String(t.capacity) : "",
       description: t.description ?? "",
+      salesEndAt: t.sales_end_at ? toLocalInput(t.sales_end_at) : "",
     }));
     capture({
       formData: {
@@ -307,7 +315,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       }
 
       // Validate tiers if in tiers mode
-      const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
+      const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number; sales_end_at: string | null }[] = [];
       if (!isPost && pricingMode === "tiers") {
         if (draftTiers.length === 0) {
           toast.error("Añade al menos un tipo de entrada");
@@ -330,6 +338,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             capacity: t.capacity ? parseInt(t.capacity) : null,
             description: t.description.trim() || null,
             display_order: cleanTiers.length,
+            sales_end_at: t.salesEndAt ? new Date(t.salesEndAt).toISOString() : null,
           });
         }
       }
