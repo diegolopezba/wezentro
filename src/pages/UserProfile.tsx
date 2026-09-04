@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { m } from "framer-motion";
 import { trackProfileVisit } from "@/lib/analyticsTracking";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle, UserPlus, UserMinus, Loader2, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
+import { ArrowLeft, UserPlus, UserMinus, Loader2, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,6 @@ import { useAuthPrompt } from "@/hooks/useAuthPrompt";
 import { useUserProfile, useIsFollowing, useIsFollowedBy, useFollowUser, useUnfollowUser } from "@/hooks/useUserProfile";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useUserTimeline } from "@/hooks/useUserTimeline";
-import { useCanMessageUser } from "@/hooks/useUserSettings";
-import { useCreatePrivateChat } from "@/hooks/useChats";
 import { haptic } from "@/lib/haptics";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
@@ -20,6 +18,7 @@ import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
+import { ContactSheet } from "@/components/profile/ContactSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { ExperienceBookingSheet } from "@/components/experiences/ExperienceBookingSheet";
 import { BookingChooserSheet } from "@/components/experiences/BookingChooserSheet";
@@ -43,6 +42,7 @@ const UserProfile = () => {
   const [followSheetType, setFollowSheetType] = useState<"followers" | "following" | null>(null);
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
   const [reservationSheetOpen, setReservationSheetOpen] = useState(false);
   const [bookingChooserOpen, setBookingChooserOpen] = useState(false);
   const [activeExperience, setActiveExperience] = useState<Experience | null>(null);
@@ -74,10 +74,6 @@ const UserProfile = () => {
     data: timeline,
     isLoading: timelineLoading
   } = useUserTimeline(id);
-  const {
-    data: canMessageData,
-    isLoading: canMessageLoading
-  } = useCanMessageUser(id);
   const isFoodBusiness = isFoodBusinessType((userProfile as any)?.business_type);
   const isBusiness = userProfile?.is_business === true;
   const { hasActivePlan } = useBusinessPlanAccess(id, isBusiness && isFoodBusiness);
@@ -93,7 +89,6 @@ const UserProfile = () => {
   const hasBusinessInfo = userProfile?.business_address || userProfile?.business_hours || userProfile?.business_phone;
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
-  const createChatMutation = useCreatePrivateChat();
   const formatCount = (count: number) => formatCountUtil(count);
   const handleFollowToggle = () => {
     if (!id) return;
@@ -110,28 +105,6 @@ const UserProfile = () => {
     } else {
       followMutation.mutate(id);
     }
-  };
-  const handleMessage = () => {
-    if (!id) return;
-
-    // Prompt guests to sign up
-    if (isGuest) {
-      promptAuth({ action: "enviar un mensaje" });
-      return;
-    }
-
-    if (!canMessageData?.canMessage) {
-      toast.error(canMessageData?.reason || "No se puede enviar mensaje a este usuario");
-      return;
-    }
-    createChatMutation.mutate(id, {
-      onSuccess: (chatId) => {
-        navigate(`/chats/${chatId}`);
-      },
-      onError: () => {
-        toast.error("Error al iniciar conversación");
-      }
-    });
   };
 
   /** Reservar: mesa and/or experiencia, with a chooser when both exist. */
