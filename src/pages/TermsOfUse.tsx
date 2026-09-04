@@ -259,10 +259,11 @@ const TermsOfUse = () => {
               <li>Si un evento es cancelado por el organizador, el organizador es responsable de reembolsar a los compradores afectados.</li>
               <li>En caso de disputa, el comprador debe contactar primero al negocio organizador. Zentro puede facilitar la comunicación pero no garantiza un resultado específico.</li>
             </ul>
-            <p className="text-sm text-muted-foreground leading-relaxed font-medium mt-2">Suscripciones (Stripe):</p>
+            <p className="text-sm text-muted-foreground leading-relaxed font-medium mt-2">Suscripciones Business (Qhantuy / Cybersource):</p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>No se realizan reembolsos por períodos parciales ya consumidos.</li>
-              <li>Puede cancelar la renovación automática en cualquier momento; mantendrá el acceso hasta el final del período pagado.</li>
+              <li>Puede cancelar su suscripción en cualquier momento; mantendrá el acceso hasta el final del período pagado.</li>
+              <li>El cargo de procesamiento de Qhantuy (1%) no es reembolsable una vez confirmado el pago.</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed font-medium mt-2">Compras dentro de la aplicación (App Store / Play Store):</p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
@@ -273,17 +274,10 @@ const TermsOfUse = () => {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-foreground">10. Programa de Referidos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Zentro ofrece un programa de referidos para usuarios con suscripciones Business o Zentro Places. Al participar:
+              Zentro cuenta con infraestructura de seguimiento de referidos; sin embargo, el programa de recompensas está actualmente inactivo y no se otorgan beneficios por referidos en este momento.
             </p>
-            <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li>Puede compartir su código de referido con otros usuarios</li>
-              <li>Recibirá un mes gratis por cada usuario referido que complete su primer pago de suscripción Business o Zentro Places</li>
-              <li>El máximo de meses gratuitos acumulables es de 5</li>
-              <li>Las recompensas no son transferibles ni canjeables por dinero</li>
-              <li>Nos reservamos el derecho de modificar o cancelar el programa en cualquier momento</li>
-            </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              El abuso del programa de referidos, incluyendo la creación de cuentas falsas o prácticas fraudulentas, resultará en la pérdida de recompensas y posible terminación de la cuenta.
+              Nos reservamos el derecho de activar, modificar o cancelar el programa de referidos en cualquier momento, notificando los cambios en la aplicación. Cualquier abuso del sistema de referidos, incluyendo la creación de cuentas falsas o prácticas fraudulentas, resultará en la posible terminación de la cuenta.
             </p>
           </section>
 
