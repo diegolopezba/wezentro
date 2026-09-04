@@ -30,7 +30,7 @@ const TABS = [
   { value: "sales", label: "Ventas", icon: DollarSign },
   { value: "promotores", label: "Promotores", icon: Megaphone },
   { value: "audience", label: "Audiencia", icon: Users },
-  { value: "actions", label: "Acciones", icon: Zap },
+  { value: "actions", label: "Promociones", icon: Zap },
   { value: "reservas", label: "Reservas", icon: CalendarCheck },
   { value: "soon", label: "Insights", icon: Lightbulb },
 ];
@@ -206,7 +206,7 @@ const BusinessDashboard = () => {
                 <ReservasTab period={period} onPeriodChange={setPeriod} />
               </TabsContent>
               <TabsContent value="soon">
-                <CityInsightsTab />
+                <CityInsightsTab period={period} />
               </TabsContent>
             </div>
           </div>
