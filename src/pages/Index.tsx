@@ -231,7 +231,7 @@ const Index = () => {
 
 
   return <AppLayout ref={scrollContainerRef}>
-        <header className={cn("sticky top-0 z-30 safe-top bg-background transition-transform duration-300 ease-out", !headerVisible && "-translate-y-full")}>
+        <header className={cn("sticky top-0 z-30 safe-top bg-background transition-transform duration-300 ease-out", !headerVisible && "-translate-y-full lg:translate-y-0")}>
           <div className="flex items-center justify-between px-4 py-4">
             <m.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
               <h1 className="font-brand text-2xl text-foreground font-semibold">zentro</h1>
