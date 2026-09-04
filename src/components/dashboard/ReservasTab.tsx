@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "./StatsCard";
 import { PeriodSelector, Period } from "./PeriodSelector";
-import { ReservationsSummary } from "./ReservationsSummary";
+
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PlansSheet } from "@/components/subscriptions/PlansSheet";
 import { featureUpgradeLabel } from "@/lib/subscriptionTiers";
@@ -146,10 +146,6 @@ export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
         </section>
       )}
 
-      <section className="space-y-3">
-        <h3 className="font-brand text-sm font-semibold text-foreground">Próximas reservas</h3>
-        <ReservationsSummary />
-      </section>
 
       <PlansSheet open={plansOpen} onOpenChange={setPlansOpen} currentTier={tier} />
     </div>
