@@ -1,6 +1,6 @@
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { CheckCircle2, Clock, MapPin, MessageCircle, StickyNote, UserCheck, Users, UserX } from "lucide-react";
+import { CheckCircle2, Clock, MapPin, StickyNote, UserCheck, Users, UserX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useCreatePrivateChat } from "@/hooks/useChats";
 import { useSetExperienceBookingStatus, type ExperienceBookingRow } from "@/hooks/useExperiences";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { EXPERIENCE_STATUS_LABEL, STATUS_STYLE } from "@/components/business/gestionShared";
@@ -38,7 +37,6 @@ interface Props {
 export const ExperienceBookingDetailSheet = ({ booking, open, onOpenChange }: Props) => {
   const navigate = useNavigate();
   const statusMutation = useSetExperienceBookingStatus();
-  const createChatMutation = useCreatePrivateChat();
 
   if (!booking) return null;
 
@@ -46,16 +44,6 @@ export const ExperienceBookingDetailSheet = ({ booking, open, onOpenChange }: Pr
     booking.user ? { ...booking.user } : null,
     ...(booking.guests || []).map((g) => (g.user ? { ...g.user } : null)),
   ].filter(Boolean) as { id: string; username: string; full_name: string | null; avatar_url: string | null }[];
-
-  const handleMessage = () => {
-    if (!booking.user) return;
-    createChatMutation.mutate(booking.user.id, {
-      onSuccess: (chatId) => {
-        onOpenChange(false);
-        navigate(`/chats/${chatId}`);
-      },
-    });
-  };
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -161,16 +149,6 @@ export const ExperienceBookingDetailSheet = ({ booking, open, onOpenChange }: Pr
           </div>
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={handleMessage}
-              disabled={createChatMutation.isPending || !booking.user}
-            >
-              <MessageCircle className="w-3.5 h-3.5 mr-1" />
-              Mensaje
-            </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="flex-1 text-destructive border-destructive/30">
