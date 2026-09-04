@@ -1,6 +1,8 @@
 import { ReactNode, forwardRef } from "react";
 import { BottomNav } from "./BottomNav";
+import { DesktopNavRail } from "./DesktopNavRail";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { cn } from "@/lib/utils";
 
 export interface AppLayoutProps {
   children: ReactNode;
@@ -13,16 +15,23 @@ export const AppLayout = forwardRef<HTMLDivElement, AppLayoutProps>(
     // here, otherwise scroll listeners and virtualization bind to an element
     // that never scrolls.
     return (
-      <div ref={ref} className="min-h-[100dvh] bg-background">
+      <div ref={ref} className={cn("min-h-[100dvh] bg-background", !hideNav && "lg:pl-20")}>
         <OfflineBanner />
 
         {/* Main content */}
-        <main className={hideNav ? "" : "pb-24"}>
+        <main className={hideNav ? "" : "pb-24 lg:pb-8"}>
           {children}
         </main>
-        
-        {/* Bottom navigation */}
-        {!hideNav && <BottomNav />}
+
+        {/* Navigation: bottom bar on mobile, left rail on desktop */}
+        {!hideNav && (
+          <>
+            <div className="lg:hidden">
+              <BottomNav />
+            </div>
+            <DesktopNavRail />
+          </>
+        )}
       </div>
     );
   }

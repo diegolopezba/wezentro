@@ -2,19 +2,21 @@ import { useEffect, type ReactNode } from "react";
 import { m, useMotionValue, useTransform, type PanInfo } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { haptic } from "@/lib/haptics";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
 
 /**
- * Full-screen iOS-style push overlay with interactive drag-to-dismiss.
- * - Slides in from the right using the iOS push curve.
- * - Follows the finger on a rightward drag; releases past ~35% width
- *   or a fast flick trigger navigate(-1).
- * - The underlying shell (feed/tab) stays mounted so scroll is preserved.
+ * Mobile: full-screen iOS-style push overlay with interactive drag-to-dismiss.
+ * Desktop: Pinterest-style centered overlay card over a dimmed background,
+ * closed by clicking outside (or the page's own close control).
+ *
+ * The underlying shell (feed/tab) stays mounted so scroll is preserved.
  */
 const DISMISS_DISTANCE_RATIO = 0.35;
 const DISMISS_VELOCITY = 500;
 
 export const PageModal = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const x = useMotionValue(0);
   // Dim the shell behind while dragging — fades as the sheet moves away.
   const backdropOpacity = useTransform(x, [0, window.innerWidth], [0.35, 0]);
@@ -36,6 +38,29 @@ export const PageModal = ({ children }: { children: ReactNode }) => {
       navigate(-1);
     }
   };
+
+  if (isDesktop) {
+    return (
+      <>
+        <div
+          className="fixed inset-0 z-40 bg-black/60"
+          onClick={() => navigate(-1)}
+          aria-hidden
+        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 pointer-events-none">
+          <m.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+            className="pointer-events-auto w-full max-w-5xl max-h-[92vh] overflow-y-auto overscroll-contain rounded-3xl bg-background shadow-2xl"
+          >
+            {children}
+          </m.div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

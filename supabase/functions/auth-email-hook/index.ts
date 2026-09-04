@@ -43,7 +43,7 @@ const SAMPLE_DATA: Record<string, object> = {
     siteName: SITE_NAME,
     siteUrl: SAMPLE_PROJECT_URL,
     recipient: SAMPLE_EMAIL,
-    confirmationUrl: SAMPLE_PROJECT_URL,
+    token: '123456',
   },
   magiclink: {
     siteName: SITE_NAME,
@@ -129,13 +129,13 @@ const handler = createAuthEmailHandler({
   sendUrl: Deno.env.get('LOVABLE_SEND_URL'),
   emails: {
     signup: {
-      subject: 'Confirm your email',
+      subject: 'Tu código de verificación',
       render: (data) =>
         React.createElement(SignupEmail, {
           siteName: SITE_NAME,
           siteUrl: SITE_URL,
           recipient: data.email,
-          confirmationUrl: data.url,
+          token: data.token ?? '',
         }),
     },
     invite: {

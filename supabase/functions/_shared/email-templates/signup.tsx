@@ -4,13 +4,13 @@ import * as React from 'npm:react@18.3.1'
 
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
   Html,
   Link,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -18,38 +18,36 @@ interface SignupEmailProps {
   siteName: string
   siteUrl: string
   recipient: string
-  confirmationUrl: string
+  token: string
 }
 
 export const SignupEmail = ({
   siteName,
   siteUrl,
   recipient,
-  confirmationUrl,
+  token,
 }: SignupEmailProps) => (
   <Html lang="es" dir="ltr">
     <Head />
-    <Preview>Confirma tu correo para {siteName}</Preview>
+    <Preview>{`Tu código de verificación: ${token}`}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirma tu correo</Heading>
+        <Heading style={h1}>Tu código de verificación</Heading>
         <Text style={text}>
           ¡Gracias por unirte a{' '}
           <Link href={siteUrl} style={link}>
             <strong>{siteName}</strong>
           </Link>
-          !
-        </Text>
-        <Text style={text}>
-          Confirmá tu dirección de correo (
+          ! Ingresá este código en la app para confirmar{' '}
           <Link href={`mailto:${recipient}`} style={link}>
             {recipient}
           </Link>
-          ) tocando el botón de abajo:
+          :
         </Text>
-        <Button style={button} href={confirmationUrl}>
-          Confirmar correo
-        </Button>
+        <Section style={codeBox}>
+          <Text style={code}>{token}</Text>
+        </Section>
+        <Text style={hint}>El código vence en 60 minutos.</Text>
         <Text style={footer}>
           Si no creaste esta cuenta, podés ignorar este mensaje.
         </Text>
@@ -75,13 +73,18 @@ const text = {
   margin: '0 0 25px',
 }
 const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#E60023',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '9999px',
-  fontWeight: 600 as const,
-  padding: '12px 20px',
-  textDecoration: 'none',
+const codeBox = {
+  backgroundColor: '#f4f4f5',
+  borderRadius: '16px',
+  padding: '20px',
+  textAlign: 'center' as const,
 }
+const code = {
+  fontSize: '34px',
+  fontWeight: 700 as const,
+  letterSpacing: '10px',
+  color: '#000000',
+  margin: '0',
+}
+const hint = { fontSize: '13px', color: '#55575d', margin: '18px 0 0' }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }

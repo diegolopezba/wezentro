@@ -90,40 +90,86 @@ Deno.serve(async (req) => {
 
   let sent = 0
   let failed = 0
+  const results: Array<{ id: string; email: string; status: string; reason?: string }> = []
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+  const EMAIL_RE = /^[^\s@]+@[^\s@,;]+\.[A-Za-z]{2,}$/
 
-  for (const invite of invites) {
-    try {
-      await sendAppEmail(admin, 'special-invite', invite.guest_email, {
-        idempotencyKey: `special-invite-${invite.id}`,
-        templateData: {
-          guestName: invite.guest_name ?? undefined,
-          eventTitle: event.title,
-          eventDate,
-          eventLocation: event.location_name ?? undefined,
-          eventImageUrl: event.image_url ?? undefined,
-          segment: invite.segment ?? undefined,
-          inviteUrl: `${SITE}/i/${invite.token}`,
-          hostName,
-          deliveryMode: invite.delivery_mode ?? 'app',
-        },
-      })
+  for (const [index, invite] of invites.entries()) {
+    const email = (invite.guest_email ?? '').trim().toLowerCase()
 
+    if (!EMAIL_RE.test(email)) {
+      failed++
+      results.push({ id: invite.id, email, status: 'invalid_email' })
+      await admin
+        .from('event_special_invites')
+        .update({ email_status: 'failed' })
+        .eq('id', invite.id)
+      continue
+    }
+
+    const payload = {
+      idempotencyKey: `special-invite-${invite.id}`,
+      templateData: {
+        guestName: invite.guest_name ?? undefined,
+        eventTitle: event.title,
+        eventDate,
+        eventLocation: event.location_name ?? undefined,
+        eventImageUrl: event.image_url ?? undefined,
+        segment: invite.segment ?? undefined,
+        inviteUrl: `${SITE}/i/${invite.token}`,
+        hostName,
+        deliveryMode: invite.delivery_mode ?? 'app',
+      },
+    }
+
+    // Pace sends so a large batch does not trip the managed rate limit, and
+    // retry once honouring the server's retry delay when it does.
+    let attempt = 0
+    let delivered = false
+    let lastReason = 'error'
+
+    while (attempt < 3 && !delivered) {
+      attempt++
+      try {
+        const result = await sendAppEmail(admin, 'special-invite', email, payload)
+        if (result.sent) {
+          delivered = true
+        } else {
+          lastReason = result.reason ?? 'not_sent'
+          break
+        }
+      } catch (e) {
+        const err = e as { status?: number; retryAfterSeconds?: number | null; message?: string }
+        const rateLimited = err?.status === 429
+        lastReason = rateLimited ? 'rate_limited' : err?.message ?? 'error'
+        console.error('send-special-invites error', invite.id, lastReason)
+        if (!rateLimited || attempt >= 3) break
+        const waitMs = Math.min((err.retryAfterSeconds ?? 60), 90) * 1000
+        await sleep(waitMs)
+      }
+    }
+
+    if (delivered) {
       sent++
+      results.push({ id: invite.id, email, status: 'sent' })
       await admin
         .from('event_special_invites')
         .update({ email_status: 'sent', email_sent_at: new Date().toISOString() })
         .eq('id', invite.id)
-    } catch (e) {
-      console.error('send-special-invites error', e)
+    } else {
       failed++
+      results.push({ id: invite.id, email, status: 'failed', reason: lastReason })
       await admin
         .from('event_special_invites')
         .update({ email_status: 'failed' })
         .eq('id', invite.id)
     }
+
+    // Small gap between sends keeps the batch under the managed hourly limit.
+    if (index < invites.length - 1) await sleep(700)
   }
 
-  return json({ sent, failed, processed: invites.length }, 200)
+  return json({ sent, failed, processed: invites.length, results }, 200)
 })
 
 function json(body: unknown, status: number) {

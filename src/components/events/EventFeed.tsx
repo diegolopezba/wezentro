@@ -406,6 +406,10 @@ const MasonryCardItem = memo(MasonryCardItemBase, (prev, next) => {
 });
 
 function getColumnCount(width: number): number {
+  // Desktop widens Pinterest-style: more columns as the viewport grows.
+  if (width >= 2200) return 7;
+  if (width >= 1800) return 6;
+  if (width >= 1440) return 5;
   if (width >= 1024) return 4;
   if (width >= 640) return 3;
   return 2;
