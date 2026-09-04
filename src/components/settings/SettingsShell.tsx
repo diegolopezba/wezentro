@@ -88,7 +88,7 @@ export const SettingsShell = ({ children }: { children: ReactNode }) => {
           </div>
         ))}
       </aside>
-      {children}
+      <div className="lg:mx-auto lg:max-w-3xl">{children}</div>
     </div>
   );
 };
