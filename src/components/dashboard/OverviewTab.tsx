@@ -157,7 +157,7 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
       {chartData && chartData.length > 0 && (
         <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="rounded-2xl bg-card border border-border p-4">
           <p className="text-sm font-medium text-muted-foreground mb-3">Cuentas alcanzadas por día</p>
-          <ResponsiveContainer width="100%" height={140} className="lg:!h-[220px]">
+          <ResponsiveContainer width="100%" height={140}>
             <LineChart data={chartData}>
               <XAxis dataKey="day" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} interval="preserveStartEnd" />
               <YAxis hide />
