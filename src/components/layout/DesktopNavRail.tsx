@@ -95,7 +95,9 @@ export const DesktopNavRail = () => {
         </NavLink>
 
         {items.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive =
+            location.pathname === item.path ||
+            (item.path === "/settings" && location.pathname.startsWith("/settings"));
           const Icon = item.icon;
           const showBadge = item.path === "/notifications" && !!user && unreadCount > 0;
           return (
