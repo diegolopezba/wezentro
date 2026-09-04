@@ -8,11 +8,13 @@ interface QuickActionsProps {
 export const QuickActions = ({ onBoostClick }: QuickActionsProps) => {
   return (
     <div className="flex gap-2 pb-1">
-      <Button
-        variant="outline" size="sm" className="flex-shrink-0 gap-1.5 rounded-full border-primary/30 text-primary overflow-hidden relative bg-transparent boost-glow-btn" onClick={onBoostClick}>
-        <Zap className="w-4 h-4" />
-        Impulsar Publicación
-      </Button>
+      <span className="glow-border">
+        <Button
+          variant="outline" size="sm" className="flex-shrink-0 gap-1.5 rounded-full border-0 text-primary bg-background hover:bg-background/90" onClick={onBoostClick}>
+          <Zap className="w-4 h-4" />
+          Impulsar Publicación
+        </Button>
+      </span>
     </div>
   );
 };
