@@ -3,6 +3,7 @@
 ## Part 1 — Emails
 
 ### Signup: send a 6-digit code instead of a confirm button (confirmed cause)
+
 The signup auth email template renders a "Confirmar correo" button from the confirmation URL and never shows a code. The app already has `verifySignupOtp` in the auth context, so only the email and the signup screen need to change.
 
 - Rewrite the signup email to display the 6-digit token prominently (large, spaced digits, expiry note), no CTA button.
@@ -10,17 +11,20 @@ The signup auth email template renders a "Confirmar correo" button from the conf
 - Make sure the signup screen routes to the code-entry step after sign-up and that "reenviar código" resends the same code email.
 
 ### Audit findings on the other triggers (verified against code + delivery logs)
+
 Every app email has a real trigger wired:
 
-| Email | Trigger | State |
-|---|---|---|
-| tickets-purchased | payment callback + free-ticket path | wired |
-| lounge-confirmed | payment callback after area booking | wired |
-| experience-confirmed / -received | payment callback + booking hook | wired |
-| reservation-confirmed / -received | reservation create/cancel hook | wired |
-| subscription-activated / -renewal | payment callback + lifecycle cron | wired |
-| special-invite, invite-confirmed | invite send + RSVP accept | wired |
-| waitlist-released | waitlist release function | wired |
+
+| Email                             | Trigger                             | State |
+| --------------------------------- | ----------------------------------- | ----- |
+| tickets-purchased                 | payment callback + free-ticket path | wired |
+| lounge-confirmed                  | payment callback after area booking | wired |
+| experience-confirmed / -received  | payment callback + booking hook     | wired |
+| reservation-confirmed / -received | reservation create/cancel hook      | wired |
+| subscription-activated / -renewal | payment callback + lifecycle cron   | wired |
+| special-invite, invite-confirmed  | invite send + RSVP accept           | wired |
+| waitlist-released                 | waitlist release function           | wired |
+
 
 Two real problems the logs show:
 
@@ -36,7 +40,8 @@ The mobile experience stays exactly as it is today — desktop layouts activate 
 Desktop rules taken from Pinterest: persistent left icon rail instead of the bottom bar, a slim top search/header, a wide fluid masonry grid that adds columns with viewport width, content opening in a centered overlay modal over a dimmed background rather than a full page, and hover affordances allowed on desktop only (mobile keeps the no-hover rule).
 
 ### Phase 1 — Desktop shell + consumer pages
-- App shell: left nav rail (Home, Buscar, Crear, Entradas, Perfil) on `lg+`, bottom nav hidden; top bar with search and account.
+
+- App shell: left nav rail (Home, Buscar, Crear, Entradas, Perfil and Notifications) on `lg+`, bottom nav hidden; top bar with logo, main icon, search, and filter icon.
 - Home feed: fluid masonry with 4–6 columns by width, wider max container, desktop hover overlay on cards.
 - Discover/Buscar, Perfil, Entradas/Reservas: multi-column layouts and wider containers.
 - Event/Experience detail: centered overlay modal with a two-column body (media left, info + purchase CTA right).
@@ -44,11 +49,13 @@ Desktop rules taken from Pinterest: persistent left icon rail instead of the bot
 - Sheets/menus: bottom sheets become centered dialogs or side panels on desktop.
 
 ### Phase 2 — Business desktop (separate pass, after review)
+
 - Gestión: persistent left section nav, event pill row becomes a sidebar list, detail panel to its right.
 - Reservas / Experiencias: day picker plus timeline side by side instead of stacked.
 - Dashboard: multi-column metric grid, wider charts, funnel and pace side by side.
 
 ## Technical notes
+
 - New `useIsDesktop` breakpoint hook plus a `DesktopShell` layout wrapper; pages keep their current mobile markup and gain `lg:` variants.
 - A shared `ResponsiveSheet` wrapper renders the existing bottom sheet on mobile and a centered dialog on desktop, so each sheet is adapted once.
 - Hover styles are gated behind a desktop-only utility so the app-wide no-hover rule still holds on touch.
