@@ -85,7 +85,7 @@ export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
       ) : (
         <div className={`grid gap-3 ${fullAnalytics ? "grid-cols-3" : "grid-cols-2"}`}>
           <StatsCard title="Reservas" value={stats.total} icon={CalendarCheck} delay={0} />
-          <StatsCard title="Invitados" value={stats.guests} icon={Users} delay={0.05} />
+          <StatsCard title="Covers" value={stats.guests} icon={Users} delay={0.05} />
           {fullAnalytics && (
             <StatsCard
               title="Cancelación"
