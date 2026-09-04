@@ -33,7 +33,7 @@ export const AudienceTab = () => {
 
       <FollowerGrowthChart />
 
-      <AudienceInsights />
+      <FanBaseSection />
     </div>
   );
 };
