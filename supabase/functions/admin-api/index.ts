@@ -33,6 +33,9 @@ function payoutOf(row: { amount: unknown; payout_amount: unknown; platform_fee_a
   if (row.payout_amount != null) return num(row.payout_amount);
   return round2(num(row.amount) - feeOf(row));
 }
+/** Subscription checkouts are a separate revenue channel: 100% stays with Zentro. */
+const isSubscription = (row: { subscription_business_id?: unknown; subscription_tier?: unknown }) =>
+  !!row.subscription_business_id || !!row.subscription_tier;
 
 function sinceIso(period: string): string | null {
   if (period === "all") return null;
