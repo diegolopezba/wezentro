@@ -221,6 +221,18 @@ export function TicketTiersEditor({
                         placeholder="Ej. Acceso al área VIP"
                       />
                     </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Deja de venderse (opcional)</Label>
+                      <Input
+                        type="datetime-local"
+                        value={t.salesEndAt ?? ""}
+                        onChange={(e) => updateTier(t.key, { salesEndAt: e.target.value })}
+                      />
+                      <p className="text-[11px] text-muted-foreground">
+                        Los compradores verán hasta cuándo se vende esta entrada.
+                      </p>
+                    </div>
+
                   </div>
                 )}
               </div>
