@@ -4937,6 +4937,10 @@ export type Database = {
         Args: { _business_id: string }
         Returns: string
       }
+      get_business_reservation_analytics: {
+        Args: { _business_id: string; _from?: string; _to?: string }
+        Returns: Json
+      }
       get_business_shifts: {
         Args: { _business_id: string; _weekday: number }
         Returns: {
