@@ -160,8 +160,8 @@ const EventDetailModalInner = () => {
         </div>
       ) : (
         <>
-          {/* Hero media carousel */}
-          {(() => {
+          <DetailSplitLayout
+            media={(() => {
             const mediaArr = ((event as any).media as any[]) || [];
             const items = mediaArr.length > 0
               ? mediaArr.map((m: any) => ({
@@ -172,7 +172,7 @@ const EventDetailModalInner = () => {
                 }))
               : [{ media_url: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80", media_type: undefined as any }];
             return (
-              <div className="relative w-full overflow-hidden rounded-b-3xl lg:rounded-t-3xl">
+              <div className="relative w-full overflow-hidden rounded-b-3xl lg:rounded-b-none lg:rounded-tl-3xl">
                 <MediaCarousel items={items} isHero />
                 {/* Close button */}
                 <div className="absolute top-0 left-0 right-0 safe-top z-20">
@@ -185,10 +185,14 @@ const EventDetailModalInner = () => {
               </div>
             );
           })()}
-
-          {/* Content */}
+            below={
+              <div className="px-4 pb-28 lg:px-8 lg:pb-10">
+                <RelatedEventsFeed eventId={id!} category={event.category} creatorId={event.creator_id} />
+              </div>
+            }
+            content={
           <m.div
-            className="relative px-4 pt-3 pb-28 lg:mx-auto lg:max-w-3xl lg:px-8"
+            className="relative px-4 pt-3 pb-28 lg:pb-8 lg:px-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
