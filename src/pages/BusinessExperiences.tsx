@@ -86,7 +86,7 @@ const BusinessExperiences = () => {
         </div>
       </header>
 
-      <div className="space-y-3 px-4 py-4">
+      <div className="space-y-3 px-4 py-4 lg:mx-auto lg:max-w-3xl lg:px-8">
         <p className="text-[13px] leading-snug text-muted-foreground">
           Creá experiencias con horarios, cupos y precios. Tus clientes reservan y pagan por adelantado
           con QR, igual que una entrada.
