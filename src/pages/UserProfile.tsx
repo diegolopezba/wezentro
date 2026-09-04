@@ -12,7 +12,6 @@ import { useUserProfile, useIsFollowing, useIsFollowedBy, useFollowUser, useUnfo
 import { useUserStats } from "@/hooks/useUserStats";
 import { useUserTimeline } from "@/hooks/useUserTimeline";
 import { haptic } from "@/lib/haptics";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
@@ -86,6 +85,7 @@ const UserProfile = () => {
     (userProfile as any)?.experiences_enabled === true && publicExperiences.length > 0;
   const tableReservationAvailable = isFoodBusiness && reservationsEnabled;
   const businessType = (userProfile as any)?.business_type as string | null | undefined;
+  const contactPhone = userProfile?.business_phone?.trim() || null;
   const hasBusinessInfo = userProfile?.business_address || userProfile?.business_hours || userProfile?.business_phone;
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
@@ -231,14 +231,11 @@ const UserProfile = () => {
             {/* For food businesses: Message pill + Reserve pill + Menu icon */}
             {isBusiness && isFoodBusiness ?
         <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
-                      {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Mensaje"}
-                    </Button>
-                  </TooltipTrigger>
-                  {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent><p>{canMessageData.reason}</p></TooltipContent>}
-                </Tooltip>
+                {contactPhone &&
+          <Button variant="secondary" className="flex-1 min-w-0" onClick={() => { haptic("light"); setContactOpen(true); }}>
+                    Contactar
+                  </Button>
+          }
 
                 {(tableReservationAvailable || experiencesAvailable) &&
           <Button variant="secondary" className="flex-1 min-w-0" onClick={handleReserve}>
@@ -259,16 +256,11 @@ const UserProfile = () => {
                     Reservar
                   </Button>
           }
-                <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="secondary" className="flex-1 min-w-0" onClick={handleMessage} disabled={canMessageLoading || createChatMutation.isPending || !canMessageData?.canMessage}>
-                    {createChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Mensaje"}
+                {contactPhone &&
+          <Button variant="secondary" className="flex-1 min-w-0" onClick={() => { haptic("light"); setContactOpen(true); }}>
+                    Contactar
                   </Button>
-                </TooltipTrigger>
-                {!canMessageData?.canMessage && canMessageData?.reason && <TooltipContent>
-                    <p>{canMessageData.reason}</p>
-                  </TooltipContent>}
-              </Tooltip>
+          }
               </>
         }
           </m.div>}
@@ -287,6 +279,14 @@ const UserProfile = () => {
       {id && <FollowersSheet userId={id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={(open) => !open && setFollowSheetType(null)} />}
       {/* Menu Sheet for food businesses */}
       {id && isBusiness && isFoodBusiness && menuEnabled && <MenuSheet open={menuSheetOpen} onOpenChange={setMenuSheetOpen} userId={id} businessName={userProfile?.full_name || userProfile?.username} />}
+      {/* Contact Sheet */}
+      {userProfile && contactPhone &&
+    <ContactSheet
+      open={contactOpen}
+      onOpenChange={setContactOpen}
+      name={userProfile.full_name || userProfile.username}
+      phone={contactPhone} />
+    }
       {/* Business Info Sheet */}
       {userProfile &&
     <BusinessInfoSheet
