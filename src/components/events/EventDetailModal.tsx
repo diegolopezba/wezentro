@@ -374,10 +374,11 @@ const EventDetailModalInner = () => {
               </div>
 
               {!isPost && isOwner && event.has_guestlist && <InvitationsSentSection eventId={id!} />}
-
-              <RelatedEventsFeed eventId={id!} category={event.category} creatorId={event.creator_id} />
             </div>
           </m.div>
+            }
+          />
+
 
           {/* Modals & sheets */}
           <GuestlistManagementSheet eventId={id!} open={showManagement} onOpenChange={setShowManagement} />
