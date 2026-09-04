@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, BarChart3, Wallet, HelpCircle, LayoutDashboard, DollarSign,
-  Megaphone, Users, FileText, Zap, CalendarCheck, Lightbulb,
+  Megaphone, Users, Zap, CalendarCheck, Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,6 @@ import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { useDashboardAccess } from "@/hooks/useDashboardAccess";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { OverviewTab } from "@/components/dashboard/OverviewTab";
-import { ContentTab } from "@/components/dashboard/ContentTab";
 import { AudienceTab } from "@/components/dashboard/AudienceTab";
 import { ActionsTab } from "@/components/dashboard/ActionsTab";
 import { SalesTab } from "@/components/dashboard/SalesTab";
@@ -31,7 +30,6 @@ const TABS = [
   { value: "sales", label: "Ventas", icon: DollarSign },
   { value: "promotores", label: "Promotores", icon: Megaphone },
   { value: "audience", label: "Audiencia", icon: Users },
-  { value: "content", label: "Contenido", icon: FileText },
   { value: "actions", label: "Acciones", icon: Zap },
   { value: "reservas", label: "Reservas", icon: CalendarCheck },
   { value: "soon", label: "Insights", icon: Lightbulb },
@@ -200,9 +198,6 @@ const BusinessDashboard = () => {
               </TabsContent>
               <TabsContent value="audience">
                 <AudienceTab />
-              </TabsContent>
-              <TabsContent value="content">
-                <ContentTab />
               </TabsContent>
               <TabsContent value="actions">
                 <ActionsTab period={period} openBoostWizard={openBoostWizard} />
