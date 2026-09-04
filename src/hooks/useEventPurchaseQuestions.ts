@@ -66,26 +66,50 @@ export const useSaveEventPurchaseQuestions = () => {
       eventId: string;
       questions: PurchaseQuestion[];
     }) => {
-      const { error: delErr } = await db
-        .from("event_purchase_questions")
-        .delete()
-        .eq("event_id", eventId);
+      const kept = questions.filter((q) => q.label.trim().length > 0);
+      const isExisting = (id: string) => !!id && !id.startsWith("draft-");
+
+      // Delete only the questions the business actually removed, so answers
+      // already stored against surviving question ids keep their labels.
+      const keepIds = kept.map((q) => q.id).filter(isExisting);
+      let delQuery = db.from("event_purchase_questions").delete().eq("event_id", eventId);
+      if (keepIds.length > 0) {
+        delQuery = delQuery.not("id", "in", `(${keepIds.join(",")})`);
+      }
+      const { error: delErr } = await delQuery;
       if (delErr) throw delErr;
 
-      const rows = questions
-        .filter((q) => q.label.trim().length > 0)
-        .map((q, i) => ({
-          event_id: eventId,
-          label: q.label.trim(),
-          type: q.type,
-          required: q.required,
-          options: q.type === "select" ? q.options.filter(Boolean) : [],
-          scope: q.scope,
-          display_order: i,
-        }));
-      if (rows.length === 0) return;
-      const { error } = await db.from("event_purchase_questions").insert(rows);
-      if (error) throw error;
+      const payload = (q: PurchaseQuestion, i: number) => ({
+        event_id: eventId,
+        label: q.label.trim(),
+        type: q.type,
+        required: q.required,
+        options: q.type === "select" ? q.options.filter(Boolean) : [],
+        scope: q.scope,
+        display_order: i,
+      });
+
+      const inserts = kept
+        .map((q, i) => ({ q, i }))
+        .filter(({ q }) => !isExisting(q.id))
+        .map(({ q, i }) => payload(q, i));
+
+      const updates = kept
+        .map((q, i) => ({ q, i }))
+        .filter(({ q }) => isExisting(q.id));
+
+      for (const { q, i } of updates) {
+        const { error } = await db
+          .from("event_purchase_questions")
+          .update(payload(q, i))
+          .eq("id", q.id);
+        if (error) throw error;
+      }
+
+      if (inserts.length > 0) {
+        const { error } = await db.from("event_purchase_questions").insert(inserts);
+        if (error) throw error;
+      }
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["event-purchase-questions", vars.eventId] });

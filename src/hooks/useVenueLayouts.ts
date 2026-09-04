@@ -122,7 +122,6 @@ export const makeDraftArea = (
 ): DraftArea => {
   const type = (overrides.area_type ?? "table") as VenueAreaType;
   return {
-    id: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: `Mesa ${index + 1}`,
     area_type: type,
     capacity: 4,
@@ -138,6 +137,8 @@ export const makeDraftArea = (
     color: AREA_COLORS[0],
     display_order: index,
     ...overrides,
+    // Always a fresh identity: duplicating spreads an existing area into overrides.
+    id: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
   };
 };
 
