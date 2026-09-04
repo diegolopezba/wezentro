@@ -191,8 +191,9 @@ const PrivacyPolicy = () => {
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Zentro actúa únicamente como <strong>facilitador técnico</strong> — no retiene, procesa ni tiene acceso al dinero de las transacciones</li>
               <li>Qhantuy recibe y procesa los fondos del usuario y los distribuye al banco del negocio al día hábil siguiente, utilizando los datos de beneficiario proporcionados por el organizador</li>
-              <li>Zentro registra el monto, el estado de la transacción y el identificador de la sesión de pago para confirmar su entrada al evento</li>
+              <li>Zentro registra el monto, el estado de la transacción, el cargo de procesamiento de Qhantuy (1%) y el identificador de la sesión de pago para confirmar su entrada al evento</li>
               <li>Para eventos con múltiples categorías de entradas, también se registra la categoría adquirida (por ejemplo: "General", "VIP") como parte del comprobante de compra</li>
+              <li>Para lounges y áreas, se registra el área adquirida y las respuestas del comprador a las preguntas del organizador, visibles para el organizador del evento</li>
               <li>No se almacenan datos bancarios del usuario pagador (número de cuenta, contraseñas bancarias)</li>
               <li>Los registros de pago se conservan durante el período requerido por la normativa fiscal aplicable, para verificación de asistencia y resolución de disputas</li>
             </ul>
