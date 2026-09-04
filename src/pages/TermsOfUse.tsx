@@ -204,32 +204,49 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">7. Mensajería y Privacidad de Comunicación</h2>
+            <h2 className="text-lg font-semibold text-foreground">6d. Lounges y áreas con plano visual</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Zentro permite la comunicación directa entre usuarios registrados. Usted puede controlar quién puede iniciar conversaciones con usted mediante la configuración de privacidad de mensajes:
+              Los organizadores pueden vender lounges, mesas o secciones de un evento mediante un plano visual del local. Para cada área, el organizador define su nombre, capacidad, precio, cantidad de entradas incluidas, descripción, beneficios e instrucciones de llegada.
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li><strong>Todos:</strong> cualquier usuario registrado puede enviarle mensajes</li>
-              <li><strong>Seguidores:</strong> solo usuarios que le siguen pueden iniciar conversaciones</li>
-              <li><strong>Mutuos:</strong> solo usuarios que se siguen mutuamente pueden comunicarse</li>
+              <li>El organizador puede configurar preguntas que el comprador debe responder al adquirir un lounge; las respuestas quedan registradas como parte de la reserva</li>
+              <li>Las entradas incluidas en un lounge se agregan automáticamente a la lista de invitados del comprador</li>
+              <li>Una vez vendido, un lounge deja de estar disponible para otros compradores</li>
+              <li>El organizador es responsable de honrar la capacidad, beneficios y condiciones publicadas de cada área</li>
             </ul>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground">6e. Invitaciones especiales</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Solo usuarios con sesión iniciada pueden verificar la configuración de mensajería de otros usuarios. La mensajería no está disponible para visitantes no registrados.
+              Los organizadores pueden generar enlaces de invitación especial que otorgan entradas gratuitas identificadas con la etiqueta "INVITADO ESPECIAL". El organizador es el único responsable de la creación y distribución de estos enlaces y de a quiénes se los comparte. Zentro no controla ni garantiza la distribución de invitaciones realizada por los organizadores.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">8. Suscripciones y Pagos</h2>
+            <h2 className="text-lg font-semibold text-foreground">7. Contacto con Negocios</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Zentro ofrece suscripciones premium con funciones adicionales. Al suscribirse:
+              La mensajería directa dentro de la aplicación está deshabilitada. Los usuarios pueden contactar a los negocios mediante el número de teléfono que cada negocio publica voluntariamente en su perfil.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Al publicar un número de teléfono, el negocio acepta que este será visible públicamente para cualquier visitante. Las comunicaciones realizadas por teléfono o aplicaciones de terceros (por ejemplo, WhatsApp) ocurren fuera de Zentro y se rigen por los términos de dichos servicios; Zentro no es responsable de esas interacciones.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground">8. Suscripciones Business y Pagos</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Zentro ofrece planes de suscripción para cuentas Business — Básico, Profesional y Elite/Premium — con funciones adicionales según el nivel del plan. Al suscribirse:
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li>Autoriza cargos recurrentes según el plan seleccionado</li>
-              <li>Acepta que las suscripciones se renuevan automáticamente</li>
-              <li>Puede cancelar en cualquier momento desde la configuración de la cuenta</li>
+              <li>Puede elegir facturación mensual o anual (la anual incluye un 5% de descuento)</li>
+              <li>El acceso a las funciones premium requiere un plan activo y vigente</li>
+              <li>Las suscripciones se renuevan de forma manual — no realizamos cobros automáticos recurrentes</li>
+              <li>Tras la expiración del plan existe un período de gracia antes de perder el acceso a las funciones premium</li>
+              <li>Puede gestionar o cancelar su suscripción contactándonos o desde la configuración de su cuenta</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Los pagos de suscripciones se procesan a través de Stripe. Al realizar un pago, acepta los términos de servicio de Stripe.
+              Los pagos de suscripciones se procesan mediante Qhantuy (QR) o Cybersource (tarjeta). Al realizar un pago, acepta los términos de servicio del procesador correspondiente.
             </p>
           </section>
 
