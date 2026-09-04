@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { NavLink, Navigate, Outlet, useNavigate } from "react-router-dom";
-import { BarChart3, Building2, Loader2, LogOut, Wallet } from "lucide-react";
+import { BarChart3, Building2, CreditCard, Loader2, LogOut, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminSession } from "@/hooks/useAdminApi";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { to: "/admin", label: "Overview", icon: BarChart3, end: true },
   { to: "/admin/payments", label: "Pagos", icon: Wallet },
+  { to: "/admin/subscriptions", label: "Suscripciones", icon: CreditCard },
   { to: "/admin/businesses", label: "Negocios", icon: Building2 },
 ];
 

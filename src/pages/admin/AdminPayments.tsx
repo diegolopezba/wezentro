@@ -53,17 +53,45 @@ const AdminPayments = () => {
 
       {data && (
         <>
-          <Section title="Resumen">
+          <Section title="Ingreso total Zentro">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <Stat
+                label="Ingreso total Zentro"
+                value={bs(data.summary.totalRevenue)}
+                hint="Comisión 6% + suscripciones"
+              />
+              <Stat label="Comisión ventas (6%)" value={bs(data.summary.commission)} />
+              <Stat label="Suscripciones (100%)" value={bs(data.summary.subscriptionRevenue)} />
+            </div>
+          </Section>
+
+          <Section title="Canal 1 · Ventas con comisión Zentro (6%)">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Stat label="Comisión Zentro" value={bs(data.summary.commission)} hint="6% del bruto" />
               <Stat label="Volumen bruto" value={bs(data.summary.gross)} />
-              <Stat label="Pagado a organizadores" value={bs(data.summary.payouts)} />
+              <Stat label="Pagado a organizadores" value={bs(data.summary.payouts)} hint="94%" />
               <Stat label="Ticket promedio" value={bs(data.summary.avgOrder)} />
               <Stat label="Órdenes" value={data.summary.orders} />
               <Stat label="Entradas / cupos" value={data.summary.units} />
               <Stat label="Comisión entradas" value={bs(data.summary.ticketsCommission)} />
+              <Stat label="Comisión lounges" value={bs(data.summary.areasCommission)} />
               <Stat label="Comisión experiencias" value={bs(data.summary.experiencesCommission)} />
             </div>
+          </Section>
+
+          <Section title="Canal 2 · Suscripciones de negocios (100% Zentro)">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Stat
+                label="Ingreso suscripciones"
+                value={bs(data.summary.subscriptionRevenue)}
+                hint="Sin comisión ni reparto"
+              />
+              <Stat label="Pagos de suscripción" value={data.summary.subscriptionPayments} />
+              <Stat label="Pago promedio" value={bs(data.summary.subscriptionAvg)} />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              El detalle por negocio está en la pestaña Suscripciones.
+            </p>
           </Section>
 
           {data.stuck.length > 0 && (
@@ -97,7 +125,7 @@ const AdminPayments = () => {
             </div>
           </Section>
 
-          <Section title="Transacciones">
+          <Section title="Transacciones de ventas (sin suscripciones)">
             <div className="flex flex-wrap items-center gap-2">
               {STATUSES.map((s) => (
                 <button
@@ -155,7 +183,7 @@ const AdminPayments = () => {
                         </span>
                       </td>
                       <td className="px-3 py-2 text-muted-foreground">
-                        {t.kind === "experience" ? "Experiencia" : "Entrada"}
+                        {t.kind === "experience" ? "Experiencia" : t.kind === "area" ? "Lounge" : "Entrada"}
                       </td>
                       <td className="px-3 py-2 max-w-[160px] truncate">{t.buyer ?? "—"}</td>
                       <td className="px-3 py-2 max-w-[160px] truncate">{t.business ?? "—"}</td>

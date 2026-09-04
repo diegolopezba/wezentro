@@ -32,9 +32,19 @@ const AdminOverview = () => {
 
           <Section title="Ingresos del periodo">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <Stat label="Volumen bruto" value={bs(data.sales.gross)} />
+              <Stat label="Volumen bruto (ventas)" value={bs(data.sales.gross)} />
               <Stat label="Comisión Zentro (6%)" value={bs(data.sales.commission)} />
               <Stat label="Órdenes confirmadas" value={data.sales.orders} />
+              <Stat
+                label="Suscripciones (100%)"
+                value={bs(data.sales.subscriptionRevenue)}
+                hint={`${data.sales.subscriptionPayments} pagos`}
+              />
+              <Stat
+                label="Ingreso total Zentro"
+                value={bs(data.sales.totalRevenue)}
+                hint="Comisión + suscripciones"
+              />
             </div>
             <div className="rounded-2xl border border-border p-4 h-64">
               {data.trend.length ? (

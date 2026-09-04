@@ -33,6 +33,9 @@ function payoutOf(row: { amount: unknown; payout_amount: unknown; platform_fee_a
   if (row.payout_amount != null) return num(row.payout_amount);
   return round2(num(row.amount) - feeOf(row));
 }
+/** Subscription checkouts are a separate revenue channel: 100% stays with Zentro. */
+const isSubscription = (row: { subscription_business_id?: unknown; subscription_tier?: unknown }) =>
+  !!row.subscription_business_id || !!row.subscription_tier;
 
 function sinceIso(period: string): string | null {
   if (period === "all") return null;
@@ -61,7 +64,7 @@ async function fetchSessions(since: string | null) {
     let q = admin
       .from("payment_sessions")
       .select(
-        "id, amount, status, created_at, confirmed_at, buyer_user_id, business_user_id, event_id, experience_booking_id, quantity, party_size, platform_fee_amount, platform_fee_bps, payout_amount, provider, qhantuy_transaction_id",
+        "id, amount, status, created_at, confirmed_at, buyer_user_id, business_user_id, event_id, event_area_id, experience_booking_id, quantity, party_size, platform_fee_amount, platform_fee_bps, payout_amount, provider, qhantuy_transaction_id, subscription_business_id, subscription_tier, subscription_interval",
       )
       .order("created_at", { ascending: false })
       .range(from, from + page - 1);
@@ -123,9 +126,14 @@ async function overview(period: string) {
   ]);
 
   const sessions = await fetchSessions(since);
-  const confirmed = sessions.filter((s) => s.status === "confirmed");
+  const confirmedAll = sessions.filter((s) => s.status === "confirmed");
+  // Two distinct revenue channels: marketplace sales (Zentro keeps 6%) and
+  // business subscriptions (Zentro keeps 100%).
+  const confirmed = confirmedAll.filter((s) => !isSubscription(s));
+  const subs = confirmedAll.filter(isSubscription);
   const gross = confirmed.reduce((a, s) => a + num(s.amount), 0);
   const commission = confirmed.reduce((a, s) => a + feeOf(s), 0);
+  const subscriptionRevenue = subs.reduce((a, s) => a + num(s.amount), 0);
 
   // Daily trend (gross + commission) for the selected window.
   const byDay: Record<string, { date: string; gross: number; commission: number; orders: number }> = {};
@@ -144,17 +152,29 @@ async function overview(period: string) {
     users: { total: usersTotal, today: usersToday, last7d: users7d, last30d: users30d, businesses },
     content: { events: eventsCount, posts: postsCount, experiences },
     engagement: { likes, comments, saves, reservations, bookings },
-    sales: { gross: round2(gross), commission: round2(commission), orders: confirmed.length },
+    sales: {
+      gross: round2(gross),
+      commission: round2(commission),
+      orders: confirmed.length,
+      subscriptionRevenue: round2(subscriptionRevenue),
+      subscriptionPayments: subs.length,
+      totalRevenue: round2(commission + subscriptionRevenue),
+    },
     trend,
   };
 }
 
 async function payments(period: string, status: string, search: string) {
   const since = sinceIso(period);
-  const all = await fetchSessions(since);
+  const allSessions = await fetchSessions(since);
+  // Channel split: marketplace sales vs. business subscriptions.
+  const all = allSessions.filter((s) => !isSubscription(s));
+  const subsAll = allSessions.filter(isSubscription);
   const confirmed = all.filter((s) => s.status === "confirmed");
+  const subsConfirmed = subsAll.filter((s) => s.status === "confirmed");
 
   const isExperience = (s: any) => !!s.experience_booking_id;
+  const isArea = (s: any) => !!s.event_area_id;
   const sum = (rows: any[], fn: (s: any) => number) => round2(rows.reduce((a, s) => a + fn(s), 0));
 
   const gross = sum(confirmed, (s) => num(s.amount));
@@ -162,7 +182,9 @@ async function payments(period: string, status: string, search: string) {
   const payouts = sum(confirmed, payoutOf);
   const units = confirmed.reduce((a, s) => a + Math.max(1, num(s.quantity) || num(s.party_size) || 1), 0);
 
-  // Top businesses by gross volume.
+  const subscriptionRevenue = sum(subsConfirmed, (s) => num(s.amount));
+
+  // Top businesses by gross volume (sales channel only).
   const byBiz: Record<string, { gross: number; commission: number; orders: number }> = {};
   confirmed.forEach((s) => {
     if (!s.business_user_id) return;
@@ -174,9 +196,11 @@ async function payments(period: string, status: string, search: string) {
 
   // Stuck checkouts: not confirmed and older than 30 minutes.
   const cutoff = Date.now() - 30 * 60000;
-  const stuck = all.filter((s) => s.status !== "confirmed" && new Date(s.created_at).getTime() < cutoff);
+  const stuck = allSessions.filter(
+    (s) => s.status !== "confirmed" && new Date(s.created_at).getTime() < cutoff,
+  );
 
-  // Transaction list (filtered).
+  // Transaction list (filtered) — subscriptions live in their own tab.
   let rows = all;
   if (status && status !== "all") rows = rows.filter((s) => s.status === status);
 
@@ -191,7 +215,7 @@ async function payments(period: string, status: string, search: string) {
     created_at: s.created_at,
     confirmed_at: s.confirmed_at,
     status: s.status,
-    kind: isExperience(s) ? "experience" : "ticket",
+    kind: isExperience(s) ? "experience" : isArea(s) ? "area" : "ticket",
     amount: round2(num(s.amount)),
     fee: feeOf(s),
     payout: payoutOf(s),
@@ -219,9 +243,14 @@ async function payments(period: string, status: string, search: string) {
       orders: confirmed.length,
       units,
       avgOrder: confirmed.length ? round2(gross / confirmed.length) : 0,
-      ticketsCommission: sum(confirmed.filter((s) => !isExperience(s)), feeOf),
+      ticketsCommission: sum(confirmed.filter((s) => !isExperience(s) && !isArea(s)), feeOf),
       experiencesCommission: sum(confirmed.filter(isExperience), feeOf),
+      areasCommission: sum(confirmed.filter(isArea), feeOf),
       stuck: stuck.length,
+      subscriptionRevenue,
+      subscriptionPayments: subsConfirmed.length,
+      subscriptionAvg: subsConfirmed.length ? round2(subscriptionRevenue / subsConfirmed.length) : 0,
+      totalRevenue: round2(commission + subscriptionRevenue),
     },
     stuck: stuck.slice(0, 25).map((s) => ({
       id: s.id,
@@ -240,6 +269,112 @@ async function payments(period: string, status: string, search: string) {
       .sort((a, b) => b.gross - a.gross)
       .slice(0, 10),
     transactions: list,
+  };
+}
+
+/** Subscription roster: every business subscription + its payment history. */
+async function subscriptions(period: string) {
+  const since = sinceIso(period);
+
+  const { data: subsData, error } = await admin
+    .from("business_subscriptions")
+    .select(
+      "id, business_id, tier, status, billing_interval, billing_period_start, billing_period_end, grace_until, activation_method, amount_paid_bob, auto_renew, cancelled_at, created_at, updated_at, notes",
+    )
+    .order("created_at", { ascending: false })
+    .limit(1000);
+  if (error) throw new Error(`business_subscriptions: ${error.message}`);
+  const subs = subsData ?? [];
+
+  const profileMap = await namesFor(subs.map((s: any) => s.business_id));
+
+  // Subscription payment sessions (all time) for history + period revenue.
+  const sessions = (await fetchSessions(null)).filter(isSubscription);
+  const paymentsByBiz: Record<string, any[]> = {};
+  sessions.forEach((s: any) => {
+    const bizId = s.subscription_business_id ?? s.business_user_id;
+    if (!bizId) return;
+    (paymentsByBiz[bizId] ||= []).push({
+      id: s.id,
+      created_at: s.created_at,
+      confirmed_at: s.confirmed_at,
+      status: s.status,
+      amount: round2(num(s.amount)),
+      tier: s.subscription_tier ?? null,
+      interval: s.subscription_interval ?? null,
+      provider: s.provider,
+      transaction_id: s.qhantuy_transaction_id,
+    });
+  });
+  Object.values(paymentsByBiz).forEach((rows) =>
+    rows.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))),
+  );
+
+  const confirmedPayments = sessions.filter((s: any) => s.status === "confirmed");
+  const inPeriod = since
+    ? confirmedPayments.filter((s: any) => String(s.confirmed_at ?? s.created_at) >= since)
+    : confirmedPayments;
+  const periodRevenue = round2(inPeriod.reduce((a: number, s: any) => a + num(s.amount), 0));
+
+  const now = Date.now();
+  const in30 = now + 30 * 86400000;
+
+  const rows = subs.map((s: any) => {
+    const history = paymentsByBiz[s.business_id] ?? [];
+    const lastPaid = history.find((p) => p.status === "confirmed") ?? null;
+    const end = s.billing_period_end ? new Date(s.billing_period_end).getTime() : null;
+    return {
+      id: s.id,
+      businessId: s.business_id,
+      business: profileMap[s.business_id]?.full_name || profileMap[s.business_id]?.username || null,
+      username: profileMap[s.business_id]?.username ?? null,
+      tier: s.tier,
+      status: s.status,
+      interval: s.billing_interval,
+      periodStart: s.billing_period_start,
+      periodEnd: s.billing_period_end,
+      graceUntil: s.grace_until,
+      daysLeft: end != null ? Math.ceil((end - now) / 86400000) : null,
+      activationMethod: s.activation_method,
+      autoRenew: s.auto_renew,
+      amountPaid: s.amount_paid_bob != null ? round2(num(s.amount_paid_bob)) : null,
+      cancelledAt: s.cancelled_at,
+      created_at: s.created_at,
+      lastPaymentAt: lastPaid?.confirmed_at ?? lastPaid?.created_at ?? null,
+      lastPaymentAmount: lastPaid?.amount ?? null,
+      totalPaid: round2(
+        history.filter((p) => p.status === "confirmed").reduce((a, p) => a + num(p.amount), 0),
+      ),
+      payments: history.slice(0, 24),
+    };
+  });
+
+  const active = rows.filter((r) => r.status === "active");
+  const monthlyValue = (r: any) => {
+    const amount = r.lastPaymentAmount ?? r.amountPaid ?? 0;
+    return r.interval === "year" ? amount / 12 : amount;
+  };
+
+  return {
+    summary: {
+      total: rows.length,
+      active: active.length,
+      pending: rows.filter((r) => r.status === "pending_activation").length,
+      pastDue: rows.filter((r) => r.status === "past_due").length,
+      cancelled: rows.filter((r) => r.status === "cancelled").length,
+      expiringSoon: active.filter(
+        (r) => r.periodEnd && new Date(r.periodEnd).getTime() <= in30 && new Date(r.periodEnd).getTime() >= now,
+      ).length,
+      periodRevenue,
+      periodPayments: inPeriod.length,
+      mrr: round2(active.reduce((a, r) => a + monthlyValue(r), 0)),
+      byTier: {
+        basico: rows.filter((r) => r.tier === "basico" && r.status === "active").length,
+        profesional: rows.filter((r) => r.tier === "profesional" && r.status === "active").length,
+        elite: rows.filter((r) => r.tier === "elite" && r.status === "active").length,
+      },
+    },
+    subscriptions: rows,
   };
 }
 
@@ -327,6 +462,7 @@ Deno.serve(async (req) => {
     if (action === "whoami") return json({ ok: true, admin: true, email: userData.user.email });
     if (action === "overview") return json(await overview(period));
     if (action === "payments") return json(await payments(period, status, search));
+    if (action === "subscriptions") return json(await subscriptions(period));
     if (action === "businesses") return json(await businesses(search));
     return json({ error: "unknown action" }, 400);
   } catch (e) {
