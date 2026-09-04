@@ -214,6 +214,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           price: String(t.price ?? ""),
           capacity: t.capacity != null ? String(t.capacity) : "",
           description: t.description ?? "",
+          salesEndAt: t.sales_end_at ? toLocalInput(t.sales_end_at) : "",
         }))
       );
     } else {
@@ -232,6 +233,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       price: String(t.price ?? ""),
       capacity: t.capacity != null ? String(t.capacity) : "",
       description: t.description ?? "",
+      salesEndAt: t.sales_end_at ? toLocalInput(t.sales_end_at) : "",
     }));
     capture({
       formData: {
