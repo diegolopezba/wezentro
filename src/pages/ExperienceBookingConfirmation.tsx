@@ -24,7 +24,6 @@ import {
 } from "@/hooks/useExperiences";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { useMemo, useState } from "react";
-import { useCreatePrivateChat } from "@/hooks/useChats";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,7 +49,6 @@ const ExperienceBookingConfirmation = () => {
   const { data, isLoading, isError, refetch, isFetching } = useExperienceBookingDetail(id);
   const [cancelOpen, setCancelOpen] = useState(false);
   const cancelMutation = useCancelExperienceBooking();
-  const createChat = useCreatePrivateChat();
 
   const booking = data?.booking;
   const guests = data?.guests ?? [];
@@ -121,15 +119,6 @@ const ExperienceBookingConfirmation = () => {
       return;
     }
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
-  };
-
-  const handleMessage = () => {
-    if (!business?.id) return;
-    haptic("light");
-    createChat.mutate(business.id, {
-      onSuccess: (chatId) => navigate(`/chats/${chatId}`),
-      onError: () => toast.error("No se pudo iniciar el chat"),
-    });
   };
 
   const handleShare = async () => {
@@ -409,7 +398,7 @@ const ExperienceBookingConfirmation = () => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.3 }}
-          className="grid grid-cols-2 gap-2 mt-4"
+          className="grid grid-cols-1 gap-2 mt-4"
         >
           <button
             onClick={handleDirections}
@@ -417,18 +406,6 @@ const ExperienceBookingConfirmation = () => {
           >
             <Navigation className="w-5 h-5 text-foreground" />
             <span className="text-[11px] font-medium">Cómo llegar</span>
-          </button>
-          <button
-            onClick={handleMessage}
-            disabled={createChat.isPending}
-            className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 active:scale-[0.97] transition-transform disabled:opacity-50"
-          >
-            {createChat.isPending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <MessageCircle className="w-5 h-5 text-foreground" />
-            )}
-            <span className="text-[11px] font-medium">Mensaje</span>
           </button>
         </m.div>
 
