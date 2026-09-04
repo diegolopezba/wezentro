@@ -403,6 +403,14 @@ export function PurchaseFlow({
             {selected.included_tickets === 1 ? "entrada" : "entradas"} al evento
           </p>
         )}
+        {selected.arrival_note && (
+          <div className="mt-3 rounded-xl bg-secondary/60 p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+              Al llegar
+            </p>
+            <p className="text-sm text-muted-foreground">{selected.arrival_note}</p>
+          </div>
+        )}
       </div>
 
       {!selected.is_exclusive && !soldOut && (
