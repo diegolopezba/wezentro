@@ -61,7 +61,7 @@ async function fetchSessions(since: string | null) {
     let q = admin
       .from("payment_sessions")
       .select(
-        "id, amount, status, created_at, confirmed_at, buyer_user_id, business_user_id, event_id, experience_booking_id, quantity, party_size, platform_fee_amount, platform_fee_bps, payout_amount, provider, qhantuy_transaction_id",
+        "id, amount, status, created_at, confirmed_at, buyer_user_id, business_user_id, event_id, event_area_id, experience_booking_id, quantity, party_size, platform_fee_amount, platform_fee_bps, payout_amount, provider, qhantuy_transaction_id, subscription_business_id, subscription_tier, subscription_interval",
       )
       .order("created_at", { ascending: false })
       .range(from, from + page - 1);
