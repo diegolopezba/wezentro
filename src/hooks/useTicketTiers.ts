@@ -12,6 +12,8 @@ export interface TicketTier {
   display_order: number;
   unlock_after_tier_id: string | null;
   is_active: boolean;
+  /** Optional moment when this tier stops selling. */
+  sales_end_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -23,7 +25,9 @@ export interface TicketTierInput {
   capacity?: number | null;
   display_order: number;
   unlock_after_tier_id?: string | null;
+  sales_end_at?: string | null;
 }
+
 
 const TIERS_KEY = (eventId?: string) => ["ticket-tiers", eventId] as const;
 
