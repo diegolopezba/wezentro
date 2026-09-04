@@ -1,23 +1,38 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { CalendarCheck, Users, XCircle, Lock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { CalendarCheck, Users, XCircle, Lock, UserX, Clock, Users2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "./StatsCard";
 import { PeriodSelector, Period } from "./PeriodSelector";
+import { ReservationHeatmap } from "./reservations/ReservationHeatmap";
+import { OccupancyCard } from "./reservations/OccupancyCard";
+import { CancellationsCard } from "./reservations/CancellationsCard";
+import { WaitlistDemandCard } from "./reservations/WaitlistDemandCard";
+import { RepeatGuestsCard } from "./reservations/RepeatGuestsCard";
+import { ServicePaceCard } from "./reservations/ServicePaceCard";
+import { useReservationAnalytics } from "@/hooks/useReservationAnalytics";
 
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PlansSheet } from "@/components/subscriptions/PlansSheet";
 import { featureUpgradeLabel } from "@/lib/subscriptionTiers";
 
-const DAYS_ES = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
-
 interface ReservasTabProps {
   period: Period;
   onPeriodChange: (p: Period) => void;
 }
+
+const trendFrom = (current: number, previous: number | undefined) => {
+  if (previous === undefined || previous <= 0) return undefined;
+  const change = Math.round(((current - previous) / previous) * 100);
+  return { value: Math.abs(change), isPositive: change >= 0 };
+};
+
+const formatLead = (hours: number) => {
+  if (!hours || hours <= 0) return "—";
+  if (hours >= 48) return `${Math.round(hours / 24)} d`;
+  return `${Math.round(hours)} h`;
+};
 
 export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
   const { user } = useAuth();
@@ -25,53 +40,9 @@ export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
   const fullAnalytics = hasFeature("reservas_analytics_full");
   const [plansOpen, setPlansOpen] = useState(false);
 
+  const { data, isLoading } = useReservationAnalytics(period);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["reservations-analytics", user?.id, period],
-    enabled: !!user?.id,
-    staleTime: 60_000,
-    queryFn: async () => {
-      let q = supabase
-        .from("reservations")
-        .select("id, reservation_date, reservation_time, party_size, status")
-        .eq("business_id", user!.id);
-
-      if (period !== "all") {
-        const days = period === "7d" ? 7 : 30;
-        q = q.gte("created_at", new Date(Date.now() - days * 86400000).toISOString());
-      }
-
-      const { data, error } = await q;
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const stats = useMemo(() => {
-    const rows = data || [];
-    const total = rows.length;
-    const cancelled = rows.filter((r) => r.status === "cancelled").length;
-    const active = rows.filter((r) => r.status !== "cancelled");
-    const guests = active.reduce((s, r) => s + Number(r.party_size || 0), 0);
-
-    const byDay: Record<number, { count: number; guests: number }> = {};
-    active.forEach((r) => {
-      const d = new Date(`${r.reservation_date}T00:00:00`).getDay();
-      const b = (byDay[d] ||= { count: 0, guests: 0 });
-      b.count += 1;
-      b.guests += Number(r.party_size || 0);
-    });
-
-    return {
-      total,
-      guests,
-      cancelRate: total ? (cancelled / total) * 100 : 0,
-      byDay,
-      enoughForBreakdown: total >= 20,
-    };
-  }, [data]);
-
-  const maxDay = Math.max(1, ...Object.values(stats.byDay).map((b) => b.count));
+  const cur = data?.current;
 
   return (
     <div className="space-y-5">
@@ -80,19 +51,54 @@ export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
         <PeriodSelector value={period} onChange={onPeriodChange} />
       </div>
 
-      {isLoading ? (
+      {isLoading || !cur ? (
         <Skeleton className="h-28 rounded-2xl" />
       ) : (
-        <div className={`grid gap-3 ${fullAnalytics ? "grid-cols-3" : "grid-cols-2"}`}>
-          <StatsCard title="Reservas" value={stats.total} icon={CalendarCheck} delay={0} />
-          <StatsCard title="Covers" value={stats.guests} icon={Users} delay={0.05} />
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <StatsCard
+            title="Reservas"
+            value={cur.total}
+            icon={CalendarCheck}
+            trend={trendFrom(cur.total, data?.previous?.total)}
+            delay={0}
+          />
+          <StatsCard
+            title="Covers"
+            value={cur.covers}
+            icon={Users}
+            trend={trendFrom(cur.covers, data?.previous?.covers)}
+            delay={0.05}
+          />
+          <StatsCard
+            title="Grupo promedio"
+            value={cur.avg_party || 0}
+            icon={Users2}
+            description="personas por reserva"
+            delay={0.1}
+          />
           {fullAnalytics && (
-            <StatsCard
-              title="Cancelación"
-              value={`${stats.cancelRate.toFixed(0)}%`}
-              icon={XCircle}
-              delay={0.1}
-            />
+            <>
+              <StatsCard
+                title="Cancelación"
+                value={cur.cancel_rate !== null ? `${cur.cancel_rate}%` : "—"}
+                icon={XCircle}
+                delay={0.15}
+              />
+              <StatsCard
+                title="No-shows"
+                value={cur.no_shows}
+                icon={UserX}
+                description={cur.no_show_rate !== null ? `${cur.no_show_rate}% del total` : undefined}
+                delay={0.2}
+              />
+              <StatsCard
+                title="Anticipación"
+                value={formatLead(cur.lead_hours)}
+                icon={Clock}
+                description="antes de la reserva"
+                delay={0.25}
+              />
+            </>
           )}
         </div>
       )}
@@ -106,7 +112,8 @@ export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
             </h3>
           </div>
           <p className="text-xs text-muted-foreground">
-            Tasa de cancelación, no-shows y los días y franjas que más se llenan.{" "}
+            Mapa de calor por día y hora, ocupación vs. capacidad, no-shows, demanda en
+            lista de espera y tus clientes que más vuelven.{" "}
             {featureUpgradeLabel("reservas_analytics_full")}.
           </p>
           <Button
@@ -119,33 +126,16 @@ export const ReservasTab = ({ period, onPeriodChange }: ReservasTabProps) => {
         </section>
       )}
 
-      {fullAnalytics && stats.enoughForBreakdown && (
-        <section className="rounded-2xl bg-card border border-border p-4">
-          <h3 className="font-brand text-sm font-semibold text-foreground mb-3">
-            Días que más se llenan
-          </h3>
-          <div className="space-y-2">
-            {DAYS_ES.map((label, i) => {
-              const b = stats.byDay[i] || { count: 0, guests: 0 };
-              return (
-                <div key={label} className="flex items-center gap-3">
-                  <span className="w-8 text-[11px] text-muted-foreground">{label}</span>
-                  <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-primary"
-                      style={{ width: `${(b.count / maxDay) * 100}%` }}
-                    />
-                  </div>
-                  <span className="w-16 text-right text-[11px] text-muted-foreground">
-                    {b.count} · {b.guests} pax
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+      {fullAnalytics && data && !isLoading && (
+        <>
+          <ReservationHeatmap heatmap={data.heatmap} />
+          <OccupancyCard data={data} />
+          <CancellationsCard data={data} />
+          <WaitlistDemandCard waitlist={data.waitlist} />
+          <RepeatGuestsCard guests={data.guests} />
+          <ServicePaceCard service={data.service} turnTime={data.capacity.turn_time} />
+        </>
       )}
-
 
       <PlansSheet open={plansOpen} onOpenChange={setPlansOpen} currentTier={tier} />
     </div>
