@@ -16,7 +16,7 @@ export interface Notification {
 
 // Notification types that have been removed from the product and should never render.
 // Stale rows are kept in the DB for audit but filtered out of all UI surfaces.
-const HIDDEN_NOTIFICATION_TYPES = ["guestlist_join_request", "guestlist_request"] as const;
+const HIDDEN_NOTIFICATION_TYPES = ["guestlist_join_request", "guestlist_request", "message"] as const;
 
 export const useNotifications = () => {
   const { user } = useAuth();
