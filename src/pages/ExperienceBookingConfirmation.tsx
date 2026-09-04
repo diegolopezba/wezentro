@@ -9,7 +9,6 @@ import {
   StickyNote,
   Check,
   Navigation,
-  MessageCircle,
   Trash2,
   Share2,
   Loader2,

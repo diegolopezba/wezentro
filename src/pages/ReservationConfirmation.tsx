@@ -10,7 +10,6 @@ import {
   UtensilsCrossed,
   Check,
   Navigation,
-  MessageCircle,
   Pencil,
   Trash2,
   Share2,
