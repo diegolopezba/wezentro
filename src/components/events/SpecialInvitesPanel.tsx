@@ -77,7 +77,14 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
         eventId,
         inviteIds: withEmail.map((i) => i.id),
       });
-      toast.success(`${res.sent ?? withEmail.length} invitaciones enviadas`);
+      if (res.failed) {
+        const invalid = (res.results ?? []).filter((r) => r.status === "invalid_email").length;
+        toast.warning(
+          `${res.sent} enviadas · ${res.failed} sin enviar${invalid ? ` (${invalid} con correo inválido)` : ""}`,
+        );
+      } else {
+        toast.success(`${res.sent ?? withEmail.length} invitaciones enviadas`);
+      }
       setSelectedIds([]);
     } catch {
       toast.error("No se pudieron enviar los correos");
