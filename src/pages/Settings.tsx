@@ -152,23 +152,26 @@ const Settings = () => {
           </m.div>
         )}
 
-        {sections.map((section) => (
-          <SettingsGroup key={section.title} title={section.title}>
-            {section.items.map((item) => {
-              const idx = globalIndex++;
-              return (
-                <SettingsRow
-                  key={item.label}
-                  icon={item.icon}
-                  label={item.label}
-                  sublabel={item.sublabel}
-                  onClick={() => navigate(item.path)}
-                  delay={idx * 0.03}
-                />
-              );
-            })}
-          </SettingsGroup>
-        ))}
+        {/* On desktop these sections live in the SettingsShell left menu */}
+        <div className="space-y-5 lg:hidden">
+          {sections.map((section) => (
+            <SettingsGroup key={section.title} title={section.title}>
+              {section.items.map((item) => {
+                const idx = globalIndex++;
+                return (
+                  <SettingsRow
+                    key={item.label}
+                    icon={item.icon}
+                    label={item.label}
+                    sublabel={item.sublabel}
+                    onClick={() => navigate(item.path)}
+                    delay={idx * 0.03}
+                  />
+                );
+              })}
+            </SettingsGroup>
+          ))}
+        </div>
 
         <SettingsGroup>
           <SettingsRow
