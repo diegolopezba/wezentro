@@ -93,7 +93,7 @@ const TermsOfUse = () => {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-foreground">4. Contenido del Usuario</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Usted es responsable del contenido que publique en Zentro, incluyendo eventos, publicaciones, imágenes y mensajes ("Contenido del Usuario").
+              Usted es responsable del contenido que publique en Zentro, incluyendo eventos, publicaciones, imágenes y comentarios ("Contenido del Usuario").
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Al publicar contenido, usted nos otorga una licencia no exclusiva, mundial, libre de regalías para usar, modificar, mostrar y distribuir dicho contenido en relación con el Servicio.

@@ -81,7 +81,7 @@ const PrivacyPolicy = () => {
               <li>Proporcionar, mantener y mejorar nuestros servicios</li>
               <li>Personalizar su experiencia y mostrar contenido relevante</li>
               <li>Procesar transacciones y gestionar suscripciones</li>
-              <li>Enviar notificaciones sobre eventos, mensajes y actualizaciones</li>
+              <li>Enviar notificaciones sobre eventos, compras, reservas y actualizaciones</li>
               <li>Detectar y prevenir fraudes, spam y actividades maliciosas</li>
               <li>Cumplir con obligaciones legales</li>
               <li>Comunicarnos con usted sobre cambios en nuestros servicios</li>
@@ -224,7 +224,7 @@ const PrivacyPolicy = () => {
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Sus datos personales serán eliminados de forma inmediata</li>
-              <li>Se eliminarán todos sus eventos, mensajes, fotos y contenido asociado</li>
+              <li>Se eliminarán todos sus eventos, publicaciones, fotos y contenido asociado</li>
               <li>Esta acción es permanente e irreversible</li>
               <li>Algunos datos pueden retenerse para cumplir con obligaciones legales</li>
             </ul>
