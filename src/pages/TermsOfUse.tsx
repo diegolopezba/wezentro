@@ -151,25 +151,32 @@ const TermsOfUse = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">6b. Pagos QR mediante Qhantuy</h2>
+            <h2 className="text-lg font-semibold text-foreground">6b. Pagos mediante Qhantuy y Cybersource</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Zentro permite a negocios aceptar pagos por entradas a eventos físicos mediante códigos QR dinámicos integrados con Qhantuy. Al utilizar esta funcionalidad:
+              Zentro permite a negocios aceptar pagos por entradas, lounges/áreas, experiencias y suscripciones mediante códigos QR dinámicos integrados con Qhantuy, así como pagos con tarjeta a través de la pasarela externa Cybersource. Al utilizar esta funcionalidad:
             </p>
-            <p className="text-sm text-muted-foreground leading-relaxed font-medium">Para negocios (organizadores):</p>
+            <p className="text-sm text-muted-foreground leading-relaxed font-medium">Estructura de comisiones (entradas, lounges y experiencias):</p>
+            <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
+              <li>El 94% del precio de venta se distribuye al beneficiario bancario registrado por el negocio organizador</li>
+              <li>Zentro retiene el 6% como comisión de plataforma</li>
+              <li>Qhantuy cobra al comprador un cargo adicional de procesamiento del 1% sobre el precio de venta (pre-cargo), visible en el total antes de pagar</li>
+              <li>Las suscripciones de planes Business se pagan íntegramente a Zentro</li>
+            </ul>
+            <p className="text-sm text-muted-foreground leading-relaxed font-medium mt-2">Para negocios (organizadores):</p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Debe registrar sus datos de beneficiario y cuenta bancaria dentro de la aplicación para que Qhantuy pueda distribuir los pagos correctamente</li>
               <li>Es responsable de configurar correctamente sus datos bancarios en la aplicación</li>
-              <li>El dinero es recibido y retenido temporalmente por Qhantuy mientras se procesa la transacción — Zentro no recibe ni retiene fondos en ningún momento</li>
-              <li>Qhantuy liquida automáticamente los pagos al día hábil siguiente en la cuenta bancaria indicada por el organizador</li>
+              <li>El dinero es recibido y procesado por Qhantuy, que distribuye el 94% correspondiente al negocio y liquida los pagos al día hábil siguiente en la cuenta bancaria indicada por el organizador</li>
               <li>Es responsable de reembolsos y disputas de pago con sus clientes</li>
               <li>Debe cumplir con la normativa fiscal y tributaria boliviana aplicable</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed font-medium mt-2">Para usuarios (compradores):</p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li>El pago se realiza desde su app bancaria al sistema de Qhantuy — Zentro no recibe ni retiene fondos</li>
+              <li>El pago se realiza desde su app bancaria al sistema de Qhantuy, o con tarjeta mediante Cybersource — Zentro no recibe ni retiene los fondos de la venta</li>
               <li>Qhantuy procesa el pago y, una vez confirmado, se emite automáticamente su entrada digital</li>
+              <li>El cargo de procesamiento del 1% de Qhantuy se muestra en el resumen antes de confirmar el pago</li>
               <li>En caso de disputa de pago, debe contactar directamente al negocio organizador</li>
-              <li>Zentro no es responsable por errores en el proceso de pago bancario externo gestionado por Qhantuy</li>
+              <li>Zentro no es responsable por errores en el proceso de pago externo gestionado por Qhantuy o Cybersource</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro actúa exclusivamente como facilitador tecnológico y no es parte de la transacción comercial entre el negocio y el comprador. Qhantuy es el encargado de recibir, procesar y distribuir los fondos conforme a sus propios términos y condiciones.
