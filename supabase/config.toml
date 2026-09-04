@@ -53,5 +53,13 @@ project_id = "fipdpcitsjpqivljrktj"
     verify_jwt = false
   [functions.send-invite-confirmed]
     verify_jwt = false
-
-
+  [functions.send-purchase-tickets]
+    verify_jwt = true
+  [functions.send-experience-emails]
+    verify_jwt = true
+  [functions.send-lounge-email]
+    verify_jwt = true
+  [functions.release-event-waitlist]
+    verify_jwt = false
+  [functions.handle-email-events]
+    verify_jwt = false
