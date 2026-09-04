@@ -378,6 +378,66 @@ async function subscriptions(period: string) {
   };
 }
 
+/** Admin mutation on a single subscription: activate / cancel / past_due / extend. */
+async function subscriptionUpdate(body: any, adminEmail: string) {
+  const id = typeof body.subscriptionId === "string" ? body.subscriptionId.trim() : "";
+  const op = String(body.op ?? "");
+  const days = Math.min(365, Math.max(1, Number(body.days) || 30));
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return json({ error: "subscriptionId inválido" }, 400);
+  if (!["activate", "cancel", "past_due", "extend"].includes(op)) {
+    return json({ error: "op inválida" }, 400);
+  }
+
+  const { data: current, error: readErr } = await admin
+    .from("business_subscriptions")
+    .select("id, billing_interval, billing_period_start, billing_period_end, notes")
+    .eq("id", id)
+    .maybeSingle();
+  if (readErr) return json({ error: readErr.message }, 500);
+  if (!current) return json({ error: "suscripción no encontrada" }, 404);
+
+  const now = new Date();
+  const addDays = (from: Date, d: number) => new Date(from.getTime() + d * 86400000);
+  const patch: Record<string, unknown> = { updated_at: now.toISOString() };
+
+  if (op === "activate") {
+    const end = current.billing_period_end ? new Date(current.billing_period_end) : null;
+    const stillValid = end && end.getTime() > now.getTime();
+    const periodDays = current.billing_interval === "year" ? 365 : 30;
+    const newEnd = stillValid ? end! : addDays(now, periodDays);
+    patch.status = "active";
+    patch.cancelled_at = null;
+    patch.billing_period_start = stillValid
+      ? current.billing_period_start ?? now.toISOString()
+      : now.toISOString();
+    patch.billing_period_end = newEnd.toISOString();
+    patch.grace_until = addDays(newEnd, 3).toISOString();
+  } else if (op === "cancel") {
+    patch.status = "cancelled";
+    patch.cancelled_at = now.toISOString();
+    patch.auto_renew = false;
+  } else if (op === "past_due") {
+    patch.status = "past_due";
+    patch.grace_until = addDays(now, 3).toISOString();
+  } else if (op === "extend") {
+    const base = current.billing_period_end && new Date(current.billing_period_end) > now
+      ? new Date(current.billing_period_end)
+      : now;
+    const newEnd = addDays(base, days);
+    patch.billing_period_end = newEnd.toISOString();
+    patch.grace_until = addDays(newEnd, 3).toISOString();
+    if (!current.billing_period_start) patch.billing_period_start = now.toISOString();
+  }
+
+  const stamp = `[${now.toISOString()}] admin ${adminEmail}: ${op}${op === "extend" ? ` +${days}d` : ""}`;
+  patch.notes = current.notes ? `${current.notes}\n${stamp}` : stamp;
+
+  const { error: updErr } = await admin.from("business_subscriptions").update(patch).eq("id", id);
+  if (updErr) return json({ error: updErr.message }, 500);
+  return json({ ok: true, id, op });
+}
+
+
 async function businesses(search: string) {
   let q = admin
     .from("profiles")
@@ -463,6 +523,10 @@ Deno.serve(async (req) => {
     if (action === "overview") return json(await overview(period));
     if (action === "payments") return json(await payments(period, status, search));
     if (action === "subscriptions") return json(await subscriptions(period));
+    if (action === "subscription_update") {
+      return await subscriptionUpdate(body, userData.user.email ?? userData.user.id);
+    }
+
     if (action === "businesses") return json(await businesses(search));
     return json({ error: "unknown action" }, 400);
   } catch (e) {
