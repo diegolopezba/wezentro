@@ -1,9 +1,12 @@
 import { Fragment, useMemo, useState } from "react";
 import { ChevronDown, Download, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   useAdminSubscriptions,
+  useAdminSubscriptionAction,
   type AdminPeriod,
   type AdminSubscription,
+  type AdminSubscriptionOp,
 } from "@/hooks/useAdminApi";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -85,6 +88,34 @@ const AdminSubscriptions = () => {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const { data, isLoading, isError, error } = useAdminSubscriptions(period);
+  const actionMutation = useAdminSubscriptionAction();
+  const [pending, setPending] = useState<{ id: string; op: AdminSubscriptionOp } | null>(null);
+  const busy = actionMutation.isPending;
+
+  const run = async (row: AdminSubscription, op: AdminSubscriptionOp, days?: number) => {
+    const name = row.business ?? row.username ?? "este negocio";
+    if (op === "cancel" && !window.confirm(`¿Detener la suscripción de ${name}? Perderá el acceso a las funciones de su plan.`))
+      return;
+    if (op === "past_due" && !window.confirm(`¿Marcar en mora la suscripción de ${name}?`)) return;
+    setPending({ id: row.id, op });
+    try {
+      await actionMutation.mutateAsync({ subscriptionId: row.id, op, days });
+      toast.success(
+        op === "activate"
+          ? "Suscripción activada"
+          : op === "cancel"
+            ? "Suscripción detenida"
+            : op === "past_due"
+              ? "Suscripción marcada en mora"
+              : `Renovación extendida ${days ?? 30} días`,
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo actualizar la suscripción");
+    } finally {
+      setPending(null);
+    }
+  };
+
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
