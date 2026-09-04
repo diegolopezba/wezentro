@@ -15,7 +15,7 @@ export const useAndroidBackButton = () => {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    const mainTabs = ["/", "/discover", "/create", "/chats", "/profile"];
+    const mainTabs = ["/", "/discover", "/create", "/profile"];
     const isMainTab = mainTabs.includes(location.pathname);
 
     const handleBackButton = () => {

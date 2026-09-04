@@ -56,13 +56,11 @@ import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
 const indexImport = () => import("./pages/Index");
 const discoverImport = () => import("./pages/Discover");
 const createImport = () => import("./pages/Create");
-const chatsImport = () => import("./pages/Chats");
 const profileImport = () => import("./pages/Profile");
 
 const Index = lazy(indexImport);
 const Discover = lazy(discoverImport);
 const Create = lazy(createImport);
-const Chats = lazy(chatsImport);
 const Profile = lazy(profileImport);
 
 // Secondary pages - lazy loaded with retry on chunk failures
@@ -254,10 +252,8 @@ const AppRoutes = () => {
           <Route path="/profile" element={<ProtectedRoute requireProfile><Profile /></ProtectedRoute>} />
         </Route>
 
-        <Route path="/chats" element={<ProtectedRoute requireProfile><LazyRoute><Chats /></LazyRoute></ProtectedRoute>} />
         <Route path="/create" element={<ProtectedRoute requireProfile><LazyRoute><Create /></LazyRoute></ProtectedRoute>} />
 
-        <Route path="/chats/:id" element={<ProtectedRoute requireProfile><LazyRoute><ChatDetail /></LazyRoute></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Settings /></LazyRoute></SettingsShell></ProtectedRoute>} />
         <Route path="/saved" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Saved /></LazyRoute></SettingsShell></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute requireProfile><LazyRoute><Notifications /></LazyRoute></ProtectedRoute>} />
