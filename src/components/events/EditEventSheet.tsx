@@ -10,6 +10,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useUpdateEvent } from "@/hooks/useEventMutations";
 import { toast } from "sonner";
 import { format } from "date-fns";
+
+/** ISO timestamp -> value accepted by <input type="datetime-local"> */
+const toLocalInput = (iso: string) => {
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? "" : format(d, "yyyy-MM-dd'T'HH:mm");
+};
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
