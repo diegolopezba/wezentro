@@ -120,7 +120,9 @@ export const useReplaceTicketTiers = () => {
           capacity: t.capacity ?? null,
           display_order: t.display_order,
           unlock_after_tier_id: sequential ? prevId : null,
+          sales_end_at: t.sales_end_at ?? null,
         };
+
         const { data, error } = await supabase
           .from("ticket_tiers" as any)
           .insert(row)
