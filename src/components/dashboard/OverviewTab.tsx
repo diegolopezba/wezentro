@@ -128,7 +128,7 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
       </div>
 
       {/* Revenue */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
         <StatsCard title="Bruto" value={salesLoading ? "..." : formatBs(sales?.revenue || 0)} icon={Coins} delay={0} />
         <StatsCard title="Neto estimado" value={salesLoading ? "..." : formatBs(sales?.netPayout || 0)} icon={Receipt} delay={0.05} />
         <StatsCard title="Tickets vendidos" value={salesLoading ? "..." : sales?.tickets || 0} icon={Ticket} delay={0.1} />
@@ -138,11 +138,12 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
 
 
 
-      <ConversionFunnel period={period} />
+      <div className="grid gap-5 xl:grid-cols-2 xl:items-start">
+        <ConversionFunnel period={period} />
+        <SalesPaceSection />
+      </div>
 
-      <SalesPaceSection />
-
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-3 lg:grid-cols-6 lg:gap-4">
 
         <StatsCard title="Impresiones" value={interactionsLoading ? "..." : interactions?.impressions || 0} icon={Eye} delay={0} />
         <StatsCard title="Views" value={interactionsLoading ? "..." : interactions?.views || 0} icon={MousePointer2} delay={0.05} />
@@ -156,7 +157,7 @@ export const OverviewTab = ({ period, onPeriodChange }: OverviewTabProps) => {
       {chartData && chartData.length > 0 && (
         <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="rounded-2xl bg-card border border-border p-4">
           <p className="text-sm font-medium text-muted-foreground mb-3">Cuentas alcanzadas por día</p>
-          <ResponsiveContainer width="100%" height={140}>
+          <ResponsiveContainer width="100%" height={140} className="lg:!h-[220px]">
             <LineChart data={chartData}>
               <XAxis dataKey="day" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} interval="preserveStartEnd" />
               <YAxis hide />
