@@ -209,6 +209,35 @@
     border-radius: 9999px;
   }
 
+  /* Violet / indigo aurora variant */
+  .glow-border-aurora {
+    background: linear-gradient(
+      var(--glow-angle, 0deg),
+      #ffffff 0%,
+      #a855f7 12%,
+      #4f2bd6 30%,
+      rgba(79, 43, 214, 0.12) 50%,
+      #2d0ec9 70%,
+      #c084fc 88%,
+      #ffffff 100%
+    );
+  }
+
+  .glow-border-aurora::before {
+    background: conic-gradient(
+      from var(--glow-angle, 0deg),
+      transparent 0deg,
+      rgba(255, 255, 255, 0.95) 25deg,
+      rgba(168, 85, 247, 0.9) 55deg,
+      rgba(45, 14, 201, 0.6) 100deg,
+      transparent 170deg,
+      transparent 360deg
+    );
+    filter: blur(6px);
+    opacity: 1;
+  }
+
+
   @media (prefers-reduced-motion: reduce) {
     .glow-border,
     .glow-border::before {
