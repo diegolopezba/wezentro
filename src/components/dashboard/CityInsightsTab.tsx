@@ -1,10 +1,13 @@
 import { m } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { Building2, TrendingDown, TrendingUp, Minus, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { LockedFeature } from "@/components/subscriptions/LockedFeature";
+import { CompetitiveBenchmark } from "./CompetitiveBenchmark";
+import { useProfileVisits } from "@/hooks/useBusinessAnalytics";
+import { Period } from "./PeriodSelector";
 
 interface Benchmarks {
   status: "ok" | "insufficient_data";
