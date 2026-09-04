@@ -25,7 +25,7 @@ interface MenuGroup {
  */
 export const SettingsShell = ({ children }: { children: ReactNode }) => {
   const { pathname } = useLocation();
-  const { isBusiness, hasPayouts } = useDashboardAccess();
+  const { isBusiness } = useDashboardAccess();
 
   const groups: MenuGroup[] = [
     {
@@ -57,8 +57,6 @@ export const SettingsShell = ({ children }: { children: ReactNode }) => {
   const isActive = (item: MenuItem) =>
     item.matchPrefix ? pathname.startsWith(item.path) : pathname === item.path;
 
-  void hasPayouts;
-
   return (
     <div className="lg:pl-[21rem]">
       <aside className="hidden lg:flex fixed left-20 top-0 bottom-0 z-30 w-64 flex-col gap-5 overflow-y-auto border-r border-border bg-background px-3 py-6">
@@ -81,7 +79,7 @@ export const SettingsShell = ({ children }: { children: ReactNode }) => {
                       active ? "bg-secondary text-foreground" : "text-muted-foreground",
                     )}
                   >
-                    <Icon className="h-4.5 w-4.5 shrink-0" />
+                    <Icon className="h-5 w-5 shrink-0" />
                     {item.label}
                   </NavLink>
                 );
