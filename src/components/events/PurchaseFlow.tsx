@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { ChevronLeft, Loader2, Lock, Minus, Plus, Ticket, X } from "lucide-react";
+import { ChevronLeft, Clock, Loader2, Lock, Minus, Plus, Ticket, X } from "lucide-react";
 import { VenueGridCanvas, type AreaState } from "@/components/venue/VenueGridCanvas";
 import {
   AREA_TYPE_LABELS,
@@ -20,7 +20,7 @@ import {
   type EventArea,
 } from "@/hooks/useVenueLayouts";
 import { useEventPurchaseQuestions } from "@/hooks/useEventPurchaseQuestions";
-import { computeTierAvailability, type TicketTier } from "@/hooks/useTicketTiers";
+import { computeTierAvailability, formatSalesEnd, type TicketTier } from "@/hooks/useTicketTiers";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { CheckoutSteps } from "./CheckoutSteps";
@@ -181,8 +181,9 @@ export function PurchaseFlow({
             </p>
           )}
           <div className="space-y-2">
-            {tierRows.map(({ tier, soldOut: tierSoldOut, remaining: left, unlocked }) => {
-              const disabled = tierSoldOut || !unlocked;
+            {tierRows.map(({ tier, soldOut: tierSoldOut, remaining: left, unlocked, closed }) => {
+              const disabled = tierSoldOut || !unlocked || closed;
+              const endsLabel = formatSalesEnd(tier.sales_end_at);
               return (
                 <button
                   key={tier.id}
@@ -222,12 +223,20 @@ export function PurchaseFlow({
                         <div className="mt-1 text-xs">
                           {tierSoldOut ? (
                             <span className="text-destructive font-medium">Agotado</span>
+                          ) : closed ? (
+                            <span className="text-destructive font-medium">Venta cerrada</span>
                           ) : left != null && left <= 10 ? (
                             <span className="text-orange-500 font-medium">Quedan {left}</span>
                           ) : (
                             <span className="text-muted-foreground">Disponible</span>
                           )}
                         </div>
+                        {endsLabel && !closed && (
+                          <div className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            Se vende hasta el {endsLabel}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="text-base font-bold text-foreground shrink-0">
