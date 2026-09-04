@@ -462,6 +462,7 @@ Deno.serve(async (req) => {
     if (action === "whoami") return json({ ok: true, admin: true, email: userData.user.email });
     if (action === "overview") return json(await overview(period));
     if (action === "payments") return json(await payments(period, status, search));
+    if (action === "subscriptions") return json(await subscriptions(period));
     if (action === "businesses") return json(await businesses(search));
     return json({ error: "unknown action" }, 400);
   } catch (e) {
