@@ -307,7 +307,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       }
 
       // Validate tiers if in tiers mode
-      const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number }[] = [];
+      const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number; sales_end_at: string | null }[] = [];
       if (!isPost && pricingMode === "tiers") {
         if (draftTiers.length === 0) {
           toast.error("Añade al menos un tipo de entrada");
@@ -330,6 +330,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             capacity: t.capacity ? parseInt(t.capacity) : null,
             description: t.description.trim() || null,
             display_order: cleanTiers.length,
+            sales_end_at: t.salesEndAt ? new Date(t.salesEndAt).toISOString() : null,
           });
         }
       }
