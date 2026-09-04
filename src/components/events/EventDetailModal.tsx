@@ -454,7 +454,7 @@ const EventDetailModalInner = () => {
 
           {/* Floating CTA Bar */}
           {!isPost && (
-            <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
+            <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom lg:sticky lg:bottom-0 lg:left-auto lg:right-auto lg:z-10 lg:rounded-b-3xl">
               {hasEnded && !isOwner && !isOnGuestlist ? (
                 <div className="flex items-center justify-center px-4 py-4">
                   <span className="text-sm font-medium text-muted-foreground">
@@ -547,7 +547,7 @@ const EventDetailModalInner = () => {
           {/* Floating experience booking CTA — post/event linked to a bookable experience */}
           {linkedExperience && (
             <>
-              <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
+              <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom lg:sticky lg:bottom-0 lg:left-auto lg:right-auto lg:z-10 lg:rounded-b-3xl">
                 <div className="flex items-center justify-between px-4 py-3">
                   <div className="flex flex-col min-w-0">
                     <span className="font-brand text-base font-medium text-foreground truncate">
@@ -571,7 +571,7 @@ const EventDetailModalInner = () => {
           )}
 
           {isPost && !linkedExperience && event.show_reservation_button && event.creator_id && (
-            <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
+            <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom lg:sticky lg:bottom-0 lg:left-auto lg:right-auto lg:z-10 lg:rounded-b-3xl">
               <div className="flex items-center justify-between px-4 py-3">
                 <span className="font-brand text-base font-semibold text-foreground">
                   {event.creator?.full_name || event.creator?.username || ""}
