@@ -187,16 +187,34 @@ const InsightsContent = ({ businessId, enabled }: { businessId?: string; enabled
   );
 };
 
-export const CityInsightsTab = () => {
+export const CityInsightsTab = ({ period = "7d" }: { period?: Period }) => {
   const { profile } = useAuth();
   const { hasFeature, tier, isLoading } = useSubscriptionTier(profile?.id);
   const unlocked = !isLoading && hasFeature("city_insights");
+  const { data: profileVisits } = useProfileVisits(period);
 
   return (
     <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
       <LockedFeature feature="city_insights" currentTier={tier} locked={!unlocked}>
-        <InsightsContent businessId={profile?.id} enabled={unlocked} />
+        <div className="space-y-4">
+          <InsightsContent businessId={profile?.id} enabled={unlocked} />
+
+          <div className="rounded-2xl bg-card border border-border p-4">
+            <h3 className="text-sm font-medium text-foreground mb-3">Acciones en Perfil</h3>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground flex items-center gap-2">
+                <Eye className="w-3.5 h-3.5" /> Visitas al perfil
+              </span>
+              <span className="text-sm font-semibold text-foreground">
+                {unlocked ? profileVisits?.count || 0 : "—"}
+              </span>
+            </div>
+          </div>
+
+          <CompetitiveBenchmark />
+        </div>
       </LockedFeature>
     </m.div>
   );
 };
+
