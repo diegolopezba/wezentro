@@ -123,8 +123,8 @@ const PrivacyPolicy = () => {
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li><strong>Infraestructura en la nube:</strong> para autenticación segura y almacenamiento de datos con cifrado en reposo</li>
-              <li><strong>Stripe:</strong> para procesamiento de pagos de suscripciones — los datos de tarjetas nunca pasan por nuestros servidores</li>
-              <li><strong>Qhantuy:</strong> para generación de códigos QR de pago dinámicos en eventos presenciales — los datos de beneficiario y cuenta bancaria son compartidos con Qhantuy para que pueda distribuir los pagos al día hábil siguiente; Qhantuy recibe y procesa los fondos temporalmente, y Zentro nunca retiene ni tiene acceso al dinero de las transacciones</li>
+              <li><strong>Cybersource:</strong> para procesamiento de pagos con tarjeta — los datos de tarjetas nunca pasan por nuestros servidores</li>
+              <li><strong>Qhantuy:</strong> para generación de códigos QR de pago dinámicos — los datos de beneficiario y cuenta bancaria son compartidos con Qhantuy para que pueda distribuir el 94% correspondiente al negocio al día hábil siguiente; Qhantuy recibe y procesa los fondos, cobra al comprador un cargo de procesamiento del 1%, y Zentro retiene únicamente su comisión de plataforma del 6%</li>
               <li><strong>Mapbox:</strong> para servicios de mapas y ubicación</li>
               <li><strong>OneSignal:</strong> para notificaciones push — solo compartimos identificadores de dispositivo anonimizados</li>
             </ul>
@@ -154,9 +154,9 @@ const PrivacyPolicy = () => {
               Con su consentimiento, enviamos notificaciones push para informarle sobre:
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
-              <li>Nuevos mensajes y solicitudes de chat</li>
               <li>Actualizaciones de eventos a los que asistirá</li>
               <li>Nuevos seguidores y actividad social</li>
+              <li>Confirmaciones de compras, reservas e invitaciones especiales</li>
               <li>Recordatorios de eventos próximos</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -172,8 +172,8 @@ const PrivacyPolicy = () => {
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Cifrado de datos en tránsito (HTTPS/TLS) y en reposo</li>
               <li>Controles de acceso a nivel de fila (Row-Level Security) — cada usuario solo puede acceder a sus propios datos privados</li>
-              <li>La configuración de mensajería y preferencias privadas solo son accesibles para usuarios autenticados</li>
-              <li>Los datos de pago (tarjetas) nunca son almacenados en nuestros servidores — son gestionados exclusivamente por Stripe</li>
+              <li>Las preferencias privadas solo son accesibles para usuarios autenticados</li>
+              <li>Los datos de pago (tarjetas) nunca son almacenados en nuestros servidores — son gestionados exclusivamente por Cybersource</li>
               <li>Los datos de beneficiario de Qhantuy (información bancaria y código de beneficiario) se almacenan cifrados y solo son accesibles por el titular de la cuenta business</li>
               <li>Los tokens QR de guestlist son únicos y solo visibles para el titular y el organizador del evento</li>
               <li>Monitoreo regular de seguridad y auditorías de acceso</li>
