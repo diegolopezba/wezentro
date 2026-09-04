@@ -176,6 +176,20 @@
       "when": 1788489064634,
       "tag": "0024_get_business_fan_base",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1788555410076,
+      "tag": "0025_city_benchmarks_v2",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1788555496466,
+      "tag": "0026_city_benchmarks_v2_fix_round",
+      "breakpoints": true
     }
   ]
 }
