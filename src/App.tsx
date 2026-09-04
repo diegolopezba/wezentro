@@ -43,6 +43,7 @@ import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { PageLoader } from "@/components/PageLoader";
 import { LazyRoute } from "@/components/layout/LazyRoute";
+import { SettingsShell } from "@/components/settings/SettingsShell";
 import { AuthPromptProvider } from "@/hooks/useAuthPrompt";
 import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
 import { KeepAliveLayout } from "@/components/layout/KeepAliveLayout";
@@ -255,11 +256,11 @@ const AppRoutes = () => {
         <Route path="/create" element={<ProtectedRoute requireProfile><LazyRoute><Create /></LazyRoute></ProtectedRoute>} />
 
         <Route path="/chats/:id" element={<ProtectedRoute requireProfile><LazyRoute><ChatDetail /></LazyRoute></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute requireProfile><LazyRoute><Settings /></LazyRoute></ProtectedRoute>} />
-        <Route path="/saved" element={<ProtectedRoute requireProfile><LazyRoute><Saved /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Settings /></LazyRoute></SettingsShell></ProtectedRoute>} />
+        <Route path="/saved" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Saved /></LazyRoute></SettingsShell></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute requireProfile><LazyRoute><Notifications /></LazyRoute></ProtectedRoute>} />
-        <Route path="/settings/privacy" element={<ProtectedRoute requireProfile><LazyRoute><PrivacySettings /></LazyRoute></ProtectedRoute>} />
-        <Route path="/edit-profile" element={<ProtectedRoute requireProfile><LazyRoute><EditProfile /></LazyRoute></ProtectedRoute>} />
+        <Route path="/settings/privacy" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><PrivacySettings /></LazyRoute></SettingsShell></ProtectedRoute>} />
+        <Route path="/edit-profile" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><EditProfile /></LazyRoute></SettingsShell></ProtectedRoute>} />
 
         {/* Public event preview route (full page — used for deep links) */}
         <Route path="/event/:id" element={<LazyRoute><EventDetail /></LazyRoute>} />
