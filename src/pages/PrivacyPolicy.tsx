@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
-  const lastUpdated = "22 de abril de 2026";
+  const lastUpdated = "4 de septiembre de 2026";
 
   return (
     <AppLayout hideNav>
@@ -56,9 +56,11 @@ const PrivacyPolicy = () => {
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>Información de registro: nombre, correo electrónico, nombre de usuario, fecha de nacimiento y género</li>
               <li>Información de perfil: foto de perfil, biografía e intereses</li>
-              <li>Contenido generado: eventos, publicaciones, mensajes y comentarios</li>
+              <li>Contenido generado: eventos, publicaciones, experiencias y comentarios</li>
               <li>Información de ubicación cuando crea eventos o utiliza funciones basadas en ubicación</li>
-              <li>Categoría de entrada seleccionada al comprar tickets a un evento (por ejemplo: "General", "VIP", "Early Bird")</li>
+              <li>Categoría de entrada o lounge/área seleccionada al comprar (por ejemplo: "General", "VIP", "Early Bird")</li>
+              <li>Respuestas a las preguntas que el organizador configura al comprar un lounge o área</li>
+              <li>Para cuentas Business: número de teléfono de contacto (público si el negocio decide publicarlo), datos de beneficiario y cuenta bancaria para la distribución de pagos, y tipo de plan de suscripción con sus fechas de vigencia</li>
             </ul>
 
             <h3 className="text-base font-medium text-foreground">2.2 Información recopilada automáticamente</h3>
@@ -93,8 +95,8 @@ const PrivacyPolicy = () => {
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li><strong>Información pública:</strong> nombre de usuario, nombre, foto de perfil, biografía, ciudad, eventos públicos que haya creado, seguidores, likes y reposts</li>
-              <li><strong>Solo para usuarios registrados:</strong> su configuración de mensajería (quién puede escribirle) solo es visible para usuarios con sesión iniciada — los visitantes no registrados no pueden acceder a esta información</li>
-              <li><strong>Solo para usted:</strong> sus mensajes privados, eventos guardados, reservaciones, datos de pago y preferencias de contenido</li>
+              <li><strong>Negocios:</strong> el número de teléfono de contacto que el negocio publica es visible públicamente para cualquier visitante</li>
+              <li><strong>Solo para usted:</strong> sus eventos guardados, reservaciones, entradas, respuestas a preguntas de organizadores, datos de pago y preferencias de contenido</li>
             </ul>
             <p className="text-sm text-muted-foreground leading-relaxed">
               No vendemos su información personal a terceros.
