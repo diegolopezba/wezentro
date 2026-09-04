@@ -273,7 +273,12 @@ export function useSendSpecialInviteEmails() {
         body: { eventId, batchId, inviteIds },
       });
       if (error) throw error;
-      return data as { sent: number; failed: number; processed: number };
+      return data as {
+        sent: number;
+        failed: number;
+        processed: number;
+        results?: Array<{ id: string; email: string; status: string; reason?: string }>;
+      };
     },
     onSuccess: (_d, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ["event-special-invites", eventId] });
