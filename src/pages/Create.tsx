@@ -653,7 +653,9 @@ const Create = () => {
       </header>
 
 
-      <div className="px-4 py-6 space-y-6 pb-24">
+      <div className="px-4 py-6 space-y-6 pb-24 lg:mx-auto lg:max-w-6xl lg:px-8 lg:flex lg:items-start lg:gap-8 lg:space-y-0">
+        {/* Left column on desktop: type + media */}
+        <div className="space-y-6 lg:w-[55%] lg:shrink-0 lg:sticky lg:top-24">
 
         {/* ── Type selector (Instagram-style wheel) ── */}
         <m.div
