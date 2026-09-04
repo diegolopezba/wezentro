@@ -122,6 +122,8 @@ const SheetContent = React.forwardRef<
       ref={contentRef}
       className={cn(
         "fixed inset-x-0 bottom-0 flex flex-col border-t border-border/50 bg-background outline-none",
+        // Desktop: behave like a centered dialog card instead of a full-width sheet.
+        "lg:mx-auto lg:mb-6 lg:max-w-xl lg:rounded-3xl lg:border lg:shadow-2xl",
         // Event detail modals and their floating CTA bars sit at z-[60].
         // The sheet portal must stack above them or it appears to freeze taps
         // while rendering invisibly behind the modal route.
