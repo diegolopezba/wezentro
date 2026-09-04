@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { ChevronDown, Download, Loader2 } from "lucide-react";
 import {
   useAdminSubscriptions,
@@ -195,8 +195,8 @@ const AdminSubscriptions = () => {
                 </thead>
                 <tbody>
                   {rows.map((r) => (
-                    <>
-                      <tr key={r.id} className="border-b border-border/60">
+                    <Fragment key={r.id}>
+                      <tr className="border-b border-border/60">
                         <td className="px-3 py-2 max-w-[200px]">
                           <p className="truncate">{r.business ?? "—"}</p>
                           {r.username && (
@@ -239,7 +239,7 @@ const AdminSubscriptions = () => {
                         </td>
                       </tr>
                       {open === r.id && (
-                        <tr key={`${r.id}-detail`} className="border-b border-border/60 bg-muted/40">
+                        <tr className="border-b border-border/60 bg-muted/40">
                           <td colSpan={12} className="px-3 py-3">
                             <div className="flex flex-wrap gap-2 mb-3">
                               <Button variant="outline" size="sm" className="rounded-full" disabled>
@@ -281,7 +281,7 @@ const AdminSubscriptions = () => {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   ))}
                   {rows.length === 0 && (
                     <tr>

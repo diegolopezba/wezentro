@@ -114,6 +114,7 @@ const AdminLayout = lazyWithRetry(() => import("./pages/admin/AdminLayout"));
 const AdminOverview = lazyWithRetry(() => import("./pages/admin/AdminOverview"));
 const AdminPayments = lazyWithRetry(() => import("./pages/admin/AdminPayments"));
 const AdminBusinesses = lazyWithRetry(() => import("./pages/admin/AdminBusinesses"));
+const AdminSubscriptions = lazyWithRetry(() => import("./pages/admin/AdminSubscriptions"));
 
 // Lazily-imported, but pre-loadable for instant tap response
 const eventDetailImport = () => import("./pages/EventDetail");
@@ -239,6 +240,7 @@ const AppRoutes = () => {
         <Route path="/admin" element={<LazyRoute><AdminLayout /></LazyRoute>}>
           <Route index element={<LazyRoute><AdminOverview /></LazyRoute>} />
           <Route path="payments" element={<LazyRoute><AdminPayments /></LazyRoute>} />
+          <Route path="subscriptions" element={<LazyRoute><AdminSubscriptions /></LazyRoute>} />
           <Route path="businesses" element={<LazyRoute><AdminBusinesses /></LazyRoute>} />
         </Route>
         <Route path="/onboarding" element={<ProtectedRoute><ErrorBoundary><LazyRoute><Onboarding /></LazyRoute></ErrorBoundary></ProtectedRoute>} />
