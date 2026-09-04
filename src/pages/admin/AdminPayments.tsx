@@ -125,7 +125,7 @@ const AdminPayments = () => {
             </div>
           </Section>
 
-          <Section title="Transacciones">
+          <Section title="Transacciones de ventas (sin suscripciones)">
             <div className="flex flex-wrap items-center gap-2">
               {STATUSES.map((s) => (
                 <button
@@ -183,7 +183,7 @@ const AdminPayments = () => {
                         </span>
                       </td>
                       <td className="px-3 py-2 text-muted-foreground">
-                        {t.kind === "experience" ? "Experiencia" : "Entrada"}
+                        {t.kind === "experience" ? "Experiencia" : t.kind === "area" ? "Lounge" : "Entrada"}
                       </td>
                       <td className="px-3 py-2 max-w-[160px] truncate">{t.buyer ?? "—"}</td>
                       <td className="px-3 py-2 max-w-[160px] truncate">{t.business ?? "—"}</td>
