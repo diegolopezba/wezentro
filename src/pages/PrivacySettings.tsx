@@ -140,71 +140,9 @@ const PrivacySettings = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            {/* Section header */}
-            <div className="mb-4">
-              <h2 className="font-semibold text-foreground">Mensajes</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Controla quién puede iniciar nuevas conversaciones contigo
-              </p>
-            </div>
-
-            {/* Options */}
-            <div className="space-y-2">
-              {messagingOptions.map((option, index) => {
-                const Icon = option.icon;
-                const isSelected = currentValue === option.value;
-
-                return (
-                  <m.button
-                    key={option.value}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    onClick={() => handleOptionChange(option.value)}
-                    disabled={updateSettings.isPending}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-colors ${
-                      isSelected
-                        ? "bg-primary/10 border-2 border-primary" : "bg-secondary/50 border-2 border-transparent" }`}
-                  >
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                        isSelected ? "bg-primary/20" : "bg-muted" }`}
-                    >
-                      <Icon
-                        className={`w-5 h-5 ${
-                          isSelected ? "text-primary" : "text-muted-foreground" }`}
-                      />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <p
-                        className={`font-medium ${
-                          isSelected ? "text-primary" : "text-foreground" }`}
-                      >
-                        {option.label}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {option.description}
-                      </p>
-                    </div>
-                    {/* Radio indicator */}
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        isSelected ? "border-primary" : "border-muted-foreground" }`}
-                    >
-                      {isSelected && (
-                        <m.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="w-2.5 h-2.5 rounded-full bg-primary" />
-                      )}
-                    </div>
-                  </m.button>
-                );
-              })}
-            </div>
 
             {/* Notifications Section */}
-            <div className="mt-8 mb-4">
+            <div className="mb-4">
               <h2 className="font-semibold text-foreground">Notificaciones</h2>
               <p className="text-sm text-muted-foreground mt-1">
                 Administra las preferencias de notificaciones push

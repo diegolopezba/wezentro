@@ -1,6 +1,6 @@
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, StickyNote, Users, Clock, UserCheck, UserX, CheckCircle2 } from "lucide-react";
+import { StickyNote, Users, Clock, UserCheck, UserX, CheckCircle2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,7 +13,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useCancelReservation, useSetReservationStatus, type ReservationWithGuests } from "@/hooks/useReservations";
-import { useCreatePrivateChat } from "@/hooks/useChats";
 import { useNavigate } from "react-router-dom";
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -48,7 +47,6 @@ export const ReservationDetailSheet = ({
   const navigate = useNavigate();
   const cancelMutation = useCancelReservation();
   const statusMutation = useSetReservationStatus();
-  const createChatMutation = useCreatePrivateChat();
 
   if (!reservation) return null;
 
@@ -57,16 +55,6 @@ export const ReservationDetailSheet = ({
     reservation.user ? { id: reservation.user.id, ...reservation.user } : null,
     ...guests.map((g) => (g.user ? { id: g.user.id, ...g.user } : null)),
   ].filter(Boolean) as { id: string; username: string; full_name: string | null; avatar_url: string | null }[];
-
-  const handleMessage = () => {
-    if (!reservation.user) return;
-    createChatMutation.mutate(reservation.user.id, {
-      onSuccess: (chatId) => {
-        onOpenChange(false);
-        navigate(`/chats/${chatId}`);
-      },
-    });
-  };
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -159,16 +147,6 @@ export const ReservationDetailSheet = ({
           </div>
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={handleMessage}
-              disabled={createChatMutation.isPending || !reservation.user}
-            >
-              <MessageCircle className="w-3.5 h-3.5 mr-1" />
-              Mensaje
-            </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
