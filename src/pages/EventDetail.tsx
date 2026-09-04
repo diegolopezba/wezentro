@@ -31,6 +31,7 @@ import { trackPreferenceSignal } from "@/lib/preferenceTracking";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
+import { DetailSplitLayout } from "@/components/layout/DetailSplitLayout";
 import { MentionText } from "@/components/ui/MentionText";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
@@ -182,8 +183,10 @@ const EventDetail = () => {
       }))
     : [{ media_url: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80", media_type: undefined as any }];
   return <div className="min-h-[100dvh] bg-background">
-      {/* Hero media carousel */}
-      <div className="relative w-full overflow-hidden rounded-b-3xl">
+      <DetailSplitLayout
+        className="lg:mx-auto lg:max-w-6xl"
+        media={
+      <div className="relative w-full overflow-hidden rounded-b-3xl lg:rounded-b-none">
         <MediaCarousel items={carouselItems} isHero />
         {/* Back button */}
         <div className="absolute top-0 left-0 right-0 safe-top z-20 pointer-events-none">
@@ -202,9 +205,14 @@ const EventDetail = () => {
           </div>
         </div>
       </div>
-
-      {/* Content */}
-      <div className="relative px-4 pt-3 pb-28">
+        }
+        below={
+          <div className="px-4 pb-28 lg:px-8">
+            <RelatedEventsFeed eventId={id!} category={event.category} creatorId={event.creator_id} />
+          </div>
+        }
+        content={
+      <div className="relative px-4 pt-3 pb-28 lg:px-8">
         <m.div initial={{
         opacity: 0,
         y: 20
@@ -378,13 +386,6 @@ const EventDetail = () => {
           {/* Invitations Sent Section - Owner only, for events with guestlist */}
           {!isPost && isOwner && event.has_guestlist && <InvitationsSentSection eventId={id!} />}
 
-          {/* Related content */}
-          <RelatedEventsFeed
-            eventId={id!}
-            category={event.category}
-            creatorId={event.creator_id}
-          />
-
           {/* Sign up prompt for unauthenticated users */}
           {!isAuthenticated && <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
               <h3 className="font-brand text-lg font-semibold text-foreground mb-2">
@@ -399,6 +400,10 @@ const EventDetail = () => {
             </div>}
         </m.div>
       </div>
+        }
+      />
+
+
 
 
       {/* Guestlist Management Sheet */}

@@ -24,6 +24,7 @@ import { PurchaseFlow } from "@/components/events/PurchaseFlow";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { MediaCarousel } from "@/components/events/MediaCarousel";
+import { DetailSplitLayout } from "@/components/layout/DetailSplitLayout";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
@@ -160,8 +161,8 @@ const EventDetailModalInner = () => {
         </div>
       ) : (
         <>
-          {/* Hero media carousel */}
-          {(() => {
+          <DetailSplitLayout
+            media={(() => {
             const mediaArr = ((event as any).media as any[]) || [];
             const items = mediaArr.length > 0
               ? mediaArr.map((m: any) => ({
@@ -172,7 +173,7 @@ const EventDetailModalInner = () => {
                 }))
               : [{ media_url: event.image_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80", media_type: undefined as any }];
             return (
-              <div className="relative w-full overflow-hidden rounded-b-3xl lg:rounded-t-3xl">
+              <div className="relative w-full overflow-hidden rounded-b-3xl lg:rounded-b-none lg:rounded-tl-3xl">
                 <MediaCarousel items={items} isHero />
                 {/* Close button */}
                 <div className="absolute top-0 left-0 right-0 safe-top z-20">
@@ -185,10 +186,14 @@ const EventDetailModalInner = () => {
               </div>
             );
           })()}
-
-          {/* Content */}
+            below={
+              <div className="px-4 pb-28 lg:px-8 lg:pb-10">
+                <RelatedEventsFeed eventId={id!} category={event.category} creatorId={event.creator_id} />
+              </div>
+            }
+            content={
           <m.div
-            className="relative px-4 pt-3 pb-28 lg:mx-auto lg:max-w-3xl lg:px-8"
+            className="relative px-4 pt-3 pb-28 lg:pb-8 lg:px-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -370,10 +375,11 @@ const EventDetailModalInner = () => {
               </div>
 
               {!isPost && isOwner && event.has_guestlist && <InvitationsSentSection eventId={id!} />}
-
-              <RelatedEventsFeed eventId={id!} category={event.category} creatorId={event.creator_id} />
             </div>
           </m.div>
+            }
+          />
+
 
           {/* Modals & sheets */}
           <GuestlistManagementSheet eventId={id!} open={showManagement} onOpenChange={setShowManagement} />
@@ -448,7 +454,7 @@ const EventDetailModalInner = () => {
 
           {/* Floating CTA Bar */}
           {!isPost && (
-            <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
+            <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom lg:sticky lg:bottom-0 lg:left-auto lg:right-auto lg:z-10 lg:rounded-b-3xl">
               {hasEnded && !isOwner && !isOnGuestlist ? (
                 <div className="flex items-center justify-center px-4 py-4">
                   <span className="text-sm font-medium text-muted-foreground">
@@ -541,7 +547,7 @@ const EventDetailModalInner = () => {
           {/* Floating experience booking CTA — post/event linked to a bookable experience */}
           {linkedExperience && (
             <>
-              <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
+              <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom lg:sticky lg:bottom-0 lg:left-auto lg:right-auto lg:z-10 lg:rounded-b-3xl">
                 <div className="flex items-center justify-between px-4 py-3">
                   <div className="flex flex-col min-w-0">
                     <span className="font-brand text-base font-medium text-foreground truncate">
@@ -565,7 +571,7 @@ const EventDetailModalInner = () => {
           )}
 
           {isPost && !linkedExperience && event.show_reservation_button && event.creator_id && (
-            <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom">
+            <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom lg:sticky lg:bottom-0 lg:left-auto lg:right-auto lg:z-10 lg:rounded-b-3xl">
               <div className="flex items-center justify-between px-4 py-3">
                 <span className="font-brand text-base font-semibold text-foreground">
                   {event.creator?.full_name || event.creator?.username || ""}
