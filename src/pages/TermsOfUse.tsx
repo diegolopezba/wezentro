@@ -143,6 +143,9 @@ const TermsOfUse = () => {
               Los negocios con el sistema de reservaciones habilitado pueden configurar su horario de atención y una ventana horaria específica para aceptar reservas de mesa. Los horarios disponibles para los usuarios se limitan a los establecidos por el negocio. Zentro no es responsable de cancelaciones, no-shows ni disputas derivadas de las reservaciones.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
+              Las experiencias son un tipo de publicación independiente que los negocios pueden crear y gestionar con sus propias reservas. Zentro no es responsable del contenido, calidad ni cumplimiento de las experiencias ofrecidas por los negocios.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Zentro no es responsable de los eventos creados por usuarios ni de las interacciones que ocurran en ellos.
             </p>
           </section>
