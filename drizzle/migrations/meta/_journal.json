@@ -204,6 +204,13 @@
       "when": 1788565918230,
       "tag": "0028_ticket_tier_sales_end_at",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1788644778777,
+      "tag": "0029_reservation_analytics_data_range",
+      "breakpoints": true
     }
   ]
 }
