@@ -22,11 +22,15 @@ export const OccupancyCard = ({ data }: Props) => {
       capByDay[s.weekday] = (capByDay[s.weekday] || 0) + turns * seats;
     });
 
-    // Ocurrencias de cada weekday dentro del rango
+    // Ocurrencias de cada weekday dentro del rango.
+    // Para "Todo" (sin rango explícito) usamos el span real de los datos,
+    // así no comparamos covers históricos contra un solo día de capacidad.
     const occurrences: Record<number, number> = {};
-    if (range.from && range.to) {
-      const start = new Date(`${range.from}T00:00:00`);
-      const end = new Date(`${range.to}T00:00:00`);
+    const spanFrom = range.from ?? range.data_from;
+    const spanTo = range.to ?? range.data_to ?? range.data_from;
+    if (spanFrom && spanTo) {
+      const start = new Date(`${spanFrom}T00:00:00`);
+      const end = new Date(`${spanTo}T00:00:00`);
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const w = d.getDay();
         occurrences[w] = (occurrences[w] || 0) + 1;

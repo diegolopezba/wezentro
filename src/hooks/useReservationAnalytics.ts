@@ -4,7 +4,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { Period } from "@/components/dashboard/PeriodSelector";
 
 export interface ReservationAnalytics {
-  range: { from: string | null; to: string | null };
+  range: {
+    from: string | null;
+    to: string | null;
+    data_from?: string | null;
+    data_to?: string | null;
+  };
   current: {
     total: number;
     cancelled: number;
