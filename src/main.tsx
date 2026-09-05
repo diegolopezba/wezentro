@@ -16,16 +16,10 @@ window.addEventListener("unhandledrejection", (event) => {
 });
 
 // Configure native status bar once at boot (Capacitor only).
-// Uses a fully dynamic import so the build does not require @capacitor/status-bar
-// to be installed in web-only contexts.
+// Dynamically imported so web builds never load the native plugin.
 if (Capacitor.isNativePlatform()) {
-  // Opaque specifier prevents Vite from trying to resolve the module at build time.
-  // The plugin is only present in native builds; web builds skip this entirely.
-  const statusBarModule = "@capacitor/status-bar";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (new Function("m", "return import(m)")(statusBarModule) as Promise<any>)
-    .then((mod) => {
-      const { StatusBar, Style } = mod;
+  import("@capacitor/status-bar")
+    .then(({ StatusBar, Style }) => {
       StatusBar?.setStyle?.({ style: Style.Dark }).catch(() => {});
       if (Capacitor.getPlatform() === "ios") {
         StatusBar?.setOverlaysWebView?.({ overlay: false }).catch(() => {});
