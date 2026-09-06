@@ -173,6 +173,57 @@ const EventDetail = () => {
   }
   const isVideo = isVideoUrl(event.image_url);
   const isPost = !!event.is_post;
+
+  // JSON-LD Event structured data for Google rich results
+  const structuredDataOffers = useMemo<EventOfferInput[]>(() => {
+    if (!event || isPost) return [];
+    const offers: EventOfferInput[] = [];
+
+    ticketTiers.forEach((tier) => {
+      const soldOut = tier.capacity != null && tier.sold_count >= tier.capacity;
+      offers.push({
+        name: tier.name,
+        price: Number(tier.price),
+        availability: soldOut ? "SoldOut" : "InStock",
+      });
+    });
+
+    eventAreas
+      .filter((area) => !area.is_decor)
+      .forEach((area) => {
+        offers.push({
+          name: area.name,
+          price: Number(area.price),
+          availability: "InStock",
+        });
+      });
+
+    if (offers.length === 0 && event.price && event.price > 0) {
+      offers.push({ price: event.price });
+    }
+
+    return offers;
+  }, [event, isPost, ticketTiers, eventAreas]);
+
+  useEventStructuredData(
+    event && !isPost
+      ? {
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          image_url: event.image_url,
+          start_datetime: event.start_datetime,
+          end_datetime: event.end_datetime,
+          location_name: event.location_name,
+          latitude: event.latitude,
+          longitude: event.longitude,
+          is_public: event.is_public,
+          creator: event.creator,
+          offers: structuredDataOffers,
+        }
+      : null
+  );
+
   const mediaArr = ((event as any).media as any[]) || [];
   const carouselItems = mediaArr.length > 0
     ? mediaArr.map((m: any) => ({
