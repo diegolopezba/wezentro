@@ -115,6 +115,48 @@ export type Database = {
         }
         Relationships: []
       }
+      business_leads: {
+        Row: {
+          business_kind: string
+          business_name: string
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          locale: string
+          message: string | null
+          phone: string
+          source: string
+          status: string
+        }
+        Insert: {
+          business_kind?: string
+          business_name: string
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          locale?: string
+          message?: string | null
+          phone: string
+          source?: string
+          status?: string
+        }
+        Update: {
+          business_kind?: string
+          business_name?: string
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          locale?: string
+          message?: string | null
+          phone?: string
+          source?: string
+          status?: string
+        }
+        Relationships: []
+      }
       business_subscriptions: {
         Row: {
           activation_method: string

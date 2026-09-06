@@ -1,6 +1,8 @@
 project_id = "fipdpcitsjpqivljrktj"
 
 [functions]
+  [functions.notify-business-lead]
+    verify_jwt = false
   [functions.activate-ad-campaign]
     verify_jwt = false
   [functions.auth-email-hook]

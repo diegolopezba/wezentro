@@ -11,6 +11,7 @@ import { template as experienceConfirmed } from './experience-confirmed.tsx'
 import { template as experienceReceived } from './experience-received.tsx'
 import { template as subscriptionActivated } from './subscription-activated.tsx'
 import { template as subscriptionRenewal } from './subscription-renewal.tsx'
+import { template as businessLead } from './business-lead.tsx'
 
 export interface TemplateEntry {
   component: (props: any) => React.ReactElement
@@ -32,4 +33,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'experience-received': experienceReceived,
   'subscription-activated': subscriptionActivated,
   'subscription-renewal': subscriptionRenewal,
+  'business-lead': businessLead,
 }

@@ -1,0 +1,1 @@
+GRANT SELECT, UPDATE ON public.business_leads TO authenticated;
