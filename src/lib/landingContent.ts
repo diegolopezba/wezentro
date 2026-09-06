@@ -131,6 +131,12 @@ export interface LandingCopy {
     features: Bullet[];
     pricing: { kicker: string; title: string; big: string; body: string; bullets: string[] };
   };
+  shots: {
+    feed: { title: string; line: string };
+    detail: { title: string; line: string };
+    dashboard: { title: string; line: string };
+    gestion: { title: string; line: string };
+  };
   seo: {
     title: string;
     description: string;
@@ -384,6 +390,24 @@ const es: LandingCopy = {
       ],
     },
   },
+  shots: {
+    feed: {
+      title: "Ahí eligen el plan",
+      line: "Tu local aparece en un feed visual, al lado de lo que la gente ya quiere hacer hoy.",
+    },
+    detail: {
+      title: "De la foto a la entrada",
+      line: "Entradas, lounges y mesas en pocos toques, sin salir de la app.",
+    },
+    dashboard: {
+      title: "Cada venta, en tiempo real",
+      line: "Ingresos, entradas vendidas y el embudo completo, de la impresión a la compra.",
+    },
+    gestion: {
+      title: "Manejá la noche desde el celular",
+      line: "Tiers, lounges, invitados y promotores de cada evento, en una sola pantalla.",
+    },
+  },
   seo: {
     title: "Zentro para negocios | Entradas, reservas y experiencias",
     description:
@@ -623,6 +647,24 @@ const en: LandingCopy = {
         "Payouts straight to your bank account",
         "No hidden charges",
       ],
+    },
+  },
+  shots: {
+    feed: {
+      title: "Where they choose the plan",
+      line: "Your venue shows up in a visual feed, next to what people already want to do tonight.",
+    },
+    detail: {
+      title: "From the photo to the ticket",
+      line: "Tickets, lounges and tables bought in a few taps, without leaving the app.",
+    },
+    dashboard: {
+      title: "Every sale, in real time",
+      line: "Revenue, tickets sold and the full funnel, from impression to purchase.",
+    },
+    gestion: {
+      title: "Run the night from your phone",
+      line: "Tiers, lounges, guests and promoters for every event, in one screen.",
     },
   },
   seo: {
