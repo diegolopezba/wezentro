@@ -90,6 +90,11 @@ const BusinessExperiences = lazyWithRetry(() => import("./pages/BusinessExperien
 const BusinessLanding = lazyWithRetry(() => import("./pages/BusinessLanding"));
 const BusinessPlansPublic = lazyWithRetry(() => import("./pages/BusinessPlansPublic"));
 const BusinessSetup = lazyWithRetry(() => import("./pages/BusinessSetup"));
+const LandingRoot = lazyWithRetry(() => import("./pages/landing/LandingRoot"));
+const LandingHome = lazyWithRetry(() => import("./pages/landing/LandingHome"));
+const LandingEvents = lazyWithRetry(() => import("./pages/landing/LandingEvents"));
+const LandingRestaurants = lazyWithRetry(() => import("./pages/landing/LandingRestaurants"));
+const LandingExperiences = lazyWithRetry(() => import("./pages/landing/LandingExperiences"));
 const JoinedEvents = lazyWithRetry(() => import("./pages/JoinedEvents"));
 const Help = lazyWithRetry(() => import("./pages/Help"));
 const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
@@ -231,6 +236,16 @@ const AppRoutes = () => {
         <Route path="/business" element={<LazyRoute><BusinessLanding /></LazyRoute>} />
         <Route path="/business/planes" element={<LazyRoute><BusinessPlansPublic /></LazyRoute>} />
         <Route path="/business/setup" element={<ProtectedRoute requireProfile><LazyRoute><BusinessSetup /></LazyRoute></ProtectedRoute>} />
+
+        {/* Browser-only commercial landing (hidden inside the native app) */}
+        <Route path="/landing" element={<LazyRoute><LandingRoot /></LazyRoute>}>
+          <Route index element={<LazyRoute><LandingHome /></LazyRoute>} />
+          <Route path="eventos" element={<LazyRoute><LandingEvents /></LazyRoute>} />
+          <Route path="restaurantes" element={<LazyRoute><LandingRestaurants /></LazyRoute>} />
+          <Route path="experiencias" element={<LazyRoute><LandingExperiences /></LazyRoute>} />
+        </Route>
+
+
 
         {/* Private admin console */}
         <Route path="/admin/login" element={<LazyRoute><AdminLogin /></LazyRoute>} />
