@@ -90,7 +90,11 @@ export const LandingCTAs = ({
 
   return (
     <div className={cn("flex flex-col gap-3 sm:flex-row", className)}>
-      <Button className="h-12 rounded-full px-7 text-base font-semibold" onClick={start}>
+      <Button
+        variant="sheet-action"
+        className="h-12 rounded-full px-7 text-base"
+        onClick={start}
+      >
         {primaryLabel}
       </Button>
       <Button

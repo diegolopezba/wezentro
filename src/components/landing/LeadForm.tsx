@@ -173,6 +173,7 @@ export const LeadForm = ({ defaultKind = "events" }: { defaultKind?: Kind }) => 
 
             <Button
               type="submit"
+              variant="sheet-action"
               disabled={status === "sending"}
               className="h-12 w-full rounded-full text-base font-semibold"
             >
