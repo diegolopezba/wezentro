@@ -232,6 +232,16 @@ const AppRoutes = () => {
         <Route path="/business/planes" element={<LazyRoute><BusinessPlansPublic /></LazyRoute>} />
         <Route path="/business/setup" element={<ProtectedRoute requireProfile><LazyRoute><BusinessSetup /></LazyRoute></ProtectedRoute>} />
 
+        {/* Browser-only commercial landing (hidden inside the native app) */}
+        <Route path="/landing" element={<LazyRoute><LandingRoot /></LazyRoute>}>
+          <Route index element={<LazyRoute><LandingHome /></LazyRoute>} />
+          <Route path="eventos" element={<LazyRoute><LandingEvents /></LazyRoute>} />
+          <Route path="restaurantes" element={<LazyRoute><LandingRestaurants /></LazyRoute>} />
+          <Route path="experiencias" element={<LazyRoute><LandingExperiences /></LazyRoute>} />
+        </Route>
+
+
+
         {/* Private admin console */}
         <Route path="/admin/login" element={<LazyRoute><AdminLogin /></LazyRoute>} />
         <Route path="/admin" element={<LazyRoute><AdminLayout /></LazyRoute>}>
