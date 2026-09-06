@@ -157,24 +157,8 @@ const EventDetail = () => {
     captureFromUrl(id, location.search);
   }, [id, location.search]);
 
-
-
-  if (isLoading) {
-    return <div className="min-h-[100dvh] bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>;
-  }
-  if (error || !event) {
-    return <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4">
-        <h1 className="font-brand text-xl font-medium text-foreground mb-2">Evento no encontrado</h1>
-        <p className="text-muted-foreground mb-4">Este evento puede haber sido eliminado o no existe.</p>
-        <Button onClick={() => navigate("/")}>Ir al Inicio</Button>
-      </div>;
-  }
-  const isVideo = isVideoUrl(event.image_url);
-  const isPost = !!event.is_post;
-
   // JSON-LD Event structured data for Google rich results
+  const isPost = !!event?.is_post;
   const structuredDataOffers = useMemo<EventOfferInput[]>(() => {
     if (!event || isPost) return [];
     const offers: EventOfferInput[] = [];
@@ -224,6 +208,19 @@ const EventDetail = () => {
       : null
   );
 
+  if (isLoading) {
+    return <div className="min-h-[100dvh] bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>;
+  }
+  if (error || !event) {
+    return <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4">
+        <h1 className="font-brand text-xl font-medium text-foreground mb-2">Evento no encontrado</h1>
+        <p className="text-muted-foreground mb-4">Este evento puede haber sido eliminado o no existe.</p>
+        <Button onClick={() => navigate("/")}>Ir al Inicio</Button>
+      </div>;
+  }
+  const isVideo = isVideoUrl(event.image_url);
   const mediaArr = ((event as any).media as any[]) || [];
   const carouselItems = mediaArr.length > 0
     ? mediaArr.map((m: any) => ({
