@@ -90,6 +90,11 @@ const BusinessExperiences = lazyWithRetry(() => import("./pages/BusinessExperien
 const BusinessLanding = lazyWithRetry(() => import("./pages/BusinessLanding"));
 const BusinessPlansPublic = lazyWithRetry(() => import("./pages/BusinessPlansPublic"));
 const BusinessSetup = lazyWithRetry(() => import("./pages/BusinessSetup"));
+const LandingRoot = lazyWithRetry(() => import("./pages/landing/LandingRoot"));
+const LandingHome = lazyWithRetry(() => import("./pages/landing/LandingHome"));
+const LandingEvents = lazyWithRetry(() => import("./pages/landing/LandingEvents"));
+const LandingRestaurants = lazyWithRetry(() => import("./pages/landing/LandingRestaurants"));
+const LandingExperiences = lazyWithRetry(() => import("./pages/landing/LandingExperiences"));
 const JoinedEvents = lazyWithRetry(() => import("./pages/JoinedEvents"));
 const Help = lazyWithRetry(() => import("./pages/Help"));
 const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
