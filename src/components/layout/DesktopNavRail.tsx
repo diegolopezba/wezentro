@@ -90,8 +90,8 @@ export const DesktopNavRail = () => {
       </Dialog>
 
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 z-40 w-20 flex-col items-center gap-2 border-r border-border bg-background py-4">
-        <NavLink to="/" className="mb-4 font-brand text-xl font-semibold text-foreground">
-          z
+        <NavLink to="/" className="mb-4">
+          <img src="/logo.png" alt="Zentro" className="h-8 w-auto object-contain" />
         </NavLink>
 
         {items.map((item) => {
