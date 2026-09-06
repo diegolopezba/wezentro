@@ -1,12 +1,12 @@
 /** Real app screenshots used across the commercial landing. */
-import feedAsset from "@/assets/landing/feed.png.asset.json";
-import detailAsset from "@/assets/landing/event_detail.png.asset.json";
-import dashboardAsset from "@/assets/landing/dashboard.png.asset.json";
-import gestionAsset from "@/assets/landing/gestion_eventos.png.asset.json";
+import feedShot from "@/assets/landing/feed.webp";
+import detailShot from "@/assets/landing/event_detail.webp";
+import dashboardShot from "@/assets/landing/dashboard.webp";
+import gestionShot from "@/assets/landing/gestion_eventos.webp";
 
 export const SHOTS = {
-  feed: feedAsset.url,
-  detail: detailAsset.url,
-  dashboard: dashboardAsset.url,
-  gestion: gestionAsset.url,
+  feed: feedShot,
+  detail: detailShot,
+  dashboard: dashboardShot,
+  gestion: gestionShot,
 } as const;
