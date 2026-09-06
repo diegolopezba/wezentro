@@ -1,10 +1,9 @@
-import { useRef, useEffect, useLayoutEffect } from "react";
+import { useRef, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { m } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck, Flag, HelpCircle } from "lucide-react";
-import { useState } from "react";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { Button } from "@/components/ui/button";
 import { useEventGuestlist } from "@/hooks/useEvents";
@@ -46,6 +45,7 @@ import { EVENT_ACTIONS_INTRO } from "@/components/business/featureIntroSteps";
 import { useCommentCount, useLatestComment } from "@/hooks/useEventComments";
 import { AttachedBusinessCtas } from "@/components/events/AttachedBusinessCtas";
 import { captureFromUrl } from "@/lib/promoterAttribution";
+import { useEventStructuredData, type EventOfferInput } from "@/hooks/useEventStructuredData";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -157,7 +157,56 @@ const EventDetail = () => {
     captureFromUrl(id, location.search);
   }, [id, location.search]);
 
+  // JSON-LD Event structured data for Google rich results
+  const isPost = !!event?.is_post;
+  const structuredDataOffers = useMemo<EventOfferInput[]>(() => {
+    if (!event || isPost) return [];
+    const offers: EventOfferInput[] = [];
 
+    ticketTiers.forEach((tier) => {
+      const soldOut = tier.capacity != null && tier.sold_count >= tier.capacity;
+      offers.push({
+        name: tier.name,
+        price: Number(tier.price),
+        availability: soldOut ? "SoldOut" : "InStock",
+      });
+    });
+
+    eventAreas
+      .filter((area) => !area.is_decor)
+      .forEach((area) => {
+        offers.push({
+          name: area.name,
+          price: Number(area.price),
+          availability: "InStock",
+        });
+      });
+
+    if (offers.length === 0 && event.price && event.price > 0) {
+      offers.push({ price: event.price });
+    }
+
+    return offers;
+  }, [event, isPost, ticketTiers, eventAreas]);
+
+  useEventStructuredData(
+    event && !isPost
+      ? {
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          image_url: event.image_url,
+          start_datetime: event.start_datetime,
+          end_datetime: event.end_datetime,
+          location_name: event.location_name,
+          latitude: event.latitude,
+          longitude: event.longitude,
+          is_public: event.is_public,
+          creator: event.creator,
+          offers: structuredDataOffers,
+        }
+      : null
+  );
 
   if (isLoading) {
     return <div className="min-h-[100dvh] bg-background flex items-center justify-center">
@@ -172,7 +221,6 @@ const EventDetail = () => {
       </div>;
   }
   const isVideo = isVideoUrl(event.image_url);
-  const isPost = !!event.is_post;
   const mediaArr = ((event as any).media as any[]) || [];
   const carouselItems = mediaArr.length > 0
     ? mediaArr.map((m: any) => ({
