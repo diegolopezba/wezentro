@@ -1,10 +1,9 @@
-import { useRef, useEffect, useLayoutEffect } from "react";
+import { useRef, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { m } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send, Loader2, Check, Clock, Volume2, VolumeX, Heart, MoreVertical, Pencil, Trash2, Lock, Bookmark, Repeat, EyeOff, UtensilsCrossed, CalendarCheck, Flag, HelpCircle } from "lucide-react";
-import { useState } from "react";
 import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { Button } from "@/components/ui/button";
 import { useEventGuestlist } from "@/hooks/useEvents";
@@ -46,6 +45,7 @@ import { EVENT_ACTIONS_INTRO } from "@/components/business/featureIntroSteps";
 import { useCommentCount, useLatestComment } from "@/hooks/useEventComments";
 import { AttachedBusinessCtas } from "@/components/events/AttachedBusinessCtas";
 import { captureFromUrl } from "@/lib/promoterAttribution";
+import { useEventStructuredData, type EventOfferInput } from "@/hooks/useEventStructuredData";
 
 const EventDetail = () => {
   const { id } = useParams();
