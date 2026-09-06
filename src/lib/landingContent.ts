@@ -131,6 +131,12 @@ export interface LandingCopy {
     features: Bullet[];
     pricing: { kicker: string; title: string; big: string; body: string; bullets: string[] };
   };
+  shots: {
+    feed: { title: string; line: string };
+    detail: { title: string; line: string };
+    dashboard: { title: string; line: string };
+    gestion: { title: string; line: string };
+  };
   seo: {
     title: string;
     description: string;
