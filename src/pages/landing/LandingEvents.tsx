@@ -2,13 +2,13 @@ import { LandingShell, type LandingSection } from "@/components/landing/LandingS
 import {
   ClosingBlock,
   CommissionBlock,
-  FeatureGrid,
   LandingHero,
-  SectionHead,
 } from "@/components/landing/LandingBlocks";
+import { LabelStrip, MediaSplit, PhoneFrame } from "@/components/landing/PhoneFrame";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { useLanding } from "@/components/landing/LandingContext";
 import { useLandingSeo } from "@/pages/landing/useLandingSeo";
+import { SHOTS } from "@/lib/landingShots";
 
 const LandingEvents = () => {
   const { t } = useLanding();
@@ -25,21 +25,39 @@ const LandingEvents = () => {
           subtitle={e.hero.subtitle}
           primary={t.nav.cta}
           secondary={t.nav.demo}
+          aside={<PhoneFrame src={SHOTS.detail} alt={t.shots.detail.title} />}
         />
       ),
     },
     {
-      id: "funciones",
+      id: "gestion",
       tone: "light",
       content: (
-        <div>
-          <SectionHead title={t.what.title} subtitle={t.what.subtitle} />
-          <FeatureGrid items={[...e.features]} />
-        </div>
+        <MediaSplit
+          title={t.shots.gestion.title}
+          line={t.shots.gestion.line}
+          src={SHOTS.gestion}
+          alt={t.shots.gestion.title}
+        >
+          <LabelStrip items={e.features.map((f) => f.title)} />
+        </MediaSplit>
+      ),
+    },
+    {
+      id: "datos",
+      content: (
+        <MediaSplit
+          reverse
+          title={t.shots.dashboard.title}
+          line={t.shots.dashboard.line}
+          src={SHOTS.dashboard}
+          alt={t.shots.dashboard.title}
+        />
       ),
     },
     {
       id: "precio",
+      tone: "light",
       content: (
         <CommissionBlock
           kicker={e.pricing.kicker}
@@ -48,16 +66,6 @@ const LandingEvents = () => {
           body={e.pricing.body}
           bullets={[...e.pricing.bullets]}
         />
-      ),
-    },
-    {
-      id: "resultados",
-      tone: "light",
-      content: (
-        <div>
-          <SectionHead title={e.proof.title} />
-          <FeatureGrid items={[...e.proof.items]} />
-        </div>
       ),
     },
     { id: "demo", content: <LeadForm defaultKind="events" /> },

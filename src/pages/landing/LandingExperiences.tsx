@@ -2,13 +2,13 @@ import { LandingShell, type LandingSection } from "@/components/landing/LandingS
 import {
   ClosingBlock,
   CommissionBlock,
-  FeatureGrid,
   LandingHero,
-  SectionHead,
 } from "@/components/landing/LandingBlocks";
+import { LabelStrip, MediaSplit, PhoneFrame } from "@/components/landing/PhoneFrame";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { useLanding } from "@/components/landing/LandingContext";
 import { useLandingSeo } from "@/pages/landing/useLandingSeo";
+import { SHOTS } from "@/lib/landingShots";
 
 const LandingExperiences = () => {
   const { t } = useLanding();
@@ -25,21 +25,39 @@ const LandingExperiences = () => {
           subtitle={x.hero.subtitle}
           primary={t.nav.cta}
           secondary={t.nav.demo}
+          aside={<PhoneFrame src={SHOTS.feed} alt={t.shots.feed.title} />}
         />
       ),
     },
     {
-      id: "funciones",
+      id: "compra",
       tone: "light",
       content: (
-        <div>
-          <SectionHead title={t.flow.title} subtitle={t.flow.subtitle} />
-          <FeatureGrid items={[...x.features]} />
-        </div>
+        <MediaSplit
+          title={t.shots.detail.title}
+          line={t.shots.detail.line}
+          src={SHOTS.detail}
+          alt={t.shots.detail.title}
+        >
+          <LabelStrip items={x.features.map((f) => f.title)} />
+        </MediaSplit>
+      ),
+    },
+    {
+      id: "datos",
+      content: (
+        <MediaSplit
+          reverse
+          title={t.shots.dashboard.title}
+          line={t.shots.dashboard.line}
+          src={SHOTS.dashboard}
+          alt={t.shots.dashboard.title}
+        />
       ),
     },
     {
       id: "precio",
+      tone: "light",
       content: (
         <CommissionBlock
           kicker={x.pricing.kicker}
