@@ -121,7 +121,7 @@ export const useEventStructuredData = (event: EventSchemaInput | null | undefine
     if (!event?.id) return;
 
     const scriptId = `event-structured-data-${event.id}`;
-    let script = document.getElementById(scriptId);
+    let script = document.getElementById(scriptId) as HTMLScriptElement | null;
     if (!script) {
       script = document.createElement("script");
       script.id = scriptId;
