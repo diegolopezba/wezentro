@@ -158,7 +158,7 @@ const es: LandingCopy = {
     kicker: "Zentro para negocios",
     title: "El Pinterest de la vida social",
     subtitle:
-      "Un ecosistema para restaurantes, boliches, eventos y experiencias — descubrimiento, ticketing, reservas, lounges, bookings y pagos en un solo lugar.",
+      "Un ecosistema para restaurantes, boliches, eventos y experiencias. Descubrimiento, ticketing, reservas, lounges, bookings y pagos en un solo lugar.",
     primary: "Crear mi cuenta Business",
     secondary: "Agendar una demo",
     stat: "35%",
