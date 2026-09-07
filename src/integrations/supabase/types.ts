@@ -4876,6 +4876,10 @@ export type Database = {
         Args: { _event_id: string; _impressions?: number; _views?: number }
         Returns: undefined
       }
+      can_manage_experience_booking: {
+        Args: { _booking_id: string }
+        Returns: boolean
+      }
       can_see_event_location: {
         Args: { _event: string; _user: string }
         Returns: boolean
@@ -5347,6 +5351,10 @@ export type Database = {
       }
       is_chat_participant: {
         Args: { _chat_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_experience_booking_guest: {
+        Args: { _booking_id: string }
         Returns: boolean
       }
       is_post_owner: {
