@@ -11,7 +11,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
-import { isFoodBusinessType } from "@/lib/businessTypes";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscriptionTiers";
 import { useDashboardAccess } from "@/hooks/useDashboardAccess";
@@ -38,7 +37,8 @@ const BusinessSettings = () => {
   const menuEnabled = (profile as any)?.menu_enabled === true;
   const reservationsEnabled = (profile as any)?.reservations_enabled === true;
   const experiencesEnabled = (profile as any)?.experiences_enabled === true;
-  const isFoodBusiness = isBusiness && isFoodBusinessType((profile as any)?.business_type);
+  // Menu, reservations and plans apply to every business category.
+  const isFoodBusiness = isBusiness;
   const { tier } = useSubscriptionTier(isFoodBusiness ? user?.id : undefined);
   const { hasActivePlan } = useBusinessPlanAccess(user?.id, isFoodBusiness);
   const planLocked = isFoodBusiness && !hasActivePlan;

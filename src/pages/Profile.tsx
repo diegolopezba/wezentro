@@ -39,7 +39,7 @@ const Profile = () => {
     isLoading: timelineLoading
   } = useUserTimeline(user?.id);
   const isBusiness = profile?.is_business === true;
-  const isFoodBusiness = isFoodBusinessType(profile?.business_type);
+  const isFoodBusiness = isBusiness;
   const menuEnabled = (profile as any)?.menu_enabled === true;
   const reservationsEnabled = (profile as any)?.reservations_enabled === true;
 

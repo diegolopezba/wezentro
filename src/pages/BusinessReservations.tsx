@@ -13,7 +13,6 @@ import { RESERVATIONS_INTRO } from "@/components/business/featureIntroSteps";
 import { TablesEditor } from "@/components/reservations/TablesEditor";
 import { ReservationScheduleEditor } from "@/components/reservations/ReservationScheduleEditor";
 import { ReservationRulesEditor } from "@/components/reservations/ReservationRulesEditor";
-import { isFoodBusinessType } from "@/lib/businessTypes";
 import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 import { PlanRequiredCard } from "@/components/subscriptions/PlanRequiredCard";
 
@@ -25,9 +24,9 @@ const BusinessReservations = () => {
 
   useSwipeBack();
 
-  const isFoodBusiness = isFoodBusinessType((profile as any)?.business_type);
-  const { hasActivePlan, isLoading: planLoading } = useBusinessPlanAccess(user?.id, isFoodBusiness);
-  const planLocked = isFoodBusiness && !hasActivePlan && !planLoading;
+  const isBusiness = (profile as any)?.is_business === true;
+  const { hasActivePlan, isLoading: planLoading } = useBusinessPlanAccess(user?.id, isBusiness);
+  const planLocked = isBusiness && !hasActivePlan && !planLoading;
   const reservationsEnabled = (profile as any)?.reservations_enabled === true && !planLocked;
   const intro = useFeatureIntro("reservations");
 
