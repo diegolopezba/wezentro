@@ -8,7 +8,7 @@ import { Reveal } from "@/components/landing/LandingShell";
  */
 export const PhoneFrame = ({ src, alt, className }: { src: string; alt: string; className?: string }) => (
   <div
-    className={cn("mx-auto w-full max-w-[200px] rounded-[42px] border border-border bg-card p-2 shadow-2xl", className)}
+    className={cn("mx-auto w-full max-w-[250px] rounded-[42px] border border-border bg-card p-2 shadow-2xl", className)}
   >
     <div className="overflow-hidden rounded-[34px] bg-background">
       <img src={src} alt={alt} loading="lazy" decoding="async" className="block h-auto w-full" />
