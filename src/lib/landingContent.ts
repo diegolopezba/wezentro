@@ -12,8 +12,7 @@ export const INSTAGRAM_URL = "https://instagram.com/wearezentro";
 export const TIKTOK_URL = "https://tiktok.com/@wearezentro";
 export const SOCIAL_HANDLE = "@wearezentro";
 
-export const whatsappLink = (text: string) =>
-  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+export const whatsappLink = (text: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 
 interface Bullet {
   title: string;
@@ -159,7 +158,7 @@ const es: LandingCopy = {
     kicker: "Zentro para negocios",
     title: "El Pinterest de la vida social",
     subtitle:
-      "Descubrimiento, ventas y datos en un solo lugar. Entradas, reservas, lounges y experiencias, con el algoritmo social que llena tu local.",
+      "Un ecosistema para restaurantes, boliches, eventos y experiencias — descubrimiento, ticketing, reservas, lounges, bookings y pagos en un solo lugar.",
     primary: "Crear mi cuenta Business",
     secondary: "Agendar una demo",
     stat: "35%",
@@ -204,8 +203,7 @@ const es: LandingCopy = {
     title: "No somos una ticketera ni una página de reservas",
     equation: ["Red social", "Marketplace de experiencias"],
     result: "Ecosistema completo donde vive tu audiencia",
-    body:
-      "Cada interacción y cada compra alimentan el algoritmo: aprendemos gustos, hábitos y patrones de tu audiencia. Eso permite hiper-segmentación, y vender hasta un 35% más que en cualquier otra plataforma.",
+    body: "Cada interacción y cada compra alimentan el algoritmo: aprendemos gustos, hábitos y patrones de tu audiencia. Eso permite hiper-segmentación, y vender hasta un 35% más que en cualquier otra plataforma.",
     bullets: [
       {
         title: "Algoritmo propio",
@@ -232,7 +230,10 @@ const es: LandingCopy = {
     items: [
       { title: "TikTok · Comunicación", desc: "Alcance masivo. Tu marca llega a gente que todavía no te conoce." },
       { title: "Instagram · Comunidad", desc: "Relación con tu público. Refuerza quién sos y por qué confiar en vos." },
-      { title: "Zentro · Discovery, ventas y data", desc: "Donde esa atención se convierte en reserva, venta y datos reales." },
+      {
+        title: "Zentro · Discovery, ventas y data",
+        desc: "Donde esa atención se convierte en reserva, venta y datos reales.",
+      },
     ],
   },
   paths: {
@@ -301,9 +302,15 @@ const es: LandingCopy = {
         "Ticketing, lounges, invitados y control de puerta en la misma app donde tu público ya descubre a dónde salir.",
     },
     features: [
-      { title: "Entradas con QR", desc: "Tiers con precio, cupo y fecha límite de venta. El dinero llega a tu cuenta." },
+      {
+        title: "Entradas con QR",
+        desc: "Tiers con precio, cupo y fecha límite de venta. El dinero llega a tu cuenta.",
+      },
       { title: "Control de ingreso", desc: "Escaneá y validá entradas en la puerta, sin scanners externos." },
-      { title: "Lounges y mesas", desc: "Vendé áreas y mesas sobre el plano visual de tu local, con entradas incluidas." },
+      {
+        title: "Lounges y mesas",
+        desc: "Vendé áreas y mesas sobre el plano visual de tu local, con entradas incluidas.",
+      },
       { title: "Guestlists", desc: "Invitados y accesos especiales sin planillas ni grupos de WhatsApp." },
       { title: "Invitaciones masivas", desc: "Hasta 2000 invitaciones automáticas por categoría, con su propio QR." },
       { title: "RRPP y promotores", desc: "Links por promotor y ventas atribuidas a cada uno, en tiempo real." },
@@ -327,7 +334,10 @@ const es: LandingCopy = {
     proof: {
       title: "Lo que cambia en la operación",
       items: [
-        { title: "Configurás una vez", desc: "Tu plano, tus tiers y tus reglas quedan guardados para el próximo evento." },
+        {
+          title: "Configurás una vez",
+          desc: "Tu plano, tus tiers y tus reglas quedan guardados para el próximo evento.",
+        },
         { title: "Todo en tiempo real", desc: "Ventas, lounges vendidos y check-in se actualizan solos en Gestión." },
         { title: "Sabés a quién le vendiste", desc: "Cada comprador queda en tu base, con su historial." },
       ],
@@ -345,22 +355,42 @@ const es: LandingCopy = {
       { title: "Reservas en segundos", desc: "Confirmación automática, 24/7, también fuera de horario." },
       { title: "Recordatorios automáticos", desc: "Menos no-shows, sin que tu equipo tenga que perseguir a nadie." },
       { title: "Menú interactivo", desc: "Tu carta organizada y, según el plan, con foto de cada plato." },
-      { title: "Contenido que vende", desc: "Publicaciones estilo Pinterest: de la foto a la reserva, sin salir de la app." },
-      { title: "Analíticas de sala", desc: "Ocupación, horarios que más se llenan, cancelaciones, no-shows y clientes que vuelven." },
+      {
+        title: "Contenido que vende",
+        desc: "Publicaciones estilo Pinterest: de la foto a la reserva, sin salir de la app.",
+      },
+      {
+        title: "Analíticas de sala",
+        desc: "Ocupación, horarios que más se llenan, cancelaciones, no-shows y clientes que vuelven.",
+      },
     ],
     plansTitle: "Elegí el plan que más te convenga",
     plansSubtitle: "Sin permanencia, sin comisión por reserva. Cambiás de plan cuando quieras.",
-    plansNote:
-      "Todos los eventos y experiencias con ticketing tienen 6% de comisión por entrada vendida.",
+    plansNote: "Todos los eventos y experiencias con ticketing tienen 6% de comisión por entrada vendida.",
     perDay: (bs) => `unos Bs. ${Math.round(bs / 30)} por día`,
     faqTitle: "Preguntas frecuentes",
     faq: [
       { q: "¿Me cobran comisión por reserva?", a: "No. La mensualidad es lo único que pagás por las reservas." },
-      { q: "¿Cómo se paga el plan?", a: "Con QR desde la app, mes a mes o 12 meses por adelantado con 5% de descuento." },
-      { q: "¿Puedo cancelar cuando quiera?", a: "Sí. No hay permanencia ni penalidad: si no renovás, el plan simplemente termina." },
-      { q: "¿Cuándo recibo el dinero de mis entradas?", a: "El cobro va directo a la cuenta bancaria que registrás, por cada venta." },
-      { q: "¿Necesito comprar hardware?", a: "No. Todo funciona desde el celular de tu equipo: reservas, menú y escaneo de entradas." },
-      { q: "¿Puedo probar sin publicar nada?", a: "Sí. Creás tu cuenta Business gratis, configurás todo y publicás cuando quieras." },
+      {
+        q: "¿Cómo se paga el plan?",
+        a: "Con QR desde la app, mes a mes o 12 meses por adelantado con 5% de descuento.",
+      },
+      {
+        q: "¿Puedo cancelar cuando quiera?",
+        a: "Sí. No hay permanencia ni penalidad: si no renovás, el plan simplemente termina.",
+      },
+      {
+        q: "¿Cuándo recibo el dinero de mis entradas?",
+        a: "El cobro va directo a la cuenta bancaria que registrás, por cada venta.",
+      },
+      {
+        q: "¿Necesito comprar hardware?",
+        a: "No. Todo funciona desde el celular de tu equipo: reservas, menú y escaneo de entradas.",
+      },
+      {
+        q: "¿Puedo probar sin publicar nada?",
+        a: "Sí. Creás tu cuenta Business gratis, configurás todo y publicás cuando quieras.",
+      },
     ],
   },
   experiences: {
@@ -476,8 +506,7 @@ const en: LandingCopy = {
     title: "We're not a ticketing site or a booking page",
     equation: ["Social network", "Experience marketplace"],
     result: "A complete ecosystem where your audience already lives",
-    body:
-      "Every interaction and every purchase feeds the algorithm: we learn tastes, habits and patterns. That's what enables hyper-segmentation, and selling up to 35% more than on any other platform.",
+    body: "Every interaction and every purchase feeds the algorithm: we learn tastes, habits and patterns. That's what enables hyper-segmentation, and selling up to 35% more than on any other platform.",
     bullets: [
       { title: "Our own algorithm", desc: "Your post reaches people who actually go to places like yours." },
       { title: "Customer database", desc: "Learn who they are, what they like and where else they go." },
@@ -618,8 +647,14 @@ const en: LandingCopy = {
       { q: "How do I pay for the plan?", a: "By QR in the app, monthly or 12 months upfront with a 5% discount." },
       { q: "Can I cancel anytime?", a: "Yes. No lock-in and no penalty: if you don't renew, the plan simply ends." },
       { q: "When do I get my ticket money?", a: "Payouts go straight to the bank account you register, per sale." },
-      { q: "Do I need to buy hardware?", a: "No. Everything runs on your team's phones: bookings, menu and ticket scanning." },
-      { q: "Can I try it without publishing?", a: "Yes. Create your Business account for free, set everything up and publish when ready." },
+      {
+        q: "Do I need to buy hardware?",
+        a: "No. Everything runs on your team's phones: bookings, menu and ticket scanning.",
+      },
+      {
+        q: "Can I try it without publishing?",
+        a: "Yes. Create your Business account for free, set everything up and publish when ready.",
+      },
     ],
   },
   experiences: {
@@ -642,11 +677,7 @@ const en: LandingCopy = {
       title: "You only pay when you sell",
       big: "6%",
       body: "service commission per slot sold.",
-      bullets: [
-        "No monthly fee, no setup costs",
-        "Payouts straight to your bank account",
-        "No hidden charges",
-      ],
+      bullets: ["No monthly fee, no setup costs", "Payouts straight to your bank account", "No hidden charges"],
     },
   },
   shots: {
