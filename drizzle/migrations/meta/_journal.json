@@ -232,6 +232,20 @@
       "when": 1788794380027,
       "tag": "0032_fix_experience_booking_rls_recursion",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1788806762616,
+      "tag": "0033_gate_business_tools_all_categories",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1788806797953,
+      "tag": "0034_restore_create_reservation_body",
+      "breakpoints": true
     }
   ]
 }

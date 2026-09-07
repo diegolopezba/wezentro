@@ -11,7 +11,6 @@ import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
 import { MENU_INTRO } from "@/components/business/featureIntroSteps";
 import { MenuEditor } from "@/components/menu/MenuEditor";
-import { isFoodBusinessType } from "@/lib/businessTypes";
 import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 import { PlanRequiredCard } from "@/components/subscriptions/PlanRequiredCard";
 
@@ -22,9 +21,9 @@ const BusinessMenu = () => {
 
   useSwipeBack();
 
-  const isFoodBusiness = isFoodBusinessType((profile as any)?.business_type);
-  const { hasActivePlan, isLoading: planLoading } = useBusinessPlanAccess(user?.id, isFoodBusiness);
-  const planLocked = isFoodBusiness && !hasActivePlan && !planLoading;
+  const isBusiness = (profile as any)?.is_business === true;
+  const { hasActivePlan, isLoading: planLoading } = useBusinessPlanAccess(user?.id, isBusiness);
+  const planLocked = isBusiness && !hasActivePlan && !planLoading;
   const menuEnabled = (profile as any)?.menu_enabled === true && !planLocked;
   const intro = useFeatureIntro("menu");
 

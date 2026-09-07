@@ -26,7 +26,6 @@ import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
-import { isFoodBusinessType } from "@/lib/businessTypes";
 
 const UserProfile = () => {
   const {
@@ -73,17 +72,18 @@ const UserProfile = () => {
     data: timeline,
     isLoading: timelineLoading
   } = useUserTimeline(id);
-  const isFoodBusiness = isFoodBusinessType((userProfile as any)?.business_type);
+  // Menu + table reservations are available to every business category (plan-gated).
+  const isFoodBusiness = userProfile?.is_business === true;
   const isBusiness = userProfile?.is_business === true;
-  const { hasActivePlan } = useBusinessPlanAccess(id, isBusiness && isFoodBusiness);
+  const { hasActivePlan } = useBusinessPlanAccess(id, isBusiness);
   const menuEnabled =
-    (userProfile as any)?.menu_enabled === true && isFoodBusiness && hasActivePlan;
+    (userProfile as any)?.menu_enabled === true && isBusiness && hasActivePlan;
   const reservationsEnabled =
     (userProfile as any)?.reservations_enabled === true && hasActivePlan;
   const { data: publicExperiences = [] } = usePublicExperiences(isBusiness ? id : undefined);
   const experiencesAvailable =
     (userProfile as any)?.experiences_enabled === true && publicExperiences.length > 0;
-  const tableReservationAvailable = isFoodBusiness && reservationsEnabled;
+  const tableReservationAvailable = isBusiness && reservationsEnabled;
   const businessType = (userProfile as any)?.business_type as string | null | undefined;
   const contactPhone = userProfile?.business_phone?.trim() || null;
   const hasBusinessInfo = userProfile?.business_address || userProfile?.business_hours || userProfile?.business_phone;

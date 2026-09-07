@@ -19,7 +19,6 @@ import {
   quoteCharge,
 } from "../_shared/subscriptionPricing.ts";
 
-const FOOD_BUSINESS_TYPES = ["restaurant", "coffee", "bar"];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -60,7 +59,7 @@ Deno.serve(async (req) => {
       .eq("id", userId)
       .maybeSingle();
 
-    if (!profile?.is_business || !FOOD_BUSINESS_TYPES.includes(String(profile.business_type))) {
+    if (!profile?.is_business) {
       return json(
         { error: "Los planes son para cuentas de restaurante, café o bar", code: "not_food_business" },
         403,

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { isFoodBusinessType } from "@/lib/businessTypes";
 import {
   FeatureKey,
   TierKey,
@@ -35,9 +34,8 @@ export interface BusinessSubscription {
 export const useSubscriptionTier = (businessId?: string) => {
   const { profile } = useAuth();
   const isOwnProfile = !!businessId && profile?.id === businessId;
-  const isFood = isOwnProfile
-    ? isFoodBusinessType((profile as any)?.business_type)
-    : true;
+  // Every business category is part of the subscription system.
+  const isFood = true;
 
   const { data, isLoading } = useQuery({
     queryKey: ["business-subscription", businessId],

@@ -16,7 +16,6 @@ import { ReservationsManagementSheet } from "@/components/reservations/Reservati
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
-import { isFoodBusinessType } from "@/lib/businessTypes";
 
 
 const Profile = () => {
@@ -39,7 +38,7 @@ const Profile = () => {
     isLoading: timelineLoading
   } = useUserTimeline(user?.id);
   const isBusiness = profile?.is_business === true;
-  const isFoodBusiness = isFoodBusinessType(profile?.business_type);
+  const isFoodBusiness = isBusiness;
   const menuEnabled = (profile as any)?.menu_enabled === true;
   const reservationsEnabled = (profile as any)?.reservations_enabled === true;
 
