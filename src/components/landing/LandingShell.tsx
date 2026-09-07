@@ -109,7 +109,6 @@ export const LandingCTAs = ({
 };
 
 const NAV = [
-  { to: "/landing", key: "home" as const },
   { to: "/landing/eventos", key: "events" as const },
   { to: "/landing/restaurantes", key: "restaurants" as const },
   { to: "/landing/experiencias", key: "experiences" as const },
