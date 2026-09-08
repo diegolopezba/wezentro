@@ -47,12 +47,12 @@ const STEPS = [
   },
   {
     key: "pricing",
-    title: "Cuánto cuesta",
+    title: "¿Cuánto cuesta?",
     subtitle: "Dos modelos claros. Sin sorpresas ni contratos.",
     items: [
       {
         icon: Ticket,
-        label: "Eventos y entradas: 6% por ticket",
+        label: "Eventos y experiencias: 6% por ticket",
         desc: "Sin mensualidad. Discotecas, venues, productoras y experiencias: solo pagás cuando vendés.",
       },
       {
