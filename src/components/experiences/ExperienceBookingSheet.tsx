@@ -114,10 +114,26 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
   // Poll the payment session until the callback confirms it.
   useEffect(() => {
     if (!sessionId || step !== "pay") return;
+    let consecutiveFailures = 0;
     const id = window.setInterval(async () => {
-      const { data } = await supabase.functions.invoke("check-qhantuy-payment-status", {
+      const { data, error } = await supabase.functions.invoke("check-qhantuy-payment-status", {
         body: { paymentSessionId: sessionId },
       });
+      if (error) {
+        consecutiveFailures += 1;
+        const httpStatus = (error as any)?.context?.status;
+        const isAuth = httpStatus === 401 || httpStatus === 403;
+        if (isAuth || consecutiveFailures >= 5) {
+          window.clearInterval(id);
+          toast.error(
+            isAuth
+              ? "Tu sesión expiró. Iniciá sesión de nuevo para ver el estado de tu pago."
+              : "No pudimos verificar tu pago. Revisá tu conexión e intentá de nuevo.",
+          );
+        }
+        return;
+      }
+      consecutiveFailures = 0;
       if (data?.status === "confirmed") {
         window.clearInterval(id);
         if (typeof data.experienceBookingId === "string") {
