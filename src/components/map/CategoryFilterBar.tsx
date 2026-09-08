@@ -2,7 +2,7 @@ import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
-  { value: "party", label: "Fiesta", emoji: },
+  { value: "party", label: "Fiesta" },
   { value: "bar", label: "Bar", emoji: "🍸" },
   { value: "concert", label: "Concierto", emoji: "🎵" },
   { value: "festival", label: "Festival", emoji: "🎪" },
@@ -19,10 +19,7 @@ interface CategoryFilterBarProps {
   onToggleCategory: (category: string) => void;
 }
 
-export const CategoryFilterBar = ({
-  selectedCategories,
-  onToggleCategory,
-}: CategoryFilterBarProps) => {
+export const CategoryFilterBar = ({ selectedCategories, onToggleCategory }: CategoryFilterBarProps) => {
   return (
     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 pl-4 pr-4">
       {CATEGORIES.map((category, index) => {
@@ -37,7 +34,7 @@ export const CategoryFilterBar = ({
               "flex items-center gap-1.5 px-3 py-1.5 rounded-full whitespace-nowrap transition-all duration-200 text-sm",
               isSelected
                 ? "bg-primary text-primary-foreground shadow-md"
-                : "bg-card/90 backdrop-blur-md text-foreground border border-border/50"
+                : "bg-card/90 backdrop-blur-md text-foreground border border-border/50",
             )}
           >
             <span>{category.emoji}</span>
