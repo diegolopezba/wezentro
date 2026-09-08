@@ -118,13 +118,32 @@ export function CheckoutSteps({
 
   const startPolling = useCallback((sessionId: string) => {
     stopPolling();
+    // A de-authed session used to leave the payment screen spinning forever:
+    // count consecutive failures and surface the problem instead of retrying.
+    let consecutiveFailures = 0;
     pollingRef.current = setInterval(async () => {
       if (!isActiveRef.current) return;
       try {
         const { data, error } = await supabase.functions.invoke("check-qhantuy-payment-status", {
           body: { paymentSessionId: sessionId },
         });
-        if (error) return;
+        if (error) {
+          consecutiveFailures += 1;
+          const status = (error as any)?.context?.status;
+          const isAuth = status === 401 || status === 403;
+          if (isAuth || consecutiveFailures >= 5) {
+            stopPolling();
+            if (isAuth) {
+              setNeedsLogin(true);
+              setErrorMsg("Tu sesión expiró. Inicia sesión de nuevo para ver el estado de tu pago.");
+            } else {
+              setErrorMsg("No pudimos verificar tu pago. Revisá tu conexión e intentá de nuevo.");
+            }
+            setStep("error");
+          }
+          return;
+        }
+        consecutiveFailures = 0;
         const status = (data as any)?.status;
         if (status === "confirmed") {
           await handleConfirmed();
@@ -133,9 +152,17 @@ export function CheckoutSteps({
         } else if (status === "failed") {
           stopPolling(); setStep("error");
         }
-      } catch { /* retry silently */ }
+      } catch {
+        consecutiveFailures += 1;
+        if (consecutiveFailures >= 5) {
+          stopPolling();
+          setErrorMsg("No pudimos verificar tu pago. Revisá tu conexión e intentá de nuevo.");
+          setStep("error");
+        }
+      }
     }, 3000);
   }, [stopPolling, handleConfirmed]);
+
 
   const goToLogin = useCallback(() => {
     const returnTo = `${window.location.pathname}${window.location.search}`;
