@@ -114,10 +114,26 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
   // Poll the payment session until the callback confirms it.
   useEffect(() => {
     if (!sessionId || step !== "pay") return;
+    let consecutiveFailures = 0;
     const id = window.setInterval(async () => {
-      const { data } = await supabase.functions.invoke("check-qhantuy-payment-status", {
+      const { data, error } = await supabase.functions.invoke("check-qhantuy-payment-status", {
         body: { paymentSessionId: sessionId },
       });
+      if (error) {
+        consecutiveFailures += 1;
+        const httpStatus = (error as any)?.context?.status;
+        const isAuth = httpStatus === 401 || httpStatus === 403;
+        if (isAuth || consecutiveFailures >= 5) {
+          window.clearInterval(id);
+          toast.error(
+            isAuth
+              ? "Tu sesión expiró. Iniciá sesión de nuevo para ver el estado de tu pago."
+              : "No pudimos verificar tu pago. Revisá tu conexión e intentá de nuevo.",
+          );
+        }
+        return;
+      }
+      consecutiveFailures = 0;
       if (data?.status === "confirmed") {
         window.clearInterval(id);
         if (typeof data.experienceBookingId === "string") {
@@ -147,7 +163,22 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
     setStarting(true);
     setPayMethod(method);
     try {
+      // Bail out before creating a booking if the session is gone/stale.
+      const { data: sessionData } = await supabase.auth.getSession();
+      let activeSession = sessionData.session;
+      if (activeSession && (activeSession.expires_at ?? 0) * 1000 - Date.now() < 60_000) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        activeSession = refreshed.session ?? null;
+      }
+      if (!activeSession) {
+        gateway?.abort();
+        setStarting(false);
+        promptAuth({ action: "reservar esta experiencia" });
+        return;
+      }
+
       const newBookingId = await createBooking.mutateAsync({
+
         experienceId: experience.id,
         segmentId,
         date: dateStr,
