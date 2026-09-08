@@ -163,7 +163,22 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
     setStarting(true);
     setPayMethod(method);
     try {
+      // Bail out before creating a booking if the session is gone/stale.
+      const { data: sessionData } = await supabase.auth.getSession();
+      let activeSession = sessionData.session;
+      if (activeSession && (activeSession.expires_at ?? 0) * 1000 - Date.now() < 60_000) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        activeSession = refreshed.session ?? null;
+      }
+      if (!activeSession) {
+        gateway?.abort();
+        setStarting(false);
+        promptAuth({ action: "reservar esta experiencia" });
+        return;
+      }
+
       const newBookingId = await createBooking.mutateAsync({
+
         experienceId: experience.id,
         segmentId,
         date: dateStr,
