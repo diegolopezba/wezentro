@@ -253,10 +253,9 @@ export const PlanSelector = ({
                       )}
                     >
                       {opt === "month" ? (
-                        "Mensual"
-                      ) : (
-                        <>
-                          12 meses · <span className="text-emerald-500 font-semibold">-5%</span>
+  "Mensual"
+) : (
+  <span className="text-emerald-500 font-semibold">12 meses · -5%</span>
                         </>
                       )}
                     </button>
