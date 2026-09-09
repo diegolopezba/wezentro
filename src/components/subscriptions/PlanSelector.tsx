@@ -135,9 +135,7 @@ export const PlanSelector = ({
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Title row */}
       <div className="flex items-baseline justify-between px-1 pt-1">
-        <h2 className="font-brand text-[28px] font-medium leading-tight text-foreground">
-          Elegí tu plan
-        </h2>
+        <h2 className="font-brand text-[28px] font-medium leading-tight text-foreground">Elegí tu plan</h2>
         {onDismiss && (
           <button
             type="button"
@@ -149,9 +147,7 @@ export const PlanSelector = ({
         )}
       </div>
 
-      {subtitle && (
-        <p className="px-1 pt-1 text-xs text-muted-foreground">{subtitle}</p>
-      )}
+      {subtitle && <p className="px-1 pt-1 text-xs text-muted-foreground">{subtitle}</p>}
 
       {/* Tier pills */}
       <div className="-mx-4 mt-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -168,9 +164,7 @@ export const PlanSelector = ({
                 onClick={() => setSelected(key)}
                 className={cn(
                   "shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground active:bg-muted/60",
+                  active ? "bg-foreground text-background" : "text-muted-foreground active:bg-muted/60",
                 )}
               >
                 {SUBSCRIPTION_TIERS[key].name}
@@ -217,55 +211,29 @@ export const PlanSelector = ({
                   <span
                     className={cn(
                       "flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium",
-                      isSheet
-                        ? "bg-background/15 text-background"
-                        : "bg-muted text-muted-foreground",
+                      isSheet ? "bg-background/15 text-background" : "bg-muted text-muted-foreground",
                     )}
                   >
                     {isCurrent && <Check className="h-3 w-3" />}
-                    {isCurrent
-                      ? "Activo"
-                      : recommended === selected
-                        ? "Recomendado para vos"
-                        : tier.badge}
+                    {isCurrent ? "Activo" : recommended === selected ? "Recomendado para vos" : tier.badge}
                   </span>
                 )}
               </div>
 
-              <p
-                className={cn(
-                  "mt-4 text-lg font-semibold",
-                  isSheet ? "text-background" : "text-foreground",
-                )}
-              >
+              <p className={cn("mt-4 text-lg font-semibold", isSheet ? "text-background" : "text-foreground")}>
                 {formatTierPrice(selected, interval)}
               </p>
-              <p
-                className={cn(
-                  "mt-0.5 text-[13px]",
-                  isSheet ? "text-background/60" : "text-muted-foreground",
-                )}
-              >
+              <p className={cn("mt-0.5 text-[13px]", isSheet ? "text-background/60" : "text-muted-foreground")}>
                 {interval === "year"
                   ? `${yearlyEquivalentLabel(selected)} · ahorrás ${formatBs(yearlySavings(selected))} al año`
                   : dailyPriceLabel(selected)}
               </p>
-              <p
-                className={cn(
-                  "mt-1 text-sm",
-                  isSheet ? "text-background/70" : "text-muted-foreground",
-                )}
-              >
+              <p className={cn("mt-1 text-sm", isSheet ? "text-background/70" : "text-muted-foreground")}>
                 {tier.sizeLabel} · {tier.tagline}
               </p>
 
               {/* Billing interval */}
-              <div
-                className={cn(
-                  "mt-4 flex gap-1 rounded-full p-1",
-                  isSheet ? "bg-background/15" : "bg-muted",
-                )}
-              >
+              <div className={cn("mt-4 flex gap-1 rounded-full p-1", isSheet ? "bg-background/15" : "bg-muted")}>
                 {(["month", "year"] as BillingInterval[]).map((opt) => {
                   const active = interval === opt;
                   return (
@@ -284,7 +252,13 @@ export const PlanSelector = ({
                             : "text-muted-foreground",
                       )}
                     >
-                      {opt === "month" ? "Mensual" : "12 meses · -5%"}
+                      {opt === "month" ? (
+                        "Mensual"
+                      ) : (
+                        <>
+                          12 meses · <span className="text-emerald-500 font-semibold">-5%</span>
+                        </>
+                      )}
                     </button>
                   );
                 })}
@@ -292,9 +266,7 @@ export const PlanSelector = ({
             </div>
 
             {/* Highlights */}
-            <h4 className="mt-6 font-brand text-base font-semibold text-foreground">
-              Funciones destacadas
-            </h4>
+            <h4 className="mt-6 font-brand text-base font-semibold text-foreground">Funciones destacadas</h4>
             <div className="mt-3 space-y-2">
               {tier.highlights.map((h) => {
                 const Icon = ICONS[h.icon];
@@ -309,9 +281,7 @@ export const PlanSelector = ({
                     <Icon className="mt-0.5 h-5 w-5 shrink-0 text-foreground" />
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-foreground">{h.title}</p>
-                      <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
-                        {h.description}
-                      </p>
+                      <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">{h.description}</p>
                     </div>
                   </div>
                 );
@@ -327,10 +297,7 @@ export const PlanSelector = ({
               >
                 <span className="text-sm font-semibold text-foreground">Comparar planes</span>
                 <ChevronDown
-                  className={cn(
-                    "h-4 w-4 text-muted-foreground transition-transform",
-                    showComparison && "rotate-180",
-                  )}
+                  className={cn("h-4 w-4 text-muted-foreground transition-transform", showComparison && "rotate-180")}
                 />
               </button>
               {showComparison && (
@@ -361,9 +328,7 @@ export const PlanSelector = ({
             </div>
 
             {/* FAQ */}
-            <h4 className="mt-6 font-brand text-base font-semibold text-foreground">
-              Preguntas frecuentes
-            </h4>
+            <h4 className="mt-6 font-brand text-base font-semibold text-foreground">Preguntas frecuentes</h4>
             <div className="mt-2 overflow-hidden rounded-2xl border border-border/60 divide-y divide-border/60">
               {PLAN_FAQ.map((f) => (
                 <div key={f.q}>
@@ -381,9 +346,7 @@ export const PlanSelector = ({
                     />
                   </button>
                   {openFaq === f.q && (
-                    <p className="px-4 pb-3.5 text-[13px] leading-snug text-muted-foreground">
-                      {f.a}
-                    </p>
+                    <p className="px-4 pb-3.5 text-[13px] leading-snug text-muted-foreground">{f.a}</p>
                   )}
                 </div>
               ))}
@@ -418,9 +381,9 @@ export const PlanSelector = ({
           {readOnly
             ? (ctaLabel ?? "Crear mi cuenta Business")
             : isCurrent && !needsActivation
-            ? interval === "year"
-              ? "Pasar a 12 meses"
-              : "Renovar mi plan"
+              ? interval === "year"
+                ? "Pasar a 12 meses"
+                : "Renovar mi plan"
               : `Quiero ${tier.name}`}
         </Button>
       </div>
