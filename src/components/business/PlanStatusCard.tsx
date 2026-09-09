@@ -6,7 +6,8 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
 const DAY_MS = 86_400_000;
 
-const daysUntil = (iso: string): number => Math.ceil((new Date(iso).getTime() - Date.now()) / DAY_MS);
+const daysUntil = (iso: string): number =>
+  Math.ceil((new Date(iso).getTime() - Date.now()) / DAY_MS);
 
 const formatDate = (iso: string): string =>
   new Date(iso).toLocaleDateString("es-BO", { day: "numeric", month: "short" });
@@ -19,9 +20,15 @@ const formatDate = (iso: string): string =>
 export const PlanStatusCard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { tierConfig, status, renewsOn, billingInterval, inGracePeriod, graceUntil, isLoading } = useSubscriptionTier(
-    user?.id,
-  );
+  const {
+    tierConfig,
+    status,
+    renewsOn,
+    billingInterval,
+    inGracePeriod,
+    graceUntil,
+    isLoading,
+  } = useSubscriptionTier(user?.id);
 
   if (isLoading || (status !== "active" && status !== "past_due")) return null;
 
@@ -38,7 +45,7 @@ export const PlanStatusCard = () => {
       countdownText = `Vence en ${days} día${days === 1 ? "" : "s"} — renová para no perder funciones`;
       urgent = true;
     } else {
-      countdownText = `Tienes que renovar en ${days} días · ${formatDate(renewsOn)}`;
+      countdownText = `Se renueva en ${days} días · ${formatDate(renewsOn)}`;
     }
   }
 
@@ -46,7 +53,9 @@ export const PlanStatusCard = () => {
     <m.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`dark-island rounded-2xl border bg-card p-4 ${urgent ? "border-destructive/40" : "border-border"}`}
+      className={`dark-island rounded-2xl border bg-card p-4 ${
+        urgent ? "border-destructive/40" : "border-border"
+      }`}
     >
       <div className="flex items-start gap-3">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary">
@@ -56,11 +65,17 @@ export const PlanStatusCard = () => {
           <p className="font-brand text-base font-medium text-foreground">
             Plan {tierConfig.name}
             {billingInterval === "year" && (
-              <span className="ml-2 text-[12px] font-normal text-muted-foreground">anual</span>
+              <span className="ml-2 text-[12px] font-normal text-muted-foreground">
+                anual
+              </span>
             )}
           </p>
           {countdownText && (
-            <p className={`mt-0.5 text-[13px] leading-snug ${urgent ? "text-destructive" : "text-muted-foreground"}`}>
+            <p
+              className={`mt-0.5 text-[13px] leading-snug ${
+                urgent ? "text-destructive" : "text-muted-foreground"
+              }`}
+            >
               {countdownText}
             </p>
           )}
