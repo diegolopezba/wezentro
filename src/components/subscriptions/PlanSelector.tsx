@@ -211,7 +211,7 @@ export const PlanSelector = ({
                   <span
                     className={cn(
                       "flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium",
-                      isSheet ? "bg-background/15 text-background" : "bg-muted text-muted-foreground",
+                      isSheet ? "bg-background/15 text-background" : "bg-blue-600 text-white",
                     )}
                   >
                     {isCurrent && <Check className="h-3 w-3" />}

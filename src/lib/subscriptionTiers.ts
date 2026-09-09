@@ -2,7 +2,7 @@
  * Subscription tiers for food businesses (restaurant / coffee / bar).
  * This is intentionally hardcoded config — not a database table — so pricing and
  * feature packaging change via code, not a CMS.
-*/
+ */
 
 export type TierKey = "basico" | "profesional" | "elite";
 
@@ -91,7 +91,7 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
       "Menú de texto (sin fotos)",
       "Conteos del día: total de reservas e invitados",
     ],
-    badge: "Locales pequeños",
+    badge: "Locales Pequeños",
     highlights: [
       {
         icon: "calendar",
@@ -125,7 +125,7 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
       "Múltiples turnos: desayuno, almuerzo y cena por separado",
       "Analíticas completas: no-shows, cancelaciones, horarios que más se llenan y demografía",
     ],
-    badge: "Recomendado",
+    badge: "Locales Medianos",
     highlights: [
       {
         icon: "menu",
@@ -145,8 +145,7 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
       {
         icon: "chart",
         title: "Analíticas completas",
-        description:
-          "No-shows, cancelaciones, los horarios que más se llenan, demografía de tu público y mucho más.",
+        description: "No-shows, cancelaciones, los horarios que más se llenan, demografía de tu público y mucho más.",
       },
     ],
   },
@@ -164,6 +163,7 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
       "Prioridad en discovery",
       "Insights de la ciudad",
     ],
+    badge: "Recomendado",
     highlights: [
       {
         icon: "sparkles",
@@ -183,8 +183,7 @@ export const SUBSCRIPTION_TIERS: Record<TierKey, TierConfig> = {
       {
         icon: "map",
         title: "Insights de la ciudad",
-        description:
-          "Información y comparaciones con otras empresas de la industria, para tomar mejores decisiones.",
+        description: "Información y comparaciones con otras empresas de la industria, para tomar mejores decisiones.",
       },
     ],
   },
@@ -221,15 +220,12 @@ export const cyclePrice = (tier: TierKey, interval: BillingInterval): number => 
 export const yearlySavings = (tier: TierKey): number =>
   round2(SUBSCRIPTION_TIERS[tier].price_bob * 12 - cyclePrice(tier, "year"));
 
-export const formatBs = (amount: number): string =>
-  `Bs. ${Number(amount).toFixed(2).replace(/\.00$/, "")}`;
+export const formatBs = (amount: number): string => `Bs. ${Number(amount).toFixed(2).replace(/\.00$/, "")}`;
 
 export const formatTierPrice = (tier: TierKey, interval: BillingInterval = "month"): string => {
   const price = SUBSCRIPTION_TIERS[tier].price_bob;
   if (price <= 0) return "Gratis";
-  return interval === "year"
-    ? `${formatBs(cyclePrice(tier, "year"))}/año`
-    : `${formatBs(price)}/mes`;
+  return interval === "year" ? `${formatBs(cyclePrice(tier, "year"))}/año` : `${formatBs(price)}/mes`;
 };
 
 /** "Bs. 25/mes equivalente" for the annual option. */
@@ -237,8 +233,7 @@ export const yearlyEquivalentLabel = (tier: TierKey): string =>
   `${formatBs(round2(cyclePrice(tier, "year") / 12))}/mes equivalente`;
 
 /** Max tables a plan allows (null = unlimited). */
-export const maxTablesForTier = (tier: TierKey): number | null =>
-  SUBSCRIPTION_TIERS[tier].maxTables;
+export const maxTablesForTier = (tier: TierKey): number | null => SUBSCRIPTION_TIERS[tier].maxTables;
 
 /** Message shown when a business hits its table limit. */
 export const tableLimitLabel = (tier: TierKey): string => {
