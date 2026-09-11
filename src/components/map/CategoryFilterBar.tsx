@@ -3,15 +3,15 @@ import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
   { value: "party", label: "Fiesta" },
-  { value: "bar", label: "Bar" },
-  { value: "concert", label: "Concierto" },
-  { value: "festival", label: "Festival" },
-  { value: "rooftop", label: "Rooftop" },
-  { value: "restaurant", label: "Restaurante" },
-  { value: "coffee", label: "Café" },
-  { value: "fitness", label: "Fitness" },
-  { value: "culture", label: "Arte y Cultura" },
-  { value: "adventure", label: "Aventura" },
+  { value: "bar", label: "Bar", emoji: "🍸" },
+  { value: "concert", label: "Concierto", emoji: "🎵" },
+  { value: "festival", label: "Festival", emoji: "🎪" },
+  { value: "rooftop", label: "Rooftop", emoji: "🌆" },
+  { value: "restaurant", label: "Restaurante", emoji: "🍽️" },
+  { value: "coffee", label: "Café", emoji: "☕" },
+  { value: "fitness", label: "Fitness", emoji: "🏋️" },
+  { value: "culture", label: "Arte y Cultura", emoji: "🎨" },
+  { value: "adventure", label: "Aventura", emoji: "🏔️" },
 ];
 
 interface CategoryFilterBarProps {
