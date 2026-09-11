@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 const categories = [
   { id: "all", label: "Todos" },
-  { id: "party", label: "Fiestas", emoji: "🪩" },
+  { id: "party", label: "Fiestas" },
   { id: "bar", label: "Bares", emoji: "🍸" },
   { id: "concert", label: "Conciertos", emoji: "🎵" },
   { id: "festival", label: "Festivales", emoji: "🎪" },
