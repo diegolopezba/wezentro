@@ -2,7 +2,7 @@ import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const categories = [
-  { id: "all", label: "Todos", emoji: "✨" },
+  { id: "all", label: "Todos" },
   { id: "party", label: "Fiestas", emoji: "🪩" },
   { id: "bar", label: "Bares", emoji: "🍸" },
   { id: "concert", label: "Conciertos", emoji: "🎵" },
@@ -25,7 +25,7 @@ export const CategoryFilter = ({ selected, onSelect }: CategoryFilterProps) => {
     <div className="flex gap-2 px-4 py-3 overflow-x-auto no-scrollbar">
       {categories.map((category) => {
         const isSelected = selected === category.id;
-        
+
         return (
           <m.button
             key={category.id}
@@ -35,7 +35,7 @@ export const CategoryFilter = ({ selected, onSelect }: CategoryFilterProps) => {
               "flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap",
               isSelected
                 ? "gradient-primary text-primary-foreground shadow-glow"
-                : "bg-secondary text-secondary-foreground"
+                : "bg-secondary text-secondary-foreground",
             )}
           >
             <span>{category.emoji}</span>
