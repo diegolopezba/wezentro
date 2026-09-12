@@ -151,7 +151,7 @@ const es: LandingCopy = {
     present: "Modo presentación",
     exitPresent: "Salir",
     cta: "Crear mi cuenta Business",
-    demo: "Agendar una demo",
+    demo: "Agendar demo",
     slide: "Diapositiva",
   },
   hero: {
