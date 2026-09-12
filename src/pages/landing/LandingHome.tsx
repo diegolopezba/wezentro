@@ -72,4 +72,10 @@ const LandingHomeContent = () => {
   return <LandingShell sections={sections} />;
 };
 
+const LandingHome = () => (
+  <LandingProvider>
+    <LandingHomeContent />
+  </LandingProvider>
+);
+
 export default LandingHome;
