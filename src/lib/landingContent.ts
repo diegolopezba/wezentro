@@ -291,8 +291,8 @@ const es: LandingCopy = {
   closing: {
     title: "¿Querés ser parte del primer ecosistema para la vida social de LatAm?",
     subtitle: "Creá tu cuenta Business en menos de un minuto, o hablemos primero.",
-    cta: "Crear mi cuenta Business",
-    demo: "Agendar una demo",
+    cta: "Crear evento",
+    demo: "Agendar demo",
   },
   events: {
     hero: {
