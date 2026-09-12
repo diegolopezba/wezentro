@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanding } from "@/components/landing/LandingContext";
@@ -248,17 +248,6 @@ export const LandingShell = ({ sections }: { sections: LandingSection[] }) => {
               ))}
             </div>
 
-            <Button
-              variant="ghost"
-              className="hidden h-9 rounded-full px-3 text-sm lg:inline-flex"
-              onClick={() => {
-                setSlide(0);
-                setPresenting(true);
-              }}
-            >
-              <Play className="mr-1.5 h-4 w-4" />
-              {t.nav.present}
-            </Button>
           </div>
         </div>
 
