@@ -6,11 +6,11 @@ import {
 } from "@/components/landing/LandingBlocks";
 import { MediaSplit, PhoneFrame } from "@/components/landing/PhoneFrame";
 import { LeadForm } from "@/components/landing/LeadForm";
-import { useLanding } from "@/components/landing/LandingContext";
+import { LandingProvider, useLanding } from "@/components/landing/LandingContext";
 import { useLandingSeo } from "@/pages/landing/useLandingSeo";
 import { SHOTS } from "@/lib/landingShots";
 
-const LandingHome = () => {
+const LandingHomeContent = () => {
   const { t } = useLanding();
   useLandingSeo(t.seo.title, t.seo.description);
 
@@ -71,5 +71,11 @@ const LandingHome = () => {
 
   return <LandingShell sections={sections} />;
 };
+
+const LandingHome = () => (
+  <LandingProvider>
+    <LandingHomeContent />
+  </LandingProvider>
+);
 
 export default LandingHome;
