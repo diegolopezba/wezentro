@@ -12,7 +12,6 @@ import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
 
 import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
-import { ReservationsManagementSheet } from "@/components/reservations/ReservationsManagementSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
@@ -37,9 +36,7 @@ const Profile = () => {
     isLoading: timelineLoading
   } = useUserTimeline(user?.id);
   const isBusiness = profile?.is_business === true;
-  const isFoodBusiness = isBusiness;
   const menuEnabled = (profile as any)?.menu_enabled === true;
-  const reservationsEnabled = (profile as any)?.reservations_enabled === true;
 
   // Check if user has business info to show
   const hasBusinessInfo = profile?.business_address || profile?.business_hours || profile?.business_phone;
