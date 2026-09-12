@@ -160,7 +160,7 @@ const es: LandingCopy = {
     subtitle:
       "Un ecosistema para restaurantes, boliches, eventos y experiencias. Descubrimiento, ticketing, reservas, lounges, bookings y pagos en un solo lugar.",
     primary: "Crear evento",
-    secondary: "Agendar una demo",
+    secondary: "Agendar demo",
     stat: "35%",
     statDesc:
       "de las ventas potenciales se pierden cada semana en boliches, restaurantes y eventos en LatAm, por falta de información en el momento correcto.",
