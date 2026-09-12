@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
-import { Settings, Loader2, X, UtensilsCrossed, Info } from "lucide-react";
+import { Settings, Loader2, X, Info } from "lucide-react";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,6 @@ const Profile = () => {
     isLoading: timelineLoading
   } = useUserTimeline(user?.id);
   const isBusiness = profile?.is_business === true;
-  const menuEnabled = (profile as any)?.menu_enabled === true;
 
   // Check if user has business info to show
   const hasBusinessInfo = profile?.business_address || profile?.business_hours || profile?.business_phone;
