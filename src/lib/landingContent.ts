@@ -434,7 +434,7 @@ const es: LandingCopy = {
       line: "Ingresos, entradas vendidas y el embudo completo, desde visualización hasta la compra.",
     },
     gestion: {
-      title: "Manejá la noche desde el celular",
+      title: "Manejá la noche desde tu celular",
       line: "Tiers, lounges, invitados y promotores de cada evento, en una sola pantalla.",
     },
   },
