@@ -291,7 +291,7 @@ const es: LandingCopy = {
   closing: {
     title: "¿Querés ser parte del primer ecosistema para la vida social de LatAm?",
     subtitle: "Creá tu cuenta Business en menos de un minuto, o hablemos primero.",
-    cta: "Crear evento",
+    cta: "Crear experiencia",
     demo: "Agendar demo",
   },
   events: {
@@ -430,8 +430,8 @@ const es: LandingCopy = {
       line: "Toda la gestión de tu experiencia, mas fácil que nunca.\u00a0",
     },
     dashboard: {
-      title: "Cada venta, evento y RRPP en tiempo real",
-      line: "Ingresos, entradas vendidas y el embudo completo, desde visualización hasta la compra.",
+      title: "Todas las analíticas de ventas en tiempo real",
+      line: "Cupos vendidos, datos, usuarios y el embudo completo, desde visualización hasta la compra.",
     },
     gestion: {
       title: "Manejá la noche desde tu celular",
