@@ -83,21 +83,14 @@ const Index = () => {
   } = useForYouEvents();
 
   // Explore-style catalog, only fetched when filters or a search are active.
-  const {
-    data: allEvents = [],
-    isLoading: catalogLoading,
-    refetch: refetchCatalog,
-  } = useEvents(useCatalog);
+  const { data: allEvents = [], isLoading: catalogLoading, refetch: refetchCatalog } = useEvents(useCatalog);
   const { location: userLocation } = useUserLocation();
   const friendsData = useFriendsGoingData(
     allEvents.map((e: any) => e.id),
     isFiltering && filters.friendsGoingOnly,
   );
   const { data: searchedUsers = [] } = useSearchUsers(debouncedQuery);
-  const activeFilters = useMemo(
-    () => ({ ...filters, searchQuery: debouncedQuery }),
-    [filters, debouncedQuery],
-  );
+  const activeFilters = useMemo(() => ({ ...filters, searchQuery: debouncedQuery }), [filters, debouncedQuery]);
 
   const filteredEvents = useNearbyEvents(
     useCatalog ? (allEvents as any) : [],
@@ -119,7 +112,6 @@ const Index = () => {
   const events = useCatalog ? filteredEvents : forYouEvents;
   const isLoading = useCatalog ? catalogLoading : forYouLoading;
 
-
   const handleRefresh = useCallback(async () => {
     if (useCatalog) {
       await refetchCatalog();
@@ -127,7 +119,6 @@ const Index = () => {
       await refetchForYou();
     }
   }, [useCatalog, refetchCatalog, refetchForYou]);
-
 
   const toggleCategory = (categoryId: string) => {
     setFilters((prev) => ({
@@ -228,130 +219,115 @@ const Index = () => {
     return source.map(toCard);
   }, [events, debouncedQuery, useCatalog, toCard]);
 
-
-
-  return <AppLayout ref={scrollContainerRef}>
-        <header className={cn("sticky top-0 z-30 safe-top bg-background transition-transform duration-300 ease-out", !headerVisible && "-translate-y-full lg:translate-y-0")}>
-          <div className="flex items-center justify-between px-4 py-4">
-            <m.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-              <h1 className="font-brand text-2xl text-foreground font-semibold">zentro</h1>
-            </m.div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="relative" onClick={handleNotificationClick}>
-                <Bell className="w-5 h-5" />
-                {!isGuest && unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-red" />}
-              </Button>
-              <Button variant="ghost" size="icon" className="relative" onClick={() => setShowFilters(true)}>
-                <SlidersHorizontal className="w-5 h-5" />
-                {sheetFilterCount > 0 && (
-                  <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] leading-4 text-center">
-                    {sheetFilterCount}
-                  </span>
+  return (
+    <AppLayout ref={scrollContainerRef}>
+      <header
+        className={cn(
+          "sticky top-0 z-30 safe-top bg-background transition-transform duration-300 ease-out",
+          !headerVisible && "-translate-y-full lg:translate-y-0",
+        )}
+      >
+        <div className="flex items-center justify-between px-4 py-4">
+          <m.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+            <h1 className="font-brand text-2xl text-foreground font-semibold">zentro</h1>
+          </m.div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="relative" onClick={handleNotificationClick}>
+              <Bell className="w-5 h-5" />
+              {!isGuest && unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-red" />
+              )}
+            </Button>
+            <Button variant="ghost" size="icon" className="relative" onClick={() => setShowFilters(true)}>
+              <SlidersHorizontal className="w-5 h-5" />
+              {sheetFilterCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] leading-4 text-center">
+                  {sheetFilterCount}
+                </span>
+              )}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => setShowSearch((s) => !s)}>
+              <Search className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+        {showSearch && (
+          <m.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="px-4 pb-4"
+          >
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar eventos, lugares..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </m.div>
+        )}
+        <div className="flex px-4 pb-3 gap-2 overflow-x-auto no-scrollbar">
+          <m.button
+            whileTap={{ scale: 0.95 }}
+            onClick={resetToForYou}
+            className={cn(
+              "px-3 py-1.5 text-sm font-medium rounded-full whitespace-nowrap transition-colors duration-150",
+              !isFiltering ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground",
+            )}
+          >
+            Para Ti
+          </m.button>
+          {CATEGORIES.map((category) => {
+            const isSelected = filters.categories.includes(category.id);
+            return (
+              <m.button
+                key={category.id}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => toggleCategory(category.id)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full whitespace-nowrap transition-colors duration-150",
+                  isSelected ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground",
                 )}
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => setShowSearch(s => !s)}>
-                <Search className="w-5 h-5" />
-              </Button>
-            </div>
+              >
+                <span>{category.emoji}</span>
+                <span className="font-medium">{category.label}</span>
+              </m.button>
+            );
+          })}
+        </div>
+      </header>
+      <PullToRefresh onRefresh={handleRefresh} className="flex-1">
+        {isSearching && searchedUsers.length > 0 && (
+          <div className="px-2 pt-2">
+            <p className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">Personas</p>
+            {searchedUsers.slice(0, 3).map((u) => (
+              <UserSearchResultCard key={u.id} user={u} />
+            ))}
           </div>
-          {showSearch && <m.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-4 pb-4">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Buscar eventos, lugares..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
-              </div>
-            </m.div>}
-          <div className="flex px-4 pb-3 gap-2 overflow-x-auto no-scrollbar">
-            <m.button
-              whileTap={{ scale: 0.95 }}
-              onClick={resetToForYou}
-              className={cn(
-                "px-3 py-1.5 text-sm font-medium rounded-full whitespace-nowrap transition-colors duration-150",
-                !isFiltering
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground",
-              )}
-            >
-              Para Ti
-            </span>
-              {!isFiltering && (
-                <m.span
-                  layoutId="home-category-filter-underline"
-                  className="absolute -bottom-px left-0 right-0 h-0.5 rounded-full bg-foreground"
-                />
-              )}
-            </m.button>
-            {CATEGORIES.map((category) => {
-              const isSelected = filters.categories.includes(category.id);
-              return (
-                <m.button
-                  key={category.id}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => toggleCategory(category.id)}
-                  className="relative flex flex-col items-center whitespace-nowrap pb-3"
-                >
-                  <span
-                    className={cn(
-                      "text-sm transition-colors",
-                      isSelected
-                        ? "font-semibold text-foreground"
-                        : "font-medium text-muted-foreground",
-                    )}
-                  >
-                    {category.label}
-                  </span>
-                  {isSelected && (
-                    <m.span
-                      layoutId="home-category-filter-underline"
-                      className="absolute -bottom-px left-0 right-0 h-0.5 rounded-full bg-foreground"
-                    />
-                  )}
-                </m.button>
-              );
-            })}
+        )}
+        {isSearching && !isLoading && transformedEvents.length === 0 ? (
+          <div className="px-6 py-10 text-center">
+            <p className="text-sm text-muted-foreground">Sin resultados para "{debouncedQuery}"</p>
+            {isFiltering && <p className="mt-1 text-xs text-muted-foreground">Prueba quitando los filtros activos.</p>}
           </div>
-        </header>
-        <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-          {isSearching && searchedUsers.length > 0 && (
-            <div className="px-2 pt-2">
-              <p className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Personas
-              </p>
-              {searchedUsers.slice(0, 3).map((u) => (
-                <UserSearchResultCard key={u.id} user={u} />
-              ))}
-            </div>
-          )}
-          {isSearching && !isLoading && transformedEvents.length === 0 ? (
-            <div className="px-6 py-10 text-center">
-              <p className="text-sm text-muted-foreground">
-                Sin resultados para "{debouncedQuery}"
-              </p>
-              {isFiltering && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Prueba quitando los filtros activos.
-                </p>
-              )}
-            </div>
-          ) : (
-            <EventFeed
-              events={transformedEvents}
-              isLoading={isLoading}
-              emptyStateType="for-you"
-              onEndReached={useCatalog ? undefined : fetchMoreForYou}
-              hasMore={useCatalog ? false : hasMoreForYou}
-              isLoadingMore={useCatalog ? false : isFetchingMoreForYou}
-            />
-          )}
-        </PullToRefresh>
+        ) : (
+          <EventFeed
+            events={transformedEvents}
+            isLoading={isLoading}
+            emptyStateType="for-you"
+            onEndReached={useCatalog ? undefined : fetchMoreForYou}
+            hasMore={useCatalog ? false : hasMoreForYou}
+            isLoadingMore={useCatalog ? false : isFetchingMoreForYou}
+          />
+        )}
+      </PullToRefresh>
 
-
-        <FilterSheet
-          open={showFilters}
-          onOpenChange={setShowFilters}
-          filters={filters}
-          onApplyFilters={setFilters}
-        />
-        <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={HOME_FEED_INTRO} />
-      </AppLayout>;
+      <FilterSheet open={showFilters} onOpenChange={setShowFilters} filters={filters} onApplyFilters={setFilters} />
+      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={HOME_FEED_INTRO} />
+    </AppLayout>
+  );
 };
 export default Index;
