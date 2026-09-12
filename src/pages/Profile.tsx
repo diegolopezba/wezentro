@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
-import { Settings, Loader2, X, UtensilsCrossed, Info, CalendarCheck } from "lucide-react";
+import { Settings, Loader2, X, Info } from "lucide-react";
 import { ShareProfileMenu } from "@/components/profile/ShareProfileMenu";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { FollowersSheet } from "@/components/profile/FollowersSheet";
 import { TimelineCard } from "@/components/events/TimelineCard";
 
 import { BusinessInfoSheet } from "@/components/profile/BusinessInfoSheet";
-import { ReservationsManagementSheet } from "@/components/reservations/ReservationsManagementSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { formatCount as formatCountUtil } from "@/lib/utils";
@@ -28,7 +27,6 @@ const Profile = () => {
   const [showProfileBanner, setShowProfileBanner] = useState(true);
   
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
-  const [reservationsSheetOpen, setReservationsSheetOpen] = useState(false);
   const {
     data: userStats,
     isLoading: statsLoading
@@ -38,9 +36,6 @@ const Profile = () => {
     isLoading: timelineLoading
   } = useUserTimeline(user?.id);
   const isBusiness = profile?.is_business === true;
-  const isFoodBusiness = isBusiness;
-  const menuEnabled = (profile as any)?.menu_enabled === true;
-  const reservationsEnabled = (profile as any)?.reservations_enabled === true;
 
   // Check if user has business info to show
   const hasBusinessInfo = profile?.business_address || profile?.business_hours || profile?.business_phone;
@@ -133,15 +128,6 @@ const Profile = () => {
           {profile?.bio && <MentionText text={profile.bio} className="text-sm text-foreground/80" />}
           {profile?.city && <p className="text-xs text-muted-foreground mt-1">📍 {profile.city}</p>}
           
-          {/* Reservations button for food businesses */}
-          {isBusiness && isFoodBusiness && reservationsEnabled &&
-        <div className="flex gap-2 mt-3">
-              <Button variant="outline" size="sm" onClick={() => setReservationsSheetOpen(true)} className="gap-2 bg-transparent border-primary/30 ">
-                <CalendarCheck className="w-4 h-4 text-primary" />
-                Reservas
-              </Button>
-            </div>
-        }
         </m.div>
 
         {/* Complete Profile Banner - show when birth_date or gender is missing */}
@@ -196,7 +182,6 @@ const Profile = () => {
       {/* Followers/Following Sheet */}
       {user && <FollowersSheet userId={user.id} type={followSheetType || "followers"} open={!!followSheetType} onOpenChange={(open) => !open && setFollowSheetType(null)} />}
       {/* Reservations Management Sheet for food businesses */}
-      {isBusiness && isFoodBusiness && reservationsEnabled && user && <ReservationsManagementSheet open={reservationsSheetOpen} onOpenChange={setReservationsSheetOpen} businessId={user.id} />}
       {/* Business Info Sheet */}
       <BusinessInfoSheet
       open={businessInfoOpen}
