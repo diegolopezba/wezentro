@@ -159,7 +159,7 @@ const es: LandingCopy = {
     title: "El Pinterest de la vida social",
     subtitle:
       "Un ecosistema para restaurantes, boliches, eventos y experiencias. Descubrimiento, ticketing, reservas, lounges, bookings y pagos en un solo lugar.",
-    primary: "Crear mi cuenta Business",
+    primary: "Crear evento",
     secondary: "Agendar una demo",
     stat: "35%",
     statDesc:
@@ -237,9 +237,9 @@ const es: LandingCopy = {
     ],
   },
   paths: {
-    kicker: "Elegí tu caso",
-    title: "¿Qué vendés vos?",
-    subtitle: "Cada negocio usa Zentro distinto. Entrá al que sea tuyo.",
+    kicker: "ELEGÍ TU NEGOCIO",
+    title: "¿Qué vendés?",
+    subtitle: "Cada negocio usa Zentro  de una manera diferente. Elegí el que sea tuyo.",
     events: {
       title: "Eventos y discotecas",
       desc: "Entradas con QR, lounges, guestlists, RRPP y notificaciones push.",
@@ -426,12 +426,12 @@ const es: LandingCopy = {
       line: "Tu local aparece en un feed visual, al lado de lo que la gente ya quiere hacer hoy.",
     },
     detail: {
-      title: "De la foto a la entrada",
-      line: "Entradas, lounges y mesas en pocos toques, sin salir de la app.",
+      title: "De la publicación a la entrada",
+      line: "Entradas, tiers, lounges y mesas en pocos taps, sin salir de la app.",
     },
     dashboard: {
-      title: "Cada venta, en tiempo real",
-      line: "Ingresos, entradas vendidas y el embudo completo, de la impresión a la compra.",
+      title: "Cada venta, evento y RRPP en tiempo real",
+      line: "Ingresos, entradas vendidas y el embudo completo, desde visualización hasta la compra.",
     },
     gestion: {
       title: "Manejá la noche desde el celular",
