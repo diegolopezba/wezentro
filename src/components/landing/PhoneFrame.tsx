@@ -9,7 +9,7 @@ import { Reveal } from "@/components/landing/LandingShell";
 export const PhoneFrame = ({ src, alt, className }: { src: string; alt: string; className?: string }) => (
   <div
     className={cn(
-      "mx-auto w-full max-w-[250px] rounded-[42px] border border-black bg-zinc-900 p-2 shadow-2xl",
+      "mx-auto w-full max-w-[230px] rounded-[42px] border border-black bg-zinc-900 p-2 shadow-2xl",
       className,
     )}
   >
