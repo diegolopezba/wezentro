@@ -4,15 +4,15 @@ import { cn } from "@/lib/utils";
 const categories = [
   { id: "all", label: "Todos" },
   { id: "party", label: "Fiestas" },
-  { id: "bar", label: "Bares", emoji: "🍸" },
-  { id: "concert", label: "Conciertos", emoji: "🎵" },
-  { id: "festival", label: "Festivales", emoji: "🎪" },
-  { id: "rooftop", label: "Rooftops", emoji: "🌆" },
-  { id: "restaurant", label: "Restaurantes", emoji: "🍽️" },
-  { id: "coffee", label: "Café", emoji: "☕" },
-  { id: "fitness", label: "Fitness", emoji: "🏋️" },
-  { id: "culture", label: "Arte y Cultura", emoji: "🎨" },
-  { id: "adventure", label: "Aventura", emoji: "🏔️" },
+  { id: "bar", label: "Bares" },
+  { id: "concert", label: "Conciertos" },
+  { id: "festival", label: "Festivales" },
+  { id: "rooftop", label: "Rooftops" },
+  { id: "restaurant", label: "Restaurantes" },
+  { id: "coffee", label: "Café" },
+  { id: "fitness", label: "Fitness" },
+  { id: "culture", label: "Arte y Cultura" },
+  { id: "adventure", label: "Aventura" },
 ];
 
 interface CategoryFilterProps {
@@ -22,7 +22,7 @@ interface CategoryFilterProps {
 
 export const CategoryFilter = ({ selected, onSelect }: CategoryFilterProps) => {
   return (
-    <div className="flex gap-2 px-4 py-3 overflow-x-auto no-scrollbar">
+    <div className="flex gap-5 px-4 py-3 overflow-x-auto no-scrollbar border-b border-border">
       {categories.map((category) => {
         const isSelected = selected === category.id;
 
@@ -31,15 +31,22 @@ export const CategoryFilter = ({ selected, onSelect }: CategoryFilterProps) => {
             key={category.id}
             whileTap={{ scale: 0.95 }}
             onClick={() => onSelect(category.id)}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap",
-              isSelected
-                ? "gradient-primary text-primary-foreground shadow-glow"
-                : "bg-secondary text-secondary-foreground",
-            )}
+            className="relative flex flex-col items-center whitespace-nowrap pb-3"
           >
-            <span>{category.emoji}</span>
-            <span className="text-sm font-medium">{category.label}</span>
+            <span
+              className={cn(
+                "text-sm transition-colors",
+                isSelected ? "font-semibold text-foreground" : "font-medium text-muted-foreground",
+              )}
+            >
+              {category.label}
+            </span>
+            {isSelected && (
+              <m.span
+                layoutId="category-filter-underline"
+                className="absolute -bottom-px left-0 right-0 h-0.5 rounded-full bg-foreground"
+              />
+            )}
           </m.button>
         );
       })}
