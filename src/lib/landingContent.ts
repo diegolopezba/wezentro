@@ -150,7 +150,7 @@ const es: LandingCopy = {
     experiences: "Experiencias",
     present: "Modo presentación",
     exitPresent: "Salir",
-    cta: "Crear mi cuenta Business",
+    cta: "Crear experiencia",
     demo: "Agendar demo",
     slide: "Diapositiva",
   },
@@ -426,8 +426,8 @@ const es: LandingCopy = {
       line: "Tu local aparece en un feed visual, al lado de lo que la gente ya quiere hacer hoy.",
     },
     detail: {
-      title: "De la publicación a la entrada",
-      line: "Entradas, tiers, lounges y mesas en pocos taps, sin salir de la app.",
+      title: "De la publicación al booking, en 4 clicks",
+      line: "Toda la gestión de tu experiencia, mas fácil que nunca.\u00a0",
     },
     dashboard: {
       title: "Cada venta, evento y RRPP en tiempo real",
