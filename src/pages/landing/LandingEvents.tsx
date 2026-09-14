@@ -1,9 +1,5 @@
 import { LandingShell, type LandingSection } from "@/components/landing/LandingShell";
-import {
-  ClosingBlock,
-  CommissionBlock,
-  LandingHero,
-} from "@/components/landing/LandingBlocks";
+import { ClosingBlock, CommissionBlock, LandingHero } from "@/components/landing/LandingBlocks";
 import { LabelStrip, MediaSplit, PhoneFrame } from "@/components/landing/PhoneFrame";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { useLanding } from "@/components/landing/LandingContext";
@@ -34,10 +30,10 @@ const LandingEvents = () => {
       tone: "light",
       content: (
         <MediaSplit
-          title={t.shots.gestion.title}
-          line={t.shots.gestion.line}
+          title={e.shots.gestion.title}
+          line={e.shots.gestion.line}
           src={SHOTS.gestion}
-          alt={t.shots.gestion.title}
+          alt={e.shots.gestion.title}
         >
           <LabelStrip items={e.features.map((f) => f.title)} />
         </MediaSplit>
@@ -48,10 +44,10 @@ const LandingEvents = () => {
       content: (
         <MediaSplit
           reverse
-          title={t.shots.dashboard.title}
-          line={t.shots.dashboard.line}
+          title={e.shots.dashboard.title}
+          line={e.shots.dashboard.line}
           src={SHOTS.dashboard}
-          alt={t.shots.dashboard.title}
+          alt={e.shots.dashboard.title}
         />
       ),
     },
