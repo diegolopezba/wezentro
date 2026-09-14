@@ -329,13 +329,13 @@ const es: LandingCopy = {
         title: "Lounges y mesas",
         desc: "Vendé áreas y mesas sobre el plano visual de tu local, con entradas incluidas.",
       },
-      { title: "Guestlists", desc: "Invitados y accesos especiales sin planillas ni grupos de WhatsApp." },
+      { title: "Lista de invitados", desc: "Invitados y accesos especiales sin planillas ni grupos de WhatsApp." },
       { title: "Invitaciones masivas", desc: "Hasta 2000 invitaciones automáticas por categoría, con su propio QR." },
       { title: "RRPP y promotores", desc: "Links por promotor y ventas atribuidas a cada uno, en tiempo real." },
       { title: "Waiting list", desc: "Sumá gente antes de que salgan los precios y notificalos primero." },
       { title: "Notificaciones push", desc: "Hablale a todo tu público antes, durante y después del evento." },
       { title: "Analíticas y embudo", desc: "Impresiones, vistas, taps, checkouts y compras. Ritmo de venta por día." },
-      { title: "Pagos QR y tarjeta", desc: "Cobro inmediato, sin plataformas de pago aparte." },
+      { title: "Pagos por QR y tarjeta", desc: "Cobro inmediato, sin plataformas de pago aparte." },
     ],
     pricing: {
       kicker: "Precio",
@@ -363,11 +363,11 @@ const es: LandingCopy = {
     shots: {
       gestion: {
         title: "Gestioná el evento desde el celular",
-        line: "Tiers, lounges, invitados y promotores, todo actualizado en la app de Gestión.",
+        line: "Tiers, lounges, invitados y promotores, todo actualizado y tiempo real desde la app.",
       },
       dashboard: {
         title: "Cada entrada vendida, en vivo",
-        line: "Impresiones, checkouts y ventas por tier, actualizados en tiempo real.",
+        line: "Impresiones, checkouts y ventas por tiers, actualizados en tiempo real.",
       },
     },
   },
