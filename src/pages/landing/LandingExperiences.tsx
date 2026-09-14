@@ -19,7 +19,7 @@ const LandingExperiences = () => {
           kicker={x.hero.kicker}
           title={x.hero.title}
           subtitle={x.hero.subtitle}
-          primary={t.nav.cta}
+          primary={t.nav.ctaExperiences}
           secondary={t.nav.demo}
           aside={<PhoneFrame src={SHOTS.feed} alt={t.shots.feed.title} />}
         />
@@ -65,7 +65,7 @@ const LandingExperiences = () => {
       ),
     },
     { id: "demo", content: <LeadForm defaultKind="experiences" /> },
-    { id: "cierre", content: <ClosingBlock /> },
+    { id: "cierre", content: <ClosingBlock cta={t.nav.ctaExperiences} /> },
   ];
 
   return <LandingShell sections={sections} />;

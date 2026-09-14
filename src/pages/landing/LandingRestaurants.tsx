@@ -19,7 +19,7 @@ const LandingRestaurants = () => {
           kicker={r.hero.kicker}
           title={r.hero.title}
           subtitle={r.hero.subtitle}
-          primary={t.nav.cta}
+          primary={t.nav.ctaRestaurants}
           secondary={t.nav.demo}
           aside={<PhoneFrame src={SHOTS.feed} alt={t.shots.feed.title} />}
         />
@@ -54,7 +54,7 @@ const LandingRestaurants = () => {
     { id: "planes", tone: "light", content: <PlansBlock /> },
     { id: "faq", content: <FAQBlock /> },
     { id: "demo", tone: "light", content: <LeadForm defaultKind="restaurant" /> },
-    { id: "cierre", content: <ClosingBlock /> },
+    { id: "cierre", content: <ClosingBlock cta={t.nav.ctaRestaurants} /> },
   ];
 
   return <LandingShell sections={sections} />;

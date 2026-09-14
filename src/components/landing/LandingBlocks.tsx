@@ -2,68 +2,27 @@ import { type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Check, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { LandingCTAs, Reveal } from "@/components/landing/LandingShell";
 import { useLanding } from "@/components/landing/LandingContext";
-import {
-  INSTAGRAM_URL,
-  SOCIAL_HANDLE,
-  TIKTOK_URL,
-  WHATSAPP_DISPLAY,
-  whatsappLink,
-} from "@/lib/landingContent";
-import {
-  SUBSCRIPTION_TIERS,
-  TIER_COMPARISON,
-  TIER_ORDER,
-  formatBs,
-} from "@/lib/subscriptionTiers";
+import { INSTAGRAM_URL, SOCIAL_HANDLE, TIKTOK_URL, WHATSAPP_DISPLAY, whatsappLink } from "@/lib/landingContent";
+import { SUBSCRIPTION_TIERS, TIER_COMPARISON, TIER_ORDER, formatBs } from "@/lib/subscriptionTiers";
 
 export const Kicker = ({ children }: { children: ReactNode }) => (
-  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-    {children}
-  </p>
+  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{children}</p>
 );
 
-export const SectionHead = ({
-  kicker,
-  title,
-  subtitle,
-}: {
-  kicker?: string;
-  title: string;
-  subtitle?: string;
-}) => (
+export const SectionHead = ({ kicker, title, subtitle }: { kicker?: string; title: string; subtitle?: string }) => (
   <Reveal className="max-w-3xl">
     {kicker ? <Kicker>{kicker}</Kicker> : null}
-    <h2 className="mt-3 font-brand text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
-      {title}
-    </h2>
-    {subtitle ? (
-      <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">{subtitle}</p>
-    ) : null}
+    <h2 className="mt-3 font-brand text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">{title}</h2>
+    {subtitle ? <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">{subtitle}</p> : null}
   </Reveal>
 );
 
-export const FeatureGrid = ({
-  items,
-  columns = 3,
-}: {
-  items: { title: string; desc: string }[];
-  columns?: 2 | 3;
-}) => (
-  <div
-    className={cn(
-      "mt-10 grid gap-3 sm:grid-cols-2",
-      columns === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2",
-    )}
-  >
+export const FeatureGrid = ({ items, columns = 3 }: { items: { title: string; desc: string }[]; columns?: 2 | 3 }) => (
+  <div className={cn("mt-10 grid gap-3 sm:grid-cols-2", columns === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2")}>
     {items.map((item, i) => (
       <Reveal key={item.title} delay={i * 40}>
         <div className="h-full rounded-3xl border border-border bg-card p-6">
@@ -96,9 +55,7 @@ export const PlansBlock = () => {
                   featured ? "dark-island border-transparent" : "border-border bg-card",
                 )}
               >
-                <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  {tier.name}
-                </p>
+                <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tier.name}</p>
                 <p className="mt-3 font-brand text-4xl font-semibold">
                   {formatBs(tier.price_bob)}
                   <span className="text-base font-normal text-muted-foreground">/mes</span>
@@ -161,12 +118,8 @@ export const FAQBlock = () => {
       <Accordion type="single" collapsible className="mt-8 max-w-3xl">
         {t.restaurants.faq.map((item) => (
           <AccordionItem key={item.q} value={item.q}>
-            <AccordionTrigger className="text-left text-base font-semibold">
-              {item.q}
-            </AccordionTrigger>
-            <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
-              {item.a}
-            </AccordionContent>
+            <AccordionTrigger className="text-left text-base font-semibold">{item.q}</AccordionTrigger>
+            <AccordionContent className="text-sm leading-relaxed text-muted-foreground">{item.a}</AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>
@@ -208,20 +161,14 @@ export const PathCards = () => {
   );
 };
 
-export const ClosingBlock = () => {
+export const ClosingBlock = ({ cta }: { cta?: string }) => {
   const { t } = useLanding();
   return (
     <div className="rounded-[32px] border border-border bg-card p-8 sm:p-12">
       <Reveal>
-        <h2 className="max-w-3xl font-brand text-3xl font-semibold leading-tight sm:text-4xl">
-          {t.closing.title}
-        </h2>
+        <h2 className="max-w-3xl font-brand text-3xl font-semibold leading-tight sm:text-4xl">{t.closing.title}</h2>
         <p className="mt-3 text-muted-foreground">{t.closing.subtitle}</p>
-        <LandingCTAs
-          className="mt-7"
-          primaryLabel={t.closing.cta}
-          secondaryLabel={t.closing.demo}
-        />
+        <LandingCTAs className="mt-7" primaryLabel={cta ?? t.closing.cta} secondaryLabel={t.closing.demo} />
 
         <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
           <a
@@ -297,12 +244,8 @@ export const LandingHero = ({
   <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
     <Reveal>
       <Kicker>{kicker}</Kicker>
-      <h1 className="mt-4 font-brand text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-        {title}
-      </h1>
-      <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-        {subtitle}
-      </p>
+      <h1 className="mt-4 font-brand text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">{title}</h1>
+      <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">{subtitle}</p>
       <LandingCTAs className="mt-8" primaryLabel={primary} secondaryLabel={secondary} />
     </Reveal>
     {aside ? <Reveal delay={120}>{aside}</Reveal> : null}
@@ -311,11 +254,7 @@ export const LandingHero = ({
 
 export const SecondaryCTA = ({ label }: { label: string }) => (
   <Button asChild variant="outline" className="h-11 rounded-full px-6">
-    <a
-      href={whatsappLink("Hola Zentro, quiero una demo para mi negocio.")}
-      target="_blank"
-      rel="noreferrer"
-    >
+    <a href={whatsappLink("Hola Zentro, quiero una demo para mi negocio.")} target="_blank" rel="noreferrer">
       {label}
     </a>
   </Button>

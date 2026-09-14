@@ -19,7 +19,7 @@ const LandingEvents = () => {
           kicker={e.hero.kicker}
           title={e.hero.title}
           subtitle={e.hero.subtitle}
-          primary={t.nav.cta}
+          primary={t.nav.ctaEvents}
           secondary={t.nav.demo}
           aside={<PhoneFrame src={SHOTS.detail} alt={t.shots.detail.title} />}
         />
@@ -65,7 +65,7 @@ const LandingEvents = () => {
       ),
     },
     { id: "demo", content: <LeadForm defaultKind="events" /> },
-    { id: "cierre", content: <ClosingBlock /> },
+    { id: "cierre", content: <ClosingBlock cta={t.nav.ctaEvents} /> },
   ];
 
   return <LandingShell sections={sections} />;
