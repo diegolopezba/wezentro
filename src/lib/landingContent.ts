@@ -114,6 +114,10 @@ export interface LandingCopy {
     features: Bullet[];
     pricing: { kicker: string; title: string; big: string; body: string; bullets: string[] };
     proof: { title: string; items: Bullet[] };
+    shots: {
+      gestion: { title: string; line: string };
+      dashboard: { title: string; line: string };
+    };
   };
   restaurants: {
     hero: { kicker: string; title: string; subtitle: string };
@@ -124,11 +128,19 @@ export interface LandingCopy {
     perDay: (bs: number) => string;
     faqTitle: string;
     faq: { q: string; a: string }[];
+    shots: {
+      detail: { title: string; line: string };
+      dashboard: { title: string; line: string };
+    };
   };
   experiences: {
     hero: { kicker: string; title: string; subtitle: string };
     features: Bullet[];
     pricing: { kicker: string; title: string; big: string; body: string; bullets: string[] };
+    shots: {
+      detail: { title: string; line: string };
+      dashboard: { title: string; line: string };
+    };
   };
   shots: {
     feed: { title: string; line: string };
@@ -342,6 +354,16 @@ const es: LandingCopy = {
         { title: "Sabés a quién le vendiste", desc: "Cada comprador queda en tu base, con su historial." },
       ],
     },
+    shots: {
+      gestion: {
+        title: "Gestioná el evento desde el celular",
+        line: "Tiers, lounges, invitados y promotores, todo actualizado en la app de Gestión.",
+      },
+      dashboard: {
+        title: "Cada entrada vendida, en vivo",
+        line: "Impresiones, checkouts y ventas por tier, actualizados en tiempo real.",
+      },
+    },
   },
   restaurants: {
     hero: {
@@ -392,6 +414,16 @@ const es: LandingCopy = {
         a: "Sí. Creás tu cuenta Business gratis, configurás todo y publicás cuando quieras.",
       },
     ],
+    shots: {
+      detail: {
+        title: "De la búsqueda a la mesa reservada",
+        line: "Tu cliente elige turno y cantidad de personas, y confirma sin llamar.",
+      },
+      dashboard: {
+        title: "Tu sala, siempre bajo control",
+        line: "Ocupación, horarios pico, cancelaciones y no-shows en un solo panel.",
+      },
+    },
   },
   experiences: {
     hero: {
@@ -418,6 +450,16 @@ const es: LandingCopy = {
         "Cobro directo a tu cuenta bancaria",
         "Sin cargos escondidos",
       ],
+    },
+    shots: {
+      detail: {
+        title: "De la publicación al cupo reservado",
+        line: "Tu cliente elige fecha y horario, y paga por adelantado sin ida y vuelta.",
+      },
+      dashboard: {
+        title: "Cada cupo vendido, con su data",
+        line: "Quién reservó, cuándo y qué otras experiencias le interesan.",
+      },
     },
   },
   shots: {
@@ -621,6 +663,16 @@ const en: LandingCopy = {
         { title: "You know your buyers", desc: "Every buyer stays in your database, with their history." },
       ],
     },
+    shots: {
+      gestion: {
+        title: "Run the event from your phone",
+        line: "Tiers, lounges, guests and promoters, all updated in the Gestión app.",
+      },
+      dashboard: {
+        title: "Every ticket sold, live",
+        line: "Impressions, checkouts and sales by tier, updated in real time.",
+      },
+    },
   },
   restaurants: {
     hero: {
@@ -656,6 +708,16 @@ const en: LandingCopy = {
         a: "Yes. Create your Business account for free, set everything up and publish when ready.",
       },
     ],
+    shots: {
+      detail: {
+        title: "From search to a booked table",
+        line: "Your guest picks a time slot and party size, and confirms without calling.",
+      },
+      dashboard: {
+        title: "Your floor, always under control",
+        line: "Occupancy, peak hours, cancellations and no-shows in one panel.",
+      },
+    },
   },
   experiences: {
     hero: {
@@ -678,6 +740,16 @@ const en: LandingCopy = {
       big: "6%",
       body: "service commission per slot sold.",
       bullets: ["No monthly fee, no setup costs", "Payouts straight to your bank account", "No hidden charges"],
+    },
+    shots: {
+      detail: {
+        title: "From the listing to a booked slot",
+        line: "Your customer picks a date and time and prepays, no back and forth.",
+      },
+      dashboard: {
+        title: "Every slot sold, with its data",
+        line: "Who booked, when, and what other experiences they're into.",
+      },
     },
   },
   shots: {
