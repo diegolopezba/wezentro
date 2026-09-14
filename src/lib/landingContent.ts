@@ -28,6 +28,9 @@ export interface LandingCopy {
     present: string;
     exitPresent: string;
     cta: string;
+    ctaEvents: string;
+    ctaRestaurants: string;
+    ctaExperiences: string;
     demo: string;
     slide: string;
   };
