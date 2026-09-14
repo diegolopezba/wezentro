@@ -376,7 +376,7 @@ const es: LandingCopy = {
       kicker: "Zentro para restaurantes",
       title: "Llená más mesas y entendé a tus clientes",
       subtitle:
-        "Cada llamada perdida es una mesa vacía. Tu cliente reserva solo, en segundos, sin llamar y sin esperar confirmación.",
+        "Sin zentro cada llamada perdida es una mesa vacía. Con zentro, tu cliente reserva solo, en segundos, sin llamar y sin esperar confirmación.",
     },
     features: [
       { title: "Disponibilidad en tiempo real", desc: "Tus mesas, tus turnos y tu capacidad real, siempre al día." },
