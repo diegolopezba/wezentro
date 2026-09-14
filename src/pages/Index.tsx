@@ -269,16 +269,26 @@ const Index = () => {
             </div>
           </m.div>
         )}
-        <div className="flex px-4 pb-3 gap-2 overflow-x-auto no-scrollbar">
+        <div className="flex px-4 pb-3 gap-5 overflow-x-auto no-scrollbar border-b border-border">
           <m.button
             whileTap={{ scale: 0.95 }}
             onClick={resetToForYou}
-            className={cn(
-              "px-3 py-1.5 text-sm font-medium rounded-full whitespace-nowrap transition-colors duration-150",
-              !isFiltering ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground",
-            )}
+            className="relative flex flex-col items-center whitespace-nowrap pb-3"
           >
-            Para Ti
+            <span
+              className={cn(
+                "text-sm transition-colors",
+                !isFiltering ? "font-semibold text-foreground" : "font-medium text-muted-foreground",
+              )}
+            >
+              Para Ti
+            </span>
+            {!isFiltering && (
+              <m.span
+                layoutId="home-category-filter-underline"
+                className="absolute -bottom-px left-0 right-0 h-0.5 rounded-full bg-foreground"
+              />
+            )}
           </m.button>
           {CATEGORIES.map((category) => {
             const isSelected = filters.categories.includes(category.id);
@@ -287,13 +297,22 @@ const Index = () => {
                 key={category.id}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => toggleCategory(category.id)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full whitespace-nowrap transition-colors duration-150",
-                  isSelected ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground",
-                )}
+                className="relative flex flex-col items-center whitespace-nowrap pb-3"
               >
-                <span>{category.emoji}</span>
-                <span className="font-medium">{category.label}</span>
+                <span
+                  className={cn(
+                    "text-sm transition-colors",
+                    isSelected ? "font-semibold text-foreground" : "font-medium text-muted-foreground",
+                  )}
+                >
+                  {category.label}
+                </span>
+                {isSelected && (
+                  <m.span
+                    layoutId="home-category-filter-underline"
+                    className="absolute -bottom-px left-0 right-0 h-0.5 rounded-full bg-foreground"
+                  />
+                )}
               </m.button>
             );
           })}
