@@ -162,7 +162,7 @@ const es: LandingCopy = {
     experiences: "Experiencias",
     present: "Modo presentación",
     exitPresent: "Salir",
-    cta: "Crear experiencia",
+    cta: "Crear evento",
     demo: "Agendar demo",
     slide: "Diapositiva",
   },
