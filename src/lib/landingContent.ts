@@ -176,7 +176,7 @@ const es: LandingCopy = {
     kicker: "Zentro para negocios",
     title: "El Pinterest de la vida social",
     subtitle:
-      "Un ecosistema para restaurantes, boliches, eventos y experiencias. Descubrimiento, ticketing, reservas, lounges, bookings y pagos en un solo lugar.",
+      "Un ecosistema para restaurantes, boliches, eventos y experiencias. Descubrimiento, ticketing, reservas, lounges, bookings y pagos. Todo en un solo lugar.",
     primary: "Crear evento",
     secondary: "Agendar demo",
     stat: "35%",
@@ -309,7 +309,7 @@ const es: LandingCopy = {
   closing: {
     title: "¿Querés ser parte del primer ecosistema para la vida social de LatAm?",
     subtitle: "Creá tu cuenta Business en menos de un minuto, o hablemos primero.",
-    cta: "Crear experiencia",
+    cta: "Crear perfil business",
     demo: "Agendar demo",
   },
   events: {
@@ -474,8 +474,8 @@ const es: LandingCopy = {
       line: "Tu local aparece en un feed visual, al lado de lo que la gente ya quiere hacer hoy.",
     },
     detail: {
-      title: "De la publicación al booking, en 4 clicks",
-      line: "Toda la gestión de tu experiencia, mas fácil que nunca.\u00a0",
+      title: "De publicación a espacio vendido, en 4 clicks",
+      line: "Toda la gestión de tu evento, restaurante o experiencia, mas fácil que nunca.\u00a0",
     },
     dashboard: {
       title: "Todas las analíticas de ventas en tiempo real",
