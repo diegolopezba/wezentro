@@ -436,7 +436,7 @@ const es: LandingCopy = {
       kicker: "Zentro Experiencias",
       title: "Vendé experiencias con cupos, horarios y cobro anticipado",
       subtitle:
-        "Tours, catas, clases, after office o cualquier actividad con lugares limitados: publicá una vez y vendé siempre.",
+        "Desde tour de vinos, a running clubs, hasta saltos en paracaidas, publicá, manejá y vende todas tus experiencias y actividades recurrentres en zentro.",
     },
     features: [
       { title: "Cupos y horarios", desc: "Definí días, turnos y capacidad. La disponibilidad se calcula sola." },
