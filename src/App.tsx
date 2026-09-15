@@ -32,7 +32,7 @@ const lazyWithRetry = (importFn: () => Promise<any>) =>
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation, type Location } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, type Location } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OneSignalProvider } from "@/contexts/OneSignalContext";
 import { LocationProvider } from "@/contexts/LocationContext";
@@ -50,6 +50,21 @@ import { KeepAliveLayout } from "@/components/layout/KeepAliveLayout";
 import { EulaGate } from "@/components/moderation/EulaGate";
 import { EventDetailModal } from "@/components/events/EventDetailModal";
 import { PageModal } from "@/components/layout/PageModal";
+import { AppLayout } from "@/components/layout/AppLayout";
+
+/**
+ * Route-level app shell: owns the persistent navigation (mobile BottomNav +
+ * desktop DesktopNavRail) for every normal Zentro app page. Pages still render
+ * their own <AppLayout>, but nested instances collapse to children-only, so
+ * there is exactly one navigation rail/bar on screen at all times.
+ */
+const MainAppLayout = () => {
+  return (
+    <AppLayout>
+      <Outlet />
+    </AppLayout>
+  );
+};
 import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
 
 // Core navigation pages - preloaded for instant navigation (native app feel)
