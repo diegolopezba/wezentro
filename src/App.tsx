@@ -32,7 +32,7 @@ const lazyWithRetry = (importFn: () => Promise<any>) =>
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation, type Location } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, type Location } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OneSignalProvider } from "@/contexts/OneSignalContext";
 import { LocationProvider } from "@/contexts/LocationContext";
@@ -50,6 +50,21 @@ import { KeepAliveLayout } from "@/components/layout/KeepAliveLayout";
 import { EulaGate } from "@/components/moderation/EulaGate";
 import { EventDetailModal } from "@/components/events/EventDetailModal";
 import { PageModal } from "@/components/layout/PageModal";
+import { AppLayout } from "@/components/layout/AppLayout";
+
+/**
+ * Route-level app shell: owns the persistent navigation (mobile BottomNav +
+ * desktop DesktopNavRail) for every normal Zentro app page. Pages still render
+ * their own <AppLayout>, but nested instances collapse to children-only, so
+ * there is exactly one navigation rail/bar on screen at all times.
+ */
+const MainAppLayout = () => {
+  return (
+    <AppLayout>
+      <Outlet />
+    </AppLayout>
+  );
+};
 import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
 
 // Core navigation pages - preloaded for instant navigation (native app feel)
@@ -257,53 +272,57 @@ const AppRoutes = () => {
         </Route>
         <Route path="/onboarding" element={<ProtectedRoute><ErrorBoundary><LazyRoute><Onboarding /></LazyRoute></ErrorBoundary></ProtectedRoute>} />
 
-        {/* Keep-alive enabled routes - 4 core navigation pages */}
-        <Route element={<KeepAliveLayout />}>
-          <Route path="/" element={<GuestAllowedRoute><Index /></GuestAllowedRoute>} />
-          <Route path="/discover" element={<GuestAllowedRoute><Discover /></GuestAllowedRoute>} />
-          <Route path="/tickets" element={<ProtectedRoute requireProfile><MyTickets /></ProtectedRoute>} />
-          <Route path="/gestion" element={<ProtectedRoute requireProfile><BusinessHub /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute requireProfile><Profile /></ProtectedRoute>} />
+        {/* Normal Zentro app shell — persistent navigation on every app page */}
+        <Route element={<MainAppLayout />}>
+          {/* Keep-alive enabled routes - 4 core navigation pages */}
+          <Route element={<KeepAliveLayout />}>
+            <Route path="/" element={<GuestAllowedRoute><Index /></GuestAllowedRoute>} />
+            <Route path="/discover" element={<GuestAllowedRoute><Discover /></GuestAllowedRoute>} />
+            <Route path="/tickets" element={<ProtectedRoute requireProfile><MyTickets /></ProtectedRoute>} />
+            <Route path="/gestion" element={<ProtectedRoute requireProfile><BusinessHub /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute requireProfile><Profile /></ProtectedRoute>} />
+          </Route>
+
+          <Route path="/create" element={<ProtectedRoute requireProfile><LazyRoute><Create /></LazyRoute></ProtectedRoute>} />
+
+          <Route path="/settings" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Settings /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/saved" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Saved /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute requireProfile><LazyRoute><Notifications /></LazyRoute></ProtectedRoute>} />
+          <Route path="/settings/privacy" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><PrivacySettings /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/edit-profile" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><EditProfile /></LazyRoute></SettingsShell></ProtectedRoute>} />
+
+          {/* Public event preview route (full page — used for deep links) */}
+          <Route path="/event/:id" element={<LazyRoute><EventDetail /></LazyRoute>} />
+
+          <Route path="/user/:id" element={<GuestAllowedRoute><LazyRoute><UserProfile /></LazyRoute></GuestAllowedRoute>} />
+          <Route path="/settings/tickets" element={<Navigate to="/tickets" replace />} />
+          <Route path="/going/:id" element={<ProtectedRoute requireProfile><LazyRoute><YouAreGoing /></LazyRoute></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute requireProfile><LazyRoute><BusinessDashboard /></LazyRoute></ProtectedRoute>} />
+          <Route path="/settings/business" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessSettings /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/business/payments" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessPaymentSettings /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/business/reservations" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessReservations /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/business/info" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessInfo /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/business/menu" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessMenu /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/business/sales" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessSales /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/business/layouts" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><VenueLayouts /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/business/plans" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessPlans /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/business/experiences" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessExperiences /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/joined-events" element={<ProtectedRoute requireProfile><LazyRoute><JoinedEvents /></LazyRoute></ProtectedRoute>} />
+
+          <Route path="/settings/help" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Help /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/referrals" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Referrals /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/reservations" element={<Navigate to="/tickets" replace />} />
+          <Route path="/reservation/:id" element={<ProtectedRoute><LazyRoute><ReservationConfirmation /></LazyRoute></ProtectedRoute>} />
+          <Route path="/experience-booking/:id" element={<ProtectedRoute><LazyRoute><ExperienceBookingConfirmation /></LazyRoute></ProtectedRoute>} />
+          <Route path="/settings/blocks" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BlockedUsers /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/business/event/:eventId" element={<ProtectedRoute requireProfile><LazyRoute><BusinessEventDetail /></LazyRoute></ProtectedRoute>} />
+          <Route path="/business/event/:eventId/promoters" element={<ProtectedRoute requireProfile><LazyRoute><EventPromoterDashboard /></LazyRoute></ProtectedRoute>} />
         </Route>
 
-        <Route path="/create" element={<ProtectedRoute requireProfile><LazyRoute><Create /></LazyRoute></ProtectedRoute>} />
-
-        <Route path="/settings" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Settings /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/saved" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Saved /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute requireProfile><LazyRoute><Notifications /></LazyRoute></ProtectedRoute>} />
-        <Route path="/settings/privacy" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><PrivacySettings /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/edit-profile" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><EditProfile /></LazyRoute></SettingsShell></ProtectedRoute>} />
-
-        {/* Public event preview route (full page — used for deep links) */}
-        <Route path="/event/:id" element={<LazyRoute><EventDetail /></LazyRoute>} />
-
-        <Route path="/user/:id" element={<GuestAllowedRoute><LazyRoute><UserProfile /></LazyRoute></GuestAllowedRoute>} />
-        <Route path="/settings/tickets" element={<Navigate to="/tickets" replace />} />
-        <Route path="/going/:id" element={<ProtectedRoute requireProfile><LazyRoute><YouAreGoing /></LazyRoute></ProtectedRoute>} />
-        <Route path="/dashboard" element={<ProtectedRoute requireProfile><LazyRoute><BusinessDashboard /></LazyRoute></ProtectedRoute>} />
-        <Route path="/settings/business" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessSettings /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/settings/business/payments" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessPaymentSettings /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/settings/business/reservations" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessReservations /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/settings/business/info" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessInfo /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/settings/business/menu" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessMenu /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/settings/business/sales" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessSales /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/settings/business/layouts" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><VenueLayouts /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/settings/business/plans" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessPlans /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/settings/business/experiences" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessExperiences /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/settings/joined-events" element={<ProtectedRoute requireProfile><LazyRoute><JoinedEvents /></LazyRoute></ProtectedRoute>} />
-
-        <Route path="/settings/help" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Help /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/settings/referrals" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Referrals /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/settings/reservations" element={<Navigate to="/tickets" replace />} />
-        <Route path="/reservation/:id" element={<ProtectedRoute><LazyRoute><ReservationConfirmation /></LazyRoute></ProtectedRoute>} />
-        <Route path="/experience-booking/:id" element={<ProtectedRoute><LazyRoute><ExperienceBookingConfirmation /></LazyRoute></ProtectedRoute>} />
         <Route path="/privacy-policy" element={<LazyRoute><PrivacyPolicy /></LazyRoute>} />
         <Route path="/terms" element={<LazyRoute><TermsOfUse /></LazyRoute>} />
         {/* Public QR scanner route — no auth required, validated by ?key= param */}
         <Route path="/scan/:eventId" element={<LazyRoute><ScanQR /></LazyRoute>} />
-        <Route path="/settings/blocks" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BlockedUsers /></LazyRoute></SettingsShell></ProtectedRoute>} />
-        <Route path="/business/event/:eventId" element={<ProtectedRoute requireProfile><LazyRoute><BusinessEventDetail /></LazyRoute></ProtectedRoute>} />
-        <Route path="/business/event/:eventId/promoters" element={<ProtectedRoute requireProfile><LazyRoute><EventPromoterDashboard /></LazyRoute></ProtectedRoute>} />
         <Route path="/i/:token" element={<LazyRoute><SpecialInvite /></LazyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<LazyRoute><NotFound /></LazyRoute>} />
