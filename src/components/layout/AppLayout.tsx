@@ -26,14 +26,14 @@ const AppLayoutHideNavSetterContext = createContext<(hide: boolean) => void>(() 
 export const AppLayout = forwardRef<HTMLDivElement, AppLayoutProps>(
   ({ children, hideNav = false }, ref) => {
     const isNested = useContext(AppLayoutNestedContext);
-    const setInnerHideNav = useContext(AppLayoutHideNavSetterContext);
+    const reportInnerHideNav = useContext(AppLayoutHideNavSetterContext);
     const [innerHideNav, setInnerHideNav] = useState(false);
 
     useEffect(() => {
       if (!isNested) return;
-      setInnerHideNav(hideNav);
-      return () => setInnerHideNav(false);
-    }, [isNested, hideNav, setInnerHideNav]);
+      reportInnerHideNav(hideNav);
+      return () => reportInnerHideNav(false);
+    }, [isNested, hideNav, reportInnerHideNav]);
 
     if (isNested) {
       return <>{children}</>;
