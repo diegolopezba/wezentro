@@ -65,9 +65,10 @@ export const AppLayout = forwardRef<HTMLDivElement, AppLayoutProps>(
               </>
             )}
 
-            {/* Desktop rail must persist even when mobile nav is hidden */}
+            {/* Desktop rail must persist even when mobile nav is hidden
+                (Settings pages); it stays invisible on mobile via its own
+                `hidden lg:flex` classes, and SettingsShell self-offsets. */}
             {effectiveHideNav && <DesktopNavRail />}
-            {effectiveHideNav && <div className="hidden lg:block fixed inset-y-0 left-0 w-20 pointer-events-none" aria-hidden />}
           </div>
         </AppLayoutHideNavSetterContext.Provider>
       </AppLayoutNestedContext.Provider>
