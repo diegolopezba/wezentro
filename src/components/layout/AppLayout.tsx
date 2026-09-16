@@ -1,4 +1,4 @@
-import { ReactNode, forwardRef, createContext, useContext, useEffect, useState } from "react";
+import { ReactNode, forwardRef, createContext, useContext, useLayoutEffect, useState } from "react";
 import { BottomNav } from "./BottomNav";
 import { DesktopNavRail } from "./DesktopNavRail";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -29,7 +29,7 @@ export const AppLayout = forwardRef<HTMLDivElement, AppLayoutProps>(
     const reportInnerHideNav = useContext(AppLayoutHideNavSetterContext);
     const [innerHideNav, setInnerHideNav] = useState(false);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       if (!isNested) return;
       reportInnerHideNav(hideNav);
       return () => reportInnerHideNav(false);
@@ -47,7 +47,7 @@ export const AppLayout = forwardRef<HTMLDivElement, AppLayoutProps>(
     return (
       <AppLayoutNestedContext.Provider value={true}>
         <AppLayoutHideNavSetterContext.Provider value={setInnerHideNav}>
-          <div ref={ref} className={cn("min-h-[100dvh] bg-background", !effectiveHideNav && "lg:pl-20")}>
+          <div ref={ref} className={cn("min-h-[100dvh] bg-background lg:pl-20")}>
             <OfflineBanner />
 
             {/* Main content */}
