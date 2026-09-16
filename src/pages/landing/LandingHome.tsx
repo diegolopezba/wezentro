@@ -1,9 +1,5 @@
 import { LandingShell, type LandingSection } from "@/components/landing/LandingShell";
-import {
-  ClosingBlock,
-  LandingHero,
-  PathCards,
-} from "@/components/landing/LandingBlocks";
+import { ClosingBlock, LandingHero, PathCards } from "@/components/landing/LandingBlocks";
 import { MediaSplit, PhoneFrame } from "@/components/landing/PhoneFrame";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { LandingProvider, useLanding } from "@/components/landing/LandingContext";
@@ -24,7 +20,16 @@ const LandingHomeContent = () => {
           subtitle={t.hero.subtitle}
           primary={t.hero.primary}
           secondary={t.hero.secondary}
-          aside={<PhoneFrame src={SHOTS.feed} alt={t.shots.feed.title} />}
+          aside={
+            <video
+              src="/assets/landing-hero.mp4.asset.json"
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          }
         />
       ),
     },
