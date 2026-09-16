@@ -12,6 +12,6 @@
 - [x] Comprador: tarjeta de lounge en Entradas con detalle, beneficios, nota de llegada y plano.
 - [x] Email `lounge-confirmed` al confirmar el pago del área.
 
-## Navegación persistente (en curso)
-- [ ] Evitar el destello de la barra inferior al abrir páginas sin navegación móvil.
-- [ ] Mantener el espacio del menú lateral en Notificaciones para que no cubra contenido.
+## Navegación persistente (hecho)
+- [x] Evitar el destello de la barra inferior al abrir páginas sin navegación móvil.
+- [x] Mantener el espacio del menú lateral en Notificaciones para que no cubra contenido.
