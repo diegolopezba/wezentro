@@ -256,21 +256,21 @@ const es: LandingCopy = {
   },
   paths: {
     kicker: "ELEGÍ TU NEGOCIO",
-    title: "¿Qué vendés?",
+    title: "¿Qué negocio tienes?",
     subtitle: "Cada negocio usa Zentro  de una manera diferente. Elegí el que sea tuyo.",
     events: {
-      title: "Eventos y discotecas",
-      desc: "Entradas con QR, lounges, guestlists, RRPP y notificaciones push.",
+      title: "Eventos, boliches, festivales y conciertos",
+      desc: "Entradas con QR, mesas & lounges, guestlists, RRPPs y notificaciones push.",
       price: "6% por entrada vendida",
     },
     restaurants: {
-      title: "Restaurantes, cafés y bares",
+      title: "Restaurantes, bares y cafeterías ",
       desc: "Reservas automáticas, menú digital, turnos y analíticas de sala.",
       price: "Desde Bs. 250/mes",
     },
     experiences: {
-      title: "Experiencias",
-      desc: "Tours, clases, catas y actividades con cupos, horarios y cobro anticipado.",
+      title: "Experiencias y actividades recurrentes",
+      desc: "Tours, expediciones, catas de vinos y actividades con cupos, horarios y cobro anticipado.",
       price: "6% por cupo vendido",
     },
     open: "Ver detalle",
