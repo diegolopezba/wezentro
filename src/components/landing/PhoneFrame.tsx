@@ -6,18 +6,26 @@ import { Reveal } from "@/components/landing/LandingShell";
  * Device frame for real app screenshots. Image-first landing (dice.fm style):
  * one big screen per idea, almost no text around it.
  */
-export const PhoneFrame = ({ src, alt, className }: { src: string; alt: string; className?: string }) => (
-  <div
-    className={cn(
-      "mx-auto w-full max-w-[230px] rounded-[42px] border border-black bg-zinc-900 p-2 shadow-2xl",
-      className,
-    )}
-  >
-    <div className="overflow-hidden rounded-[34px] bg-background">
-      <img src={src} alt={alt} loading="lazy" decoding="async" className="block h-auto w-full" />
+export const PhoneFrame = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
+  const isVideo = src.toLowerCase().endsWith(".mp4");
+
+  return (
+    <div
+      className={cn(
+        "mx-auto w-full max-w-[230px] rounded-[42px] border border-black bg-zinc-900 p-2 shadow-2xl",
+        className,
+      )}
+    >
+      <div className="overflow-hidden rounded-[34px] bg-background">
+        {isVideo ? (
+          <video src={src} autoPlay muted loop playsInline className="block h-auto w-full" />
+        ) : (
+          <img src={src} alt={alt} loading="lazy" decoding="async" className="block h-auto w-full" />
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 /** One headline + one line + one big screen, alternating sides. */
 export const MediaSplit = ({

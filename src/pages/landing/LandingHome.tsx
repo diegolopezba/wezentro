@@ -4,7 +4,7 @@ import { MediaSplit, PhoneFrame } from "@/components/landing/PhoneFrame";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { LandingProvider, useLanding } from "@/components/landing/LandingContext";
 import { useLandingSeo } from "@/pages/landing/useLandingSeo";
-import { SHOTS } from "@/lib/landingShots";
+import { SHOTS, VIDEOS } from "@/lib/landingShots";
 import landingHeroAsset from "@/assets/landing-hero.mp4.asset.json";
 
 const LandingHomeContent = () => {
@@ -22,14 +22,7 @@ const LandingHomeContent = () => {
           primary={t.hero.primary}
           secondary={t.hero.secondary}
           aside={
-            <video
-              src={landingHeroAsset.url}
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="w-full h-full object-cover"
-            />
+            <video src={landingHeroAsset.url} autoPlay muted loop playsInline className="w-full h-full object-cover" />
           }
         />
       ),
@@ -41,7 +34,7 @@ const LandingHomeContent = () => {
         <MediaSplit
           title={t.shots.detail.title}
           line={t.shots.detail.line}
-          src={SHOTS.detail}
+          src={VIDEOS.restaurantReservation}
           alt={t.shots.detail.title}
         />
       ),
