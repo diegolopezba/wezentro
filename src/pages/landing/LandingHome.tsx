@@ -22,7 +22,14 @@ const LandingHomeContent = () => {
           primary={t.hero.primary}
           secondary={t.hero.secondary}
           aside={
-            <video src={landingHeroAsset.url} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+            <video
+              src={landingHeroAsset.url}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="mx-auto block w-[80%] h-full object-cover"
+            />
           }
         />
       ),
