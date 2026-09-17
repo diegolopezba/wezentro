@@ -5,6 +5,7 @@ import { LeadForm } from "@/components/landing/LeadForm";
 import { LandingProvider, useLanding } from "@/components/landing/LandingContext";
 import { useLandingSeo } from "@/pages/landing/useLandingSeo";
 import { SHOTS } from "@/lib/landingShots";
+import landingHeroAsset from "@/assets/landing-hero.mp4.asset.json";
 
 const LandingHomeContent = () => {
   const { t } = useLanding();
