@@ -23,7 +23,7 @@ const LandingHomeContent = () => {
           secondary={t.hero.secondary}
           aside={
             <video
-              src="/assets/landing-hero.mp4.asset.json"
+              src={landingHeroAsset.url}
               autoPlay
               muted
               loop
