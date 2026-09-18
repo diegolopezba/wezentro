@@ -150,7 +150,14 @@ const BusinessSetup = () => {
             <button
               type="button"
               aria-label="Volver"
-              onClick={() => (step === 0 ? navigate(-1) : go(step - 1))}
+            onClick={() => {
+              if (step === 0) {
+                clearBusinessIntent();
+                navigate(-1);
+              } else {
+                go(step - 1);
+              }
+            }}
               className="w-9 h-9 -ml-1 rounded-full flex items-center justify-center text-foreground active:opacity-60"
             >
               <ArrowLeft className="w-5 h-5" />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, Briefcase } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
-import { setBusinessIntent, hasBusinessIntent } from "@/lib/businessIntent";
+import { setBusinessIntent, hasBusinessIntent, clearBusinessIntent } from "@/lib/businessIntent";
 
 const emailSchema = z.string().email("Por favor ingresa un correo válido");
 const passwordSchema = z.string().min(8, "La contraseña debe tener al menos 8 caracteres");
@@ -145,11 +145,23 @@ const Auth = () => {
   };
 
   // Redirect if already logged in
+  const authenticatedRef = useRef(false);
   useEffect(() => {
     if (user && !authLoading) {
+      authenticatedRef.current = true;
       navigate(getRedirectPath(), { replace: true });
     }
   }, [user, authLoading, navigate, locationState]);
+
+  // Leaving the auth screen without signing in (back button, another route)
+  // means the user abandoned the "Soy empresa" flow: drop the intent so a later
+  // signup or login is never treated as a business one.
+  useEffect(
+    () => () => {
+      if (!authenticatedRef.current) clearBusinessIntent();
+    },
+    [],
+  );
 
   const validateForm = () => {
     const newErrors: {
