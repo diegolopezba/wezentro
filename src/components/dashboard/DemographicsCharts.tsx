@@ -3,20 +3,29 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin } from "lucide-react";
 
 interface DemographicsChartsProps {
-  demographics: {
-    ageBuckets: { name: string; count: number }[];
-    genderSplit: { name: string; count: number }[];
-    topCities: { name: string; count: number }[];
-  } | undefined;
+  demographics:
+    | {
+        ageBuckets: { name: string; count: number }[];
+        genderSplit: { name: string; count: number }[];
+        topCities: { name: string; count: number }[];
+      }
+    | undefined;
   isLoading: boolean;
 }
 
-const GENDER_COLORS = ["hsl(var(--primary))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--muted-foreground))"];
+const GENDER_COLORS = ["blue 600", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--muted-foreground))"];
 
 export const DemographicsCharts = ({ demographics, isLoading }: DemographicsChartsProps) => {
-  if (isLoading) return <div className="space-y-4"><Skeleton className="h-40" /><Skeleton className="h-40" /></div>;
+  if (isLoading)
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-40" />
+        <Skeleton className="h-40" />
+      </div>
+    );
 
-  if (!demographics) return <p className="text-sm text-muted-foreground text-center py-4">No hay suficientes datos demográficos</p>;
+  if (!demographics)
+    return <p className="text-sm text-muted-foreground text-center py-4">No hay suficientes datos demográficos</p>;
 
   const totalGender = demographics.genderSplit.reduce((s, g) => s + g.count, 0);
 
@@ -29,7 +38,15 @@ export const DemographicsCharts = ({ demographics, isLoading }: DemographicsChar
           <ResponsiveContainer width="100%" height={120}>
             <BarChart data={demographics.ageBuckets} layout="vertical">
               <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={50} stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} />
+              <YAxis
+                type="category"
+                dataKey="name"
+                tick={{ fontSize: 11 }}
+                width={50}
+                stroke="hsl(var(--muted-foreground))"
+                tickLine={false}
+                axisLine={false}
+              />
               <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -44,7 +61,13 @@ export const DemographicsCharts = ({ demographics, isLoading }: DemographicsChar
             <div className="w-24 h-24">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={demographics.genderSplit} dataKey="count" innerRadius={25} outerRadius={40} paddingAngle={2}>
+                  <Pie
+                    data={demographics.genderSplit}
+                    dataKey="count"
+                    innerRadius={25}
+                    outerRadius={40}
+                    paddingAngle={2}
+                  >
                     {demographics.genderSplit.map((_, i) => (
                       <Cell key={i} fill={GENDER_COLORS[i % GENDER_COLORS.length]} />
                     ))}
@@ -57,7 +80,10 @@ export const DemographicsCharts = ({ demographics, isLoading }: DemographicsChar
               {demographics.genderSplit.map((g, i) => (
                 <div key={g.name} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: GENDER_COLORS[i % GENDER_COLORS.length] }} />
+                    <div
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: GENDER_COLORS[i % GENDER_COLORS.length] }}
+                    />
                     <span className="text-foreground capitalize">{g.name}</span>
                   </div>
                   <span className="text-muted-foreground">{Math.round((g.count / totalGender) * 100)}%</span>
