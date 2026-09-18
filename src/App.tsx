@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, type ReactNode } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
 
 import { KeyboardViewportObserver } from "@/components/KeyboardViewportObserver";
@@ -65,6 +65,16 @@ const MainAppLayout = () => {
     </AppLayout>
   );
 };
+
+/**
+ * Business settings subpages never rendered their own <AppLayout>, so the
+ * shared shell gave them the mobile bottom bar they never had before. This
+ * wrapper forwards `hideNav` to the outer layout: bar hidden on mobile,
+ * desktop rail untouched.
+ */
+const HideMobileNav = ({ children }: { children: ReactNode }) => (
+  <AppLayout hideNav>{children}</AppLayout>
+);
 import { FOR_YOU_EVENTS_KEY, fetchForYouEvents } from "@/lib/prefetchEvents";
 
 // Core navigation pages - preloaded for instant navigation (native app feel)
