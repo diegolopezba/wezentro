@@ -13,7 +13,12 @@ interface DemographicsChartsProps {
   isLoading: boolean;
 }
 
-const GENDER_COLORS = ["blue 600", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--muted-foreground))"];
+const GENDER_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--muted-foreground))",
+];
 
 export const DemographicsCharts = ({ demographics, isLoading }: DemographicsChartsProps) => {
   if (isLoading)
