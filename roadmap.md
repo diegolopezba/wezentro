@@ -15,3 +15,7 @@
 ## Navegación persistente (hecho)
 - [x] Evitar el destello de la barra inferior al abrir páginas sin navegación móvil.
 - [x] Mantener el espacio del menú lateral en Notificaciones para que no cubra contenido.
+
+## Estabilidad del feed Para Ti
+- [x] Evitar que fallos temporales o una función desactualizada dejen Inicio en blanco.
+- [ ] Desplegar y comprobar las funciones del feed en staging.
