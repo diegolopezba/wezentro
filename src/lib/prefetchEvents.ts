@@ -95,19 +95,65 @@ const reshape = (data: any[] | null) =>
     created_at: row.created_at,
     creator: {
       id: row.creator_id,
-      username: row.creator_username,
-      full_name: row.creator_full_name,
-      avatar_url: row.creator_avatar_url,
+      username: row.creator_username ?? row.creator?.username ?? "",
+      full_name: row.creator_full_name ?? row.creator?.full_name ?? null,
+      avatar_url: row.creator_avatar_url ?? row.creator?.avatar_url ?? null,
     },
     guestlist_entries: Array.isArray(row.attendee_avatars)
       ? row.attendee_avatars.map((a: any) => ({ user: a }))
-      : [],
-    _attendee_count: Number(row.attendee_count) || 0,
+      : Array.isArray(row.guestlist_entries) ? row.guestlist_entries : [],
+    _attendee_count: Number(row.attendee_count) || row.guestlist_entries?.length || 0,
     media: Array.isArray(row.media) ? row.media : [],
     _isSponsored: !!row._isSponsored,
     _sponsoredPostId: row._sponsoredPostId ?? null,
     _repostInfo: row._repostInfo ?? undefined,
   }));
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const fetchRankedSlate = async (url: string, bearer: string) => {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${bearer}`,
+        },
+      });
+      if (res.ok) return await res.json();
+      if (res.status < 500) break;
+    } catch {
+      // A brief backend outage is retried once before using the direct fallback.
+    }
+    if (attempt === 0) await sleep(400);
+  }
+  return null;
+};
+
+const fetchPublicEventsFallback = async (limit: number, cursor: string | null) => {
+  let query = supabase
+    .from("events")
+    .select(`
+      *,
+      creator:profiles!events_creator_id_fkey(id, username, full_name, avatar_url),
+      guestlist_entries(user:profiles!guestlist_entries_user_id_fkey(id, avatar_url)),
+      media:event_media(id, media_url, media_type, display_order, aspect_ratio)
+    `)
+    .eq("is_public", true)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (cursor) query = query.lt("created_at", cursor);
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const items = reshape(data as any[]);
+  return {
+    items,
+    nextCursor: items.length === limit ? items[items.length - 1]?.created_at ?? null : null,
+  };
+};
 
 /**
  * Cursor-paginated For You feed.
@@ -136,14 +182,8 @@ export const fetchForYouEventsPage = async (
       const bearer = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assemble-for-you-slate?${params}`;
-      const res = await fetch(url, {
-        headers: {
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${bearer}`,
-        },
-      });
-      if (res.ok) {
-        const json = await res.json();
+      const json = await fetchRankedSlate(url, bearer);
+      if (json) {
         return {
           items: reshape(json?.items as any[]),
           nextCursor: (json?.next_cursor as string | null) ?? null,
@@ -154,35 +194,10 @@ export const fetchForYouEventsPage = async (
     }
   }
 
-  // Legacy fallback: edge-cached first page or direct RPC for cursor pages.
-  if (cursor === null) {
-    try {
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-for-you-feed?limit=${limit}`;
-      const res = await fetch(url, {
-        headers: {
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (Array.isArray(json?.items)) {
-          const items = reshape(json.items as any[]);
-          const nextCursor = items.length === limit ? items[items.length - 1].created_at : null;
-          return { items, nextCursor };
-        }
-      }
-    } catch { /* noop */ }
-  }
-
-  const { data, error } = await supabase.rpc("get_for_you_events", {
-    _limit: limit,
-    _cursor: cursor,
-  });
-  if (error) throw error;
-  const items = reshape(data as any[]);
-  const nextCursor = items.length === limit ? items[items.length - 1].created_at : null;
-  return { items, nextCursor };
+  // Resilient fallback: avoid the obsolete get-for-you-feed endpoint and its
+  // missing get_for_you_events RPC. A direct public-content read keeps Home
+  // usable while the ranking service or schema cache recovers.
+  return fetchPublicEventsFallback(limit, cursor);
 };
 
 export const fetchForYouEvents = async () => {
