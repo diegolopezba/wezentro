@@ -3,7 +3,8 @@
 // edge cache instead of hitting Postgres on every session. Only the first
 // page (cursor=null) is cached — cursor pages keep calling the RPC directly.
 
-import { createClient, corsHeaders } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const responseHeaders = {
   ...corsHeaders,

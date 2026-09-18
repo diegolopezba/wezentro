@@ -9,7 +9,8 @@
 //   - Recirculation: page 0 is NEVER empty if the database has any events.
 //   - session_feed_state is no longer touched by serving.
 
-import { createClient, corsHeaders } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const responseHeaders = {
   ...corsHeaders,

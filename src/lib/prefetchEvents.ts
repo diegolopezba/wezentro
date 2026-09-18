@@ -157,9 +157,8 @@ const fetchPublicEventsFallback = async (limit: number, cursor: string | null) =
 
 /**
  * Cursor-paginated For You feed.
- * When USE_SERVER_SLATE is on, calls `assemble-for-you-slate` which returns
- * a fully-ranked, deduped, ad-injected page. Otherwise falls back to the
- * legacy client-ranked path through `get-for-you-feed` + RPC.
+ * Calls `assemble-for-you-slate` for a fully-ranked, deduped, ad-injected
+ * page, with a direct public-content fallback during backend incidents.
  */
 export const fetchForYouEventsPage = async (
   cursor: string | null = null,
