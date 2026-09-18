@@ -11,7 +11,7 @@ import { useProcessReferral } from "@/hooks/useReferrals";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
 
 import { takePendingSpecialInvite } from "@/hooks/useSpecialInvites";
-import { hasBusinessIntent } from "@/lib/businessIntent";
+import { takeBusinessIntent } from "@/lib/businessIntent";
 
 const genderOptions = [
   { value: "male", label: "Masculino" },
