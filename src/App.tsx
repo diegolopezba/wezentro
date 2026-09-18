@@ -308,15 +308,15 @@ const AppRoutes = () => {
           <Route path="/settings/tickets" element={<Navigate to="/tickets" replace />} />
           <Route path="/going/:id" element={<ProtectedRoute requireProfile><LazyRoute><YouAreGoing /></LazyRoute></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute requireProfile><LazyRoute><BusinessDashboard /></LazyRoute></ProtectedRoute>} />
-          <Route path="/settings/business" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessSettings /></LazyRoute></SettingsShell></ProtectedRoute>} />
-          <Route path="/settings/business/payments" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessPaymentSettings /></LazyRoute></SettingsShell></ProtectedRoute>} />
-          <Route path="/settings/business/reservations" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessReservations /></LazyRoute></SettingsShell></ProtectedRoute>} />
-          <Route path="/settings/business/info" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessInfo /></LazyRoute></SettingsShell></ProtectedRoute>} />
-          <Route path="/settings/business/menu" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessMenu /></LazyRoute></SettingsShell></ProtectedRoute>} />
-          <Route path="/settings/business/sales" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessSales /></LazyRoute></SettingsShell></ProtectedRoute>} />
-          <Route path="/settings/business/layouts" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><VenueLayouts /></LazyRoute></SettingsShell></ProtectedRoute>} />
-          <Route path="/settings/business/plans" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessPlans /></LazyRoute></SettingsShell></ProtectedRoute>} />
-          <Route path="/settings/business/experiences" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BusinessExperiences /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/business" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessSettings /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
+          <Route path="/settings/business/payments" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessPaymentSettings /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
+          <Route path="/settings/business/reservations" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessReservations /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
+          <Route path="/settings/business/info" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessInfo /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
+          <Route path="/settings/business/menu" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessMenu /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
+          <Route path="/settings/business/sales" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessSales /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
+          <Route path="/settings/business/layouts" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><VenueLayouts /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
+          <Route path="/settings/business/plans" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessPlans /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
+          <Route path="/settings/business/experiences" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessExperiences /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
           <Route path="/settings/joined-events" element={<ProtectedRoute requireProfile><LazyRoute><JoinedEvents /></LazyRoute></ProtectedRoute>} />
 
           <Route path="/settings/help" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Help /></LazyRoute></SettingsShell></ProtectedRoute>} />
