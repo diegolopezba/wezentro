@@ -41,7 +41,7 @@ const LandingRestaurants = () => {
         <MediaSplit
           title={r.shots.detail.title}
           line={r.shots.detail.line}
-          src={SHOTS.detail}
+          src={VIDEOS.restaurantReservation}
           alt={r.shots.detail.title}
         >
           <LabelStrip items={r.features.map((f) => f.title)} />
