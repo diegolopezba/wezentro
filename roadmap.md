@@ -18,4 +18,4 @@
 
 ## Estabilidad del feed Para Ti
 - [x] Evitar que fallos temporales o una función desactualizada dejen Inicio en blanco.
-- [ ] Desplegar y comprobar las funciones del feed en staging.
+- [x] Desplegar y comprobar las funciones del feed en staging.

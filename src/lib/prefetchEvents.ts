@@ -131,6 +131,11 @@ const fetchRankedSlate = async (url: string, bearer: string) => {
 };
 
 const fetchPublicEventsFallback = async (limit: number, cursor: string | null) => {
+  // Ranked pagination cursors are opaque and cannot safely be applied to a
+  // created_at query. Keep already-rendered pages and stop pagination if a
+  // later ranked request fails, rather than returning duplicates.
+  if (cursor) return { items: [], nextCursor: null };
+
   let query = supabase
     .from("events")
     .select(`
@@ -144,7 +149,6 @@ const fetchPublicEventsFallback = async (limit: number, cursor: string | null) =
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (cursor) query = query.lt("created_at", cursor);
   const { data, error } = await query;
   if (error) throw error;
 
