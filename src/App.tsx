@@ -307,7 +307,7 @@ const AppRoutes = () => {
           <Route path="/user/:id" element={<GuestAllowedRoute><LazyRoute><UserProfile /></LazyRoute></GuestAllowedRoute>} />
           <Route path="/settings/tickets" element={<Navigate to="/tickets" replace />} />
           <Route path="/going/:id" element={<ProtectedRoute requireProfile><LazyRoute><YouAreGoing /></LazyRoute></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute requireProfile><LazyRoute><BusinessDashboard /></LazyRoute></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute requireProfile><HideMobileNav><LazyRoute><BusinessDashboard /></LazyRoute></HideMobileNav></ProtectedRoute>} />
           <Route path="/settings/business" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessSettings /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
           <Route path="/settings/business/payments" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessPaymentSettings /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
           <Route path="/settings/business/reservations" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessReservations /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
@@ -325,8 +325,8 @@ const AppRoutes = () => {
           <Route path="/reservation/:id" element={<ProtectedRoute><LazyRoute><ReservationConfirmation /></LazyRoute></ProtectedRoute>} />
           <Route path="/experience-booking/:id" element={<ProtectedRoute><LazyRoute><ExperienceBookingConfirmation /></LazyRoute></ProtectedRoute>} />
           <Route path="/settings/blocks" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BlockedUsers /></LazyRoute></SettingsShell></ProtectedRoute>} />
-          <Route path="/business/event/:eventId" element={<ProtectedRoute requireProfile><LazyRoute><BusinessEventDetail /></LazyRoute></ProtectedRoute>} />
-          <Route path="/business/event/:eventId/promoters" element={<ProtectedRoute requireProfile><LazyRoute><EventPromoterDashboard /></LazyRoute></ProtectedRoute>} />
+          <Route path="/business/event/:eventId" element={<ProtectedRoute requireProfile><HideMobileNav><LazyRoute><BusinessEventDetail /></LazyRoute></HideMobileNav></ProtectedRoute>} />
+          <Route path="/business/event/:eventId/promoters" element={<ProtectedRoute requireProfile><HideMobileNav><LazyRoute><EventPromoterDashboard /></LazyRoute></HideMobileNav></ProtectedRoute>} />
         </Route>
 
         <Route path="/privacy-policy" element={<LazyRoute><PrivacyPolicy /></LazyRoute>} />
