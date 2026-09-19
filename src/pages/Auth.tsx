@@ -381,9 +381,6 @@ const Auth = () => {
                   <Briefcase className="w-4 h-4" />
                   <span className="text-sm font-semibold">Estás creándo tu cuenta Business</span>
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  a
-                </p>
               </div>
             )}
 
