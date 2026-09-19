@@ -193,7 +193,7 @@ const VisualStage = ({ visual }: { visual: VisualKey }) => {
 Planes mensuales desde Bs. 250/mes</span>
             </m.div>
           </div>
-          <div className="absolute bottom-[9%] rounded-full bg-muted px-4 py-2 text-xs font-semibold text-foreground">Creá tu cuenta gratis</div>
+          <div className="absolute bottom-[9%] rounded-full bg-muted px-4 py-2 text-xs font-semibold text-foreground">Crear tu cuenta es gratis</div>
         </>
       )}
     </div>
