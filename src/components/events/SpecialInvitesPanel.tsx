@@ -197,9 +197,8 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
         <div className="rounded-xl bg-muted/50 p-3 flex gap-2">
           <Zap className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Las invitaciones se envían por correo. El invitado confirma su nombre y correo y recibe
-            su entrada al instante, sin crear cuenta. Si no tenés su correo, compartí el enlace: ahí
-            mismo escribe su nombre y correo para confirmar.
+            Las invitaciones se envían por correo o compartiendo el enlace. El invitado abre el
+            enlace, crea su cuenta gratis en Zentro y acepta la invitación: ahí recibe su entrada.
           </p>
         </div>
       </div>

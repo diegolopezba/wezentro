@@ -88,11 +88,7 @@ export function useSpecialInvite(token: string | undefined) {
   });
 }
 
-/** Public QR image URL for a confirmed frictionless ticket. */
-export const getInviteQrImageUrl = (qrToken: string) =>
-  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-qr?token=${encodeURIComponent(qrToken)}`;
-
-/** Anonymous, token-scoped invite lookup used by the public RSVP page. */
+/** Anonymous, token-scoped invite lookup used by the invite landing page. */
 export function usePublicInvite(token: string | undefined) {
   return useQuery({
     queryKey: ["public-invite", token],
