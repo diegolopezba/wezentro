@@ -90,14 +90,14 @@ export const LandingCTAs = ({
 
   return (
     <div className={cn("flex flex-col gap-3 sm:flex-row", className)}>
-      <Button variant="sheet-action" className="h-12 rounded-full px-7 text-base" onClick={start}>
+      <Button
+        variant="sheet-action"
+        className="h-12 rounded-full px-7 text-base bg-blue-600 text-white"
+        onClick={start}
+      >
         {primaryLabel}
       </Button>
-      <Button
-        variant="outline"
-        className="h-12 rounded-full px-7 text-base bg-blue-600 text-white font-semibold"
-        onClick={scrollToLead}
-      >
+      <Button variant="outline" className="h-12 rounded-full px-7 text-base  font-semibold" onClick={scrollToLead}>
         {secondaryLabel}
       </Button>
     </div>
