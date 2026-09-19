@@ -254,7 +254,7 @@ const BusinessLanding = () => {
             type="button"
             variant="ghost"
             onClick={handleStart}
-            className="h-9 px-4 text-sm font-semibold text-brand-red active:bg-muted"
+            className="h-9 px-4 text-sm font-semibold text-foreground active:bg-muted"
           >
             Omitir
           </Button>
@@ -308,7 +308,7 @@ const BusinessLanding = () => {
         <footer className="z-20 shrink-0 px-5 pb-[max(env(safe-area-inset-bottom),16px)] pt-2">
           <Button
             type="button"
-            className="h-14 w-full bg-brand-red text-base font-semibold text-brand-red-foreground active:scale-[0.98]"
+            className="h-14 w-full bg-foreground text-base font-semibold text-background active:scale-[0.98]"
             onClick={() => (isLast ? handleStart() : go(step + 1))}
           >
             {isLast ? "Crear mi cuenta Business" : "Siguiente"}
@@ -323,7 +323,7 @@ const BusinessLanding = () => {
                 Vas a cerrar sesión en tu cuenta personal para crear la cuenta de tu negocio con otro email.
               </p>
               <div className="mt-5 space-y-2">
-                <Button className="h-12 w-full bg-brand-red text-base text-brand-red-foreground" onClick={startSeparateAccount}>
+                <Button className="h-12 w-full bg-foreground text-base text-background" onClick={startSeparateAccount}>
                   Cerrar sesión y continuar
                 </Button>
                 <Button variant="ghost" className="h-11 w-full" onClick={() => setSeparateOpen(false)}>
