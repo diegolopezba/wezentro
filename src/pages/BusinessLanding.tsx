@@ -1,4 +1,8 @@
 import { useState } from "react";
+import "@fontsource/outfit/600.css";
+import "@fontsource/outfit/700.css";
+import "@fontsource/figtree/400.css";
+import "@fontsource/figtree/600.css";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -233,8 +237,8 @@ const BusinessLanding = () => {
   };
 
   return (
-    <main className="light-sheet min-h-[100dvh] overflow-hidden bg-background text-foreground font-body">
-      <div className="relative mx-auto flex h-[100dvh] w-full max-w-[480px] flex-col overflow-hidden bg-background">
+    <main className="light-sheet min-h-[100dvh] overflow-hidden bg-muted text-foreground [font-family:Figtree,sans-serif] lg:flex lg:items-center lg:justify-center lg:p-6">
+      <div className="relative mx-auto flex h-[100dvh] w-full max-w-[480px] flex-col overflow-hidden bg-background lg:h-[min(844px,calc(100dvh-48px))] lg:rounded-[32px] lg:shadow-elevated">
         <header className="safe-top z-20 flex shrink-0 items-center justify-between px-5 pt-3">
           <Button
             type="button"
@@ -271,7 +275,7 @@ const BusinessLanding = () => {
               initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: dir * 28 }}
               animate={{ opacity: 1, x: 0 }}
               exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: dir * -28 }}
-              transition={{ type: "spring", stiffness: 300, damping: 31 }}
+              transition={reduceMotion ? { duration: 0.08 } : { type: "spring", stiffness: 300, damping: 31 }}
               className="absolute inset-0 flex flex-col"
             >
               <div className="min-h-0 flex-[1.15] px-3">
@@ -290,7 +294,7 @@ const BusinessLanding = () => {
                     />
                   ))}
                 </div>
-                <h1 className="mx-auto max-w-[340px] font-brand text-[29px] font-bold leading-[1.08] text-foreground">
+                <h1 className="mx-auto max-w-[340px] text-[29px] font-bold leading-[1.08] text-foreground [font-family:Outfit,sans-serif]">
                   {current.title}
                 </h1>
                 <p className="mx-auto mt-3 min-h-10 max-w-[320px] text-[15px] leading-snug text-muted-foreground">
@@ -314,7 +318,7 @@ const BusinessLanding = () => {
         {separateOpen && (
           <div className="absolute inset-0 z-[60] flex items-end justify-center bg-foreground/40 px-4 pb-6">
             <div className="light-sheet w-full rounded-3xl bg-background p-5 text-foreground shadow-elevated">
-              <h2 className="font-brand text-lg font-semibold">Tu cuenta Business es aparte</h2>
+              <h2 className="text-lg font-semibold [font-family:Outfit,sans-serif]">Tu cuenta Business es aparte</h2>
               <p className="mt-2 text-sm leading-snug text-muted-foreground">
                 Vas a cerrar sesión en tu cuenta personal para crear la cuenta de tu negocio con otro email.
               </p>
