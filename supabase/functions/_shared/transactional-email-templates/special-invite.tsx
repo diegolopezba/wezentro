@@ -28,6 +28,7 @@ interface SpecialInviteEmailProps {
   deliveryMode?: 'app' | 'direct'
 }
 
+
 const SpecialInviteEmail = ({
   guestName,
   eventTitle = 'un evento',
@@ -37,10 +38,7 @@ const SpecialInviteEmail = ({
   segment,
   inviteUrl = 'https://zentro.today',
   hostName,
-  deliveryMode = 'app',
 }: SpecialInviteEmailProps) => {
-  const isDirect = deliveryMode === 'direct'
-
   return (
     <Html lang="es" dir="ltr">
       <Head />
@@ -63,9 +61,8 @@ const SpecialInviteEmail = ({
             {guestName ? `Hola ${guestName}, ` : 'Hola, '}
             {hostName ? `${hostName} te invita ` : 'te invitamos '}
             a este evento. Tu entrada es gratuita y este enlace es solo tuyo.
-            {isDirect
-              ? ' Confirmá con un toque y recibí tu entrada al instante: sin contraseñas, sin descargar nada.'
-              : ''}
+            {' '}Abrí el enlace, creá tu cuenta gratis en Zentro y aceptá la invitación
+            para recibir tu entrada.
           </Text>
 
           {eventDate ? <Text style={detail}>📅 {eventDate}</Text> : null}
@@ -73,7 +70,7 @@ const SpecialInviteEmail = ({
 
           <Section style={{ margin: '28px 0' }}>
             <Button style={button} href={inviteUrl}>
-              {isDirect ? 'Confirmar asistencia' : 'Confirmar mi invitación'}
+              Aceptar invitación especial
             </Button>
           </Section>
 
