@@ -42,7 +42,8 @@ const Auth = () => {
 
   // Initialize mode from navigation state (from AuthPromptModal)
   const [mode, setMode] = useState<"login" | "signup" | "reset">(() => {
-    if (locationState?.businessIntent || (hasBusinessIntent() && locationState?.mode !== "signin")) return "signup";
+    // In the business flow the screen is signup-only, so always start there.
+    if (!!locationState?.businessIntent || hasBusinessIntent()) return "signup";
     if (locationState?.mode === "signup") return "signup";
     if (locationState?.mode === "signin") return "login";
     return "login";
@@ -387,7 +388,7 @@ const Auth = () => {
             )}
 
             {/* Toggle */}
-            {mode !== "reset" && !awaitingCode && (
+            {mode !== "reset" && !awaitingCode && !businessMode && (
               <div className="flex p-1 rounded-xl bg-secondary">
                 <button
                   onClick={() => {
@@ -619,7 +620,13 @@ const Auth = () => {
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
-                      {mode === "login" ? "Iniciar Sesión" : mode === "signup" ? "Crear Cuenta" : "Enviar Enlace"}
+                      {mode === "login"
+                        ? "Iniciar Sesión"
+                        : mode === "signup"
+                          ? businessMode
+                            ? "Crear cuenta Business"
+                            : "Crear Cuenta"
+                          : "Enviar Enlace"}
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </>
                   )}
