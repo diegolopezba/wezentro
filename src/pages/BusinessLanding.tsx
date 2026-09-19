@@ -52,7 +52,7 @@ const STEPS: ReadonlyArray<{
   },
   {
     key: "reservations",
-    title: "Recibí reservas mientras atendés",
+    title: "Recibí reservas sin fricción y mostra tu menú",
     subtitle: "Activá menú, horarios y reservas con uno de nuestros planes.",
   },
   {
