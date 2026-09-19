@@ -97,7 +97,7 @@ export const LandingCTAs = ({
       >
         {primaryLabel}
       </Button>
-      <Button variant="outline" className="h-12 rounded-full px-7 text-base  font-semibold" onClick={scrollToLead}>
+      <Button variant="outline" className="h-12 rounded-full px-7 text-base font-semibold" onClick={scrollToLead}>
         {secondaryLabel}
       </Button>
     </div>
