@@ -63,7 +63,8 @@ const STEPS: ReadonlyArray<{
   {
     key: "pricing",
     title: "Empezá con un modelo claro",
-    subtitle: `Eventos: 6% por venta. Menú y reservas: desde Bs. ${SUBSCRIPTION_TIERS.basico.price_bob} al mes.`,
+    subtitle: `Entradas vendidas: 6% de comisión.
+Menú, reservas y data: desde Bs. ${SUBSCRIPTION_TIERS.basico.price_bob} al mes.`,
   },
 ];
 
@@ -183,15 +184,16 @@ const VisualStage = ({ visual }: { visual: VisualKey }) => {
             <m.div initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} className="flex h-44 w-36 flex-col items-center justify-center rounded-[28px] border border-border bg-card p-4 text-center shadow-card">
               <Ticket className="h-8 w-8 text-brand-red" />
               <span className="mt-4 text-2xl font-bold">6%</span>
-              <span className="mt-1 text-[11px] leading-tight text-muted-foreground">solo cuando vendés</span>
+              <span className="mt-1 text-[11px] leading-tight text-muted-foreground">Para boliches, eventos, festivales, conciertos y experiencias.</span>
             </m.div>
             <m.div initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} className="flex h-44 w-36 flex-col items-center justify-center rounded-[28px] bg-foreground p-4 text-center text-background shadow-elevated">
               <UtensilsCrossed className="h-8 w-8" />
               <span className="mt-4 text-2xl font-bold">Bs. {SUBSCRIPTION_TIERS.basico.price_bob}</span>
-              <span className="mt-1 text-[11px] leading-tight opacity-70">por mes desde</span>
+              <span className="mt-1 text-[11px] leading-tight opacity-70">Para restaurantes, bares y cafeterias.&nbsp;
+Planes mensuales desde Bs. 250/mes</span>
             </m.div>
           </div>
-          <div className="absolute bottom-[9%] rounded-full bg-muted px-4 py-2 text-xs font-semibold text-foreground">Activación gratis</div>
+          <div className="absolute bottom-[9%] rounded-full bg-muted px-4 py-2 text-xs font-semibold text-foreground">Creá tu cuenta gratis</div>
         </>
       )}
     </div>
