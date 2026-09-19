@@ -37,8 +37,8 @@ const STEPS: ReadonlyArray<{
 }> = [
   {
     key: "discover",
-    title: "Hacé que encuentren tu negocio",
-    subtitle: "Mostrá dónde estás, tus horarios y cómo contactarte.",
+    title: "Un ecosistema completo, para toda la vida social",
+    subtitle: "Descubrimiento, ticketing, reservas, lounges, bookings y pagos, todo en un solo lugar",
   },
   {
     key: "publish",
