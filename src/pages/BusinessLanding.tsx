@@ -289,7 +289,7 @@ const BusinessLanding = () => {
                       key={item.key}
                       className={cn(
                         "h-1.5 rounded-full transition-all duration-300",
-                        index === step ? "w-6 bg-brand-red" : "w-1.5 bg-muted",
+                        index === step ? "w-6 bg-foreground" : "w-1.5 bg-muted",
                       )}
                     />
                   ))}
