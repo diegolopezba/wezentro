@@ -90,16 +90,12 @@ export const LandingCTAs = ({
 
   return (
     <div className={cn("flex flex-col gap-3 sm:flex-row", className)}>
-      <Button
-        variant="sheet-action"
-        className="h-12 rounded-full px-7 text-base"
-        onClick={start}
-      >
+      <Button variant="sheet-action" className="h-12 rounded-full px-7 text-base" onClick={start}>
         {primaryLabel}
       </Button>
       <Button
         variant="outline"
-        className="h-12 rounded-full px-7 text-base font-semibold"
+        className="h-12 rounded-full px-7 text-base bg-blue-600 text-white font-semibold"
         onClick={scrollToLead}
       >
         {secondaryLabel}
@@ -164,9 +160,7 @@ export const LandingShell = ({ sections }: { sections: LandingSection[] }) => {
         }}
       >
         <div className="flex-1 overflow-y-auto px-6 py-10 sm:px-12 sm:py-16">
-          <div className="mx-auto flex min-h-full max-w-5xl flex-col justify-center">
-            {section.content}
-          </div>
+          <div className="mx-auto flex min-h-full max-w-5xl flex-col justify-center">{section.content}</div>
         </div>
 
         <div className="flex items-center justify-between border-t border-border px-5 py-3">
@@ -221,9 +215,7 @@ export const LandingShell = ({ sections }: { sections: LandingSection[] }) => {
                 to={item.to}
                 className={cn(
                   "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
-                  pathname === item.to
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground",
+                  pathname === item.to ? "bg-secondary text-foreground" : "text-muted-foreground",
                 )}
               >
                 {t.nav[item.key]}
@@ -247,7 +239,6 @@ export const LandingShell = ({ sections }: { sections: LandingSection[] }) => {
                 </button>
               ))}
             </div>
-
           </div>
         </div>
 
@@ -272,10 +263,7 @@ export const LandingShell = ({ sections }: { sections: LandingSection[] }) => {
           <section
             key={section.id}
             id={section.id}
-            className={cn(
-              "px-5 py-16 sm:py-24",
-              section.tone === "light" ? "light-surface" : "bg-background",
-            )}
+            className={cn("px-5 py-16 sm:py-24", section.tone === "light" ? "light-surface" : "bg-background")}
           >
             <div className="mx-auto max-w-6xl">{section.content}</div>
           </section>
