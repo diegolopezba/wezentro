@@ -38,7 +38,18 @@ const Auth = () => {
 
   // Arriving from the "Soy empresa" flow (nav state, or a flag that survived
   // the email-code round trip).
-  const [businessMode] = useState<boolean>(() => !!locationState?.businessIntent || hasBusinessIntent());
+  const [businessMode, setBusinessMode] = useState<boolean>(() => !!locationState?.businessIntent || hasBusinessIntent());
+
+  // "Ahora no": abandon the business flow entirely and return to the normal signup.
+  const handleBusinessCancel = () => {
+    clearBusinessIntent();
+    setBusinessMode(false);
+    setMode("signup");
+    setErrors({});
+    setNeedsConfirmation(false);
+    setAwaitingCode(false);
+    navigate("/auth", { replace: true, state: { mode: "signup" } });
+  };
 
   // Initialize mode from navigation state (from AuthPromptModal)
   const [mode, setMode] = useState<"login" | "signup" | "reset">(() => {
@@ -607,27 +618,53 @@ const Auth = () => {
                   </div>
                 )}
 
-                <Button
-                  variant="sheet-action"
-                  className="w-full"
-                  onClick={mode === "reset" ? handleResetPassword : handleAuth}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      {mode === "login"
-                        ? "Iniciar Sesión"
-                        : mode === "signup"
-                          ? businessMode
-                            ? "Crear cuenta Business"
-                            : "Crear Cuenta"
-                          : "Enviar Enlace"}
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </>
-                  )}
-                </Button>
+                {businessMode && mode === "signup" ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleBusinessCancel}
+                      disabled={isLoading}
+                      className="shrink-0 px-4 py-3 rounded-full text-sm font-medium text-muted-foreground active:scale-[0.98] transition-transform disabled:opacity-50"
+                    >
+                      Ahora no
+                    </button>
+                    <Button
+                      variant="sheet-action"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={handleAuth}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          Crear cuenta Business
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="sheet-action"
+                    className="w-full"
+                    onClick={mode === "reset" ? handleResetPassword : handleAuth}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        {mode === "login"
+                          ? "Iniciar Sesión"
+                          : mode === "signup"
+                            ? "Crear Cuenta"
+                            : "Enviar Enlace"}
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                )}
 
                 {/* Business entry point */}
                 {mode === "signup" && !businessMode && (
