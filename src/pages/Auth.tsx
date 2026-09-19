@@ -626,7 +626,7 @@ const Auth = () => {
                 </Button>
 
                 {/* Business entry point */}
-                {mode !== "reset" && !businessMode && (
+                {mode === "signup" && !businessMode && (
                   <div className="pt-1 space-y-1.5">
                     <Button
                       variant="outline"
