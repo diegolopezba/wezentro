@@ -379,10 +379,10 @@ const Auth = () => {
               <div className="rounded-2xl border border-foreground/15 bg-foreground/5 px-4 py-3 text-center">
                 <div className="flex items-center justify-center gap-2 text-foreground">
                   <Briefcase className="w-4 h-4" />
-                  <span className="text-sm font-semibold">Creá tu cuenta Business</span>
+                  <span className="text-sm font-semibold">Estás creándo tu cuenta Business</span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Primero creás tu cuenta, después configuramos tu negocio.
+                  a
                 </p>
               </div>
             )}
