@@ -474,8 +474,8 @@ const es: LandingCopy = {
       line: "Tu local aparece en un feed visual, al lado de lo que la gente ya quiere hacer hoy.",
     },
     detail: {
-      title: "De publicación a espacio vendido, en 4 clicks",
-      line: "Toda la gestión de tu evento, restaurante o experiencia, mas fácil que nunca.\u00a0",
+      title: "De publicación a espacio vendido, en 10 segundos",
+      line: "Toda la gestión de tu evento, restaurante o experiencia, mas fácil que nunca, para vos y tus clientes.\u00a0",
     },
     dashboard: {
       title: "Todas las analíticas de ventas en tiempo real",
