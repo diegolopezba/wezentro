@@ -230,14 +230,26 @@ const Auth = () => {
         businessMode ? "business" : "personal",
       );
       if (error) {
-        toast.error(friendlyAuthError(error));
-        // If we hit the email rate limit, start cooldown so the user can resend later
-        if ((error as any)?.status === 429 || /rate limit/i.test(error.message)) {
+        const isRateLimited = (error as any)?.status === 429 || /rate limit/i.test(error.message) ||
+          ((error as any)?.code || (error as any)?.error_code) === "over_email_send_rate_limit";
+        if (isRateLimited) {
+          // La cuenta ya fue creada; solo el correo quedó limitado por ahora.
+          toast.info(
+            "Tu cuenta ya fue creada. El envío del código está limitado por unos segundos: esperá y tocá Reenviar.",
+            { duration: 7000 },
+          );
+          setNeedsConfirmation(true);
+          setAwaitingCode(true);
+          setOtpCode("");
           startResendCooldown();
+          setIsLoading(false);
+          return;
         }
+        toast.error(friendlyAuthError(error));
         setIsLoading(false);
         return;
       }
+
       // Supabase returns success with an empty identities array when the
       // email is already registered (to prevent email enumeration). Detect
       // this and guide the user to login instead of sending them to onboarding.
@@ -493,7 +505,16 @@ const Auth = () => {
                 >
                   Usar otro correo
                 </button>
+                <p className="text-center text-xs text-muted-foreground leading-relaxed">
+                  ¿No te llegó? Revisá spam y promociones. Si después de unos
+                  minutos sigue sin llegar, probá con otro correo o escribinos a{" "}
+                  <a href="mailto:hello@zentro.com" className="underline text-foreground">
+                    hello@zentro.com
+                  </a>
+                  .
+                </p>
               </div>
+
             ) : (
               <div className="space-y-4">
                 <div>
