@@ -52,6 +52,7 @@ import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSect
 import { useReplaceEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import { readCreateDraft, usePersistCreateDraft, clearCreateDraft } from "@/hooks/useCreateDraft";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 
 import { useBusinessExperiences } from "@/hooks/useExperiences";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
@@ -95,6 +96,10 @@ const Create = () => {
   const experiencesEnabled = (profile as any)?.experiences_enabled === true;
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
+  const { hasActivePlan: hasActiveBusinessPlan } = useBusinessPlanAccess(
+    isBusiness ? user?.id : undefined,
+    isBusiness
+  );
 
   const { invalidateAfterCreate } = useCreateEvent();
 
@@ -1066,7 +1071,27 @@ const Create = () => {
 
         {/* ── Collaborator section ── */}
         {/* ── Menu button toggle (business only) ── */}
-        {isBusiness && hasMenuItems && !isExperience && !isEvent &&
+        {isBusiness && !isExperience && !isEvent && !hasActiveBusinessPlan &&
+        <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
+            <Card className="glass border-white/10 p-4">
+              <button
+                type="button"
+                onClick={() => navigate("/settings/business/plans")}
+                className="w-full text-left flex items-center gap-3"
+              >
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                  <UtensilsCrossed className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Mostrar botón de menú</h3>
+                  <p className="text-xs text-muted-foreground">Necesitás un plan Business activo para activar el menú, las reservas y las analíticas.</p>
+                </div>
+              </button>
+            </Card>
+          </m.div>
+        }
+
+        {isBusiness && hasActiveBusinessPlan && hasMenuItems && !isExperience && !isEvent &&
         <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
             <Card className="glass border-white/10 p-4">
               <div className="flex items-center justify-between">
@@ -1133,28 +1158,6 @@ const Create = () => {
                   <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="px-4 pb-4 pt-0 space-y-4">
-                  {isBusiness && hasMenuItems && (
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3 flex-1">
-                        <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-                          <UtensilsCrossed className="w-5 h-5 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-foreground">Mostrar botón de menú</h3>
-                          <p className="text-xs text-muted-foreground">Los visitantes podrán abrir tu menú</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, showMenuButton: !formData.showMenuButton })}
-                        className={`relative w-12 h-7 rounded-full transition-colors shrink-0 ${formData.showMenuButton ? "bg-primary" : "bg-secondary"}`}>
-                        <m.div
-                          animate={{ x: formData.showMenuButton ? 22 : 2 }}
-                          className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
-                      </button>
-                    </div>
-                  )}
-
                   {isBusiness && user && !experienceId && (
                     <EventVenueLayoutSection
                       businessId={user.id}
@@ -1167,29 +1170,6 @@ const Create = () => {
                       onAreasChange={setDraftAreas}
                     />
                   )}
-
-
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-                        <Lock className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">Ubicación secreta</h3>
-                        <p className="text-xs text-muted-foreground">
-                          Solo las personas que apruebes verán la dirección. Si la cambias, les llegará una notificación.
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, isLocationSecret: !formData.isLocationSecret })}
-                      className={`relative w-12 h-7 rounded-full transition-colors shrink-0 ${formData.isLocationSecret ? "bg-primary" : "bg-secondary"}`}>
-                      <m.div
-                        animate={{ x: formData.isLocationSecret ? 22 : 2 }}
-                        className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
-                    </button>
-                  </div>
 
                   {/* Lista de espera (pre-venta) */}
                   <div className="mt-4 pt-4 border-t border-white/10">
@@ -1297,6 +1277,68 @@ const Create = () => {
                       </div>
                     )}
                   </div>
+
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                        <Lock className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">Ubicación secreta</h3>
+                        <p className="text-xs text-muted-foreground">
+                          Solo las personas que apruebes verán la dirección. Si la cambias, les llegará una notificación.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, isLocationSecret: !formData.isLocationSecret })}
+                      className={`relative w-12 h-7 rounded-full transition-colors shrink-0 ${formData.isLocationSecret ? "bg-primary" : "bg-secondary"}`}>
+                      <m.div
+                        animate={{ x: formData.isLocationSecret ? 22 : 2 }}
+                        className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
+                    </button>
+                  </div>
+
+                  {isBusiness && !hasActiveBusinessPlan && (
+                    <button
+                      type="button"
+                      onClick={() => navigate("/settings/business/plans")}
+                      className="w-full text-left flex items-start gap-3"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                        <UtensilsCrossed className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground">Mostrar botón de menú</h3>
+                        <p className="text-xs text-muted-foreground">
+                          Necesitás un plan Business activo para activar el menú, las reservas y las analíticas.
+                        </p>
+                      </div>
+                    </button>
+                  )}
+
+                  {isBusiness && hasActiveBusinessPlan && hasMenuItems && (
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                          <UtensilsCrossed className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">Mostrar botón de menú</h3>
+                          <p className="text-xs text-muted-foreground">Los visitantes podrán abrir tu menú</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, showMenuButton: !formData.showMenuButton })}
+                        className={`relative w-12 h-7 rounded-full transition-colors shrink-0 ${formData.showMenuButton ? "bg-primary" : "bg-secondary"}`}>
+                        <m.div
+                          animate={{ x: formData.showMenuButton ? 22 : 2 }}
+                          className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
+                      </button>
+                    </div>
+                  )}
                 </CollapsibleContent>
               </Collapsible>
             </Card>
