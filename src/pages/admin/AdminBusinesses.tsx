@@ -47,7 +47,7 @@ const AdminBusinesses = () => {
                     <td className="px-3 py-2 text-muted-foreground">{b.city ?? "—"}</td>
                     <td className="px-3 py-2 text-muted-foreground">{b.type ?? (b.isFood ? "comida" : "—")}</td>
                     <td className="px-3 py-2 text-muted-foreground">
-                      {b.tier ? `${b.tier}${b.subscriptionStatus ? ` (${b.subscriptionStatus})` : ""}` : "—"}
+                      {b.planLabel ?? "Gratis"}
                     </td>
                     <td className="px-3 py-2">
                       <span
