@@ -17,5 +17,5 @@ export const SHOTS = {
 export const VIDEOS = {
   restaurantReservation: restaurantReservationVideo,
   restaurantHero: restaurantHeroVideo,
-  eventsHero: eventsHeroVideo,
+  eventsHero: eventsHeroAsset.url,
 } as const;
