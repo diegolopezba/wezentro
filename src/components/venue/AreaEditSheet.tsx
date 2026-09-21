@@ -49,11 +49,11 @@ export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelet
     <Sheet open={!!area} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="light-sheet rounded-t-3xl max-h-[80dvh] overflow-hidden"
+        className="light-sheet rounded-t-3xl max-h-[70dvh] overflow-hidden"
       >
         {draft && (
           <>
-            <SheetHeader className="mb-4 shrink-0">
+            <SheetHeader className="-mt-1 mb-3 shrink-0 py-2">
               <SheetTitle>{draft.is_decor ? "Editar elemento" : "Editar área"}</SheetTitle>
             </SheetHeader>
 
