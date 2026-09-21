@@ -287,6 +287,10 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       toast.error(`No podés eliminar áreas con reservas activas: ${names}`);
       return;
     }
+    if (!isPost && !formData.end_datetime) {
+      toast.error("Ingresá la fecha y hora de fin del evento");
+      return;
+    }
     if (!isPost && !experienceId && useAreas && draftAreas.filter((a) => !a.is_decor).length === 0) {
       toast.error("Añade al menos un área o desactiva la venta por áreas");
       return;
