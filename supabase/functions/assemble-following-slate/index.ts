@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
     const map = new Map<string, any>();
 
     for (const e of (directRes.data || []) as any[]) {
-      if (e.start_datetime && new Date(e.start_datetime) < now) continue;
+      if (e.start_datetime && new Date(e.end_datetime || e.start_datetime) < now) continue;
       map.set(e.id, { ...e, _repostInfo: null });
     }
 
