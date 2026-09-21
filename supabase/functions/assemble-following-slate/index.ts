@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
     const repostsByEvent = new Map<string, any[]>();
     for (const r of (repostRes.data || []) as any[]) {
       if (!r.event || r.event.deleted_at || !r.event.is_public) continue;
-      if (r.event.start_datetime && new Date(r.event.start_datetime) < now) continue;
+      if (r.event.start_datetime && new Date(r.event.end_datetime || r.event.start_datetime) < now) continue;
       const arr = repostsByEvent.get(r.event_id) || [];
       arr.push(r);
       repostsByEvent.set(r.event_id, arr);
