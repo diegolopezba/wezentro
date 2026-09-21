@@ -989,7 +989,7 @@ const Create = () => {
                   onChange={(e) => setFormData({ ...formData, time: e.target.value })} />
                 </div>
                 <div className="min-w-0 col-span-2 sm:col-span-1">
-                  <label className="text-sm font-medium text-foreground mb-2 block">Hora fin (opcional)</label>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Hora fin</label>
                   <Input
                   type="time" className="w-full min-w-0" value={formData.endTime}
                   onChange={(e) => setFormData({ ...formData, endTime: e.target.value })} />

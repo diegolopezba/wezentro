@@ -515,7 +515,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="end-datetime">Fecha y hora de fin (opcional)</Label>
+                <Label htmlFor="end-datetime">Fecha y hora de fin</Label>
                 <Input
                   id="end-datetime"
                   type="datetime-local"
