@@ -438,6 +438,23 @@ async function subscriptionUpdate(body: any, adminEmail: string) {
 }
 
 
+const PLAN_TIER_LABEL: Record<string, string> = {
+  basico: "Básico",
+  profesional: "Profesional",
+  elite: "Elite",
+};
+
+// pending_activation rows are auto-created placeholders: the business is on the
+// free tier until a plan is actually activated, so the admin should read "Gratis".
+const planLabelOf = (sub: { tier: string; status: string } | undefined): string => {
+  if (!sub || sub.status === "pending_activation") return "Gratis";
+  const tier = PLAN_TIER_LABEL[sub.tier] ?? sub.tier;
+  if (sub.status === "active") return tier;
+  if (sub.status === "past_due") return `${tier} (vencido)`;
+  if (sub.status === "cancelled") return `${tier} (cancelado)`;
+  return tier;
+};
+
 async function businesses(search: string) {
   let q = admin
     .from("profiles")
