@@ -1,17 +1,13 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { LayoutGrid } from "lucide-react";
-import { VenueLayoutEditor } from "./VenueLayoutEditor";
-import { AreaListEditor } from "./AreaListEditor";
+import { LayoutGrid, ArrowUpRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   useVenueLayouts,
   useVenueLayoutAreas,
-  useSaveVenueLayout,
   type DraftArea,
 } from "@/hooks/useVenueLayouts";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -23,8 +19,9 @@ interface Props {
 }
 
 /**
- * Optional event-creation step: draw (or reuse) the venue layout that buyers
- * will pick from. Skipping it keeps the classic ticket-tier flow untouched.
+ * Optional event step: pick one of the venue layouts already saved in
+ * Ajustes > Planos del lugar. Areas can only be created/edited there,
+ * never inline while creating an event.
  */
 export function EventVenueLayoutSection({
   businessId,
@@ -36,38 +33,15 @@ export function EventVenueLayoutSection({
   const { data: layouts = [] } = useVenueLayouts(businessId);
   const [pickedLayoutId, setPickedLayoutId] = useState<string | null>(null);
   const { data: templateAreas } = useVenueLayoutAreas(pickedLayoutId ?? undefined);
-  const saveLayout = useSaveVenueLayout();
-  const [savingTemplate, setSavingTemplate] = useState(false);
-  const [editorMode, setEditorMode] = useState<"canvas" | "list">("canvas");
 
-  const applyTemplate = (layoutId: string) => {
-    setPickedLayoutId(layoutId);
-  };
-
-  // Apply the fetched template as soon as it lands.
+  // Apply the fetched layout as soon as it lands.
   useEffect(() => {
     if (!pickedLayoutId || !templateAreas) return;
     onAreasChange(templateAreas.map((a, i) => ({ ...a, display_order: i })));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickedLayoutId, templateAreas]);
 
-
-  const saveAsTemplate = async () => {
-    if (areas.length === 0) return;
-    setSavingTemplate(true);
-    try {
-      await saveLayout.mutateAsync({
-        businessId,
-        name: `Plano ${new Date().toLocaleDateString("es-BO")}`,
-        areas,
-      });
-      toast.success("Plano guardado para reutilizar");
-    } catch (e: any) {
-      toast.error(e.message || "No se pudo guardar el plano");
-    } finally {
-      setSavingTemplate(false);
-    }
-  };
+  const bookable = areas.filter((a) => !a.is_decor);
 
   return (
     <Card className="glass border-white/10 p-4 space-y-4">
@@ -79,7 +53,7 @@ export function EventVenueLayoutSection({
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground">Vender por áreas</p>
             <p className="text-xs text-muted-foreground">
-              Opcional · los compradores eligen su mesa o zona en el plano
+              Opcional · usa un plano guardado para vender mesas o zonas
             </p>
           </div>
         </div>
@@ -88,15 +62,15 @@ export function EventVenueLayoutSection({
 
       {enabled && (
         <div className="space-y-3">
-          {layouts.length > 0 && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Usar un plano guardado</p>
+          {layouts.length > 0 ? (
+            <>
+              <p className="text-xs text-muted-foreground">Elige un plano guardado</p>
               <div className="flex flex-wrap gap-2">
                 {layouts.map((l) => (
                   <button
                     key={l.id}
                     type="button"
-                    onClick={() => applyTemplate(l.id)}
+                    onClick={() => setPickedLayoutId(l.id)}
                     className={cn(
                       "px-3 py-1.5 rounded-full text-sm border",
                       pickedLayoutId === l.id
@@ -108,53 +82,26 @@ export function EventVenueLayoutSection({
                   </button>
                 ))}
               </div>
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setEditorMode("canvas")}
-              className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-medium border",
-                editorMode === "canvas"
-                  ? "bg-foreground text-background border-foreground"
-                  : "bg-secondary/50 border-border text-foreground",
+              {areas.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {bookable.length} área{bookable.length === 1 ? "" : "s"} ·{" "}
+                  {bookable.reduce((s, a) => s + (a.capacity || 0), 0)} personas
+                </p>
               )}
-            >
-              Plano visual
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditorMode("list")}
-              className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-medium border",
-                editorMode === "list"
-                  ? "bg-foreground text-background border-foreground"
-                  : "bg-secondary/50 border-border text-foreground",
-              )}
-            >
-              Solo lista
-            </button>
-          </div>
-
-          {editorMode === "canvas" ? (
-            <VenueLayoutEditor areas={areas} onChange={onAreasChange} />
+            </>
           ) : (
-            <AreaListEditor areas={areas} onChange={onAreasChange} />
+            <p className="text-xs text-muted-foreground">
+              Todavía no tienes planos guardados.
+            </p>
           )}
 
-          {areas.length > 0 && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={saveAsTemplate}
-              disabled={savingTemplate}
-              className="w-full rounded-full h-10"
-            >
-              {savingTemplate ? "Guardando…" : "Guardar como plano reutilizable"}
-            </Button>
-          )}
+          <Link
+            to="/settings/business/layouts"
+            className="inline-flex items-center gap-1 text-xs font-medium text-foreground underline underline-offset-4"
+          >
+            Administrar planos del lugar
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       )}
     </Card>
