@@ -253,6 +253,13 @@
       "when": 1789776281435,
       "tag": "0035_revert_special_invites_to_app_mode",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1790003516593,
+      "tag": "0036_events_visible_until_end_datetime",
+      "breakpoints": true
     }
   ]
 }
