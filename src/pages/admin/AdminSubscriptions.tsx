@@ -16,7 +16,7 @@ import { PeriodPills, Section, Stat, bs } from "./adminUi";
 const STATUS_FILTERS = [
   { value: "all", label: "Todas" },
   { value: "active", label: "Activas" },
-  { value: "pending_activation", label: "Pendientes" },
+  { value: "pending_activation", label: "Sin activar" },
   { value: "past_due", label: "En mora" },
   { value: "cancelled", label: "Canceladas" },
 ];
@@ -36,7 +36,7 @@ const TIER_LABEL: Record<string, string> = {
 
 const STATUS_LABEL: Record<string, string> = {
   active: "Activa",
-  pending_activation: "Pendiente",
+  pending_activation: "Sin activar",
   past_due: "En mora",
   cancelled: "Cancelada",
 };

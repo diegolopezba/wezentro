@@ -483,6 +483,7 @@ async function businesses(search: string) {
       payoutsReady: beneMap.has(b.id),
       tier: subMap[b.id]?.tier ?? null,
       subscriptionStatus: subMap[b.id]?.status ?? null,
+      planLabel: planLabelOf(subMap[b.id]),
       gross: round2(salesBy[b.id]?.gross ?? 0),
       commission: round2(salesBy[b.id]?.commission ?? 0),
     })),

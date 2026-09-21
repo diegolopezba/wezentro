@@ -80,6 +80,7 @@ export interface AdminBusiness {
   payoutsReady: boolean;
   tier: string | null;
   subscriptionStatus: string | null;
+  planLabel: string;
   gross: number;
   commission: number;
 }
