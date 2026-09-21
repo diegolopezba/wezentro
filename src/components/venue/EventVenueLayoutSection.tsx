@@ -84,7 +84,7 @@ export function EventVenueLayoutSection({
                   <button
                     key={l.id}
                     type="button"
-                    onClick={() => setPickedLayoutId(l.id)}
+                    onClick={() => pickLayout(l.id)}
                     className={cn(
                       "px-3 py-1.5 rounded-full text-sm border",
                       pickedLayoutId === l.id
