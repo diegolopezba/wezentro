@@ -134,8 +134,9 @@ export const useNearbyEvents = (
     const now = new Date();
     result = result.filter((event) => {
       const eventDate = new Date(event.start_datetime);
-      // Always exclude past events
-      if (eventDate < now) return false;
+      // Events stay listed until their finish time (fallback: start time)
+      const eventEnd = new Date(event.end_datetime || event.start_datetime);
+      if (eventEnd < now) return false;
       
       // Apply specific date filter if not "all"
       if (filters.dateFilter === "all") return true;
