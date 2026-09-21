@@ -52,6 +52,7 @@ import { EventVenueLayoutSection } from "@/components/venue/EventVenueLayoutSect
 import { useReplaceEventAreas, type DraftArea } from "@/hooks/useVenueLayouts";
 import { useHasBeneficiary } from "@/hooks/useHasBeneficiary";
 import { readCreateDraft, usePersistCreateDraft, clearCreateDraft } from "@/hooks/useCreateDraft";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 
 import { useBusinessExperiences } from "@/hooks/useExperiences";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
@@ -95,6 +96,10 @@ const Create = () => {
   const experiencesEnabled = (profile as any)?.experiences_enabled === true;
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
+  const { hasActivePlan: hasActiveBusinessPlan } = useBusinessPlanAccess(
+    isBusiness ? user?.id : undefined,
+    isBusiness
+  );
 
   const { invalidateAfterCreate } = useCreateEvent();
 
