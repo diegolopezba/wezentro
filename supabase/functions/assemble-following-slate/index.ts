@@ -170,14 +170,14 @@ Deno.serve(async (req) => {
     const map = new Map<string, any>();
 
     for (const e of (directRes.data || []) as any[]) {
-      if (e.start_datetime && new Date(e.start_datetime) < now) continue;
+      if (e.start_datetime && new Date(e.end_datetime || e.start_datetime) < now) continue;
       map.set(e.id, { ...e, _repostInfo: null });
     }
 
     const repostsByEvent = new Map<string, any[]>();
     for (const r of (repostRes.data || []) as any[]) {
       if (!r.event || r.event.deleted_at || !r.event.is_public) continue;
-      if (r.event.start_datetime && new Date(r.event.start_datetime) < now) continue;
+      if (r.event.start_datetime && new Date(r.event.end_datetime || r.event.start_datetime) < now) continue;
       const arr = repostsByEvent.get(r.event_id) || [];
       arr.push(r);
       repostsByEvent.set(r.event_id, arr);
