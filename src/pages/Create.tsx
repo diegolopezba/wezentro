@@ -410,6 +410,10 @@ const Create = () => {
       toast.error("Por favor ingresa la fecha y hora del evento");
       return;
     }
+    if (isEvent && !formData.endTime) {
+      toast.error("Por favor ingresa la hora de fin del evento");
+      return;
+    }
     if (isExperience && !experienceId) {
       toast.error("Elegí qué experiencia querés publicar");
       return;
