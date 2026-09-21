@@ -1,24 +1,32 @@
-# Fix: el bottom sheet de mesas y lounges no deja hacer scroll
+# Fix: el sheet de "Editar área" del organizador no deja scrollear
 
-## Diagnóstico (confirmado leyendo el código)
+## Estado confirmado leyendo el código
 
-El problema tiene dos partes, ambas en el flujo de compra:
+- `AreaEditSheet.tsx` (el sheet de agregar/editar mesa del dueño) **ya tiene la estructura correcta**: header fijo, cuerpo con `flex-1 min-h-0 overflow-y-auto overscroll-contain` + `data-vaul-no-drag`, y footer fijo con Guardar/Duplicar/Eliminar.
+- Construí una reproducción mínima con la misma versión de vaul (0.9.9) y la misma estructura, y en Chromium el gesto táctil **sí scrollea** (scrollTop sube, el sheet no se mueve). O sea: el patrón actual funciona en Android/Chrome.
+- La librería vaul inyecta `touch-action: none` sobre el drawer y hace `setPointerCapture` en cada toque, lo que en iOS (Safari / app nativa con WKWebView) es una fuente conocida de scroll roto en drawers — y la app publicada/instalada puede además estar corriendo un build viejo, anterior al fix de este sheet (hay varios cambios sin publicar).
 
-1. **El mapa del lugar bloquea el scroll.** `VenueGridCanvas.tsx` (el plano con las mesas/áreas) tiene la clase `touch-none` en su contenedor, pensada para el modo *editor* (arrastrar mesas). Pero esa misma clase se aplica en el modo *solo lectura* que usa el sheet de compra. `touch-none` le dice al navegador que ningún gesto táctil sobre el plano hace scroll — y el plano ocupa casi todo el ancho del sheet, así que si el dedo cae sobre el plano, no pasa nada.
+**Diagnóstico no confirmado del todo:** no puedo emular iOS en este entorno. El plan arranca verificando el comportamiento real en el preview.
 
-2. **El sheet antiguo de selección de área pelea con vaul.** `AreaPickerSheet.tsx` pone `overflow-y-auto` directo sobre el `Drawer.Content` de vaul sin `data-vaul-no-drag`, así que vaul captura el gesto y arrastra/cierra el sheet en vez de scrollear (mismo bug que ya se arregló en `AreaEditSheet`). El `PurchaseFlow.tsx` principal ya tiene la estructura correcta (header fijo + cuerpo con `data-vaul-no-drag`), así que queda bloqueado solo por el punto 1.
+## Pasos
 
-## Cambios
+### 1. Verificar el comportamiento actual (diagnóstico)
+- Con Playwright (viewport móvil táctil, sesión de prueba), abrir el editor de planos del negocio (`/settings/business` → planos / creación de evento), abrir "Editar área" y hacer swipe sobre el formulario midiendo `scrollTop` antes/después, y sobre el header (debe arrastrar el sheet).
+- Resultado A: scrollea bien → el bug está en el build publicado o es específico de iOS → ir a paso 2 y 3.
+- Resultado B: no scrollea → reestructurar el contenido del sheet (mismo patrón probado en la reproducción) hasta que scrollee.
 
-**`src/components/venue/VenueGridCanvas.tsx`**
-- `touch-none` solo cuando `editable` es `true` (modo editor de planos). En modo lectura (selección de área al comprar) usar `touch-pan-y`: los toques sobre mesas siguen seleccionando (es un click, no un drag), pero deslizar vertical scrollea el sheet.
-- En modo lectura, agregar `data-vaul-no-drag` al contenedor del plano para que vaul tampoco interprete esos gestos como arrastre del sheet.
+### 2. Endurecer el sheet contra iOS/app nativa
+Según lo que muestre el paso 1, aplicar en `src/components/ui/bottom-sheet.tsx` y/o `AreaEditSheet.tsx`:
+- Agregar `handleOnly` al `Drawer.Root` de este sheet (vaul 0.9.9 lo soporta): el sheet solo se arrastra desde el handle/header, y los gestos sobre el formulario nunca lo mueven — elimina el síntoma "se cierra solo".
+- Si iOS sigue sin scrollear: subir vaul a la última versión 1.x (corrige varios bugs de scroll anidado en Safari) verificando que el resto de los sheets de la app sigan iguales, o agregar un guard que evite el `setPointerCapture` de vaul dentro de zonas `data-vaul-no-drag`.
 
-**`src/components/venue/AreaPickerSheet.tsx`**
-- Misma reestructura que `AreaEditSheet`/`PurchaseFlow`: `SheetContent` con `max-h-[92dvh] flex flex-col overflow-hidden` (sin `overflow-y-auto`), header fijo arriba, y el contenido en un div interno `flex-1 overflow-y-auto overscroll-contain` con `data-vaul-no-drag`.
-
-Sin cambios en lógica de compra, holds, precios ni en `PurchaseFlow.tsx` (su estructura ya es correcta).
+### 3. Publicar
+- El usuario prueba en el teléfono contra la app publicada; sin publicar, cualquier fix es invisible para él. Publicar al final y pedirle que reabra la app.
 
 ## Verificación
 - Typecheck (`npx tsgo --noEmit`).
-- Playwright en viewport móvil: abrir el flujo de compra de un evento con plano, scrollear con el dedo sobre el mapa y sobre la lista — debe scrollear sin cerrar el sheet; tocar una mesa sigue seleccionándola; arrastrar desde el header/handle sigue cerrando el sheet.
+- Playwright móvil: el formulario scrollea, el handle arrastra/cierra, Guardar siempre visible.
+- Confirmación del usuario en su teléfono tras publicar.
+
+## Alcance
+Solo el sheet de editar/agregar área del organizador (y el wrapper de bottom-sheet si hace falta). Sin cambios en lógica de guardado, planos, ni en el flujo de compra.
