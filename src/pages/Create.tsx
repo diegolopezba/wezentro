@@ -1128,7 +1128,43 @@ const Create = () => {
                   <span className="font-semibold text-foreground">Opciones avanzadas</span>
                   <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="px-4 pb-4 pt-0">
+                <CollapsibleContent className="px-4 pb-4 pt-0 space-y-4">
+                  {isBusiness && hasMenuItems && (
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                          <UtensilsCrossed className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">Mostrar botón de menú</h3>
+                          <p className="text-xs text-muted-foreground">Los visitantes podrán abrir tu menú</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, showMenuButton: !formData.showMenuButton })}
+                        className={`relative w-12 h-7 rounded-full transition-colors shrink-0 ${formData.showMenuButton ? "bg-primary" : "bg-secondary"}`}>
+                        <m.div
+                          animate={{ x: formData.showMenuButton ? 22 : 2 }}
+                          className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
+                      </button>
+                    </div>
+                  )}
+
+                  {isBusiness && user && !experienceId && (
+                    <EventVenueLayoutSection
+                      businessId={user.id}
+                      enabled={useAreas}
+                      onEnabledChange={(v) => {
+                        setUseAreas(v);
+                        if (!v) setDraftAreas([]);
+                      }}
+                      areas={draftAreas}
+                      onAreasChange={setDraftAreas}
+                    />
+                  )}
+
+
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 flex-1">
                       <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
