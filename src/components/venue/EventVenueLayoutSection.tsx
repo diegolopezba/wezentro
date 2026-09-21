@@ -34,12 +34,26 @@ export function EventVenueLayoutSection({
   const [pickedLayoutId, setPickedLayoutId] = useState<string | null>(null);
   const { data: templateAreas } = useVenueLayoutAreas(pickedLayoutId ?? undefined);
 
+  // Clear the visual selection whenever the section is turned off, so the
+  // chips never look selected while no areas are loaded.
+  useEffect(() => {
+    if (!enabled) setPickedLayoutId(null);
+  }, [enabled]);
+
   // Apply the fetched layout as soon as it lands.
   useEffect(() => {
-    if (!pickedLayoutId || !templateAreas) return;
+    if (!enabled || !pickedLayoutId || !templateAreas) return;
     onAreasChange(templateAreas.map((a, i) => ({ ...a, display_order: i })));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pickedLayoutId, templateAreas]);
+  }, [enabled, pickedLayoutId, templateAreas]);
+
+  const pickLayout = (id: string) => {
+    setPickedLayoutId(id);
+    // Re-clicking the same chip must still (re)apply its areas.
+    if (id === pickedLayoutId && templateAreas) {
+      onAreasChange(templateAreas.map((a, i) => ({ ...a, display_order: i })));
+    }
+  };
 
   const bookable = areas.filter((a) => !a.is_decor);
 
@@ -70,7 +84,7 @@ export function EventVenueLayoutSection({
                   <button
                     key={l.id}
                     type="button"
-                    onClick={() => setPickedLayoutId(l.id)}
+                    onClick={() => pickLayout(l.id)}
                     className={cn(
                       "px-3 py-1.5 rounded-full text-sm border",
                       pickedLayoutId === l.id
