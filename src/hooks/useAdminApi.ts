@@ -5,6 +5,10 @@ export type AdminPeriod = "today" | "7d" | "30d" | "90d" | "all";
 
 /** Calls the admin-only edge function. Throws on non-admin / auth failures. */
 export async function callAdminApi<T>(body: Record<string, unknown>): Promise<T> {
+  // Without a session the function would answer 401 and surface as a runtime error.
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session) throw new Error("unauthenticated");
+
   const { data, error } = await supabase.functions.invoke("admin-api", { body });
   if (error) throw error;
   if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
