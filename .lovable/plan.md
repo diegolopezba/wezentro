@@ -1,32 +1,21 @@
-# Fix: el sheet de "Editar área" del organizador no deja scrollear
+# Fix: el sheet de "Editar área" sube demasiado y no se puede arrastrar para cerrar
 
-## Estado confirmado leyendo el código
+## Qué pasa
 
-- `AreaEditSheet.tsx` (el sheet de agregar/editar mesa del dueño) **ya tiene la estructura correcta**: header fijo, cuerpo con `flex-1 min-h-0 overflow-y-auto overscroll-contain` + `data-vaul-no-drag`, y footer fijo con Guardar/Duplicar/Eliminar.
-- Construí una reproducción mínima con la misma versión de vaul (0.9.9) y la misma estructura, y en Chromium el gesto táctil **sí scrollea** (scrollTop sube, el sheet no se mueve). O sea: el patrón actual funciona en Android/Chrome.
-- La librería vaul inyecta `touch-action: none` sobre el drawer y hace `setPointerCapture` en cada toque, lo que en iOS (Safari / app nativa con WKWebView) es una fuente conocida de scroll roto en drawers — y la app publicada/instalada puede además estar corriendo un build viejo, anterior al fix de este sheet (hay varios cambios sin publicar).
+El scroll del formulario funciona bien. El problema es la altura: con el formulario completo, el sheet crece hasta su tope (`max-h-[85dvh]`) y en pantallas de teléfono queda prácticamente pegado al borde superior. El handle y el título quedan tan arriba que ya no hay zona cómoda para agarrar el sheet y bajarlo, y visualmente parece pantalla completa.
 
-**Diagnóstico no confirmado del todo:** no puedo emular iOS en este entorno. El plan arranca verificando el comportamiento real en el preview.
+## Cambio
 
-## Pasos
+**`src/components/venue/AreaEditSheet.tsx`** — bajar el tope de altura del sheet para que siempre quede una franja del fondo visible arriba:
 
-### 1. Verificar el comportamiento actual (diagnóstico)
-- Con Playwright (viewport móvil táctil, sesión de prueba), abrir el editor de planos del negocio (`/settings/business` → planos / creación de evento), abrir "Editar área" y hacer swipe sobre el formulario midiendo `scrollTop` antes/después, y sobre el header (debe arrastrar el sheet).
-- Resultado A: scrollea bien → el bug está en el build publicado o es específico de iOS → ir a paso 2 y 3.
-- Resultado B: no scrollea → reestructurar el contenido del sheet (mismo patrón probado en la reproducción) hasta que scrollee.
+- `max-h-[85dvh]` pasa a `max-h-[80dvh]` (deja ~20% de pantalla arriba con el overlay oscuro visible).
+- Mantener el resto de la estructura tal cual: handle + header fijos arriba, cuerpo scrolleable con `data-vaul-no-drag`, footer fijo con Guardar / Duplicar / Eliminar.
+- Asegurar que la zona del handle y el título **no** tenga `data-vaul-no-drag`, para que arrastrar desde ahí siga cerrando el sheet (hoy ya es así).
 
-### 2. Endurecer el sheet contra iOS/app nativa
-Según lo que muestre el paso 1, aplicar en `src/components/ui/bottom-sheet.tsx` y/o `AreaEditSheet.tsx`:
-- Agregar `handleOnly` al `Drawer.Root` de este sheet (vaul 0.9.9 lo soporta): el sheet solo se arrastra desde el handle/header, y los gestos sobre el formulario nunca lo mueven — elimina el síntoma "se cierra solo".
-- Si iOS sigue sin scrollear: subir vaul a la última versión 1.x (corrige varios bugs de scroll anidado en Safari) verificando que el resto de los sheets de la app sigan iguales, o agregar un guard que evite el `setPointerCapture` de vaul dentro de zonas `data-vaul-no-drag`.
-
-### 3. Publicar
-- El usuario prueba en el teléfono contra la app publicada; sin publicar, cualquier fix es invisible para él. Publicar al final y pedirle que reabra la app.
+No se toca ningún otro sheet, ni la lógica de guardado, ni el plano del lugar.
 
 ## Verificación
-- Typecheck (`npx tsgo --noEmit`).
-- Playwright móvil: el formulario scrollea, el handle arrastra/cierra, Guardar siempre visible.
-- Confirmación del usuario en su teléfono tras publicar.
 
-## Alcance
-Solo el sheet de editar/agregar área del organizador (y el wrapper de bottom-sheet si hace falta). Sin cambios en lógica de guardado, planos, ni en el flujo de compra.
+- Typecheck (`npx tsgo --noEmit`).
+- Playwright en viewport de teléfono (393×822): abrir "Editar área" y comprobar que el borde superior del sheet queda claramente por debajo del tope de la pantalla, con el fondo visible arriba, y que el formulario sigue scrolleando y el botón Guardar sigue visible.
+- Confirmación en tu teléfono: el sheet debe poder bajarse arrastrando desde la barrita de arriba.
