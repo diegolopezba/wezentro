@@ -1062,7 +1062,7 @@ const Create = () => {
 
         {/* ── Collaborator section ── */}
         {/* ── Menu button toggle (business only) ── */}
-        {isBusiness && hasMenuItems && !isExperience &&
+        {isBusiness && hasMenuItems && !isExperience && !isEvent &&
         <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
             <Card className="glass border-white/10 p-4">
               <div className="flex items-center justify-between">
