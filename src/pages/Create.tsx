@@ -1012,19 +1012,8 @@ const Create = () => {
                     />
                   </div>
                   )}
-                  {/* Vender por áreas (lounge) */}
-                  {user && !experienceId && (
-                    <EventVenueLayoutSection
-                      businessId={user.id}
-                      enabled={useAreas}
-                      onEnabledChange={(v) => {
-                        setUseAreas(v);
-                        if (!v) setDraftAreas([]);
-                      }}
-                      areas={draftAreas}
-                      onAreasChange={setDraftAreas}
-                    />
-                  )}
+                  {/* Vender por áreas se movió a Opciones avanzadas */}
+
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">Capacidad total (opcional)</label>
                     <div className="relative">
