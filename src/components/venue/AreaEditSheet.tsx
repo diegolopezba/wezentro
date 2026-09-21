@@ -49,7 +49,7 @@ export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelet
     <Sheet open={!!area} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="light-sheet rounded-t-3xl max-h-[85dvh] overflow-hidden"
+        className="light-sheet rounded-t-3xl max-h-[80dvh] overflow-hidden"
       >
         {draft && (
           <>
