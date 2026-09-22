@@ -6,7 +6,17 @@ import { Reveal } from "@/components/landing/LandingShell";
  * Device frame for real app screenshots. Image-first landing (dice.fm style):
  * one big screen per idea, almost no text around it.
  */
-export const PhoneFrame = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
+export const PhoneFrame = ({
+  src,
+  alt,
+  poster,
+  className,
+}: {
+  src: string;
+  alt: string;
+  poster?: string;
+  className?: string;
+}) => {
   const isVideo = src.toLowerCase().endsWith(".mp4");
 
   return (
@@ -18,7 +28,16 @@ export const PhoneFrame = ({ src, alt, className }: { src: string; alt: string; 
     >
       <div className="overflow-hidden rounded-[34px] bg-background">
         {isVideo ? (
-          <video src={src} autoPlay muted loop playsInline className="block h-auto w-full" />
+          <video
+            src={src}
+            poster={poster}
+            preload="metadata"
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="block h-auto w-full"
+          />
         ) : (
           <img src={src} alt={alt} loading="lazy" decoding="async" className="block h-auto w-full" />
         )}
@@ -33,6 +52,7 @@ export const MediaSplit = ({
   line,
   src,
   alt,
+  poster,
   reverse,
   children,
 }: {
@@ -40,6 +60,7 @@ export const MediaSplit = ({
   line: string;
   src: string;
   alt: string;
+  poster?: string;
   reverse?: boolean;
   children?: ReactNode;
 }) => (
@@ -50,7 +71,7 @@ export const MediaSplit = ({
       {children}
     </Reveal>
     <Reveal delay={100} className={cn(reverse && "lg:order-1")}>
-      <PhoneFrame src={src} alt={alt} />
+      <PhoneFrame src={src} alt={alt} poster={poster} />
     </Reveal>
   </div>
 );

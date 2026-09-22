@@ -4,7 +4,7 @@ import { LabelStrip, MediaSplit } from "@/components/landing/PhoneFrame";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { useLanding } from "@/components/landing/LandingContext";
 import { useLandingSeo } from "@/pages/landing/useLandingSeo";
-import { SHOTS, VIDEOS } from "@/lib/landingShots";
+import { POSTERS, SHOTS, VIDEOS } from "@/lib/landingShots";
 
 const LandingExperiences = () => {
   const { t } = useLanding();
@@ -24,6 +24,8 @@ const LandingExperiences = () => {
           aside={
             <video
               src={VIDEOS.experiencesHero}
+              poster={POSTERS.experiencesHero}
+              preload="metadata"
               autoPlay
               muted
               loop
@@ -42,6 +44,7 @@ const LandingExperiences = () => {
           title={x.shots.detail.title}
           line={x.shots.detail.line}
           src={VIDEOS.purchaseExperience}
+          poster={POSTERS.purchaseExperience}
           alt={x.shots.detail.title}
         >
           <LabelStrip items={x.features.map((f) => f.title)} />
