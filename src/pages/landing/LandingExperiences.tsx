@@ -1,10 +1,10 @@
 import { LandingShell, type LandingSection } from "@/components/landing/LandingShell";
 import { ClosingBlock, CommissionBlock, LandingHero } from "@/components/landing/LandingBlocks";
-import { LabelStrip, MediaSplit, PhoneFrame } from "@/components/landing/PhoneFrame";
+import { LabelStrip, MediaSplit } from "@/components/landing/PhoneFrame";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { useLanding } from "@/components/landing/LandingContext";
 import { useLandingSeo } from "@/pages/landing/useLandingSeo";
-import { SHOTS } from "@/lib/landingShots";
+import { SHOTS, VIDEOS } from "@/lib/landingShots";
 
 const LandingExperiences = () => {
   const { t } = useLanding();
@@ -21,7 +21,16 @@ const LandingExperiences = () => {
           subtitle={x.hero.subtitle}
           primary={t.nav.ctaExperiences}
           secondary={t.nav.demo}
-          aside={<PhoneFrame src={SHOTS.feed} alt={t.shots.feed.title} />}
+          aside={
+            <video
+              src={VIDEOS.experiencesHero}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="mx-auto block w-[90%] max-h-[600px] object-contain"
+            />
+          }
         />
       ),
     },

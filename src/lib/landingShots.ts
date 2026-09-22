@@ -6,6 +6,7 @@ import gestionShot from "@/assets/landing/gestion_evento.jpeg";
 import restaurantReservationVideo from "@/assets/landing/restaurant-reservation.mp4";
 import restaurantHeroVideo from "@/assets/landing/restaurant-video-hero.mp4";
 import eventsHeroAsset from "@/assets/events-hero.mp4.asset.json";
+import experiencesHeroVideo from "@/assets/landing/experiencias-hero.mp4";
 
 export const SHOTS = {
   feed: feedShot,
@@ -18,4 +19,5 @@ export const VIDEOS = {
   restaurantReservation: restaurantReservationVideo,
   restaurantHero: restaurantHeroVideo,
   eventsHero: eventsHeroAsset.url,
+  experiencesHero: experiencesHeroVideo,
 } as const;
