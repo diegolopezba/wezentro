@@ -28,7 +28,7 @@ const LandingExperiences = () => {
               muted
               loop
               playsInline
-              className="mx-auto block w-[90%] max-h-[600px] object-contain"
+              className="mx-auto block w-[70%] max-h-[600px] object-contain"
             />
           }
         />
