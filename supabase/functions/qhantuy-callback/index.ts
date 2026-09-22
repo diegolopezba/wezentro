@@ -25,13 +25,33 @@ Deno.serve(async (req) => {
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
-    const { data: session, error: sessErr } = await supabase
-      .from("payment_sessions")
-      .select("id, event_id, experience_booking_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees, subscription_business_id, subscription_tier, subscription_interval")
-      .eq("id", internalCode)
-      .maybeSingle();
-    if (sessErr || !session) {
-      console.error("callback: session not found", internalCode, sessErr);
+    // Look the session up with retries: a transient DB/network failure must NOT
+    // be reported as "not found", or Qhantuy stops retrying and the buyer never
+    // gets their ticket.
+    const SESSION_COLUMNS =
+      "id, event_id, experience_booking_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees, subscription_business_id, subscription_tier, subscription_interval";
+
+    let session: any = null;
+    let sessErr: any = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const res = await supabase
+        .from("payment_sessions")
+        .select(SESSION_COLUMNS)
+        .eq("id", internalCode)
+        .maybeSingle();
+      sessErr = res.error;
+      session = res.data;
+      if (!sessErr) break;
+      console.error("callback: session lookup failed", internalCode, attempt, sessErr);
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+    }
+
+    if (sessErr) {
+      // Retryable: tell Qhantuy to call us again.
+      return new Response("lookup failed", { status: 503, headers: corsHeaders });
+    }
+    if (!session) {
+      console.error("callback: session not found", internalCode);
       return new Response("not found", { status: 404, headers: corsHeaders });
     }
 
