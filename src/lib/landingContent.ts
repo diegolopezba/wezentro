@@ -317,7 +317,7 @@ const es: LandingCopy = {
       kicker: "Zentro Events",
       title: "Vendé más entradas y manejá el evento completo",
       subtitle:
-        "Ticketing, lounges, invitados y control de puerta en la misma app donde tu público ya descubre a dónde salir.",
+        "Ticketing, lounges, RRPPs, invitaciones y control de puerta en la misma app. Todo desde una app donde tu público ya está buscando a dónde salir.",
     },
     features: [
       {
@@ -362,12 +362,12 @@ const es: LandingCopy = {
     },
     shots: {
       gestion: {
-        title: "Gestioná el evento desde el celular",
-        line: "Tiers, lounges, invitados y promotores, todo actualizado y tiempo real desde la app.",
+        title: "Gestioná tu evento, boliche o festival desde tu celular",
+        line: "Ticketing, tiers, lounges, invitaciones, listas de espera y RRPPs. Todas las herramientas para simplificar tu trabajo y vender más.",
       },
       dashboard: {
-        title: "Cada entrada vendida, en vivo",
-        line: "Impresiones, checkouts y ventas por tiers, actualizados en tiempo real.",
+        title: "Cada entrada vendida, en tiempo real",
+        line: "Fan Base, impresiones, checkouts, ventas por tiers y embudos de conversión actualizados en tiempo real.",
       },
     },
   },
