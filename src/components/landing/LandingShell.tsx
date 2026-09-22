@@ -201,8 +201,8 @@ export const LandingShell = ({ sections }: { sections: LandingSection[] }) => {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background text-foreground">
-      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-xl">
+    <div className="min-h-[100dvh] bg-black text-foreground">
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-black/85 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-5">
           <Link to="/landing" className="font-brand text-xl font-semibold tracking-tight">
             zentro
@@ -263,7 +263,7 @@ export const LandingShell = ({ sections }: { sections: LandingSection[] }) => {
           <section
             key={section.id}
             id={section.id}
-            className={cn("px-5 py-16 sm:py-24", section.tone === "light" ? "light-surface" : "bg-background")}
+            className={cn("px-5 py-16 sm:py-24", section.tone === "light" ? "light-surface" : "bg-black")}
           >
             <div className="mx-auto max-w-6xl">{section.content}</div>
           </section>
