@@ -479,11 +479,11 @@ const es: LandingCopy = {
     },
     dashboard: {
       title: "Todas las analíticas de ventas en tiempo real",
-      line: "Cupos vendidos, datos, usuarios y el embudo completo, desde visualización hasta la compra.",
+      line: "Todos los datos que necesitas sobre tus ventas, tus clientes, tu negocio y tu industria, para ayudarte a tomar mejores decisiones.",
     },
     gestion: {
-      title: "Manejá la noche desde tu celular",
-      line: "Tiers, lounges, invitados y promotores de cada evento, en una sola pantalla.",
+      title: "Manejá tu evento, experiencia y negocio desde tu celular",
+      line: "Reservas, entradas, tiers, mesas, lounges, invitados y RRPPs de cada evento, en una sola pantalla.",
     },
   },
   seo: {
