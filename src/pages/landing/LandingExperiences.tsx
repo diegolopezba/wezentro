@@ -24,6 +24,8 @@ const LandingExperiences = () => {
           aside={
             <video
               src={VIDEOS.experiencesHero}
+              poster={POSTERS.experiencesHero}
+              preload="metadata"
               autoPlay
               muted
               loop
