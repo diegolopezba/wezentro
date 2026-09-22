@@ -25,3 +25,9 @@ export const VIDEOS = {
   experiencesHero: experiencesHeroVideo,
   purchaseExperience: purchaseExperienceVideo,
 } as const;
+
+/** First-frame stills shown while the videos buffer. */
+export const POSTERS = {
+  experiencesHero: experiencesHeroPoster,
+  purchaseExperience: purchaseExperiencePoster,
+} as const;
