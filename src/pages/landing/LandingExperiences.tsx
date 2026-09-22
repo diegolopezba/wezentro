@@ -4,7 +4,7 @@ import { LabelStrip, MediaSplit } from "@/components/landing/PhoneFrame";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { useLanding } from "@/components/landing/LandingContext";
 import { useLandingSeo } from "@/pages/landing/useLandingSeo";
-import { SHOTS, VIDEOS } from "@/lib/landingShots";
+import { POSTERS, SHOTS, VIDEOS } from "@/lib/landingShots";
 
 const LandingExperiences = () => {
   const { t } = useLanding();
