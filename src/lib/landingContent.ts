@@ -438,7 +438,7 @@ const es: LandingCopy = {
       kicker: "Zentro Experiencias",
       title: "Vendé experiencias con cupos, horarios y cobro anticipado",
       subtitle:
-        "Desde tour de vinos, a running clubs, hasta saltos en paracaidas, publicá, manejá y vende todas tus experiencias y actividades recurrentres en zentro.",
+        "Desde tour de vinos, a running clubs, hasta saltos en paracaidas. Publicá, manejá y vende todas tus experiencias y actividades recurrentres en zentro.",
     },
     features: [
       { title: "Cupos y horarios", desc: "Definí días, turnos y capacidad. La disponibilidad se calcula sola." },
@@ -461,12 +461,12 @@ const es: LandingCopy = {
     },
     shots: {
       detail: {
-        title: "De la publicación al cupo reservado",
-        line: "Tu cliente elige fecha y horario, y paga por adelantado sin ida y vuelta.",
+        title: "De la publicación a cupo reservado",
+        line: "Tu cliente elige fecha, horario y cupos disponibles, cantidad de personas y paga por adelantado para confirmar reserva y listo.",
       },
       dashboard: {
-        title: "Cada cupo vendido, con su data",
-        line: "Quién reservó, cuándo y qué otras experiencias le interesan.",
+        title: "Cada cupo vendido, con la información que necesitas",
+        line: "Data de tus clientes, data de ventas y de tu audiencia. Quién reservó, cuándo y qué otras experiencias le interesan.",
       },
     },
   },
