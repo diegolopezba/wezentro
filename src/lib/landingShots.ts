@@ -7,7 +7,9 @@ import restaurantReservationVideo from "@/assets/landing/restaurant-reservation.
 import restaurantHeroVideo from "@/assets/landing/restaurant-video-hero.mp4";
 import eventsHeroAsset from "@/assets/events-hero.mp4.asset.json";
 import experiencesHeroVideo from "@/assets/landing/experiencias-hero.mp4";
+import experiencesHeroPoster from "@/assets/landing/experiencias-hero-poster.jpg";
 import purchaseExperienceVideo from "@/assets/landing/purchase-experience.mp4";
+import purchaseExperiencePoster from "@/assets/landing/purchase-experience-poster.jpg";
 
 export const SHOTS = {
   feed: feedShot,
