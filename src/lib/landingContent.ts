@@ -376,7 +376,8 @@ const es: LandingCopy = {
       kicker: "Zentro para restaurantes",
       title: "Llená más mesas y entendé a tus clientes",
       subtitle:
-        "Sin zentro cada llamada perdida es una mesa vacía. Con zentro, tu cliente reserva solo, en segundos, sin llamar y sin esperar confirmación.",
+        "Sin zentro, cada llamada perdida es una mesa vacía.\u00a0\nCon zentro, tu cliente reserva solo y en segundos, sin llamar, sin esperar confirmación, sin perder tiempo y sin fricción.",
+
     },
     features: [
       { title: "Disponibilidad en tiempo real", desc: "Tus mesas, tus turnos y tu capacidad real, siempre al día." },
@@ -393,7 +394,7 @@ const es: LandingCopy = {
       },
     ],
     plansTitle: "Elegí el plan que más te convenga",
-    plansSubtitle: "Sin permanencia, sin comisión por reserva. Cambiás de plan cuando quieras.",
+    plansSubtitle: "Sin comisión por reserva. Cambiás de plan cuando quieras.",
     plansNote: "Todos los eventos y experiencias con ticketing tienen 6% de comisión por entrada vendida.",
     perDay: (bs) => `unos Bs. ${Math.round(bs / 30)} por día`,
     faqTitle: "Preguntas frecuentes",
@@ -422,14 +423,15 @@ const es: LandingCopy = {
     ],
     shots: {
       detail: {
-        title: "De la búsqueda a la mesa reservada",
-        line: "Tu cliente elige turno y cantidad de personas, y confirma sin llamar.",
+        title: "De publicación a mesa reservada, en 10 segs.",
+        line: "Tu cliente elige fecha, hora, cantidad de personas, agrega notas y confirma reservación con facilidad.",
       },
       dashboard: {
-        title: "Tu sala, siempre bajo control",
-        line: "Ocupación, horarios pico, cancelaciones y no-shows en un solo panel.",
+        title: "Mantené tu espacio, siempre bajo control",
+        line: "Horarios pico, diferentes turnos, cantidad de personas, audiencia, CRM, cancelaciones y no-shows y más analíticas para ayudarte a entender mejor tus clientes y tu negocio.",
       },
     },
+
   },
   experiences: {
     hero: {
