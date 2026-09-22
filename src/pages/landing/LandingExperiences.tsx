@@ -44,6 +44,7 @@ const LandingExperiences = () => {
           title={x.shots.detail.title}
           line={x.shots.detail.line}
           src={VIDEOS.purchaseExperience}
+          poster={POSTERS.purchaseExperience}
           alt={x.shots.detail.title}
         >
           <LabelStrip items={x.features.map((f) => f.title)} />
