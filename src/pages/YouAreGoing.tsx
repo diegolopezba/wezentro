@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ChevronLeft, Info, MapPin, QrCode } from "lucide-react";
@@ -162,9 +162,12 @@ const YouAreGoing = () => {
                 : ""}
             </p>
           )}
-          <h1 className="mt-3 font-brand text-3xl font-medium leading-tight">
-            {profile?.full_name || profile?.username || "Invitado"}
-          </h1>
+          {ticketHolderName && (
+            <h1 className="mt-3 font-brand text-3xl font-medium leading-tight">
+              {ticketHolderName}
+            </h1>
+          )}
+
           <p className="mt-3 text-sm font-medium text-[#141414]/70 capitalize">
             {formattedDate} · {formattedTime}
           </p>
