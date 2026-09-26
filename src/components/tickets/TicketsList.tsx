@@ -38,7 +38,13 @@ export const TicketsList = () => {
           payment_status,
           user_id,
           purchased_by_user_id,
+          guest_name,
           checked_in_at,
+          buyer:profiles!guestlist_entries_purchased_by_user_id_fkey(
+            id,
+            username,
+            full_name
+          ),
           event:events(
             id,
             title,
@@ -81,12 +87,9 @@ export const TicketsList = () => {
         </span>
       );
     }
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-        Confirmado
-      </span>
-    );
+    return null;
   };
+
 
   const now = Date.now();
   const withEvent = (tickets || []).filter((t: any) => !!t.event);
