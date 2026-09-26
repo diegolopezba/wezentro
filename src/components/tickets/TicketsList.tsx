@@ -38,7 +38,13 @@ export const TicketsList = () => {
           payment_status,
           user_id,
           purchased_by_user_id,
+          guest_name,
           checked_in_at,
+          buyer:profiles!guestlist_entries_purchased_by_user_id_fkey(
+            id,
+            username,
+            full_name
+          ),
           event:events(
             id,
             title,
@@ -81,12 +87,9 @@ export const TicketsList = () => {
         </span>
       );
     }
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-        Confirmado
-      </span>
-    );
+    return null;
   };
+
 
   const now = Date.now();
   const withEvent = (tickets || []).filter((t: any) => !!t.event);
@@ -108,12 +111,17 @@ export const TicketsList = () => {
     list.push(t);
     byEvent.set(t.event_id, list);
   }
+  const extraNumber = new Map<string, number>();
   byEvent.forEach((list) => {
-    list
+    const ordered = list
       .slice()
-      .sort((a, b) => new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime())
-      .forEach((t, i) => ticketNumber.set(t.id, { n: i + 1, total: list.length }));
+      .sort((a, b) => new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime());
+    ordered.forEach((t, i) => ticketNumber.set(t.id, { n: i + 1, total: list.length }));
+    ordered
+      .filter((t) => !t.user_id)
+      .forEach((t, i) => extraNumber.set(t.id, i + 1));
   });
+
 
   const renderTicket = (ticket: any, index: number, isPast: boolean) => {
     const event = ticket.event;
@@ -121,6 +129,11 @@ export const TicketsList = () => {
     const isUsed = !!ticket.checked_in_at;
     const eventDate = new Date(event.start_datetime);
     const formattedDate = format(eventDate, "EEE, d MMM · HH:mm", { locale: es });
+
+    const isExtra = !ticket.user_id;
+    const subtitle = isExtra
+      ? ticket.guest_name || `Extra ${extraNumber.get(ticket.id) ?? 1}`
+      : ticket.buyer?.full_name || ticket.buyer?.username || "";
 
     const isFree = !event.price || Number(event.price) === 0;
     const paymentOk =
@@ -135,9 +148,10 @@ export const TicketsList = () => {
       } else if (isFree && canShowQr) {
         setQrTicket({ token: ticket.qr_code_token, title: event.title });
       } else if (canShowQr) {
-        navigate(`/going/${event.id}`);
+        navigate(`/going/${event.id}?ticketId=${ticket.id}`);
       }
     };
+
 
     return (
       <m.div
@@ -178,9 +192,10 @@ export const TicketsList = () => {
               <span className="text-muted-foreground font-medium"> · Entrada {num.n}</span>
             )}
           </h3>
-          <p className="text-sm text-muted-foreground truncate">
-            {event.creator?.full_name || event.creator?.username}
-          </p>
+          {subtitle && (
+            <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
+          )}
+
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <div className="flex items-center gap-1 text-xs text-muted-foreground/70">
               <Calendar className="w-3 h-3" />
@@ -197,12 +212,8 @@ export const TicketsList = () => {
             ) : (
               getPaymentStatusBadge(ticket.payment_status, isFree)
             )}
-            {!ticket.user_id && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground">
-                Para invitado
-              </span>
-            )}
           </div>
+
         </button>
 
         {/* Trailing action */}

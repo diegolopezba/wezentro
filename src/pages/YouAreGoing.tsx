@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ChevronLeft, Info, MapPin, QrCode } from "lucide-react";
@@ -19,19 +19,32 @@ import mascotAsset from "@/assets/muñeco-negro.png.asset.json";
 const YouAreGoing = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const ticketId = searchParams.get("ticketId");
   const { user, profile } = useAuth();
   const { data: event, isLoading } = useEvent(id);
   const [qrToken, setQrToken] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
 
-  // Get the user's guestlist entry with payment status
+  // The specific ticket being viewed (or the user's own entry by default)
   const { data: guestlistEntry } = useQuery({
-    queryKey: ["guestlist-entry", id, user?.id],
+    queryKey: ["guestlist-entry", id, user?.id, ticketId],
     queryFn: async () => {
       if (!id || !user) return null;
+      const columns =
+        "id, user_id, guest_name, checked_in_at, qr_code_token, status, payment_status, is_special_guest, special_guest_label";
+      if (ticketId) {
+        const { data, error } = await supabase
+          .from("guestlist_entries")
+          .select(columns)
+          .eq("id", ticketId)
+          .maybeSingle();
+        if (error) throw error;
+        if (data) return data;
+      }
       const { data, error } = await supabase
         .from("guestlist_entries")
-        .select("qr_code_token, status, payment_status, is_special_guest, special_guest_label")
+        .select(columns)
         .eq("event_id", id)
         .eq("user_id", user.id)
         .maybeSingle();
@@ -41,29 +54,18 @@ const YouAreGoing = () => {
     enabled: !!id && !!user,
   });
 
-  // Extra tickets this user paid for that are not assigned to a zentro account.
-  const { data: extraTickets } = useQuery({
-    queryKey: ["purchased-extra-tickets", id, user?.id],
-    queryFn: async () => {
-      if (!id || !user) return [];
-      const { data, error } = await supabase
-        .from("guestlist_entries")
-        .select("id, qr_code_token, payment_status")
-        .eq("event_id", id)
-        .eq("purchased_by_user_id", user.id)
-        .is("user_id", null)
-        .order("joined_at", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!id && !!user,
-  });
+  const isUsed = !!guestlistEntry?.checked_in_at;
+  const isOwnTicket = !!guestlistEntry?.user_id && guestlistEntry.user_id === user?.id;
+  const ticketHolderName = isOwnTicket
+    ? profile?.full_name || profile?.username || "Invitado"
+    : guestlistEntry?.guest_name || "";
 
   // Check if user can view QR (must be approved and payment confirmed if payment was required)
-  const canViewQr = guestlistEntry?.status === "approved" && 
+  const canViewQr = !isUsed && guestlistEntry?.status === "approved" &&
     (guestlistEntry?.payment_status === "none" || 
      guestlistEntry?.payment_status === "confirmed" || 
      !guestlistEntry?.payment_status);
+
 
   if (isLoading || !event) {
     return (
@@ -160,9 +162,12 @@ const YouAreGoing = () => {
                 : ""}
             </p>
           )}
-          <h1 className="mt-3 font-brand text-3xl font-medium leading-tight">
-            {profile?.full_name || profile?.username || "Invitado"}
-          </h1>
+          {ticketHolderName && (
+            <h1 className="mt-3 font-brand text-3xl font-medium leading-tight">
+              {ticketHolderName}
+            </h1>
+          )}
+
           <p className="mt-3 text-sm font-medium text-[#141414]/70 capitalize">
             {formattedDate} · {formattedTime}
           </p>
@@ -197,6 +202,10 @@ const YouAreGoing = () => {
                 Mostrar QR
               </Button>
             </div>
+          ) : isUsed ? (
+            <p className="text-sm font-semibold text-[#141414]/70 text-center px-2 py-2">
+              Ya fue usado
+            </p>
           ) : guestlistEntry?.payment_status === "pending" ? (
             <p className="text-sm text-[#141414]/70 text-center px-2 py-2">
               Tu pago está siendo verificado por el organizador. Una vez
@@ -214,30 +223,6 @@ const YouAreGoing = () => {
           )}
         </div>
 
-        {/* Extra tickets bought for other people */}
-        {!!extraTickets?.length && (
-          <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-4 py-3 space-y-2">
-            <p className="text-xs uppercase tracking-widest text-[#141414]/60">
-              Entradas extra que compraste
-            </p>
-            {extraTickets.map((t: any, i: number) => (
-              <div key={t.id} className="flex items-center justify-between gap-3">
-                <span className="text-sm font-semibold">Entrada invitado {i + 1}</span>
-                <Button
-                  onClick={() => setQrToken(t.qr_code_token)}
-                  size="sm"
-                  className="rounded-full font-semibold gap-1.5 bg-[#141414] text-[#F7F3E7] active:scale-95"
-                >
-                  <QrCode className="w-4 h-4" />
-                  Ver QR
-                </Button>
-              </div>
-            ))}
-            <p className="text-xs text-[#141414]/60">
-              También te las enviamos por correo para que las reenvíes.
-            </p>
-          </div>
-        )}
 
 
       </m.div>
