@@ -610,7 +610,7 @@ const EventDetail = () => {
             }
                 </Button>
               </div> :
-        isOnGuestlist ?
+        isOnGuestlist && (isPending || !hasPaidTickets) ?
         isPending ?
         <Button variant="ghost" size="default" disabled>
                   <Clock className="w-4 h-4 mr-1" /> Pendiente

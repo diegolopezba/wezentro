@@ -129,7 +129,7 @@ const EventDetailModalInner = () => {
   // Check for showPayment query param (returned from checkout success)
   useEffect(() => {
     const shouldShowPayment = searchParams.get("showPayment") === "true";
-    if (shouldShowPayment && usesPaidCheckout && !isOnGuestlist) {
+    if (shouldShowPayment && usesPaidCheckout) {
       setShowPaymentModal(true);
       searchParams.delete("showPayment");
       setSearchParams(searchParams, { replace: true });
@@ -488,7 +488,7 @@ const EventDetailModalInner = () => {
                     </span>
                   )}
                 </Button>
-                ) : isOnGuestlist ? (
+                ) : isOnGuestlist && (isPending || !hasPaidTickets) ? (
                   isPending ? (
                     <Button variant="ghost" size="default" disabled>
                       <Clock className="w-4 h-4 mr-1" /> Pendiente
