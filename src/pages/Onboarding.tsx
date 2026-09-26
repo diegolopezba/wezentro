@@ -11,7 +11,7 @@ import { useProcessReferral } from "@/hooks/useReferrals";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
 
 import { takePendingSpecialInvite } from "@/hooks/useSpecialInvites";
-import { takeBusinessIntent } from "@/lib/businessIntent";
+import { hasBusinessIntent, takeBusinessIntent } from "@/lib/businessIntent";
 
 const genderOptions = [
   { value: "male", label: "Masculino" },
@@ -26,6 +26,8 @@ const Onboarding = () => {
   const processReferral = useProcessReferral();
   const { isVisible: isKeyboardVisible } = useKeyboardAdjust();
   const [step, setStep] = useState(1);
+  // Business accounts don't need a birth date — the account represents a venue, not a person.
+  const isBusiness = hasBusinessIntent();
   const [isLoading, setIsLoading] = useState(false);
   const [usernameError, setUsernameError] = useState("");
   const [formData, setFormData] = useState({
@@ -92,10 +94,12 @@ const Onboarding = () => {
         setStep(3);
       } else if (step === 3) {
         if (!formData.gender) { toast.error("Selecciona tu género."); return; }
-        const birthDate = buildBirthDate();
-        if (!birthDate) { toast.error("Por favor ingresa tu fecha de nacimiento completa."); return; }
-        const age = getAge(birthDate);
-        if (age < 18) { toast.error("Debes tener al menos 18 años para usar Zentro."); return; }
+        if (!isBusiness) {
+          const birthDate = buildBirthDate();
+          if (!birthDate) { toast.error("Por favor ingresa tu fecha de nacimiento completa."); return; }
+          const age = getAge(birthDate);
+          if (age < 18) { toast.error("Debes tener al menos 18 años para usar Zentro."); return; }
+        }
         await handleComplete();
       }
     } catch (e) {
@@ -128,7 +132,7 @@ const Onboarding = () => {
     if (!user || isLoading) return;
 
     const birthDate = buildBirthDate();
-    if (!formData.gender || !birthDate) {
+    if (!formData.gender || (!isBusiness && !birthDate)) {
       toast.error("Faltan datos del paso anterior.");
       return;
     }
@@ -139,7 +143,7 @@ const Onboarding = () => {
         username: formData.username.toLowerCase(),
         full_name: formData.fullName || null,
         gender: formData.gender,
-        birth_date: birthDate,
+        birth_date: isBusiness ? null : birthDate,
       };
       const { data: updated, error } = await supabase
         .from("profiles")
@@ -309,48 +313,52 @@ const Onboarding = () => {
                 </div>
               </div>
 
-              {/* Birth date */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-3 block">Fecha de nacimiento</label>
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <Input
-                      type="number" placeholder="DD" value={formData.birthDay}
-                      onChange={(e) => setFormData({ ...formData, birthDay: e.target.value })}
-                      min={1} max={31}
-                      className="text-center" />
-                    <p className="text-muted-foreground text-xs text-center mt-1">Día</p>
-                  </div>
-                  <div className="flex-1">
-                    <Input
-                      type="number" placeholder="MM" value={formData.birthMonth}
-                      onChange={(e) => setFormData({ ...formData, birthMonth: e.target.value })}
-                      min={1} max={12}
-                      className="text-center" />
-                    <p className="text-muted-foreground text-xs text-center mt-1">Mes</p>
-                  </div>
-                  <div className="flex-[2]">
-                    <Input
-                      type="number" placeholder="AAAA" value={formData.birthYear}
-                      onChange={(e) => setFormData({ ...formData, birthYear: e.target.value })}
-                      min={1900} max={new Date().getFullYear()}
-                      className="text-center" />
-                    <p className="text-muted-foreground text-xs text-center mt-1">Año</p>
+              {/* Birth date — not required for business accounts */}
+              {!isBusiness && (
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-3 block">Fecha de nacimiento</label>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <Input
+                        type="number" placeholder="DD" value={formData.birthDay}
+                        onChange={(e) => setFormData({ ...formData, birthDay: e.target.value })}
+                        min={1} max={31}
+                        className="text-center" />
+                      <p className="text-muted-foreground text-xs text-center mt-1">Día</p>
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        type="number" placeholder="MM" value={formData.birthMonth}
+                        onChange={(e) => setFormData({ ...formData, birthMonth: e.target.value })}
+                        min={1} max={12}
+                        className="text-center" />
+                      <p className="text-muted-foreground text-xs text-center mt-1">Mes</p>
+                    </div>
+                    <div className="flex-[2]">
+                      <Input
+                        type="number" placeholder="AAAA" value={formData.birthYear}
+                        onChange={(e) => setFormData({ ...formData, birthYear: e.target.value })}
+                        min={1900} max={new Date().getFullYear()}
+                        className="text-center" />
+                      <p className="text-muted-foreground text-xs text-center mt-1">Año</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Privacy note */}
               <div className="flex items-start gap-2 rounded-xl bg-secondary/60 px-3 py-2.5">
                 <Lock className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
                 <p className="text-muted-foreground text-xs">
-                  Tu género y edad nunca se muestran públicamente. Solo se usan para personalizar tu experiencia.
+                  {isBusiness
+                    ? "Tu género nunca se muestra públicamente. Solo se usa para personalizar tu experiencia."
+                    : "Tu género y edad nunca se muestran públicamente. Solo se usan para personalizar tu experiencia."}
                 </p>
               </div>
 
               <div className="flex gap-3">
                 <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>Atrás</Button>
-                <Button variant="sheet-action" className="flex-1" onClick={handleNextStep} disabled={isLoading || !formData.gender || !formData.birthDay || !formData.birthMonth || !formData.birthYear}>
+                <Button variant="sheet-action" className="flex-1" onClick={handleNextStep} disabled={isLoading || !formData.gender || (!isBusiness && (!formData.birthDay || !formData.birthMonth || !formData.birthYear))}>
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
