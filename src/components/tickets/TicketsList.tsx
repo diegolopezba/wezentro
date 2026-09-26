@@ -130,6 +130,11 @@ export const TicketsList = () => {
     const eventDate = new Date(event.start_datetime);
     const formattedDate = format(eventDate, "EEE, d MMM · HH:mm", { locale: es });
 
+    const isExtra = !ticket.user_id;
+    const subtitle = isExtra
+      ? ticket.guest_name || `Extra ${extraNumber.get(ticket.id) ?? 1}`
+      : ticket.buyer?.full_name || ticket.buyer?.username || "";
+
     const isFree = !event.price || Number(event.price) === 0;
     const paymentOk =
       ticket.payment_status === "none" ||
@@ -143,9 +148,10 @@ export const TicketsList = () => {
       } else if (isFree && canShowQr) {
         setQrTicket({ token: ticket.qr_code_token, title: event.title });
       } else if (canShowQr) {
-        navigate(`/going/${event.id}`);
+        navigate(`/going/${event.id}?ticketId=${ticket.id}`);
       }
     };
+
 
     return (
       <m.div
