@@ -40,8 +40,9 @@ const Profile = () => {
   // Check if user has business info to show
   const hasBusinessInfo = profile?.business_address || profile?.business_hours || profile?.business_phone;
 
-  // Check if profile is incomplete (missing birth_date or gender)
-  const isProfileIncomplete = profile && (!profile.birth_date || !profile.gender);
+  // Check if profile is incomplete (missing birth_date or gender).
+  // Business accounts represent a venue, not a person — no birth date required.
+  const isProfileIncomplete = profile && !isBusiness && (!profile.birth_date || !profile.gender);
   const formatCount = (count: number) => formatCountUtil(count);
   const eventsStat = {
     label: "Eventos",

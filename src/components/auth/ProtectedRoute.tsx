@@ -17,7 +17,11 @@ export const ProtectedRoute = ({ children, requireProfile = false }: ProtectedRo
   const location = useLocation();
   const toastShownRef = useRef(false);
 
-  const isProfileIncomplete = !!profile && (!profile.birth_date || !profile.gender);
+  const isBusinessAccount =
+    !!profile && ((profile as any).account_type === "business" || profile.is_business === true);
+  // Business accounts represent a venue, not a person — no birth date required.
+  const isProfileIncomplete =
+    !!profile && !isBusinessAccount && (!profile.birth_date || !profile.gender);
   const onAllowedPath = ALLOWED_INCOMPLETE_PATHS.some((p) => location.pathname.startsWith(p));
 
   useEffect(() => {
