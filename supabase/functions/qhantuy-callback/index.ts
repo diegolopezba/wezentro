@@ -267,10 +267,28 @@ Deno.serve(async (req) => {
         seen.add(ownerId);
         const { data: existing } = await supabase
           .from("guestlist_entries")
-          .select("id")
+          .select("id, status, payment_status")
           .eq("event_id", session.event_id)
           .eq("user_id", ownerId)
           .maybeSingle();
+
+        const alreadyValid =
+          existing?.id &&
+          existing.status === "approved" &&
+          (existing.payment_status === "confirmed" || existing.payment_status === "none" || !existing.payment_status);
+
+        if (alreadyValid) {
+          // Repeat purchase: this person already holds a valid ticket, so the new one
+          // stays unassigned and appears in the buyer's tickets as an extra.
+          const { data: extra, error } = await supabase
+            .from("guestlist_entries")
+            .insert({ ...baseRow, user_id: null })
+            .select("id")
+            .maybeSingle();
+          if (error) console.error("ticket insert failed:", error);
+          if (ownerId === session.buyer_user_id) buyerEntryId = extra?.id ?? null;
+          continue;
+        }
 
         if (existing?.id) {
           const { error } = await supabase
