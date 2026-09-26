@@ -38,6 +38,7 @@ export const TicketsList = () => {
           payment_status,
           user_id,
           purchased_by_user_id,
+          checked_in_at,
           event:events(
             id,
             title,
@@ -99,8 +100,25 @@ export const TicketsList = () => {
         new Date(b.event.start_datetime).getTime() - new Date(a.event.start_datetime).getTime()
     );
 
+  // Number tickets per event (oldest first) when a user holds more than one.
+  const ticketNumber = new Map<string, { n: number; total: number }>();
+  const byEvent = new Map<string, any[]>();
+  for (const t of withEvent) {
+    const list = byEvent.get(t.event_id) ?? [];
+    list.push(t);
+    byEvent.set(t.event_id, list);
+  }
+  byEvent.forEach((list) => {
+    list
+      .slice()
+      .sort((a, b) => new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime())
+      .forEach((t, i) => ticketNumber.set(t.id, { n: i + 1, total: list.length }));
+  });
+
   const renderTicket = (ticket: any, index: number, isPast: boolean) => {
     const event = ticket.event;
+    const num = ticketNumber.get(ticket.id);
+    const isUsed = !!ticket.checked_in_at;
     const eventDate = new Date(event.start_datetime);
     const formattedDate = format(eventDate, "EEE, d MMM · HH:mm", { locale: es });
 
@@ -109,7 +127,7 @@ export const TicketsList = () => {
       ticket.payment_status === "none" ||
       ticket.payment_status === "confirmed" ||
       !ticket.payment_status;
-    const canShowQr = !isPast && !!ticket.qr_code_token && (isFree || paymentOk);
+    const canShowQr = !isPast && !isUsed && !!ticket.qr_code_token && (isFree || paymentOk);
 
     const handleRowClick = () => {
       if (isPast) {
@@ -129,7 +147,7 @@ export const TicketsList = () => {
         transition={{ delay: Math.min(index, 6) * 0.05 }}
         className={cn(
           "w-full flex items-center gap-4 p-4 bg-secondary/30 rounded-2xl",
-          isPast && "opacity-60"
+          (isPast || isUsed) && "opacity-60"
         )}
       >
         {/* Event Image */}
@@ -156,6 +174,9 @@ export const TicketsList = () => {
         >
           <h3 className="font-semibold text-foreground truncate">
             {event.title}
+            {num && num.total > 1 && (
+              <span className="text-muted-foreground font-medium"> · Entrada {num.n}</span>
+            )}
           </h3>
           <p className="text-sm text-muted-foreground truncate">
             {event.creator?.full_name || event.creator?.username}
@@ -165,7 +186,11 @@ export const TicketsList = () => {
               <Calendar className="w-3 h-3" />
               <span>{formattedDate}</span>
             </div>
-            {isPast ? (
+            {isUsed ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground">
+                Ya fue usado
+              </span>
+            ) : isPast ? (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground">
                 Finalizado
               </span>
