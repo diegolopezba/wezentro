@@ -111,12 +111,17 @@ export const TicketsList = () => {
     list.push(t);
     byEvent.set(t.event_id, list);
   }
+  const extraNumber = new Map<string, number>();
   byEvent.forEach((list) => {
-    list
+    const ordered = list
       .slice()
-      .sort((a, b) => new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime())
-      .forEach((t, i) => ticketNumber.set(t.id, { n: i + 1, total: list.length }));
+      .sort((a, b) => new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime());
+    ordered.forEach((t, i) => ticketNumber.set(t.id, { n: i + 1, total: list.length }));
+    ordered
+      .filter((t) => !t.user_id)
+      .forEach((t, i) => extraNumber.set(t.id, i + 1));
   });
+
 
   const renderTicket = (ticket: any, index: number, isPast: boolean) => {
     const event = ticket.event;
