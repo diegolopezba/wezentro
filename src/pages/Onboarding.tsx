@@ -144,6 +144,10 @@ const Onboarding = () => {
         full_name: formData.fullName || null,
         gender: formData.gender,
         birth_date: isBusiness ? null : birthDate,
+        // Business accounts skip DOB, so they must be flagged as business here —
+        // otherwise ProtectedRoute treats the profile as incomplete and blocks
+        // them from ever reaching /business/setup.
+        ...(isBusiness && { is_business: true, account_type: "business" }),
       };
       const { data: updated, error } = await supabase
         .from("profiles")
