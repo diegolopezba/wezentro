@@ -192,9 +192,10 @@ export const TicketsList = () => {
               <span className="text-muted-foreground font-medium"> · Entrada {num.n}</span>
             )}
           </h3>
-          <p className="text-sm text-muted-foreground truncate">
-            {event.creator?.full_name || event.creator?.username}
-          </p>
+          {subtitle && (
+            <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
+          )}
+
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <div className="flex items-center gap-1 text-xs text-muted-foreground/70">
               <Calendar className="w-3 h-3" />
