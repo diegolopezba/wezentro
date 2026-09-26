@@ -212,12 +212,8 @@ export const TicketsList = () => {
             ) : (
               getPaymentStatusBadge(ticket.payment_status, isFree)
             )}
-            {!ticket.user_id && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground">
-                Para invitado
-              </span>
-            )}
           </div>
+
         </button>
 
         {/* Trailing action */}
