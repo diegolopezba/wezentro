@@ -254,6 +254,19 @@ Deno.serve(async (req) => {
       _repostInfo: e._repostInfo,
     }));
 
+    // Same "entradas emitidas" number as the Para Ti feed and the event page.
+    if (items.length > 0) {
+      const { data: counts } = await supabase.rpc("get_event_ticket_counts", {
+        _event_ids: items.map((i: any) => i.id),
+      });
+      const countMap = new Map(
+        (counts || []).map((c: any) => [c.event_id, Number(c.tickets) || 0]),
+      );
+      for (const item of items) {
+        item.attendee_count = countMap.get(item.id) ?? 0;
+      }
+    }
+
     const hasMore = ranked.length > offset + limit;
     const nextCursor = hasMore ? encodeCursor({ seed, page: page + 1 }) : null;
 

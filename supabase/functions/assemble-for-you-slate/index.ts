@@ -362,7 +362,7 @@ const loadCandidates = async (supabase: any) => {
       is_post, is_public, is_business_event, show_menu_button,
       show_reservation_button, payment_qr_url, creator_id, created_at,
       creator:profiles!events_creator_id_fkey(username, full_name, avatar_url),
-      guestlist_entries(user_id, joined_at, user:profiles!guestlist_entries_user_id_fkey(id, avatar_url)),
+      guestlist_entries(user_id, joined_at, status, user:profiles!guestlist_entries_user_id_fkey(id, avatar_url)),
       media:event_media(id, media_url, media_type, display_order, aspect_ratio)
     `)
     .eq("is_public", true)
@@ -377,8 +377,13 @@ const loadCandidates = async (supabase: any) => {
       creator_username: event.creator?.username ?? "",
       creator_full_name: event.creator?.full_name ?? null,
       creator_avatar_url: event.creator?.avatar_url ?? null,
-      attendee_count: event.guestlist_entries?.length ?? 0,
-      attendee_avatars: (event.guestlist_entries || []).slice(0, 5).map((entry: any) => entry.user),
+      attendee_count: (event.guestlist_entries || []).filter(
+        (e: any) => e.status === "approved" || e.status === "checked_in",
+      ).length,
+      attendee_avatars: (event.guestlist_entries || [])
+        .filter((e: any) => e.user)
+        .slice(0, 5)
+        .map((entry: any) => entry.user),
       like_count: 0,
       save_count: 0,
       impression_count: 0,
