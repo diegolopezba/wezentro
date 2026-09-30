@@ -14,6 +14,7 @@ import { useIsEventSaved, useSaveEvent, useUnsaveEvent, useSaveCount } from "@/h
 import { useIsEventLiked, useLikeEvent, useUnlikeEvent, useEventLikes } from "@/hooks/useEventLikes";
 import { useHasReposted, useToggleRepost, useRepostCount } from "@/hooks/useReposts";
 import { useFollowingGoing } from "@/hooks/useFollowingGoing";
+import { useEventTicketCount } from "@/hooks/useEventTicketCount";
 import { useTicketTiers, computeTierAvailability, type TicketTier } from "@/hooks/useTicketTiers";
 import { useEventAreas, confirmFreeAreaBooking, type EventArea } from "@/hooks/useVenueLayouts";
 import { supabase } from "@/integrations/supabase/client";
@@ -81,6 +82,8 @@ export const useEventDetailState = (
   const { data: repostCount = 0 } = useRepostCount(event ? eventId : undefined);
   const { data: saveCount = 0 } = useSaveCount(event ? eventId : undefined);
   const { data: attendeesGoing = [] } = useFollowingGoing(eventId);
+  // One number everywhere: total issued tickets (a buyer with 3 tickets = 3).
+  const { data: ticketsSold = 0 } = useEventTicketCount(eventId);
   const { data: ticketTiers = [] } = useTicketTiers(eventId);
   const { data: eventAreas = [] } = useEventAreas(eventId);
 
@@ -119,7 +122,7 @@ export const useEventDetailState = (
   const isLocationSecret = !!(event as any)?.is_location_secret;
   const canSeeLocation = !isLocationSecret || isOwner || isApproved;
 
-  const approvedCount = guestlist.length;
+  const approvedCount = Math.max(ticketsSold, guestlist.length);
   const maxGuestlistCapacity = event?.max_guestlist_capacity ?? null;
   const isGuestlistFull = maxGuestlistCapacity != null && approvedCount >= maxGuestlistCapacity;
 
@@ -460,7 +463,7 @@ export const useEventDetailState = (
     pendingCount,
     isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
-    attendeesGoing,
+    attendeesGoing, ticketsSold,
     // Derived
     isOnGuestlist, isPending, isApproved,
     isOwner,
