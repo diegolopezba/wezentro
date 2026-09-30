@@ -514,6 +514,34 @@ const EventDetailModalInner = () => {
                     </span>
                   )}
                 </Button>
+                ) : hasActiveInvite ? (
+                  <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
+                    Aceptar invitación especial
+                  </Button>
+                ) : inviteUsed ? (
+                  <div className="flex items-center gap-2">
+                    {isOnGuestlist && !isPending && (
+                      <span className="glow-border">
+                        <Button
+                          variant="secondary"
+                          size="default"
+                          onClick={() => navigate(`/going/${id}`)}
+                          className="bg-white text-black border-0"
+                        >
+                          <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
+                        </Button>
+                      </span>
+                    )}
+                    {!hasEnded && !allTiersSoldOut && !isGuestlistFull && (
+                      <Button variant="sheet-action" size="default" onClick={handleBuyTicket} disabled={buyTicketPending || !canPurchaseNow}>
+                        {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? (
+                          <><DollarSign className="w-4 h-4 mr-1" /> Comprar</>
+                        ) : (
+                          <>Free</>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 ) : isOnGuestlist && (isPending || !hasPaidTickets) ? (
                   isPending ? (
                     <Button variant="ghost" size="default" disabled>
