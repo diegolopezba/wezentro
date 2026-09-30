@@ -112,7 +112,7 @@ const EventDetailModalInner = () => {
     event, isLoading, error,
     pendingCount, isSaved, isLiked, likeCount,
     hasReposted, repostCount, saveCount,
-    attendeesGoing,
+    attendeesGoing, ticketsSold,
     isOnGuestlist, isPending,
     isOwner,
     approvedCount, maxGuestlistCapacity, isGuestlistFull, allTiersSoldOut,
@@ -337,7 +337,7 @@ const EventDetailModalInner = () => {
               )}
 
               {/* People Going */}
-              {!isPost && attendeesGoing.length > 0 && (
+              {!isPost && (attendeesGoing.length > 0 || ticketsSold > 0) && (
                 <div className="flex items-center gap-3">
                   <Users className="w-4 h-4 text-muted-foreground shrink-0" />
                   <div className="flex items-center gap-3">
@@ -356,7 +356,7 @@ const EventDetailModalInner = () => {
                       ))}
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      {attendeesGoing.length}
+                      {Math.max(ticketsSold, attendeesGoing.length)}
                     </span>
                   </div>
                 </div>

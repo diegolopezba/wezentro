@@ -109,15 +109,24 @@ export const useSalesPace = () => {
       const ids = (events || []).map((e) => e.id);
       if (!ids.length) return [];
 
-      const [tiersRes, areasRes] = await Promise.all([
+      const [tiersRes, areasRes, ticketsRes] = await Promise.all([
         supabase.from("ticket_tiers").select("event_id, capacity, sold_count").in("event_id", ids),
         supabase
           .from("event_areas")
           .select("id, event_id, is_active, is_decor, price")
           .in("event_id", ids),
+        // Issued tickets per event — the same number shown on the event card,
+        // the event page and the management list.
+        supabase.rpc("get_event_ticket_counts", { _event_ids: ids }),
       ]);
       if (tiersRes.error) throw tiersRes.error;
       if (areasRes.error) throw areasRes.error;
+
+      const issuedByEvent = new Map<string, number>(
+        ((ticketsRes.data as { event_id: string; tickets: number }[] | null) || []).map(
+          (r) => [r.event_id, Number(r.tickets) || 0]
+        )
+      );
 
       const sellableAreas = (areasRes.data || []).filter((a) => a.is_active && !a.is_decor);
       const areaIds = sellableAreas.map((a) => a.id);
@@ -139,9 +148,11 @@ export const useSalesPace = () => {
       const bucket = (id: string) => (agg[id] ||= { sold: 0, capacity: 0 });
 
       (tiersRes.data || []).forEach((t) => {
-        const a = bucket(t.event_id);
-        a.sold += Number(t.sold_count || 0);
-        a.capacity += Number(t.capacity || 0);
+        bucket(t.event_id).capacity += Number(t.capacity || 0);
+      });
+      ids.forEach((id) => {
+        const issued = issuedByEvent.get(id) || 0;
+        if (issued > 0) bucket(id).sold += issued;
       });
       sellableAreas.forEach((area) => {
         bucket(area.event_id).capacity += 1;
