@@ -623,9 +623,10 @@ const EventDetail = () => {
                 </Button>
               </div> :
         hasActiveInvite ?
-        <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
+        <Button variant="sheet-action" size="default" onClick={handleOpenInvite}>
                 Aceptar invitación especial
               </Button> :
+
         inviteUsed ?
         <div className="flex items-center gap-2">
                 {isOnGuestlist && !isPending && (
