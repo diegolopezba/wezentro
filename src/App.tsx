@@ -302,7 +302,7 @@ const AppRoutes = () => {
           <Route path="/edit-profile" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><EditProfile /></LazyRoute></SettingsShell></ProtectedRoute>} />
 
           {/* Public event preview route (full page — used for deep links) */}
-          <Route path="/event/:id" element={<LazyRoute><EventDetail /></LazyRoute>} />
+          <Route path="/event/:id" element={<HideMobileNav><LazyRoute><EventDetail /></LazyRoute></HideMobileNav>} />
 
           <Route path="/user/:id" element={<GuestAllowedRoute><LazyRoute><UserProfile /></LazyRoute></GuestAllowedRoute>} />
           <Route path="/settings/tickets" element={<Navigate to="/tickets" replace />} />
