@@ -131,12 +131,12 @@ const BusinessSetup = () => {
     clearBusinessIntent();
     haptic("success");
     toast.success("¡Tu cuenta Business está lista!");
-    navigate(isFood ? "/settings/business/plans" : "/settings/business", { replace: true });
+    navigate("/", { replace: true, state: { businessTour: true } });
   };
 
   const skipAll = () => {
     clearBusinessIntent();
-    navigate("/settings/business", { replace: true });
+    navigate("/", { replace: true, state: { businessTour: true } });
   };
 
   const current = TITLES[step];
