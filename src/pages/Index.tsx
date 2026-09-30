@@ -25,6 +25,8 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
+import { BusinessHomeTour, BusinessSetupReminder } from "@/components/business/BusinessHomeTour";
+import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 import { HOME_FEED_INTRO } from "@/components/business/featureIntroSteps";
 
 const Index = () => {
@@ -34,7 +36,8 @@ const Index = () => {
   const isGuest = !user;
   // Don't auto-open the explainer for signed-out visitors — it scroll-locks
   // the page before they've even seen the feed.
-  const intro = useFeatureIntro("home", { enabled: !!user });
+  const isBusinessAccount = useIsBusinessAccount();
+  const intro = useFeatureIntro("home", { enabled: !!user && !isBusinessAccount });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -300,6 +303,7 @@ const Index = () => {
         </div>
       </header>
       <PullToRefresh onRefresh={handleRefresh} className="flex-1">
+        {isBusinessAccount && <BusinessSetupReminder />}
         {isSearching && searchedUsers.length > 0 && (
           <div className="px-2 pt-2">
             <p className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">Personas</p>
@@ -326,6 +330,7 @@ const Index = () => {
       </PullToRefresh>
 
       <FilterSheet open={showFilters} onOpenChange={setShowFilters} filters={filters} onApplyFilters={setFilters} />
+      {isBusinessAccount && <BusinessHomeTour />}
       <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={HOME_FEED_INTRO} />
     </AppLayout>
   );

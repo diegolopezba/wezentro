@@ -23,6 +23,7 @@ const businessNavItems = navItems.map((item) =>
     : item,
 );
 
+const TOUR_IDS: Record<string, string> = { "/": "nav-home", "/create": "nav-create", "/gestion": "nav-gestion", "/profile": "nav-profile" };
 
 export const BottomNav = () => {
   const location = useLocation();
@@ -87,6 +88,7 @@ export const BottomNav = () => {
               return (
                 <button
                   key={item.path}
+                  data-tour={TOUR_IDS[item.path]}
                   className="relative flex items-center justify-center px-4 py-2 no-select [-webkit-tap-highlight-color:transparent] active:scale-90 transition-transform duration-100"
                   onClick={(e) => handleNavClick(e, item)}
                 >
@@ -109,6 +111,7 @@ export const BottomNav = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
+                data-tour={TOUR_IDS[item.path]}
                 className="relative flex items-center justify-center px-4 py-2 no-select [-webkit-tap-highlight-color:transparent] active:scale-90 transition-transform duration-100"
                 onClick={(e) => handleNavClick(e, item)}
               >
