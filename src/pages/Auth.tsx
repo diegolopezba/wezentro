@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
 import { setBusinessIntent, hasBusinessIntent, clearBusinessIntent } from "@/lib/businessIntent";
+import { peekPendingSpecialInvite } from "@/hooks/useSpecialInvites";
 
 const emailSchema = z.string().email("Por favor ingresa un correo válido");
 const passwordSchema = z.string().min(8, "La contraseña debe tener al menos 8 caracteres");
@@ -150,9 +151,11 @@ const Auth = () => {
   const getRedirectPath = () => {
     // Business flow always lands in the setup wizard
     if (businessMode) return "/business/setup";
-    // Priority: returnTo from modal > from state > default
+    // Priority: returnTo from modal > from state > pending special invite > default
     if (locationState?.returnTo) return locationState.returnTo;
     if (locationState?.from?.pathname) return locationState.from.pathname;
+    const pendingInvite = peekPendingSpecialInvite();
+    if (pendingInvite) return `/i/${pendingInvite}`;
     return "/";
   };
 

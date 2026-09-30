@@ -22,6 +22,7 @@ import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
 import { PurchaseFlow } from "@/components/events/PurchaseFlow";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
+import { useSpecialInvite, useRedeemSpecialInvite } from "@/hooks/useSpecialInvites";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { MediaCarousel } from "@/components/events/MediaCarousel";
 import { DetailSplitLayout } from "@/components/layout/DetailSplitLayout";
@@ -70,6 +71,28 @@ const EventDetailModalInner = () => {
   const [showReportSheet, setShowReportSheet] = useState(false);
   const [showLocationSheet, setShowLocationSheet] = useState(false);
   const [showActions, setShowActions] = useState(false);
+
+  // Special guest invitation (?invite=<token>)
+  const inviteToken = searchParams.get("invite") || undefined;
+  const { data: specialInvite } = useSpecialInvite(inviteToken);
+  const redeemSpecialInvite = useRedeemSpecialInvite();
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const inviteForThisEvent = !!specialInvite && specialInvite.event_id === id;
+  const hasActiveInvite = inviteForThisEvent && specialInvite!.status === "pending";
+  const inviteUsed = inviteForThisEvent && specialInvite!.status !== "pending";
+  const inviteUsedByMe = inviteUsed && !!user && specialInvite!.redeemed_by === user.id;
+  const inviteNotice = !inviteUsed
+    ? null
+    : specialInvite!.status === "revoked"
+    ? "Esta invitación fue cancelada"
+    : inviteUsedByMe
+    ? "Ya aceptaste esta invitación"
+    : "Esta invitación ya fue usada";
+  const handleAcceptSpecialInvite = async () => {
+    if (!inviteToken) return;
+    await redeemSpecialInvite.mutateAsync(inviteToken);
+  };
+
 
 
   const close = () => navigate(-1);
@@ -434,6 +457,23 @@ const EventDetailModalInner = () => {
               onPaymentConfirmed={handlePaymentSubmitted}
             />
           )}
+
+          {/* Special guest invitation confirmation */}
+          {hasActiveInvite && (
+            <PaymentQRModal
+              open={showInviteModal}
+              onOpenChange={setShowInviteModal}
+              eventId={id!}
+              eventTitle={event.title || "Evento"}
+              price={0}
+              ticketTierId={specialInvite?.ticket_tier_id ?? null}
+              ticketTierName={specialInvite?.label ?? null}
+              mode="invite"
+              onJoinFree={handleAcceptSpecialInvite}
+              onPaymentConfirmed={handlePaymentSubmitted}
+            />
+          )}
+
           {hasTiers && (
             <TicketTierPicker
               open={showTierPicker}
@@ -455,7 +495,7 @@ const EventDetailModalInner = () => {
           {/* Floating CTA Bar */}
           {!isPost && (
             <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom lg:sticky lg:bottom-0 lg:left-auto lg:right-auto lg:z-10 lg:rounded-b-3xl">
-              {hasEnded && !isOwner && !isOnGuestlist ? (
+              {hasEnded && !isOwner && !isOnGuestlist && !hasActiveInvite ? (
                 <div className="flex items-center justify-center px-4 py-4">
                   <span className="text-sm font-medium text-muted-foreground">
                     Este evento ha terminado
@@ -478,6 +518,9 @@ const EventDetailModalInner = () => {
                   )}
                   </>
                   )}
+                  {inviteNotice && (
+                    <span className="text-xs text-muted-foreground">{inviteNotice}</span>
+                  )}
                 </div>
                 {isOwner ? (
                 <Button variant="sheet-action" size="default" onClick={() => setShowManagement(true)}>
@@ -488,6 +531,34 @@ const EventDetailModalInner = () => {
                     </span>
                   )}
                 </Button>
+                ) : hasActiveInvite ? (
+                  <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
+                    Aceptar invitación especial
+                  </Button>
+                ) : inviteUsed ? (
+                  <div className="flex items-center gap-2">
+                    {isOnGuestlist && !isPending && (
+                      <span className="glow-border">
+                        <Button
+                          variant="secondary"
+                          size="default"
+                          onClick={() => navigate(`/going/${id}`)}
+                          className="bg-white text-black border-0"
+                        >
+                          <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
+                        </Button>
+                      </span>
+                    )}
+                    {!hasEnded && !allTiersSoldOut && !isGuestlistFull && (
+                      <Button variant="sheet-action" size="default" onClick={handleBuyTicket} disabled={buyTicketPending || !canPurchaseNow}>
+                        {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? (
+                          <><DollarSign className="w-4 h-4 mr-1" /> Comprar</>
+                        ) : (
+                          <>Free</>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 ) : isOnGuestlist && (isPending || !hasPaidTickets) ? (
                   isPending ? (
                     <Button variant="ghost" size="default" disabled>

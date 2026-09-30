@@ -3,7 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Loader2, TicketX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePublicInvite, setPendingSpecialInvite } from "@/hooks/useSpecialInvites";
+import {
+  usePublicInvite,
+  setPendingSpecialInvite,
+  takePendingSpecialInvite,
+} from "@/hooks/useSpecialInvites";
 
 /**
  * Landing page for a special invitation link: /i/:token
@@ -18,7 +22,6 @@ const SpecialInvite = () => {
 
   useEffect(() => {
     if (authLoading || !token || isLoading || !invite) return;
-    if (invite.status === "revoked") return;
 
     if (!user) {
       setPendingSpecialInvite(token);
@@ -26,10 +29,13 @@ const SpecialInvite = () => {
       return;
     }
 
+    // Signed in: the event screen decides what to show (accept, view ticket,
+    // or "already used" plus the regular purchase button).
+    takePendingSpecialInvite();
     navigate(`/event/${invite.event_id}?invite=${invite.token}`, { replace: true });
   }, [authLoading, user, token, invite, isLoading, navigate]);
 
-  const unavailable = !isLoading && (isError || !invite || invite.status === "revoked");
+  const unavailable = !isLoading && (isError || !invite);
 
   if (unavailable) {
     return (

@@ -64,8 +64,17 @@ const EventDetail = () => {
   const { data: specialInvite } = useSpecialInvite(inviteToken);
   const redeemSpecialInvite = useRedeemSpecialInvite();
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const hasActiveInvite =
-    !!specialInvite && specialInvite.status === "pending" && specialInvite.event_id === id;
+  const inviteForThisEvent = !!specialInvite && specialInvite.event_id === id;
+  const hasActiveInvite = inviteForThisEvent && specialInvite!.status === "pending";
+  const inviteUsed = inviteForThisEvent && specialInvite!.status !== "pending";
+  const inviteUsedByMe = inviteUsed && !!user && specialInvite!.redeemed_by === user.id;
+  const inviteNotice = !inviteUsed
+    ? null
+    : specialInvite!.status === "revoked"
+    ? "Esta invitación fue cancelada"
+    : inviteUsedByMe
+    ? "Ya aceptaste esta invitación"
+    : "Esta invitación ya fue usada";
   const handleAcceptSpecialInvite = async () => {
     if (!inviteToken) return;
     await redeemSpecialInvite.mutateAsync(inviteToken);
@@ -558,7 +567,7 @@ const EventDetail = () => {
       {/* Floating CTA Bar — always show for events */}
       {!isPost && !linkedExperience &&
     <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
-          {hasEnded && !isOwner && !isOnGuestlist ?
+          {hasEnded && !isOwner && !isOnGuestlist && !hasActiveInvite ?
       <div className="flex items-center justify-center px-4 py-4">
               <span className="text-sm font-medium text-muted-foreground">
                 Este evento ha terminado
@@ -593,6 +602,9 @@ const EventDetail = () => {
               ) : null}
               </>
           }
+              {inviteNotice && (
+                <span className="text-xs text-muted-foreground">{inviteNotice}</span>
+              )}
             </div>
             {isOwner ?
         <div className="flex items-center gap-2">
@@ -610,6 +622,25 @@ const EventDetail = () => {
             }
                 </Button>
               </div> :
+        hasActiveInvite ?
+        <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
+                Aceptar invitación especial
+              </Button> :
+        inviteUsed ?
+        <div className="flex items-center gap-2">
+                {isOnGuestlist && !isPending && (
+                  <span className="glow-border">
+                    <Button variant="outline" size="default" className="bg-white text-black border-0 hover:bg-white/90" onClick={() => navigate(`/going/${id}`)}>
+                      <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
+                    </Button>
+                  </span>
+                )}
+                {!hasEnded && !allTiersSoldOut && !isGuestlistFull && (
+                  <Button variant="sheet-action" size="default" onClick={handleBuyTicket} disabled={buyTicketPending || !canPurchaseNow}>
+                    {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <>Free</>}
+                  </Button>
+                )}
+              </div> :
         isOnGuestlist && (isPending || !hasPaidTickets) ?
         isPending ?
         <Button variant="ghost" size="default" disabled>
@@ -620,11 +651,6 @@ const EventDetail = () => {
                     <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
                   </Button>
                 </span> :
-        hasActiveInvite ?
-
-        <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
-                Aceptar invitación especial
-              </Button> :
         isWaitlistPhase ?
         <Button
           variant={isOnWaitlist ? "outline" : "sheet-action"}
