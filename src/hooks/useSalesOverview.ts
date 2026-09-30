@@ -121,6 +121,7 @@ export const useSalesPace = () => {
       ]);
       if (tiersRes.error) throw tiersRes.error;
       if (areasRes.error) throw areasRes.error;
+      if (ticketsRes.error) throw ticketsRes.error;
 
       const issuedByEvent = new Map<string, number>(
         ((ticketsRes.data as { event_id: string; tickets: number }[] | null) || []).map(
