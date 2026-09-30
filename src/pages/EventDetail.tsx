@@ -567,7 +567,7 @@ const EventDetail = () => {
       {/* Floating CTA Bar — always show for events */}
       {!isPost && !linkedExperience &&
     <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
-          {hasEnded && !isOwner && !isOnGuestlist ?
+          {hasEnded && !isOwner && !isOnGuestlist && !hasActiveInvite ?
       <div className="flex items-center justify-center px-4 py-4">
               <span className="text-sm font-medium text-muted-foreground">
                 Este evento ha terminado
