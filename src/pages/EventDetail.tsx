@@ -602,6 +602,9 @@ const EventDetail = () => {
               ) : null}
               </>
           }
+              {inviteNotice && (
+                <span className="text-xs text-muted-foreground">{inviteNotice}</span>
+              )}
             </div>
             {isOwner ?
         <div className="flex items-center gap-2">
