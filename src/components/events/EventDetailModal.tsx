@@ -501,6 +501,9 @@ const EventDetailModalInner = () => {
                   )}
                   </>
                   )}
+                  {inviteNotice && (
+                    <span className="text-xs text-muted-foreground">{inviteNotice}</span>
+                  )}
                 </div>
                 {isOwner ? (
                 <Button variant="sheet-action" size="default" onClick={() => setShowManagement(true)}>
