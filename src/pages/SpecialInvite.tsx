@@ -23,17 +23,14 @@ const SpecialInvite = () => {
   useEffect(() => {
     if (authLoading || !token || isLoading || !invite) return;
 
-    if (!user) {
-      setPendingSpecialInvite(token);
-      navigate("/auth", { replace: true, state: { returnTo: `/i/${token}` } });
-      return;
-    }
-
-    // Signed in: the event screen decides what to show (accept, view ticket,
-    // or "already used" plus the regular purchase button).
-    takePendingSpecialInvite();
+    // Everyone (signed in or not) sees the event page first. The event screen
+    // decides what to show (accept, view ticket, or "already used" + purchase),
+    // and asks for an account only when the guest taps "Aceptar invitación".
+    if (!user) setPendingSpecialInvite(token);
+    else takePendingSpecialInvite();
     navigate(`/event/${invite.event_id}?invite=${invite.token}`, { replace: true });
   }, [authLoading, user, token, invite, isLoading, navigate]);
+
 
   const unavailable = !isLoading && (isError || !invite);
 
