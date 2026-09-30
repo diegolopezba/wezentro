@@ -88,10 +88,21 @@ const EventDetailModalInner = () => {
     : inviteUsedByMe
     ? "Ya aceptaste esta invitación"
     : "Esta invitación ya fue usada";
+  const handleOpenInvite = () => {
+    if (!inviteToken) return;
+    // Guests see the whole event first; the account is only required here.
+    if (!user) {
+      setPendingSpecialInvite(inviteToken);
+      navigate("/auth", { state: { returnTo: `/event/${id}?invite=${inviteToken}` } });
+      return;
+    }
+    setShowInviteModal(true);
+  };
   const handleAcceptSpecialInvite = async () => {
     if (!inviteToken) return;
     await redeemSpecialInvite.mutateAsync(inviteToken);
   };
+
 
 
 
