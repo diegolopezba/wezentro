@@ -22,7 +22,7 @@ import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
 import { PurchaseFlow } from "@/components/events/PurchaseFlow";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
-import { useSpecialInvite, useRedeemSpecialInvite } from "@/hooks/useSpecialInvites";
+import { useSpecialInvite, useRedeemSpecialInvite, setPendingSpecialInvite } from "@/hooks/useSpecialInvites";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { MediaCarousel } from "@/components/events/MediaCarousel";
 import { DetailSplitLayout } from "@/components/layout/DetailSplitLayout";
@@ -88,10 +88,21 @@ const EventDetailModalInner = () => {
     : inviteUsedByMe
     ? "Ya aceptaste esta invitación"
     : "Esta invitación ya fue usada";
+  const handleOpenInvite = () => {
+    if (!inviteToken) return;
+    // Guests see the whole event first; the account is only required here.
+    if (!user) {
+      setPendingSpecialInvite(inviteToken);
+      navigate("/auth", { state: { returnTo: `/event/${id}?invite=${inviteToken}` } });
+      return;
+    }
+    setShowInviteModal(true);
+  };
   const handleAcceptSpecialInvite = async () => {
     if (!inviteToken) return;
     await redeemSpecialInvite.mutateAsync(inviteToken);
   };
+
 
 
 
@@ -532,7 +543,7 @@ const EventDetailModalInner = () => {
                   )}
                 </Button>
                 ) : hasActiveInvite ? (
-                  <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
+                  <Button variant="sheet-action" size="default" onClick={handleOpenInvite}>
                     Aceptar invitación especial
                   </Button>
                 ) : inviteUsed ? (

@@ -16,7 +16,7 @@ import { InvitationsSentSection } from "@/components/events/InvitationsSentSecti
 
 
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
-import { useSpecialInvite, useRedeemSpecialInvite } from "@/hooks/useSpecialInvites";
+import { useSpecialInvite, useRedeemSpecialInvite, setPendingSpecialInvite } from "@/hooks/useSpecialInvites";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
 
@@ -75,10 +75,21 @@ const EventDetail = () => {
     : inviteUsedByMe
     ? "Ya aceptaste esta invitación"
     : "Esta invitación ya fue usada";
+  const handleOpenInvite = () => {
+    if (!inviteToken) return;
+    // Guests see the whole event first; the account is only required here.
+    if (!user) {
+      setPendingSpecialInvite(inviteToken);
+      navigate("/auth", { state: { returnTo: `/event/${id}?invite=${inviteToken}` } });
+      return;
+    }
+    setShowInviteModal(true);
+  };
   const handleAcceptSpecialInvite = async () => {
     if (!inviteToken) return;
     await redeemSpecialInvite.mutateAsync(inviteToken);
   };
+
 
 
   const {
@@ -623,9 +634,10 @@ const EventDetail = () => {
                 </Button>
               </div> :
         hasActiveInvite ?
-        <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
+        <Button variant="sheet-action" size="default" onClick={handleOpenInvite}>
                 Aceptar invitación especial
               </Button> :
+
         inviteUsed ?
         <div className="flex items-center gap-2">
                 {isOnGuestlist && !isPending && (
