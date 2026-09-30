@@ -478,7 +478,7 @@ const EventDetailModalInner = () => {
           {/* Floating CTA Bar */}
           {!isPost && (
             <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom lg:sticky lg:bottom-0 lg:left-auto lg:right-auto lg:z-10 lg:rounded-b-3xl">
-              {hasEnded && !isOwner && !isOnGuestlist ? (
+              {hasEnded && !isOwner && !isOnGuestlist && !hasActiveInvite ? (
                 <div className="flex items-center justify-center px-4 py-4">
                   <span className="text-sm font-medium text-muted-foreground">
                     Este evento ha terminado
