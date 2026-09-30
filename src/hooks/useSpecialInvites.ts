@@ -56,6 +56,10 @@ export const setPendingSpecialInvite = (token: string) => {
   try { localStorage.setItem(PENDING_INVITE_KEY, token); } catch { /* ignore */ }
 };
 
+export const peekPendingSpecialInvite = (): string | null => {
+  try { return localStorage.getItem(PENDING_INVITE_KEY); } catch { return null; }
+};
+
 export const takePendingSpecialInvite = (): string | null => {
   try {
     const t = localStorage.getItem(PENDING_INVITE_KEY);
