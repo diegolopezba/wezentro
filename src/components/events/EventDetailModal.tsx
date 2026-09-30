@@ -543,7 +543,7 @@ const EventDetailModalInner = () => {
                   )}
                 </Button>
                 ) : hasActiveInvite ? (
-                  <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
+                  <Button variant="sheet-action" size="default" onClick={handleOpenInvite}>
                     Aceptar invitación especial
                   </Button>
                 ) : inviteUsed ? (
