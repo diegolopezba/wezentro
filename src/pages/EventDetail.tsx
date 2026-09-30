@@ -64,8 +64,17 @@ const EventDetail = () => {
   const { data: specialInvite } = useSpecialInvite(inviteToken);
   const redeemSpecialInvite = useRedeemSpecialInvite();
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const hasActiveInvite =
-    !!specialInvite && specialInvite.status === "pending" && specialInvite.event_id === id;
+  const inviteForThisEvent = !!specialInvite && specialInvite.event_id === id;
+  const hasActiveInvite = inviteForThisEvent && specialInvite!.status === "pending";
+  const inviteUsed = inviteForThisEvent && specialInvite!.status !== "pending";
+  const inviteUsedByMe = inviteUsed && !!user && specialInvite!.redeemed_by === user.id;
+  const inviteNotice = !inviteUsed
+    ? null
+    : specialInvite!.status === "revoked"
+    ? "Esta invitación fue cancelada"
+    : inviteUsedByMe
+    ? "Ya aceptaste esta invitación"
+    : "Esta invitación ya fue usada";
   const handleAcceptSpecialInvite = async () => {
     if (!inviteToken) return;
     await redeemSpecialInvite.mutateAsync(inviteToken);
