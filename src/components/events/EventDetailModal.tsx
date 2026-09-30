@@ -22,7 +22,7 @@ import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
 import { PurchaseFlow } from "@/components/events/PurchaseFlow";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
-import { useSpecialInvite, useRedeemSpecialInvite } from "@/hooks/useSpecialInvites";
+import { useSpecialInvite, useRedeemSpecialInvite, setPendingSpecialInvite } from "@/hooks/useSpecialInvites";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { MediaCarousel } from "@/components/events/MediaCarousel";
 import { DetailSplitLayout } from "@/components/layout/DetailSplitLayout";
