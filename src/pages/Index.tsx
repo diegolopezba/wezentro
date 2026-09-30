@@ -303,6 +303,7 @@ const Index = () => {
         </div>
       </header>
       <PullToRefresh onRefresh={handleRefresh} className="flex-1">
+        {isBusinessAccount && <BusinessSetupReminder />}
         {isSearching && searchedUsers.length > 0 && (
           <div className="px-2 pt-2">
             <p className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">Personas</p>
