@@ -622,6 +622,25 @@ const EventDetail = () => {
             }
                 </Button>
               </div> :
+        hasActiveInvite ?
+        <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
+                Aceptar invitación especial
+              </Button> :
+        inviteUsed ?
+        <div className="flex items-center gap-2">
+                {isOnGuestlist && !isPending && (
+                  <span className="glow-border">
+                    <Button variant="outline" size="default" className="bg-white text-black border-0 hover:bg-white/90" onClick={() => navigate(`/going/${id}`)}>
+                      <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
+                    </Button>
+                  </span>
+                )}
+                {!hasEnded && !allTiersSoldOut && !isGuestlistFull && (
+                  <Button variant="sheet-action" size="default" onClick={handleBuyTicket} disabled={buyTicketPending || !canPurchaseNow}>
+                    {buyTicketPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasPaidTickets ? <><DollarSign className="w-4 h-4 mr-1" /> Comprar</> : <>Free</>}
+                  </Button>
+                )}
+              </div> :
         isOnGuestlist && (isPending || !hasPaidTickets) ?
         isPending ?
         <Button variant="ghost" size="default" disabled>
@@ -632,11 +651,6 @@ const EventDetail = () => {
                     <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
                   </Button>
                 </span> :
-        hasActiveInvite ?
-
-        <Button variant="sheet-action" size="default" onClick={() => setShowInviteModal(true)}>
-                Aceptar invitación especial
-              </Button> :
         isWaitlistPhase ?
         <Button
           variant={isOnWaitlist ? "outline" : "sheet-action"}
