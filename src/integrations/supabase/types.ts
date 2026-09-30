@@ -5148,6 +5148,13 @@ export type Database = {
           tier_id: string
         }[]
       }
+      get_event_ticket_counts: {
+        Args: { _event_ids: string[] }
+        Returns: {
+          event_id: string
+          tickets: number
+        }[]
+      }
       get_event_view_counts: {
         Args: { _event_ids: string[] }
         Returns: {
