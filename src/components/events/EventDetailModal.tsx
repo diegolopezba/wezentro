@@ -72,6 +72,28 @@ const EventDetailModalInner = () => {
   const [showLocationSheet, setShowLocationSheet] = useState(false);
   const [showActions, setShowActions] = useState(false);
 
+  // Special guest invitation (?invite=<token>)
+  const inviteToken = searchParams.get("invite") || undefined;
+  const { data: specialInvite } = useSpecialInvite(inviteToken);
+  const redeemSpecialInvite = useRedeemSpecialInvite();
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const inviteForThisEvent = !!specialInvite && specialInvite.event_id === id;
+  const hasActiveInvite = inviteForThisEvent && specialInvite!.status === "pending";
+  const inviteUsed = inviteForThisEvent && specialInvite!.status !== "pending";
+  const inviteUsedByMe = inviteUsed && !!user && specialInvite!.redeemed_by === user.id;
+  const inviteNotice = !inviteUsed
+    ? null
+    : specialInvite!.status === "revoked"
+    ? "Esta invitación fue cancelada"
+    : inviteUsedByMe
+    ? "Ya aceptaste esta invitación"
+    : "Esta invitación ya fue usada";
+  const handleAcceptSpecialInvite = async () => {
+    if (!inviteToken) return;
+    await redeemSpecialInvite.mutateAsync(inviteToken);
+  };
+
+
 
   const close = () => navigate(-1);
 
