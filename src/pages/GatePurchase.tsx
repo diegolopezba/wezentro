@@ -114,6 +114,7 @@ export default function GatePurchase() {
   const gatewayFee = feeRate > 0 ? Math.ceil(Number((total * feeRate / (1 - feeRate) * 100).toFixed(4))) / 100 : 0;
   const amountDue = Math.round((total + gatewayFee) * 100) / 100;
   const confirmed = status === "confirmed" && tickets.some(ticket => ticket.sessionId === activeSessionId);
+  const lastPurchaseHasTickets = tickets.some(ticket => ticket.sessionId === activeSessionId);
 
   return (
     <main className="light-surface min-h-[100dvh] bg-background text-foreground pb-12">
@@ -133,7 +134,7 @@ export default function GatePurchase() {
             <p className="text-sm text-muted-foreground mb-7">Mostrá cada QR al personal de la puerta.</p>
             <div className="overflow-hidden" ref={emblaRef}><div className="flex touch-pan-y">
               {tickets.map((ticket, i) => <div key={`${ticket.sessionId}:${ticket.index}`} className={`min-w-0 flex-[0_0_100%] border-t border-border pt-6 text-center ${ticket.used ? "opacity-40 grayscale" : ""}`}>
-                <div className="flex justify-between items-center mb-2"><strong>Entrada {i + 1} de {tickets.length}</strong><span className="text-sm text-muted-foreground">{ticket.used ? "Ya fue usada" : "Sin usar"}</span></div>
+                <div className="flex justify-between items-center mb-2 gap-3"><strong className="shrink-0">Entrada {i + 1} de {tickets.length}</strong><span className="text-sm text-muted-foreground shrink-0">{ticket.used ? "Ya fue usada" : "Sin usar"}</span></div>
                 <p className="text-sm font-semibold mb-5">{ticket.name || "Entrada"}</p>
                 {ticket.token && <QRCodeSVG value={ticket.token} size={220} className="mx-auto max-w-full" />}
                  <p className="text-xs text-muted-foreground mt-4">{catalog?.event.title}</p>
@@ -150,7 +151,7 @@ export default function GatePurchase() {
              <Button variant="sheet-action" onClick={() => setSearchParams({ view: "tickets" })} className="w-full rounded-full h-12 mt-6">Ver entradas</Button>
              <Button variant="sheet-action" onClick={buyMore} className="w-full rounded-full h-12 mt-3">Comprar más</Button>
           </section>
-        ) : purchase && (status === "pending" || status === "confirmed") ? (
+        ) : purchase && (status === "pending" || (status === "confirmed" && !lastPurchaseHasTickets)) ? (
           <section className="text-center">
             <h2 className="text-lg font-semibold mb-2">Pagá con tu banco</h2>
             <p className="text-sm text-muted-foreground mb-6">Escaneá o guardá este QR bancario para pagar {bs(purchase.amount)}.</p>
