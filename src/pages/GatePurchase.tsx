@@ -11,6 +11,7 @@ type TicketResult = { token: string; used: boolean; index: number; name: string;
 type Purchase = { sessionId: string; accessToken: string; qrImageUrl: string; amount: number; baseAmount: number; gatewayFee: number; eventId: string };
 const storageKey = (id: string) => `zentro:gate-purchase:${id}`;
 const bs = (value: number) => `Bs. ${value.toFixed(2)}`;
+const isUuid = (value: unknown): value is string => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
 async function gateRequest<T>(body: Record<string, unknown>): Promise<T> {
   const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gate-checkout`, {
@@ -48,21 +49,21 @@ export default function GatePurchase() {
   const purchase = purchases.find(item => item.sessionId === activeSessionId);
 
   useEffect(() => {
-    if (!eventId) return;
+    if (!isUuid(eventId)) return;
     gateRequest<Catalog>({ action: "catalog", eventId }).then((data) => {
       setCatalog(data);
       setOfferId(data.offers[0]?.id || "");
     }).catch((e) => setError(e.message));
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey(eventId)) || "null") as Purchase[] | Purchase | null;
-      const valid = (Array.isArray(saved) ? saved : saved ? [saved] : []).filter(item => item.eventId === eventId && item.sessionId && item.accessToken);
+      const valid = (Array.isArray(saved) ? saved : saved ? [saved] : []).filter(item => item?.eventId === eventId && isUuid(item.sessionId) && isUuid(item.accessToken));
       setPurchases(valid);
       setActiveSessionId(valid[valid.length - 1]?.sessionId ?? null);
     } catch { /* malformed prior session */ }
   }, [eventId]);
 
   const refresh = useCallback(async () => {
-    if (!eventId || !purchases.length) return;
+    if (!isUuid(eventId) || !purchases.length) return;
     try {
       const results = await Promise.all(purchases.map(async item => ({
         item,
@@ -84,7 +85,7 @@ export default function GatePurchase() {
   }, [purchases, refresh]);
 
   const create = async () => {
-    if (!eventId || !offerId || busy) return;
+    if (!isUuid(eventId) || !isUuid(offerId) || busy) return;
     setBusy(true); setError("");
     try {
       const result = await gateRequest<Omit<Purchase, "eventId">>({ action: "create", eventId, offerId, quantity });
@@ -103,6 +104,7 @@ export default function GatePurchase() {
   };
   const buyMore = () => {
     setActiveSessionId(null); setStatus("pending"); setQuantity(1); setSearchParams({}); setError("");
+    if (!isUuid(eventId)) return;
     gateRequest<Catalog>({ action: "catalog", eventId }).then(data => {
       setCatalog(data);
       setOfferId(data.offers[0]?.id || "");
@@ -191,7 +193,8 @@ export default function GatePurchase() {
                <Button variant="sheet-action" onClick={create} disabled={busy} className="w-full rounded-full h-12 gap-2">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ticket className="w-4 h-4" />} Pagar con QR</Button>
             </>}
           </section>
-        ) : !error ? <div className="flex justify-center pt-16"><Loader2 className="animate-spin" /></div> : null}
+        ) : !isUuid(eventId) ? <p role="alert" className="text-sm text-muted-foreground pt-8">Este enlace de puerta no es válido. Escaneá el QR del evento para comprar tus entradas.</p>
+          : !error ? <div className="flex justify-center pt-16"><Loader2 className="animate-spin" /></div> : null}
         {error && <p role="alert" className="text-destructive text-sm text-center mt-5">{error}</p>}
       </div>
     </main>
