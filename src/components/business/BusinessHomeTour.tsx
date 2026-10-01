@@ -144,7 +144,7 @@ export const BusinessHomeTour = () => {
       {phase === "welcome" ? (
         <>
           <div className="absolute inset-0 bg-background/75" />
-          <m.div initial={reducedMotion ? false : { y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: reducedMotion ? 0 : 0.3 }} className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-border bg-card px-6 pb-[max(env(safe-area-inset-bottom),24px)] pt-7 text-card-foreground shadow-2xl">
+          <m.div initial={reducedMotion ? false : { y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: reducedMotion ? 0 : 0.3 }} className="light-sheet absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-border bg-card px-6 pb-[max(env(safe-area-inset-bottom),24px)] pt-7 text-card-foreground shadow-2xl">
             <div className="mx-auto max-w-md">
               <h2 className="font-brand text-xl font-semibold">Bienvenidos a Zentro</h2>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Tranqui, te vamos a hacer el tour para que aprendas todo en 5 min.</p>
