@@ -60,9 +60,10 @@ Deno.serve(async (req) => {
     if (!beneficiary?.is_active) return json({ error: "El organizador no configuró sus pagos" }, 409);
 
     const accessToken = crypto.randomUUID();
+    const callbackToken = crypto.randomUUID();
     const { data: session, error: insertError } = await db.from("payment_sessions").insert({
       event_id: event.id, business_user_id: event.creator_id, buyer_user_id: null,
-      is_gate_sale: true, gate_offer_id: offer.id, gate_access_token: accessToken,
+      is_gate_sale: true, gate_offer_id: offer.id, gate_access_token: accessToken, gate_callback_token: callbackToken,
       amount: charge.totalAmount, base_amount: base, gateway_fee_amount: charge.gatewayFee,
       quantity: body.quantity, status: "pending", provider: "qhantuy", payment_method: "qr",
       beneficiary_code: beneficiary.beneficiary_code, platform_fee_bps: charge.bps,
@@ -70,7 +71,7 @@ Deno.serve(async (req) => {
     }).select("id").single();
     if (insertError || !session) return json({ error: "No se pudo iniciar el pago" }, 503);
 
-    const callbackUrl = `${url}/functions/v1/qhantuy-callback`;
+    const callbackUrl = `${url}/functions/v1/qhantuy-callback?gate_token=${callbackToken}`;
     const checkout = await qhantuyCheckoutFetch("/v2/checkout", {
       method: "POST",
       body: JSON.stringify({
