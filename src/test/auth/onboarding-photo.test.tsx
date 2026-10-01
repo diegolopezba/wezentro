@@ -81,4 +81,18 @@ describe("required onboarding photo", () => {
     expect(mocks.update.mock.calls[0][0]).not.toHaveProperty("gender");
     expect(mocks.update.mock.calls[0][0]).not.toHaveProperty("birth_date");
   });
+
+  it("keeps Continue disabled after an upload error and lets the user retry", async () => {
+    mocks.upload.mockResolvedValueOnce({ error: new Error("upload failed") }).mockResolvedValueOnce({ error: null });
+    const view = await start();
+    const input = view.container.querySelector('input[type="file"]') as HTMLInputElement;
+    const image = new File(["photo"], "photo.png", { type: "image/png" });
+    fireEvent.change(input, { target: { files: [image] } });
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole("button", { name: /continuar/i })).toBeDisabled();
+    await waitFor(() => expect(screen.getByRole("button", { name: /elegir foto/i })).toBeEnabled());
+    fireEvent.change(input, { target: { files: [image] } });
+    await waitFor(() => expect(screen.getByRole("button", { name: /continuar/i })).toBeEnabled());
+    expect(mocks.upload).toHaveBeenCalledTimes(2);
+  });
 });
