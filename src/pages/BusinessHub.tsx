@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { BarChart3 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { BusinessPageContainer } from "@/components/layout/BusinessPageContainer";
@@ -19,7 +19,10 @@ const TABS: { id: Tab; label: string }[] = [
 /** Business-account replacement for the consumer "Entradas" tab. */
 const BusinessHub = () => {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>("reservas");
+  const [searchParams] = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [selectedTab, setTab] = useState<Tab>("reservas");
+  const tab: Tab = requestedTab === "eventos" || requestedTab === "experiencias" || requestedTab === "reservas" ? requestedTab : selectedTab;
 
   return (
     <AppLayout>
@@ -31,6 +34,7 @@ const BusinessHub = () => {
               {TABS.map((p) => (
                 <button
                   key={p.id}
+                  data-tour={`gestion-${p.id}`}
                   onClick={() => setTab(p.id)}
                   className={cn(
                     "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors select-none active:scale-95",
@@ -55,6 +59,7 @@ const BusinessHub = () => {
             {TABS.map((p) => (
               <button
                 key={p.id}
+                data-tour={`gestion-${p.id}`}
                 onClick={() => setTab(p.id)}
                 className={cn(
                   "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors select-none [-webkit-tap-highlight-color:transparent] active:scale-95",

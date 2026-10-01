@@ -65,7 +65,7 @@ const Profile = () => {
   return <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background">
-        <div className="flex items-center justify-between px-4 py-0">
+        <div data-tour="profile-header" className="flex items-center justify-between px-4 py-0">
           <div className="flex items-center gap-2">
             <h1 className="font-brand text-xl text-foreground font-semibold">
               {profile?.username || "cargando"}
@@ -73,7 +73,7 @@ const Profile = () => {
           </div>
           <div className="flex items-center">
             {hasBusinessInfo &&
-          <Button variant="ghost" size="icon" onClick={() => setBusinessInfoOpen(true)}>
+           <Button data-tour="profile-info" variant="ghost" size="icon" onClick={() => setBusinessInfoOpen(true)}>
                 <Info className="w-5 h-5" />
               </Button>
           }
@@ -167,7 +167,7 @@ const Profile = () => {
 
 
       {/* Timeline Content */}
-      <div className="py-4">
+      <div data-tour="profile-posts" className="py-4">
         <div className="masonry-grid">
           {timelineLoading ? <div className="col-span-2 flex justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />

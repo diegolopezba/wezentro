@@ -125,7 +125,7 @@ const BusinessSettings = () => {
         </div>
       </header>
 
-      <div className="px-4 py-4 space-y-5 lg:mx-auto lg:max-w-3xl lg:px-8">
+      <div data-tour="business-settings" className="px-4 py-4 space-y-5 lg:mx-auto lg:max-w-3xl lg:px-8">
         {!isBusiness && (
           <SettingsGroup>
             <SettingsRow
