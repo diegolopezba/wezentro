@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
     // be reported as "not found", or Qhantuy stops retrying and the buyer never
     // gets their ticket.
     const SESSION_COLUMNS =
-      "id, event_id, experience_booking_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees, subscription_business_id, subscription_tier, subscription_interval";
+      "id, event_id, experience_booking_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees, subscription_business_id, subscription_tier, subscription_interval, promoter_id";
 
     let session: any = null;
     let sessErr: any = null;
@@ -250,6 +250,7 @@ Deno.serve(async (req) => {
       ticket_tier_id: session.ticket_tier_id ?? null,
       purchased_by_user_id: session.buyer_user_id,
       payment_session_id: session.id,
+      promoter_id: (session as any).promoter_id ?? null,
     };
 
     let buyerEntryId: string | null = null;
@@ -300,6 +301,7 @@ Deno.serve(async (req) => {
               ticket_tier_id: session.ticket_tier_id ?? null,
               purchased_by_user_id: session.buyer_user_id,
               payment_session_id: session.id,
+              promoter_id: (session as any).promoter_id ?? null,
             })
             .eq("id", existing.id);
           if (error) console.error("ticket update failed:", error);
