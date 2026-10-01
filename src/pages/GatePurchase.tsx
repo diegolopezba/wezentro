@@ -7,7 +7,7 @@ import useEmblaCarousel from "embla-carousel-react";
 
 type Offer = { id: string; name: string; price: number };
 type Catalog = { event: { title: string; imageUrl: string | null; startAt: string | null }; offers: Offer[]; closed: boolean; gatewayFeeBps: number };
-type TicketResult = { token: string; used: boolean; index: number };
+type TicketResult = { token: string; used: boolean; index: number; name: string; sessionId: string };
 type Purchase = { sessionId: string; accessToken: string; qrImageUrl: string; amount: number; baseAmount: number; gatewayFee: number; eventId: string };
 const storageKey = (id: string) => `zentro:gate-purchase:${id}`;
 const bs = (value: number) => `Bs. ${value.toFixed(2)}`;
@@ -29,9 +29,11 @@ export default function GatePurchase() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [offerId, setOfferId] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [purchase, setPurchase] = useState<Purchase | null>(null);
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [status, setStatus] = useState("pending");
   const [tickets, setTickets] = useState<TicketResult[]>([]);
+  const [loadingTickets, setLoadingTickets] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -44,6 +46,7 @@ export default function GatePurchase() {
     return () => { emblaApi.off("select", update); };
   }, [emblaApi]);
   const showingTickets = searchParams.get("view") === "tickets";
+  const purchase = purchases.find(item => item.sessionId === activeSessionId);
 
   useEffect(() => {
     if (!eventId) return;
@@ -52,29 +55,35 @@ export default function GatePurchase() {
       setOfferId(data.offers[0]?.id || "");
     }).catch((e) => setError(e.message));
     try {
-      const saved = JSON.parse(localStorage.getItem(storageKey(eventId)) || "null") as Purchase | null;
-      if (saved?.eventId === eventId && saved.sessionId && saved.accessToken) setPurchase(saved);
+      const saved = JSON.parse(localStorage.getItem(storageKey(eventId)) || "null") as Purchase[] | Purchase | null;
+      const valid = (Array.isArray(saved) ? saved : saved ? [saved] : []).filter(item => item.eventId === eventId && item.sessionId && item.accessToken);
+      setPurchases(valid);
+      setActiveSessionId(valid.at(-1)?.sessionId ?? null);
     } catch { /* malformed prior session */ }
   }, [eventId]);
 
   const refresh = useCallback(async () => {
-    if (!eventId || !purchase) return;
+    if (!eventId || !purchases.length) return;
     try {
-      const result = await gateRequest<{ status: string; tickets?: TicketResult[] }>({
-        action: "status", eventId, sessionId: purchase.sessionId, accessToken: purchase.accessToken,
-      });
-      setStatus(result.status);
-       if (result.tickets) setTickets(result.tickets);
-       if (["failed", "expired"].includes(result.status)) localStorage.removeItem(storageKey(eventId));
+      const results = await Promise.all(purchases.map(async item => ({
+        item,
+        result: await gateRequest<{ status: string; tickets?: Omit<TicketResult, "sessionId">[] }>({
+          action: "status", eventId, sessionId: item.sessionId, accessToken: item.accessToken,
+        }),
+      })));
+      const current = results.find(({ item }) => item.sessionId === activeSessionId);
+      if (current) setStatus(current.result.status);
+      setTickets(results.flatMap(({ item, result }) => (result.tickets ?? []).map(ticket => ({ ...ticket, sessionId: item.sessionId }))));
+      setLoadingTickets(false);
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudo consultar el pago"); }
-  }, [eventId, purchase]);
+  }, [eventId, purchases, activeSessionId]);
 
   useEffect(() => {
-    if (!purchase) return;
+    if (!purchases.length) return;
     void refresh();
     const timer = window.setInterval(refresh, 2500);
     return () => window.clearInterval(timer);
-  }, [purchase, refresh]);
+  }, [purchases, refresh]);
 
   const create = async () => {
     if (!eventId || !offerId || busy) return;
@@ -82,21 +91,31 @@ export default function GatePurchase() {
     try {
       const result = await gateRequest<Omit<Purchase, "eventId">>({ action: "create", eventId, offerId, quantity });
       const next = { ...result, eventId };
-      localStorage.setItem(storageKey(eventId), JSON.stringify(next));
-      setPurchase(next); setStatus("pending"); setTickets([]);
+      const updated = [...purchases, next];
+      localStorage.setItem(storageKey(eventId), JSON.stringify(updated));
+      setPurchases(updated); setActiveSessionId(next.sessionId); setStatus("pending");
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudo generar el pago"); }
     finally { setBusy(false); }
   };
   const reset = () => {
-    if (eventId) localStorage.removeItem(storageKey(eventId));
-    setPurchase(null); setTickets([]); setStatus("pending"); setSearchParams({}); setError("");
+    // Keep earlier paid entries accessible when beginning another purchase.
+    if (eventId) localStorage.setItem(storageKey(eventId), JSON.stringify(purchases.filter(item => item.sessionId !== activeSessionId)));
+    setPurchases(items => items.filter(item => item.sessionId !== activeSessionId));
+    setActiveSessionId(null); setStatus("pending"); setSearchParams({}); setError("");
+  };
+  const buyMore = () => {
+    setActiveSessionId(null); setStatus("pending"); setQuantity(1); setSearchParams({}); setError("");
+    gateRequest<Catalog>({ action: "catalog", eventId }).then(data => {
+      setCatalog(data);
+      setOfferId(data.offers[0]?.id || "");
+    }).catch(e => setError(e instanceof Error ? e.message : "No se pudieron cargar los precios"));
   };
   const selected = catalog?.offers.find(o => o.id === offerId);
   const total = selected ? selected.price * quantity : 0;
   const feeRate = (catalog?.gatewayFeeBps ?? 100) / 10000;
   const gatewayFee = feeRate > 0 ? Math.ceil(Number((total * feeRate / (1 - feeRate) * 100).toFixed(4))) / 100 : 0;
   const amountDue = Math.round((total + gatewayFee) * 100) / 100;
-  const confirmed = status === "confirmed" && tickets.length > 0;
+  const confirmed = status === "confirmed" && tickets.some(ticket => ticket.sessionId === activeSessionId);
 
   return (
     <main className="light-surface min-h-[100dvh] bg-background text-foreground pb-12">
@@ -109,26 +128,29 @@ export default function GatePurchase() {
         <h1 className="font-brand text-2xl leading-tight mb-2">{catalog?.event.title || "Entradas en puerta"}</h1>
         {catalog?.event.startAt && <p className="text-sm text-muted-foreground mb-8">{new Date(catalog.event.startAt).toLocaleString("es-BO", { dateStyle: "long", timeStyle: "short" })}</p>}
 
-        {confirmed && showingTickets ? (
+        {showingTickets && (confirmed || tickets.length > 0) ? (
           <section aria-label="Tus entradas">
             <Button variant="ghost" onClick={() => setSearchParams({})} className="mb-5 -ml-3"><ArrowLeft className="h-4 w-4 mr-2" />Volver</Button>
             <h2 className="text-xl font-semibold mb-2">Tus entradas</h2>
             <p className="text-sm text-muted-foreground mb-7">Mostrá cada QR al personal de la puerta.</p>
             <div className="overflow-hidden" ref={emblaRef}><div className="flex touch-pan-y">
-              {tickets.map((ticket) => <div key={ticket.index} className={`min-w-0 flex-[0_0_100%] border-t border-border pt-6 text-center ${ticket.used ? "opacity-40 grayscale" : ""}`}>
-                <div className="flex justify-between items-center mb-5"><strong>Entrada {ticket.index} de {tickets.length}</strong><span className="text-sm text-muted-foreground">{ticket.used ? "Ya fue usada" : "Válida"}</span></div>
+              {tickets.map((ticket, i) => <div key={`${ticket.sessionId}:${ticket.index}`} className={`min-w-0 flex-[0_0_100%] border-t border-border pt-6 text-center ${ticket.used ? "opacity-40 grayscale" : ""}`}>
+                <div className="flex justify-between items-center mb-2"><strong>Entrada {i + 1} de {tickets.length}</strong><span className="text-sm text-muted-foreground">{ticket.used ? "Ya fue usada" : "Sin usar"}</span></div>
+                <p className="text-sm font-semibold mb-5">{ticket.name || "Entrada"}</p>
                 {ticket.token && <QRCodeSVG value={ticket.token} size={220} className="mx-auto max-w-full" />}
                  <p className="text-xs text-muted-foreground mt-4">{catalog?.event.title}</p>
               </div>)}
             </div></div>
-            {tickets.length > 1 && <div className="flex items-center justify-center gap-2 mt-7" aria-label="Seleccionar entrada">{tickets.map((ticket, i) => <button key={ticket.index} aria-label={`Entrada ${i + 1}`} aria-current={i === activeIndex ? "true" : undefined} onClick={() => emblaApi?.scrollTo(i)} className={`w-2.5 h-2.5 rounded-full ${i === activeIndex ? "bg-foreground" : "bg-muted-foreground/30"}`} />)}</div>}
+             {tickets.length > 1 && <div className="flex items-center justify-center gap-2 mt-7" aria-label="Seleccionar entrada">{tickets.map((ticket, i) => <Button key={`${ticket.sessionId}:${ticket.index}`} variant="ghost" size="icon-sm" aria-label={`Entrada ${i + 1}`} aria-current={i === activeIndex ? "true" : undefined} onClick={() => emblaApi?.scrollTo(i)} className="rounded-full"><span className={`w-2.5 h-2.5 rounded-full ${i === activeIndex ? "bg-foreground" : "bg-muted-foreground/30"}`} /></Button>)}</div>}
+             <Button variant="sheet-action" onClick={buyMore} className="w-full rounded-full h-12 mt-8">Comprar más</Button>
           </section>
         ) : confirmed ? (
           <section className="pt-8 text-center">
-            <CheckCircle2 className="h-14 w-14 text-brand-red mx-auto mb-6" />
+             <CheckCircle2 className="h-14 w-14 text-success mx-auto mb-6" />
             <h2 className="text-2xl font-semibold">Pago confirmado</h2>
-            <p className="text-muted-foreground my-4">{tickets.length} {tickets.length === 1 ? "entrada lista" : "entradas listas"} para ingresar.</p>
-            <Button onClick={() => setSearchParams({ view: "tickets" })} className="w-full rounded-full h-12 mt-6">Ver entradas</Button>
+             <p className="text-muted-foreground my-4">{tickets.length} {tickets.length === 1 ? "entrada lista" : "entradas listas"} para ingresar.</p>
+             <Button variant="sheet-action" onClick={() => setSearchParams({ view: "tickets" })} className="w-full rounded-full h-12 mt-6">Ver entradas</Button>
+             <Button variant="sheet-action" onClick={buyMore} className="w-full rounded-full h-12 mt-3">Comprar más</Button>
           </section>
         ) : purchase && (status === "pending" || status === "confirmed") ? (
           <section className="text-center">
@@ -143,7 +165,7 @@ export default function GatePurchase() {
             <Button variant="outline" onClick={() => void refresh()} className="mt-5 rounded-full">Comprobar pago</Button>
           </section>
         ) : purchase && status !== "pending" ? (
-          <section className="text-center pt-10"><h2 className="text-xl font-semibold">El pago no se completó</h2><Button className="mt-6 rounded-full" onClick={reset}>Intentar de nuevo</Button></section>
+           <section className="text-center pt-10"><h2 className="text-xl font-semibold">El pago no se completó</h2><Button variant="sheet-action" className="mt-6 rounded-full" onClick={reset}>Intentar de nuevo</Button></section>
         ) : catalog ? (
           <section>
             {catalog.closed || !catalog.offers.length ? <p className="text-muted-foreground">La venta en puerta no está disponible.</p> : <>
@@ -165,7 +187,7 @@ export default function GatePurchase() {
               <div className="flex justify-between items-center mb-2"><span>Entradas</span><strong>{bs(total)}</strong></div>
               <div className="flex justify-between items-center mb-4 text-sm text-muted-foreground"><span>Procesamiento bancario</span><span>{bs(gatewayFee)}</span></div>
               <div className="flex justify-between items-center border-t border-border pt-4 mb-5"><span>Total a pagar</span><strong className="text-xl">{bs(amountDue)}</strong></div>
-              <Button onClick={create} disabled={busy} className="w-full rounded-full h-12 gap-2">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ticket className="w-4 h-4" />} Pagar con QR</Button>
+               <Button variant="sheet-action" onClick={create} disabled={busy} className="w-full rounded-full h-12 gap-2">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ticket className="w-4 h-4" />} Pagar con QR</Button>
             </>}
           </section>
         ) : !error ? <div className="flex justify-center pt-16"><Loader2 className="animate-spin" /></div> : null}
