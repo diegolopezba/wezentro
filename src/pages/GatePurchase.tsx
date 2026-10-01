@@ -57,7 +57,7 @@ export default function GatePurchase() {
       const saved = JSON.parse(localStorage.getItem(storageKey(eventId)) || "null") as Purchase[] | Purchase | null;
       const valid = (Array.isArray(saved) ? saved : saved ? [saved] : []).filter(item => item.eventId === eventId && item.sessionId && item.accessToken);
       setPurchases(valid);
-      setActiveSessionId(valid.at(-1)?.sessionId ?? null);
+      setActiveSessionId(valid[valid.length - 1]?.sessionId ?? null);
     } catch { /* malformed prior session */ }
   }, [eventId]);
 
@@ -161,11 +161,13 @@ export default function GatePurchase() {
             <p className="text-xs text-muted-foreground mt-1">Entradas {bs(purchase.baseAmount)} · procesamiento {bs(purchase.gatewayFee)}</p>
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-8"><Loader2 className="w-4 h-4 animate-spin" />{status === "confirmed" ? "Preparando tus entradas..." : "Esperando confirmación del pago..."}</div>
             <Button variant="outline" onClick={() => void refresh()} className="mt-5 rounded-full">Comprobar pago</Button>
+             {tickets.length > 0 && <Button variant="sheet-action" onClick={() => setSearchParams({ view: "tickets" })} className="w-full rounded-full h-12 mt-5">Ver mis entradas</Button>}
           </section>
         ) : purchase && status !== "pending" ? (
            <section className="text-center pt-10"><h2 className="text-xl font-semibold">El pago no se completó</h2><Button variant="sheet-action" className="mt-6 rounded-full" onClick={reset}>Intentar de nuevo</Button></section>
         ) : catalog ? (
           <section>
+             {tickets.length > 0 && <Button variant="sheet-action" onClick={() => setSearchParams({ view: "tickets" })} className="w-full rounded-full h-12 mb-8">Ver mis entradas ({tickets.length})</Button>}
             {catalog.closed || !catalog.offers.length ? <p className="text-muted-foreground">La venta en puerta no está disponible.</p> : <>
               <h2 className="font-semibold mb-3">Elegí tu entrada</h2>
               <div className="space-y-2 mb-8">{catalog.offers.map(offer =>
