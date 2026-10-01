@@ -80,19 +80,6 @@ const YouAreGoing = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emblaApi, ticketId, total]);
 
-  const isUsed = !!activeEntry?.checked_in_at;
-  const isOwnTicket = !!activeEntry?.user_id && activeEntry.user_id === user?.id;
-  const ticketHolderName = isOwnTicket
-    ? profile?.full_name || profile?.username || "Invitado"
-    : activeEntry?.guest_name || "";
-
-  // Check if user can view QR (must be approved and payment confirmed if payment was required)
-  const canViewQr = !isUsed && activeEntry?.status === "approved" &&
-    (activeEntry?.payment_status === "none" || 
-     activeEntry?.payment_status === "confirmed" || 
-     !activeEntry?.payment_status);
-
-
   if (isLoading || !event) {
     return (
       <div className="fixed inset-0 bg-background flex items-center justify-center z-50">
