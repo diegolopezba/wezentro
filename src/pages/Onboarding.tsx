@@ -24,12 +24,12 @@ const genderOptions = [
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { user, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const processReferral = useProcessReferral();
   const { isVisible: isKeyboardVisible } = useKeyboardAdjust();
   const [step, setStep] = useState(1);
-  // Business accounts don't need a birth date — the account represents a venue, not a person.
-  const isBusiness = hasBusinessIntent();
+  // Existing Business accounts are also exempt if they return to finish onboarding.
+  const isBusiness = hasBusinessIntent() || profile?.account_type === "business" || profile?.is_business === true;
   const [isLoading, setIsLoading] = useState(false);
   const [photoStatus, setPhotoStatus] = useState<"idle" | "compressing" | "uploading">("idle");
   const [avatarUrl, setAvatarUrl] = useState("");
