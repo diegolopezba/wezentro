@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     if (!offer) return json({ error: "Esta entrada ya no está disponible" }, 404);
     const base = Number((Number(offer.price) * body.quantity).toFixed(2));
     const charge = buildCharge(base);
-    if (!Number.isFinite(base) || base <= 0 || charge.payoutAmount <= 0) return json({ error: "Precio inválido" }, 400);
+    if (!Number.isFinite(base) || base <= 0 || base > 1000000 || charge.payoutAmount <= 0) return json({ error: "Precio inválido" }, 400);
     const { data: beneficiary } = await db.from("qhantuy_beneficiaries")
       .select("beneficiary_code, is_active").eq("user_id", event.creator_id).maybeSingle();
     if (!beneficiary?.is_active) return json({ error: "El organizador no configuró sus pagos" }, 409);
