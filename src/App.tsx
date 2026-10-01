@@ -51,6 +51,8 @@ import { EulaGate } from "@/components/moderation/EulaGate";
 import { EventDetailModal } from "@/components/events/EventDetailModal";
 import { PageModal } from "@/components/layout/PageModal";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { BusinessHomeTour } from "@/components/business/BusinessHomeTour";
+import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 
 /**
  * Route-level app shell: owns the persistent navigation (mobile BottomNav +
@@ -59,9 +61,11 @@ import { AppLayout } from "@/components/layout/AppLayout";
  * there is exactly one navigation rail/bar on screen at all times.
  */
 const MainAppLayout = () => {
+  const isBusinessAccount = useIsBusinessAccount();
   return (
     <AppLayout>
       <Outlet />
+      {isBusinessAccount && <BusinessHomeTour />}
     </AppLayout>
   );
 };

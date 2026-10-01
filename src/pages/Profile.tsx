@@ -65,7 +65,7 @@ const Profile = () => {
   return <AppLayout>
       {/* Header */}
       <header className="sticky top-0 z-40 safe-top bg-background">
-        <div className="flex items-center justify-between px-4 py-0">
+        <div data-tour="profile-header" className="flex items-center justify-between px-4 py-0">
           <div className="flex items-center gap-2">
             <h1 className="font-brand text-xl text-foreground font-semibold">
               {profile?.username || "cargando"}
@@ -73,7 +73,7 @@ const Profile = () => {
           </div>
           <div className="flex items-center">
             {hasBusinessInfo &&
-          <Button variant="ghost" size="icon" onClick={() => setBusinessInfoOpen(true)}>
+           <Button data-tour="profile-info" variant="ghost" size="icon" onClick={() => setBusinessInfoOpen(true)}>
                 <Info className="w-5 h-5" />
               </Button>
           }
@@ -86,7 +86,7 @@ const Profile = () => {
       </header>
 
       {/* Profile info */}
-      <div className="px-4 py-[10px] bg-background">
+      <div data-tour="profile-posts" className="px-4 py-[10px] bg-background">
         <m.div initial={{
         opacity: 0,
         y: 20

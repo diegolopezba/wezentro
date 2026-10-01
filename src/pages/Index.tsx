@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
-import { BusinessHomeTour, BusinessSetupReminder } from "@/components/business/BusinessHomeTour";
+import { BusinessSetupReminder } from "@/components/business/BusinessHomeTour";
 import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 import { HOME_FEED_INTRO } from "@/components/business/featureIntroSteps";
 
@@ -272,7 +272,7 @@ const Index = () => {
             </div>
           </m.div>
         )}
-        <div className="flex px-4 pb-3 gap-2 overflow-x-auto no-scrollbar">
+        <div data-tour="home-feed" className="flex px-4 pb-3 gap-2 overflow-x-auto no-scrollbar">
           <m.button
             whileTap={{ scale: 0.95 }}
             onClick={resetToForYou}
@@ -330,8 +330,7 @@ const Index = () => {
       </PullToRefresh>
 
       <FilterSheet open={showFilters} onOpenChange={setShowFilters} filters={filters} onApplyFilters={setFilters} />
-      {isBusinessAccount && <BusinessHomeTour />}
-      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={HOME_FEED_INTRO} />
+      <FeatureIntroSheet open={intro.open && !isBusinessAccount} onOpenChange={intro.setOpen} steps={HOME_FEED_INTRO} />
     </AppLayout>
   );
 };

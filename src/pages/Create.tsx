@@ -191,7 +191,7 @@ const Create = () => {
   const [businessGateContext, setBusinessGateContext] = useState<"tickets" | "event">("tickets");
   const [showBeneficiaryGate, setShowBeneficiaryGate] = useState(false);
   const [beneficiaryGateContext, setBeneficiaryGateContext] = useState<"tickets" | "experience">("tickets");
-  const { open: introOpen, setOpen: setIntroOpen, reopen: reopenIntro } = useFeatureIntro("create");
+  const { open: introOpen, setOpen: setIntroOpen, reopen: reopenIntro } = useFeatureIntro("create", { enabled: !isBusiness });
   const openBeneficiaryGate = (ctx: "tickets" | "experience" = "tickets") => {
     setBeneficiaryGateContext(ctx);
     setShowBeneficiaryGate(true);
@@ -669,6 +669,7 @@ const Create = () => {
 
         {/* ── Type selector (Instagram-style wheel) ── */}
         <m.div
+          data-tour="create-types"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           className={cn("grid gap-3", canPublishExperiences ? "grid-cols-3" : "grid-cols-2")}>

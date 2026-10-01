@@ -1,0 +1,1 @@
+Business product tours belong in the persistent app shell and persist versioned per-user step progress, because navigation must not unmount or restart the walkthrough.

@@ -1,181 +1,177 @@
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
-import { m } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDashboardAccess } from "@/hooks/useDashboardAccess";
 import { haptic } from "@/lib/haptics";
+import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 
 interface TourStep {
-  target?: string;
+  path: string;
+  target: string;
+  progress: string;
   title: string;
   body: string;
-  cta?: { label: string; to: string };
 }
 
-const STEPS: TourStep[] = [
-  { target: "nav-home", title: "Inicio", body: "Así ven tu contenido las personas cerca tuyo." },
-  {
-    target: "nav-create",
-    title: "Tu primer paso",
-    body: "Con el + publicás un evento o un post.",
-    cta: { label: "Crear mi primera publicación", to: "/create" },
-  },
-  { target: "nav-gestion", title: "Gestión", body: "Acá manejás tus eventos, entradas, invitados y reservas." },
-  { target: "nav-profile", title: "Tu perfil", body: "Tu página pública: lo que ven tus clientes." },
-  {
-    title: "Configurá tu negocio",
-    body: "Completá tu información, pagos y plan cuando quieras desde Perfil > Configuración > Business.",
-  },
-];
+const stepsFor = (businessType?: string | null): TourStep[] => {
+  const food = ["restaurant", "bar", "coffee"].includes(businessType ?? "");
+  const experience = ["gym", "gallery"].includes(businessType ?? "");
+  const tab = food ? "reservas" : experience ? "experiencias" : "eventos";
+  return [
+    { path: "/", target: "home-feed", progress: "1/5", title: "El homepage", body: "Aquí encontrás todo lo que está pasando alrededor tuyo. Cada publicación es un evento, experiencia o lugar nuevo por conocer." },
+    { path: "/create", target: "create-types", progress: "2/5", title: "Crear eventos o publicaciones", body: "Desde aquí publicás todos tus eventos, publicaciones o experiencias." },
+    { path: `/gestion?tab=${tab}`, target: `gestion-${tab}`, progress: "3/5", title: "Página de Gestión", body: food ? "Desde aquí gestionás y visualizás todas tus reservas, mesas, usuarios, etc." : experience ? "Desde aquí gestionás y visualizás todos tus bookings, fechas, etc." : "Desde aquí gestionás y visualizás todos tus eventos, ventas, RRPPs, invitaciones, etc." },
+    { path: "/profile", target: "profile-posts", progress: "4.1/5", title: "Tu perfil", body: "Este es tu perfil, aquí aparecen todas tus publicaciones en orden cronológico. Mientras más usuarios te sigan, mejor. ¡Así que empezá a publicar!" },
+    { path: "/profile", target: "profile-info", progress: "4.2/5", title: "Botón de info", body: "Las personas pueden saber más sobre tu negocio, como horarios, ubicación y contacto, a través de este botón." },
+    { path: "/settings/business", target: "business-settings", progress: "5/5", title: "Configuraciones Business", body: "Desde aquí podés configurar pagos, establecer mesas, ver analíticas, agregar tu menú, reservas y configurar experiencias. ¡Bienvenido al mundo Zentro!" },
+  ];
+};
 
-const tourKey = (id: string) => `business-tour:${id}`;
+const tourKey = (id: string) => `business-tour:v2:${id}`;
 
 /** Returns the visible element for a tour target (bottom nav or desktop rail). */
-const findTarget = (id?: string): HTMLElement | null => {
-  if (!id) return null;
+const findTarget = (id: string): HTMLElement | null => {
   const els = Array.from(document.querySelectorAll<HTMLElement>(`[data-tour="${id}"]`));
-  return els.find((el) => el.offsetParent !== null && el.getBoundingClientRect().width > 0) ?? null;
+  return els.find((el) => el.getClientRects().length > 0 && el.getBoundingClientRect().width > 0) ?? null;
 };
 
 export const BusinessHomeTour = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isBusiness = useIsBusinessAccount();
   const location = useLocation();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const [phase, setPhase] = useState<"idle" | "welcome" | "tour">("idle");
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
+  const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const steps = stepsFor((profile as { business_type?: string } | null)?.business_type);
+  const current = steps[step];
 
   useEffect(() => {
-    if (!user) return;
-    try {
-      if (localStorage.getItem(tourKey(user.id)) === "1") return;
-    } catch {
+    if (!user || !isBusiness) {
+      setPhase("idle");
       return;
     }
-    const t = setTimeout(() => setOpen(true), (location.state as any)?.businessTour ? 500 : 900);
-    return () => clearTimeout(t);
-  }, [user, location.state]);
+    try {
+      const saved = localStorage.getItem(tourKey(user.id));
+      if (saved === "done") { setPhase("idle"); return; }
+      if (saved?.startsWith("step:")) {
+        setStep(Math.min(steps.length - 1, Math.max(0, Number(saved.slice(5)) || 0)));
+        setPhase("tour");
+      } else if (location.pathname === "/") {
+        setPhase("welcome");
+      }
+    } catch {
+      if (location.pathname === "/") setPhase("welcome");
+    }
+  }, [user?.id, isBusiness, location.pathname]);
 
-  const current = STEPS[step];
+  useEffect(() => {
+    if (phase !== "tour" || !current) return;
+    if (location.pathname + (current.path.includes("?") ? location.search : "") !== current.path) navigate(current.path, { replace: true });
+  }, [phase, step, location.pathname, location.search, current?.path, navigate]);
 
   const measure = useCallback(() => {
-    const el = findTarget(current?.target);
-    setRect(el ? el.getBoundingClientRect() : null);
+    setViewport({ width: window.innerWidth, height: window.innerHeight });
+    const target = current?.target === "profile-info" && !findTarget("profile-info") ? "profile-header" : current?.target;
+    const el = target ? findTarget(target) : null;
+    const bounds = el?.getBoundingClientRect();
+    setRect(bounds && bounds.top < window.innerHeight && bounds.bottom > 0 ? bounds : null);
   }, [current?.target]);
 
   useLayoutEffect(() => {
-    if (!open) return;
+    if (phase !== "tour" || location.pathname !== current?.path.split("?")[0]) return;
+    const target = findTarget(current.target);
+    if (target && current.target !== "home-feed" && target.getBoundingClientRect().top > window.innerHeight - 80) target.scrollIntoView({ block: "center", behavior: "instant" });
     measure();
+    const timer = window.setInterval(measure, 250);
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [open, measure]);
+    window.addEventListener("scroll", measure, true);
+    return () => { window.clearInterval(timer); window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); };
+  }, [phase, step, location.pathname, current?.path, measure]);
 
-  const close = useCallback(() => {
-    if (user) {
-      try {
-        localStorage.setItem(tourKey(user.id), "1");
-      } catch {
-        /* ignore */
-      }
-    }
-    setOpen(false);
-  }, [user]);
+  if (phase === "idle" || !current || !user) return null;
 
-  if (!open || !current) return null;
-
-  const isLast = step === STEPS.length - 1;
+  const isLast = step === steps.length - 1;
   const next = () => {
     void haptic("light");
-    if (isLast) close();
-    else setStep((s) => s + 1);
+    if (isLast) {
+      try { localStorage.setItem(tourKey(user.id), "done"); } catch { /* continue */ }
+      setPhase("idle");
+      navigate("/");
+    } else {
+      const nextStep = step + 1;
+      try { localStorage.setItem(tourKey(user.id), `step:${nextStep}`); } catch { /* continue */ }
+      setRect(null);
+      setStep(nextStep);
+      if (steps[nextStep].path !== current.path) navigate(steps[nextStep].path);
+    }
   };
 
-  const pad = 6;
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const cardW = Math.min(320, vw - 32);
-  let cardStyle: React.CSSProperties = { left: (vw - cardW) / 2, top: vh / 2 - 110, width: cardW };
+  const pad = 5;
+  const vw = viewport.width;
+  const vh = viewport.height;
+  const cardW = Math.min(340, vw - 32);
+  const cardHeight = 230;
+  let cardStyle: React.CSSProperties = { left: (vw - cardW) / 2, top: Math.max(16, (vh - cardHeight) / 2), width: cardW };
+  let arrow: "top" | "bottom" | "left" | null = null;
+  let arrowOffset = cardW / 2;
   if (rect) {
-    const isRail = rect.left < 120 && rect.top < vh - 120;
-    if (isRail) {
-      cardStyle = { left: rect.right + 16, top: Math.max(16, rect.top - 20), width: cardW };
+    if (rect.right + cardW + 24 < vw && rect.left < 130) {
+      cardStyle = { left: rect.right + 18, top: Math.max(16, Math.min(rect.top - 18, vh - cardHeight - 16)), width: cardW };
+      arrow = "left";
     } else {
       const center = rect.left + rect.width / 2;
       const left = Math.min(Math.max(16, center - cardW / 2), vw - cardW - 16);
-      cardStyle = { left, bottom: vh - rect.top + 16, width: cardW };
+      arrowOffset = Math.max(22, Math.min(cardW - 22, center - left));
+      if (vh - rect.bottom > cardHeight + 28) {
+        cardStyle = { left, top: rect.bottom + 18, width: cardW };
+        arrow = "top";
+      } else if (rect.top > cardHeight + 28) {
+        cardStyle = { left, top: rect.top - cardHeight - 18, width: cardW };
+        arrow = "bottom";
+      }
     }
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[100]" role="dialog" aria-label="Recorrido de tu cuenta Business">
-      {rect ? (
-        <div
-          className="pointer-events-none absolute rounded-2xl ring-2 ring-primary transition-all duration-300"
-          style={{
-            left: rect.left - pad,
-            top: rect.top - pad,
-            width: rect.width + pad * 2,
-            height: rect.height + pad * 2,
-            boxShadow: "0 0 0 9999px hsl(var(--background) / 0.72)",
-          }}
-        />
+    <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label="Recorrido de tu cuenta Business">
+      {phase === "welcome" ? (
+        <>
+          <div className="absolute inset-0 bg-background/75" />
+          <m.div initial={reducedMotion ? false : { y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: reducedMotion ? 0 : 0.3 }} className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-border bg-card px-6 pb-[max(env(safe-area-inset-bottom),24px)] pt-7 text-card-foreground shadow-2xl">
+            <div className="mx-auto max-w-md">
+              <h2 className="font-brand text-xl font-semibold">Bienvenidos a Zentro</h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Tranqui, te vamos a hacer el tour para que aprendas todo en 5 min.</p>
+              <Button variant="sheet-action" className="mt-6 h-12 w-full rounded-full" onClick={() => {
+                try { localStorage.setItem(tourKey(user.id), "step:0"); } catch { /* continue */ }
+                setPhase("tour");
+                void haptic("light");
+              }}>Comenzar</Button>
+            </div>
+          </m.div>
+        </>
       ) : (
-        <div className="absolute inset-0 bg-background/70" />
+        <>
+          {rect ? (
+            <m.div className="pointer-events-none absolute rounded-lg ring-2 ring-brand-red" animate={{ left: rect.left - pad, top: rect.top - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 }} transition={{ duration: reducedMotion ? 0 : 0.25 }} style={{ boxShadow: "0 0 0 9999px hsl(var(--background) / 0.78)" }} />
+          ) : <div className="absolute inset-0 bg-background/75" />}
+          <AnimatePresence mode="wait">
+            <m.div key={step} initial={reducedMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={reducedMotion ? undefined : { opacity: 0, y: -8 }} transition={{ duration: reducedMotion ? 0 : 0.22 }} className="absolute rounded-lg border border-border bg-card p-5 text-card-foreground shadow-2xl" style={cardStyle}>
+              {arrow && <span aria-hidden className={`absolute h-3 w-3 rotate-45 border-border bg-card ${arrow === "top" ? "-top-[7px] border-l border-t" : arrow === "bottom" ? "-bottom-[7px] border-b border-r" : "-left-[7px] border-b border-l"}`} style={arrow === "left" ? { top: 30 } : { left: arrowOffset - 6 }} />}
+              <p className="text-xs font-semibold text-brand-red">{current.progress}</p>
+              <h2 className="mt-2 font-brand text-lg font-semibold">{current.title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{current.body}</p>
+              <Button variant="sheet-action" className="mt-5 h-11 w-full rounded-full" onClick={next}>{isLast ? "Listo" : "Continuar"}</Button>
+            </m.div>
+          </AnimatePresence>
+        </>
       )}
-      <button aria-label="Cerrar recorrido" className="absolute inset-0 cursor-default" onClick={close} />
-
-      <m.div
-        key={step}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-        className="light-sheet absolute rounded-3xl bg-background p-5 text-foreground shadow-2xl"
-        style={cardStyle}
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">
-            {step + 1} de {STEPS.length}
-          </span>
-          <button
-            onClick={close}
-            aria-label="Omitir"
-            className="-mr-1 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground active:bg-muted"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <h3 className="mt-1 font-brand text-lg font-semibold">{current.title}</h3>
-        <p className="mt-1 text-sm leading-snug text-muted-foreground">{current.body}</p>
-
-        {current.cta && (
-          <Button
-            variant="sheet-action"
-            className="mt-4 h-11 w-full rounded-full"
-            onClick={() => {
-              close();
-              navigate(current.cta!.to);
-            }}
-          >
-            {current.cta.label}
-          </Button>
-        )}
-
-        <div className="mt-3 flex items-center gap-2">
-          <Button variant="ghost" className="h-10 rounded-full px-4" onClick={close}>
-            Omitir
-          </Button>
-          <Button
-            variant={current.cta ? "secondary" : "sheet-action"}
-            className="h-10 flex-1 rounded-full"
-            onClick={next}
-          >
-            {isLast ? "Empezar" : "Siguiente"}
-          </Button>
-        </div>
-      </m.div>
     </div>,
     document.body,
   );

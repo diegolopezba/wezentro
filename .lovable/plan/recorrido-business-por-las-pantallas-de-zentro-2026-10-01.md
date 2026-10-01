@@ -6,9 +6,9 @@ Después de «Completar después» o «Listo, ir a mi cuenta Business», la cuen
 
 ## Recorrido
 
-1. **1/5 · El homepage (Inicio):** «Aquí encontrás todo lo que está pasando alrededor tuyo. Cada publicación es un evento, fiesta o lugar nuevo por conocer.» «Continuar» abre **Crear** (según tu aclaración).
+1. **1/5 · El homepage (Inicio):** «Aquí encontrás todo lo que está pasando alrededor tuyo. Cada publicación es un evento, experiencia o lugar nuevo por conocer.» «Continuar» abre **Crear** (según tu aclaración).
 2. **2/5 · Crear eventos o publicaciones:** «Desde aquí publicás todos tus eventos, publicaciones o experiencias.» La tarjeta señala el selector de tipos de publicación de la pantalla Crear. «Continuar» abre **Gestión**.
-3. **3/5 · Página de Gestión:** abre la pestaña relevante y señala su título: **Eventos** para clubes, rooftops y venues; **Reservas** para restaurantes, bares y cafés; **Experiencias** para negocios de experiencias (p. ej., gimnasios y galerías). Usa el texto correspondiente a eventos y ventas; reservas y mesas; o bookings y fechas. Para negocios sin categoría definida, muestra Eventos como opción general. «Continuar» abre **Perfil**.
+3. **3/5 · Página de Gestión:** abre la pestaña relevante y señala su título: **Eventos** para boliches, organizadores, festivales y conciertos; **Reservas** para restaurantes, bares y cafés; **Experiencias** para negocios de experiencias (p. ej., Viñedos y paracaidísmo). Usa el texto correspondiente a eventos y ventas; reservas y mesas; o bookings y fechas. Para negocios sin categoría definida, muestra Eventos como opción general. «Continuar» abre **Perfil**.
 4. **4.1/5 · Tu perfil:** señala la zona de publicaciones del perfil y muestra el texto indicado sobre orden cronológico y seguidores. «Continuar» pasa a **4.2/5 · Botón de info**, señala el botón de información y explica horarios, ubicación y contacto; «Continuar» abre **Configuraciones Business**. Si el negocio aún no completó esos datos y el botón no existe, la explicación se muestra junto al encabezado del perfil sin señalar un control inexistente.
 5. **5/5 · Configuraciones Business:** destaca los ajustes reales del negocio y muestra el texto indicado sobre pagos, mesas, analíticas, menú, reservas y experiencias. «Listo» marca el tour como terminado y regresa a Inicio.
 
