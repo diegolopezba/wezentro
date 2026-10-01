@@ -126,7 +126,7 @@ export default function GatePurchase() {
             <p className="text-muted-foreground my-4">{tickets.length} {tickets.length === 1 ? "entrada lista" : "entradas listas"} para ingresar.</p>
             <Button onClick={() => setSearchParams({ view: "tickets" })} className="w-full rounded-full h-12 mt-6">Ver entradas</Button>
           </section>
-        ) : purchase && status === "pending" ? (
+        ) : purchase && (status === "pending" || status === "confirmed") ? (
           <section className="text-center">
             <h2 className="text-lg font-semibold mb-2">Pagá con tu banco</h2>
             <p className="text-sm text-muted-foreground mb-6">Escaneá o guardá este QR bancario para pagar {bs(purchase.amount)}.</p>
@@ -135,7 +135,7 @@ export default function GatePurchase() {
             </div>
             <p className="text-sm font-semibold mt-6">Total {bs(purchase.amount)}</p>
             <p className="text-xs text-muted-foreground mt-1">Entradas {bs(purchase.baseAmount)} · procesamiento {bs(purchase.gatewayFee)}</p>
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-8"><Loader2 className="w-4 h-4 animate-spin" />Esperando confirmación del pago...</div>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-8"><Loader2 className="w-4 h-4 animate-spin" />{status === "confirmed" ? "Preparando tus entradas..." : "Esperando confirmación del pago..."}</div>
             <Button variant="outline" onClick={() => void refresh()} className="mt-5 rounded-full">Comprobar pago</Button>
           </section>
         ) : purchase && status !== "pending" ? (
