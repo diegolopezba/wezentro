@@ -6,15 +6,21 @@ import { ChevronLeft, Info, MapPin, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvent } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { QRCodeSVG } from "qrcode.react";
 import { TicketInfoSheet } from "@/components/events/TicketInfoSheet";
+import useEmblaCarousel from "embla-carousel-react";
+import { cn } from "@/lib/utils";
 import mascotAsset from "@/assets/muñeco-negro.png.asset.json";
 
+
+
+const ENTRY_COLUMNS =
+  "id, user_id, guest_name, checked_in_at, qr_code_token, status, payment_status, is_special_guest, special_guest_label, joined_at";
 
 const YouAreGoing = () => {
   const navigate = useNavigate();
@@ -25,47 +31,53 @@ const YouAreGoing = () => {
   const { data: event, isLoading } = useEvent(id);
   const [qrToken, setQrToken] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  // The specific ticket being viewed (or the user's own entry by default)
-  const { data: guestlistEntry } = useQuery({
-    queryKey: ["guestlist-entry", id, user?.id, ticketId],
+  // All the user's entries for this event: their own + extra tickets they
+  // paid for that are still unclaimed (user_id null, purchased by them).
+  const { data: entries } = useQuery({
+    queryKey: ["guestlist-entries", id, user?.id],
     queryFn: async () => {
-      if (!id || !user) return null;
-      const columns =
-        "id, user_id, guest_name, checked_in_at, qr_code_token, status, payment_status, is_special_guest, special_guest_label";
-      if (ticketId) {
-        const { data, error } = await supabase
-          .from("guestlist_entries")
-          .select(columns)
-          .eq("id", ticketId)
-          .maybeSingle();
-        if (error) throw error;
-        if (data) return data;
-      }
+      if (!id || !user) return [];
       const { data, error } = await supabase
         .from("guestlist_entries")
-        .select(columns)
+        .select(ENTRY_COLUMNS)
+        .or(`user_id.eq.${user.id},and(user_id.is.null,purchased_by_user_id.eq.${user.id})`)
         .eq("event_id", id)
-        .eq("user_id", user.id)
-        .maybeSingle();
+        .order("joined_at", { ascending: true });
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
     enabled: !!id && !!user,
   });
 
-  const isUsed = !!guestlistEntry?.checked_in_at;
-  const isOwnTicket = !!guestlistEntry?.user_id && guestlistEntry.user_id === user?.id;
-  const ticketHolderName = isOwnTicket
-    ? profile?.full_name || profile?.username || "Invitado"
-    : guestlistEntry?.guest_name || "";
+  const safeEntries = entries ?? [];
+  const total = safeEntries.length;
 
-  // Check if user can view QR (must be approved and payment confirmed if payment was required)
-  const canViewQr = !isUsed && guestlistEntry?.status === "approved" &&
-    (guestlistEntry?.payment_status === "none" || 
-     guestlistEntry?.payment_status === "confirmed" || 
-     !guestlistEntry?.payment_status);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: false,
+    align: "center",
+    startIndex: activeIndex,
+    watchDrag: total > 1,
+  });
 
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => setActiveIndex(emblaApi.selectedScrollSnap());
+    emblaApi.on("select", onSelect);
+    onSelect();
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi]);
+
+  // Deep-link support: /going/:eventId?ticketId=... opens that specific ticket.
+  useEffect(() => {
+    if (!emblaApi || !ticketId || total === 0) return;
+    const idx = safeEntries.findIndex((t) => t.id === ticketId);
+    if (idx >= 0) emblaApi.scrollTo(idx, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emblaApi, ticketId, total]);
 
   if (isLoading || !event) {
     return (
@@ -92,6 +104,103 @@ const YouAreGoing = () => {
     : isVideoUrl(event.image_url);
 
   const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate("/"));
+
+  const renderEntrySlide = (entry: (typeof safeEntries)[number], i: number) => {
+    const entryIsUsed = !!entry.checked_in_at;
+    const entryIsOwn = !!entry.user_id && entry.user_id === user?.id;
+    const holderName = entryIsOwn
+      ? profile?.full_name || profile?.username || "Invitado"
+      : entry.guest_name || "";
+    const entryCanViewQr =
+      !entryIsUsed &&
+      entry.status === "approved" &&
+      (entry.payment_status === "none" ||
+        entry.payment_status === "confirmed" ||
+        !entry.payment_status);
+
+    return (
+      <div key={entry.id} className="relative flex-[0_0_100%] min-w-0 space-y-3">
+        {/* Box 2 — ticket details */}
+        <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-6 py-7 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#141414]/60 truncate">
+            {event.title}
+          </p>
+          {entry.is_special_guest && (
+            <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[#141414]">
+              Invitado especial
+              {entry.special_guest_label
+                ? ` - ${entry.special_guest_label}`
+                : ""}
+            </p>
+          )}
+          {holderName && (
+            <h1 className="mt-3 font-brand text-3xl font-medium leading-tight">
+              {holderName}
+            </h1>
+          )}
+          {total > 1 && (
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#141414]/50">
+              Entrada {i + 1} de {total}
+            </p>
+          )}
+
+          <p className="mt-3 text-sm font-medium text-[#141414]/70 capitalize">
+            {formattedDate} · {formattedTime}
+          </p>
+          {event.location_name && (
+            <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs text-[#141414]/50">
+              <MapPin className="w-3.5 h-3.5" />
+              <span className="truncate">{event.location_name}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Box 3 — action */}
+        <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-4 py-3">
+          {entryCanViewQr ? (
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <img
+                  src={mascotAsset.url}
+                  alt="Zentro"
+                  className="h-10 w-auto object-contain"
+                />
+                <span className="font-brand text-2xl font-medium tracking-tight text-[#141414]">
+                  zentro
+                </span>
+              </div>
+              <Button
+                onClick={() => setQrToken(entry.qr_code_token ?? null)}
+                size="lg"
+                className="rounded-full font-semibold gap-2 bg-[#141414] text-[#F7F3E7] active:scale-95"
+              >
+                <QrCode className="w-5 h-5" />
+                Mostrar QR
+              </Button>
+            </div>
+          ) : entryIsUsed ? (
+            <p className="text-sm font-semibold text-[#141414]/70 text-center px-2 py-2">
+              Ya fue usado
+            </p>
+          ) : entry.payment_status === "pending" ? (
+            <p className="text-sm text-[#141414]/70 text-center px-2 py-2">
+              Tu pago está siendo verificado por el organizador. Una vez
+              confirmado, podrás ver tu QR de entrada.
+            </p>
+          ) : entry.status === "pending" ? (
+            <p className="text-sm text-[#141414]/70 text-center px-2 py-2">
+              Tu solicitud está pendiente de aprobación. Una vez aprobada,
+              podrás ver tu QR de entrada.
+            </p>
+          ) : (
+            <p className="text-sm text-[#141414]/70 text-center px-2 py-2">
+              Tu entrada aún no está disponible.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <m.div
@@ -149,79 +258,61 @@ const YouAreGoing = () => {
 
         </div>
 
-        {/* Box 2 — ticket details */}
-        <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-6 py-7 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#141414]/60 truncate">
-            {event.title}
-          </p>
-          {guestlistEntry?.is_special_guest && (
-            <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[#141414]">
-              Invitado especial
-              {guestlistEntry?.special_guest_label
-                ? ` - ${guestlistEntry.special_guest_label}`
-                : ""}
-            </p>
-          )}
-          {ticketHolderName && (
-            <h1 className="mt-3 font-brand text-3xl font-medium leading-tight">
-              {ticketHolderName}
-            </h1>
-          )}
-
-          <p className="mt-3 text-sm font-medium text-[#141414]/70 capitalize">
-            {formattedDate} · {formattedTime}
-          </p>
-          {event.location_name && (
-            <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs text-[#141414]/50">
-              <MapPin className="w-3.5 h-3.5" />
-              <span className="truncate">{event.location_name}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Box 3 — action */}
-        <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-4 py-3">
-          {canViewQr ? (
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <img
-                  src={mascotAsset.url}
-                  alt="Zentro"
-                  className="h-10 w-auto object-contain"
-                />
-                <span className="font-brand text-2xl font-medium tracking-tight text-[#141414]">
-                  zentro
-                </span>
+        {/* Boxes 2 & 3 — swipeable carousel when the user has multiple tickets */}
+        {total > 0 ? (
+          <>
+            <div className="overflow-hidden" ref={emblaRef}>
+              <div className="flex">
+                {safeEntries.map((entry, i) => renderEntrySlide(entry, i))}
               </div>
-              <Button
-                onClick={() => setQrToken(guestlistEntry?.qr_code_token ?? null)}
-                size="lg"
-                className="rounded-full font-semibold gap-2 bg-[#141414] text-[#F7F3E7] active:scale-95"
-              >
-                <QrCode className="w-5 h-5" />
-                Mostrar QR
-              </Button>
             </div>
-          ) : isUsed ? (
-            <p className="text-sm font-semibold text-[#141414]/70 text-center px-2 py-2">
-              Ya fue usado
-            </p>
-          ) : guestlistEntry?.payment_status === "pending" ? (
-            <p className="text-sm text-[#141414]/70 text-center px-2 py-2">
-              Tu pago está siendo verificado por el organizador. Una vez
-              confirmado, podrás ver tu QR de entrada.
-            </p>
-          ) : guestlistEntry?.status === "pending" ? (
-            <p className="text-sm text-[#141414]/70 text-center px-2 py-2">
-              Tu solicitud está pendiente de aprobación. Una vez aprobada,
-              podrás ver tu QR de entrada.
-            </p>
-          ) : (
-            <p className="text-sm text-[#141414]/70 text-center px-2 py-2">
-              Tu entrada aún no está disponible.
-            </p>
-          )}
-        </div>
+            {total > 1 && (
+              <div className="flex justify-center gap-1.5" role="tablist" aria-label="Entradas">
+                {safeEntries.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    role="tab"
+                    aria-selected={i === activeIndex}
+                    aria-label={`Entrada ${i + 1}`}
+                    onClick={() => emblaApi?.scrollTo(i)}
+                    className={cn(
+                      "rounded-full transition-all active:scale-90",
+                      i === activeIndex
+                        ? "w-2 h-2 bg-foreground"
+                        : "w-1.5 h-1.5 bg-muted-foreground/40"
+                    )}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {/* Box 2 — event details (no entry yet) */}
+            <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-6 py-7 text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#141414]/60 truncate">
+                {event.title}
+              </p>
+              <p className="mt-3 text-sm font-medium text-[#141414]/70 capitalize">
+                {formattedDate} · {formattedTime}
+              </p>
+              {event.location_name && (
+                <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs text-[#141414]/50">
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span className="truncate">{event.location_name}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Box 3 — action */}
+            <div className="rounded-3xl bg-[#F7F3E7] text-[#141414] px-4 py-3">
+              <p className="text-sm text-[#141414]/70 text-center px-2 py-2">
+                Tu entrada aún no está disponible.
+              </p>
+            </div>
+          </>
+        )}
 
 
 
@@ -234,7 +325,9 @@ const YouAreGoing = () => {
       <Dialog open={!!qrToken} onOpenChange={(o) => !o && setQrToken(null)}>
         <DialogContent className="bg-background text-foreground max-w-xs rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-center">Tu QR de Entrada</DialogTitle>
+            <DialogTitle className="text-center">
+              {total > 1 ? `Tu QR de Entrada · ${activeIndex + 1}/${total}` : "Tu QR de Entrada"}
+            </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center py-6">
             {qrToken ? (
