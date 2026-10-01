@@ -2,7 +2,7 @@
 ## Recorrido Business por las pantallas de Zentro
 - [x] Bienvenida y pasos guiados por Inicio, Crear, Gestión, Perfil y Business.
 - [x] Punteros animados y pestaña de Gestión adaptada al tipo de negocio.
-- [ ] Verificar el recorrido completo con una cuenta Business en teléfono y escritorio.
+- [x] Verificar el recorrido completo con una cuenta Business en teléfono y escritorio.
 
 ## Compra unificada + comisión de gateway (hecho)
 - [x] Hoja única de compra con entradas (tiers) y áreas/lounges a la vez.
