@@ -1,3 +1,7 @@
+## Onboarding con foto y Business sin datos personales
+- [ ] Foto obligatoria en el onboarding personal y Business, con carga y reintento.
+- [ ] Quitar género y fecha de nacimiento para Business también en Editar perfil.
+- [ ] Verificar ambos recorridos y los estados de carga en teléfono y escritorio.
 
 ## Recorrido Business por las pantallas de Zentro
 - [x] Bienvenida y pasos guiados por Inicio, Crear, Gestión, Perfil y Business.
