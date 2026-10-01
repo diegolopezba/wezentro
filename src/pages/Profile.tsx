@@ -35,7 +35,7 @@ const Profile = () => {
     data: timeline,
     isLoading: timelineLoading
   } = useUserTimeline(user?.id);
-  const isBusiness = profile?.is_business === true;
+  const isBusiness = profile?.is_business === true || profile?.account_type === "business";
 
   // Check if user has business info to show
   const hasBusinessInfo = profile?.business_address || profile?.business_hours || profile?.business_phone;

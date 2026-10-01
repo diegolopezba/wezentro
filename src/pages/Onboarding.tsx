@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { m } from "framer-motion";
-import { ArrowRight, User, Check, Lock } from "lucide-react";
+import { ArrowRight, User, Check, Lock, Camera, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
 
 import { takePendingSpecialInvite } from "@/hooks/useSpecialInvites";
 import { hasBusinessIntent, takeBusinessIntent } from "@/lib/businessIntent";
+import { compressImage, blobToFile } from "@/lib/mediaCompression";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 const genderOptions = [
   { value: "male", label: "Masculino" },
@@ -22,13 +24,16 @@ const genderOptions = [
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { user, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const processReferral = useProcessReferral();
   const { isVisible: isKeyboardVisible } = useKeyboardAdjust();
   const [step, setStep] = useState(1);
-  // Business accounts don't need a birth date — the account represents a venue, not a person.
-  const isBusiness = hasBusinessIntent();
+  // Existing Business accounts are also exempt if they return to finish onboarding.
+  const isBusiness = hasBusinessIntent() || profile?.account_type === "business" || profile?.is_business === true;
   const [isLoading, setIsLoading] = useState(false);
+  const [photoStatus, setPhotoStatus] = useState<"idle" | "compressing" | "uploading">("idle");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const [usernameError, setUsernameError] = useState("");
   const [formData, setFormData] = useState({
     username: "",
@@ -81,6 +86,7 @@ const Onboarding = () => {
   };
 
   const handleNextStep = async () => {
+    if (isLoading || photoStatus !== "idle") return;
     try {
       if (step === 1) {
         const validationError = validateUsername(formData.username);
@@ -93,19 +99,52 @@ const Onboarding = () => {
       } else if (step === 2) {
         setStep(3);
       } else if (step === 3) {
+        if (!avatarUrl) { toast.error("Agregá una foto de perfil para continuar."); return; }
+        if (isBusiness) await handleComplete();
+        else setStep(4);
+      } else if (step === 4) {
         if (!formData.gender) { toast.error("Selecciona tu género."); return; }
-        if (!isBusiness) {
-          const birthDate = buildBirthDate();
-          if (!birthDate) { toast.error("Por favor ingresa tu fecha de nacimiento completa."); return; }
-          const age = getAge(birthDate);
-          if (age < 18) { toast.error("Debes tener al menos 18 años para usar Zentro."); return; }
-        }
+        const birthDate = buildBirthDate();
+        if (!birthDate) { toast.error("Por favor ingresa tu fecha de nacimiento completa."); return; }
+        const age = getAge(birthDate);
+        if (age < 18) { toast.error("Debes tener al menos 18 años para usar Zentro."); return; }
         await handleComplete();
       }
     } catch (e) {
       console.error("[Onboarding] step transition failed:", e);
       setIsLoading(false);
       toast.error("No pudimos continuar. Intenta de nuevo.");
+    }
+  };
+
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !user || photoStatus !== "idle") return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Seleccioná un archivo de imagen.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("La imagen debe ser menor a 10 MB.");
+      return;
+    }
+    setPhotoStatus("compressing");
+    try {
+      const result = await compressImage(file, 512, 0.85);
+      const optimized = blobToFile(result.blob, file.name);
+      setPhotoStatus("uploading");
+      const extension = optimized.name.split(".").pop();
+      const path = `${user.id}/avatar.${extension}`;
+      const { error } = await supabase.storage.from("event-images").upload(path, optimized, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from("event-images").getPublicUrl(path);
+      setAvatarUrl(`${data.publicUrl}?t=${Date.now()}`);
+    } catch (error) {
+      console.error("[Onboarding] Photo upload failed:", error);
+      toast.error("No pudimos subir tu foto. Intentá nuevamente.");
+    } finally {
+      setPhotoStatus("idle");
     }
   };
 
@@ -132,7 +171,7 @@ const Onboarding = () => {
     if (!user || isLoading) return;
 
     const birthDate = buildBirthDate();
-    if (!formData.gender || (!isBusiness && !birthDate)) {
+    if (!avatarUrl || (!isBusiness && (!formData.gender || !birthDate))) {
       toast.error("Faltan datos del paso anterior.");
       return;
     }
@@ -142,8 +181,8 @@ const Onboarding = () => {
       const updatePayload: any = {
         username: formData.username.toLowerCase(),
         full_name: formData.fullName || null,
-        gender: formData.gender,
-        birth_date: isBusiness ? null : birthDate,
+        avatar_url: avatarUrl,
+        ...(!isBusiness && { gender: formData.gender, birth_date: birthDate }),
         // Business accounts skip DOB, so they must be flagged as business here —
         // otherwise ProtectedRoute treats the profile as incomplete and blocks
         // them from ever reaching /business/setup.
@@ -192,7 +231,7 @@ const Onboarding = () => {
       const pendingInvite = takePendingSpecialInvite();
       if (pendingInvite) {
         navigate(`/i/${pendingInvite}`);
-      } else if (takeBusinessIntent()) {
+       } else if (takeBusinessIntent() || isBusiness) {
         navigate("/business/setup", { replace: true });
       } else {
         navigate("/");
@@ -210,8 +249,8 @@ const Onboarding = () => {
       {/* Progress bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-secondary z-20">
         <m.div
-          className="h-full bg-foreground" initial={{ width: "33%" }}
-          animate={{ width: `${(step / 3) * 100}%` }}
+          className="h-full bg-foreground" initial={{ width: "25%" }}
+          animate={{ width: `${(step / (isBusiness ? 3 : 4)) * 100}%` }}
           transition={{ duration: 0.3 }}
         />
       </div>
@@ -230,12 +269,14 @@ const Onboarding = () => {
         <h1 className="font-brand text-2xl font-medium text-foreground mb-1">
           {step === 1 && "Elige tu nombre de usuario"}
           {step === 2 && "Cuéntanos sobre ti"}
-          {step === 3 && "Un poco más sobre ti"}
+          {step === 3 && "Tu foto de perfil"}
+          {step === 4 && "Un poco más sobre ti"}
         </h1>
         <p className="text-muted-foreground text-sm">
           {step === 1 && "Así te encontrarán los demás"}
           {step === 2 && "Ayúdanos a personalizar tu experiencia"}
-          {step === 3 && "Esta info es privada y mejora tus recomendaciones"}
+          {step === 3 && "Agregá tu foto de perfil para que la gente pueda encontrarte"}
+          {step === 4 && "Esta info es privada y mejora tus recomendaciones"}
         </p>
       </m.div>
 
@@ -264,7 +305,7 @@ const Onboarding = () => {
                 disabled={isLoading || !formData.username || !!usernameError}
               >
                 {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>Continuar <ArrowRight className="w-5 h-5 ml-2" /></>
                 )}
@@ -294,8 +335,28 @@ const Onboarding = () => {
             </m.div>
           )}
 
-          {/* Step 3: Gender + birth date */}
+           {/* Step 3: Required profile photo */}
           {step === 3 && (
+             <m.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col items-center gap-6">
+               <input ref={photoInputRef} type="file" accept="image/*" className="hidden" aria-label="Foto de perfil" onChange={handlePhotoChange} />
+               <div className="relative">
+                 <img src={avatarUrl || DEFAULT_AVATAR} alt="Vista previa de tu foto de perfil" className="w-36 h-36 rounded-full object-cover border-2 border-primary bg-secondary" />
+                 {photoStatus !== "idle" && <div className="absolute inset-0 rounded-full bg-background/70 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
+               </div>
+               <Button variant="secondary" className="w-full" onClick={() => photoInputRef.current?.click()} disabled={photoStatus !== "idle" || isLoading}>
+                 {photoStatus === "idle" ? <><Camera className="w-5 h-5 mr-2" />{avatarUrl ? "Cambiar foto" : "Elegir foto"}</> : <><Loader2 className="w-5 h-5 mr-2 animate-spin" />{photoStatus === "compressing" ? "Preparando foto..." : "Subiendo foto..."}</>}
+               </Button>
+               <div className="flex gap-3 w-full">
+                 <Button variant="secondary" className="flex-1" onClick={() => setStep(2)} disabled={photoStatus !== "idle" || isLoading}>Atrás</Button>
+                 <Button variant="sheet-action" className="flex-1" onClick={handleNextStep} disabled={!avatarUrl || photoStatus !== "idle" || isLoading}>
+                   {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{isBusiness ? "¡Vamos!" : "Continuar"} <ArrowRight className="w-5 h-5 ml-2" /></>}
+                 </Button>
+               </div>
+             </m.div>
+           )}
+
+           {/* Step 4: Personal accounts only */}
+           {!isBusiness && step === 4 && (
             <m.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
 
               {/* Gender */}
@@ -303,22 +364,21 @@ const Onboarding = () => {
                 <label className="text-sm font-medium text-foreground mb-3 block">Género</label>
                 <div className="grid grid-cols-2 gap-2">
                   {genderOptions.map((opt) => (
-                    <button
+                     <Button
                       key={opt.value}
-                      type="button" onClick={() => setFormData({ ...formData, gender: opt.value })}
+                       type="button" variant="secondary" onClick={() => setFormData({ ...formData, gender: opt.value })}
                       className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                         formData.gender === opt.value
-                          ? "gradient-red text-accent-red-foreground" : "bg-secondary text-muted-foreground " }`}
+                          ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground " }`}
                     >
                       {formData.gender === opt.value && <Check className="w-4 h-4 shrink-0" />}
                       {opt.label}
-                    </button>
+                     </Button>
                   ))}
                 </div>
               </div>
 
-              {/* Birth date — not required for business accounts */}
-              {!isBusiness && (
+               {/* Birth date */}
                 <div>
                   <label className="text-sm font-medium text-foreground mb-3 block">Fecha de nacimiento</label>
                   <div className="flex gap-2">
@@ -348,23 +408,20 @@ const Onboarding = () => {
                     </div>
                   </div>
                 </div>
-              )}
 
               {/* Privacy note */}
               <div className="flex items-start gap-2 rounded-xl bg-secondary/60 px-3 py-2.5">
                 <Lock className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
                 <p className="text-muted-foreground text-xs">
-                  {isBusiness
-                    ? "Tu género nunca se muestra públicamente. Solo se usa para personalizar tu experiencia."
-                    : "Tu género y edad nunca se muestran públicamente. Solo se usan para personalizar tu experiencia."}
+                   Tu género y edad nunca se muestran públicamente. Solo se usan para personalizar tu experiencia.
                 </p>
               </div>
 
               <div className="flex gap-3">
-                <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>Atrás</Button>
-                <Button variant="sheet-action" className="flex-1" onClick={handleNextStep} disabled={isLoading || !formData.gender || (!isBusiness && (!formData.birthDay || !formData.birthMonth || !formData.birthYear))}>
+                 <Button variant="secondary" className="flex-1" onClick={() => setStep(3)} disabled={isLoading}>Atrás</Button>
+                 <Button variant="sheet-action" className="flex-1" onClick={handleNextStep} disabled={isLoading || !formData.gender || !formData.birthDay || !formData.birthMonth || !formData.birthYear}>
                   {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>¡Vamos! <ArrowRight className="w-5 h-5 ml-2" /></>
                   )}
