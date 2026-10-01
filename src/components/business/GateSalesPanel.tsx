@@ -12,7 +12,7 @@ export function GateSalesPanel({ eventId, eventTitle }: { eventId: string; event
   const [name, setName] = useState("General");
   const [price, setPrice] = useState("");
   const [saving, setSaving] = useState(false);
-  const url = `${window.location.origin}/gate/${eventId}`;
+  const url = `https://zentro.today/gate/${eventId}`;
   const key = ["gate-offers", eventId];
   const { data: offers = [], isLoading } = useQuery({
     queryKey: key,
@@ -56,8 +56,8 @@ export function GateSalesPanel({ eventId, eventTitle }: { eventId: string; event
       <Button variant="ghost" size="icon" aria-label={`Eliminar ${offer.name}`} onClick={async () => { if (!window.confirm(`¿Eliminar ${offer.name}?`)) return; const { error } = await supabase.from("gate_offers").delete().eq("id", offer.id).eq("event_id", eventId); if (error) toast.error("No se pudo eliminar"); else refresh(); }}><Trash2 className="w-4 h-4" /></Button>
     </div>)}
     <div className="flex gap-2"><Input placeholder="Tipo de entrada" maxLength={80} value={name} onChange={e => setName(e.target.value)} /><Input className="w-28" aria-label="Nuevo precio" type="number" min="0.01" step="0.01" placeholder="Bs." value={price} onChange={e => setPrice(e.target.value)} /><Button onClick={add} disabled={saving} size="icon" aria-label="Agregar precio"><Plus className="w-4 h-4" /></Button></div>
-    <div className="border border-border rounded-xl p-5 text-center bg-white text-black print:border-0" id="gate-poster">
-      <div className="text-lg font-bold">zentro<span className="text-red-600">.</span></div>
+    <div className="light-surface border border-border rounded-md p-5 text-center bg-background text-foreground print:border-0" id="gate-poster">
+      <div className="text-lg font-bold">zentro<span className="text-brand-red">.</span></div>
       <h3 className="text-xl font-bold mt-3">{eventTitle}</h3>
       <p className="text-sm my-3">Escaneá con tu cámara para comprar tu entrada</p>
       <QRCodeSVG value={url} size={208} className="mx-auto" />
