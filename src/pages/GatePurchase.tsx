@@ -122,7 +122,7 @@ export default function GatePurchase() {
     <main className="light-surface min-h-[100dvh] bg-background text-foreground pb-12">
       <div className="mx-auto max-w-md px-5 pt-8">
         <div className="flex items-center justify-between mb-8">
-          <span className="font-brand font-semibold text-xl">zentro<span className="text-brand-red">.</span></span>
+          <span className="font-brand font-semibold text-xl">zentro<span className="text-brand-red"></span></span>
           <span className="text-xs font-medium text-muted-foreground uppercase">Boletería en puerta</span>
         </div>
         {catalog?.event.imageUrl && <img src={catalog.event.imageUrl} alt="" className="w-full aspect-[16/8] object-cover rounded-md mb-6" />}
