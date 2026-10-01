@@ -148,31 +148,31 @@ const EditProfile = () => {
           setIsLoading(false);
           return;
         }
-      const year = parseInt(formData.birth_year);
-      const month = parseInt(formData.birth_month);
-      const day = parseInt(formData.birth_day);
-      const currentYear = new Date().getFullYear();
-      if (
-        isNaN(year) || isNaN(month) || isNaN(day) ||
-        year < 1900 || year > currentYear ||
-        month < 1 || month > 12 ||
-        day < 1 || day > 31
-      ) {
-        toast.error("Fecha de nacimiento inválida");
-        setIsLoading(false);
-        return;
-      }
-      const birthDate = `${formData.birth_year}-${formData.birth_month.padStart(2, "0")}-${formData.birth_day.padStart(2, "0")}`;
-      const birthObj = new Date(birthDate);
-      const today = new Date();
-      let age = today.getFullYear() - birthObj.getFullYear();
-      const mDiff = today.getMonth() - birthObj.getMonth();
-      if (mDiff < 0 || (mDiff === 0 && today.getDate() < birthObj.getDate())) age--;
-      if (age < 18) {
-        toast.error("Debes tener al menos 18 años para usar Zentro");
-        setIsLoading(false);
-        return;
-      }
+        const year = parseInt(formData.birth_year);
+        const month = parseInt(formData.birth_month);
+        const day = parseInt(formData.birth_day);
+        const currentYear = new Date().getFullYear();
+        if (
+          isNaN(year) || isNaN(month) || isNaN(day) ||
+          year < 1900 || year > currentYear ||
+          month < 1 || month > 12 ||
+          day < 1 || day > 31
+        ) {
+          toast.error("Fecha de nacimiento inválida");
+          setIsLoading(false);
+          return;
+        }
+        const birthDate = `${formData.birth_year}-${formData.birth_month.padStart(2, "0")}-${formData.birth_day.padStart(2, "0")}`;
+        const birthObj = new Date(birthDate);
+        const today = new Date();
+        let age = today.getFullYear() - birthObj.getFullYear();
+        const mDiff = today.getMonth() - birthObj.getMonth();
+        if (mDiff < 0 || (mDiff === 0 && today.getDate() < birthObj.getDate())) age--;
+        if (age < 18) {
+          toast.error("Debes tener al menos 18 años para usar Zentro");
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Build update object
