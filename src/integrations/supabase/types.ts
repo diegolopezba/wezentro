@@ -5262,6 +5262,13 @@ export type Database = {
           title: string
         }[]
       }
+      get_gate_sales_summary: {
+        Args: { _event_id: string }
+        Returns: {
+          revenue: number
+          tickets: number
+        }[]
+      }
       get_mutual_followers: {
         Args: { _user_id: string }
         Returns: {

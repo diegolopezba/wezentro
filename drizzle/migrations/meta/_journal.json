@@ -309,6 +309,13 @@
       "when": 1790869401452,
       "tag": "0043_allow_anonymous_gate_ticket_entries",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1790869446002,
+      "tag": "0044_gate_sales_owner_summary",
+      "breakpoints": true
     }
   ]
 }
