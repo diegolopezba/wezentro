@@ -302,6 +302,13 @@
       "when": 1790869283730,
       "tag": "0042_skip_guestlist_notifications_for_anonymous_gate_tickets",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1790869401452,
+      "tag": "0043_allow_anonymous_gate_ticket_entries",
+      "breakpoints": true
     }
   ]
 }
