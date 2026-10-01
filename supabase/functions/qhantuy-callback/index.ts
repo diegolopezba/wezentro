@@ -13,7 +13,12 @@ async function issueGateTickets(supabase: any, session: any, now: string) {
       payment_session_id: session.id,
       gate_ticket_index: index,
     });
-    if (error && error.code !== "23505") throw new Error(`Gate ticket ${index} failed: ${error.message}`);
+    if (error?.code === "23505") {
+      const { data: existing } = await supabase.from("guestlist_entries").select("id")
+        .eq("payment_session_id", session.id).eq("gate_ticket_index", index).maybeSingle();
+      if (existing) continue;
+    }
+    if (error) throw new Error(`Gate ticket ${index} failed: ${error.message}`);
   }
 }
 
@@ -136,7 +141,7 @@ Deno.serve(async (req) => {
 
     const now = new Date().toISOString();
 
-    await supabase
+    const { error: confirmationError } = await supabase
       .from("payment_sessions")
       .update({
         status: "confirmed",
@@ -144,6 +149,7 @@ Deno.serve(async (req) => {
         qhantuy_raw_callback: params,
       })
       .eq("id", session.id);
+    if (confirmationError) throw confirmationError;
 
     if (session.is_gate_sale) {
       await issueGateTickets(supabase, session, now);
