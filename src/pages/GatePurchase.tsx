@@ -1,0 +1,160 @@
+import { useCallback, useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import { ArrowLeft, CheckCircle2, Minus, Plus, Ticket, Loader2 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+import { Button } from "@/components/ui/button";
+
+type Offer = { id: string; name: string; price: number };
+type Catalog = { event: { title: string; imageUrl: string | null; startAt: string | null }; offers: Offer[]; closed: boolean };
+type TicketResult = { token: string; used: boolean; index: number };
+type Purchase = { sessionId: string; accessToken: string; qrImageUrl: string; amount: number; baseAmount: number; gatewayFee: number; eventId: string };
+const storageKey = (id: string) => `zentro:gate-purchase:${id}`;
+const bs = (value: number) => `Bs. ${value.toFixed(2)}`;
+
+async function gateRequest<T>(body: Record<string, unknown>): Promise<T> {
+  const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gate-checkout`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "No se pudo conectar");
+  return data as T;
+}
+
+export default function GatePurchase() {
+  const { eventId } = useParams<{ eventId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [offerId, setOfferId] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [purchase, setPurchase] = useState<Purchase | null>(null);
+  const [status, setStatus] = useState("pending");
+  const [tickets, setTickets] = useState<TicketResult[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const showingTickets = searchParams.get("view") === "tickets";
+
+  useEffect(() => {
+    if (!eventId) return;
+    gateRequest<Catalog>({ action: "catalog", eventId }).then((data) => {
+      setCatalog(data);
+      setOfferId(data.offers[0]?.id || "");
+    }).catch((e) => setError(e.message));
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey(eventId)) || "null") as Purchase | null;
+      if (saved?.eventId === eventId && saved.sessionId && saved.accessToken) setPurchase(saved);
+    } catch { /* malformed prior session */ }
+  }, [eventId]);
+
+  const refresh = useCallback(async () => {
+    if (!eventId || !purchase) return;
+    try {
+      const result = await gateRequest<{ status: string; tickets?: TicketResult[] }>({
+        action: "status", eventId, sessionId: purchase.sessionId, accessToken: purchase.accessToken,
+      });
+      setStatus(result.status);
+      if (result.tickets) setTickets(result.tickets);
+    } catch (e) { setError(e instanceof Error ? e.message : "No se pudo consultar el pago"); }
+  }, [eventId, purchase]);
+
+  useEffect(() => {
+    if (!purchase) return;
+    void refresh();
+    const timer = window.setInterval(refresh, 2500);
+    return () => window.clearInterval(timer);
+  }, [purchase, refresh]);
+
+  const create = async () => {
+    if (!eventId || !offerId || busy) return;
+    setBusy(true); setError("");
+    try {
+      const result = await gateRequest<Omit<Purchase, "eventId">>({ action: "create", eventId, offerId, quantity });
+      const next = { ...result, eventId };
+      localStorage.setItem(storageKey(eventId), JSON.stringify(next));
+      setPurchase(next); setStatus("pending"); setTickets([]);
+    } catch (e) { setError(e instanceof Error ? e.message : "No se pudo generar el pago"); }
+    finally { setBusy(false); }
+  };
+  const reset = () => {
+    if (eventId) localStorage.removeItem(storageKey(eventId));
+    setPurchase(null); setTickets([]); setStatus("pending"); setSearchParams({}); setError("");
+  };
+  const selected = catalog?.offers.find(o => o.id === offerId);
+  const total = selected ? selected.price * quantity : 0;
+  const confirmed = status === "confirmed" && tickets.length > 0;
+
+  return (
+    <main className="light-surface min-h-[100dvh] bg-background text-foreground pb-12">
+      <div className="mx-auto max-w-md px-5 pt-8">
+        <div className="flex items-center justify-between mb-8">
+          <span className="font-brand font-semibold text-xl">zentro<span className="text-brand-red">.</span></span>
+          <span className="text-xs font-medium text-muted-foreground uppercase">Boletería en puerta</span>
+        </div>
+        {catalog?.event.imageUrl && <img src={catalog.event.imageUrl} alt="" className="w-full aspect-[16/8] object-cover rounded-md mb-6" />}
+        <h1 className="font-brand text-2xl leading-tight mb-2">{catalog?.event.title || "Entradas en puerta"}</h1>
+        {catalog?.event.startAt && <p className="text-sm text-muted-foreground mb-8">{new Date(catalog.event.startAt).toLocaleString("es-BO", { dateStyle: "long", timeStyle: "short" })}</p>}
+
+        {confirmed && showingTickets ? (
+          <section aria-label="Tus entradas">
+            <Button variant="ghost" onClick={() => setSearchParams({})} className="mb-5 -ml-3"><ArrowLeft className="h-4 w-4 mr-2" />Volver</Button>
+            <h2 className="text-xl font-semibold mb-2">Tus entradas</h2>
+            <p className="text-sm text-muted-foreground mb-7">Mostrá cada QR al personal de la puerta.</p>
+            <div className="space-y-8">
+              {tickets.map((ticket) => <div key={ticket.index} className={`border-t border-border pt-6 text-center ${ticket.used ? "opacity-40 grayscale" : ""}`}>
+                <div className="flex justify-between items-center mb-5"><strong>Entrada {ticket.index} de {tickets.length}</strong><span className="text-sm text-muted-foreground">{ticket.used ? "Ya fue usada" : "Válida"}</span></div>
+                {ticket.token && <QRCodeSVG value={ticket.token} size={220} className="mx-auto max-w-full" />}
+                <p className="text-xs text-muted-foreground mt-4">{catalog?.event.title}</p>
+              </div>)}
+            </div>
+          </section>
+        ) : confirmed ? (
+          <section className="pt-8 text-center">
+            <CheckCircle2 className="h-14 w-14 text-brand-red mx-auto mb-6" />
+            <h2 className="text-2xl font-semibold">Pago confirmado</h2>
+            <p className="text-muted-foreground my-4">{tickets.length} {tickets.length === 1 ? "entrada lista" : "entradas listas"} para ingresar.</p>
+            <Button onClick={() => setSearchParams({ view: "tickets" })} className="w-full rounded-full h-12 mt-6">Ver entradas</Button>
+          </section>
+        ) : purchase && status === "pending" ? (
+          <section className="text-center">
+            <h2 className="text-lg font-semibold mb-2">Pagá con tu banco</h2>
+            <p className="text-sm text-muted-foreground mb-6">Escaneá o guardá este QR bancario para pagar {bs(purchase.amount)}.</p>
+            <div className="bg-card border border-border p-5 inline-block rounded-md">
+              <img src={purchase.qrImageUrl} alt="QR bancario de pago" className="w-60 h-60 object-contain" />
+            </div>
+            <p className="text-sm font-semibold mt-6">Total {bs(purchase.amount)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Entradas {bs(purchase.baseAmount)} · procesamiento {bs(purchase.gatewayFee)}</p>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-8"><Loader2 className="w-4 h-4 animate-spin" />Esperando confirmación del pago...</div>
+            <Button variant="outline" onClick={() => void refresh()} className="mt-5 rounded-full">Comprobar pago</Button>
+          </section>
+        ) : purchase && status !== "pending" ? (
+          <section className="text-center pt-10"><h2 className="text-xl font-semibold">El pago no se completó</h2><Button className="mt-6 rounded-full" onClick={reset}>Intentar de nuevo</Button></section>
+        ) : catalog ? (
+          <section>
+            {catalog.closed || !catalog.offers.length ? <p className="text-muted-foreground">La venta en puerta no está disponible.</p> : <>
+              <h2 className="font-semibold mb-3">Elegí tu entrada</h2>
+              <div className="space-y-2 mb-8">{catalog.offers.map(offer =>
+                <Button key={offer.id} variant="outline" onClick={() => setOfferId(offer.id)} aria-pressed={offerId === offer.id}
+                  className={`w-full h-auto min-h-16 rounded-md justify-between text-left px-4 border ${offerId === offer.id ? "border-primary bg-secondary" : "border-border"}`}>
+                  <span className="font-medium truncate mr-2">{offer.name}</span><strong>{bs(offer.price)}</strong>
+                </Button>)}</div>
+              <h2 className="font-semibold mb-3">Cantidad</h2>
+              <div className="flex items-center justify-between border-y border-border py-3 mb-8">
+                <span className="text-sm text-muted-foreground">Hasta 10 entradas</span>
+                <div className="flex items-center gap-4">
+                  <Button variant="outline" size="icon" className="rounded-full" aria-label="Quitar entrada" disabled={quantity <= 1} onClick={() => setQuantity(q => q - 1)}><Minus className="w-4 h-4" /></Button>
+                  <span className="font-semibold w-5 text-center">{quantity}</span>
+                  <Button variant="outline" size="icon" className="rounded-full" aria-label="Agregar entrada" disabled={quantity >= 10} onClick={() => setQuantity(q => q + 1)}><Plus className="w-4 h-4" /></Button>
+                </div>
+              </div>
+              <div className="flex justify-between items-center mb-5"><span>Total de entradas</span><strong className="text-xl">{bs(total)}</strong></div>
+              <p className="text-xs text-muted-foreground mb-5">Se añadirá la comisión de procesamiento del banco al generar el QR.</p>
+              <Button onClick={create} disabled={busy} className="w-full rounded-full h-12 gap-2">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ticket className="w-4 h-4" />} Pagar con QR</Button>
+            </>}
+          </section>
+        ) : !error ? <div className="flex justify-center pt-16"><Loader2 className="animate-spin" /></div> : null}
+        {error && <p role="alert" className="text-destructive text-sm text-center mt-5">{error}</p>}
+      </div>
+    </main>
+  );
+}
