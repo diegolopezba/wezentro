@@ -87,7 +87,7 @@ export const BusinessHomeTour = () => {
   useLayoutEffect(() => {
     if (phase !== "tour" || location.pathname !== current?.path.split("?")[0]) return;
     const target = findTarget(current.target);
-    if (target && current.target !== "home-feed") target.scrollIntoView({ block: "nearest", behavior: "instant" });
+    if (target && current.target !== "home-feed" && target.getBoundingClientRect().top > window.innerHeight - 80) target.scrollIntoView({ block: "center", behavior: "instant" });
     measure();
     const timer = window.setInterval(measure, 250);
     window.addEventListener("resize", measure);

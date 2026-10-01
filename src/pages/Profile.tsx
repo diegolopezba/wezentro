@@ -86,7 +86,7 @@ const Profile = () => {
       </header>
 
       {/* Profile info */}
-      <div className="px-4 py-[10px] bg-background">
+      <div data-tour="profile-posts" className="px-4 py-[10px] bg-background">
         <m.div initial={{
         opacity: 0,
         y: 20
@@ -167,7 +167,6 @@ const Profile = () => {
 
 
       {/* Timeline Content */}
-      <div data-tour="profile-posts" className="h-px" />
       <div className="py-4">
         <div className="masonry-grid">
           {timelineLoading ? <div className="col-span-2 flex justify-center py-8">

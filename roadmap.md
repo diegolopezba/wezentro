@@ -1,4 +1,9 @@
 
+## Recorrido Business por las pantallas de Zentro
+- [x] Bienvenida y pasos guiados por Inicio, Crear, Gestión, Perfil y Business.
+- [x] Punteros animados y pestaña de Gestión adaptada al tipo de negocio.
+- [ ] Verificar el recorrido completo con una cuenta Business en teléfono y escritorio.
+
 ## Compra unificada + comisión de gateway (hecho)
 - [x] Hoja única de compra con entradas (tiers) y áreas/lounges a la vez.
 - [x] Comisión de Qhantuy (1%) cobrada al comprador; solo el 94% del organizador usa `custom_payouts` y el 6% de Zentro permanece en el saldo del comercio.
