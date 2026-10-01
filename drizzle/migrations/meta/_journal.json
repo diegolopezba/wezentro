@@ -330,6 +330,13 @@
       "when": 1790869678619,
       "tag": "0046_authenticate_gate_payment_callbacks",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1790875626462,
+      "tag": "0047_snapshot_gate_ticket_offer_name",
+      "breakpoints": true
     }
   ]
 }

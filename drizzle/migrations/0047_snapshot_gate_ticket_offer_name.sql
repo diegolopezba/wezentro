@@ -1,0 +1,2 @@
+ALTER TABLE public.payment_sessions ADD COLUMN gate_offer_name text;
+COMMENT ON COLUMN public.payment_sessions.gate_offer_name IS 'Ticket label captured when an anonymous gate purchase begins, independent of subsequent offer edits.';
