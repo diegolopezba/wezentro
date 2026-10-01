@@ -20,8 +20,8 @@ Deno.serve(async (req) => {
     const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !key) return json({ error: "Servicio no disponible" }, 503);
     const db = createClient(url, key);
-    const { data: event } = await db.from("events").select("id, title, image_url, start_datetime, end_datetime, creator_id, is_post").eq("id", body.eventId).maybeSingle();
-    if (!event || event.is_post) return json({ error: "Evento no disponible" }, 404);
+    const { data: event } = await db.from("events").select("id, title, image_url, start_datetime, end_datetime, creator_id, is_post, deleted_at").eq("id", body.eventId).maybeSingle();
+    if (!event || event.is_post || event.deleted_at) return json({ error: "Evento no disponible" }, 404);
 
     if (body.action === "status") {
       const { data: session } = await db.from("payment_sessions")
@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     const { data: offers, error: offersErr } = await db.from("gate_offers")
       .select("id, name, price").eq("event_id", body.eventId).eq("is_active", true).order("created_at");
     if (offersErr) return json({ error: "No se pudieron cargar las entradas" }, 503);
-    const isOpen = !event.end_datetime || new Date(event.end_datetime).getTime() > Date.now();
+    const isOpen = !!event.end_datetime && new Date(event.end_datetime).getTime() > Date.now();
     if (body.action === "catalog") {
       return json({ event: { title: event.title, imageUrl: event.image_url, startAt: event.start_datetime }, offers: isOpen ? offers : [], closed: !isOpen });
     }
@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         ...checkoutMethodFields("qr"), currency_code: "BOB", internal_code: session.id,
         callback_url: callbackUrl, detail: `${event.title} — ${offer.name} x${body.quantity}`.slice(0, 120),
-        items: [{ name: offer.name.slice(0, 100), quantity: body.quantity, price: Number(offer.price) },
+        items: [{ name: `${event.title} — ${offer.name}`.slice(0, 100), quantity: body.quantity, price: Number(offer.price) },
           ...(charge.gatewayFee > 0 ? [{ name: "Comisión de procesamiento", quantity: 1, price: charge.gatewayFee }] : [])],
         custom_payouts: organizerPayouts(beneficiary.beneficiary_code, charge.payoutAmount),
       }),
@@ -80,7 +80,11 @@ Deno.serve(async (req) => {
       await db.from("payment_sessions").update({ status: "failed" }).eq("id", session.id);
       return json({ error: "No se pudo generar el QR bancario. Intentá de nuevo." }, 502);
     }
-    await db.from("payment_sessions").update({ qhantuy_transaction_id: response.transactionId }).eq("id", session.id);
+    const { error: updateError } = await db.from("payment_sessions").update({ qhantuy_transaction_id: response.transactionId }).eq("id", session.id);
+    if (updateError) {
+      console.error("gate checkout transaction save failed", session.id, updateError);
+      return json({ error: "No se pudo confirmar el inicio del pago" }, 503);
+    }
     return json({ sessionId: session.id, accessToken, qrImageUrl: response.qrImageUrl,
       amount: charge.totalAmount, baseAmount: base, gatewayFee: charge.gatewayFee });
   } catch (error) {
