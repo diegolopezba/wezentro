@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
 
     if (body.action === "status") {
       const { data: session } = await db.from("payment_sessions")
-        .select("id, status, amount, quantity, gate_offer_id, is_gate_sale")
+        .select("id, status, amount, quantity, gate_offer_id, gate_offer_name, is_gate_sale")
         .eq("id", body.sessionId).eq("event_id", body.eventId)
         .eq("gate_access_token", body.accessToken).eq("is_gate_sale", true).maybeSingle();
       if (!session) return json({ error: "Compra no encontrada" }, 404);
@@ -36,10 +36,16 @@ Deno.serve(async (req) => {
         return json({ status: session.status });
       }
       if (session.status !== "confirmed") return json({ status: session.status });
-      const { data: tickets } = await db.from("guestlist_entries")
+      const { data: tickets, error: ticketsError } = await db.from("guestlist_entries")
         .select("id, qr_code_token, checked_in_at, gate_ticket_index")
         .eq("payment_session_id", session.id).order("gate_ticket_index", { ascending: true });
-      return json({ status: session.status, eventTitle: event.title, tickets: (tickets ?? []).map(t => ({ token: t.qr_code_token, used: !!t.checked_in_at, index: t.gate_ticket_index })) });
+      if (ticketsError) return json({ error: "No se pudieron cargar las entradas" }, 503);
+      let offerName = session.gate_offer_name;
+      if (!offerName && session.gate_offer_id) {
+        const { data: offer } = await db.from("gate_offers").select("name").eq("id", session.gate_offer_id).maybeSingle();
+        offerName = offer?.name;
+      }
+      return json({ status: session.status, eventTitle: event.title, tickets: (tickets ?? []).map(t => ({ token: t.qr_code_token, used: !!t.checked_in_at, index: t.gate_ticket_index, name: offerName || "Entrada" })) });
     }
 
     const { data: offers, error: offersErr } = await db.from("gate_offers")
@@ -63,7 +69,7 @@ Deno.serve(async (req) => {
     const callbackToken = crypto.randomUUID();
     const { data: session, error: insertError } = await db.from("payment_sessions").insert({
       event_id: event.id, business_user_id: event.creator_id, buyer_user_id: null,
-      is_gate_sale: true, gate_offer_id: offer.id, gate_access_token: accessToken, gate_callback_token: callbackToken,
+       is_gate_sale: true, gate_offer_id: offer.id, gate_offer_name: offer.name, gate_access_token: accessToken, gate_callback_token: callbackToken,
       amount: charge.totalAmount, base_amount: base, gateway_fee_amount: charge.gatewayFee,
       quantity: body.quantity, status: "pending", provider: "qhantuy", payment_method: "qr",
       beneficiary_code: beneficiary.beneficiary_code, platform_fee_bps: charge.bps,
