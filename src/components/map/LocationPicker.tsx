@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { MapPin, Search, Loader2 } from 'lucide-react';
+import { MapPin, Search, Loader2, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useMapboxToken } from '@/hooks/useMapboxToken';
 
@@ -20,9 +20,20 @@ interface LocationPickerProps {
 
 interface SearchResult {
   id: string;
+  text?: string;
   place_name: string;
+  place_type?: string[];
   center: [number, number];
 }
+
+// Secondary line: the place_name minus the leading venue/street name
+const secondaryText = (r: SearchResult) => {
+  if (!r.text) return '';
+  const rest = r.place_name.startsWith(r.text) ? r.place_name.slice(r.text.length) : r.place_name;
+  return rest.replace(/^,\s*/, '');
+};
+
+const DEFAULT_PROXIMITY: [number, number] = [-63.1812, -17.7834]; // Santa Cruz, BO
 
 export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
   const { token, isLoading: tokenLoading } = useMapboxToken();
@@ -31,11 +42,14 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [showMap, setShowMap] = useState(false);
-  
+
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const proximity = useRef<[number, number]>(DEFAULT_PROXIMITY);
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
   // Initialize map when location is selected
   useEffect(() => {
@@ -59,29 +73,15 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
       .setLngLat([value.longitude, value.latitude])
       .addTo(map.current);
 
-    // Update coordinates when marker is dragged
-    marker.current.on('dragend', async () => {
+    // Dragging only adjusts coordinates — the venue name stays as chosen
+    marker.current.on('dragend', () => {
       const lngLat = marker.current?.getLngLat();
       if (lngLat) {
-        // Reverse geocode to get address
-        try {
-          const response = await fetch( `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${token}` );
-          const data = await response.json();
-          const placeName = data.features?.[0]?.place_name || value.address;
-          
-          onChange({
-            address: placeName,
-            latitude: lngLat.lat,
-            longitude: lngLat.lng,
-          });
-          setSearchQuery(placeName);
-        } catch (error) {
-          onChange({
-            ...value,
-            latitude: lngLat.lat,
-            longitude: lngLat.lng,
-          });
-        }
+        onChange({
+          address: valueRef.current.address,
+          latitude: lngLat.lat,
+          longitude: lngLat.lng,
+        });
       }
     });
 
@@ -90,10 +90,20 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
     };
   }, [token, showMap, value.latitude, value.longitude]);
 
-  // Search for locations
+  // Bias results toward the user's area (falls back to Santa Cruz, Bolivia)
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { proximity.current = [pos.coords.longitude, pos.coords.latitude]; },
+      () => {},
+      { maximumAge: 10 * 60 * 1000, timeout: 5000 }
+    );
+  }, []);
+
+  // Search for venues (POIs) and addresses
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    
+
     if (searchTimeout.current) {
       clearTimeout(searchTimeout.current);
     }
@@ -104,13 +114,23 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
       return;
     }
 
+    setShowResults(true);
     searchTimeout.current = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const response = await fetch( `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${token}&limit=5` );
+        const [lng, lat] = proximity.current;
+        const params = new URLSearchParams({
+          access_token: token,
+          limit: '7',
+          language: 'es',
+          types: 'poi,address,neighborhood,locality,place',
+          proximity: `${lng},${lat}`,
+        });
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${params}`
+        );
         const data = await response.json();
         setSearchResults(data.features || []);
-        setShowResults(true);
       } catch (error) {
         console.error('Search error:', error);
       } finally {
@@ -119,15 +139,29 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
     }, 300);
   };
 
-  // Select a location from search results
+  // Select a location from search results — keep the venue name when it's a POI
   const selectLocation = (result: SearchResult) => {
     const [lng, lat] = result.center;
-    onChange({
-      address: result.place_name,
-      latitude: lat,
-      longitude: lng,
-    });
-    setSearchQuery(result.place_name);
+    const isPoi = result.place_type?.includes('poi');
+    const address = isPoi && result.text
+      ? `${result.text}${secondaryText(result) ? `, ${secondaryText(result)}` : ''}`
+      : result.place_name;
+    onChange({ address, latitude: lat, longitude: lng });
+    setSearchQuery(address);
+    setSearchResults([]);
+    setShowResults(false);
+    setShowMap(true);
+  };
+
+  // Use whatever the user typed as the venue name, pinned near them
+  const useCustomName = () => {
+    const name = searchQuery.trim();
+    if (!name) return;
+    const hasCoords = value.latitude != null && value.longitude != null;
+    const [lng, lat] = hasCoords
+      ? [value.longitude as number, value.latitude as number]
+      : searchResults[0]?.center ?? proximity.current;
+    onChange({ address: name, latitude: lat, longitude: lng });
     setSearchResults([]);
     setShowResults(false);
     setShowMap(true);
@@ -144,16 +178,16 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
   return (
     <div className="space-y-3">
       <label className="text-sm font-medium text-foreground block">
-        Location
+        Ubicación
       </label>
-      
+
       {/* Search input */}
       <div className="relative">
         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Search for a venue or address" className="pl-10 pr-10" value={searchQuery}
+          placeholder="Buscá un bar, local o dirección" className="pl-10 pr-10" value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-          onFocus={() => searchResults.length > 0 && setShowResults(true)}
+          onFocus={() => searchQuery.trim() && setShowResults(true)}
           maxLength={200}
         />
         {isSearching && (
@@ -164,19 +198,37 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
         )}
 
         {/* Search results dropdown */}
-        {showResults && searchResults.length > 0 && (
-          <div className="absolute z-50 w-full mt-2 bg-secondary border border-border rounded-xl overflow-hidden shadow-lg">
-            {searchResults.map((result) => (
-              <button
-                key={result.id}
-                type="button" onClick={() => selectLocation(result)}
-                className="w-full px-4 py-3 text-left transition-colors flex items-start gap-3" >
-                <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-foreground line-clamp-2">
-                  {result.place_name}
+        {showResults && searchQuery.trim() && (
+          <div className="absolute z-50 w-full mt-2 bg-secondary border border-border rounded-xl overflow-hidden shadow-lg max-h-80 overflow-y-auto">
+            {searchResults.map((result) => {
+              const title = result.text || result.place_name;
+              const sub = secondaryText(result);
+              return (
+                <button
+                  key={result.id}
+                  type="button" onClick={() => selectLocation(result)}
+                  className="w-full px-4 py-3 text-left transition-colors flex items-start gap-3 active:bg-muted" >
+                  <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium text-foreground truncate">{title}</span>
+                    {sub && <span className="block text-xs text-muted-foreground line-clamp-1">{sub}</span>}
+                  </span>
+                </button>
+              );
+            })}
+            <button
+              type="button" onClick={useCustomName}
+              className="w-full px-4 py-3 text-left flex items-start gap-3 border-t border-border active:bg-muted" >
+              <Plus className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+              <span className="min-w-0">
+                <span className="block text-sm font-medium text-foreground truncate">
+                  Usar "{searchQuery.trim()}" como ubicación
                 </span>
-              </button>
-            ))}
+                <span className="block text-xs text-muted-foreground">
+                  Después ajustá el pin en el mapa
+                </span>
+              </span>
+            </button>
           </div>
         )}
       </div>
@@ -189,7 +241,7 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
             className="h-40 rounded-xl overflow-hidden" />
           <div className="absolute bottom-2 left-2 right-2 px-3 py-1.5 rounded-lg bg-background/80 backdrop-blur-sm">
             <p className="text-xs text-muted-foreground">
-              Drag the pin to adjust location
+              Arrastrá el pin para ajustar la ubicación exacta
             </p>
           </div>
         </div>
