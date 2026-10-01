@@ -231,7 +231,7 @@ const Onboarding = () => {
       const pendingInvite = takePendingSpecialInvite();
       if (pendingInvite) {
         navigate(`/i/${pendingInvite}`);
-      } else if (takeBusinessIntent()) {
+       } else if (takeBusinessIntent() || isBusiness) {
         navigate("/business/setup", { replace: true });
       } else {
         navigate("/");
