@@ -4,7 +4,7 @@ import { corsHeaders } from "../_shared/qhantuy.ts";
 async function issueGateTickets(supabase: any, session: any, now: string) {
   const quantity = Math.min(10, Math.max(1, Number(session.quantity) || 1));
   for (let index = 1; index <= quantity; index++) {
-    const { error } = await supabase.from("guestlist_entries").upsert({
+    const { error } = await supabase.from("guestlist_entries").insert({
       event_id: session.event_id,
       user_id: null,
       status: "approved",
@@ -12,8 +12,8 @@ async function issueGateTickets(supabase: any, session: any, now: string) {
       payment_confirmed_at: now,
       payment_session_id: session.id,
       gate_ticket_index: index,
-    }, { onConflict: "payment_session_id,gate_ticket_index", ignoreDuplicates: true });
-    if (error) throw new Error(`Gate ticket ${index} failed: ${error.message}`);
+    });
+    if (error && error.code !== "23505") throw new Error(`Gate ticket ${index} failed: ${error.message}`);
   }
 }
 
