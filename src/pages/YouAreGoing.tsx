@@ -53,7 +53,6 @@ const YouAreGoing = () => {
 
   const safeEntries = entries ?? [];
   const total = safeEntries.length;
-  const activeEntry = safeEntries[activeIndex] ?? null;
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
