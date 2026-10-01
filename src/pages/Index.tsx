@@ -330,7 +330,7 @@ const Index = () => {
       </PullToRefresh>
 
       <FilterSheet open={showFilters} onOpenChange={setShowFilters} filters={filters} onApplyFilters={setFilters} />
-      <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={HOME_FEED_INTRO} />
+      <FeatureIntroSheet open={intro.open && !isBusinessAccount} onOpenChange={intro.setOpen} steps={HOME_FEED_INTRO} />
     </AppLayout>
   );
 };

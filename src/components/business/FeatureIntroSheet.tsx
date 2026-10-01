@@ -121,7 +121,10 @@ export function useFeatureIntro(key: string, options?: { enabled?: boolean }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      setOpen(false);
+      return;
+    }
     try {
       if (localStorage.getItem(storageKey) !== "1") {
         localStorage.setItem(storageKey, "1");
