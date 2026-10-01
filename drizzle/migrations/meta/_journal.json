@@ -295,6 +295,13 @@
       "when": 1790869024444,
       "tag": "0041_gate_sales_anonymous_checkout",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1790869283730,
+      "tag": "0042_skip_guestlist_notifications_for_anonymous_gate_tickets",
+      "breakpoints": true
     }
   ]
 }
