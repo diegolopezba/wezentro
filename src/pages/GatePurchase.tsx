@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import useEmblaCarousel from "embla-carousel-react";
 
 type Offer = { id: string; name: string; price: number };
-type Catalog = { event: { title: string; imageUrl: string | null; startAt: string | null }; offers: Offer[]; closed: boolean };
+type Catalog = { event: { title: string; imageUrl: string | null; startAt: string | null }; offers: Offer[]; closed: boolean; gatewayFeeBps: number };
 type TicketResult = { token: string; used: boolean; index: number };
 type Purchase = { sessionId: string; accessToken: string; qrImageUrl: string; amount: number; baseAmount: number; gatewayFee: number; eventId: string };
 const storageKey = (id: string) => `zentro:gate-purchase:${id}`;
@@ -64,7 +64,8 @@ export default function GatePurchase() {
         action: "status", eventId, sessionId: purchase.sessionId, accessToken: purchase.accessToken,
       });
       setStatus(result.status);
-      if (result.tickets) setTickets(result.tickets);
+       if (result.tickets) setTickets(result.tickets);
+       if (["failed", "expired"].includes(result.status)) localStorage.removeItem(storageKey(eventId));
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudo consultar el pago"); }
   }, [eventId, purchase]);
 
@@ -92,6 +93,9 @@ export default function GatePurchase() {
   };
   const selected = catalog?.offers.find(o => o.id === offerId);
   const total = selected ? selected.price * quantity : 0;
+  const feeRate = (catalog?.gatewayFeeBps ?? 100) / 10000;
+  const gatewayFee = feeRate > 0 ? Math.ceil(Number((total * feeRate / (1 - feeRate) * 100).toFixed(4))) / 100 : 0;
+  const amountDue = Math.round((total + gatewayFee) * 100) / 100;
   const confirmed = status === "confirmed" && tickets.length > 0;
 
   return (
@@ -114,7 +118,7 @@ export default function GatePurchase() {
               {tickets.map((ticket) => <div key={ticket.index} className={`min-w-0 flex-[0_0_100%] border-t border-border pt-6 text-center ${ticket.used ? "opacity-40 grayscale" : ""}`}>
                 <div className="flex justify-between items-center mb-5"><strong>Entrada {ticket.index} de {tickets.length}</strong><span className="text-sm text-muted-foreground">{ticket.used ? "Ya fue usada" : "Válida"}</span></div>
                 {ticket.token && <QRCodeSVG value={ticket.token} size={220} className="mx-auto max-w-full" />}
-                <p className="text-xs text-muted-foreground mt-4">{catalog?.event.title}</p>
+                 <p className="text-xs text-muted-foreground mt-4">{catalog?.event.title}</p>
               </div>)}
             </div></div>
             {tickets.length > 1 && <div className="flex items-center justify-center gap-2 mt-7" aria-label="Seleccionar entrada">{tickets.map((ticket, i) => <button key={ticket.index} aria-label={`Entrada ${i + 1}`} aria-current={i === activeIndex ? "true" : undefined} onClick={() => emblaApi?.scrollTo(i)} className={`w-2.5 h-2.5 rounded-full ${i === activeIndex ? "bg-foreground" : "bg-muted-foreground/30"}`} />)}</div>}
@@ -158,8 +162,9 @@ export default function GatePurchase() {
                   <Button variant="outline" size="icon" className="rounded-full" aria-label="Agregar entrada" disabled={quantity >= 10} onClick={() => setQuantity(q => q + 1)}><Plus className="w-4 h-4" /></Button>
                 </div>
               </div>
-              <div className="flex justify-between items-center mb-5"><span>Total de entradas</span><strong className="text-xl">{bs(total)}</strong></div>
-              <p className="text-xs text-muted-foreground mb-5">Se añadirá la comisión de procesamiento del banco al generar el QR.</p>
+              <div className="flex justify-between items-center mb-2"><span>Entradas</span><strong>{bs(total)}</strong></div>
+              <div className="flex justify-between items-center mb-4 text-sm text-muted-foreground"><span>Procesamiento bancario</span><span>{bs(gatewayFee)}</span></div>
+              <div className="flex justify-between items-center border-t border-border pt-4 mb-5"><span>Total a pagar</span><strong className="text-xl">{bs(amountDue)}</strong></div>
               <Button onClick={create} disabled={busy} className="w-full rounded-full h-12 gap-2">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ticket className="w-4 h-4" />} Pagar con QR</Button>
             </>}
           </section>

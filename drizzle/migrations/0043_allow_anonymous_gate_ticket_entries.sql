@@ -1,0 +1,1 @@
+ALTER TABLE public.guestlist_entries ALTER COLUMN user_id DROP NOT NULL;

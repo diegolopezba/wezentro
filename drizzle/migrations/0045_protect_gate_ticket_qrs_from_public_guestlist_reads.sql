@@ -1,0 +1,1 @@
+ALTER POLICY "Authenticated users can view guestlist entries for public event" ON public.guestlist_entries USING (auth.uid() IS NOT NULL AND gate_ticket_index IS NULL AND EXISTS (SELECT 1 FROM public.events e WHERE e.id = guestlist_entries.event_id AND e.is_public = true AND e.deleted_at IS NULL));

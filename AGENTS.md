@@ -1,1 +1,2 @@
 Business product tours belong in the persistent app shell and persist versioned per-user step progress, because navigation must not unmount or restart the walkthrough.
+Gate sales use a permanent public event URL but create separate anonymous payment sessions and single-use guestlist QR entries server-side; never reuse a bank QR or require an account at the gate.

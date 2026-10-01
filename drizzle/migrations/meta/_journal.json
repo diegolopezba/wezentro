@@ -302,6 +302,34 @@
       "when": 1790869283730,
       "tag": "0042_skip_guestlist_notifications_for_anonymous_gate_tickets",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1790869401452,
+      "tag": "0043_allow_anonymous_gate_ticket_entries",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1790869446002,
+      "tag": "0044_gate_sales_owner_summary",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1790869563142,
+      "tag": "0045_protect_gate_ticket_qrs_from_public_guestlist_reads",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1790869678619,
+      "tag": "0046_authenticate_gate_payment_callbacks",
+      "breakpoints": true
     }
   ]
 }

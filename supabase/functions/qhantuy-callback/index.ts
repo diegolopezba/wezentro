@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     // be reported as "not found", or Qhantuy stops retrying and the buyer never
     // gets their ticket.
     const SESSION_COLUMNS =
-      "id, event_id, experience_booking_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees, subscription_business_id, subscription_tier, subscription_interval, promoter_id, is_gate_sale";
+      "id, event_id, experience_booking_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees, subscription_business_id, subscription_tier, subscription_interval, promoter_id, is_gate_sale, gate_callback_token";
 
     let session: any = null;
     let sessErr: any = null;
@@ -74,6 +74,13 @@ Deno.serve(async (req) => {
     if (!session) {
       console.error("callback: session not found", internalCode);
       return new Response("not found", { status: 404, headers: corsHeaders });
+    }
+
+    // Anonymous gate purchases have no signed-in buyer. A random verifier is
+    // placed in the callback URL given to Qhantuy, never in the public checkout.
+    // Reject unauthenticated success and failure callbacks before any mutation.
+    if (session.is_gate_sale && (!session.gate_callback_token || params.gate_token !== session.gate_callback_token)) {
+      return new Response("unauthorized", { status: 401, headers: corsHeaders });
     }
 
     // Idempotent: retry the email handoff before acknowledging. The email queue
@@ -101,8 +108,8 @@ Deno.serve(async (req) => {
     }
 
     // Verify transaction id matches what we stored
-    if (session.qhantuy_transaction_id != null &&
-        Number(session.qhantuy_transaction_id) !== Number(transactionIdRaw)) {
+    if ((session.is_gate_sale && session.qhantuy_transaction_id == null) ||
+        (session.qhantuy_transaction_id != null && Number(session.qhantuy_transaction_id) !== Number(transactionIdRaw))) {
       console.error("callback: transaction id mismatch",
         session.qhantuy_transaction_id, transactionIdRaw);
       return new Response("mismatch", { status: 400, headers: corsHeaders });

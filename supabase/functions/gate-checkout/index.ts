@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.25.76";
-import { buildCharge, checkoutMethodFields, corsHeaders, json, organizerPayouts, parseCheckoutResponse, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
+import { buildCharge, checkoutMethodFields, corsHeaders, gatewayFeeBps, json, organizerPayouts, parseCheckoutResponse, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
 
 const uuid = z.string().uuid();
 const input = z.discriminatedUnion("action", [
@@ -47,22 +47,23 @@ Deno.serve(async (req) => {
     if (offersErr) return json({ error: "No se pudieron cargar las entradas" }, 503);
     const isOpen = !!event.end_datetime && new Date(event.end_datetime).getTime() > Date.now();
     if (body.action === "catalog") {
-      return json({ event: { title: event.title, imageUrl: event.image_url, startAt: event.start_datetime }, offers: isOpen ? offers : [], closed: !isOpen });
+      return json({ event: { title: event.title, imageUrl: event.image_url, startAt: event.start_datetime }, offers: isOpen ? offers : [], closed: !isOpen, gatewayFeeBps: gatewayFeeBps() });
     }
     if (!isOpen) return json({ error: "La venta en puerta finalizó" }, 409);
     const offer = offers?.find(o => o.id === body.offerId);
     if (!offer) return json({ error: "Esta entrada ya no está disponible" }, 404);
     const base = Number((Number(offer.price) * body.quantity).toFixed(2));
     const charge = buildCharge(base);
-    if (!Number.isFinite(base) || base <= 0 || charge.payoutAmount <= 0) return json({ error: "Precio inválido" }, 400);
+    if (!Number.isFinite(base) || base <= 0 || base > 1000000 || charge.payoutAmount <= 0) return json({ error: "Precio inválido" }, 400);
     const { data: beneficiary } = await db.from("qhantuy_beneficiaries")
       .select("beneficiary_code, is_active").eq("user_id", event.creator_id).maybeSingle();
     if (!beneficiary?.is_active) return json({ error: "El organizador no configuró sus pagos" }, 409);
 
     const accessToken = crypto.randomUUID();
+    const callbackToken = crypto.randomUUID();
     const { data: session, error: insertError } = await db.from("payment_sessions").insert({
       event_id: event.id, business_user_id: event.creator_id, buyer_user_id: null,
-      is_gate_sale: true, gate_offer_id: offer.id, gate_access_token: accessToken,
+      is_gate_sale: true, gate_offer_id: offer.id, gate_access_token: accessToken, gate_callback_token: callbackToken,
       amount: charge.totalAmount, base_amount: base, gateway_fee_amount: charge.gatewayFee,
       quantity: body.quantity, status: "pending", provider: "qhantuy", payment_method: "qr",
       beneficiary_code: beneficiary.beneficiary_code, platform_fee_bps: charge.bps,
@@ -70,7 +71,7 @@ Deno.serve(async (req) => {
     }).select("id").single();
     if (insertError || !session) return json({ error: "No se pudo iniciar el pago" }, 503);
 
-    const callbackUrl = `${url}/functions/v1/qhantuy-callback`;
+    const callbackUrl = `${url}/functions/v1/qhantuy-callback?gate_token=${callbackToken}`;
     const checkout = await qhantuyCheckoutFetch("/v2/checkout", {
       method: "POST",
       body: JSON.stringify({

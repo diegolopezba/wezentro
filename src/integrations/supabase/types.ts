@@ -2455,6 +2455,7 @@ export type Database = {
           event_id: string | null
           experience_booking_id: string | null
           gate_access_token: string | null
+          gate_callback_token: string | null
           gate_offer_id: string | null
           gateway_fee_amount: number
           id: string
@@ -2488,6 +2489,7 @@ export type Database = {
           event_id?: string | null
           experience_booking_id?: string | null
           gate_access_token?: string | null
+          gate_callback_token?: string | null
           gate_offer_id?: string | null
           gateway_fee_amount?: number
           id?: string
@@ -2521,6 +2523,7 @@ export type Database = {
           event_id?: string | null
           experience_booking_id?: string | null
           gate_access_token?: string | null
+          gate_callback_token?: string | null
           gate_offer_id?: string | null
           gateway_fee_amount?: number
           id?: string
@@ -5260,6 +5263,13 @@ export type Database = {
           show_reservation_button: boolean
           start_datetime: string
           title: string
+        }[]
+      }
+      get_gate_sales_summary: {
+        Args: { _event_id: string }
+        Returns: {
+          revenue: number
+          tickets: number
         }[]
       }
       get_mutual_followers: {
