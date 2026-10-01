@@ -144,7 +144,7 @@ export const BusinessHomeTour = () => {
       {phase === "welcome" ? (
         <>
           <div className="absolute inset-0 bg-background/75" />
-          <m.div initial={reducedMotion ? false : { y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: reducedMotion ? 0 : 0.3 }} className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-border bg-card px-6 pb-[max(env(safe-area-inset-bottom),24px)] pt-7 text-card-foreground shadow-2xl">
+          <m.div initial={reducedMotion ? false : { y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: reducedMotion ? 0 : 0.3 }} className="light-sheet absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-border bg-card px-6 pb-[max(env(safe-area-inset-bottom),24px)] pt-7 text-card-foreground shadow-2xl">
             <div className="mx-auto max-w-md">
               <h2 className="font-brand text-xl font-semibold">Bienvenidos a Zentro</h2>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Tranqui, te vamos a hacer el tour para que aprendas todo en 5 min.</p>
@@ -162,7 +162,7 @@ export const BusinessHomeTour = () => {
             <m.div className="pointer-events-none absolute rounded-lg ring-2 ring-brand-red" animate={{ left: rect.left - pad, top: rect.top - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 }} transition={{ duration: reducedMotion ? 0 : 0.25 }} style={{ boxShadow: "0 0 0 9999px hsl(var(--background) / 0.78)" }} />
           ) : <div className="absolute inset-0 bg-background/75" />}
           <AnimatePresence mode="wait">
-            <m.div key={step} initial={reducedMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={reducedMotion ? undefined : { opacity: 0, y: -8 }} transition={{ duration: reducedMotion ? 0 : 0.22 }} className="absolute rounded-lg border border-border bg-card p-5 text-card-foreground shadow-2xl" style={cardStyle}>
+            <m.div key={step} initial={reducedMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={reducedMotion ? undefined : { opacity: 0, y: -8 }} transition={{ duration: reducedMotion ? 0 : 0.22 }} className="light-sheet absolute rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl" style={cardStyle}>
               {arrow && <span aria-hidden className={`absolute h-3 w-3 rotate-45 border-border bg-card ${arrow === "top" ? "-top-[7px] border-l border-t" : arrow === "bottom" ? "-bottom-[7px] border-b border-r" : "-left-[7px] border-b border-l"}`} style={arrow === "left" ? { top: 30 } : { left: arrowOffset - 6 }} />}
               <p className="text-xs font-semibold text-brand-red">{current.progress}</p>
               <h2 className="mt-2 font-brand text-lg font-semibold">{current.title}</h2>
