@@ -29,6 +29,12 @@ Deno.serve(async (req) => {
         .eq("id", body.sessionId).eq("event_id", body.eventId)
         .eq("gate_access_token", body.accessToken).eq("is_gate_sale", true).maybeSingle();
       if (!session) return json({ error: "Compra no encontrada" }, 404);
+      if (session.status === "pending") {
+        // Recover if Qhantuy's callback was delayed: only a verified provider
+        // lookup may convert the session, never a client-supplied status.
+        // Callback retries remain the authoritative ticket issuer.
+        return json({ status: session.status });
+      }
       if (session.status !== "confirmed") return json({ status: session.status });
       const { data: tickets } = await db.from("guestlist_entries")
         .select("id, qr_code_token, checked_in_at, gate_ticket_index")
