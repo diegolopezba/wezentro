@@ -1,6 +1,22 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/qhantuy.ts";
 
+async function issueGateTickets(supabase: any, session: any, now: string) {
+  const quantity = Math.min(10, Math.max(1, Number(session.quantity) || 1));
+  for (let index = 1; index <= quantity; index++) {
+    const { error } = await supabase.from("guestlist_entries").upsert({
+      event_id: session.event_id,
+      user_id: null,
+      status: "approved",
+      payment_status: "confirmed",
+      payment_confirmed_at: now,
+      payment_session_id: session.id,
+      gate_ticket_index: index,
+    }, { onConflict: "payment_session_id,gate_ticket_index", ignoreDuplicates: true });
+    if (error) throw new Error(`Gate ticket ${index} failed: ${error.message}`);
+  }
+}
+
 // Qhantuy hits this endpoint (GET) after every checkout with the outcome.
 // Query params: transaction_id, payment_status, checkout_amount, checkout_currency,
 //               internal_code, profile_code, message.
@@ -29,7 +45,7 @@ Deno.serve(async (req) => {
     // be reported as "not found", or Qhantuy stops retrying and the buyer never
     // gets their ticket.
     const SESSION_COLUMNS =
-      "id, event_id, experience_booking_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees, subscription_business_id, subscription_tier, subscription_interval, promoter_id";
+      "id, event_id, experience_booking_id, buyer_user_id, amount, status, ticket_tier_id, qhantuy_transaction_id, quantity, assignees, subscription_business_id, subscription_tier, subscription_interval, promoter_id, is_gate_sale";
 
     let session: any = null;
     let sessErr: any = null;
@@ -59,6 +75,10 @@ Deno.serve(async (req) => {
     // deduplicates by the stable payment-session key, so callback retries cannot
     // create duplicate emails but can recover from a transient dispatch failure.
     if (session.status === "confirmed") {
+      if (session.is_gate_sale) {
+        await issueGateTickets(supabase, session, new Date().toISOString());
+        return new Response("ok", { status: 200, headers: corsHeaders });
+      }
       if (!(session as any).experience_booking_id && !(session as any).subscription_business_id) {
         const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-purchase-tickets`, {
           method: "POST",
@@ -124,6 +144,11 @@ Deno.serve(async (req) => {
         qhantuy_raw_callback: params,
       })
       .eq("id", session.id);
+
+    if (session.is_gate_sale) {
+      await issueGateTickets(supabase, session, now);
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
 
     // Business plan checkout: activate / extend the subscription and stop here.
     if ((session as any).subscription_business_id) {
