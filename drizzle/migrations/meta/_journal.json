@@ -323,6 +323,13 @@
       "when": 1790869563142,
       "tag": "0045_protect_gate_ticket_qrs_from_public_guestlist_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1790869678619,
+      "tag": "0046_authenticate_gate_payment_callbacks",
+      "breakpoints": true
     }
   ]
 }

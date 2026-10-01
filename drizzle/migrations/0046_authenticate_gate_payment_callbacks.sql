@@ -1,0 +1,1 @@
+ALTER TABLE public.payment_sessions ADD COLUMN gate_callback_token uuid; COMMENT ON COLUMN public.payment_sessions.gate_callback_token IS 'Private callback verifier for anonymous gate checkouts; never returned to buyers.';
