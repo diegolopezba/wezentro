@@ -281,6 +281,13 @@
       "when": 1790810740175,
       "tag": "0039_ticket_counts_include_own_private_events",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1790863576358,
+      "tag": "0040_promoter_stats_count_quantity",
+      "breakpoints": true
     }
   ]
 }
