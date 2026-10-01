@@ -11,6 +11,8 @@ project_id = "fipdpcitsjpqivljrktj"
     verify_jwt = false
   [functions.check-in-guest]
     verify_jwt = false
+  [functions.gate-checkout]
+    verify_jwt = false
   [functions.check-qhantuy-payment-status]
     verify_jwt = false
   [functions.generate-qhantuy-qr]

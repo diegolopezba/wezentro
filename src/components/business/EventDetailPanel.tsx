@@ -11,6 +11,7 @@ import { useCreatorSalesByEvent } from "@/hooks/usePromoters";
 import { useEventAreas } from "@/hooks/useVenueLayouts";
 import { useToggleEventVisibility } from "@/hooks/useEventMutations";
 import { EventTiersPanel } from "@/components/business/EventTiersPanel";
+import { GateSalesPanel } from "@/components/business/GateSalesPanel";
 import { EventLoungesPanel } from "@/components/business/EventLoungesPanel";
 import { EventGuestsPanel } from "@/components/business/EventGuestsPanel";
 import { EventPromotersPanel } from "@/components/business/EventPromotersPanel";
@@ -155,6 +156,7 @@ export const EventDetailPanel = ({ eventId }: Props) => {
       <Tabs defaultValue="entradas">
         <TabsList className="w-full overflow-x-auto scrollbar-hide">
           <TabsTrigger value="entradas" className="flex-1">Entradas</TabsTrigger>
+          <TabsTrigger value="puerta" className="flex-1">Puerta</TabsTrigger>
           {hasLounges && <TabsTrigger value="lounges" className="flex-1">Lounges</TabsTrigger>}
           <TabsTrigger value="invitados" className="flex-1">Invitados</TabsTrigger>
           <TabsTrigger value="promotores" className="flex-1">Promotores</TabsTrigger>
@@ -162,6 +164,9 @@ export const EventDetailPanel = ({ eventId }: Props) => {
 
         <TabsContent value="entradas" className="mt-4">
           <EventTiersPanel eventId={eventId} />
+        </TabsContent>
+        <TabsContent value="puerta" className="mt-4">
+          <GateSalesPanel eventId={eventId} eventTitle={event?.title || "Evento"} />
         </TabsContent>
 
         {hasLounges && (

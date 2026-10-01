@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
     // First check if the entry exists and its current state
     const { data: existingEntry, error: lookupError } = await supabaseAdmin
       .from("guestlist_entries")
-      .select("id, status, checked_in_at, user_id, event_id")
+      .select("id, status, checked_in_at, user_id, event_id, gate_ticket_index")
       .eq("qr_code_token", qr_code_token)
       .eq("event_id", event_id)
       .maybeSingle();
@@ -258,18 +258,16 @@ Deno.serve(async (req) => {
 
     // Already checked in — return alreadyUsed flag with guest info
     if (existingEntry.checked_in_at) {
-      const { data: guestProfile } = await supabaseAdmin
-        .from("profiles")
-        .select("username, full_name, avatar_url")
-        .eq("id", existingEntry.user_id)
-        .single();
+      const { data: guestProfile } = existingEntry.user_id
+        ? await supabaseAdmin.from("profiles").select("username, full_name, avatar_url").eq("id", existingEntry.user_id).single()
+        : { data: null };
 
       return new Response(
         JSON.stringify({
           success: false,
           alreadyUsed: true,
           checkedInAt: existingEntry.checked_in_at,
-          guest: guestProfile ?? null,
+          guest: existingEntry.gate_ticket_index ? { username: "", full_name: "Entrada de puerta", avatar_url: null } : guestProfile ?? null,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -294,11 +292,9 @@ Deno.serve(async (req) => {
     }
 
     // Fetch guest profile for the success response
-    const { data: guestProfile } = await supabaseAdmin
-      .from("profiles")
-      .select("username, full_name, avatar_url")
-      .eq("id", updatedEntry.user_id)
-      .single();
+    const { data: guestProfile } = updatedEntry.user_id
+      ? await supabaseAdmin.from("profiles").select("username, full_name, avatar_url").eq("id", updatedEntry.user_id).single()
+      : { data: null };
 
     // Update event_analytics check_ins counter (best-effort, ignore errors)
     supabaseAdmin
@@ -321,7 +317,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: true,
         alreadyUsed: false,
-        guest: guestProfile ?? null,
+        guest: existingEntry.gate_ticket_index ? { username: "", full_name: "Entrada de puerta", avatar_url: null } : guestProfile ?? null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

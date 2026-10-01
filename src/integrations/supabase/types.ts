@@ -1705,12 +1705,48 @@ export type Database = {
           },
         ]
       }
+      gate_offers: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          is_active?: boolean
+          name: string
+          price: number
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_offers_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guestlist_entries: {
         Row: {
           area_booking_id: string | null
           attended: boolean | null
           checked_in_at: string | null
           event_id: string
+          gate_ticket_index: number | null
           guest_email: string | null
           guest_name: string | null
           id: string
@@ -1732,6 +1768,7 @@ export type Database = {
           attended?: boolean | null
           checked_in_at?: string | null
           event_id: string
+          gate_ticket_index?: number | null
           guest_email?: string | null
           guest_name?: string | null
           id?: string
@@ -1753,6 +1790,7 @@ export type Database = {
           attended?: boolean | null
           checked_in_at?: string | null
           event_id?: string
+          gate_ticket_index?: number | null
           guest_email?: string | null
           guest_name?: string | null
           id?: string
@@ -2410,14 +2448,17 @@ export type Database = {
           base_amount: number | null
           beneficiary_code: string | null
           business_user_id: string
-          buyer_user_id: string
+          buyer_user_id: string | null
           confirmed_at: string | null
           created_at: string
           event_area_id: string | null
           event_id: string | null
           experience_booking_id: string | null
+          gate_access_token: string | null
+          gate_offer_id: string | null
           gateway_fee_amount: number
           id: string
+          is_gate_sale: boolean
           party_size: number | null
           payment_method: string
           payout_amount: number | null
@@ -2440,14 +2481,17 @@ export type Database = {
           base_amount?: number | null
           beneficiary_code?: string | null
           business_user_id: string
-          buyer_user_id: string
+          buyer_user_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           event_area_id?: string | null
           event_id?: string | null
           experience_booking_id?: string | null
+          gate_access_token?: string | null
+          gate_offer_id?: string | null
           gateway_fee_amount?: number
           id?: string
+          is_gate_sale?: boolean
           party_size?: number | null
           payment_method?: string
           payout_amount?: number | null
@@ -2470,14 +2514,17 @@ export type Database = {
           base_amount?: number | null
           beneficiary_code?: string | null
           business_user_id?: string
-          buyer_user_id?: string
+          buyer_user_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           event_area_id?: string | null
           event_id?: string | null
           experience_booking_id?: string | null
+          gate_access_token?: string | null
+          gate_offer_id?: string | null
           gateway_fee_amount?: number
           id?: string
+          is_gate_sale?: boolean
           party_size?: number | null
           payment_method?: string
           payout_amount?: number | null
@@ -2514,6 +2561,13 @@ export type Database = {
             columns: ["experience_booking_id"]
             isOneToOne: false
             referencedRelation: "experience_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_gate_offer_id_fkey"
+            columns: ["gate_offer_id"]
+            isOneToOne: false
+            referencedRelation: "gate_offers"
             referencedColumns: ["id"]
           },
           {

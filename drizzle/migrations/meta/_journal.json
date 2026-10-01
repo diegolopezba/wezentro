@@ -288,6 +288,20 @@
       "when": 1790863576358,
       "tag": "0040_promoter_stats_count_quantity",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1790869024444,
+      "tag": "0041_gate_sales_anonymous_checkout",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1790869283730,
+      "tag": "0042_skip_guestlist_notifications_for_anonymous_gate_tickets",
+      "breakpoints": true
     }
   ]
 }

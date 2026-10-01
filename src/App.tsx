@@ -135,6 +135,7 @@ const ExperienceBookingConfirmation = lazyWithRetry(() => import("./pages/Experi
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const SpecialInvite = lazyWithRetry(() => import("./pages/SpecialInvite"));
 const ScanQR = lazyWithRetry(() => import("./pages/ScanQR"));
+const GatePurchase = lazyWithRetry(() => import("./pages/GatePurchase"));
 const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
 const EventPromoterDashboard = lazyWithRetry(() => import("./pages/EventPromoterDashboard"));
 const BusinessEventDetail = lazyWithRetry(() => import("./pages/BusinessEventDetail"));
@@ -337,6 +338,7 @@ const AppRoutes = () => {
         <Route path="/terms" element={<LazyRoute><TermsOfUse /></LazyRoute>} />
         {/* Public QR scanner route — no auth required, validated by ?key= param */}
         <Route path="/scan/:eventId" element={<LazyRoute><ScanQR /></LazyRoute>} />
+        <Route path="/gate/:eventId" element={<LazyRoute><GatePurchase /></LazyRoute>} />
         <Route path="/i/:token" element={<LazyRoute><SpecialInvite /></LazyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<LazyRoute><NotFound /></LazyRoute>} />
