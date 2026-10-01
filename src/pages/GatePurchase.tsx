@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Minus, Plus, Ticket, Loader2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
+import useEmblaCarousel from "embla-carousel-react";
 
 type Offer = { id: string; name: string; price: number };
 type Catalog = { event: { title: string; imageUrl: string | null; startAt: string | null }; offers: Offer[]; closed: boolean };
@@ -33,6 +34,15 @@ export default function GatePurchase() {
   const [tickets, setTickets] = useState<TicketResult[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: "center", watchDrag: tickets.length > 1 });
+  useEffect(() => {
+    if (!emblaApi) return;
+    const update = () => setActiveIndex(emblaApi.selectedScrollSnap());
+    emblaApi.on("select", update);
+    update();
+    return () => { emblaApi.off("select", update); };
+  }, [emblaApi]);
   const showingTickets = searchParams.get("view") === "tickets";
 
   useEffect(() => {
@@ -100,13 +110,14 @@ export default function GatePurchase() {
             <Button variant="ghost" onClick={() => setSearchParams({})} className="mb-5 -ml-3"><ArrowLeft className="h-4 w-4 mr-2" />Volver</Button>
             <h2 className="text-xl font-semibold mb-2">Tus entradas</h2>
             <p className="text-sm text-muted-foreground mb-7">Mostrá cada QR al personal de la puerta.</p>
-            <div className="space-y-8">
-              {tickets.map((ticket) => <div key={ticket.index} className={`border-t border-border pt-6 text-center ${ticket.used ? "opacity-40 grayscale" : ""}`}>
+            <div className="overflow-hidden" ref={emblaRef}><div className="flex touch-pan-y">
+              {tickets.map((ticket) => <div key={ticket.index} className={`min-w-0 flex-[0_0_100%] border-t border-border pt-6 text-center ${ticket.used ? "opacity-40 grayscale" : ""}`}>
                 <div className="flex justify-between items-center mb-5"><strong>Entrada {ticket.index} de {tickets.length}</strong><span className="text-sm text-muted-foreground">{ticket.used ? "Ya fue usada" : "Válida"}</span></div>
                 {ticket.token && <QRCodeSVG value={ticket.token} size={220} className="mx-auto max-w-full" />}
                 <p className="text-xs text-muted-foreground mt-4">{catalog?.event.title}</p>
               </div>)}
-            </div>
+            </div></div>
+            {tickets.length > 1 && <div className="flex items-center justify-center gap-2 mt-7" aria-label="Seleccionar entrada">{tickets.map((ticket, i) => <button key={ticket.index} aria-label={`Entrada ${i + 1}`} aria-current={i === activeIndex ? "true" : undefined} onClick={() => emblaApi?.scrollTo(i)} className={`w-2.5 h-2.5 rounded-full ${i === activeIndex ? "bg-foreground" : "bg-muted-foreground/30"}`} />)}</div>}
           </section>
         ) : confirmed ? (
           <section className="pt-8 text-center">
