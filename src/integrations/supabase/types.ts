@@ -2457,6 +2457,7 @@ export type Database = {
           gate_access_token: string | null
           gate_callback_token: string | null
           gate_offer_id: string | null
+          gate_offer_name: string | null
           gateway_fee_amount: number
           id: string
           is_gate_sale: boolean
@@ -2491,6 +2492,7 @@ export type Database = {
           gate_access_token?: string | null
           gate_callback_token?: string | null
           gate_offer_id?: string | null
+          gate_offer_name?: string | null
           gateway_fee_amount?: number
           id?: string
           is_gate_sale?: boolean
@@ -2525,6 +2527,7 @@ export type Database = {
           gate_access_token?: string | null
           gate_callback_token?: string | null
           gate_offer_id?: string | null
+          gate_offer_name?: string | null
           gateway_fee_amount?: number
           id?: string
           is_gate_sale?: boolean

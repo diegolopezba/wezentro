@@ -2,6 +2,7 @@
 - [x] Cartel QR permanente, precios administrables y compra sin cuenta de 1 a 10 entradas.
 - [x] Pago bancario, comisión y emisión de QR individuales verificables por el escáner existente.
 - [x] Visor claro con carrusel y actualización de entradas usadas; ventas en puerta en Gestión.
+- [x] Botones negros, confirmación verde, compras adicionales y nombre/estado de cada entrada.
 - [ ] Verificar un cobro real completo con Qhantuy y escaneo en un evento de prueba (requiere transacción bancaria real).
 
 ## Onboarding con foto y Business sin datos personales
