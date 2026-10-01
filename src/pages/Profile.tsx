@@ -167,7 +167,8 @@ const Profile = () => {
 
 
       {/* Timeline Content */}
-      <div data-tour="profile-posts" className="py-4">
+      <div data-tour="profile-posts" className="h-px" />
+      <div className="py-4">
         <div className="masonry-grid">
           {timelineLoading ? <div className="col-span-2 flex justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />

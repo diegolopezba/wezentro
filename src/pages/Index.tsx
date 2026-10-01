@@ -272,7 +272,7 @@ const Index = () => {
             </div>
           </m.div>
         )}
-        <div className="flex px-4 pb-3 gap-2 overflow-x-auto no-scrollbar">
+        <div data-tour="home-feed" className="flex px-4 pb-3 gap-2 overflow-x-auto no-scrollbar">
           <m.button
             whileTap={{ scale: 0.95 }}
             onClick={resetToForYou}
@@ -304,7 +304,6 @@ const Index = () => {
       </header>
       <PullToRefresh onRefresh={handleRefresh} className="flex-1">
         {isBusinessAccount && <BusinessSetupReminder />}
-        <div data-tour="home-feed" className="h-px" />
         {isSearching && searchedUsers.length > 0 && (
           <div className="px-2 pt-2">
             <p className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">Personas</p>

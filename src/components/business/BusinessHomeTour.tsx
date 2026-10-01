@@ -73,8 +73,8 @@ export const BusinessHomeTour = () => {
 
   useEffect(() => {
     if (phase !== "tour" || !current) return;
-    if (location.pathname !== current.path.split("?")[0]) navigate(current.path, { replace: true });
-  }, [phase, step, location.pathname, current?.path, navigate]);
+    if (location.pathname + (current.path.includes("?") ? location.search : "") !== current.path) navigate(current.path, { replace: true });
+  }, [phase, step, location.pathname, location.search, current?.path, navigate]);
 
   const measure = useCallback(() => {
     setViewport({ width: window.innerWidth, height: window.innerHeight });
