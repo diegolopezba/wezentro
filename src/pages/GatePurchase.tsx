@@ -33,7 +33,6 @@ export default function GatePurchase() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [status, setStatus] = useState("pending");
   const [tickets, setTickets] = useState<TicketResult[]>([]);
-  const [loadingTickets, setLoadingTickets] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -74,7 +73,6 @@ export default function GatePurchase() {
       const current = results.find(({ item }) => item.sessionId === activeSessionId);
       if (current) setStatus(current.result.status);
       setTickets(results.flatMap(({ item, result }) => (result.tickets ?? []).map(ticket => ({ ...ticket, sessionId: item.sessionId }))));
-      setLoadingTickets(false);
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudo consultar el pago"); }
   }, [eventId, purchases, activeSessionId]);
 
