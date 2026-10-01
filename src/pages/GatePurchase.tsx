@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import useEmblaCarousel from "embla-carousel-react";
 
 type Offer = { id: string; name: string; price: number };
-type Catalog = { event: { title: string; imageUrl: string | null; startAt: string | null }; offers: Offer[]; closed: boolean };
+type Catalog = { event: { title: string; imageUrl: string | null; startAt: string | null }; offers: Offer[]; closed: boolean; gatewayFeeBps: number };
 type TicketResult = { token: string; used: boolean; index: number };
 type Purchase = { sessionId: string; accessToken: string; qrImageUrl: string; amount: number; baseAmount: number; gatewayFee: number; eventId: string };
 const storageKey = (id: string) => `zentro:gate-purchase:${id}`;
@@ -93,6 +93,9 @@ export default function GatePurchase() {
   };
   const selected = catalog?.offers.find(o => o.id === offerId);
   const total = selected ? selected.price * quantity : 0;
+  const feeRate = (catalog?.gatewayFeeBps ?? 100) / 10000;
+  const gatewayFee = feeRate > 0 ? Math.ceil(Number((total * feeRate / (1 - feeRate) * 100).toFixed(4))) / 100 : 0;
+  const amountDue = Math.round((total + gatewayFee) * 100) / 100;
   const confirmed = status === "confirmed" && tickets.length > 0;
 
   return (
@@ -159,8 +162,9 @@ export default function GatePurchase() {
                   <Button variant="outline" size="icon" className="rounded-full" aria-label="Agregar entrada" disabled={quantity >= 10} onClick={() => setQuantity(q => q + 1)}><Plus className="w-4 h-4" /></Button>
                 </div>
               </div>
-              <div className="flex justify-between items-center mb-5"><span>Total de entradas</span><strong className="text-xl">{bs(total)}</strong></div>
-              <p className="text-xs text-muted-foreground mb-5">Se añadirá la comisión de procesamiento del banco al generar el QR.</p>
+              <div className="flex justify-between items-center mb-2"><span>Entradas</span><strong>{bs(total)}</strong></div>
+              <div className="flex justify-between items-center mb-4 text-sm text-muted-foreground"><span>Procesamiento bancario</span><span>{bs(gatewayFee)}</span></div>
+              <div className="flex justify-between items-center border-t border-border pt-4 mb-5"><span>Total a pagar</span><strong className="text-xl">{bs(amountDue)}</strong></div>
               <Button onClick={create} disabled={busy} className="w-full rounded-full h-12 gap-2">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ticket className="w-4 h-4" />} Pagar con QR</Button>
             </>}
           </section>

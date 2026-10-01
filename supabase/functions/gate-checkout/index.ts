@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.25.76";
-import { buildCharge, checkoutMethodFields, corsHeaders, json, organizerPayouts, parseCheckoutResponse, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
+import { buildCharge, checkoutMethodFields, corsHeaders, gatewayFeeBps, json, organizerPayouts, parseCheckoutResponse, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
 
 const uuid = z.string().uuid();
 const input = z.discriminatedUnion("action", [
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     if (offersErr) return json({ error: "No se pudieron cargar las entradas" }, 503);
     const isOpen = !!event.end_datetime && new Date(event.end_datetime).getTime() > Date.now();
     if (body.action === "catalog") {
-      return json({ event: { title: event.title, imageUrl: event.image_url, startAt: event.start_datetime }, offers: isOpen ? offers : [], closed: !isOpen });
+      return json({ event: { title: event.title, imageUrl: event.image_url, startAt: event.start_datetime }, offers: isOpen ? offers : [], closed: !isOpen, gatewayFeeBps: gatewayFeeBps() });
     }
     if (!isOpen) return json({ error: "La venta en puerta finalizó" }, 409);
     const offer = offers?.find(o => o.id === body.offerId);
