@@ -281,18 +281,6 @@ export function PurchaseFlow({
             />
           )}
 
-          <div className="pt-3 flex items-center gap-4 text-[11px] text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Disponible
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Parcial
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-slate-400" /> Agotado
-            </span>
-          </div>
-
           {/* Lista de áreas — alternativa clara al plano */}
           <div className="mt-4 space-y-2">
             {sellableAreas.map((a) => {
