@@ -19,10 +19,18 @@ const TABS: { id: Tab; label: string }[] = [
 /** Business-account replacement for the consumer "Entradas" tab. */
 const BusinessHub = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const [selectedTab, setTab] = useState<Tab>("reservas");
   const tab: Tab = requestedTab === "eventos" || requestedTab === "experiencias" || requestedTab === "reservas" ? requestedTab : selectedTab;
+
+  // Keep the URL in sync so a preselected ?tab= (tour, back navigation) never pins the screen.
+  const selectTab = (id: Tab) => {
+    setTab(id);
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", id);
+    setSearchParams(next, { replace: true });
+  };
 
   return (
     <AppLayout>
