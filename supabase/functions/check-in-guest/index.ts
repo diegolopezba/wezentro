@@ -119,208 +119,168 @@ Deno.serve(async (req) => {
       );
     }
 
+    const json = (body: unknown, status = 200) =>
+      new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
     if (!qr_code_token || !event_id) {
-      return new Response(
-        JSON.stringify({ error: "qr_code_token and event_id are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ error: "qr_code_token and event_id are required" }, 400);
     }
 
-    // Determine auth mode: JWT owner OR x-scanner-key bouncer
     const authHeader = req.headers.get("Authorization");
     const scannerKey = req.headers.get("x-scanner-key");
-
     let isAuthorized = false;
 
     if (scannerKey) {
-      // Bouncer mode: validate scanner_access_token matches the event
-      const { data: eventData, error: eventError } = await supabaseAdmin
-        .from("events")
-        .select("id, scanner_access_token")
-        .eq("id", event_id)
-        .eq("scanner_access_token", scannerKey)
-        .single();
-
-      if (!eventError && eventData) {
-        isAuthorized = true;
-      }
+      const { data: eventData } = await supabaseAdmin
+        .from("events").select("id").eq("id", event_id).eq("scanner_access_token", scannerKey).maybeSingle();
+      if (eventData) isAuthorized = true;
     } else if (authHeader?.startsWith("Bearer ")) {
-      // Owner mode: validate JWT and check if user is the event creator
       const supabaseClient = createClient(
         Deno.env.get("SUPABASE_URL")!,
         Deno.env.get("SUPABASE_ANON_KEY")!,
         { global: { headers: { Authorization: authHeader } } }
       );
-
-      const token = authHeader.replace("Bearer ", "");
-      const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
-
+      const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(authHeader.replace("Bearer ", ""));
       if (!claimsError && claimsData?.claims) {
-        const userId = claimsData.claims.sub;
-
-        const { data: eventData, error: eventError } = await supabaseAdmin
-          .from("events")
-          .select("id, creator_id")
-          .eq("id", event_id)
-          .eq("creator_id", userId)
-          .single();
-
-        if (!eventError && eventData) {
-          isAuthorized = true;
-        }
+        const { data: eventData } = await supabaseAdmin
+          .from("events").select("id").eq("id", event_id).eq("creator_id", claimsData.claims.sub).maybeSingle();
+        if (eventData) isAuthorized = true;
       }
     }
 
-    if (!isAuthorized) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    if (!isAuthorized) return json({ error: "Unauthorized", code: "unauthorized" }, 401);
 
-    // First check if the entry exists and its current state
-    const { data: existingEntry, error: lookupError } = await supabaseAdmin
+    const profileOf = async (id: string | null) => {
+      if (!id) return null;
+      const { data } = await supabaseAdmin.from("profiles").select("username, full_name, avatar_url").eq("id", id).maybeSingle();
+      return data ?? null;
+    };
+
+    const { data: entry } = await supabaseAdmin
       .from("guestlist_entries")
-      .select("id, status, checked_in_at, user_id, event_id, gate_ticket_index")
+      .select("id, status, checked_in_at, user_id, purchased_by_user_id, guest_name, ticket_tier_id, is_special_guest, special_guest_label, area_booking_id, payment_session_id, gate_ticket_index")
       .eq("qr_code_token", qr_code_token)
       .eq("event_id", event_id)
       .maybeSingle();
 
-    if (lookupError || !existingEntry) {
-      // Fallback: frictionless RSVP ticket stored on the special invite itself
+    if (!entry) {
+      // Frictionless RSVP ticket stored on the special invite itself
       const { data: invite } = await supabaseAdmin
         .from("event_special_invites")
-        .select("id, status, checked_in_at, rsvp_name, guest_name, segment")
+        .select("id, status, checked_in_at, rsvp_name, guest_name, label, redeemed_by")
         .eq("qr_code_token", qr_code_token)
         .eq("event_id", event_id)
         .maybeSingle();
 
       if (!invite) {
-        return new Response(
-          JSON.stringify({ success: false, error: "QR inválido o no pertenece a este evento" }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        const [{ data: otherEntry }, { data: otherInvite }] = await Promise.all([
+          supabaseAdmin.from("guestlist_entries").select("id").eq("qr_code_token", qr_code_token).limit(1).maybeSingle(),
+          supabaseAdmin.from("event_special_invites").select("id").eq("qr_code_token", qr_code_token).limit(1).maybeSingle(),
+        ]);
+        if (otherEntry || otherInvite) {
+          return json({ success: false, code: "wrong_event", error: "Esta entrada es de otro evento" }, 404);
+        }
+        return json({ success: false, code: "not_found", error: "Este QR no corresponde a ninguna entrada" }, 404);
       }
 
+      const p = await profileOf(invite.redeemed_by);
       const guest = {
-        username: null,
-        full_name: invite.rsvp_name ?? invite.guest_name ?? "Invitado especial",
-        avatar_url: null,
+        username: p?.username ?? null,
+        full_name: invite.rsvp_name ?? invite.guest_name ?? p?.full_name ?? "Invitado especial",
+        avatar_url: p?.avatar_url ?? null,
       };
+      const entryInfo = { entry_label: invite.label || "Invitado especial", is_special: true, details: [] as string[] };
 
       if (invite.status === "revoked") {
-        return new Response(
-          JSON.stringify({ success: false, error: "Esta invitación fue cancelada" }),
-          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return json({ success: false, code: "revoked", error: "Esta invitación fue cancelada", guest, ...entryInfo }, 403);
       }
-
       if (invite.checked_in_at) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            alreadyUsed: true,
-            checkedInAt: invite.checked_in_at,
-            guest,
-          }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return json({ success: false, alreadyUsed: true, checkedInAt: invite.checked_in_at, guest, ...entryInfo });
       }
-
+      const now = new Date().toISOString();
       const { data: updatedInvite } = await supabaseAdmin
-        .from("event_special_invites")
-        .update({ checked_in_at: new Date().toISOString() })
-        .eq("id", invite.id)
-        .is("checked_in_at", null)
-        .select("id")
-        .maybeSingle();
-
+        .from("event_special_invites").update({ checked_in_at: now }).eq("id", invite.id).is("checked_in_at", null).select("id").maybeSingle();
       if (!updatedInvite) {
-        return new Response(
-          JSON.stringify({ success: false, alreadyUsed: true, guest }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        const { data: fresh } = await supabaseAdmin.from("event_special_invites").select("checked_in_at").eq("id", invite.id).maybeSingle();
+        return json({ success: false, alreadyUsed: true, checkedInAt: fresh?.checked_in_at ?? null, guest, ...entryInfo });
       }
-
-      return new Response(
-        JSON.stringify({ success: true, alreadyUsed: false, guest }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ success: true, alreadyUsed: false, guest, ...entryInfo });
     }
 
+    // Build guest + ticket description
+    const [userProfile, buyerProfile] = await Promise.all([
+      profileOf(entry.user_id),
+      entry.purchased_by_user_id && entry.purchased_by_user_id !== entry.user_id ? profileOf(entry.purchased_by_user_id) : Promise.resolve(null),
+    ]);
 
-    if (existingEntry.status !== "approved") {
-      return new Response(
-        JSON.stringify({ success: false, error: "El acceso no está aprobado" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const details: string[] = [];
+    let entryLabel = "Entrada";
+    const isGate = !!entry.gate_ticket_index;
+
+    if (entry.is_special_guest) {
+      entryLabel = entry.special_guest_label || "Invitado especial";
+    } else if (entry.ticket_tier_id) {
+      const { data: tier } = await supabaseAdmin.from("ticket_tiers").select("name").eq("id", entry.ticket_tier_id).maybeSingle();
+      entryLabel = tier?.name || "Entrada";
+    } else if (isGate && entry.payment_session_id) {
+      const { data: ps } = await supabaseAdmin.from("payment_sessions").select("gate_offer_name").eq("id", entry.payment_session_id).maybeSingle();
+      entryLabel = ps?.gate_offer_name ? `Puerta · ${ps.gate_offer_name}` : "Entrada de puerta";
+    } else if (entry.payment_session_id) {
+      entryLabel = "Precio único";
     }
 
-    // Already checked in — return alreadyUsed flag with guest info
-    if (existingEntry.checked_in_at) {
-      const { data: guestProfile } = existingEntry.user_id
-        ? await supabaseAdmin.from("profiles").select("username, full_name, avatar_url").eq("id", existingEntry.user_id).single()
-        : { data: null };
-
-      return new Response(
-        JSON.stringify({
-          success: false,
-          alreadyUsed: true,
-          checkedInAt: existingEntry.checked_in_at,
-          guest: existingEntry.gate_ticket_index ? { username: "", full_name: "Entrada de puerta", avatar_url: null } : guestProfile ?? null,
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (entry.area_booking_id) {
+      const { data: booking } = await supabaseAdmin
+        .from("area_bookings").select("party_size, event_area_id").eq("id", entry.area_booking_id).maybeSingle();
+      if (booking) {
+        const { data: area } = await supabaseAdmin.from("event_areas").select("name").eq("id", booking.event_area_id).maybeSingle();
+        if (!entry.is_special_guest && !entry.ticket_tier_id) entryLabel = "Lounge";
+        details.push(`Lounge / mesa: ${area?.name ?? "Reservado"}`);
+        if (booking.party_size) details.push(`${booking.party_size} personas en la reserva`);
+      }
     }
 
-    // Atomic single-use check-in: only update if checked_in_at IS NULL
-    const { data: updatedEntry, error: updateError } = await supabaseAdmin
+    const buyerName = buyerProfile?.full_name || buyerProfile?.username || null;
+    if (buyerName) details.push(`Comprada por ${buyerName}`);
+
+    const guest = isGate
+      ? { username: "", full_name: "Entrada de puerta", avatar_url: null }
+      : {
+          username: userProfile?.username ?? "",
+          full_name: entry.guest_name || userProfile?.full_name || userProfile?.username || (buyerName ? `Invitado de ${buyerName}` : "Invitado"),
+          avatar_url: userProfile?.avatar_url ?? null,
+        };
+    const entryInfo = { entry_label: entryLabel, is_special: !!entry.is_special_guest, details };
+
+    if (entry.status !== "approved") {
+      return json({ success: false, code: "not_approved", error: "Esta entrada no está aprobada o fue cancelada", guest, ...entryInfo }, 403);
+    }
+    if (entry.checked_in_at) {
+      return json({ success: false, alreadyUsed: true, checkedInAt: entry.checked_in_at, guest, ...entryInfo });
+    }
+
+    const { data: updatedEntry } = await supabaseAdmin
       .from("guestlist_entries")
       .update({ checked_in_at: new Date().toISOString(), attended: true })
-      .eq("qr_code_token", qr_code_token)
-      .eq("event_id", event_id)
+      .eq("id", entry.id)
       .is("checked_in_at", null)
-      .select("id, user_id")
-      .single();
+      .select("id")
+      .maybeSingle();
 
-    if (updateError || !updatedEntry) {
-      // Race condition: someone else checked them in between the read and this update
-      return new Response(
-        JSON.stringify({ success: false, alreadyUsed: true }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!updatedEntry) {
+      const { data: fresh } = await supabaseAdmin.from("guestlist_entries").select("checked_in_at").eq("id", entry.id).maybeSingle();
+      return json({ success: false, alreadyUsed: true, checkedInAt: fresh?.checked_in_at ?? null, guest, ...entryInfo });
     }
 
-    // Fetch guest profile for the success response
-    const { data: guestProfile } = updatedEntry.user_id
-      ? await supabaseAdmin.from("profiles").select("username, full_name, avatar_url").eq("id", updatedEntry.user_id).single()
-      : { data: null };
+    // Best-effort analytics counter
+    supabaseAdmin.from("event_analytics").select("check_ins").eq("event_id", event_id).maybeSingle()
+      .then(({ data: a }) => {
+        if (a) supabaseAdmin.from("event_analytics")
+          .update({ check_ins: (a.check_ins ?? 0) + 1, updated_at: new Date().toISOString() })
+          .eq("event_id", event_id).then(() => {});
+      }, () => {});
 
-    // Update event_analytics check_ins counter (best-effort, ignore errors)
-    supabaseAdmin
-      .from("event_analytics")
-      .select("id, check_ins")
-      .eq("event_id", event_id)
-      .single()
-      .then(({ data: analytics }) => {
-        if (analytics) {
-          supabaseAdmin
-            .from("event_analytics")
-            .update({ check_ins: (analytics.check_ins ?? 0) + 1, updated_at: new Date().toISOString() })
-            .eq("event_id", event_id)
-            .then(() => {});
-        }
-      })
-      .catch(() => {});
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        alreadyUsed: false,
-        guest: existingEntry.gate_ticket_index ? { username: "", full_name: "Entrada de puerta", avatar_url: null } : guestProfile ?? null,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({ success: true, alreadyUsed: false, guest, ...entryInfo });
   } catch (error) {
     console.error("check-in-guest error:", error);
     return new Response(
