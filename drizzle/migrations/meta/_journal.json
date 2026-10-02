@@ -386,6 +386,13 @@
       "when": 1790978292680,
       "tag": "0054_price_legacy_single_tickets_from_sales",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1790979517518,
+      "tag": "0055_promoter_revenue_base_amount",
+      "breakpoints": true
     }
   ]
 }
