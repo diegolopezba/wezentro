@@ -94,15 +94,17 @@ export const TicketsList = () => {
 
   const now = Date.now();
   const withEvent = (tickets || []).filter((t: any) => !!t.event);
-  const upcoming = withEvent.filter(
-    (t: any) => new Date(t.event.start_datetime).getTime() >= now
-  );
+  // An event counts as past only once it ends; if no end time is set,
+  // fall back to 6 hours after the start.
+  const eventEnd = (t: any) => {
+    const start = new Date(t.event.start_datetime).getTime();
+    const end = t.event.end_datetime ? new Date(t.event.end_datetime).getTime() : NaN;
+    return Number.isFinite(end) && end > start ? end : start + 6 * 60 * 60 * 1000;
+  };
+  const upcoming = withEvent.filter((t: any) => eventEnd(t) >= now);
   const past = withEvent
-    .filter((t: any) => new Date(t.event.start_datetime).getTime() < now)
-    .sort(
-      (a: any, b: any) =>
-        new Date(b.event.start_datetime).getTime() - new Date(a.event.start_datetime).getTime()
-    );
+    .filter((t: any) => eventEnd(t) < now)
+    .sort((a: any, b: any) => eventEnd(b) - eventEnd(a));
 
   // Number tickets per event (oldest first) when a user holds more than one.
   const ticketNumber = new Map<string, { n: number; total: number }>();
