@@ -344,6 +344,48 @@
       "when": 1790976045469,
       "tag": "0048_event_entry_breakdown",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1790977984451,
+      "tag": "0049_clarify_event_entry_categories_and_totals",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1790978068454,
+      "tag": "0050_qualify_event_entry_payment_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1790978099756,
+      "tag": "0051_fix_entry_breakdown_grouped_alias",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1790978128567,
+      "tag": "0052_disambiguate_event_entry_grouping",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1790978262088,
+      "tag": "0053_attribute_legacy_paid_entries_to_confirmed_sales",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1790978292680,
+      "tag": "0054_price_legacy_single_tickets_from_sales",
+      "breakpoints": true
     }
   ]
 }

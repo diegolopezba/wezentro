@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEventEntryBreakdown, type EntryCategory } from "@/hooks/usePromoters";
+import { useEventEntryBreakdown, type EntryCategory, type EntryBreakdown } from "@/hooks/usePromoters";
 import { formatBs } from "@/components/sales/salesUtils";
 import { cn } from "@/lib/utils";
 
@@ -20,83 +20,83 @@ export const OccupancyBar = ({ pct, bar }: { pct: number; bar: string }) => (
   </div>
 );
 
-const Stat = ({ label, value }: { label: string; value: number }) => (
-  <div className="flex-1 rounded-xl bg-secondary/60 px-2 py-2 text-center">
-    <p className="text-base font-semibold text-foreground">{value}</p>
-    <p className="text-[10px] text-muted-foreground">{label}</p>
-  </div>
-);
+export const entryTotals = (data: EntryBreakdown) => {
+  const count = (kinds: EntryCategory["kind"][]) => data.categories
+    .filter((category) => kinds.includes(category.kind))
+    .reduce((sum, category) => sum + Number(category.count), 0);
+  const sold = count(["tier", "single", "gate", "lounge"]);
+  const invited = count(["special"]);
+  const manual = count(["manual"]);
+  return { sold, invited, manual, total: sold + invited + manual };
+};
+
+const Row = ({ c, guest = false }: { c: EntryCategory; guest?: boolean }) => {
+  const o = occupancy(c.count, c.capacity);
+  return (
+    <div className="rounded-2xl bg-card border border-border p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-sm font-semibold text-foreground">{c.name}</p>
+            {o.label && <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-semibold", o.chip)}>{o.label}</span>}
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            {c.price != null && !guest ? `${formatBs(c.price)} · ` : ""}
+            {c.count}{c.capacity != null ? ` / ${c.capacity}` : ""} {guest ? "entradas" : "vendidas"}
+            {c.checked_in > 0 ? ` · ${c.checked_in} ingresaron` : ""}
+          </p>
+        </div>
+        {!guest && <p className="text-sm font-semibold text-foreground whitespace-nowrap">{formatBs(c.revenue)}</p>}
+      </div>
+      {o.pct !== null && <OccupancyBar pct={o.pct} bar={o.bar} />}
+    </div>
+  );
+};
 
 export const EventTiersPanel = ({ eventId }: { eventId: string }) => {
-  const { data, isLoading } = useEventEntryBreakdown(eventId);
+  const { data, isLoading, isError } = useEventEntryBreakdown(eventId);
 
   if (isLoading) {
     return <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}</div>;
   }
 
-  const cats = data?.categories || [];
-  const inv = data?.invites || { sent: 0, accepted: 0, pending: 0, revoked: 0, checked_in: 0 };
-  const sum = (kinds: string[]) => cats.filter((c) => kinds.includes(c.kind)).reduce((a, c) => a + c.count, 0);
-  const paid = sum(["tier", "single", "lounge"]);
-  const gate = sum(["gate"]);
-  const guests = sum(["special", "manual"]);
-  const total = paid + gate + guests;
-  const sold = cats.filter((c) => !["special", "manual"].includes(c.kind));
-  const guestCats = cats.filter((c) => ["special", "manual"].includes(c.kind));
+  if (isError || !data) return <p role="alert" className="text-sm text-destructive py-4">No pudimos cargar las entradas. Volvé a intentar más tarde.</p>;
 
-  const Row = ({ c }: { c: EntryCategory }) => {
-    const o = occupancy(c.count, c.capacity);
-    return (
-      <div className="rounded-2xl bg-card border border-border p-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-foreground truncate">{c.name}</p>
-              {o.label && <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-semibold", o.chip)}>{o.label}</span>}
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {c.price != null ? `${formatBs(c.price)} · ` : ""}
-              {c.count}{c.capacity ? ` / ${c.capacity}` : ""} {c.revenue > 0 || c.kind !== "manual" ? "vendidas" : "entradas"} · {c.checked_in} ingresaron
-            </p>
-          </div>
-          {c.revenue > 0 && <p className="text-sm font-semibold text-foreground">{formatBs(c.revenue)}</p>}
-        </div>
-        {o.pct !== null && <OccupancyBar pct={o.pct} bar={o.bar} />}
-      </div>
-    );
-  };
+  const { sold, invited, manual, total } = entryTotals(data);
+  const normal = data.categories.filter((c) => c.kind === "tier" || c.kind === "single");
+  const gate = data.categories.filter((c) => c.kind === "gate");
+  const lounge = data.categories.filter((c) => c.kind === "lounge");
+  const guestCats = data.categories.filter((c) => (c.kind === "special" || c.kind === "manual") && c.count > 0);
+  const inviteDifference = data.invites.accepted - invited;
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl bg-card border border-border p-4">
-        <p className="text-[11px] text-muted-foreground">Total de entradas emitidas</p>
-        <p className="text-3xl font-semibold text-foreground">{total}</p>
-        <div className="flex gap-2 mt-3">
-          <Stat label="Pagadas" value={paid} />
-          <Stat label="En puerta" value={gate} />
-          <Stat label="Invitados" value={guests} />
+      <div className="border-y border-border py-2.5 text-xs text-muted-foreground">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <span><strong className="text-foreground">{sold}</strong> {sold === 1 ? "entrada vendida" : "entradas vendidas"} <span aria-hidden="true">+</span> <strong className="text-foreground">{data.invites.accepted}</strong> invitaciones aceptadas{manual > 0 && <> <span aria-hidden="true">+</span> <strong className="text-foreground">{manual}</strong> cortesías</>}</span>
+          <span className="font-semibold text-foreground">= {total} asistentes</span>
         </div>
+        {inviteDifference > 0 && <p className="mt-1">{inviteDifference} invitaciones aceptadas no generaron una entrada adicional.</p>}
+        {inviteDifference < 0 && <p className="mt-1">{Math.abs(inviteDifference)} entradas de invitación no corresponden a una aceptación registrada.</p>}
       </div>
 
       <section className="space-y-2">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Vendidas por categoría</h3>
-        {sold.length ? sold.map((c) => <Row key={c.kind + c.key} c={c} />) : (
-          <p className="text-sm text-muted-foreground text-center py-4">Todavía no hay entradas vendidas.</p>
-        )}
+        {normal.length ? normal.map((c) => <Row key={c.kind + c.key} c={c} />) : <p className="text-sm text-muted-foreground py-3">Todavía no hay categorías de entradas.</p>}
       </section>
+
+      {gate.length > 0 && <section className="space-y-2"><h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Ventas en puerta</h3>{gate.map((c) => <Row key={c.kind + c.key} c={c} />)}</section>}
+      {lounge.length > 0 && <section className="space-y-2"><h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Lounges</h3>{lounge.map((c) => <Row key={c.kind + c.key} c={c} />)}</section>}
 
       <section className="space-y-2">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Invitados</h3>
-        <div className="rounded-2xl bg-card border border-border p-3">
-          <p className="text-sm font-semibold text-foreground">Invitaciones especiales</p>
-          <div className="flex gap-2 mt-2">
-            <Stat label="Enviadas" value={inv.sent} />
-            <Stat label="Aceptadas" value={inv.accepted} />
-            <Stat label="Pendientes" value={inv.pending} />
-            <Stat label="Revocadas" value={inv.revoked} />
-          </div>
+        <div className="border-t border-border pt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <span><strong className="text-foreground">{data.invites.sent}</strong> enviadas</span>
+          <span><strong className="text-foreground">{data.invites.accepted}</strong> aceptadas</span>
+          <span>{data.invites.pending} pendientes</span>
+          <span>{data.invites.revoked} revocadas</span>
         </div>
-        {guestCats.map((c) => <Row key={c.kind} c={c} />)}
+        {guestCats.map((c) => <Row key={c.kind} c={c} guest />)}
       </section>
     </div>
   );

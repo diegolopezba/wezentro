@@ -7,10 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/bottom-sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { useCreatorSalesByEvent } from "@/hooks/usePromoters";
+import { useCreatorSalesByEvent, useEventEntryBreakdown } from "@/hooks/usePromoters";
 import { useEventAreas } from "@/hooks/useVenueLayouts";
 import { useToggleEventVisibility } from "@/hooks/useEventMutations";
-import { EventTiersPanel } from "@/components/business/EventTiersPanel";
+import { EventTiersPanel, entryTotals } from "@/components/business/EventTiersPanel";
 import { GateSalesPanel } from "@/components/business/GateSalesPanel";
 import { EventLoungesPanel } from "@/components/business/EventLoungesPanel";
 import { EventGuestsPanel } from "@/components/business/EventGuestsPanel";
@@ -59,6 +59,7 @@ export const EventDetailPanel = ({ eventId }: Props) => {
   });
 
   const { data: sales } = useCreatorSalesByEvent();
+  const { data: entryBreakdown, isLoading: entriesLoading } = useEventEntryBreakdown(eventId);
   const { data: areas } = useEventAreas(eventId);
   const hasLounges = (areas || []).some((a) => !a.is_decor);
 
@@ -82,6 +83,7 @@ export const EventDetailPanel = ({ eventId }: Props) => {
   });
 
   const sold = Number(row?.tickets_sold || 0);
+  const attendees = entryBreakdown ? entryTotals(entryBreakdown).total : null;
   const capacity = Number(row?.capacity || event?.max_guestlist_capacity || 0);
   const revenue = Number(row?.revenue || 0);
   const conv = views && views > 0 ? (sold / views) * 100 : null;
@@ -146,7 +148,7 @@ export const EventDetailPanel = ({ eventId }: Props) => {
           </div>
 
           <div className="grid grid-cols-3 gap-2 mt-3">
-            <Stat label="Vendidas" value={`${sold}${capacity > 0 ? `/${capacity}` : ""}`} />
+             <Stat label="Total asistentes" value={attendees !== null ? `${attendees}${capacity > 0 ? `/${capacity}` : ""}` : entriesLoading ? "…" : "—"} />
             <Stat label="Neto" value={formatBs(netOf(revenue))} sub={`Bruto ${formatBs(revenue)}`} />
             <Stat label="Conversión" value={conv !== null ? `${conv.toFixed(1).replace(".", ",")}%` : "—"} />
           </div>
