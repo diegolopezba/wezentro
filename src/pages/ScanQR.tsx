@@ -5,8 +5,9 @@ import { CheckCircle, XCircle, AlertCircle, Camera, RotateCcw, Shield } from "lu
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import jsQR from "jsqr";
+import { haptic } from "@/lib/haptics";
 
-type ScanState = "idle" | "scanning" | "loading" | "success" | "already_used" | "error" | "invalid_key";
+type ScanState = "idle" | "scanning" | "loading" | "success" | "already_used" | "error" | "network" | "invalid_key";
 
 interface GuestInfo {
   username: string;
@@ -30,6 +31,9 @@ export default function ScanQR() {
   const [errorMsg, setErrorMsg] = useState("");
   const [eventTitle, setEventTitle] = useState("Evento");
   const [checkedInAt, setCheckedInAt] = useState<string | null>(null);
+  const [entryLabel, setEntryLabel] = useState<string | null>(null);
+  const [details, setDetails] = useState<string[]>([]);
+  const lastTokenRef = useRef<string>("");
 
   // Validate key presence immediately
   const hasValidKey = Boolean(scannerKey && eventId);
@@ -63,16 +67,17 @@ export default function ScanQR() {
       return;
     }
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    const scale = Math.min(1, 640 / (video.videoWidth || 640));
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const code = jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: "dontInvert",
+      inversionAttempts: "attemptBoth",
     });
 
     if (code && code.data && code.data !== lastScannedRef.current) {
@@ -106,6 +111,7 @@ export default function ScanQR() {
     async (token: string) => {
       setState("loading");
       stopCamera();
+      lastTokenRef.current = token;
 
       try {
         const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -127,22 +133,33 @@ export default function ScanQR() {
           body: JSON.stringify({ qr_code_token: token, event_id: eventId }),
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
+        if (res.status >= 500 || res.status === 401) {
+          setErrorMsg(res.status === 401 ? "Enlace de escáner no autorizado" : "Error del servidor, reintentá");
+          setState("network");
+          haptic("warning");
+          return;
+        }
+        setGuest(data.guest ?? null);
+        setEntryLabel(data.entry_label ?? null);
+        setDetails(Array.isArray(data.details) ? data.details : []);
 
         if (data.alreadyUsed) {
-          setGuest(data.guest ?? null);
           setCheckedInAt(data.checkedInAt ?? null);
           setState("already_used");
+          haptic("warning");
         } else if (data.success) {
-          setGuest(data.guest ?? null);
           setState("success");
+          haptic("success");
         } else {
           setErrorMsg(data.error || "QR inválido");
           setState("error");
+          haptic("heavy");
         }
       } catch {
-        setErrorMsg("Error de conexión. Verifica el internet.");
-        setState("error");
+        setErrorMsg("Sin conexión. Verificá el internet y reintentá.");
+        setState("network");
+        haptic("warning");
       }
     },
     [eventId, scannerKey, stopCamera]
@@ -152,6 +169,8 @@ export default function ScanQR() {
     lastScannedRef.current = "";
     setGuest(null);
     setCheckedInAt(null);
+    setEntryLabel(null);
+    setDetails([]);
     setErrorMsg("");
     startCamera();
   }, [startCamera]);
@@ -262,98 +281,73 @@ export default function ScanQR() {
         )}
       </AnimatePresence>
 
-      {/* Result overlay */}
+      {/* Result overlay — full-screen color: green = entering, red = already used, yellow = invalid */}
       <AnimatePresence>
-        {(state === "success" || state === "already_used" || state === "error") && (
+        {(state === "success" || state === "already_used" || state === "error" || state === "network") && (
           <m.div
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            className={`absolute inset-0 z-20 flex flex-col items-center justify-center p-6 gap-5 text-center ${
+              state === "success"
+                ? "bg-success text-primary-foreground"
+                : state === "already_used"
+                ? "bg-destructive text-destructive-foreground"
+                : state === "error"
+                ? "bg-warning text-warning-foreground"
+                : "bg-card text-foreground"
+            }`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <div
-            className={`w-full max-w-sm rounded-3xl p-6 flex flex-col items-center gap-4 shadow-2xl bg-card ${
-                state === "success"
-                  ? "border border-primary/20"
-                  : state === "already_used"
-                  ? "border border-yellow-500/20"
-                  : "border border-destructive/20"
-              }`}
-            >
-              {/* Icon */}
-              {state === "success" && (
-                <m.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center"
-                >
-                  <CheckCircle className="w-10 h-10 text-primary" />
-                </m.div>
-              )}
-              {state === "already_used" && (
-                <div className="w-20 h-20 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                  <AlertCircle className="w-10 h-10 text-yellow-500" />
-                </div>
-              )}
-              {state === "error" && (
-                <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
-                  <XCircle className="w-10 h-10 text-destructive" />
-                </div>
-              )}
+            <m.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 400, damping: 20 }}>
+              {state === "success" && <CheckCircle className="w-24 h-24" />}
+              {state === "already_used" && <XCircle className="w-24 h-24" />}
+              {state === "error" && <AlertCircle className="w-24 h-24" />}
+              {state === "network" && <AlertCircle className="w-16 h-16 text-muted-foreground" />}
+            </m.div>
 
-              {/* Guest info */}
-              {guest && (state === "success" || state === "already_used") && (
-                <div className="flex flex-col items-center gap-2">
-                  <img
-                    src={guest.avatar_url || "/assets/default-avatar.png"}
-                    alt={guest.username}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-border"
-                  />
-                  <div className="text-center">
-                    <p className="font-semibold text-foreground text-lg">
-                      {guest.full_name || `@${guest.username}`}
-                    </p>
-                    {guest.full_name && (
-                      <p className="text-sm text-muted-foreground">{guest.username}</p>
-                    )}
-                  </div>
-                </div>
-              )}
+            <p className="text-4xl font-bold uppercase tracking-tight">
+              {state === "success" && "Ingresando"}
+              {state === "already_used" && "Ya ingresó"}
+              {state === "error" && "Ticket inválido"}
+              {state === "network" && "Sin conexión"}
+            </p>
 
-              {/* Status label */}
-              <div className="text-center">
-                {state === "success" && (
-                  <>
-                    <p className="text-xl font-bold text-foreground">✓ Ingresó</p>
-                    <p className="text-sm text-muted-foreground mt-1">Acceso válido — bienvenid@</p>
-                  </>
+            {state === "already_used" && (
+              <p className="text-xl font-semibold">
+                {checkedInAt ? `Ingresó a las ${formatCheckedIn(checkedInAt)}` : "Este QR ya fue usado"}
+              </p>
+            )}
+
+            {guest && (state === "success" || state === "already_used") && (
+              <div className="flex flex-col items-center gap-2">
+                {guest.avatar_url && (
+                  <img src={guest.avatar_url} alt="" className="w-20 h-20 rounded-full object-cover border-4 border-current" />
                 )}
-                {state === "already_used" && (
-                  <>
-                    <p className="text-xl font-bold text-yellow-500">Ya ingresó</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {checkedInAt ? `Entrada registrada a las ${formatCheckedIn(checkedInAt)}` : "Este QR ya fue utilizado"}
-                    </p>
-                  </>
-                )}
-                {state === "error" && (
-                  <>
-                    <p className="text-xl font-bold text-destructive">QR inválido</p>
-                    <p className="text-sm text-muted-foreground mt-1">{errorMsg}</p>
-                  </>
-                )}
+                <p className="text-2xl font-bold">{guest.full_name || guest.username || "Invitado"}</p>
+                {guest.full_name && guest.username && <p className="text-base opacity-80">{guest.username}</p>}
               </div>
+            )}
 
-              {/* Action */}
-              <Button
-                variant="sheet-action"
-                size="lg"
-                className="w-full gap-2"
-                onClick={reset}
-              >
-                <RotateCcw className="w-4 h-4" />
-                Escanear siguiente
+            {entryLabel && (state === "success" || state === "already_used") && (
+              <span className="px-4 py-1.5 rounded-full border-2 border-current text-lg font-semibold">{entryLabel}</span>
+            )}
+
+            {details.length > 0 && (state === "success" || state === "already_used") && (
+              <div className="space-y-1 text-base opacity-90">
+                {details.map((d) => <p key={d}>{d}</p>)}
+              </div>
+            )}
+
+            {(state === "error" || state === "network") && <p className="text-lg max-w-xs">{errorMsg}</p>}
+
+            <div className="w-full max-w-sm flex flex-col gap-2 mt-2">
+              {state === "network" && (
+                <Button variant="sheet-action" size="lg" className="w-full gap-2" onClick={() => handleQRDetected(lastTokenRef.current)}>
+                  <RotateCcw className="w-4 h-4" /> Reintentar
+                </Button>
+              )}
+              <Button variant="secondary" size="lg" className="w-full gap-2 rounded-full" onClick={reset}>
+                <Camera className="w-4 h-4" /> Escanear siguiente
               </Button>
             </div>
           </m.div>
