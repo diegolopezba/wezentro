@@ -43,7 +43,7 @@ const BusinessHub = () => {
                 <button
                   key={p.id}
                   data-tour={`gestion-${p.id}`}
-                  onClick={() => setTab(p.id)}
+                  onClick={() => selectTab(p.id)}
                   className={cn(
                     "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors select-none active:scale-95",
                     tab === p.id
@@ -67,8 +67,8 @@ const BusinessHub = () => {
             {TABS.map((p) => (
               <button
                 key={p.id}
-                data-tour={`gestion-${p.id}`}
-                onClick={() => setTab(p.id)}
+                  data-tour={`gestion-${p.id}`}
+                  onClick={() => selectTab(p.id)}
                 className={cn(
                   "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors select-none [-webkit-tap-highlight-color:transparent] active:scale-95",
                   tab === p.id
