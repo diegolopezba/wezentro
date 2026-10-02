@@ -51,6 +51,8 @@ export const TicketsList = () => {
             image_url,
             start_datetime,
             location_name,
+            start_datetime,
+            end_datetime,
             price,
             payment_qr_url,
             creator:profiles!events_creator_id_fkey(
