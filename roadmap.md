@@ -1,3 +1,9 @@
+## Gestión > Eventos: entradas y asistentes
+- [x] Recuperar filas por precio único y fase con precio, ventas, capacidad y barra visual; quitar la tarjeta de entradas emitidas.
+- [x] Mostrar total asistentes y desglose compacto de entradas vendidas, invitaciones aceptadas y cortesías.
+- [x] Identificar entradas pagadas antiguas sin sesión enlazada para que no figuren como cortesías; contrastar BRUNCH RAVE con sus ventas e invitaciones.
+- [ ] Verificar la vista privada de Cábala con una sesión autorizada de su organizador (la sesión de prueba no tiene acceso a ese evento).
+
 ## Boletería en puerta
 - [x] Cartel QR permanente, precios administrables y compra sin cuenta de 1 a 10 entradas.
 - [x] Pago bancario, comisión y emisión de QR individuales verificables por el escáner existente.
