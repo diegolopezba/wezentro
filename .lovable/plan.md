@@ -14,7 +14,11 @@
 3. **Lectura más tolerante:** hoy el lector solo busca QR oscuros sobre fondo claro. Lo voy a ajustar para que también lea QR con poco brillo o capturas invertidas, y para que lea más rápido en teléfonos lentos.
 4. **"Ya ingresó" de las invitaciones especiales y de algunos casos simultáneos** a veces no muestra la hora ni el nombre. Se va a mostrar siempre nombre y hora del primer ingreso.
 5. **Errores más claros para el portero:** distinguir "QR de otro evento", "Entrada cancelada / no aprobada", "Sin conexión, reintentá" (con botón Reintentar que vuelve a leer el mismo QR) y vibración distinta para válido / usado / inválido.
-6. **Pantalla verde/amarilla/roja grande:** fondo de color completo según el resultado, para que se entienda de un vistazo con poca luz.
+6. **Pantallas de color completo para el portero:**
+   - **Verde – "Ingresando":** nombre de la persona, tipo de entrada (fase, precio único, puerta) o "Invitado especial", y detalles si los hay: lounge o mesa reservada, cantidad de personas del lounge y quién compró la entrada.
+   - **Roja – "Ya ingresó":** hora de ingreso, nombre, tipo de entrada o "Invitado especial" y los mismos detalles.
+   - **Amarilla – "Ticket inválido":** solo para QR que no existen, son de otro evento o están cancelados / no aprobados, con el motivo en una línea.
+   - Si se corta internet, aparece un aviso con botón "Reintentar" (no se muestra como ticket inválido).
 
 ## Verificación antes de entregarlo
 
@@ -28,5 +32,6 @@ No se tocan los números, ventas ni entradas existentes; solo se mejora lo que v
 ## Detalles técnicos
 
 - `check-in-guest`: devolver `guest_name`, `purchased_by` (perfil del comprador), `entry_label` (tier name / gate_offer_name / special_guest_label / area name / "Precio único"), `checkedInAt` siempre en alreadyUsed (incluido el camino de carrera y special invites), y `code` de error (`wrong_event`, `not_approved`, `revoked`, `not_found`). Para `wrong_event`, buscar el token sin filtro de evento.
-- `ScanQR.tsx`: `inversionAttempts: "attemptBoth"`, reducir el canvas a ~640px de ancho, botón Reintentar en error de red que reenvía el último token, haptics por estado, overlay a pantalla completa con tokens semánticos (success / warning / destructive), mostrar `entry_label`.
+- `ScanQR.tsx`: `inversionAttempts: "attemptBoth"`, reducir el canvas a ~640px de ancho, botón Reintentar en error de red que reenvía el último token, haptics por estado, overlay a pantalla completa con tokens semánticos: success = ingresando, destructive = ya ingresó, warning = ticket inválido; mostrar `entry_label` y `details` (área/mesa del lounge, personas, comprador).
+- `check-in-guest` también devuelve `details` (nombre del área del `area_booking`, cantidad de entradas del booking, comprador).
 - Redeploy de `check-in-guest`; sin migraciones.
