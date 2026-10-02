@@ -19,10 +19,18 @@ const TABS: { id: Tab; label: string }[] = [
 /** Business-account replacement for the consumer "Entradas" tab. */
 const BusinessHub = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const [selectedTab, setTab] = useState<Tab>("reservas");
   const tab: Tab = requestedTab === "eventos" || requestedTab === "experiencias" || requestedTab === "reservas" ? requestedTab : selectedTab;
+
+  // Keep the URL in sync so a preselected ?tab= (tour, back navigation) never pins the screen.
+  const selectTab = (id: Tab) => {
+    setTab(id);
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", id);
+    setSearchParams(next, { replace: true });
+  };
 
   return (
     <AppLayout>
@@ -35,7 +43,7 @@ const BusinessHub = () => {
                 <button
                   key={p.id}
                   data-tour={`gestion-${p.id}`}
-                  onClick={() => setTab(p.id)}
+                  onClick={() => selectTab(p.id)}
                   className={cn(
                     "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors select-none active:scale-95",
                     tab === p.id
@@ -59,8 +67,8 @@ const BusinessHub = () => {
             {TABS.map((p) => (
               <button
                 key={p.id}
-                data-tour={`gestion-${p.id}`}
-                onClick={() => setTab(p.id)}
+                  data-tour={`gestion-${p.id}`}
+                  onClick={() => selectTab(p.id)}
                 className={cn(
                   "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors select-none [-webkit-tap-highlight-color:transparent] active:scale-95",
                   tab === p.id
