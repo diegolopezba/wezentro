@@ -337,6 +337,13 @@
       "when": 1790875626462,
       "tag": "0047_snapshot_gate_ticket_offer_name",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1790976045469,
+      "tag": "0048_event_entry_breakdown",
+      "breakpoints": true
     }
   ]
 }

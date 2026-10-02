@@ -5155,6 +5155,7 @@ export type Database = {
           view_count: number
         }[]
       }
+      get_event_entry_breakdown: { Args: { _event_id: string }; Returns: Json }
       get_event_like_summary: {
         Args: { _event_ids: string[] }
         Returns: {

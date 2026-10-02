@@ -247,3 +247,30 @@ export const usePaymentStatusBreakdown = (eventId: string | undefined) =>
       return (data as unknown as PaymentStatusRow[]) || [];
     },
   });
+
+export interface EntryCategory {
+  kind: "tier" | "single" | "gate" | "lounge" | "special" | "manual";
+  key: string;
+  name: string;
+  price: number | null;
+  capacity: number | null;
+  count: number;
+  checked_in: number;
+  revenue: number;
+}
+
+export interface EntryBreakdown {
+  categories: EntryCategory[];
+  invites: { sent: number; accepted: number; pending: number; revoked: number; checked_in: number };
+}
+
+export const useEventEntryBreakdown = (eventId: string | undefined) =>
+  useQuery({
+    queryKey: ["event-entry-breakdown", eventId],
+    enabled: !!eventId,
+    queryFn: async (): Promise<EntryBreakdown> => {
+      const { data, error } = await supabase.rpc("get_event_entry_breakdown" as any, { _event_id: eventId });
+      if (error) throw error;
+      return data as unknown as EntryBreakdown;
+    },
+  });
