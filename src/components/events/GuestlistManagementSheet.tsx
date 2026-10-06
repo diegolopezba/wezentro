@@ -36,7 +36,7 @@ interface GuestlistManagementSheetProps {
 }
 
 // ── Scanner panel ────────────────────────────────────────────────────────────
-function ScannerPanel({ eventId }: { eventId: string }) {
+export function ScannerPanel({ eventId }: { eventId: string }) {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
 

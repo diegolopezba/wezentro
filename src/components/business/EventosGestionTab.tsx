@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { CalendarPlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,13 +20,16 @@ export const EventosGestionTab = () => {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
   const didInit = useRef(false);
+  const [searchParams] = useSearchParams();
+  const requestedEventId = searchParams.get("eventId");
 
   useEffect(() => {
     if (didInit.current || events.length === 0) return;
+    const requested = requestedEventId && events.find((e) => e.id === requestedEventId);
     const idx = Math.min(data?.firstUpcomingIndex ?? 0, events.length - 1);
-    setSelectedId(events[idx].id);
+    setSelectedId(requested ? requested.id : events[idx].id);
     didInit.current = true;
-  }, [events, data?.firstUpcomingIndex]);
+  }, [events, data?.firstUpcomingIndex, requestedEventId]);
 
   useEffect(() => {
     if (!selectedId || !activeRef.current || !scrollerRef.current) return;
