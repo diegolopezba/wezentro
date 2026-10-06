@@ -317,7 +317,7 @@ const Onboarding = () => {
           {step === 2 && (
             <m.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Nombre para mostrar</label>
+                <label className="text-sm font-medium text-foreground mb-2 block">¿Cuál es tu nombre?</label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
