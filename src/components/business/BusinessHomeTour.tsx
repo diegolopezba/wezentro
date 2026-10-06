@@ -198,7 +198,7 @@ export const BusinessSetupReminder = () => {
 
   return (
     <div className="px-4 pt-2">
-      <div className="flex items-center gap-2 rounded-2xl bg-secondary p-3">
+      <div className="light-sheet flex items-center gap-2 rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-sm">
         <button
           className="flex min-w-0 flex-1 items-center gap-3 text-left active:opacity-70"
           onClick={() => navigate("/settings/business")}
