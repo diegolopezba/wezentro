@@ -139,6 +139,7 @@ const GatePurchase = lazyWithRetry(() => import("./pages/GatePurchase"));
 const BlockedUsers = lazyWithRetry(() => import("./pages/BlockedUsers"));
 const EventPromoterDashboard = lazyWithRetry(() => import("./pages/EventPromoterDashboard"));
 const BusinessEventDetail = lazyWithRetry(() => import("./pages/BusinessEventDetail"));
+const BusinessEvents = lazyWithRetry(() => import("./pages/BusinessEvents"));
 
 // Private admin console (own subdomain, never linked from the app UI)
 const AdminLogin = lazyWithRetry(() => import("./pages/admin/AdminLogin"));
@@ -322,6 +323,7 @@ const AppRoutes = () => {
           <Route path="/settings/business/layouts" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><VenueLayouts /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
           <Route path="/settings/business/plans" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessPlans /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
           <Route path="/settings/business/experiences" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessExperiences /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
+          <Route path="/settings/business/events" element={<ProtectedRoute requireProfile><HideMobileNav><SettingsShell><LazyRoute><BusinessEvents /></LazyRoute></SettingsShell></HideMobileNav></ProtectedRoute>} />
           <Route path="/settings/joined-events" element={<ProtectedRoute requireProfile><LazyRoute><JoinedEvents /></LazyRoute></ProtectedRoute>} />
 
           <Route path="/settings/help" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Help /></LazyRoute></SettingsShell></ProtectedRoute>} />

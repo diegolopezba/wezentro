@@ -46,15 +46,6 @@ const BusinessSettings = () => {
   const { hasPayouts } = useDashboardAccess();
   const businessType = (profile as any)?.business_type as string | undefined;
   const modules = resolveBusinessModules(profile);
-  const [savingEvents, setSavingEvents] = useState(false);
-  const toggleEvents = async (on: boolean) => {
-    if (!user) return;
-    setSavingEvents(true);
-    const { error } = await supabase.from("profiles").update({ events_enabled: on } as any).eq("id", user.id);
-    if (error) toast.error("No pudimos guardar el cambio");
-    else await refreshProfile();
-    setSavingEvents(false);
-  };
 
   const setupSteps: SetupStep[] = isBusiness
     ? [
@@ -172,16 +163,13 @@ const BusinessSettings = () => {
                 onClick={() => navigate("/settings/business/info")}
                 delay={0.06}
               />
-              <div className="flex items-center gap-3 px-4 py-3.5">
-                <PartyPopper className="h-5 w-5 text-muted-foreground" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground">Eventos</p>
-                  <p className="text-xs text-muted-foreground">
-                    {modules.events ? "Activos · crear eventos y vender entradas" : "Activá para crear eventos y vender entradas"}
-                  </p>
-                </div>
-                <Switch checked={modules.events} disabled={savingEvents} onCheckedChange={toggleEvents} />
-              </div>
+              <SettingsRow
+                icon={PartyPopper}
+                label="Eventos"
+                sublabel={modules.events ? "Activos · entradas y planos del lugar" : "Desactivados"}
+                onClick={() => navigate("/settings/business/events")}
+                delay={0.08}
+              />
               {isFoodBusiness && (
                 <>
                 <SettingsRow
@@ -225,13 +213,6 @@ const BusinessSettings = () => {
                 onClick={() => navigate("/settings/business/experiences")}
                 delay={0.14}
               />
-              <SettingsRow
-                icon={TrendingUp}
-                label="Ventas y promotores"
-                sublabel="Ingresos, entradas vendidas y rendimiento de promotores"
-                onClick={() => navigate("/settings/business/sales")}
-                delay={0.15}
-              />
               {isFoodBusiness && (
                 <SettingsRow
                   icon={Sparkles}
@@ -239,15 +220,6 @@ const BusinessSettings = () => {
                   sublabel={`Plan actual: ${SUBSCRIPTION_TIERS[tier].name}`}
                   onClick={() => navigate("/settings/business/plans")}
                   delay={0.18}
-                />
-              )}
-              {showVenueLayouts && (
-                <SettingsRow
-                  icon={LayoutGrid}
-                  label="Planos del lugar"
-                  sublabel="Mesas, lounges y secciones reutilizables para tus eventos"
-                  onClick={() => navigate("/settings/business/layouts")}
-                  delay={0.21}
                 />
               )}
             </SettingsGroup>
