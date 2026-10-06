@@ -268,11 +268,11 @@ const UserProfile = () => {
 
       {/* Timeline Content */}
       <div className="py-4 mt-4">
-        <div className="masonry-grid">
-          {timelineLoading ? <div className="col-span-2 flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div> : !timeline || timeline.length === 0 ? <div className="col-span-2 text-center py-8 text-muted-foreground text-sm">Sin publicaciones aún</div> : timeline.map((item, index) => renderTimelineCard(item, index))}
-        </div>
+        {timelineLoading ? <div className="flex justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div> : !timeline || timeline.length === 0 ? <div className="w-full text-center py-16 text-muted-foreground text-sm">Sin publicaciones aún</div> : <div className="masonry-grid">
+            {timeline.map((item, index) => renderTimelineCard(item, index))}
+          </div>}
       </div>
 
       {/* Followers/Following Sheet */}

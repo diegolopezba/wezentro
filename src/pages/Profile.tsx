@@ -168,16 +168,16 @@ const Profile = () => {
 
       {/* Timeline Content */}
       <div className="py-4">
-        <div className="masonry-grid">
-          {timelineLoading ? <div className="col-span-2 flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div> : !timeline || timeline.length === 0 ? <div className="col-span-2 w-full flex flex-col items-center justify-center py-16 gap-4">
-              <p className="text-muted-foreground text-sm">Sin publicaciones aún</p>
-              <Button variant="outline" size="sm" onClick={() => navigate("/create")} className="gap-2">
-                Crear tu primera publicación
-              </Button>
-            </div> : timeline.map((item, index) => renderTimelineCard(item, index))}
-        </div>
+        {timelineLoading ? <div className="flex justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div> : !timeline || timeline.length === 0 ? <div className="w-full flex flex-col items-center justify-center text-center py-16 gap-4">
+            <p className="text-muted-foreground text-sm">Sin publicaciones aún</p>
+            <Button variant="sheet-action" size="sm" onClick={() => navigate("/create")} className="px-5">
+              Crear tu primera publicación
+            </Button>
+          </div> : <div className="masonry-grid">
+            {timeline.map((item, index) => renderTimelineCard(item, index))}
+          </div>}
       </div>
 
       {/* Followers/Following Sheet */}
