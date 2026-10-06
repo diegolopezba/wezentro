@@ -61,7 +61,7 @@ export const EulaGate = ({ children }: { children: React.ReactNode }) => {
           <m.div
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="w-full max-w-md rounded-3xl bg-card border border-border p-6 space-y-4"
+            className="light-sheet w-full max-w-md rounded-3xl bg-card border border-border p-6 space-y-4 shadow-2xl"
           >
             <h2 className="font-brand text-xl font-semibold text-foreground">
               Reglas de la comunidad
