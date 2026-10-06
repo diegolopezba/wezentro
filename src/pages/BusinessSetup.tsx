@@ -202,27 +202,7 @@ const BusinessSetup = () => {
             {/* Step 1 — category */}
             {step === 0 && (
               <>
-                <div className="mt-5 grid grid-cols-2 gap-2">
-                  {BUSINESS_TYPES.map((t) => {
-                    const active = type === t.value;
-                    return (
-                      <button
-                        key={t.value}
-                        type="button"
-                        onClick={() => setType(t.value)}
-                        className={cn(
-                          "flex items-center gap-2 rounded-2xl border p-3.5 text-left transition-colors",
-                          active
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border bg-muted/50 text-foreground",
-                        )}
-                      >
-                        <span className="text-lg">{t.emoji}</span>
-                        <span className="text-sm font-medium">{t.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                <BusinessTypeGrid value={type} onChange={setType} />
 
                 {type && (
                   <p className="mt-4 rounded-2xl bg-muted/60 p-4 text-[13px] leading-snug text-muted-foreground">
