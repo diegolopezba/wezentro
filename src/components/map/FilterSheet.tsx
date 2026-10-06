@@ -6,6 +6,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { FilterOptions } from "@/hooks/useNearbyEvents";
 import { useAuth } from "@/contexts/AuthContext";
+import { addDays, endOfDay, isSameDay, startOfDay } from "date-fns";
+import { DayPill } from "@/components/business/gestionShared";
+
+const NEXT_DAYS = Array.from({ length: 30 }, (_, i) => addDays(startOfDay(new Date()), i));
 
 interface FilterSheetProps {
   open: boolean;
@@ -95,6 +99,7 @@ export const FilterSheet = ({
                     setLocalFilters((prev) => ({
                       ...prev,
                       dateFilter: option.value,
+                      customDateRange: undefined,
                     }))
                   }
                   className="rounded-full"
@@ -102,6 +107,33 @@ export const FilterSheet = ({
                   {option.label}
                 </Button>
               ))}
+            </div>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-6 px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {NEXT_DAYS.map((d) => {
+                const isSel =
+                  localFilters.dateFilter === "custom" &&
+                  !!localFilters.customDateRange &&
+                  isSameDay(localFilters.customDateRange.start, d);
+                return (
+                  <DayPill
+                    key={d.toISOString()}
+                    date={d}
+                    selected={isSel}
+                    count={0}
+                    onSelect={(day) =>
+                      setLocalFilters((prev) =>
+                        isSel
+                          ? { ...prev, dateFilter: "all", customDateRange: undefined }
+                          : {
+                              ...prev,
+                              dateFilter: "custom",
+                              customDateRange: { start: startOfDay(day), end: endOfDay(day) },
+                            },
+                      )
+                    }
+                  />
+                );
+              })}
             </div>
           </div>
 

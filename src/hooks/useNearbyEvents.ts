@@ -148,9 +148,10 @@ export const useNearbyEvents = (
           return isThisWeekend(eventDate);
         case "custom":
           if (filters.customDateRange) {
+            // Overlap: include overnight events that started earlier and run into the day
             return (
-              eventDate >= filters.customDateRange.start &&
-              eventDate <= filters.customDateRange.end
+              eventDate <= filters.customDateRange.end &&
+              eventEnd >= filters.customDateRange.start
             );
           }
           return true;
