@@ -19,7 +19,7 @@ for (let h = 0; h < 24; h++) {
 
 export const DEFAULT_SCHEDULE: DaySchedule[] = DAY_LABELS.map((_, i) => ({
   day: i,
-  open: i < 5,
+  open: false,
   from: "09:00",
   to: "18:00",
 }));
