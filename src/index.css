@@ -668,3 +668,12 @@ html[data-keyboard="open"] body {
   color-scheme: dark;
 }
 
+
+/* iOS grouped look: translucent grey surfaces inside light sheets become white cards. */
+.light-sheet .bg-muted\/60,
+.light-sheet .bg-muted\/50,
+.light-sheet .bg-muted\/40,
+.light-sheet .bg-secondary\/50,
+.light-sheet .bg-secondary\/40 {
+  background-color: hsl(var(--card));
+}

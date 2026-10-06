@@ -73,7 +73,7 @@ export const FeatureIntroSheet = ({ open, onOpenChange, steps, finishLabel = "En
                 {current.items.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <div key={item.label} className="flex items-start gap-3 rounded-2xl bg-muted/60 p-4">
+                    <div key={item.label} className="flex items-start gap-3 rounded-2xl bg-card border border-border shadow-sm p-4">
                       <Icon className="mt-0.5 h-5 w-5 shrink-0 text-foreground" />
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-foreground">{item.label}</p>
