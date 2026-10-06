@@ -321,7 +321,7 @@ const Onboarding = () => {
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
-                    type="text" placeholder="¿Cómo te llamamos?" value={formData.fullName}
+                    type="text" placeholder={isBusiness ? "Nombre de tu negocio" : "Nombre y Apellido"} value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     className="pl-12" />
                 </div>
