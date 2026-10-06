@@ -199,7 +199,7 @@ export function PurchaseFlow({
                     "w-full text-left rounded-2xl border border-border p-4 transition-colors",
                     disabled
                       ? "opacity-50 cursor-not-allowed bg-secondary/30"
-                      : "bg-secondary/50 active:bg-secondary",
+                      : "bg-card shadow-sm active:bg-secondary",
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -301,7 +301,7 @@ export function PurchaseFlow({
                       ? "opacity-50 cursor-not-allowed bg-secondary/30 border-border"
                       : selectedId === a.id
                         ? "border-foreground bg-secondary"
-                        : "border-border bg-secondary/50 active:bg-secondary",
+                        : "border-border bg-card shadow-sm active:bg-secondary",
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -466,7 +466,7 @@ export function PurchaseFlow({
                         "px-3 py-2 rounded-full text-sm font-medium border",
                         answers[q.id] === o
                           ? "bg-foreground text-background border-foreground"
-                          : "bg-secondary/50 border-border text-foreground",
+                          : "bg-card border-border text-foreground shadow-sm",
                       )}
                     >
                       {o}

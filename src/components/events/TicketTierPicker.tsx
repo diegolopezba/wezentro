@@ -41,7 +41,7 @@ export function TicketTierPicker({ open, onOpenChange, tiers, sequential, onSele
                   "w-full text-left rounded-2xl border border-border p-4 transition-colors",
                   disabled
                     ? "opacity-50 cursor-not-allowed bg-secondary/30"
-                    : "bg-secondary/50 active:bg-secondary"
+                    : "bg-card shadow-sm active:bg-secondary"
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
