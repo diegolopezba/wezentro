@@ -558,7 +558,8 @@ html[data-keyboard="open"] body {
    inputs, cards, text, borders) automatically render in light mode without
    individual class changes. Accents are monochrome — black ink on white. */
 .light-sheet {
-  --background: 0 0% 100%;
+  /* iOS grouped style: grey canvas, white cards. */
+  --background: 240 24% 96%;
   --foreground: 0 0% 9%;
   --card: 0 0% 100%;
   --card-foreground: 0 0% 9%;
@@ -566,14 +567,14 @@ html[data-keyboard="open"] body {
   --popover-foreground: 0 0% 9%;
   --primary: 0 0% 9%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 96%;
+  --secondary: 240 11% 93%;
   --secondary-foreground: 0 0% 9%;
-  --muted: 0 0% 96%;
+  --muted: 240 11% 93%;
   --muted-foreground: 0 0% 40%;
-  --accent: 0 0% 94%;
+  --accent: 240 8% 90%;
   --accent-foreground: 0 0% 9%;
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
+  --border: 240 6% 88%;
+  --input: 240 6% 88%;
   --ring: 0 0% 60%;
   /* Monochrome accents inside light sheets: dark ink on white. */
   --accent-red: 0 0% 9%;
