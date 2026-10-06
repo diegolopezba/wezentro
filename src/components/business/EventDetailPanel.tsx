@@ -166,13 +166,23 @@ export const EventDetailPanel = ({ eventId }: Props) => {
       )}
 
       <Tabs defaultValue="entradas">
-        <TabsList className="w-full justify-start overflow-x-auto scrollbar-hide">
-          <TabsTrigger value="entradas">Entradas</TabsTrigger>
-          <TabsTrigger value="puerta">Puerta</TabsTrigger>
-          <TabsTrigger value="asistentes">Asistentes</TabsTrigger>
-          <TabsTrigger value="invitaciones">Invitaciones</TabsTrigger>
-          <TabsTrigger value="lounges">Lounges</TabsTrigger>
-          <TabsTrigger value="promotores">Promotores</TabsTrigger>
+        <TabsList className="h-auto w-[calc(100%+2rem)] -mx-4 px-4 justify-start gap-2 bg-transparent p-0 rounded-none overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {[
+            ["entradas", "Entradas"],
+            ["puerta", "Puerta"],
+            ["asistentes", "Asistentes"],
+            ["invitaciones", "Invitaciones"],
+            ["lounges", "Lounges"],
+            ["promotores", "Promotores"],
+          ].map(([v, l]) => (
+            <TabsTrigger
+              key={v}
+              value={v}
+              className="shrink-0 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:border-foreground data-[state=active]:shadow-none"
+            >
+              {l}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="entradas" className="mt-4">
