@@ -1,18 +1,10 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, MapPin, Phone, Check } from "lucide-react";
+import { ArrowLeft, Phone, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  BusinessHoursEditor,
-  DaySchedule,
-  DEFAULT_SCHEDULE,
-  parseSchedule,
-  serializeSchedule,
-} from "@/components/profile/BusinessHoursEditor";
-import { LocationPicker } from "@/components/map/LocationPicker";
 import { BeneficiaryForm } from "@/components/business/BeneficiaryForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +18,7 @@ import { haptic } from "@/lib/haptics";
 
 const TITLES = [
   { title: "¿Qué tipo de negocio tenés?", subtitle: "Con esto sabemos qué herramientas mostrarte." },
-  { title: "Información de tu negocio", subtitle: "Así te encuentran y saben cuándo estás abierto." },
+  { title: "Información de tu negocio", subtitle: "Un teléfono para que te puedan contactar." },
   { title: "¿Dónde recibís tu dinero?", subtitle: "Necesario para vender entradas. Podés hacerlo después." },
 ];
 
@@ -39,13 +31,7 @@ const BusinessSetup = () => {
   const [saving, setSaving] = useState(false);
 
   const [type, setType] = useState<string>("");
-  const [businessHours, setBusinessHours] = useState<DaySchedule[]>(DEFAULT_SCHEDULE);
   const [businessPhone, setBusinessPhone] = useState("");
-  const [businessLocation, setBusinessLocation] = useState<{
-    address: string;
-    latitude: number | null;
-    longitude: number | null;
-  }>({ address: "", latitude: null, longitude: null });
 
   const isFood = isFoodBusinessType(type);
 
@@ -53,20 +39,7 @@ const BusinessSetup = () => {
     if (!profile) return;
     const p = profile as any;
     if (p.business_type) setType((prev) => prev || p.business_type);
-    const parsed = parseSchedule(p.business_hours || "");
-    if (parsed) setBusinessHours(parsed);
     if (p.business_phone) setBusinessPhone((prev) => prev || p.business_phone);
-    if (p.business_address) {
-      setBusinessLocation((prev) =>
-        prev.address
-          ? prev
-          : {
-              address: p.business_address || "",
-              latitude: p.business_latitude ?? null,
-              longitude: p.business_longitude ?? null,
-            },
-      );
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id]);
 
@@ -110,13 +83,7 @@ const BusinessSetup = () => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({
-          business_hours: serializeSchedule(businessHours),
-          business_phone: businessPhone.trim() || null,
-          business_address: businessLocation.address.trim() || null,
-          business_latitude: businessLocation.latitude,
-          business_longitude: businessLocation.longitude,
-        } as any)
+        .update({ business_phone: businessPhone.trim() || null } as any)
         .eq("id", user.id);
       if (error) throw error;
       await refreshProfile();
@@ -217,21 +184,7 @@ const BusinessSetup = () => {
 
             {/* Step 2 — info */}
             {step === 1 && (
-              <div className="mt-5 space-y-5">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-3.5 h-3.5" /> Dirección
-                  </Label>
-                  <LocationPicker value={businessLocation} onChange={setBusinessLocation} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-3.5 h-3.5" /> Horarios de atención
-                  </Label>
-                  <BusinessHoursEditor value={businessHours} onChange={setBusinessHours} />
-                </div>
-
+              <div className="mt-5 space-y-3">
                 <div className="space-y-2">
                   <Label
                     htmlFor="setup-phone"
@@ -247,6 +200,10 @@ const BusinessSetup = () => {
                     placeholder="+591 70000000"
                   />
                 </div>
+                <p className="px-1 text-[12px] leading-relaxed text-muted-foreground">
+                  La dirección y los horarios de atención los podés completar después, desde la
+                  configuración de tu negocio.
+                </p>
               </div>
             )}
 
