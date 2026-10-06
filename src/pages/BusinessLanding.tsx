@@ -57,7 +57,7 @@ const STEPS: ReadonlyArray<{
   },
   {
     key: "insights",
-    title: "Entendé qué hace crecer tu negocio",
+    title: "Entendé qué y quién hace crecer tu negocio",
     subtitle: "Mirá ventas, audiencia y rendimiento desde un solo lugar.",
   },
   {
