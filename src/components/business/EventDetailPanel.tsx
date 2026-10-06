@@ -17,6 +17,11 @@ import { EventGuestsPanel } from "@/components/business/EventGuestsPanel";
 import { EventPromotersPanel } from "@/components/business/EventPromotersPanel";
 import { EventAreaBookingsSheet } from "@/components/business/EventAreaBookingsSheet";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
+import { SpecialInvitesPanel } from "@/components/events/SpecialInvitesPanel";
+import { ScannerPanel } from "@/components/events/GuestlistManagementSheet";
+import { useVenueLayouts } from "@/hooks/useVenueLayouts";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 import { getEventShareUrl } from "@/lib/shareLinks";
 import { haptic } from "@/lib/haptics";
@@ -42,6 +47,11 @@ export const EventDetailPanel = ({ eventId }: Props) => {
   const [loungeSheet, setLoungeSheet] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [editScrollLounges, setEditScrollLounges] = useState(false);
+  const [loungeInfoOpen, setLoungeInfoOpen] = useState(false);
+  const { user } = useAuth();
+  const { data: layouts } = useVenueLayouts(user?.id);
+  const hasLayouts = (layouts || []).length > 0;
   const toggle = useToggleEventVisibility();
 
   const { data: event, isLoading } = useQuery({
@@ -156,29 +166,55 @@ export const EventDetailPanel = ({ eventId }: Props) => {
       )}
 
       <Tabs defaultValue="entradas">
-        <TabsList className="w-full overflow-x-auto scrollbar-hide">
-          <TabsTrigger value="entradas" className="flex-1">Entradas</TabsTrigger>
-          <TabsTrigger value="puerta" className="flex-1">Puerta</TabsTrigger>
-          {hasLounges && <TabsTrigger value="lounges" className="flex-1">Lounges</TabsTrigger>}
-          <TabsTrigger value="invitados" className="flex-1">Invitados</TabsTrigger>
-          <TabsTrigger value="promotores" className="flex-1">Promotores</TabsTrigger>
+        <TabsList className="w-full justify-start overflow-x-auto scrollbar-hide">
+          <TabsTrigger value="entradas">Entradas</TabsTrigger>
+          <TabsTrigger value="puerta">Puerta</TabsTrigger>
+          <TabsTrigger value="asistentes">Asistentes</TabsTrigger>
+          <TabsTrigger value="invitaciones">Invitaciones</TabsTrigger>
+          <TabsTrigger value="lounges">Lounges</TabsTrigger>
+          <TabsTrigger value="promotores">Promotores</TabsTrigger>
         </TabsList>
 
         <TabsContent value="entradas" className="mt-4">
           <EventTiersPanel eventId={eventId} />
         </TabsContent>
-        <TabsContent value="puerta" className="mt-4">
+
+        <TabsContent value="puerta" className="mt-4 space-y-4">
           <GateSalesPanel eventId={eventId} eventTitle={event?.title || "Evento"} />
+          <ScannerPanel eventId={eventId} />
         </TabsContent>
 
-        {hasLounges && (
-          <TabsContent value="lounges" className="mt-4">
-            <EventLoungesPanel eventId={eventId} onManage={() => setLoungeSheet(true)} />
-          </TabsContent>
-        )}
-
-        <TabsContent value="invitados" className="mt-4">
+        <TabsContent value="asistentes" className="mt-4">
           <EventGuestsPanel eventId={eventId} />
+        </TabsContent>
+
+        <TabsContent value="invitaciones" className="mt-4">
+          <SpecialInvitesPanel eventId={eventId} />
+        </TabsContent>
+
+        <TabsContent value="lounges" className="mt-4">
+          {hasLounges ? (
+            <EventLoungesPanel eventId={eventId} onManage={() => setLoungeSheet(true)} />
+          ) : (
+            <div className="rounded-2xl bg-card border border-border p-5 text-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-secondary grid place-items-center mx-auto">
+                <Armchair className="w-6 h-6 text-foreground" />
+              </div>
+              <p className="text-sm text-foreground font-medium">Este evento no tiene mesas ni lounges configurados.</p>
+              {hasLayouts ? (
+                <Button
+                  className="rounded-full w-full"
+                  onClick={() => { haptic("light"); setEditScrollLounges(true); setEditOpen(true); }}
+                >
+                  Editar evento para agregar mesas y lounges
+                </Button>
+              ) : (
+                <Button className="rounded-full w-full" onClick={() => { haptic("light"); setLoungeInfoOpen(true); }}>
+                  Activar mesas y lounges
+                </Button>
+              )}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="promotores" className="mt-4">
@@ -205,7 +241,7 @@ export const EventDetailPanel = ({ eventId }: Props) => {
                 icon={Pencil}
                 label="Editar evento"
                 sub="Incluye el plano y las áreas de lounge"
-                onClick={() => { setActionsOpen(false); setEditOpen(true); }}
+                onClick={() => { setActionsOpen(false); setEditScrollLounges(false); setEditOpen(true); }}
               />
               <ActionRow icon={Share2} label="Compartir / copiar link" onClick={handleShare} />
               {hasLounges && (
@@ -222,8 +258,28 @@ export const EventDetailPanel = ({ eventId }: Props) => {
       </Sheet>
 
       {editOpen && event && (
-        <EditEventSheet event={event as any} open={editOpen} onOpenChange={setEditOpen} />
+        <EditEventSheet event={event as any} open={editOpen} onOpenChange={setEditOpen} scrollToLounges={editScrollLounges} />
       )}
+
+      <Sheet open={loungeInfoOpen} onOpenChange={setLoungeInfoOpen}>
+        <SheetContent side="bottom" className="light-sheet rounded-t-3xl pb-6">
+          <SheetTitle className="font-brand text-lg text-foreground">Mesas y lounges</SheetTitle>
+          <SheetDescription className="text-sm text-muted-foreground">
+            Vendé mesas y lounges exclusivos directamente desde tu evento.
+          </SheetDescription>
+          <ul className="mt-4 space-y-2 text-sm text-foreground">
+            <li className="rounded-2xl bg-secondary/60 p-3">Dibujá el plano de tu lugar con sus zonas y mesas.</li>
+            <li className="rounded-2xl bg-secondary/60 p-3">Poné precio y capacidad a cada lounge; se reservan de forma exclusiva.</li>
+            <li className="rounded-2xl bg-secondary/60 p-3">Cada reserva puede incluir entradas que se suman a tus asistentes.</li>
+          </ul>
+          <Button
+            className="rounded-full w-full mt-5"
+            onClick={() => { setLoungeInfoOpen(false); navigate("/settings/business/layouts"); }}
+          >
+            Vender mesas y lounges
+          </Button>
+        </SheetContent>
+      </Sheet>
 
       {loungeSheet && (
         <EventAreaBookingsSheet

@@ -7,7 +7,6 @@ import { ArrowLeft, X, Calendar, MapPin, Users, DollarSign, MessageCircle, Send,
 import { ReportSheet } from "@/components/moderation/ReportSheet";
 import { Button } from "@/components/ui/button";
 import { useEventGuestlist } from "@/hooks/useEvents";
-import { GuestlistManagementSheet } from "@/components/events/GuestlistManagementSheet";
 import { ShareEventModal } from "@/components/events/ShareEventModal";
 
 import { LocationSheet } from "@/components/events/LocationSheet";
@@ -475,7 +474,6 @@ const EventDetail = () => {
 
 
       {/* Guestlist Management Sheet */}
-      {isOwner && <GuestlistManagementSheet eventId={id!} eventHasPaymentQr={usesPaidCheckout} open={showManagement} onOpenChange={setShowManagement} />}
 
       {/* Share Event Modal */}
       <ShareEventModal eventId={id!} open={showShareModal} onOpenChange={setShowShareModal} />
@@ -624,7 +622,7 @@ const EventDetail = () => {
                     {releasePending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Publicar entradas"}
                   </Button>
                 )}
-                <Button variant="sheet-action" size="default" onClick={() => setShowManagement(true)}>
+                <Button variant="sheet-action" size="default" onClick={() => navigate(`/gestion?tab=eventos&eventId=${id}`)}>
                   Gestionar
                   {pendingCount > 0 &&
             <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">

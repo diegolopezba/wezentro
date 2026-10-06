@@ -65,6 +65,8 @@ interface EditEventSheetProps {
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Scroll to the "Mesas y lounges" section once opened. */
+  scrollToLounges?: boolean;
   isPost?: boolean;
   /**
    * When true, renders the form body without its own Sheet wrapper so it can
@@ -76,7 +78,14 @@ interface EditEventSheetProps {
 
 import { CATEGORIES } from "@/lib/categories";
 
-export function EditEventSheet({ event, open, onOpenChange, isPost = false, embedded = false }: EditEventSheetProps) {
+export function EditEventSheet({ event, open, onOpenChange, isPost = false, embedded = false, scrollToLounges = false }: EditEventSheetProps) {
+  useEffect(() => {
+    if (!open || !scrollToLounges) return;
+    const t = setTimeout(() => {
+      document.getElementById("edit-event-lounges")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 450);
+    return () => clearTimeout(t);
+  }, [open, scrollToLounges]);
   const updateEvent = useUpdateEvent();
   const { profile, user } = useAuth();
   const isBusiness = profile?.is_business === true;
@@ -587,7 +596,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
               )}
 
               {isBusiness && !isPost && !experienceId && user && (
-                <div className="space-y-2">
+                <div id="edit-event-lounges" className="space-y-2 scroll-mt-24">
                   <EventVenueLayoutSection
                     businessId={user.id}
                     enabled={useAreas}

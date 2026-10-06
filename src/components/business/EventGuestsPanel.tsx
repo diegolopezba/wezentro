@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, UserCheck, Loader2, Download, Armchair } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,9 +28,12 @@ interface Row {
   qrToken: string | null;
 }
 
+const PAGE = 50;
+
 export const EventGuestsPanel = ({ eventId }: { eventId: string }) => {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [visible, setVisible] = useState(PAGE);
   const { data: entries, isLoading } = useEventGuestlist(eventId);
   const { data: tiers } = useTicketBreakdown(eventId);
   const { data: bookings } = useEventAreaBookings(eventId);
@@ -133,12 +136,15 @@ export const EventGuestsPanel = ({ eventId }: { eventId: string }) => {
     return rows.filter((r) => r.name.toLowerCase().includes(q) || r.type.toLowerCase().includes(q));
   }, [rows, search]);
 
+  useEffect(() => { setVisible(PAGE); }, [search]);
+  const shown = filtered.slice(0, visible);
+
   const totalGuests = (entries || []).length;
   const totalCheckedIn = ((entries || []) as any[]).filter((e) => e.checked_in_at).length;
 
   const handleExport = () => {
     if (rows.length === 0) {
-      toast.error("No hay invitados para exportar");
+      toast.error("No hay asistentes para exportar");
       return;
     }
     const data = rows.map((r) => ({
@@ -148,18 +154,29 @@ export const EventGuestsPanel = ({ eventId }: { eventId: string }) => {
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Invitados");
-    downloadXlsx("invitados.xlsx", XLSX.write(wb, { bookType: "xlsx", type: "array" }));
+    XLSX.utils.book_append_sheet(wb, ws, "Asistentes");
+    downloadXlsx("asistentes.xlsx", XLSX.write(wb, { bookType: "xlsx", type: "array" }));
   };
 
   return (
     <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3 rounded-2xl bg-card border border-border p-3">
+        <div>
+          <p className="font-brand text-xl font-semibold text-foreground leading-none">{totalGuests}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            asistentes · <span className="text-foreground font-semibold">{totalCheckedIn}</span> con check-in
+          </p>
+        </div>
+        <Button variant="secondary" className="rounded-full h-9 text-xs gap-1.5" onClick={handleExport}>
+          <Download className="w-3.5 h-3.5" /> Exportar
+        </Button>
+      </div>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar invitado…"
+          placeholder="Buscar asistente…"
           className="pl-9 rounded-full"
         />
       </div>
@@ -168,11 +185,11 @@ export const EventGuestsPanel = ({ eventId }: { eventId: string }) => {
         <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-14 rounded-2xl" />)}</div>
       ) : filtered.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-8">
-          {rows.length === 0 ? "Todavía no hay invitados." : "Sin resultados."}
+          {rows.length === 0 ? "Todavía no hay asistentes." : "Sin resultados."}
         </p>
       ) : (
         <div className="space-y-2">
-          {filtered.map((r) => (
+          {shown.map((r) => (
             <div key={r.key} className="flex items-center gap-3 rounded-2xl bg-card border border-border p-3">
               <Avatar className="w-9 h-9 flex-shrink-0">
                 <AvatarImage src={r.avatar || DEFAULT_AVATAR} alt="" />
@@ -211,15 +228,14 @@ export const EventGuestsPanel = ({ eventId }: { eventId: string }) => {
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-3 rounded-2xl bg-card border border-border p-3">
-        <p className="text-[11px] text-muted-foreground">
-          <span className="text-foreground font-semibold">{totalGuests}</span> invitados ·{" "}
-          <span className="text-foreground font-semibold">{totalCheckedIn}</span> con check-in
-        </p>
-        <Button variant="secondary" className="rounded-full h-9 text-xs gap-1.5" onClick={handleExport}>
-          <Download className="w-3.5 h-3.5" /> Exportar
-        </Button>
-      </div>
+      {filtered.length > visible && (
+        <div className="text-center space-y-1">
+          <Button variant="secondary" className="rounded-full h-9 px-5 text-xs" onClick={() => setVisible((v) => v + PAGE)}>
+            Ver más
+          </Button>
+          <p className="text-[10px] text-muted-foreground">{shown.length} de {filtered.length}</p>
+        </div>
+      )}
     </div>
   );
 };
