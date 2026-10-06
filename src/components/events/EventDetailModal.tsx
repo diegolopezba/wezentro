@@ -534,7 +534,7 @@ const EventDetailModalInner = () => {
                   )}
                 </div>
                 {isOwner ? (
-                <Button variant="sheet-action" size="default" onClick={() => setShowManagement(true)}>
+                <Button variant="sheet-action" size="default" onClick={() => navigate(`/gestion?tab=eventos&eventId=${id}`)}>
                   Gestionar
                   {pendingCount > 0 && (
                     <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
