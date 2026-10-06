@@ -65,7 +65,9 @@ const Discover = () => {
     rooftop: ["rooftop"],
     fitness: ["gym"],
     culture: ["gallery"],
-    party: ["club"],
+    party: ["club", "party"],
+    concert: ["concert"],
+    festival: ["festival"],
   };
 
   const businessTypesToShow = useMemo(
