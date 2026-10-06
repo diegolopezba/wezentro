@@ -2745,6 +2745,7 @@ export type Database = {
           business_type: string | null
           city: string | null
           created_at: string | null
+          events_enabled: boolean | null
           experience_goal: number | null
           experience_goal_year: number | null
           experiences_enabled: boolean
@@ -2777,6 +2778,7 @@ export type Database = {
           business_type?: string | null
           city?: string | null
           created_at?: string | null
+          events_enabled?: boolean | null
           experience_goal?: number | null
           experience_goal_year?: number | null
           experiences_enabled?: boolean
@@ -2809,6 +2811,7 @@ export type Database = {
           business_type?: string | null
           city?: string | null
           created_at?: string | null
+          events_enabled?: boolean | null
           experience_goal?: number | null
           experience_goal_year?: number | null
           experiences_enabled?: boolean

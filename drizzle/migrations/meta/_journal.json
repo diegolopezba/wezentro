@@ -393,6 +393,13 @@
       "when": 1790979517518,
       "tag": "0055_promoter_revenue_base_amount",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1791245043166,
+      "tag": "0056_business_events_module",
+      "breakpoints": true
     }
   ]
 }
