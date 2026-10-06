@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BUSINESS_TYPES, isFoodBusinessType } from "@/lib/businessTypes";
+import { isFoodBusinessType } from "@/lib/businessTypes";
+import { BusinessTypeGrid } from "@/components/business/BusinessTypeGrid";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscriptionTiers";
 
 interface Props {

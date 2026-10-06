@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { resolveBusinessModules } from "@/lib/businessTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -93,7 +94,8 @@ const Create = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isBusiness = profile?.is_business === true;
   const reservationsEnabled = (profile as any)?.reservations_enabled === true;
-  const experiencesEnabled = (profile as any)?.experiences_enabled === true;
+  const modules = resolveBusinessModules(profile);
+  const experiencesEnabled = modules.experiences;
   const { data: myMenu } = useMyMenu();
   const hasMenuItems = (myMenu?.items?.length ?? 0) > 0;
   const { hasActivePlan: hasActiveBusinessPlan } = useBusinessPlanAccess(
@@ -674,7 +676,7 @@ const Create = () => {
           animate={{ opacity: 1, y: 0 }}
           className={cn("grid gap-3", canPublishExperiences ? "grid-cols-3" : "grid-cols-2")}>
           
-          {TYPE_OPTIONS.filter((o) => o.id !== "experience" || canPublishExperiences).map((option) => {
+          {TYPE_OPTIONS.filter((o) => (o.id !== "experience" || canPublishExperiences) && (o.id !== "event" || !isBusiness || modules.events)).map((option) => {
             const active = contentType === option.id;
             return (
               <m.button
