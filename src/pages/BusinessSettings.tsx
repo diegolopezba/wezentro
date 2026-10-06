@@ -46,15 +46,6 @@ const BusinessSettings = () => {
   const { hasPayouts } = useDashboardAccess();
   const businessType = (profile as any)?.business_type as string | undefined;
   const modules = resolveBusinessModules(profile);
-  const [savingEvents, setSavingEvents] = useState(false);
-  const toggleEvents = async (on: boolean) => {
-    if (!user) return;
-    setSavingEvents(true);
-    const { error } = await supabase.from("profiles").update({ events_enabled: on } as any).eq("id", user.id);
-    if (error) toast.error("No pudimos guardar el cambio");
-    else await refreshProfile();
-    setSavingEvents(false);
-  };
 
   const setupSteps: SetupStep[] = isBusiness
     ? [
