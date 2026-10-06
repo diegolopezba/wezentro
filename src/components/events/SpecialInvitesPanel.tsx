@@ -27,6 +27,7 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const [importOpen, setImportOpen] = useState(false);
   const [activeSegment, setActiveSegment] = useState<string>("__all__");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [view, setView] = useState<"crear" | "lista">("crear");
 
   const { data: invites = [], isLoading } = useEventSpecialInvites(eventId);
   const createInvite = useCreateSpecialInvite();
@@ -168,6 +169,27 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
 
   return (
     <div className="space-y-4 pb-8">
+      <div className="flex gap-2">
+        {([
+          { key: "crear", label: "Crear invitaciones" },
+          { key: "lista", label: `Lista de invitados${invites.length ? ` (${invites.length})` : ""}` },
+        ] as const).map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setView(t.key)}
+            className={cn(
+              "flex-1 rounded-full px-3 py-2 text-xs font-semibold border transition-colors",
+              view === t.key
+                ? "bg-foreground text-background border-foreground"
+                : "bg-card text-muted-foreground border-border"
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {view === "crear" && (
       <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
         <div className="flex items-center gap-2">
           <Gift className="w-4 h-4 text-primary" />
@@ -203,6 +225,9 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
         </div>
       </div>
 
+      )}
+
+      {view === "lista" && (<>
       {showPills && (
         <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
           {[
@@ -383,6 +408,8 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
           ))}
         </div>
       )}
+
+      </>)}
 
       <BulkInviteImportSheet eventId={eventId} open={importOpen} onOpenChange={setImportOpen} />
     </div>
