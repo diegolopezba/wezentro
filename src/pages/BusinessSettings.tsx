@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { m } from "framer-motion";
 import {
   ArrowLeft, Briefcase, BarChart3,
-  UtensilsCrossed, CalendarCheck, CreditCard, Info, TrendingUp, LayoutGrid, Sparkles,
+  UtensilsCrossed, CalendarCheck, CreditCard, Info, TrendingUp, LayoutGrid, Sparkles, PartyPopper,
 } from "lucide-react";
+import { resolveBusinessModules } from "@/lib/businessTypes";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -44,6 +45,16 @@ const BusinessSettings = () => {
   const planLocked = isFoodBusiness && !hasActivePlan;
   const { hasPayouts } = useDashboardAccess();
   const businessType = (profile as any)?.business_type as string | undefined;
+  const modules = resolveBusinessModules(profile);
+  const [savingEvents, setSavingEvents] = useState(false);
+  const toggleEvents = async (on: boolean) => {
+    if (!user) return;
+    setSavingEvents(true);
+    const { error } = await supabase.from("profiles").update({ events_enabled: on } as any).eq("id", user.id);
+    if (error) toast.error("No pudimos guardar el cambio");
+    else await refreshProfile();
+    setSavingEvents(false);
+  };
 
   const setupSteps: SetupStep[] = isBusiness
     ? [
@@ -161,6 +172,16 @@ const BusinessSettings = () => {
                 onClick={() => navigate("/settings/business/info")}
                 delay={0.06}
               />
+              <div className="flex items-center gap-3 px-4 py-3.5">
+                <PartyPopper className="h-5 w-5 text-muted-foreground" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground">Eventos</p>
+                  <p className="text-xs text-muted-foreground">
+                    {modules.events ? "Activos · crear eventos y vender entradas" : "Activá para crear eventos y vender entradas"}
+                  </p>
+                </div>
+                <Switch checked={modules.events} disabled={savingEvents} onCheckedChange={toggleEvents} />
+              </div>
               {isFoodBusiness && (
                 <>
                 <SettingsRow

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { BusinessPageContainer } from "@/components/layout/BusinessPageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { resolveBusinessModules, businessTypeLabel } from "@/lib/businessTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { useDashboardAccess } from "@/hooks/useDashboardAccess";
@@ -25,7 +26,7 @@ import type { Period } from "@/components/dashboard/PeriodSelector";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
 import { BUSINESS_DASHBOARD_INTRO } from "@/components/business/featureIntroSteps";
 
-const TABS = [
+const ALL_TABS = [
   { value: "overview", label: "Overview", icon: LayoutDashboard },
   { value: "sales", label: "Ventas", icon: DollarSign },
   { value: "promotores", label: "Promotores", icon: Megaphone },
@@ -40,6 +41,13 @@ const BusinessDashboard = () => {
   const { profile } = useAuth();
   const intro = useFeatureIntro("dashboard");
   const [period, setPeriod] = useState<Period>("7d");
+  const modules = resolveBusinessModules(profile);
+  const TABS = ALL_TABS.filter((t) =>
+    t.value === "sales" ? modules.events || modules.experiences
+    : t.value === "promotores" ? modules.events
+    : t.value === "reservas" ? modules.reservations
+    : true,
+  ).map((t) => (t.value === "sales" && !modules.events ? { ...t, label: "Ventas" } : t));
   const [activeTab, setActiveTab] = useState("overview");
   const [openBoostWizard, setOpenBoostWizard] = useState(false);
   const { isBusiness, hasPayouts, isLoading: accessLoading } = useDashboardAccess();
@@ -130,7 +138,7 @@ const BusinessDashboard = () => {
             <h1 className="font-brand text-xl font-medium text-foreground">Analytics</h1>
             {profile?.business_type && (
               <Badge variant="secondary" className="text-xs font-normal">
-                {profile.business_type}
+                {businessTypeLabel(profile.business_type) || profile.business_type}
               </Badge>
             )}
           </div>

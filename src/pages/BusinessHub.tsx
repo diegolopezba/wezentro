@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { BarChart3 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { BusinessPageContainer } from "@/components/layout/BusinessPageContainer";
+import { useAuth } from "@/contexts/AuthContext";
+import { resolveBusinessModules } from "@/lib/businessTypes";
 import { cn } from "@/lib/utils";
 import { ReservasGestionTab } from "@/components/business/ReservasGestionTab";
 import { ExperienciasGestionTab } from "@/components/business/ExperienciasGestionTab";
@@ -10,7 +12,7 @@ import { EventosGestionTab } from "@/components/business/EventosGestionTab";
 
 type Tab = "reservas" | "eventos" | "experiencias";
 
-const TABS: { id: Tab; label: string }[] = [
+const ALL_TABS: { id: Tab; label: string }[] = [
   { id: "reservas", label: "Reservas" },
   { id: "eventos", label: "Eventos" },
   { id: "experiencias", label: "Experiencias" },
@@ -20,9 +22,16 @@ const TABS: { id: Tab; label: string }[] = [
 const BusinessHub = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const requestedTab = searchParams.get("tab");
-  const [selectedTab, setTab] = useState<Tab>("reservas");
-  const tab: Tab = requestedTab === "eventos" || requestedTab === "experiencias" || requestedTab === "reservas" ? requestedTab : selectedTab;
+  const { profile } = useAuth();
+  const modules = resolveBusinessModules(profile);
+  const TABS = ALL_TABS.filter((t) =>
+    t.id === "reservas" ? modules.reservations : t.id === "eventos" ? modules.events : modules.experiences,
+  );
+  const visible = TABS.length ? TABS : ALL_TABS;
+  const requestedTab = searchParams.get("tab") as Tab | null;
+  const [selectedTab, setTab] = useState<Tab | null>(null);
+  const pick = (t: Tab | null) => (t && visible.some((v) => v.id === t) ? t : null);
+  const tab: Tab = pick(requestedTab) ?? pick(selectedTab) ?? visible[0].id;
 
   // Keep the URL in sync so a preselected ?tab= (tour, back navigation) never pins the screen.
   const selectTab = (id: Tab) => {
@@ -39,7 +48,7 @@ const BusinessHub = () => {
           <div className="flex items-center justify-between lg:gap-6">
             <h1 className="font-brand text-xl font-medium text-foreground lg:text-2xl">Gestión</h1>
             <div className="hidden lg:flex items-center gap-2 flex-1">
-              {TABS.map((p) => (
+              {TABS.length > 1 && TABS.map((p) => (
                 <button
                   key={p.id}
                   data-tour={`gestion-${p.id}`}
@@ -64,7 +73,7 @@ const BusinessHub = () => {
             </button>
           </div>
           <div className="flex items-center gap-2 mt-3 overflow-x-auto scrollbar-hide lg:hidden">
-            {TABS.map((p) => (
+            {TABS.length > 1 && TABS.map((p) => (
               <button
                 key={p.id}
                   data-tour={`gestion-${p.id}`}

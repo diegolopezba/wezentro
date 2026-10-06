@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BUSINESS_TYPES, isFoodBusinessType } from "@/lib/businessTypes";
+import { isFoodBusinessType } from "@/lib/businessTypes";
+import { BusinessTypeGrid } from "@/components/business/BusinessTypeGrid";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscriptionTiers";
 
 interface Props {
@@ -48,26 +49,8 @@ export const BusinessTypePickerSheet = ({
           Con esto sabemos qué herramientas mostrarte.
         </p>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {BUSINESS_TYPES.map((t) => {
-            const active = type === t.value;
-            return (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setType(t.value)}
-                className={cn(
-                  "flex items-center gap-2 rounded-2xl border p-3.5 text-left transition-colors",
-                  active
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-muted/50 text-foreground",
-                )}
-              >
-                <span className="text-lg">{t.emoji}</span>
-                <span className="text-sm font-medium">{t.label}</span>
-              </button>
-            );
-          })}
+        <div className="max-h-[50dvh] overflow-y-auto">
+          <BusinessTypeGrid value={type} onChange={setType} />
         </div>
 
         {type && (

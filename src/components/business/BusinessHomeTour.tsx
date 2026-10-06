@@ -1,3 +1,4 @@
+import { businessCategoryOf } from "@/lib/businessTypes";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -18,8 +19,9 @@ interface TourStep {
 }
 
 const stepsFor = (businessType?: string | null): TourStep[] => {
-  const food = ["restaurant", "bar", "coffee"].includes(businessType ?? "");
-  const experience = ["gym", "gallery"].includes(businessType ?? "");
+  const cat = businessCategoryOf(businessType);
+  const food = cat === "gastronomy";
+  const experience = cat === "experiences";
   const tab = food ? "reservas" : experience ? "experiencias" : "eventos";
   return [
     { path: "/", target: "home-feed", progress: "1/5", title: "El homepage", body: "Aquí encontrás todo lo que está pasando alrededor tuyo. Cada publicación es un evento, experiencia o lugar nuevo por conocer." },
