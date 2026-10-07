@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail, Download, Zap } from "lucide-react";
+import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail, Download, Zap, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,9 @@ import {
   getSpecialInviteUrl,
 } from "@/hooks/useSpecialInvites";
 import { BulkInviteImportSheet } from "@/components/events/BulkInviteImportSheet";
-import { buildInvitesXlsx, downloadXlsx } from "@/lib/inviteImport";
+import { buildInvitesXlsx, downloadXlsx, buildWhatsAppLink } from "@/lib/inviteImport";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 interface SpecialInvitesPanelProps {
@@ -33,6 +35,20 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const createInvite = useCreateSpecialInvite();
   const revokeInvite = useRevokeSpecialInvite();
   const sendEmails = useSendSpecialInviteEmails();
+  const { data: eventTitle } = useQuery({
+    queryKey: ["event-title", eventId],
+    queryFn: async () => {
+      const { data } = await supabase.from("events").select("title").eq("id", eventId).maybeSingle();
+      return (data?.title as string | undefined) ?? "";
+    },
+    staleTime: 5 * 60_000,
+  });
+
+  const handleWhatsApp = (phone: string, name: string | null, token: string) => {
+    const first = (name ?? "").trim().split(/\s+/)[0];
+    const msg = `¡Hola${first ? ` ${first}` : ""}! Tenés una invitación especial${eventTitle ? ` para ${eventTitle}` : ""}. Aceptala acá: ${getSpecialInviteUrl(token)}`;
+    window.open(buildWhatsAppLink(phone, msg), "_blank", "noopener");
+  };
 
   const segments = useMemo(() => {
     const set = new Set<string>();
@@ -101,6 +117,7 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
     const rows = filteredInvites.map((i) => ({
       guest_name: i.rsvp_name || i.guest_name,
       guest_email: i.rsvp_email || i.guest_email,
+      guest_phone: i.guest_phone,
       segment: i.segment,
       url: getSpecialInviteUrl(i.token),
       status: i.status,
@@ -339,7 +356,9 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
-                  {invite.rsvp_email || invite.guest_email || getSpecialInviteUrl(invite.token)}
+                  {[invite.guest_phone ? `+${invite.guest_phone}` : null, invite.rsvp_email || invite.guest_email]
+                    .filter(Boolean)
+                    .join(" · ") || getSpecialInviteUrl(invite.token)}
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
                   {invite.checked_in_at
@@ -358,6 +377,16 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
 
               {invite.status === "pending" ? (
                 <div className="flex items-center gap-1 shrink-0">
+                  {invite.guest_phone && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleWhatsApp(invite.guest_phone!, invite.guest_name, invite.token)}
+                      aria-label="Enviar por WhatsApp"
+                    >
+                      <MessageCircle className="w-4 h-4 text-success" />
+                    </Button>
+                  )}
                   {invite.guest_email && (
                     <Button
                       variant="ghost"

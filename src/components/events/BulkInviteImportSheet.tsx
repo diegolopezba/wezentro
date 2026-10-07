@@ -116,6 +116,7 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
       .map((i) => ({
         guest_name: i.guest_name,
         guest_email: i.guest_email,
+        guest_phone: i.guest_phone,
         segment: i.segment,
         url: getSpecialInviteUrl(i.token),
         status: i.status,
@@ -150,8 +151,8 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
           {step === "upload" && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Subí un archivo .csv o .xlsx con las columnas <b>nombre</b> y <b>email</b>. Creamos un
-                enlace único para cada invitado.
+                Subí un archivo .csv o .xlsx con la columna <b>nombre</b> (obligatoria) y, si querés,
+                <b> whatsapp</b> y <b>email</b>. Creamos un enlace único para cada invitado.
               </p>
               <button
                 type="button"
@@ -189,6 +190,8 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
                 </div>
                 <p className="text-sm text-foreground">
                   {parsed.guests.length} invitados válidos de {parsed.totalRows} filas
+                  {" · "}{parsed.guests.filter((g) => g.phone).length} con WhatsApp
+                  {" · "}{parsed.guests.filter((g) => g.email).length} con email
                 </p>
                 {parsed.duplicatesInFile > 0 && (
                   <p className="text-xs text-muted-foreground">
@@ -222,10 +225,14 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
               </div>
 
               <div className="max-h-48 overflow-y-auto rounded-2xl border border-border divide-y divide-border">
-                {parsed.guests.slice(0, 30).map((g) => (
-                  <div key={g.email} className="px-4 py-2">
-                    <p className="text-sm text-foreground truncate">{g.name || "Sin nombre"}</p>
-                    <p className="text-xs text-muted-foreground truncate">{g.email}</p>
+                {parsed.guests.slice(0, 30).map((g, idx) => (
+                  <div key={idx} className="px-4 py-2">
+                    <p className="text-sm text-foreground truncate">{g.name}</p>
+                    {(g.phone || g.email) && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {[g.phone ? `+${g.phone}` : null, g.email].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
                   </div>
                 ))}
                 {parsed.guests.length > 30 && (
@@ -275,6 +282,7 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
                 </div>
               </div>
 
+              {(parsed?.guests.some((g) => g.email) ?? false) && (
               <Button
                 variant="sheet-action"
                 className="w-full"
@@ -289,6 +297,12 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
                   </>
                 )}
               </Button>
+              )}
+              {(parsed?.guests.some((g) => g.phone) ?? false) && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Para enviar por WhatsApp, tocá el botón verde de cada invitado en "Lista de invitados".
+                </p>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 <Button variant="secondary" onClick={handleExportCsv}>
