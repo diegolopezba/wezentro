@@ -947,6 +947,7 @@ export type Database = {
           event_id: string
           guest_email: string | null
           guest_name: string | null
+          guest_phone: string | null
           id: string
           label: string | null
           qr_code_token: string | null
@@ -972,6 +973,7 @@ export type Database = {
           event_id: string
           guest_email?: string | null
           guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           label?: string | null
           qr_code_token?: string | null
@@ -997,6 +999,7 @@ export type Database = {
           event_id?: string
           guest_email?: string | null
           guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           label?: string | null
           qr_code_token?: string | null
