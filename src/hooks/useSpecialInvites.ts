@@ -15,6 +15,7 @@ export interface SpecialInvite {
   created_at: string;
   guest_name: string | null;
   guest_email: string | null;
+  guest_phone: string | null;
   segment: string | null;
   batch_id: string | null;
   email_status: "not_sent" | "queued" | "sent" | "failed";
@@ -180,7 +181,7 @@ export function useBulkCreateSpecialInvites() {
     }: {
       eventId: string;
       segment: string | null;
-      guests: { name: string | null; email: string }[];
+      guests: { name: string; email: string | null; phone: string | null }[];
       onProgress?: (done: number, total: number) => void;
     }) => {
       const CHUNK = 200;
@@ -193,7 +194,7 @@ export function useBulkCreateSpecialInvites() {
         const { data, error } = await supabase.rpc("bulk_create_special_invites", {
           _event_id: eventId,
           _segment: segment,
-          _guests: chunk.map((g) => ({ name: g.name, email: g.email })),
+          _guests: chunk.map((g) => ({ name: g.name, email: g.email, phone: g.phone })),
           _batch_id: batchId,
         });
         if (error) throw error;

@@ -109,12 +109,12 @@ export async function parseGuestFile(file: File): Promise<ParseResult> {
 
 /** Build a CSV export of invites. */
 export function buildInvitesCsv(
-  rows: { guest_name: string | null; guest_email: string | null; segment: string | null; url: string; status: string }[]
+  rows: { guest_name: string | null; guest_email: string | null; guest_phone?: string | null; segment: string | null; url: string; status: string }[]
 ): string {
-  const header = ["nombre", "email", "segmento", "enlace", "estado"];
+  const header = ["nombre", "whatsapp", "email", "segmento", "enlace", "estado"];
   const escape = (v: string) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const lines = rows.map((r) =>
-    [r.guest_name ?? "", r.guest_email ?? "", r.segment ?? "", r.url, r.status].map(escape).join(",")
+    [r.guest_name ?? "", r.guest_phone ?? "", r.guest_email ?? "", r.segment ?? "", r.url, r.status].map(escape).join(",")
   );
   return [header.join(","), ...lines].join("\n");
 }
@@ -135,6 +135,7 @@ export function buildInvitesXlsx(
   rows: {
     guest_name: string | null;
     guest_email: string | null;
+    guest_phone?: string | null;
     segment: string | null;
     url: string;
     status: string;
@@ -144,6 +145,7 @@ export function buildInvitesXlsx(
 ): ArrayBuffer {
   const data = rows.map((r) => ({
     Nombre: r.guest_name ?? "",
+    WhatsApp: r.guest_phone ? `+${r.guest_phone}` : "",
     Email: r.guest_email ?? "",
     Segmento: r.segment ?? "",
     RSVP: r.rsvp ?? "",
@@ -152,10 +154,10 @@ export function buildInvitesXlsx(
     Estado: STATUS_LABEL[r.status] ?? r.status,
   }));
   const ws = XLSX.utils.json_to_sheet(data, {
-    header: ["Nombre", "Email", "Segmento", "RSVP", "Check-in", "Enlace", "Estado"],
+    header: ["Nombre", "WhatsApp", "Email", "Segmento", "RSVP", "Check-in", "Enlace", "Estado"],
   });
   ws["!cols"] = [
-    { wch: 24 }, { wch: 32 }, { wch: 16 },
+    { wch: 24 }, { wch: 16 }, { wch: 32 }, { wch: 16 },
     { wch: 18 }, { wch: 18 }, { wch: 48 }, { wch: 14 },
   ];
   const wb = XLSX.utils.book_new();
