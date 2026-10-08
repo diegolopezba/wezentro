@@ -15,11 +15,25 @@ export function gatewayFeeFor(base: number): number {
   return ceil2((amount * r) / (1 - r));
 }
 
-export function chargeBreakdown(base: number) {
-  const subtotal = Math.round((Number(base) || 0) * 100) / 100;
-  const fee = gatewayFeeFor(subtotal);
-  return { subtotal, fee, total: Math.round((subtotal + fee) * 100) / 100 };
+export type CheckoutFeeTerms = { fee_bps?: number | null; fee_paid_by?: string | null; bps?: number | null; paidBy?: string | null };
+
+/** Zentro service fee shown to the buyer only when the organizer passes it on. */
+export function serviceFeeFor(price: number, terms?: CheckoutFeeTerms | null): number {
+  const paidBy = terms?.fee_paid_by ?? terms?.paidBy;
+  if (paidBy !== "buyer") return 0;
+  const bps = Number(terms?.fee_bps ?? terms?.bps ?? 600) || 0;
+  return Math.round((Number(price) || 0) * (bps / 10000) * 100) / 100;
 }
+
+export function chargeBreakdown(base: number, terms?: CheckoutFeeTerms | null) {
+  const subtotal = Math.round((Number(base) || 0) * 100) / 100;
+  const serviceFee = serviceFeeFor(subtotal, terms);
+  const withService = Math.round((subtotal + serviceFee) * 100) / 100;
+  const fee = gatewayFeeFor(withService);
+  return { subtotal, serviceFee, fee, total: Math.round((withService + fee) * 100) / 100 };
+}
+
+export const SERVICE_FEE_LABEL = "Cargo por servicio";
 
 export const GATEWAY_FEE_LABEL = `Comisión de procesamiento (${GATEWAY_FEE_BPS / 100}%)`;
 
