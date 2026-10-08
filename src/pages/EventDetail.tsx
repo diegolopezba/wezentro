@@ -33,6 +33,7 @@ import { DetailSplitLayout } from "@/components/layout/DetailSplitLayout";
 import { MentionText } from "@/components/ui/MentionText";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 import { ExperienceBookingSheet } from "@/components/experiences/ExperienceBookingSheet";
 import { useExperience } from "@/hooks/useExperiences";
 import { useEventDetailState } from "@/hooks/useEventDetailState";
@@ -131,6 +132,9 @@ const EventDetail = () => {
     handleBuyTicket, handleConfirmFreeJoin, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, () => (window.history.length > 1 ? navigate(-1) : navigate("/")));
 
+  // Menú/Reservar buttons follow the creator's live plan status, so they
+  // pause when the plan expires and return automatically on renewal.
+  const { hasActivePlan: creatorHasPlan } = useBusinessPlanAccess(event?.creator_id);
   const [showExperienceSheet, setShowExperienceSheet] = useState(false);
   const { data: rawLinkedExperience = null } = useExperience((event as any)?.experience_id ?? null);
   const linkedExperience = rawLinkedExperience?.is_active ? rawLinkedExperience : null;
