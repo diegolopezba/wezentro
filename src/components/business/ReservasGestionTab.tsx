@@ -44,9 +44,13 @@ export const ReservasGestionTab = () => {
   const navigate = useNavigate();
   const { hasActivePlan, isLoading: planLoading } = useBusinessPlanAccess(user?.id);
   const { subscription } = useSubscriptionTier(user?.id);
-  // A business with no subscription row never had a plan: show the activation
-  // pitch instead of the "plan vencido" renewal message.
-  const neverHadPlan = !subscription;
+  // A subscription row with `pending_activation` (created at signup) or with no
+  // billing period registered means the business never had a plan: show the
+  // activation pitch instead of the "plan vencido" renewal message.
+  const neverHadPlan =
+    !subscription ||
+    subscription.status === "pending_activation" ||
+    !subscription.billing_period_start;
   const [selected, setSelected] = useState<Date>(new Date());
   const [detail, setDetail] = useState<ReservationWithGuests | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
