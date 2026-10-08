@@ -104,7 +104,7 @@ export const DesktopNavRail = () => {
             <NavLink
               key={item.path}
               to={item.path}
-              data-tour={({ "/": "nav-home", "/create": "nav-create", "/gestion": "nav-gestion", "/profile": "nav-profile" } as Record<string, string>)[item.path]}
+              data-tour={({ "/": "nav-home", "/create": "nav-create", "/gestion": "nav-gestion", "/profile": "nav-profile", "/tickets": "nav-tickets" } as Record<string, string>)[item.path]}
               onClick={(e) => handleClick(e, item)}
               title={item.label}
               className={cn(
