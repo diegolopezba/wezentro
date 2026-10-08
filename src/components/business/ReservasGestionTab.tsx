@@ -43,6 +43,10 @@ export const ReservasGestionTab = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { hasActivePlan, isLoading: planLoading } = useBusinessPlanAccess(user?.id);
+  const { subscription } = useSubscriptionTier(user?.id);
+  // A business with no subscription row never had a plan: show the activation
+  // pitch instead of the "plan vencido" renewal message.
+  const neverHadPlan = !subscription;
   const [selected, setSelected] = useState<Date>(new Date());
   const [detail, setDetail] = useState<ReservationWithGuests | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
