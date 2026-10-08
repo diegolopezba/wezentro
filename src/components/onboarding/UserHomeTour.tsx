@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { TourMockEvent } from "./TourMockEvent";
 import { haptic } from "@/lib/haptics";
 
 interface TourStep { path: string; target: string; progress: string; title: string; body: string }
@@ -34,11 +34,10 @@ export const UserHomeTour = () => {
   const reducedMotion = useReducedMotion();
   const [phase, setPhase] = useState<"idle" | "welcome" | "tour">("idle");
   const [step, setStep] = useState(0);
-  const [eventId, setEventId] = useState<string | null>(null);
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight });
   const current = STEPS[step];
-  const pathFor = (s: TourStep) => (s.path === EVENT_PATH ? (eventId ? `/event/${eventId}` : "/") : s.path);
+  const pathFor = (s: TourStep) => (s.path === EVENT_PATH ? "/" : s.path);
 
   // Start only on Inicio, so purchase/reservation/invite flows are never interrupted.
   useEffect(() => {
@@ -54,24 +53,11 @@ export const UserHomeTour = () => {
     } catch { /* ignore */ }
   }, [user?.id, location.pathname]);
 
-  // Pick a real upcoming event to demo the detail page.
-  useEffect(() => {
-    if (phase === "idle" || eventId) return;
-    void (async () => {
-      const { data } = await supabase.from("events").select("id, guestlist_entries(count)")
-        .eq("is_public", true).eq("is_post", false).is("deleted_at", null)
-        .gte("start_datetime", new Date().toISOString()).order("start_datetime").limit(20);
-      const rows = (data ?? []) as Array<{ id: string; guestlist_entries?: { count: number }[] }>;
-      const best = [...rows].sort((a, b) => (b.guestlist_entries?.[0]?.count ?? 0) - (a.guestlist_entries?.[0]?.count ?? 0))[0];
-      if (best) setEventId(best.id);
-    })();
-  }, [phase, eventId]);
-
   useEffect(() => {
     if (phase !== "tour" || !current) return;
     const p = pathFor(current);
     if (location.pathname !== p) navigate(p, { replace: true });
-  }, [phase, step, eventId, location.pathname]);
+  }, [phase, step, location.pathname]);
 
   const measure = useCallback(() => {
     setViewport({ width: window.innerWidth, height: window.innerHeight });
@@ -147,6 +133,7 @@ export const UserHomeTour = () => {
         </>
       ) : (
         <>
+          {current.path === EVENT_PATH && <TourMockEvent />}
           {rect && rect.height < vh * 0.6 ? (
             <m.div className="pointer-events-none absolute rounded-lg ring-2 ring-brand-red" animate={{ left: rect.left - pad, top: rect.top - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 }} transition={{ duration: reducedMotion ? 0 : 0.25 }} style={{ boxShadow: "0 0 0 9999px hsl(var(--background) / 0.78)" }} />
           ) : <div className="absolute inset-0 bg-background/60" />}
