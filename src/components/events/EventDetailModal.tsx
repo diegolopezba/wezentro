@@ -29,6 +29,7 @@ import { DetailSplitLayout } from "@/components/layout/DetailSplitLayout";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { ExperienceBookingSheet } from "@/components/experiences/ExperienceBookingSheet";
@@ -142,6 +143,10 @@ const EventDetailModalInner = () => {
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleBuyTicket, handleConfirmFreeJoin, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, close);
+
+  // Menú/Reservar follow the creator's live plan status: paused while the
+  // plan is expired, back automatically once they renew.
+  const { hasActivePlan: creatorHasPlan } = useBusinessPlanAccess(event?.creator_id);
 
   const { data: commentCount = 0 } = useCommentCount(id);
   const { data: latestComment = null } = useLatestComment(id);
@@ -268,7 +273,7 @@ const EventDetailModalInner = () => {
                 </div>
 
                 <div className="flex items-center gap-1">
-                  {event.show_menu_button && event.creator_id && (
+                  {event.show_menu_button && event.creator_id && creatorHasPlan && (
                     <Button variant="ghost" size="sm" onClick={() => setShowMenuSheet(true)} className="gap-1.5 px-2">
                       <UtensilsCrossed className="w-5 h-5" />
                       <span className="text-xs">Menú</span>
@@ -652,7 +657,7 @@ const EventDetailModalInner = () => {
             </>
           )}
 
-          {isPost && !linkedExperience && event.show_reservation_button && event.creator_id && (
+          {isPost && !linkedExperience && event.show_reservation_button && event.creator_id && creatorHasPlan && (
             <div className="fixed bottom-0 left-0 right-0 z-[60] glass-strong safe-bottom lg:sticky lg:bottom-0 lg:left-auto lg:right-auto lg:z-10 lg:rounded-b-3xl">
               <div className="flex items-center justify-between px-4 py-3">
                 <span className="font-brand text-base font-semibold text-foreground">
@@ -668,7 +673,7 @@ const EventDetailModalInner = () => {
           {/* Buttons from other tagged businesses (accepted CTA requests) */}
           <AttachedBusinessCtas eventId={id} excludeBusinessId={event.creator_id} />
 
-          {event.show_menu_button && event.creator_id && (
+          {event.show_menu_button && event.creator_id && creatorHasPlan && (
             <MenuSheet
               open={showMenuSheet}
               onOpenChange={setShowMenuSheet}
@@ -677,7 +682,7 @@ const EventDetailModalInner = () => {
             />
           )}
 
-          {event.show_reservation_button && event.creator_id && (
+          {event.show_reservation_button && event.creator_id && creatorHasPlan && (
             <ReservationSheet
               open={showReservationSheet}
               onOpenChange={setShowReservationSheet}

@@ -33,6 +33,7 @@ import { DetailSplitLayout } from "@/components/layout/DetailSplitLayout";
 import { MentionText } from "@/components/ui/MentionText";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 import { ExperienceBookingSheet } from "@/components/experiences/ExperienceBookingSheet";
 import { useExperience } from "@/hooks/useExperiences";
 import { useEventDetailState } from "@/hooks/useEventDetailState";
@@ -131,6 +132,9 @@ const EventDetail = () => {
     handleBuyTicket, handleConfirmFreeJoin, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, () => (window.history.length > 1 ? navigate(-1) : navigate("/")));
 
+  // Menú/Reservar buttons follow the creator's live plan status, so they
+  // pause when the plan expires and return automatically on renewal.
+  const { hasActivePlan: creatorHasPlan } = useBusinessPlanAccess(event?.creator_id);
   const [showExperienceSheet, setShowExperienceSheet] = useState(false);
   const { data: rawLinkedExperience = null } = useExperience((event as any)?.experience_id ?? null);
   const linkedExperience = rawLinkedExperience?.is_active ? rawLinkedExperience : null;
@@ -322,7 +326,7 @@ const EventDetail = () => {
 
             {/* Right: Edit dropdown */}
             <div className="flex items-center gap-1">
-              {event.show_menu_button && event.creator_id && (
+              {event.show_menu_button && event.creator_id && creatorHasPlan && (
                 <Button variant="ghost" size="sm" onClick={() => setShowMenuSheet(true)} className="gap-1.5 px-2">
                   <UtensilsCrossed className="w-5 h-5" />
                   <span className="text-xs">Menú</span>
@@ -711,7 +715,7 @@ const EventDetail = () => {
     )}
 
     {/* Floating Reservation CTA Bar — shown only for posts */}
-    {isPost && !linkedExperience && event.show_reservation_button && event.creator_id && (
+    {isPost && !linkedExperience && event.show_reservation_button && event.creator_id && creatorHasPlan && (
       <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
         <div className="flex items-center justify-between px-4 py-3">
           <span className="font-brand text-base font-semibold text-foreground">
@@ -729,7 +733,7 @@ const EventDetail = () => {
     {/* Buttons from other tagged businesses (CTA requests accepted by the post owner) */}
     <AttachedBusinessCtas eventId={id} excludeBusinessId={event.creator_id} />
     {/* Menu Sheet */}
-    {event.show_menu_button && event.creator_id && (
+    {event.show_menu_button && event.creator_id && creatorHasPlan && (
       <MenuSheet
         open={showMenuSheet}
         onOpenChange={setShowMenuSheet}
@@ -739,7 +743,7 @@ const EventDetail = () => {
     )}
 
     {/* Reservation Sheet */}
-    {event.show_reservation_button && event.creator_id && (
+    {event.show_reservation_button && event.creator_id && creatorHasPlan && (
       <ReservationSheet
         open={showReservationSheet}
         onOpenChange={setShowReservationSheet}

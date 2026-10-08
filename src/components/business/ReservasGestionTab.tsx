@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 import { useBusinessReservationsByDate, useReservationRealtime, type ReservationWithGuests } from "@/hooks/useReservations";
 import { ReservationDetailSheet } from "@/components/reservations/ReservationDetailSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
@@ -38,6 +40,8 @@ const matchesFilter = (status: string, f: StatusFilter) =>
 
 export const ReservasGestionTab = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { hasActivePlan, isLoading: planLoading } = useBusinessPlanAccess(user?.id);
   const [selected, setSelected] = useState<Date>(new Date());
   const [detail, setDetail] = useState<ReservationWithGuests | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -203,6 +207,22 @@ export const ReservasGestionTab = () => {
   return (
     <div className="space-y-4 lg:flex lg:items-start lg:gap-6 lg:space-y-0">
       <div className="space-y-4 lg:w-[300px] lg:shrink-0 lg:sticky lg:top-28">
+      {!planLoading && !hasActivePlan && (
+        <div className="rounded-2xl bg-card border border-border p-4 space-y-2">
+          <p className="text-sm font-medium text-foreground">Tu plan ha vencido</p>
+          <p className="text-xs text-muted-foreground">
+            Los botones de reserva y menú están pausados en todas tus publicaciones.
+            Renovalo para seguir recibiendo clientes.
+          </p>
+          <Button
+            variant="sheet-action"
+            className="w-full rounded-full"
+            onClick={() => navigate("/settings/business/plans")}
+          >
+            Renovar plan
+          </Button>
+        </div>
+      )}
       {/* Navigation arrows + current label */}
       <div className="flex items-center justify-between">
         <button
