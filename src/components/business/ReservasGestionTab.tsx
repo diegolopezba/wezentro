@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { useBusinessReservationsByDate, useReservationRealtime, type ReservationWithGuests } from "@/hooks/useReservations";
 import { ReservationDetailSheet } from "@/components/reservations/ReservationDetailSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
@@ -42,6 +43,10 @@ export const ReservasGestionTab = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { hasActivePlan, isLoading: planLoading } = useBusinessPlanAccess(user?.id);
+  const { subscription } = useSubscriptionTier(user?.id);
+  // A business with no subscription row never had a plan: show the activation
+  // pitch instead of the "plan vencido" renewal message.
+  const neverHadPlan = !subscription;
   const [selected, setSelected] = useState<Date>(new Date());
   const [detail, setDetail] = useState<ReservationWithGuests | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -209,18 +214,40 @@ export const ReservasGestionTab = () => {
       <div className="space-y-4 lg:w-[300px] lg:shrink-0 lg:sticky lg:top-28">
       {!planLoading && !hasActivePlan && (
         <div className="rounded-2xl bg-card border border-border p-4 space-y-2">
-          <p className="text-sm font-medium text-foreground">Tu plan ha vencido</p>
-          <p className="text-xs text-muted-foreground">
-            Los botones de reserva y menú están pausados en todas tus publicaciones.
-            Renovalo para seguir recibiendo clientes.
-          </p>
-          <Button
-            variant="sheet-action"
-            className="w-full rounded-full"
-            onClick={() => navigate("/settings/business/plans")}
-          >
-            Renovar plan
-          </Button>
+          {neverHadPlan ? (
+            <>
+              <p className="text-sm font-medium text-foreground">
+                Comenzá a recibir reservas y datos
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Elegí un plan para activar reservas en tus publicaciones, gestionar
+                mesas en tiempo real y acceder a los datos de tus clientes para tomar
+                mejores decisiones.
+              </p>
+              <Button
+                variant="sheet-action"
+                className="w-full rounded-full"
+                onClick={() => navigate("/settings/business/plans")}
+              >
+                Elegir un plan
+              </Button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm font-medium text-foreground">Tu plan ha vencido</p>
+              <p className="text-xs text-muted-foreground">
+                Los botones de reserva y menú están pausados en todas tus publicaciones.
+                Renovalo para seguir recibiendo clientes.
+              </p>
+              <Button
+                variant="sheet-action"
+                className="w-full rounded-full"
+                onClick={() => navigate("/settings/business/plans")}
+              >
+                Renovar plan
+              </Button>
+            </>
+          )}
         </div>
       )}
       {/* Navigation arrows + current label */}
