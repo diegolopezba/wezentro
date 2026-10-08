@@ -388,7 +388,7 @@ const EventDetail = () => {
 
           {/* People Going section */}
           {!isPost && (attendeesGoing.length > 0 || ticketsSold > 0) && (
-            <div className="flex items-center gap-3">
+            <div data-tour="event-friends" className="flex items-center gap-3">
               <Users className="w-4 h-4 text-muted-foreground shrink-0" />
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2.5">
