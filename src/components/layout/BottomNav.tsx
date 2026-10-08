@@ -23,7 +23,7 @@ const businessNavItems = navItems.map((item) =>
     : item,
 );
 
-const TOUR_IDS: Record<string, string> = { "/": "nav-home", "/create": "nav-create", "/gestion": "nav-gestion", "/profile": "nav-profile" };
+const TOUR_IDS: Record<string, string> = { "/": "nav-home", "/create": "nav-create", "/gestion": "nav-gestion", "/profile": "nav-profile", "/tickets": "nav-tickets" };
 
 export const BottomNav = () => {
   const location = useLocation();

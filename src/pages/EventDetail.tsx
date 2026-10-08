@@ -388,7 +388,7 @@ const EventDetail = () => {
 
           {/* People Going section */}
           {!isPost && (attendeesGoing.length > 0 || ticketsSold > 0) && (
-            <div className="flex items-center gap-3">
+            <div data-tour="event-friends" className="flex items-center gap-3">
               <Users className="w-4 h-4 text-muted-foreground shrink-0" />
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2.5">
@@ -579,7 +579,7 @@ const EventDetail = () => {
     }
       {/* Floating CTA Bar — always show for events */}
       {!isPost && !linkedExperience &&
-    <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
+    <div data-tour="event-cta" className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
           {hasEnded && !isOwner && !isOnGuestlist && !hasActiveInvite ?
       <div className="flex items-center justify-center px-4 py-4">
               <span className="text-sm font-medium text-muted-foreground">
@@ -691,7 +691,7 @@ const EventDetail = () => {
     {/* Floating experience booking CTA — post/event linked to a bookable experience */}
     {linkedExperience && (
       <>
-        <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
+        <div data-tour="event-cta" className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex flex-col">
               <span className="font-brand text-base font-medium text-foreground">
@@ -716,7 +716,7 @@ const EventDetail = () => {
 
     {/* Floating Reservation CTA Bar — shown only for posts */}
     {isPost && !linkedExperience && event.show_reservation_button && event.creator_id && creatorHasPlan && (
-      <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
+      <div data-tour="event-cta" className="fixed bottom-0 left-0 right-0 z-30 glass-strong safe-bottom">
         <div className="flex items-center justify-between px-4 py-3">
           <span className="font-brand text-base font-semibold text-foreground">
             {event.creator?.full_name || event.creator?.username || ""}
