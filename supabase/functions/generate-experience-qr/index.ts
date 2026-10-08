@@ -14,6 +14,7 @@ import {
   qhantuyCheckoutFetch,
   safeReturnUrl,
   buildCharge,
+  loadFeeTerms,
 } from "../_shared/qhantuy.ts";
 
 Deno.serve(async (req) => {
@@ -107,7 +108,7 @@ Deno.serve(async (req) => {
 
     // Zentro keeps its commission out of the base price; Qhantuy's commission
     // is added on top (PRE_CHARGE) and paid by the buyer.
-    const charge = buildCharge(totalAmount);
+    const charge = buildCharge(totalAmount, await loadFeeTerms(supabase, experience.business_id));
     const { bps: feeBps, payoutAmount, platformFee, gatewayFee } = charge;
     const chargedAmount = charge.totalAmount;
     if (payoutAmount <= 0) {
@@ -122,7 +123,7 @@ Deno.serve(async (req) => {
         buyer_user_id: buyerId,
         business_user_id: experience.business_id,
         amount: chargedAmount,
-        base_amount: totalAmount,
+        base_amount: charge.baseAmount,
         gateway_fee_amount: gatewayFee,
         status: "pending",
         provider: "qhantuy",

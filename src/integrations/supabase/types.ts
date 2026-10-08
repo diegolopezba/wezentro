@@ -115,6 +115,48 @@ export type Database = {
         }
         Relationships: []
       }
+      business_fee_terms: {
+        Row: {
+          business_id: string
+          fee_bps: number | null
+          fee_paid_by: string
+          notes: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          business_id: string
+          fee_bps?: number | null
+          fee_paid_by?: string
+          notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          business_id?: string
+          fee_bps?: number | null
+          fee_paid_by?: string
+          notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_fee_terms_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_fee_terms_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_leads: {
         Row: {
           business_kind: string
@@ -5076,6 +5118,10 @@ export type Database = {
           last_message_sender_id: string
           unread_count: number
         }[]
+      }
+      get_checkout_fee_terms: {
+        Args: { _event_id?: string; _experience_id?: string }
+        Returns: Json
       }
       get_city_benchmarks: { Args: { _business_id: string }; Returns: Json }
       get_city_benchmarks_v2: { Args: { _business_id: string }; Returns: Json }

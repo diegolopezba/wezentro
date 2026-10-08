@@ -27,7 +27,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
-import { chargeBreakdown, GATEWAY_FEE_LABEL, formatBs } from "@/lib/gatewayFee";
+import { chargeBreakdown, GATEWAY_FEE_LABEL, SERVICE_FEE_LABEL, formatBs } from "@/lib/gatewayFee";
+import { useCheckoutFeeTerms } from "@/hooks/useCheckoutFeeTerms";
 import { supabase } from "@/integrations/supabase/client";
 import { TicketAssigneeRow } from "./TicketAssigneeRow";
 import type { SearchUser } from "@/hooks/useSearchUsers";
@@ -99,7 +100,8 @@ export function CheckoutSteps({
   const canBuyMultiple = !isFree && !eventAreaId;
   const total = Number(price) * (canBuyMultiple ? quantity : 1);
   // Qhantuy's commission is added on top of the price and paid by the buyer.
-  const charge = chargeBreakdown(total);
+  const feeTerms = useCheckoutFeeTerms({ eventId });
+  const charge = chargeBreakdown(total, feeTerms);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isActiveRef = useRef(false);
 
@@ -577,6 +579,12 @@ export function CheckoutSteps({
                     <span>Subtotal</span>
                     <span>{formatBs(charge.subtotal)}</span>
                   </div>
+                  {charge.serviceFee > 0 && (
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span>{SERVICE_FEE_LABEL}</span>
+                      <span>{formatBs(charge.serviceFee)}</span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>{GATEWAY_FEE_LABEL}</span>
                     <span>{formatBs(charge.fee)}</span>

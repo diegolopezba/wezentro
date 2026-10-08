@@ -1,4 +1,5 @@
-import { chargeBreakdown, GATEWAY_FEE_LABEL } from "@/lib/gatewayFee";
+import { chargeBreakdown, GATEWAY_FEE_LABEL, SERVICE_FEE_LABEL } from "@/lib/gatewayFee";
+import { useCheckoutFeeTerms } from "@/hooks/useCheckoutFeeTerms";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/bottom-sheet";
@@ -109,7 +110,8 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
   const maxPerBooking = config?.policies?.max_per_booking ?? 8;
   const total = segment ? Number(segment.price) * quantity : 0;
   // Qhantuy's commission is added on top of the price and paid by the buyer.
-  const charge = chargeBreakdown(total);
+  const feeTerms = useCheckoutFeeTerms({ experienceId: experience.id });
+  const charge = chargeBreakdown(total, feeTerms);
 
   // Poll the payment session until the callback confirms it.
   useEffect(() => {
@@ -409,6 +411,12 @@ export const ExperienceBookingSheet = ({ open, onOpenChange, experience }: Props
                           <span>Subtotal</span>
                           <span>{money(charge.subtotal)}</span>
                         </div>
+                        {charge.serviceFee > 0 && (
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>{SERVICE_FEE_LABEL}</span>
+                            <span>{money(charge.serviceFee)}</span>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <span>{GATEWAY_FEE_LABEL}</span>
                           <span>{money(charge.fee)}</span>

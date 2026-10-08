@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import useEmblaCarousel from "embla-carousel-react";
 
 type Offer = { id: string; name: string; price: number };
-type Catalog = { event: { title: string; imageUrl: string | null; startAt: string | null }; offers: Offer[]; closed: boolean; gatewayFeeBps: number };
+type Catalog = { event: { title: string; imageUrl: string | null; startAt: string | null }; offers: Offer[]; closed: boolean; gatewayFeeBps: number; feeTerms?: { bps?: number | null; paidBy?: string | null } };
 type TicketResult = { token: string; used: boolean; index: number; name: string; sessionId: string };
 type Purchase = { sessionId: string; accessToken: string; qrImageUrl: string; amount: number; baseAmount: number; gatewayFee: number; eventId: string };
 const storageKey = (id: string) => `zentro:gate-purchase:${id}`;
@@ -112,9 +112,11 @@ export default function GatePurchase() {
   };
   const selected = catalog?.offers.find(o => o.id === offerId);
   const total = selected ? selected.price * quantity : 0;
+  const serviceFee = catalog?.feeTerms?.paidBy === "buyer" ? Math.round(total * ((catalog.feeTerms.bps ?? 600) / 10000) * 100) / 100 : 0;
+  const withService = Math.round((total + serviceFee) * 100) / 100;
   const feeRate = (catalog?.gatewayFeeBps ?? 100) / 10000;
-  const gatewayFee = feeRate > 0 ? Math.ceil(Number((total * feeRate / (1 - feeRate) * 100).toFixed(4))) / 100 : 0;
-  const amountDue = Math.round((total + gatewayFee) * 100) / 100;
+  const gatewayFee = feeRate > 0 ? Math.ceil(Number((withService * feeRate / (1 - feeRate) * 100).toFixed(4))) / 100 : 0;
+  const amountDue = Math.round((withService + gatewayFee) * 100) / 100;
   const confirmed = status === "confirmed" && tickets.some(ticket => ticket.sessionId === activeSessionId);
   const lastPurchaseHasTickets = tickets.some(ticket => ticket.sessionId === activeSessionId);
 
@@ -188,6 +190,7 @@ export default function GatePurchase() {
                 </div>
               </div>
               <div className="flex justify-between items-center mb-2"><span>Entradas</span><strong>{bs(total)}</strong></div>
+              {serviceFee > 0 && <div className="flex justify-between items-center mb-2 text-sm text-muted-foreground"><span>Cargo por servicio</span><span>{bs(serviceFee)}</span></div>}
               <div className="flex justify-between items-center mb-4 text-sm text-muted-foreground"><span>Procesamiento bancario</span><span>{bs(gatewayFee)}</span></div>
               <div className="flex justify-between items-center border-t border-border pt-4 mb-5"><span>Total a pagar</span><strong className="text-xl">{bs(amountDue)}</strong></div>
                <Button variant="sheet-action" onClick={create} disabled={busy} className="w-full rounded-full h-12 gap-2">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ticket className="w-4 h-4" />} Pagar con QR</Button>

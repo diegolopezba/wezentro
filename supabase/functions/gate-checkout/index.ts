@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.25.76";
-import { buildCharge, checkoutMethodFields, corsHeaders, gatewayFeeBps, json, organizerPayouts, parseCheckoutResponse, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
+import { buildCharge, loadFeeTerms, checkoutMethodFields, corsHeaders, gatewayFeeBps, json, organizerPayouts, parseCheckoutResponse, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
 
 const uuid = z.string().uuid();
 const input = z.discriminatedUnion("action", [
@@ -53,13 +53,14 @@ Deno.serve(async (req) => {
     if (offersErr) return json({ error: "No se pudieron cargar las entradas" }, 503);
     const isOpen = !!event.end_datetime && new Date(event.end_datetime).getTime() > Date.now();
     if (body.action === "catalog") {
-      return json({ event: { title: event.title, imageUrl: event.image_url, startAt: event.start_datetime }, offers: isOpen ? offers : [], closed: !isOpen, gatewayFeeBps: gatewayFeeBps() });
+      return json({ event: { title: event.title, imageUrl: event.image_url, startAt: event.start_datetime }, offers: isOpen ? offers : [], closed: !isOpen, gatewayFeeBps: gatewayFeeBps(), feeTerms: await loadFeeTerms(db, event.creator_id) });
     }
     if (!isOpen) return json({ error: "La venta en puerta finalizó" }, 409);
     const offer = offers?.find(o => o.id === body.offerId);
     if (!offer) return json({ error: "Esta entrada ya no está disponible" }, 404);
     const base = Number((Number(offer.price) * body.quantity).toFixed(2));
-    const charge = buildCharge(base);
+    const feeTerms = await loadFeeTerms(db, event.creator_id);
+    const charge = buildCharge(base, feeTerms);
     if (!Number.isFinite(base) || base <= 0 || base > 1000000 || charge.payoutAmount <= 0) return json({ error: "Precio inválido" }, 400);
     const { data: beneficiary } = await db.from("qhantuy_beneficiaries")
       .select("beneficiary_code, is_active").eq("user_id", event.creator_id).maybeSingle();
@@ -70,7 +71,7 @@ Deno.serve(async (req) => {
     const { data: session, error: insertError } = await db.from("payment_sessions").insert({
       event_id: event.id, business_user_id: event.creator_id, buyer_user_id: null,
        is_gate_sale: true, gate_offer_id: offer.id, gate_offer_name: offer.name, gate_access_token: accessToken, gate_callback_token: callbackToken,
-      amount: charge.totalAmount, base_amount: base, gateway_fee_amount: charge.gatewayFee,
+      amount: charge.totalAmount, base_amount: charge.baseAmount, gateway_fee_amount: charge.gatewayFee,
       quantity: body.quantity, status: "pending", provider: "qhantuy", payment_method: "qr",
       beneficiary_code: beneficiary.beneficiary_code, platform_fee_bps: charge.bps,
       platform_fee_amount: charge.platformFee, payout_amount: charge.payoutAmount,

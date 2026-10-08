@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useAdminBusinesses } from "@/hooks/useAdminApi";
+import { useAdminBusinesses, type AdminBusiness } from "@/hooks/useAdminApi";
+import { BusinessTermsDialog } from "./BusinessTermsDialog";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Section, bs } from "./adminUi";
 
 const AdminBusinesses = () => {
   const [search, setSearch] = useState("");
+  const [editing, setEditing] = useState<AdminBusiness | null>(null);
   const { data, isLoading, isError, error } = useAdminBusinesses(search);
 
   return (
@@ -30,7 +32,7 @@ const AdminBusinesses = () => {
             <table className="w-full text-sm">
               <thead className="text-muted-foreground">
                 <tr className="border-b border-border">
-                  {["Negocio", "Ciudad", "Tipo", "Plan", "Cobros", "Ventas", "Comisión", "Desde"].map((h) => (
+                  {["Negocio", "Ciudad", "Tipo", "Plan", "Cobros", "Ventas", "Comisión", "Desde", ""].map((h) => (
                     <th key={h} className="text-left font-normal px-3 py-2 whitespace-nowrap">
                       {h}
                     </th>
@@ -48,6 +50,11 @@ const AdminBusinesses = () => {
                     <td className="px-3 py-2 text-muted-foreground">{b.type ?? (b.isFood ? "comida" : "—")}</td>
                     <td className="px-3 py-2 text-muted-foreground">
                       {b.planLabel ?? "Gratis"}
+                      {(b.feeBps != null || b.feePaidBy === "buyer") && (
+                        <div className="text-xs">
+                          {(b.feeBps ?? 600) / 100}%{b.feePaidBy === "buyer" ? " · recargo comprador" : ""}
+                        </div>
+                      )}
                     </td>
                     <td className="px-3 py-2">
                       <span
@@ -66,11 +73,16 @@ const AdminBusinesses = () => {
                     <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
                       {new Date(b.created_at).toLocaleDateString("es-BO")}
                     </td>
+                    <td className="px-3 py-2">
+                      <button onClick={() => setEditing(b)} className="px-3 py-1 rounded-full border border-border text-xs whitespace-nowrap">
+                        Gestionar
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {data.businesses.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-3 py-4 text-muted-foreground">
+                    <td colSpan={9} className="px-3 py-4 text-muted-foreground">
                       Sin resultados.
                     </td>
                   </tr>
@@ -80,6 +92,7 @@ const AdminBusinesses = () => {
           </div>
         </Section>
       )}
+      <BusinessTermsDialog business={editing} onClose={() => setEditing(null)} />
     </div>
   );
 };

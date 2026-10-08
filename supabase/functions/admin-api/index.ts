@@ -469,10 +469,13 @@ async function businesses(search: string) {
   const list = data ?? [];
   const ids = list.map((b: any) => b.id);
 
-  const [{ data: benes }, { data: subs }] = await Promise.all([
+  const [{ data: benes }, { data: subs }, { data: terms }] = await Promise.all([
     admin.from("qhantuy_beneficiaries").select("user_id, beneficiary_code").in("user_id", ids),
-    admin.from("business_subscriptions").select("business_id, tier, status").in("business_id", ids),
+    admin.from("business_subscriptions").select("business_id, tier, status, billing_interval, billing_period_end").in("business_id", ids),
+    admin.from("business_fee_terms").select("business_id, fee_bps, fee_paid_by").in("business_id", ids),
   ]);
+  const termsMap: Record<string, { fee_bps: number | null; fee_paid_by: string }> = {};
+  (terms ?? []).forEach((t: any) => (termsMap[t.business_id] = t));
 
   const sessions = await fetchSessions(null);
   const salesBy: Record<string, { gross: number; commission: number }> = {};
@@ -485,8 +488,8 @@ async function businesses(search: string) {
     });
 
   const beneMap = new Set((benes ?? []).filter((b: any) => b.beneficiary_code).map((b: any) => b.user_id));
-  const subMap: Record<string, { tier: string; status: string }> = {};
-  (subs ?? []).forEach((s: any) => (subMap[s.business_id] = { tier: s.tier, status: s.status }));
+  const subMap: Record<string, { tier: string; status: string; interval: string; periodEnd: string | null }> = {};
+  (subs ?? []).forEach((s: any) => (subMap[s.business_id] = { tier: s.tier, status: s.status, interval: s.billing_interval, periodEnd: s.billing_period_end }));
 
   return {
     businesses: list.map((b: any) => ({
@@ -501,10 +504,62 @@ async function businesses(search: string) {
       tier: subMap[b.id]?.tier ?? null,
       subscriptionStatus: subMap[b.id]?.status ?? null,
       planLabel: planLabelOf(subMap[b.id]),
+      periodEnd: subMap[b.id]?.periodEnd ?? null,
+      billingInterval: subMap[b.id]?.interval ?? null,
+      feeBps: termsMap[b.id]?.fee_bps ?? null,
+      feePaidBy: termsMap[b.id]?.fee_paid_by ?? "organizer",
       gross: round2(salesBy[b.id]?.gross ?? 0),
       commission: round2(salesBy[b.id]?.commission ?? 0),
     })),
   };
+}
+
+/** Admin edits a business's commercial terms: plan and/or Zentro fee. */
+async function businessUpdate(body: any, adminEmail: string) {
+  const id = typeof body.businessId === "string" ? body.businessId.trim() : "";
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return json({ error: "businessId inválido" }, 400);
+  const { data: prof } = await admin.from("profiles").select("id").eq("id", id).eq("is_business", true).maybeSingle();
+  if (!prof) return json({ error: "negocio no encontrado" }, 404);
+  const now = new Date();
+  const stamp = `[${now.toISOString()}] admin ${adminEmail}`;
+
+  if (body.plan) {
+    const tier = String(body.plan.tier ?? "");
+    if (!["free", "basico", "profesional", "elite"].includes(tier)) return json({ error: "plan inválido" }, 400);
+    const { data: cur } = await admin.from("business_subscriptions").select("id, notes").eq("business_id", id).maybeSingle();
+    let patch: Record<string, unknown>;
+    if (tier === "free") {
+      patch = { status: "pending_activation", billing_period_end: null, grace_until: null, auto_renew: false, updated_at: now.toISOString() };
+    } else {
+      const interval = body.plan.interval === "year" ? "year" : "month";
+      const days = Math.min(1825, Math.max(1, Number(body.plan.days) || (interval === "year" ? 365 : 30)));
+      const end = new Date(now.getTime() + days * 86400000);
+      patch = {
+        tier, status: "active", billing_interval: interval, activation_method: "manual",
+        billing_period_start: now.toISOString(), billing_period_end: end.toISOString(),
+        grace_until: new Date(end.getTime() + 3 * 86400000).toISOString(),
+        cancelled_at: null, auto_renew: false, updated_at: now.toISOString(),
+      };
+    }
+    const note = `${stamp}: plan → ${tier}${tier !== "free" ? ` (${patch.billing_interval}, hasta ${String(patch.billing_period_end).slice(0, 10)})` : ""}`;
+    patch.notes = cur?.notes ? `${cur.notes}\n${note}` : note;
+    const { error } = cur
+      ? await admin.from("business_subscriptions").update(patch).eq("id", cur.id)
+      : await admin.from("business_subscriptions").insert({ business_id: id, tier: tier === "free" ? "basico" : tier, ...patch });
+    if (error) return json({ error: error.message }, 500);
+  }
+
+  if (body.fee) {
+    const raw = body.fee.bps;
+    const bps = raw === null || raw === "" || raw === undefined ? null : Math.round(Number(raw));
+    if (bps !== null && (!Number.isFinite(bps) || bps < 0 || bps > 3000)) return json({ error: "comisión inválida (0–30%)" }, 400);
+    const paidBy = body.fee.paidBy === "buyer" ? "buyer" : "organizer";
+    const { error } = await admin.from("business_fee_terms").upsert({
+      business_id: id, fee_bps: bps, fee_paid_by: paidBy, updated_at: now.toISOString(), updated_by: adminEmail,
+    });
+    if (error) return json({ error: error.message }, 500);
+  }
+  return json({ ok: true });
 }
 
 /* ----------------------------------- entry ---------------------------------- */
@@ -546,6 +601,9 @@ Deno.serve(async (req) => {
     }
 
     if (action === "businesses") return json(await businesses(search));
+    if (action === "business_update") {
+      return await businessUpdate(body, userData.user.email ?? userData.user.id);
+    }
     return json({ error: "unknown action" }, 400);
   } catch (e) {
     console.error("[admin-api]", e);

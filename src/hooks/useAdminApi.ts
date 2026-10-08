@@ -81,6 +81,10 @@ export interface AdminBusiness {
   tier: string | null;
   subscriptionStatus: string | null;
   planLabel: string;
+  periodEnd: string | null;
+  billingInterval: string | null;
+  feeBps: number | null;
+  feePaidBy: "organizer" | "buyer";
   gross: number;
   commission: number;
 }
@@ -189,3 +193,22 @@ export const useAdminBusinesses = (search: string) =>
     staleTime: 60_000,
     queryFn: () => callAdminApi<{ businesses: AdminBusiness[] }>({ action: "businesses", search }),
   });
+
+export interface AdminBusinessUpdate {
+  businessId: string;
+  plan?: { tier: "free" | "basico" | "profesional" | "elite"; interval: "month" | "year"; days: number };
+  fee?: { bps: number | null; paidBy: "organizer" | "buyer" };
+}
+
+/** Admin edits a business's plan and/or Zentro fee terms. */
+export const useAdminBusinessUpdate = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: AdminBusinessUpdate) =>
+      callAdminApi<{ ok: boolean }>({ action: "business_update", ...vars }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-businesses"] });
+      qc.invalidateQueries({ queryKey: ["admin-subscriptions"] });
+    },
+  });
+};
