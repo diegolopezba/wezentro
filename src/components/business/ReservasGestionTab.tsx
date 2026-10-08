@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { useBusinessReservationsByDate, useReservationRealtime, type ReservationWithGuests } from "@/hooks/useReservations";
 import { ReservationDetailSheet } from "@/components/reservations/ReservationDetailSheet";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
