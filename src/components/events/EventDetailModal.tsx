@@ -29,6 +29,7 @@ import { DetailSplitLayout } from "@/components/layout/DetailSplitLayout";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { MentionText } from "@/components/ui/MentionText";
 import { RelatedEventsFeed } from "@/components/events/RelatedEventsFeed";
+import { useBusinessPlanAccess } from "@/hooks/useBusinessPlanAccess";
 import { MenuSheet } from "@/components/menu/MenuSheet";
 import { ReservationSheet } from "@/components/reservations/ReservationSheet";
 import { ExperienceBookingSheet } from "@/components/experiences/ExperienceBookingSheet";
@@ -142,6 +143,10 @@ const EventDetailModalInner = () => {
     handleSaveToggle, handleLikeToggle, handleRepostToggle, handleSendToggle,
     handleBuyTicket, handleConfirmFreeJoin, handlePaymentSubmitted, handleLeaveGuestlist,
   } = useEventDetailState(id, close);
+
+  // Menú/Reservar follow the creator's live plan status: paused while the
+  // plan is expired, back automatically once they renew.
+  const { hasActivePlan: creatorHasPlan } = useBusinessPlanAccess(event?.creator_id);
 
   const { data: commentCount = 0 } = useCommentCount(id);
   const { data: latestComment = null } = useLatestComment(id);
