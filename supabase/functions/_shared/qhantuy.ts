@@ -51,16 +51,43 @@ export type ChargeBreakdown = {
   platformFee: number;
 };
 
+export type FeeTerms = { bps?: number | null; paidBy?: "organizer" | "buyer" | null };
+
+/** Per-business fee terms set from the admin panel (fallback: global 6%, organizer pays). */
+// deno-lint-ignore no-explicit-any
+export async function loadFeeTerms(db: any, businessId: string | null | undefined): Promise<FeeTerms> {
+  if (!businessId) return {};
+  const { data } = await db
+    .from("business_fee_terms")
+    .select("fee_bps, fee_paid_by")
+    .eq("business_id", businessId)
+    .maybeSingle();
+  if (!data) return {};
+  return { bps: data.fee_bps, paidBy: data.fee_paid_by === "buyer" ? "buyer" : "organizer" };
+}
+
 /**
- * Builds the full charge breakdown for a base price.
+ * Builds the full charge breakdown for a price set by the organizer.
  * payoutAmount + platformFee === baseAmount, and totalAmount === baseAmount + gatewayFee.
+ * When the buyer covers Zentro's fee, it is added on top so the organizer keeps 100% of the price.
  */
-export function buildCharge(base: number): ChargeBreakdown {
-  const bps = platformFeeBps();
+export function buildCharge(price: number, terms: FeeTerms = {}): ChargeBreakdown {
+  const custom = terms.bps;
+  const bps = custom != null && Number.isFinite(custom) && custom >= 0 && custom < 10000
+    ? Math.floor(custom)
+    : platformFeeBps();
   const gatewayBps = gatewayFeeBps();
-  const baseAmount = Math.round(Number(base) * 100) / 100;
-  const payoutAmount = Math.round(baseAmount * (1 - bps / 10000) * 100) / 100;
-  const platformFee = Math.round((baseAmount - payoutAmount) * 100) / 100;
+  const priceAmount = Math.round(Number(price) * 100) / 100;
+  let baseAmount: number, payoutAmount: number, platformFee: number;
+  if (terms.paidBy === "buyer") {
+    payoutAmount = priceAmount;
+    platformFee = Math.round(priceAmount * (bps / 10000) * 100) / 100;
+    baseAmount = Math.round((priceAmount + platformFee) * 100) / 100;
+  } else {
+    baseAmount = priceAmount;
+    payoutAmount = Math.round(baseAmount * (1 - bps / 10000) * 100) / 100;
+    platformFee = Math.round((baseAmount - payoutAmount) * 100) / 100;
+  }
   // fee = base * r / (1 - r) so that gatewayFee >= r * totalAmount.
   const r = gatewayBps / 10000;
   const gatewayFee = gatewayBps > 0 ? ceil2((baseAmount * r) / (1 - r)) : 0;
