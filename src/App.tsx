@@ -52,6 +52,7 @@ import { EventDetailModal } from "@/components/events/EventDetailModal";
 import { PageModal } from "@/components/layout/PageModal";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { BusinessHomeTour } from "@/components/business/BusinessHomeTour";
+import { UserHomeTour } from "@/components/onboarding/UserHomeTour";
 import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 
 /**
@@ -65,7 +66,7 @@ const MainAppLayout = () => {
   return (
     <AppLayout>
       <Outlet />
-      {isBusinessAccount && <BusinessHomeTour />}
+      {isBusinessAccount ? <BusinessHomeTour /> : <UserHomeTour />}
     </AppLayout>
   );
 };
