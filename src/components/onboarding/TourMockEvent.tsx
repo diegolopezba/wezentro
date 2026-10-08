@@ -42,7 +42,7 @@ export const TourMockEvent = () => (
     <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background px-5 pb-[max(env(safe-area-inset-bottom),16px)] pt-3">
       <div data-tour="event-cta" className="mx-auto flex max-w-lg items-center justify-between gap-4">
         <div><p className="text-xs text-muted-foreground">Desde</p><p className="font-semibold">Bs. 80</p></div>
-        <div className="rounded-full bg-brand-red px-8 py-3 font-semibold text-primary-foreground">Comprar</div>
+        <div className="rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground">Comprar</div>
       </div>
     </div>
   </div>
