@@ -6,6 +6,21 @@ import "./index.css";
 import "./lib/logger";
 import { Capacitor } from "@capacitor/core";
 
+// Guard against browser translators (Google/Safari Translate) mutating text
+// nodes React owns, which otherwise crashes with removeChild/insertBefore errors.
+if (typeof Node === "function" && Node.prototype) {
+  const origRemove = Node.prototype.removeChild;
+  Node.prototype.removeChild = function <T extends Node>(this: Node, child: T): T {
+    if (child.parentNode !== this) return child;
+    return origRemove.call(this, child) as T;
+  };
+  const origInsert = Node.prototype.insertBefore;
+  Node.prototype.insertBefore = function <T extends Node>(this: Node, node: T, ref: Node | null): T {
+    if (ref && ref.parentNode !== this) return origInsert.call(this, node, null) as T;
+    return origInsert.call(this, node, ref) as T;
+  };
+}
+
 // Global unhandled promise rejection handler
 window.addEventListener("unhandledrejection", (event) => {
   console.error("[Unhandled Rejection]", event.reason);
