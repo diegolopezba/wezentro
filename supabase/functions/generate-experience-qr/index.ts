@@ -15,6 +15,7 @@ import {
   safeReturnUrl,
   buildCharge,
   loadFeeTerms,
+  feeItems,
 } from "../_shared/qhantuy.ts";
 
 Deno.serve(async (req) => {
@@ -163,9 +164,7 @@ Deno.serve(async (req) => {
         detail: `${title}${booking.quantity > 1 ? ` x${booking.quantity}` : ""}`.substring(0, 120),
         items: [
           { name: title.substring(0, 100), quantity: booking.quantity, price: unitPrice },
-          ...(gatewayFee > 0
-            ? [{ name: "Comisión de procesamiento", quantity: 1, price: gatewayFee }]
-            : []),
+          ...feeItems(charge, unitPrice * booking.quantity),
         ],
         // Only the organizer is an external beneficiary. Zentro's 6% remains
         // in the merchant balance, where Qhantuy also deducts its gateway fee.
