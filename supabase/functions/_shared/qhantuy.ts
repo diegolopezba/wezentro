@@ -277,3 +277,12 @@ export function isDuplicateCiError(data: any): boolean {
     errs.includes("cedula de identidad")
   );
 }
+
+/** Extra checkout items so Qhantuy charges exactly charge.totalAmount (service fee + gateway fee). */
+export function feeItems(charge: ChargeBreakdown, priceSubtotal: number): { name: string; quantity: number; price: number }[] {
+  const items: { name: string; quantity: number; price: number }[] = [];
+  const service = Math.round((charge.baseAmount - priceSubtotal) * 100) / 100;
+  if (service > 0) items.push({ name: "Cargo por servicio", quantity: 1, price: service });
+  if (charge.gatewayFee > 0) items.push({ name: "Comisión de procesamiento", quantity: 1, price: charge.gatewayFee });
+  return items;
+}

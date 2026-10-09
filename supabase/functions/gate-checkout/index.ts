@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.25.76";
-import { buildCharge, loadFeeTerms, checkoutMethodFields, corsHeaders, gatewayFeeBps, json, organizerPayouts, parseCheckoutResponse, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
+import { buildCharge, feeItems, loadFeeTerms, checkoutMethodFields, corsHeaders, gatewayFeeBps, json, organizerPayouts, parseCheckoutResponse, qhantuyCheckoutFetch } from "../_shared/qhantuy.ts";
 
 const uuid = z.string().uuid();
 const input = z.discriminatedUnion("action", [
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
         ...checkoutMethodFields("qr"), currency_code: "BOB", internal_code: session.id,
         callback_url: callbackUrl, detail: `${event.title} — ${offer.name} x${body.quantity}`.slice(0, 120),
         items: [{ name: `${event.title} — ${offer.name}`.slice(0, 100), quantity: body.quantity, price: Number(offer.price) },
-          ...(charge.gatewayFee > 0 ? [{ name: "Comisión de procesamiento", quantity: 1, price: charge.gatewayFee }] : [])],
+          ...feeItems(charge, Number(offer.price) * body.quantity)],
         custom_payouts: organizerPayouts(beneficiary.beneficiary_code, charge.payoutAmount),
       }),
     });
