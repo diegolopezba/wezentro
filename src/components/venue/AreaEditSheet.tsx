@@ -25,11 +25,15 @@ interface Props {
 
 export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelete }: Props) {
   const [draft, setDraft] = useState<DraftArea | null>(area);
+  const [capacityText, setCapacityText] = useState<string>(
+    area ? String(area.capacity) : "1"
+  );
   const { isDirty, capture } = useDirtyBaseline(draft);
 
   useEffect(() => {
     if (area) {
       setDraft(area);
+      setCapacityText(String(area.capacity));
       capture(area);
     } else {
       setDraft(null);
@@ -123,10 +127,20 @@ export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelet
                     <Input
                       type="number"
                       min={1}
-                      value={draft.capacity}
-                      onChange={(e) =>
-                        update({ capacity: Math.max(1, parseInt(e.target.value || "1", 10)) })
-                      }
+                      value={capacityText}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setCapacityText(v);
+                        if (v !== "") {
+                          update({ capacity: Math.max(1, parseInt(v, 10) || 1) });
+                        }
+                      }}
+                      onBlur={() => {
+                        const n = parseInt(capacityText, 10);
+                        const capacity = Number.isFinite(n) ? Math.max(1, n) : 1;
+                        setCapacityText(String(capacity));
+                        update({ capacity });
+                      }}
                     />
                   </div>
                   <div>
