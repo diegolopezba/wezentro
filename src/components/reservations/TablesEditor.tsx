@@ -155,12 +155,22 @@ export const TablesEditor = ({ businessId }: Props) => {
               <div className="flex items-center gap-1">
                 <Users className="w-3.5 h-3.5 text-muted-foreground" />
                 <Input
+                  key={`${t.id}-${t.seats}`}
                   type="number"
                   min={1}
-                  value={t.seats}
-                  onChange={(e) =>
-                    updateTable(t, { seats: Math.max(1, parseInt(e.target.value, 10) || 1) })
-                  }
+                  defaultValue={t.seats}
+                  onBlur={(e) => {
+                    const n = parseInt(e.target.value, 10);
+                    const seats = Number.isFinite(n) ? Math.max(1, n) : 1;
+                    if (seats !== t.seats) {
+                      updateTable(t, { seats });
+                    } else {
+                      e.target.value = String(t.seats);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                  }}
                   className="h-8 w-16"
                 />
               </div>
