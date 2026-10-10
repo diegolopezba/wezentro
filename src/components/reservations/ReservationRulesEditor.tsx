@@ -23,7 +23,9 @@ export const ReservationRulesEditor = ({ businessId }: Props) => {
   const save = useSaveReservationPolicy(businessId);
   const { tier, hasFeature } = useSubscriptionTier(businessId);
 
-  const [form, setForm] = useState({ ...DEFAULT_POLICY });
+  const [form, setForm] = useState<{
+    [K in keyof typeof DEFAULT_POLICY]: (typeof DEFAULT_POLICY)[K] | null;
+  }>({ ...DEFAULT_POLICY });
   const { isDirty, capture } = useDirtyBaseline(form);
 
   useEffect(() => {
@@ -175,7 +177,14 @@ export const ReservationRulesEditor = ({ businessId }: Props) => {
       <Button
         variant={saveVariant(isDirty)}
         className="w-full rounded-full"
-        onClick={() => { save.mutate(form); capture(form); }}
+        onClick={() => {
+          const clean = { ...form };
+          for (const f of fields) {
+            if (clean[f.key] == null) (clean as any)[f.key] = f.min;
+          }
+          save.mutate(clean as typeof DEFAULT_POLICY);
+          capture(clean);
+        }}
         disabled={!isDirty || save.isPending}
       >
         Guardar reglas
