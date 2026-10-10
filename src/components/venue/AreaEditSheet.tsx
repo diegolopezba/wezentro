@@ -289,7 +289,7 @@ export function AreaEditSheet({ area, onOpenChange, onSave, onDuplicate, onDelet
                   max={90}
                   step={15}
                   value={draft.rotation}
-                  onChange={(e) => update({ rotation: parseInt(e.target.value, 10) })}
+                  onChange={(e) => update({ rotation: parseInt(e.target.value, 10) || 0 })}
                   className="w-full"
                 />
               </div>
