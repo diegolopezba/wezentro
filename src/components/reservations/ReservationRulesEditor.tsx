@@ -107,8 +107,16 @@ export const ReservationRulesEditor = ({ businessId }: Props) => {
               onChange={(e) =>
                 setForm((p) => ({
                   ...p,
-                  [f.key]: Math.max(f.min, num(e.target.value, f.min)),
+                  [f.key]:
+                    e.target.value === ""
+                      ? null
+                      : Math.max(f.min, num(e.target.value, f.min)),
                 }))
+              }
+              onBlur={() =>
+                setForm((p) =>
+                  p[f.key] == null ? { ...p, [f.key]: f.min } : p
+                )
               }
             />
             <p className="text-[11px] text-muted-foreground">{f.hint}</p>
