@@ -182,7 +182,8 @@ export const ReservationRulesEditor = ({ businessId }: Props) => {
         onClick={() => {
           const clean = { ...form };
           for (const f of fields) {
-            if (clean[f.key] == null) (clean as any)[f.key] = f.min;
+            const v = clean[f.key] as number | null;
+            if (v == null || v < f.min) (clean as any)[f.key] = f.min;
           }
           save.mutate(clean as typeof DEFAULT_POLICY);
           capture(clean);
