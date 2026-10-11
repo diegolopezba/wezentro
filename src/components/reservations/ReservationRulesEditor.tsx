@@ -109,15 +109,17 @@ export const ReservationRulesEditor = ({ businessId }: Props) => {
               onChange={(e) =>
                 setForm((p) => ({
                   ...p,
+                  // Don't clamp while typing: "6" for a 60-minute turn would
+                  // otherwise snap to the 30-minute minimum mid-keystroke.
                   [f.key]:
-                    e.target.value === ""
-                      ? null
-                      : Math.max(f.min, num(e.target.value, f.min)),
+                    e.target.value === "" ? null : num(e.target.value, f.min),
                 }))
               }
               onBlur={() =>
                 setForm((p) =>
-                  p[f.key] == null ? { ...p, [f.key]: f.min } : p
+                  p[f.key] == null || (p[f.key] as number) < f.min
+                    ? { ...p, [f.key]: f.min }
+                    : p
                 )
               }
             />
@@ -180,7 +182,8 @@ export const ReservationRulesEditor = ({ businessId }: Props) => {
         onClick={() => {
           const clean = { ...form };
           for (const f of fields) {
-            if (clean[f.key] == null) (clean as any)[f.key] = f.min;
+            const v = clean[f.key] as number | null;
+            if (v == null || v < f.min) (clean as any)[f.key] = f.min;
           }
           save.mutate(clean as typeof DEFAULT_POLICY);
           capture(clean);
