@@ -1,13 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import type { ReactNode } from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ReservationRulesEditor } from "@/components/reservations/ReservationRulesEditor";
-import { useReservationConfigRealtime } from "@/hooks/useReservationConfig";
 
 vi.mock("@/hooks/useReservationConfig", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/hooks/useReservationConfig")>();
   return {
     ...actual,
-    useReservationConfigRealtime: () => {},
     useReservationPolicy: () => ({ data: null }),
     useSaveReservationPolicy: () => ({
       mutate: vi.fn(),
@@ -29,29 +28,29 @@ vi.mock("@/hooks/useSubscriptionTier", () => ({
 }));
 
 vi.mock("@/components/subscriptions/LockedFeature", () => ({
-  LockedFeature: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  LockedFeature: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 describe("ReservationRulesEditor number fields", () => {
   it("lets the owner type a two-digit table duration without snapping to the minimum", () => {
     render(<ReservationRulesEditor businessId="biz-1" />);
 
-    const duration = screen.getByLabelText("Duración de la mesa (min)");
+    const duration = screen.getByDisplayValue("90") as HTMLInputElement;
     // Owner clears the field and types "60": no keystroke may clamp to min (30).
     fireEvent.change(duration, { target: { value: "" } });
     fireEvent.change(duration, { target: { value: "6" } });
-    expect((duration as HTMLInputElement).value).toBe("6");
+    expect(duration.value).toBe("6");
     fireEvent.change(duration, { target: { value: "60" } });
-    expect((duration as HTMLInputElement).value).toBe("60");
+    expect(duration.value).toBe("60");
   });
 
-  it("keeps the minimum only as a blur/save guard", () => {
+  it("applies the minimum only on blur, never while typing", () => {
     render(<ReservationRulesEditor businessId="biz-1" />);
 
-    const duration = screen.getByLabelText("Duración de la mesa (min)");
+    const duration = screen.getByDisplayValue("90") as HTMLInputElement;
     fireEvent.change(duration, { target: { value: "" } });
     fireEvent.change(duration, { target: { value: "5" } });
     fireEvent.blur(duration);
-    expect((duration as HTMLInputElement).value).toBe("30");
+    expect(duration.value).toBe("30");
   });
 });
