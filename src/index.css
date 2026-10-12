@@ -536,6 +536,16 @@ html[data-keyboard="open"] body {
   }
 }
 
+/* Radix floats (Select, DropdownMenu, Popover, Tooltip) are portaled into a
+   position:fixed wrapper that creates its own stacking context with z-index
+   auto, so the z-index on the panel inside never reaches the root context —
+   a dropdown opened from a bottom sheet (z-[80]) or dialog (z-[70]) rendered
+   behind it. Pin the wrapper itself above every overlay surface, below
+   toasts/tours (z-[100]) and the EULA/splash gates (z-[9998+]). */
+[data-radix-popper-content-wrapper] {
+  z-index: 95 !important;
+}
+
 /* Hide Mapbox default UI controls (zoom/compass/geolocate buttons) */
 .mapboxgl-ctrl-top-right {
   display: none !important;
