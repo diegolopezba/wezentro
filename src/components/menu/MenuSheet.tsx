@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/bottom-sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -99,6 +100,15 @@ export const MenuSheet = ({ open, onOpenChange, userId, businessName }: MenuShee
   };
 
   const { uncategorized, categorized } = getGroupedItems();
+  const [selected, setSelected] = useState<string>("all");
+  useEffect(() => {
+    if (open) setSelected("all");
+  }, [open, userId]);
+  const pills = [
+    ...categorized.filter((c) => c.items.length > 0).map((c) => ({ id: c.category.id, name: c.category.name, count: c.items.length })),
+    ...(uncategorized.length > 0 ? [{ id: "none", name: "Otros", count: uncategorized.length }] : []),
+  ];
+  const total = pills.reduce((s, p) => s + p.count, 0);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -135,12 +145,39 @@ export const MenuSheet = ({ open, onOpenChange, userId, businessName }: MenuShee
             </div>
           ) : (
             <div>
-              {/* Categorized items */}
-              {categorized.map(({ category, items }) => (
-                <CategorySection key={category.id} category={category} items={items} showImages={showImages} />
-              ))}
-              {/* Uncategorized items */}
-              {uncategorized.length > 0 && <CategorySection category={null} items={uncategorized} showImages={showImages} />}
+              {pills.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-3 -mx-1 px-1">
+                  {[{ id: "all", name: "Todos", count: total }, ...pills].map((p) => {
+                    const active = selected === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setSelected(p.id)}
+                        className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold border transition-colors active:scale-95 ${
+                          active
+                            ? "bg-foreground text-background border-foreground"
+                            : "bg-card text-foreground border-border"
+                        }`}
+                      >
+                        {p.name} <span className="opacity-60">({p.count})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {categorized
+                .filter(({ category }) => selected === "all" || selected === category.id)
+                .map(({ category, items }) => (
+                  <CategorySection key={category.id} category={category} items={items} showImages={showImages} />
+                ))}
+              {uncategorized.length > 0 && (selected === "all" || selected === "none") && (
+                <CategorySection
+                  category={selected === "none" ? null : pills.length > 1 ? ({ id: "none", name: "Otros" } as MenuCategory) : null}
+                  items={uncategorized}
+                  showImages={showImages}
+                />
+              )}
             </div>
           )}
         </ScrollArea>
