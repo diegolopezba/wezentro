@@ -146,7 +146,7 @@ export const MenuSheet = ({ open, onOpenChange, userId, businessName }: MenuShee
           ) : (
             <div>
               {pills.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-3 -mx-1 px-1">
+                <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-3 -mx-1 px-1">
                   {[{ id: "all", name: "Todos", count: total }, ...pills].map((p) => {
                     const active = selected === p.id;
                     return (
