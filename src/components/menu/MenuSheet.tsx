@@ -33,7 +33,9 @@ const MenuItemCard = ({ item, showImages }: { item: MenuItem; showImages: boolea
             <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">No disponible</span>
           )}
         </div>
-        {item.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
+        {item.description && (
+          <p className="text-sm text-muted-foreground mt-1 whitespace-normal break-words">{item.description}</p>
+        )}
       </div>
       {item.price !== null && (
         <span className="text-foreground font-semibold whitespace-nowrap">Bs. {item.price.toFixed(2)}</span>
