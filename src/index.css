@@ -540,10 +540,11 @@ html[data-keyboard="open"] body {
    position:fixed wrapper that creates its own stacking context with z-index
    auto, so the z-index on the panel inside never reaches the root context —
    a dropdown opened from a bottom sheet (z-[80]) or dialog (z-[70]) rendered
-   behind it. Pin the wrapper itself above every overlay surface, below
-   toasts/tours (z-[100]) and the EULA/splash gates (z-[9998+]). */
+   behind it. Pin the wrapper itself above every app surface (sheets z-[80],
+   tours/auth prompt/landing presentation z-[100]) and below the EULA and
+   splash gates (z-[9998+]); sonner toasts sit at 999999999. */
 [data-radix-popper-content-wrapper] {
-  z-index: 95 !important;
+  z-index: 9997 !important;
 }
 
 /* Hide Mapbox default UI controls (zoom/compass/geolocate buttons) */
