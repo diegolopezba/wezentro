@@ -20,7 +20,7 @@ import mascotAsset from "@/assets/muñeco-negro.png.asset.json";
 
 
 const ENTRY_COLUMNS =
-  "id, user_id, guest_name, checked_in_at, qr_code_token, status, payment_status, is_special_guest, special_guest_label, joined_at";
+  "id, user_id, guest_name, checked_in_at, qr_code_token, status, payment_status, is_special_guest, special_guest_label, joined_at, event_day";
 
 const YouAreGoing = () => {
   const navigate = useNavigate();
@@ -138,9 +138,10 @@ const YouAreGoing = () => {
               {holderName}
             </h1>
           )}
-          {total > 1 && (
+          {(total > 1 || (entry as any).event_day) && (
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#141414]/50">
               Entrada {i + 1} de {total}
+              {(entry as any).event_day ? ` · Día ${(entry as any).event_day}` : ""}
             </p>
           )}
 
