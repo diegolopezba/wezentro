@@ -1243,6 +1243,7 @@ export type Database = {
           description: string | null
           description_tags: string[] | null
           end_datetime: string | null
+          event_days: Json | null
           experience_id: string | null
           has_guestlist: boolean | null
           has_guestlist_chat: boolean | null
@@ -1278,6 +1279,7 @@ export type Database = {
           description?: string | null
           description_tags?: string[] | null
           end_datetime?: string | null
+          event_days?: Json | null
           experience_id?: string | null
           has_guestlist?: boolean | null
           has_guestlist_chat?: boolean | null
@@ -1313,6 +1315,7 @@ export type Database = {
           description?: string | null
           description_tags?: string[] | null
           end_datetime?: string | null
+          event_days?: Json | null
           experience_id?: string | null
           has_guestlist?: boolean | null
           has_guestlist_chat?: boolean | null
@@ -1790,6 +1793,7 @@ export type Database = {
           area_booking_id: string | null
           attended: boolean | null
           checked_in_at: string | null
+          event_day: number | null
           event_id: string
           gate_ticket_index: number | null
           guest_email: string | null
@@ -1797,6 +1801,7 @@ export type Database = {
           id: string
           is_special_guest: boolean
           joined_at: string | null
+          parent_entry_id: string | null
           payment_confirmed_at: string | null
           payment_session_id: string | null
           payment_status: string | null
@@ -1812,6 +1817,7 @@ export type Database = {
           area_booking_id?: string | null
           attended?: boolean | null
           checked_in_at?: string | null
+          event_day?: number | null
           event_id: string
           gate_ticket_index?: number | null
           guest_email?: string | null
@@ -1819,6 +1825,7 @@ export type Database = {
           id?: string
           is_special_guest?: boolean
           joined_at?: string | null
+          parent_entry_id?: string | null
           payment_confirmed_at?: string | null
           payment_session_id?: string | null
           payment_status?: string | null
@@ -1834,6 +1841,7 @@ export type Database = {
           area_booking_id?: string | null
           attended?: boolean | null
           checked_in_at?: string | null
+          event_day?: number | null
           event_id?: string
           gate_ticket_index?: number | null
           guest_email?: string | null
@@ -1841,6 +1849,7 @@ export type Database = {
           id?: string
           is_special_guest?: boolean
           joined_at?: string | null
+          parent_entry_id?: string | null
           payment_confirmed_at?: string | null
           payment_session_id?: string | null
           payment_status?: string | null
@@ -1865,6 +1874,20 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guestlist_entries_parent_entry_id_fkey"
+            columns: ["parent_entry_id"]
+            isOneToOne: false
+            referencedRelation: "guestlist_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guestlist_entries_parent_entry_id_fkey"
+            columns: ["parent_entry_id"]
+            isOneToOne: false
+            referencedRelation: "guestlist_entries_public"
             referencedColumns: ["id"]
           },
           {
@@ -3921,6 +3944,7 @@ export type Database = {
           sold_count: number
           unlock_after_tier_id: string | null
           updated_at: string
+          valid_day: number | null
         }
         Insert: {
           capacity?: number | null
@@ -3936,6 +3960,7 @@ export type Database = {
           sold_count?: number
           unlock_after_tier_id?: string | null
           updated_at?: string
+          valid_day?: number | null
         }
         Update: {
           capacity?: number | null
@@ -3951,6 +3976,7 @@ export type Database = {
           sold_count?: number
           unlock_after_tier_id?: string | null
           updated_at?: string
+          valid_day?: number | null
         }
         Relationships: [
           {
