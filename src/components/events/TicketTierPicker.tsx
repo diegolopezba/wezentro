@@ -57,6 +57,11 @@ export function TicketTierPicker({ open, onOpenChange, tiers, sequential, onSele
                       <div className="text-base font-semibold text-foreground truncate">
                         {tier.name}
                       </div>
+                      {tiers.some((x) => x.valid_day) && (
+                        <div className="text-[11px] font-medium text-primary">
+                          {tier.valid_day ? `Válida solo el Día ${tier.valid_day}` : "Pase completo · todos los días"}
+                        </div>
+                      )}
                       {tier.description && (
                         <div className="text-xs text-muted-foreground line-clamp-2">
                           {tier.description}
