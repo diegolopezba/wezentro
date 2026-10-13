@@ -1287,7 +1287,7 @@ const Create = () => {
                         if (v && isBusiness) setPricingMode("tiers");
                       }}
                       className={`relative w-12 h-7 rounded-full transition-colors shrink-0 ${multiDay ? "bg-primary" : "bg-secondary"}`}>
-                      <m.div animate={{ x: multiDay ? 22 : 2 }} className="absolute top-1 w-5 h-5 rounded-full bg-background" />
+                      <m.div animate={{ x: multiDay ? 22 : 2 }} className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
                     </button>
                   </div>
 
