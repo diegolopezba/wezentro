@@ -18,6 +18,8 @@ import {
   Lock,
   HelpCircle,
   Clock,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
