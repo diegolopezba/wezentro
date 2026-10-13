@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
 
     const { data: entry } = await supabaseAdmin
       .from("guestlist_entries")
-      .select("id, status, checked_in_at, user_id, purchased_by_user_id, guest_name, ticket_tier_id, is_special_guest, special_guest_label, area_booking_id, payment_session_id, gate_ticket_index")
+      .select("id, status, checked_in_at, user_id, purchased_by_user_id, guest_name, ticket_tier_id, is_special_guest, special_guest_label, area_booking_id, payment_session_id, gate_ticket_index, event_day")
       .eq("qr_code_token", qr_code_token)
       .eq("event_id", event_id)
       .maybeSingle();
@@ -251,6 +251,23 @@ Deno.serve(async (req) => {
           avatar_url: userProfile?.avatar_url ?? null,
         };
     const entryInfo = { entry_label: entryLabel, is_special: !!entry.is_special_guest, details };
+
+    // Multi-day events: each day-entry is only valid within its own day window
+    if (entry.event_day) {
+      const { data: ev } = await supabaseAdmin.from("events").select("event_days").eq("id", event_id).maybeSingle();
+      const days = Array.isArray(ev?.event_days) ? (ev!.event_days as Array<{ start: string; end: string }>) : [];
+      const day = days[entry.event_day - 1];
+      entryInfo.entry_label = `${entryLabel} · Día ${entry.event_day}`;
+      if (day?.start && day?.end) {
+        const nowMs = Date.now();
+        const opens = new Date(day.start).getTime() - 4 * 3600_000; // doors may open early
+        const closes = new Date(day.end).getTime() + 2 * 3600_000;
+        if (nowMs < opens || nowMs > closes) {
+          const fmt = (iso: string) => new Date(iso).toLocaleString("es-BO", { timeZone: "America/La_Paz", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+          return json({ success: false, code: "wrong_day", error: `Esta entrada es para el Día ${entry.event_day} (${fmt(day.start)})`, guest, ...entryInfo }, 403);
+        }
+      }
+    }
 
     if (entry.status !== "approved") {
       return json({ success: false, code: "not_approved", error: "Esta entrada no está aprobada o fue cancelada", guest, ...entryInfo }, 403);
