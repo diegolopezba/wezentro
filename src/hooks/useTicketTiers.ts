@@ -14,6 +14,8 @@ export interface TicketTier {
   is_active: boolean;
   /** Optional moment when this tier stops selling. */
   sales_end_at: string | null;
+  /** Multi-day events: 1-based day; null = all days (full pass). */
+  valid_day?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -26,6 +28,7 @@ export interface TicketTierInput {
   display_order: number;
   unlock_after_tier_id?: string | null;
   sales_end_at?: string | null;
+  valid_day?: number | null;
 }
 
 
@@ -121,6 +124,7 @@ export const useReplaceTicketTiers = () => {
           display_order: t.display_order,
           unlock_after_tier_id: sequential ? prevId : null,
           sales_end_at: t.sales_end_at ?? null,
+          valid_day: t.valid_day ?? null,
         };
 
         const { data, error } = await supabase

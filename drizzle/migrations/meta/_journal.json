@@ -414,6 +414,13 @@
       "when": 1791472808219,
       "tag": "0058_business_fee_terms",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1791849678874,
+      "tag": "0059_multi_day_events",
+      "breakpoints": true
     }
   ]
 }

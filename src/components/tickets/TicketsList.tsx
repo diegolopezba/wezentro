@@ -40,6 +40,7 @@ export const TicketsList = () => {
           purchased_by_user_id,
           guest_name,
           checked_in_at,
+          event_day,
           buyer:profiles!guestlist_entries_purchased_by_user_id_fkey(
             id,
             username,
@@ -193,6 +194,9 @@ export const TicketsList = () => {
             {event.title}
             {num && num.total > 1 && (
               <span className="text-muted-foreground font-medium"> · Entrada {num.n}</span>
+            )}
+            {(ticket as any).event_day && (
+              <span className="text-muted-foreground font-medium"> · Día {(ticket as any).event_day}</span>
             )}
           </h3>
           {subtitle && (

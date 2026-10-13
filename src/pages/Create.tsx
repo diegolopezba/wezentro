@@ -18,6 +18,8 @@ import {
   Lock,
   HelpCircle,
   Clock,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
@@ -162,6 +164,10 @@ const Create = () => {
   const [tierSaleMode, setTierSaleMode] = useState<TierSaleMode>("parallel");
   const [draftTiers, setDraftTiers] = useState<DraftTier[]>([]);
   const replaceTiers = useReplaceTicketTiers();
+  // Multi-day events (festivals): day 1 uses formData.date/time/endTime, extra days live here
+  const [multiDay, setMultiDay] = useState(false);
+  const [extraDays, setExtraDays] = useState<{ date: string; time: string; endTime: string }[]>([]);
+  const dayCount = multiDay ? 1 + extraDays.length : 0;
 
   // Optional visual venue layout (events only, business accounts)
   const [useAreas, setUseAreas] = useState(false);
@@ -421,6 +427,16 @@ const Create = () => {
       toast.error("Por favor ingresa la hora de fin del evento");
       return;
     }
+    if (isEvent && multiDay) {
+      if (extraDays.length === 0) {
+        toast.error("Agregá al menos un día más o desactivá el evento de varios días");
+        return;
+      }
+      if (extraDays.some((d) => !d.date || !d.time || !d.endTime)) {
+        toast.error("Completá fecha, hora de inicio y hora de fin de cada día");
+        return;
+      }
+    }
     if (isExperience && !experienceId) {
       toast.error("Elegí qué experiencia querés publicar");
       return;
@@ -447,7 +463,7 @@ const Create = () => {
 
 
     // Validate ticket tiers (events only, business + tiers mode)
-    const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number; sales_end_at: string | null }[] = [];
+    const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number; sales_end_at: string | null; valid_day: number | null }[] = [];
     const useTiers = isEvent && isBusiness && pricingMode === "tiers";
     if (useTiers) {
       if (draftTiers.length === 0) {
@@ -472,6 +488,7 @@ const Create = () => {
           description: t.description.trim() || null,
           display_order: cleanTiers.length,
           sales_end_at: t.salesEndAt ? new Date(t.salesEndAt).toISOString() : null,
+          valid_day: multiDay && t.validDay && t.validDay <= 1 + extraDays.length ? t.validDay : null,
         });
       }
     }
@@ -500,6 +517,19 @@ const Create = () => {
           endDatetime = end.toISOString();
         }
       }
+      let eventDays: { start: string; end: string }[] | null = null;
+      if (isEvent && multiDay && startDatetime && endDatetime) {
+        const span = (d: { date: string; time: string; endTime: string }) => {
+          const st = new Date(`${d.date}T${d.time}`);
+          const en = new Date(`${d.date}T${d.endTime}`);
+          if (en.getTime() <= st.getTime()) en.setDate(en.getDate() + 1);
+          return { start: st.toISOString(), end: en.toISOString() };
+        };
+        eventDays = [{ start: startDatetime, end: endDatetime }, ...extraDays.map(span)]
+          .sort((a, b) => a.start.localeCompare(b.start));
+        startDatetime = eventDays[0].start;
+        endDatetime = eventDays[eventDays.length - 1].end;
+      }
 
       const descriptionTags = extractDescriptionTags(
         formData.description.trim(),
@@ -522,6 +552,7 @@ const Create = () => {
         category: isExperience ? null : formData.category || null,
         start_datetime: startDatetime,
         end_datetime: endDatetime,
+        event_days: eventDays,
         location_name: isEvent ? location.address.trim() || null : null,
         latitude: isEvent ? location.latitude : null,
         longitude: isEvent ? location.longitude : null,
@@ -1004,6 +1035,57 @@ const Create = () => {
                 </div>
               </div>
 
+              {multiDay && (
+                <div className="space-y-4">
+                  <p className="text-xs text-muted-foreground -mt-2">
+                    Día 1 · Si la hora fin es antes que la de inicio, termina al día siguiente.
+                  </p>
+                  {extraDays.map((d, i) => {
+                    const upd = (patch: Partial<typeof d>) =>
+                      setExtraDays(extraDays.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+                    return (
+                      <div key={i} className="rounded-xl border border-border p-3 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-foreground">Día {i + 2}</span>
+                          <button type="button" className="text-destructive p-1" aria-label="Quitar día"
+                            onClick={() => setExtraDays(extraDays.filter((_, j) => j !== i))}>
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="col-span-3 min-w-0">
+                            <label className="text-xs text-muted-foreground mb-1 block">Fecha</label>
+                            <Input type="date" className="w-full" value={d.date}
+                              min={formData.date || new Date().toISOString().split("T")[0]}
+                              onChange={(e) => upd({ date: e.target.value })} />
+                          </div>
+                          <div className="col-span-3 sm:col-span-1 grid grid-cols-2 sm:grid-cols-1 gap-2 sm:contents">
+                            <div className="min-w-0">
+                              <label className="text-xs text-muted-foreground mb-1 block">Inicia</label>
+                              <Input type="time" className="w-full min-w-0" value={d.time} onChange={(e) => upd({ time: e.target.value })} />
+                            </div>
+                            <div className="min-w-0">
+                              <label className="text-xs text-muted-foreground mb-1 block">Termina</label>
+                              <Input type="time" className="w-full min-w-0" value={d.endTime} onChange={(e) => upd({ endTime: e.target.value })} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <Button type="button" variant="outline" className="w-full border-dashed rounded-full"
+                    onClick={() => {
+                      const last = extraDays[extraDays.length - 1];
+                      const base = last?.date || formData.date;
+                      let next = "";
+                      if (base) { const dt = new Date(`${base}T12:00`); dt.setDate(dt.getDate() + 1); next = dt.toISOString().split("T")[0]; }
+                      setExtraDays([...extraDays, { date: next, time: last?.time || formData.time, endTime: last?.endTime || formData.endTime }]);
+                    }}>
+                    <Plus className="w-4 h-4 mr-2" /> Agregar día
+                  </Button>
+                </div>
+              )}
+
               <LocationPicker value={location} onChange={setLocation} />
 
               {isBusiness ? (
@@ -1021,7 +1103,13 @@ const Create = () => {
                       saleMode={tierSaleMode}
                       onSaleModeChange={setTierSaleMode}
                       onAttemptPaidAction={!hasBeneficiary ? () => setShowBeneficiaryGate(true) : undefined}
+                      dayCount={dayCount}
                     />
+                    {multiDay && pricingMode === "single" && (
+                      <p className="text-[11px] text-muted-foreground mt-2">
+                        Para vender entradas por día y pases completos, elegí "Múltiples entradas".
+                      </p>
+                    )}
                   </div>
                   )}
                   {/* Vender por áreas se movió a Opciones avanzadas */}
@@ -1173,6 +1261,37 @@ const Create = () => {
                       onAreasChange={setDraftAreas}
                     />
                   )}
+
+                  {/* Evento de varios días */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                        <Calendar className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">Evento de varios días</h3>
+                        <p className="text-xs text-muted-foreground">
+                          Para festivales: definí el horario de cada día y elegí para qué día vale cada entrada. Las fiestas que terminan de madrugada no lo necesitan.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Evento de varios días"
+                      onClick={() => {
+                        const v = !multiDay;
+                        setMultiDay(v);
+                        if (v && extraDays.length === 0) {
+                          let next = "";
+                          if (formData.date) { const dt = new Date(`${formData.date}T12:00`); dt.setDate(dt.getDate() + 1); next = dt.toISOString().split("T")[0]; }
+                          setExtraDays([{ date: next, time: formData.time, endTime: formData.endTime }]);
+                        }
+                        if (v && isBusiness) setPricingMode("tiers");
+                      }}
+                      className={`relative w-12 h-7 rounded-full transition-colors shrink-0 ${multiDay ? "bg-primary" : "bg-secondary"}`}>
+                      <m.div animate={{ x: multiDay ? 22 : 2 }} className="absolute top-1 w-5 h-5 rounded-full bg-foreground" />
+                    </button>
+                  </div>
 
                   {/* Lista de espera (pre-venta) */}
                   <div className="mt-4 pt-4 border-t border-white/10">

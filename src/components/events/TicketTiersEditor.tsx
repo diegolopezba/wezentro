@@ -15,6 +15,8 @@ export interface DraftTier {
   description: string;
   /** optional `yyyy-MM-dd'T'HH:mm` moment when this tier stops selling */
   salesEndAt?: string;
+  /** Multi-day events: 1-based day, or null for all days (full pass). */
+  validDay?: number | null;
 }
 
 export type TicketPricingMode = "single" | "tiers";
@@ -31,6 +33,8 @@ interface Props {
   onSaleModeChange: (m: TierSaleMode) => void;
   /** When provided, all paid-pricing affordances are locked and trigger this callback */
   onAttemptPaidAction?: () => void;
+  /** Multi-day events: number of days. When >= 2, each tier picks which day(s) it's valid for. */
+  dayCount?: number;
 }
 
 const blankTier = (): DraftTier => ({
@@ -53,7 +57,9 @@ export function TicketTiersEditor({
   saleMode,
   onSaleModeChange,
   onAttemptPaidAction,
+  dayCount = 0,
 }: Props) {
+  const multiDay = dayCount >= 2;
   const locked = Boolean(onAttemptPaidAction);
   const triggerLock = () => {
     onAttemptPaidAction?.();
@@ -163,6 +169,7 @@ export function TicketTiersEditor({
                       <div className="text-xs text-muted-foreground">
                         {Number(t.price) > 0 ? `Bs. ${t.price}` : "Gratis"}
                         {t.capacity ? ` · ${t.capacity} cupos` : " · Ilimitado"}
+                        {multiDay && (t.validDay ? ` · Día ${t.validDay}` : " · Todos los días")}
                       </div>
                     </div>
                   </button>
@@ -221,6 +228,41 @@ export function TicketTiersEditor({
                         placeholder="Ej. Acceso al área VIP"
                       />
                     </div>
+                    {multiDay && (
+                      <div className="space-y-1">
+                        <Label className="text-xs">Válida para</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {Array.from({ length: dayCount }, (_, i) => i + 1).map((d) => (
+                            <button
+                              key={d}
+                              type="button"
+                              onClick={() => updateTier(t.key, { validDay: d })}
+                              className={cn(
+                                "px-3 py-1.5 rounded-full text-xs border border-border",
+                                t.validDay === d ? "bg-primary text-primary-foreground" : "bg-background text-foreground"
+                              )}
+                            >
+                              Día {d}
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => updateTier(t.key, { validDay: null })}
+                            className={cn(
+                              "px-3 py-1.5 rounded-full text-xs border border-border",
+                              !t.validDay ? "bg-primary text-primary-foreground" : "bg-background text-foreground"
+                            )}
+                          >
+                            Todos los días
+                          </button>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          {t.validDay
+                            ? `Genera 1 QR válido solo el Día ${t.validDay}.`
+                            : `Pase completo: genera ${dayCount} QR, uno para cada día.`}
+                        </p>
+                      </div>
+                    )}
                     <div className="space-y-1">
                       <Label className="text-xs">Deja de venderse (opcional)</Label>
                       <Input
