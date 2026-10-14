@@ -4,6 +4,8 @@ export interface ParsedGuest {
   name: string;
   email: string | null;
   phone: string | null;
+  /** Multi-day: 1-based day, null = full pass, undefined = not in file. */
+  day?: number | null;
 }
 
 export interface ParseResult {
@@ -17,6 +19,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const NAME_KEYS = ["nombre", "name", "nombres", "full name", "fullname", "invitado", "nombre y apellido"];
 const EMAIL_KEYS = ["email", "correo", "e-mail", "mail", "correo electronico", "correo electrónico"];
+const DAY_KEYS = ["dia", "día", "day", "jornada", "fecha"];
 const PHONE_KEYS = ["whatsapp", "telefono", "teléfono", "celular", "phone", "movil", "móvil", "numero", "número", "cel", "wsp"];
 
 /**
@@ -63,9 +66,10 @@ export async function parseGuestFile(file: File): Promise<ParseResult> {
   const headers = Object.keys(rows[0]);
   const emailKey = pickKey(headers, EMAIL_KEYS);
   const phoneKey = pickKey(headers, PHONE_KEYS);
+  const dayKey = pickKey(headers, DAY_KEYS);
   let nameKey = pickKey(headers, NAME_KEYS);
   // Single-column list without a recognizable header: treat first column as names
-  if (!nameKey) nameKey = headers.find((h) => h !== emailKey && h !== phoneKey) ?? null;
+  if (!nameKey) nameKey = headers.find((h) => h !== emailKey && h !== phoneKey && h !== dayKey) ?? null;
 
   const seenEmail = new Set<string>();
   const seenPhone = new Set<string>();
@@ -101,7 +105,15 @@ export async function parseGuestFile(file: File): Promise<ParseResult> {
     if (phone) seenPhone.add(phone);
     if (!email) email = null;
 
-    result.guests.push({ name: rawName, email, phone });
+    let day: number | null | undefined = undefined;
+    if (dayKey) {
+      const rawDay = String(row[dayKey] ?? "").trim().toLowerCase();
+      const m = rawDay.match(/\d+/);
+      if (m) day = parseInt(m[0], 10);
+      else if (/todo|pase|ambos|all|complet/.test(rawDay)) day = null;
+    }
+
+    result.guests.push({ name: rawName, email, phone, ...(day !== undefined ? { day } : {}) });
   });
 
   return result;
