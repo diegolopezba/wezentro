@@ -26,6 +26,7 @@ export interface SpecialInvite {
   rsvp_email: string | null;
   rsvp_confirmed_at: string | null;
   checked_in_at: string | null;
+  valid_day: number | null;
 }
 
 /** Token-scoped payload for the public (no-account) invite page. */
@@ -141,11 +142,13 @@ export function useCreateSpecialInvite() {
       label,
       segment,
       ticketTierId,
+      validDay,
     }: {
       eventId: string;
       label?: string | null;
       segment?: string | null;
       ticketTierId?: string | null;
+      validDay?: number | null;
     }) => {
       if (!user) throw new Error("Must be logged in");
       const { data, error } = await supabase
@@ -156,6 +159,7 @@ export function useCreateSpecialInvite() {
           label: label?.trim() || null,
           segment: segment?.trim() || null,
           ticket_tier_id: ticketTierId ?? null,
+          valid_day: validDay ?? null,
         })
         .select()
         .single();
@@ -181,7 +185,7 @@ export function useBulkCreateSpecialInvites() {
     }: {
       eventId: string;
       segment: string | null;
-      guests: { name: string; email: string | null; phone: string | null }[];
+      guests: { name: string; email: string | null; phone: string | null; day?: number | null }[];
       onProgress?: (done: number, total: number) => void;
     }) => {
       const CHUNK = 200;
@@ -194,7 +198,7 @@ export function useBulkCreateSpecialInvites() {
         const { data, error } = await supabase.rpc("bulk_create_special_invites", {
           _event_id: eventId,
           _segment: segment,
-          _guests: chunk.map((g) => ({ name: g.name, email: g.email, phone: g.phone })),
+          _guests: chunk.map((g) => ({ name: g.name, email: g.email, phone: g.phone, day: g.day ?? null })),
           _batch_id: batchId,
         });
         if (error) throw error;

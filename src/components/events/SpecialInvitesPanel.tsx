@@ -17,6 +17,46 @@ import { buildInvitesXlsx, downloadXlsx, buildWhatsAppLink } from "@/lib/inviteI
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useEventDays, inviteDayLabel, type EventDayInfo } from "@/hooks/useEventDays";
+
+/** Validity pills for multi-day events: full pass or a single day. */
+export function InviteDayPills({
+  days,
+  value,
+  onChange,
+}: {
+  days: EventDayInfo[];
+  value: number | null;
+  onChange: (v: number | null) => void;
+}) {
+  if (days.length < 2) return null;
+  const opts = [
+    { v: null as number | null, label: `Pase completo (${days.length} días)` },
+    ...days.map((d) => ({ v: d.day as number | null, label: `Solo Día ${d.day}${d.short ? ` · ${d.short}` : ""}` })),
+  ];
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs font-semibold text-foreground">Válida para</p>
+      <div className="flex flex-wrap gap-2">
+        {opts.map((o) => (
+          <button
+            key={String(o.v)}
+            type="button"
+            onClick={() => onChange(o.v)}
+            className={cn(
+              "rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors",
+              value === o.v
+                ? "bg-foreground text-background border-foreground"
+                : "bg-card text-muted-foreground border-border"
+            )}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 interface SpecialInvitesPanelProps {
   eventId: string;
@@ -30,6 +70,10 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const [activeSegment, setActiveSegment] = useState<string>("__all__");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [view, setView] = useState<"crear" | "lista">("crear");
+  const [validDay, setValidDay] = useState<number | null>(null);
+  const [dayFilter, setDayFilter] = useState<string>("__all__");
+  const { data: eventDays = [] } = useEventDays(eventId);
+  const isMultiDay = eventDays.length >= 2;
 
   const { data: invites = [], isLoading } = useEventSpecialInvites(eventId);
   const createInvite = useCreateSpecialInvite();
@@ -61,10 +105,14 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const showPills = segments.list.length > 0;
 
   const filteredInvites = useMemo(() => {
-    if (!showPills || activeSegment === "__all__") return invites;
-    if (activeSegment === "__none__") return invites.filter((i) => !i.segment);
-    return invites.filter((i) => i.segment === activeSegment);
-  }, [invites, activeSegment, showPills]);
+    let list = invites;
+    if (isMultiDay && dayFilter !== "__all__") {
+      list = list.filter((i) => (dayFilter === "__pass__" ? i.valid_day == null : String(i.valid_day) === dayFilter));
+    }
+    if (!showPills || activeSegment === "__all__") return list;
+    if (activeSegment === "__none__") return list.filter((i) => !i.segment);
+    return list.filter((i) => i.segment === activeSegment);
+  }, [invites, activeSegment, showPills, isMultiDay, dayFilter]);
 
   // Drop selections that left the visible segment
   useEffect(() => {
@@ -118,7 +166,7 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
       guest_name: i.rsvp_name || i.guest_name,
       guest_email: i.rsvp_email || i.guest_email,
       guest_phone: i.guest_phone,
-      segment: i.segment,
+      segment: [i.segment, inviteDayLabel(i.valid_day, eventDays)].filter(Boolean).join(" · ") || null,
       url: getSpecialInviteUrl(i.token),
       status: i.status,
       rsvp: i.rsvp_confirmed_at ? new Date(i.rsvp_confirmed_at).toLocaleString("es-BO") : "",
@@ -149,7 +197,7 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
 
   const handleCreate = async () => {
     try {
-      const invite = await createInvite.mutateAsync({ eventId, label });
+      const invite = await createInvite.mutateAsync({ eventId, label, validDay: isMultiDay ? validDay : null });
       setLabel("");
       const url = getSpecialInviteUrl(invite.token);
       await navigator.clipboard.writeText(url).catch(() => undefined);
@@ -215,6 +263,7 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
         <p className="text-xs text-muted-foreground">
           Creá un enlace de un solo uso. Quien lo abra entra gratis a tu evento como invitado especial.
         </p>
+        <InviteDayPills days={eventDays} value={validDay} onChange={setValidDay} />
         <div className="flex gap-2">
           <Input
             placeholder="Nombre o nota (opcional)"
@@ -245,6 +294,31 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
       )}
 
       {view === "lista" && (<>
+      {isMultiDay && (
+        <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
+          {[
+            { key: "__all__", label: `Todos los días (${invites.length})` },
+            ...eventDays.map((d) => ({
+              key: String(d.day),
+              label: `Día ${d.day} (${invites.filter((i) => i.valid_day === d.day).length})`,
+            })),
+            { key: "__pass__", label: `Pase completo (${invites.filter((i) => i.valid_day == null).length})` },
+          ].map((pill) => (
+            <button
+              key={pill.key}
+              onClick={() => setDayFilter(pill.key)}
+              className={cn(
+                "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors",
+                dayFilter === pill.key
+                  ? "bg-foreground text-background border-foreground"
+                  : "bg-card text-muted-foreground border-border"
+              )}
+            >
+              {pill.label}
+            </button>
+          ))}
+        </div>
+      )}
       {showPills && (
         <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
           {[
@@ -327,7 +401,7 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
         </p>
       ) : filteredInvites.length === 0 ? (
         <p className="text-center text-sm text-muted-foreground py-8">
-          No hay invitaciones en este segmento
+          No hay invitaciones con este filtro
         </p>
       ) : (
         <div className="space-y-2">
@@ -352,6 +426,11 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
                   {invite.segment && (
                     <Badge variant="secondary" className="shrink-0 text-[10px]">
                       {invite.segment}
+                    </Badge>
+                  )}
+                  {isMultiDay && (
+                    <Badge variant="outline" className="shrink-0 text-[10px]">
+                      {invite.valid_day == null ? "Pase completo" : `Día ${invite.valid_day}`}
                     </Badge>
                   )}
                 </div>
