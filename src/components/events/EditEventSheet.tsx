@@ -230,6 +230,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           capacity: t.capacity != null ? String(t.capacity) : "",
           description: t.description ?? "",
           salesEndAt: t.sales_end_at ? toLocalInput(t.sales_end_at) : "",
+          validDay: t.valid_day ?? null,
         }))
       );
     } else {
@@ -249,6 +250,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       capacity: t.capacity != null ? String(t.capacity) : "",
       description: t.description ?? "",
       salesEndAt: t.sales_end_at ? toLocalInput(t.sales_end_at) : "",
+          validDay: t.valid_day ?? null,
     }));
     capture({
       formData: {
@@ -328,7 +330,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       }
 
       // Validate tiers if in tiers mode
-      const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number; sales_end_at: string | null }[] = [];
+      const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number; sales_end_at: string | null; valid_day: number | null }[] = [];
       if (!isPost && pricingMode === "tiers") {
         if (draftTiers.length === 0) {
           toast.error("Añade al menos un tipo de entrada");
@@ -352,6 +354,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             description: t.description.trim() || null,
             display_order: cleanTiers.length,
             sales_end_at: t.salesEndAt ? new Date(t.salesEndAt).toISOString() : null,
+            valid_day: t.validDay ?? null,
           });
         }
       }
@@ -574,6 +577,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
                     onTiersChange={setDraftTiers}
                     saleMode={saleMode}
                     onSaleModeChange={setSaleMode}
+                    dayCount={Array.isArray((event as any).event_days) ? (event as any).event_days.length : 0}
                     onAttemptPaidAction={!hasBeneficiary ? () => setShowBeneficiaryGate(true) : undefined}
                   />
                 </div>
