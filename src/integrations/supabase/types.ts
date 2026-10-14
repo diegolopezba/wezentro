@@ -1002,6 +1002,7 @@ export type Database = {
           status: string
           ticket_tier_id: string | null
           token: string
+          valid_day: number | null
         }
         Insert: {
           batch_id?: string | null
@@ -1028,6 +1029,7 @@ export type Database = {
           status?: string
           ticket_tier_id?: string | null
           token?: string
+          valid_day?: number | null
         }
         Update: {
           batch_id?: string | null
@@ -1054,6 +1056,7 @@ export type Database = {
           status?: string
           ticket_tier_id?: string | null
           token?: string
+          valid_day?: number | null
         }
         Relationships: [
           {
@@ -5425,6 +5428,7 @@ export type Database = {
           status: string
           ticket_tier_id: string
           token: string
+          valid_day: number
         }[]
       }
       get_trending_scores: {
