@@ -15,6 +15,7 @@ import { InvitationsSentSection } from "@/components/events/InvitationsSentSecti
 
 
 import { PaymentQRModal } from "@/components/events/PaymentQRModal";
+import { useEventDays, inviteDayLabel } from "@/hooks/useEventDays";
 import { useSpecialInvite, useRedeemSpecialInvite, setPendingSpecialInvite } from "@/hooks/useSpecialInvites";
 import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
@@ -68,8 +69,10 @@ const EventDetail = () => {
   const hasActiveInvite = inviteForThisEvent && specialInvite!.status === "pending";
   const inviteUsed = inviteForThisEvent && specialInvite!.status !== "pending";
   const inviteUsedByMe = inviteUsed && !!user && specialInvite!.redeemed_by === user.id;
+  const { data: inviteEventDays = [] } = useEventDays(hasActiveInvite ? id : undefined);
+  const inviteDayText = hasActiveInvite ? inviteDayLabel(specialInvite!.valid_day, inviteEventDays) : null;
   const inviteNotice = !inviteUsed
-    ? null
+    ? (inviteDayText ? `Invitación especial · ${inviteDayText}` : null)
     : specialInvite!.status === "revoked"
     ? "Esta invitación fue cancelada"
     : inviteUsedByMe

@@ -22,6 +22,7 @@ import { TicketTierPicker } from "@/components/events/TicketTierPicker";
 import { WaitlistTiersPreview } from "@/components/events/WaitlistTiersPreview";
 import { PurchaseFlow } from "@/components/events/PurchaseFlow";
 import { InviteFriendsSheet } from "@/components/events/InviteFriendsSheet";
+import { useEventDays, inviteDayLabel } from "@/hooks/useEventDays";
 import { useSpecialInvite, useRedeemSpecialInvite, setPendingSpecialInvite } from "@/hooks/useSpecialInvites";
 import { isVideoUrl } from "@/lib/mediaUtils";
 import { MediaCarousel } from "@/components/events/MediaCarousel";
@@ -82,8 +83,10 @@ const EventDetailModalInner = () => {
   const hasActiveInvite = inviteForThisEvent && specialInvite!.status === "pending";
   const inviteUsed = inviteForThisEvent && specialInvite!.status !== "pending";
   const inviteUsedByMe = inviteUsed && !!user && specialInvite!.redeemed_by === user.id;
+  const { data: inviteEventDays = [] } = useEventDays(hasActiveInvite ? id : undefined);
+  const inviteDayText = hasActiveInvite ? inviteDayLabel(specialInvite!.valid_day, inviteEventDays) : null;
   const inviteNotice = !inviteUsed
-    ? null
+    ? (inviteDayText ? `Invitación especial · ${inviteDayText}` : null)
     : specialInvite!.status === "revoked"
     ? "Esta invitación fue cancelada"
     : inviteUsedByMe
