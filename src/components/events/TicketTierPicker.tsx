@@ -54,7 +54,7 @@ export function TicketTierPicker({ open, onOpenChange, tiers, sequential, onSele
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-base font-semibold text-foreground truncate">
+                      <div className="text-base font-semibold text-foreground break-words leading-snug">
                         {tier.name}
                       </div>
                       {tiers.some((x) => x.valid_day) && (
@@ -63,7 +63,7 @@ export function TicketTierPicker({ open, onOpenChange, tiers, sequential, onSele
                         </div>
                       )}
                       {tier.description && (
-                        <div className="text-xs text-muted-foreground line-clamp-2">
+                        <div className="text-xs text-muted-foreground whitespace-pre-line break-words">
                           {tier.description}
                         </div>
                       )}

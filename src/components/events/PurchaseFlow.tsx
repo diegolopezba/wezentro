@@ -212,11 +212,11 @@ export function PurchaseFlow({
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="text-base font-semibold text-foreground truncate">
+                        <div className="text-base font-semibold text-foreground break-words leading-snug">
                           {tier.name}
                         </div>
                         {tier.description && (
-                          <div className="text-xs text-muted-foreground line-clamp-2">
+                          <div className="text-xs text-muted-foreground whitespace-pre-line break-words">
                             {tier.description}
                           </div>
                         )}
@@ -306,7 +306,7 @@ export function PurchaseFlow({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-base font-semibold text-foreground truncate">{a.name}</p>
+                      <p className="text-base font-semibold text-foreground break-words leading-snug">{a.name}</p>
                       <p className="text-xs text-muted-foreground">
                         {AREA_TYPE_LABELS[a.area_type]} ·{" "}
                         {out
@@ -316,7 +316,7 @@ export function PurchaseFlow({
                             : `${av?.remaining ?? a.capacity} lugares`}
                       </p>
                       {a.description && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line break-words">
                           {a.description}
                         </p>
                       )}
