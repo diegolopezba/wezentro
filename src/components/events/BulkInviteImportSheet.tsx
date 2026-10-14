@@ -20,6 +20,8 @@ import {
   useEventSpecialInvites,
   getSpecialInviteUrl,
 } from "@/hooks/useSpecialInvites";
+import { useEventDays } from "@/hooks/useEventDays";
+import { InviteDayPills } from "@/components/events/SpecialInvitesPanel";
 
 interface BulkInviteImportSheetProps {
   eventId: string;
@@ -36,6 +38,8 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
   const [fileName, setFileName] = useState("");
   const [parsed, setParsed] = useState<ParseResult | null>(null);
   const [segment, setSegment] = useState("");
+  const [validDay, setValidDay] = useState<number | null>(null);
+  const { data: eventDays = [] } = useEventDays(eventId);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<{ batchId: string; created: number; skipped: number } | null>(null);
   const [parsing, setParsing] = useState(false);
@@ -77,7 +81,7 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
       const res = await bulkCreate.mutateAsync({
         eventId,
         segment: segment.trim() || null,
-        guests: parsed.guests,
+        guests: parsed.guests.map((g) => ({ ...g, day: g.day !== undefined ? g.day : validDay })),
         onProgress: (done, total) => setProgress(Math.round((done / total) * 100)),
       });
       setResult(res);
@@ -223,6 +227,15 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
                   Se muestra en su entrada como "Invitado especial - {segment.trim() || "VIP"}".
                 </p>
               </div>
+
+              {eventDays.length >= 2 && (
+                <div className="space-y-1.5">
+                  <InviteDayPills days={eventDays} value={validDay} onChange={setValidDay} />
+                  <p className="text-xs text-muted-foreground">
+                    Si tu archivo tiene una columna "Día" (1, 2 o Todos), se usa ese valor en cada fila.
+                  </p>
+                </div>
+              )}
 
               <div className="max-h-48 overflow-y-auto rounded-2xl border border-border divide-y divide-border">
                 {parsed.guests.slice(0, 30).map((g, idx) => (
