@@ -43,6 +43,23 @@ export function buildWhatsAppLink(phone: string, message: string): string {
 
 const norm = (s: unknown) => String(s ?? "").trim().toLowerCase();
 
+/**
+ * Day column cell → 1-based day, null = full pass, undefined = empty/unrecognized
+ * (falls back to the batch selection). Full-pass words win over digits so
+ * "Pase 2 días" / "Ambos días" never become "Solo Día 2".
+ */
+export function parseDayCell(raw: unknown): number | null | undefined {
+  const v = norm(raw).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (!v) return undefined;
+  if (/todo|pase|ambos|all|complet|full|\bdias\b|\bdays\b/.test(v)) return null;
+  const m = v.match(/\d+/);
+  if (m) {
+    const n = parseInt(m[0], 10);
+    return n >= 1 ? n : undefined;
+  }
+  return undefined;
+}
+
 function pickKey(headers: string[], candidates: string[]): string | null {
   for (const h of headers) {
     if (candidates.includes(norm(h))) return h;
@@ -107,10 +124,7 @@ export async function parseGuestFile(file: File): Promise<ParseResult> {
 
     let day: number | null | undefined = undefined;
     if (dayKey) {
-      const rawDay = String(row[dayKey] ?? "").trim().toLowerCase();
-      const m = rawDay.match(/\d+/);
-      if (m) day = parseInt(m[0], 10);
-      else if (/todo|pase|ambos|all|complet/.test(rawDay)) day = null;
+      day = parseDayCell(row[dayKey]);
     }
 
     result.guests.push({ name: rawName, email, phone, ...(day !== undefined ? { day } : {}) });
