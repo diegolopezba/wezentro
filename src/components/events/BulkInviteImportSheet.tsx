@@ -20,7 +20,7 @@ import {
   useEventSpecialInvites,
   getSpecialInviteUrl,
 } from "@/hooks/useSpecialInvites";
-import { useEventDays } from "@/hooks/useEventDays";
+import { useEventDays, inviteDayLabel } from "@/hooks/useEventDays";
 import { InviteDayPills } from "@/components/events/SpecialInvitesPanel";
 
 interface BulkInviteImportSheetProps {
@@ -228,19 +228,59 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
                 </p>
               </div>
 
-              {eventDays.length >= 2 && (
-                <div className="space-y-1.5">
-                  <InviteDayPills days={eventDays} value={validDay} onChange={setValidDay} />
-                  <p className="text-xs text-muted-foreground">
-                    Si tu archivo tiene una columna "Día" (1, 2 o Todos), se usa ese valor en cada fila.
-                  </p>
-                </div>
-              )}
+              {eventDays.length >= 2 && (() => {
+                const resolve = (d: number | null | undefined) => {
+                  const v = d !== undefined ? d : validDay;
+                  return v != null && v > eventDays.length ? null : v;
+                };
+                const counts = new Map<string, number>();
+                let fromFile = 0;
+                parsed.guests.forEach((g) => {
+                  if (g.day !== undefined) fromFile++;
+                  const k = String(resolve(g.day));
+                  counts.set(k, (counts.get(k) ?? 0) + 1);
+                });
+                const empty = parsed.guests.length - fromFile;
+                return (
+                  <div className="space-y-2">
+                    <InviteDayPills days={eventDays} value={validDay} onChange={setValidDay} />
+                    <p className="text-xs text-muted-foreground">
+                      {fromFile > 0
+                        ? `${fromFile} filas traen su día en el archivo. ${empty > 0 ? `Las ${empty} filas sin día usan la opción elegida arriba.` : ""}`
+                        : 'Tu archivo no tiene columna "Día": todas usan la opción elegida arriba.'}
+                    </p>
+                    <div className="rounded-2xl border border-border bg-card p-3 space-y-1">
+                      <p className="text-xs font-semibold text-foreground">Resumen</p>
+                      {[null, ...eventDays.map((d) => d.day)].map((d) => {
+                        const n = counts.get(String(d)) ?? 0;
+                        if (!n) return null;
+                        return (
+                          <div key={String(d)} className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">{inviteDayLabel(d, eventDays)}</span>
+                            <span className="font-semibold text-foreground">{n}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="max-h-48 overflow-y-auto rounded-2xl border border-border divide-y divide-border">
                 {parsed.guests.slice(0, 30).map((g, idx) => (
                   <div key={idx} className="px-4 py-2">
-                    <p className="text-sm text-foreground truncate">{g.name}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm text-foreground truncate">{g.name}</p>
+                      {eventDays.length >= 2 && (
+                        <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                          {(() => {
+                            const v = g.day !== undefined ? g.day : validDay;
+                            const r = v != null && v > eventDays.length ? null : v;
+                            return r == null ? "Pase completo" : `Día ${r}`;
+                          })()}
+                        </span>
+                      )}
+                    </div>
                     {(g.phone || g.email) && (
                       <p className="text-xs text-muted-foreground truncate">
                         {[g.phone ? `+${g.phone}` : null, g.email].filter(Boolean).join(" · ")}
