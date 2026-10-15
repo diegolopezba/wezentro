@@ -428,6 +428,13 @@
       "when": 1792019961718,
       "tag": "0060_special_invites_valid_day",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1792083404662,
+      "tag": "0061_fix_redeem_special_invite_joined_at",
+      "breakpoints": true
     }
   ]
 }
