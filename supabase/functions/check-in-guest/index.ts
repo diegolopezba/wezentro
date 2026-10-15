@@ -150,6 +150,14 @@ Deno.serve(async (req) => {
 
     if (!isAuthorized) return json({ error: "Unauthorized", code: "unauthorized" }, 401);
 
+    const fmtWin = (iso: string) => new Date(iso).toLocaleString("es-BO", { timeZone: "America/La_Paz", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    const windowError = (from: string | null, until: string | null): string | null => {
+      const now = Date.now();
+      if (from && now < new Date(from).getTime()) return `Todavía no es válida: se puede escanear desde ${fmtWin(from)}`;
+      if (until && now > new Date(until).getTime()) return `Ya venció: era válida hasta ${fmtWin(until)}`;
+      return null;
+    };
+
     const profileOf = async (id: string | null) => {
       if (!id) return null;
       const { data } = await supabaseAdmin.from("profiles").select("username, full_name, avatar_url").eq("id", id).maybeSingle();
@@ -158,7 +166,7 @@ Deno.serve(async (req) => {
 
     const { data: entry } = await supabaseAdmin
       .from("guestlist_entries")
-      .select("id, status, checked_in_at, user_id, purchased_by_user_id, guest_name, ticket_tier_id, is_special_guest, special_guest_label, area_booking_id, payment_session_id, gate_ticket_index, event_day")
+      .select("id, status, checked_in_at, user_id, purchased_by_user_id, guest_name, ticket_tier_id, is_special_guest, special_guest_label, area_booking_id, payment_session_id, gate_ticket_index, event_day, scan_from, scan_until")
       .eq("qr_code_token", qr_code_token)
       .eq("event_id", event_id)
       .maybeSingle();
@@ -167,7 +175,7 @@ Deno.serve(async (req) => {
       // Frictionless RSVP ticket stored on the special invite itself
       const { data: invite } = await supabaseAdmin
         .from("event_special_invites")
-        .select("id, status, checked_in_at, rsvp_name, guest_name, label, redeemed_by")
+        .select("id, status, checked_in_at, rsvp_name, guest_name, label, segment, redeemed_by, scan_from, scan_until")
         .eq("qr_code_token", qr_code_token)
         .eq("event_id", event_id)
         .maybeSingle();
@@ -189,7 +197,7 @@ Deno.serve(async (req) => {
         full_name: invite.rsvp_name ?? invite.guest_name ?? p?.full_name ?? "Invitado especial",
         avatar_url: p?.avatar_url ?? null,
       };
-      const entryInfo = { entry_label: invite.label || "Invitado especial", is_special: true, details: [] as string[] };
+      const entryInfo = { entry_label: invite.segment ? `Invitado especial · ${invite.segment}` : (invite.label || "Invitado especial"), is_special: true, details: [] as string[] };
 
       if (invite.status === "revoked") {
         return json({ success: false, code: "revoked", error: "Esta invitación fue cancelada", guest, ...entryInfo }, 403);
@@ -197,6 +205,8 @@ Deno.serve(async (req) => {
       if (invite.checked_in_at) {
         return json({ success: false, alreadyUsed: true, checkedInAt: invite.checked_in_at, guest, ...entryInfo });
       }
+      const invWinErr = windowError(invite.scan_from, invite.scan_until);
+      if (invWinErr) return json({ success: false, code: "outside_window", error: invWinErr, guest, ...entryInfo }, 403);
       const now = new Date().toISOString();
       const { data: updatedInvite } = await supabaseAdmin
         .from("event_special_invites").update({ checked_in_at: now }).eq("id", invite.id).is("checked_in_at", null).select("id").maybeSingle();
@@ -253,7 +263,12 @@ Deno.serve(async (req) => {
     const entryInfo = { entry_label: entryLabel, is_special: !!entry.is_special_guest, details };
 
     // Multi-day events: each day-entry is only valid within its own day window
-    if (entry.event_day) {
+    const hasCustomWindow = !!(entry.scan_from || entry.scan_until);
+    if (hasCustomWindow) {
+      if (entry.event_day) entryInfo.entry_label = `${entryLabel} · Día ${entry.event_day}`;
+      const winErr = windowError(entry.scan_from, entry.scan_until);
+      if (winErr) return json({ success: false, code: "outside_window", error: winErr, guest, ...entryInfo }, 403);
+    } else if (entry.event_day) {
       const { data: ev } = await supabaseAdmin.from("events").select("event_days").eq("id", event_id).maybeSingle();
       const days = Array.isArray(ev?.event_days) ? (ev!.event_days as Array<{ start: string; end: string }>) : [];
       const day = days[entry.event_day - 1];

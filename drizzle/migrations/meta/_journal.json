@@ -435,6 +435,13 @@
       "when": 1792083404662,
       "tag": "0061_fix_redeem_special_invite_joined_at",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1792102656796,
+      "tag": "0062_invite_scan_windows",
+      "breakpoints": true
     }
   ]
 }
