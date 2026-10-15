@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Loader2, Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, Download, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   parseGuestFile,
   buildInvitesCsv,
@@ -39,6 +40,8 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
   const [parsed, setParsed] = useState<ParseResult | null>(null);
   const [segment, setSegment] = useState("");
   const [validDay, setValidDay] = useState<number | null>(null);
+  const [scanFrom, setScanFrom] = useState("");
+  const [scanUntil, setScanUntil] = useState("");
   const { data: eventDays = [] } = useEventDays(eventId);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<{ batchId: string; created: number; skipped: number } | null>(null);
@@ -53,6 +56,8 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
     setParsed(null);
     setFileName("");
     setSegment("");
+    setScanFrom("");
+    setScanUntil("");
     setProgress(0);
     setResult(null);
   };
@@ -76,6 +81,10 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
 
   const handleCreate = async () => {
     if (!parsed?.guests.length) return;
+    if (scanFrom && scanUntil && new Date(scanUntil) <= new Date(scanFrom)) {
+      toast.error("La hora de fin debe ser posterior a la de inicio");
+      return;
+    }
     setStep("creating");
     try {
       const res = await bulkCreate.mutateAsync({
@@ -84,6 +93,17 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
         guests: parsed.guests.map((g) => ({ ...g, day: g.day !== undefined ? g.day : validDay })),
         onProgress: (done, total) => setProgress(Math.round((done / total) * 100)),
       });
+      if (scanFrom || scanUntil) {
+        const { error: winErr } = await supabase
+          .from("event_special_invites")
+          .update({
+            scan_from: scanFrom ? new Date(scanFrom).toISOString() : null,
+            scan_until: scanUntil ? new Date(scanUntil).toISOString() : null,
+          })
+          .eq("event_id", eventId)
+          .eq("batch_id", res.batchId);
+        if (winErr) toast.error("Las invitaciones se crearon, pero no pudimos guardar el horario");
+      }
       setResult(res);
       setStep("done");
       await refetch();
@@ -225,6 +245,25 @@ export function BulkInviteImportSheet({ eventId, open, onOpenChange }: BulkInvit
                 />
                 <p className="text-xs text-muted-foreground">
                   Se muestra en su entrada como "Invitado especial - {segment.trim() || "VIP"}".
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Horario de ingreso (opcional)</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Desde</p>
+                    <Input type="datetime-local" value={scanFrom} onChange={(e) => setScanFrom(e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Hasta</p>
+                    <Input type="datetime-local" value={scanUntil} onChange={(e) => setScanUntil(e.target.value)} />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {scanFrom || scanUntil
+                    ? `En la puerta, el escáner solo aceptará a ${segment.trim() || "este grupo"} dentro de este horario. Fuera de él, la rechaza con el motivo.`
+                    : "Si lo dejás vacío, la invitación vale durante todo el evento (o el día elegido)."}
                 </p>
               </div>
 
