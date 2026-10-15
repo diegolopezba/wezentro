@@ -998,6 +998,8 @@ export type Database = {
           rsvp_confirmed_at: string | null
           rsvp_email: string | null
           rsvp_name: string | null
+          scan_from: string | null
+          scan_until: string | null
           segment: string | null
           status: string
           ticket_tier_id: string | null
@@ -1025,6 +1027,8 @@ export type Database = {
           rsvp_confirmed_at?: string | null
           rsvp_email?: string | null
           rsvp_name?: string | null
+          scan_from?: string | null
+          scan_until?: string | null
           segment?: string | null
           status?: string
           ticket_tier_id?: string | null
@@ -1052,6 +1056,8 @@ export type Database = {
           rsvp_confirmed_at?: string | null
           rsvp_email?: string | null
           rsvp_name?: string | null
+          scan_from?: string | null
+          scan_until?: string | null
           segment?: string | null
           status?: string
           ticket_tier_id?: string | null
@@ -1811,6 +1817,8 @@ export type Database = {
           promoter_id: string | null
           purchased_by_user_id: string | null
           qr_code_token: string | null
+          scan_from: string | null
+          scan_until: string | null
           special_guest_label: string | null
           status: string | null
           ticket_tier_id: string | null
@@ -1835,6 +1843,8 @@ export type Database = {
           promoter_id?: string | null
           purchased_by_user_id?: string | null
           qr_code_token?: string | null
+          scan_from?: string | null
+          scan_until?: string | null
           special_guest_label?: string | null
           status?: string | null
           ticket_tier_id?: string | null
@@ -1859,6 +1869,8 @@ export type Database = {
           promoter_id?: string | null
           purchased_by_user_id?: string | null
           qr_code_token?: string | null
+          scan_from?: string | null
+          scan_until?: string | null
           special_guest_label?: string | null
           status?: string | null
           ticket_tier_id?: string | null
