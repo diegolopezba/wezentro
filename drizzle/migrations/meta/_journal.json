@@ -449,6 +449,13 @@
       "when": 1792166145494,
       "tag": "0063_redeem_invite_multi_day_accumulate",
       "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1792179098003,
+      "tag": "0064_count_original_pass_sales_in_management",
+      "breakpoints": true
     }
   ]
 }
