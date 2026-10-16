@@ -21,7 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MentionTextarea } from "@/components/ui/MentionTextarea";
 import { useMyMenu } from "@/hooks/useMenu";
 import { TicketTiersEditor, type DraftTier, type TicketPricingMode, type TierSaleMode } from "@/components/events/TicketTiersEditor";
-import { useTicketTiers, useReplaceTicketTiers } from "@/hooks/useTicketTiers";
+import { useTicketTiers, useReplaceTicketTiers, type TicketTierInput } from "@/hooks/useTicketTiers";
 import { LocationPicker } from "@/components/map/LocationPicker";
 import { BusinessRequiredSheet } from "@/components/events/BusinessRequiredSheet";
 import { BeneficiaryRequiredSheet } from "@/components/events/BeneficiaryRequiredSheet";
@@ -330,7 +330,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       }
 
       // Validate tiers if in tiers mode
-      const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number; sales_end_at: string | null; valid_day: number | null }[] = [];
+      const cleanTiers: TicketTierInput[] = [];
       if (!isPost && pricingMode === "tiers") {
         if (draftTiers.length === 0) {
           toast.error("Añade al menos un tipo de entrada");
@@ -348,6 +348,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             return;
           }
           cleanTiers.push({
+            id: existingTiers.some((existing) => existing.id === t.key) ? t.key : undefined,
             name: t.name.trim(),
             price,
             capacity: t.capacity ? parseInt(t.capacity) : null,
@@ -398,7 +399,7 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           tiers: pricingMode === "tiers" ? cleanTiers : [],
           sequential: saleMode === "sequential",
         });
-        // Re-link the waiting list to the (re-created) chosen ticket type
+        // Keep the waiting list linked to the chosen ticket type.
         const idx =
           formData.waitlist_enabled && formData.waitlist_tier_key && pricingMode === "tiers"
             ? draftTiers.findIndex((t) => t.key === formData.waitlist_tier_key)

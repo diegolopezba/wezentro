@@ -21,6 +21,8 @@ export interface TicketTier {
 }
 
 export interface TicketTierInput {
+  /** Existing tier identity; omitted only for genuinely new tiers. */
+  id?: string;
   name: string;
   description?: string | null;
   price: number;
@@ -40,10 +42,11 @@ export const useTicketTiers = (eventId: string | undefined) => {
     queryKey: TIERS_KEY(eventId),
     enabled: !!eventId,
     queryFn: async (): Promise<TicketTier[]> => {
+      if (!eventId) return [];
       const { data, error } = await supabase
         .from("ticket_tiers" as any)
         .select("*")
-        .eq("event_id", eventId!)
+        .eq("event_id", eventId)
         .eq("is_active", true)
         .order("display_order", { ascending: true });
       if (error) throw error;
@@ -100,17 +103,7 @@ export const useReplaceTicketTiers = () => {
       tiers: TicketTierInput[];
       sequential: boolean;
     }) => {
-      // Wipe & re-insert (simple, robust). Existing FKs on guestlist_entries / payment_sessions
-      // SET NULL on delete, so historical records are safe.
-      const { error: delErr } = await supabase
-        .from("ticket_tiers" as any)
-        .delete()
-        .eq("event_id", eventId);
-      if (delErr) throw delErr;
-
-      if (tiers.length === 0) return [];
-
-      // Insert in order so we can chain unlock_after_tier_id for sequential mode.
+      // Update existing identities without touching sold_count or historical FKs.
       const created: TicketTier[] = [];
       let prevId: string | null = null;
       const sorted = [...tiers].sort((a, b) => a.display_order - b.display_order);
@@ -125,22 +118,32 @@ export const useReplaceTicketTiers = () => {
           unlock_after_tier_id: sequential ? prevId : null,
           sales_end_at: t.sales_end_at ?? null,
           valid_day: t.valid_day ?? null,
+          is_active: true,
         };
 
-        const { data, error } = await supabase
-          .from("ticket_tiers" as any)
-          .insert(row)
-          .select("*")
-          .single();
+        const table = supabase.from("ticket_tiers" as any);
+        const write = t.id
+          ? table.update(row).eq("event_id", eventId).eq("id", t.id)
+          : table.insert(row);
+        const { data, error } = await write.select("*").single();
         if (error) throw error;
         const inserted = data as unknown as TicketTier;
         created.push(inserted);
         prevId = inserted.id;
       }
+      // Retired types remain available to reports and existing ticket holders.
+      let retire = supabase.from("ticket_tiers" as any)
+        .update({ is_active: false }).eq("event_id", eventId).eq("is_active", true);
+      if (created.length > 0) retire = retire.not("id", "in", `(${created.map((t) => t.id).join(",")})`);
+      const { error: retireError } = await retire;
+      if (retireError) throw retireError;
       return created;
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: TIERS_KEY(vars.eventId) });
+      qc.invalidateQueries({ queryKey: ["event-entry-breakdown", vars.eventId] });
+      qc.invalidateQueries({ queryKey: ["ticket-breakdown", vars.eventId] });
+      qc.invalidateQueries({ queryKey: ["creator-sales-by-event"] });
     },
   });
 };
