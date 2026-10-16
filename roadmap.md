@@ -1,3 +1,8 @@
+## SCZ Week: ventas por pase y edición segura
+- [ ] Conservar los identificadores y ventas de entradas al editarlas; archivar las retiradas.
+- [ ] Contar pases originales, sin duplicar QR por día, y corregir el balance de invitaciones.
+- [ ] Reconectar ventas verificadas de SCZ Week a Fase 1 y comprobar cifras, QR y vista privada.
+
 ## Gestión > Eventos: entradas y asistentes
 - [x] Recuperar filas por precio único y fase con precio, ventas, capacidad y barra visual; quitar la tarjeta de entradas emitidas.
 - [x] Mostrar total asistentes y desglose compacto de entradas vendidas, invitaciones aceptadas y cortesías.
