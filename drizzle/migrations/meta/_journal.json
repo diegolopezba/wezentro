@@ -442,6 +442,13 @@
       "when": 1792102656796,
       "tag": "0062_invite_scan_windows",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1792166145494,
+      "tag": "0063_redeem_invite_multi_day_accumulate",
+      "breakpoints": true
     }
   ]
 }
