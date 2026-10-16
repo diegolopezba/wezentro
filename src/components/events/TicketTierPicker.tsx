@@ -21,13 +21,16 @@ export function TicketTierPicker({ open, onOpenChange, tiers, sequential, onSele
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="light-sheet rounded-t-3xl max-h-[80dvh] overflow-y-auto"
+        className="light-sheet rounded-t-3xl max-h-[85dvh] flex flex-col overflow-hidden"
       >
-        <SheetHeader className="mb-4">
+        <SheetHeader className="mb-4 shrink-0">
           <SheetTitle>Elige tu entrada</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-2 pb-6">
+        <div
+          data-vaul-no-drag
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-2 pb-8"
+        >
           {visible.map(({ tier, soldOut, remaining, unlocked, closed }) => {
             const disabled = soldOut || !unlocked || closed;
             const endsLabel = formatSalesEnd(tier.sales_end_at);
