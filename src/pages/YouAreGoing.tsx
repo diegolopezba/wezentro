@@ -20,7 +20,7 @@ import mascotAsset from "@/assets/muñeco-negro.png.asset.json";
 
 
 const ENTRY_COLUMNS =
-  "id, user_id, guest_name, checked_in_at, qr_code_token, status, payment_status, is_special_guest, special_guest_label, joined_at, event_day";
+  "id, user_id, guest_name, checked_in_at, qr_code_token, status, payment_status, is_special_guest, special_guest_label, joined_at, event_day, scan_from, scan_until";
 
 const YouAreGoing = () => {
   const navigate = useNavigate();
@@ -144,6 +144,25 @@ const YouAreGoing = () => {
               {(entry as any).event_day ? ` · Día ${(entry as any).event_day}` : ""}
             </p>
           )}
+
+          {(() => {
+            const scanFrom = (entry as any).scan_from as string | null | undefined;
+            const scanUntil = (entry as any).scan_until as string | null | undefined;
+            if (!scanFrom || !scanUntil) return null;
+            const from = new Date(scanFrom);
+            const to = new Date(scanUntil);
+            const fromLabel = from.toDateString() === eventDate.toDateString()
+              ? format(from, "HH:mm")
+              : format(from, "EEE d MMM · HH:mm", { locale: es });
+            const toLabel = to.toDateString() === from.toDateString()
+              ? format(to, "HH:mm")
+              : format(to, "EEE d MMM · HH:mm", { locale: es });
+            return (
+              <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#141414]">
+                Ingreso permitido: {fromLabel} a {toLabel}
+              </p>
+            );
+          })()}
 
           <p className="mt-3 text-sm font-medium text-[#141414]/70 capitalize">
             {formattedDate} · {formattedTime}
