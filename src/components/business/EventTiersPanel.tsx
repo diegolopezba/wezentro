@@ -25,7 +25,8 @@ export const entryTotals = (data: EntryBreakdown) => {
     .filter((category) => kinds.includes(category.kind))
     .reduce((sum, category) => sum + Number(category.count), 0);
   const sold = count(["tier", "single", "gate", "lounge"]);
-  const invited = count(["special"]);
+  // A full-pass invitation can issue multiple QR rows; one acceptance is one invitation.
+  const invited = data.invites.accepted;
   const manual = count(["manual"]);
   return { sold, invited, manual, total: sold + invited + manual };
 };
@@ -67,7 +68,6 @@ export const EventTiersPanel = ({ eventId }: { eventId: string }) => {
   const gate = data.categories.filter((c) => c.kind === "gate");
   const lounge = data.categories.filter((c) => c.kind === "lounge");
   const guestCats = data.categories.filter((c) => (c.kind === "special" || c.kind === "manual") && c.count > 0);
-  const inviteDifference = data.invites.accepted - invited;
 
   return (
     <div className="space-y-4">
@@ -76,8 +76,6 @@ export const EventTiersPanel = ({ eventId }: { eventId: string }) => {
           <span><strong className="text-foreground">{sold}</strong> {sold === 1 ? "entrada vendida" : "entradas vendidas"} <span aria-hidden="true">+</span> <strong className="text-foreground">{data.invites.accepted}</strong> invitaciones aceptadas{manual > 0 && <> <span aria-hidden="true">+</span> <strong className="text-foreground">{manual}</strong> cortesías</>}</span>
           <span className="font-semibold text-foreground">= {total} asistentes</span>
         </div>
-        {inviteDifference > 0 && <p className="mt-1">{inviteDifference} invitaciones aceptadas no generaron una entrada adicional.</p>}
-        {inviteDifference < 0 && <p className="mt-1">{Math.abs(inviteDifference)} entradas de invitación no corresponden a una aceptación registrada.</p>}
       </div>
 
       <section className="space-y-2">
