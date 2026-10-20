@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { m } from "framer-motion";
-import { Store, X, User, Shield, HelpCircle, LogOut, Bookmark, ChevronLeft, Gift, Briefcase, Ban, BarChart3, Wallet } from "lucide-react";
+import { Store, X, User, Shield, HelpCircle, LogOut, Bookmark, ChevronLeft, Gift, Briefcase, Ban, BarChart3, Wallet, ReceiptText } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
@@ -59,6 +59,7 @@ const Settings = () => {
     {
       title: "Personal",
       items: [
+        { icon: ReceiptText, label: "Datos de facturación", sublabel: "Nombre legal, NIT o C.I. y teléfono", path: "/settings/billing" },
         { icon: Bookmark, label: "Guardados", path: "/saved" },
         { icon: Shield, label: "Privacidad", path: "/settings/privacy" },
         { icon: Ban, label: "Usuarios Bloqueados", path: "/settings/blocks" },

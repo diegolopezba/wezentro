@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  User, Bookmark, Shield, Ban, Gift, Briefcase, BarChart3, HelpCircle, Settings as SettingsIcon,
+  User, Bookmark, Shield, Ban, Gift, Briefcase, BarChart3, HelpCircle, ReceiptText, Settings as SettingsIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashboardAccess } from "@/hooks/useDashboardAccess";
@@ -33,6 +33,7 @@ export const SettingsShell = ({ children }: { children: ReactNode }) => {
       items: [
         { icon: SettingsIcon, label: "General", path: "/settings" },
         { icon: User, label: "Mi perfil", path: "/edit-profile" },
+        { icon: ReceiptText, label: "Datos de facturación", path: "/settings/billing" },
         { icon: Bookmark, label: "Guardados", path: "/saved" },
         { icon: Shield, label: "Privacidad", path: "/settings/privacy" },
         { icon: Ban, label: "Usuarios bloqueados", path: "/settings/blocks" },

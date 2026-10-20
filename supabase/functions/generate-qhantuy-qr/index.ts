@@ -61,6 +61,11 @@ Deno.serve(async (req) => {
 
 
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+    // Fiscal identity is private and independent from the public social profile.
+    const { data: billing, error: billingError } = await supabase.from("user_billing_details")
+      .select("legal_name,document_type,document_number,phone").eq("user_id", buyerId).maybeSingle();
+    if (billingError) return json({ error: "No pudimos cargar tus datos fiscales. Intenta de nuevo.", code: "billing_unavailable" }, 503);
+    if (!billing) return json({ error: "Completa tus datos de facturación antes de pagar", code: "billing_required" }, 400);
 
     // Load event
     const { data: event, error: eventErr } = await supabase
@@ -290,7 +295,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     // profiles only stores a single full_name; split it for Qhantuy's customer fields.
-    const buyerNameParts = String(buyerProfile?.full_name ?? "").trim().split(/\s+/).filter(Boolean);
+    const buyerNameParts = String(billing.legal_name).trim().split(/\s+/).filter(Boolean);
     const buyerFirstName = buyerNameParts[0] || undefined;
     const buyerLastName = buyerNameParts.slice(1).join(" ") || undefined;
 

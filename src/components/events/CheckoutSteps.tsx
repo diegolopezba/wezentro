@@ -35,6 +35,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { TicketAssigneeRow } from "./TicketAssigneeRow";
 import type { SearchUser } from "@/hooks/useSearchUsers";
 import { openPaymentGateway, buildReturnUrl } from "@/lib/cardCheckout";
+import { useBillingDetails } from "@/hooks/useBillingDetails";
+import { BillingForm } from "@/components/billing/BillingForm";
+import { hasCompleteBilling } from "@/lib/billing";
 
 export interface CheckoutStepsProps {
   /** Whether this view is currently mounted/visible — drives polling + resets. */
@@ -55,7 +58,7 @@ export interface CheckoutStepsProps {
   onPaymentConfirmed: () => Promise<void>;
 }
 
-type Step = "details" | "loading" | "revealed" | "card" | "success" | "expired" | "error";
+type Step = "details" | "billing" | "loading" | "revealed" | "card" | "success" | "expired" | "error";
 
 /**
  * Checkout views (summary → QR/card → success) rendered *inside* an existing
@@ -78,6 +81,8 @@ export function CheckoutSteps({
   onPaymentConfirmed,
 }: CheckoutStepsProps) {
   const navigate = useNavigate();
+  const billing = useBillingDetails();
+  const billingComplete = hasCompleteBilling(billing.data);
   const isBusinessAccount = useIsBusinessAccount();
   const isInvite = mode === "invite";
   /** A paid checkout whose selected tier/area costs Bs. 0 behaves as a free confirmation. */
@@ -215,6 +220,7 @@ export function CheckoutSteps({
 
   const generateCheckout = useCallback(async (method: "qr" | "card" = "qr") => {
     if (!isActiveRef.current) return;
+    if (!hasCompleteBilling(billing.data)) { setStep("billing"); return; }
     // The placeholder tab must be opened inside the click, before any await.
     const gateway = method === "card" ? openPaymentGateway() : null;
     setStep("loading");
@@ -299,7 +305,7 @@ export function CheckoutSteps({
       setErrorMsg(err?.message || "No se pudo iniciar el pago");
       setStep("error");
     }
-  }, [eventId, ticketTierId, eventAreaId, areaBookingId, startPolling, ensureFreshSession, canBuyMultiple, quantity, assignees, applied, canUseCode]);
+  }, [eventId, ticketTierId, eventAreaId, areaBookingId, startPolling, ensureFreshSession, canBuyMultiple, quantity, assignees, applied, canUseCode, billing.data]);
 
   const generateQR = useCallback(() => generateCheckout("qr"), [generateCheckout]);
   const generateCardCheckout = useCallback(() => generateCheckout("card"), [generateCheckout]);
@@ -383,6 +389,7 @@ export function CheckoutSteps({
 
   /** Back inside the checkout: QR/card/errors return to the summary view. */
   const goBack = () => {
+    if (step === "billing") { setStep("details"); return; }
     if (step === "revealed" || step === "card" || step === "expired" || step === "error") {
       stopPolling();
       setQrImageUrl(null);
@@ -398,7 +405,7 @@ export function CheckoutSteps({
 
   const showBack = step !== "success" && step !== "loading";
   const stepLabel =
-    step === "revealed"
+    step === "billing" ? "Datos de facturación" : step === "revealed"
       ? "Pagá con QR"
       : step === "card"
         ? "Pago con tarjeta"
@@ -518,6 +525,18 @@ export function CheckoutSteps({
                   </p>
                 </div>
               )}
+
+              {!isFree && billingComplete && billing.data && (
+                <div className="mt-4 flex items-start gap-3 border-t border-border pt-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-muted-foreground">Factura a</p>
+                    <p className="text-sm font-medium break-words">{billing.data.legal_name}</p>
+                    <p className="text-xs text-muted-foreground break-words">{billing.data.document_type === "CI" ? "C.I." : "NIT"} {billing.data.document_number} · {billing.data.phone}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setStep("billing")}>Cambiar</Button>
+                </div>
+              )}
+              {!isFree && billing.isError && <div className="mt-4 text-sm space-y-2"><p>No pudimos cargar tus datos fiscales.</p><Button variant="outline" onClick={() => billing.refetch()}>Reintentar</Button></div>}
 
               {/* How it works (collapsible) */}
               <div className="mt-6">
@@ -655,7 +674,8 @@ export function CheckoutSteps({
                 <Button
                   type="button"
                   variant="sheet-action"
-                  onClick={isFree ? confirmFreeJoin : generateQR}
+                  onClick={isFree ? confirmFreeJoin : billingComplete ? generateQR : () => setStep("billing")}
+                  disabled={!isFree && (billing.isLoading || billing.isError)}
                   className="w-full h-13 text-base font-bold uppercase tracking-wide"
                 >
                   {isInvite
@@ -664,10 +684,10 @@ export function CheckoutSteps({
                       ? "Confirmar entrada gratis"
                       : isFree
                         ? "Sí, quiero unirme"
-                        : "Pagar por QR"}
+                        : billing.isLoading ? "Cargando datos…" : billingComplete ? "Pagar por QR" : "Continuar"}
                 </Button>
               )}
-              {!isFree && !isBusinessAccount && (
+              {!isFree && !isBusinessAccount && billingComplete && (
                 <Button
                   type="button"
                   variant="outline"
@@ -679,6 +699,12 @@ export function CheckoutSteps({
                 </Button>
               )}
             </div>
+          </m.div>
+        )}
+
+        {step === "billing" && (
+          <m.div key="billing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col flex-1 min-h-0">
+            <BillingForm initial={billing.data} submitLabel="Guardar y continuar" onSave={async (value) => { await billing.save(value); setStep("details"); }} />
           </m.div>
         )}
 

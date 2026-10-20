@@ -15,6 +15,7 @@ import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
+import { EventBillingPanel } from "@/components/business/EventBillingPanel";
 
 interface Row {
   key: string;
@@ -236,6 +237,7 @@ export const EventGuestsPanel = ({ eventId }: { eventId: string }) => {
           <p className="text-[10px] text-muted-foreground">{shown.length} de {filtered.length}</p>
         </div>
       )}
+      <div className="border-t border-border pt-5"><EventBillingPanel eventId={eventId} /></div>
     </div>
   );
 };
