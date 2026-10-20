@@ -1,8 +1,9 @@
 ## Datos de facturación
-- [ ] Datos privados guardados, historial por compra y validación antes de pagar entradas.
-- [ ] Slide dedicado en compra y edición desde Configuración.
-- [ ] Solicitar datos faltantes a compradores anteriores desde sus entradas y exportarlos para el organizador.
-- [ ] Pruebas de reglas y comprobación del recorrido real.
+- [x] Datos privados guardados, historial por compra y validación antes de pagar entradas.
+- [x] Slide dedicado en compra y edición desde Configuración.
+- [x] Aviso a compradores anteriores desde sus entradas y exportación por compra para el organizador; no se enviaron correos.
+- [x] Pruebas de datos obligatorios y regresiones de descuentos y ventas.
+- [ ] Comprobar guardado y compra con una sesión autorizada: no existe una cuenta del solicitante para iniciar sesión; pago bancario real aún no realizado.
 
 ## SCZ Week: ventas por pase y edición segura
 - [x] Conservar los identificadores y ventas de entradas al editarlas; archivar las retiradas (pruebas de regresión verificadas).
