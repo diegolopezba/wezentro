@@ -12,6 +12,7 @@ import {
   loadFeeTerms,
   feeItems,
 } from "../_shared/qhantuy.ts";
+import { computeDiscount } from "../_shared/discount.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -211,7 +212,40 @@ Deno.serve(async (req) => {
       }
     }
 
-    const baseAmount = Number((effectivePrice * quantity).toFixed(2));
+    const subtotal = Number((effectivePrice * quantity).toFixed(2));
+
+    // Discount code: applied to the whole ticket subtotal before fees.
+    let discountCodeId: string | null = null;
+    let discountAmount = 0;
+    const rawCode = typeof body.discountCode === "string" ? body.discountCode.replace(/\s+/g, "").toUpperCase() : "";
+    if (rawCode) {
+      if (areaId) return json({ error: "Los códigos no aplican a mesas o lounges", code: "discount_invalid" }, 400);
+      const { data: dc } = await supabase
+        .from("event_discount_codes")
+        .select("id, discount_type, discount_value, max_uses, tier_ids, starts_at, ends_at, is_active")
+        .eq("event_id", eventId)
+        .eq("code", rawCode)
+        .maybeSingle();
+      const now = Date.now();
+      const fail = (msg: string) => json({ error: msg, code: "discount_invalid" }, 400);
+      if (!dc || !dc.is_active) return fail("Código inválido");
+      if (dc.starts_at && now < new Date(dc.starts_at).getTime()) return fail("Este código aún no está vigente");
+      if (dc.ends_at && now > new Date(dc.ends_at).getTime()) return fail("Este código ya venció");
+      if ((dc.tier_ids ?? []).length > 0 && (!tierId || !dc.tier_ids.includes(tierId))) return fail("Este código no aplica a esta entrada");
+      const { count: mine } = await supabase
+        .from("payment_sessions").select("id", { count: "exact", head: true })
+        .eq("discount_code_id", dc.id).eq("buyer_user_id", buyerId).eq("status", "confirmed");
+      if ((mine ?? 0) > 0) return fail("Ya usaste este código");
+      if (dc.max_uses != null) {
+        const { count: used } = await supabase
+          .from("payment_sessions").select("id", { count: "exact", head: true })
+          .eq("discount_code_id", dc.id).eq("status", "confirmed");
+        if ((used ?? 0) >= dc.max_uses) return fail("Este código ya alcanzó su límite de usos");
+      }
+      discountCodeId = dc.id;
+      discountAmount = computeDiscount(subtotal, dc.discount_type, Number(dc.discount_value));
+    }
+    const baseAmount = Number((subtotal - discountAmount).toFixed(2));
     // Zentro keeps its commission out of the base price; Qhantuy's own
     // commission is added on top (PRE_CHARGE) and paid by the buyer.
     const charge = buildCharge(baseAmount, await loadFeeTerms(supabase, event.creator_id));
@@ -284,6 +318,8 @@ Deno.serve(async (req) => {
         platform_fee_amount: platformFee,
         payout_amount: payoutAmount,
         payment_method: method,
+        discount_code_id: discountCodeId,
+        discount_amount: discountAmount,
 
 
       })
@@ -319,12 +355,18 @@ Deno.serve(async (req) => {
         customer_last_name: buyerLastName,
         detail: `${effectiveTitle}${quantity > 1 ? ` x${quantity}` : ""}`.substring(0, 120),
         items: [
-          {
-            name: effectiveTitle.substring(0, 100),
-            quantity,
-            price: effectivePrice,
-          },
-          ...feeItems(charge, effectivePrice * quantity),
+          discountAmount > 0
+            ? {
+                name: `${effectiveTitle}${quantity > 1 ? ` x${quantity}` : ""} (desc. ${rawCode})`.substring(0, 100),
+                quantity: 1,
+                price: baseAmount,
+              }
+            : {
+                name: effectiveTitle.substring(0, 100),
+                quantity,
+                price: effectivePrice,
+              },
+          ...feeItems(charge, baseAmount),
         ],
         // Only the organizer is an external beneficiary. Zentro's 6% remains
         // in the merchant balance, where Qhantuy also deducts its gateway fee.

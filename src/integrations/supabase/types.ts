@@ -753,6 +753,56 @@ export type Database = {
           },
         ]
       }
+      event_discount_codes: {
+        Row: {
+          code: string
+          created_at: string
+          discount_type: string
+          discount_value: number
+          ends_at: string | null
+          event_id: string
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          starts_at: string | null
+          tier_ids: string[]
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          discount_type: string
+          discount_value: number
+          ends_at?: string | null
+          event_id: string
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          starts_at?: string | null
+          tier_ids?: string[]
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          discount_type?: string
+          discount_value?: number
+          ends_at?: string | null
+          event_id?: string
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          starts_at?: string | null
+          tier_ids?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_discount_codes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_interactions: {
         Row: {
           created_at: string | null
@@ -2534,6 +2584,8 @@ export type Database = {
           buyer_user_id: string | null
           confirmed_at: string | null
           created_at: string
+          discount_amount: number
+          discount_code_id: string | null
           event_area_id: string | null
           event_id: string | null
           experience_booking_id: string | null
@@ -2569,6 +2621,8 @@ export type Database = {
           buyer_user_id?: string | null
           confirmed_at?: string | null
           created_at?: string
+          discount_amount?: number
+          discount_code_id?: string | null
           event_area_id?: string | null
           event_id?: string | null
           experience_booking_id?: string | null
@@ -2604,6 +2658,8 @@ export type Database = {
           buyer_user_id?: string | null
           confirmed_at?: string | null
           created_at?: string
+          discount_amount?: number
+          discount_code_id?: string | null
           event_area_id?: string | null
           event_id?: string | null
           experience_booking_id?: string | null
@@ -2631,6 +2687,13 @@ export type Database = {
           ticket_tier_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "payment_sessions_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "event_discount_codes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payment_sessions_event_area_id_fkey"
             columns: ["event_area_id"]
@@ -5037,6 +5100,10 @@ export type Database = {
         Args: { _entry_user_id: string; _event_id: string; _user_id: string }
         Returns: boolean
       }
+      check_event_discount_code: {
+        Args: { _code: string; _event_id: string; _tier_id: string }
+        Returns: Json
+      }
       cleanup_expired_area_holds: { Args: never; Returns: number }
       cleanup_infra_logs: { Args: never; Returns: undefined }
       cleanup_interaction_events_log: { Args: never; Returns: undefined }
@@ -5246,6 +5313,14 @@ export type Database = {
           event_id: string
           impression_count: number
           view_count: number
+        }[]
+      }
+      get_event_discount_code_usage: {
+        Args: { _event_id: string }
+        Returns: {
+          discount_code_id: string
+          discount_total: number
+          uses: number
         }[]
       }
       get_event_entry_breakdown: { Args: { _event_id: string }; Returns: Json }

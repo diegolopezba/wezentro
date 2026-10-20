@@ -29,6 +29,8 @@ import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { chargeBreakdown, GATEWAY_FEE_LABEL, SERVICE_FEE_LABEL, formatBs } from "@/lib/gatewayFee";
 import { useCheckoutFeeTerms } from "@/hooks/useCheckoutFeeTerms";
+import { computeDiscount, type DiscountType } from "@/lib/discount";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { TicketAssigneeRow } from "./TicketAssigneeRow";
 import type { SearchUser } from "@/hooks/useSearchUsers";
@@ -101,7 +103,30 @@ export function CheckoutSteps({
   const total = Number(price) * (canBuyMultiple ? quantity : 1);
   // Qhantuy's commission is added on top of the price and paid by the buyer.
   const feeTerms = useCheckoutFeeTerms({ eventId });
-  const charge = chargeBreakdown(total, feeTerms);
+  const [codeInput, setCodeInput] = useState("");
+  const [applied, setApplied] = useState<{ code: string; type: DiscountType; value: number } | null>(null);
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [codeChecking, setCodeChecking] = useState(false);
+  const canUseCode = canBuyMultiple && !!ticketTierId;
+  const discount = applied && canUseCode ? computeDiscount(total, applied.type, applied.value) : 0;
+  const charge = chargeBreakdown(Number((total - discount).toFixed(2)), feeTerms);
+  const applyCode = async () => {
+    const code = codeInput.replace(/\s+/g, "").toUpperCase();
+    if (!code) return;
+    setCodeChecking(true);
+    setCodeError(null);
+    const { data, error } = await supabase.rpc("check_event_discount_code" as never, {
+      _event_id: eventId, _code: code, _tier_id: ticketTierId ?? null,
+    } as never);
+    setCodeChecking(false);
+    const res = data as any;
+    if (error || !res?.ok) {
+      setApplied(null);
+      setCodeError(res?.error || "No se pudo validar el código");
+      return;
+    }
+    setApplied({ code: res.code, type: res.discount_type, value: Number(res.discount_value) });
+  };
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isActiveRef = useRef(false);
 
@@ -222,6 +247,7 @@ export function CheckoutSteps({
           quantity: canBuyMultiple ? quantity : 1,
           assignees: canBuyMultiple ? assignees.slice(0, quantity - 1).map((a) => a?.id ?? null) : [],
           method,
+          discountCode: applied && canUseCode ? applied.code : undefined,
           returnUrl: method === "card" ? buildReturnUrl(`/going/${eventId}`) : undefined,
         },
       });
@@ -273,7 +299,7 @@ export function CheckoutSteps({
       setErrorMsg(err?.message || "No se pudo iniciar el pago");
       setStep("error");
     }
-  }, [eventId, ticketTierId, eventAreaId, areaBookingId, startPolling, ensureFreshSession, canBuyMultiple, quantity, assignees]);
+  }, [eventId, ticketTierId, eventAreaId, areaBookingId, startPolling, ensureFreshSession, canBuyMultiple, quantity, assignees, applied, canUseCode]);
 
   const generateQR = useCallback(() => generateCheckout("qr"), [generateCheckout]);
   const generateCardCheckout = useCallback(() => generateCheckout("card"), [generateCheckout]);
@@ -573,12 +599,44 @@ export function CheckoutSteps({
                   </p>
                 )}
               </div>
-              {!isFree && charge.fee > 0 && (
+              {!isFree && canUseCode && (
+                <div className="mb-3">
+                  {applied ? (
+                    <div className="flex items-center justify-between rounded-full bg-secondary px-4 py-2 text-xs">
+                      <span className="font-semibold text-foreground">Código {applied.code} aplicado</span>
+                      <button type="button" className="text-muted-foreground active:opacity-70" onClick={() => { setApplied(null); setCodeInput(""); }}>
+                        Quitar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        value={codeInput}
+                        onChange={(e) => { setCodeInput(e.target.value.toUpperCase()); setCodeError(null); }}
+                        placeholder="Código de descuento"
+                        className="h-10 rounded-full text-sm uppercase"
+                        autoCapitalize="characters"
+                      />
+                      <Button type="button" variant="outline" className="h-10 rounded-full px-4" disabled={!codeInput.trim() || codeChecking} onClick={applyCode}>
+                        {codeChecking ? <Loader2 className="w-4 h-4 animate-spin" /> : "Aplicar"}
+                      </Button>
+                    </div>
+                  )}
+                  {codeError && <p className="mt-1.5 px-2 text-xs text-destructive">{codeError}</p>}
+                </div>
+              )}
+              {!isFree && (charge.fee > 0 || discount > 0) && (
                 <div className="mb-3 space-y-1 text-xs">
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>Subtotal</span>
-                    <span>{formatBs(charge.subtotal)}</span>
+                    <span>{formatBs(total)}</span>
                   </div>
+                  {discount > 0 && (
+                    <div className="flex items-center justify-between text-foreground">
+                      <span>Descuento ({applied?.code})</span>
+                      <span>- {formatBs(discount)}</span>
+                    </div>
+                  )}
                   {charge.serviceFee > 0 && (
                     <div className="flex items-center justify-between text-muted-foreground">
                       <span>{SERVICE_FEE_LABEL}</span>
