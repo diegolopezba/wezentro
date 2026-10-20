@@ -14,6 +14,7 @@ import { EventTiersPanel, entryTotals } from "@/components/business/EventTiersPa
 import { GateSalesPanel } from "@/components/business/GateSalesPanel";
 import { EventLoungesPanel } from "@/components/business/EventLoungesPanel";
 import { EventGuestsPanel } from "@/components/business/EventGuestsPanel";
+import { EventDiscountCodesPanel } from "@/components/business/EventDiscountCodesPanel";
 import { EventPromotersPanel } from "@/components/business/EventPromotersPanel";
 import { EventAreaBookingsSheet } from "@/components/business/EventAreaBookingsSheet";
 import { EditEventSheet } from "@/components/events/EditEventSheet";
@@ -174,6 +175,7 @@ export const EventDetailPanel = ({ eventId }: Props) => {
             ["invitaciones", "Invitaciones"],
             ["lounges", "Lounges"],
             ["promotores", "Promotores"],
+            ["descuentos", "Descuentos"],
           ].map(([v, l]) => (
             <TabsTrigger
               key={v}
@@ -196,6 +198,10 @@ export const EventDetailPanel = ({ eventId }: Props) => {
 
         <TabsContent value="asistentes" className="mt-4">
           <EventGuestsPanel eventId={eventId} />
+        </TabsContent>
+
+        <TabsContent value="descuentos" className="mt-4">
+          <EventDiscountCodesPanel eventId={eventId} />
         </TabsContent>
 
         <TabsContent value="invitaciones" className="mt-4">
