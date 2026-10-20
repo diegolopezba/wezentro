@@ -2574,6 +2574,41 @@ export type Database = {
           },
         ]
       }
+      payment_billing_details: {
+        Row: {
+          captured_at: string
+          document_number: string
+          document_type: string
+          legal_name: string
+          payment_session_id: string
+          phone: string
+        }
+        Insert: {
+          captured_at?: string
+          document_number: string
+          document_type: string
+          legal_name: string
+          payment_session_id: string
+          phone: string
+        }
+        Update: {
+          captured_at?: string
+          document_number?: string
+          document_type?: string
+          legal_name?: string
+          payment_session_id?: string
+          phone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_billing_details_payment_session_id_fkey"
+            columns: ["payment_session_id"]
+            isOneToOne: true
+            referencedRelation: "payment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_sessions: {
         Row: {
           amount: number
@@ -4094,6 +4129,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_billing_details: {
+        Row: {
+          document_number: string
+          document_type: string
+          legal_name: string
+          phone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          document_number: string
+          document_type: string
+          legal_name: string
+          phone: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          document_number?: string
+          document_type?: string
+          legal_name?: string
+          phone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_category_preferences: {
         Row: {
           category: string
@@ -5307,6 +5369,22 @@ export type Database = {
           taken: number
         }[]
       }
+      get_event_billing_export: {
+        Args: { _event_id: string }
+        Returns: {
+          amount: number
+          buyer_name: string
+          document_number: string
+          document_type: string
+          legal_name: string
+          order_id: string
+          phone: string
+          purchased_at: string
+          quantity: number
+          subtotal: number
+          tier_name: string
+        }[]
+      }
       get_event_card_counts: {
         Args: { _event_ids: string[] }
         Returns: {
@@ -5453,6 +5531,7 @@ export type Database = {
           username: string
         }[]
       }
+      get_my_missing_billing_orders: { Args: never; Returns: number }
       get_or_create_private_chat: {
         Args: { _other_user_id: string; _user_id: string }
         Returns: string
@@ -5631,6 +5710,15 @@ export type Database = {
       resolve_promoter: {
         Args: { _code: string; _event_id: string }
         Returns: string
+      }
+      save_my_billing_details: {
+        Args: {
+          _document_number: string
+          _document_type: string
+          _legal_name: string
+          _phone: string
+        }
+        Returns: Json
       }
       set_experience_booking_status: {
         Args: { _booking_id: string; _status: string }
