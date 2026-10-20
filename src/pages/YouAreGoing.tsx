@@ -16,6 +16,7 @@ import { TicketInfoSheet } from "@/components/events/TicketInfoSheet";
 import useEmblaCarousel from "embla-carousel-react";
 import { cn } from "@/lib/utils";
 import mascotAsset from "@/assets/muñeco-negro.png.asset.json";
+import { MissingBillingNotice } from "@/components/billing/MissingBillingNotice";
 
 
 
@@ -278,6 +279,7 @@ const YouAreGoing = () => {
 
         </div>
 
+        <MissingBillingNotice />
         {/* Boxes 2 & 3 — swipeable carousel when the user has multiple tickets */}
         {total > 0 ? (
           <>

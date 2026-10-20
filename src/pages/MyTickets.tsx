@@ -8,6 +8,7 @@ import { ReservationsList } from "@/components/tickets/ReservationsList";
 import { FeatureIntroSheet, useFeatureIntro } from "@/components/business/FeatureIntroSheet";
 import { TICKETS_INTRO } from "@/components/business/featureIntroSteps";
 import { HelpCircle } from "lucide-react";
+import { MissingBillingNotice } from "@/components/billing/MissingBillingNotice";
 
 type Tab = "entradas" | "reservas";
 
@@ -55,7 +56,7 @@ const MyTickets = () => {
         </div>
       </header>
 
-      {tab === "entradas" ? <TicketsList /> : <ReservationsList />}
+      {tab === "entradas" ? <><MissingBillingNotice /><TicketsList /></> : <ReservationsList />}
       <FeatureIntroSheet open={intro.open} onOpenChange={intro.setOpen} steps={TICKETS_INTRO} />
     </AppLayout>
   );

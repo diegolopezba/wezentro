@@ -95,6 +95,7 @@ const Profile = lazy(profileImport);
 
 // Secondary pages - lazy loaded with retry on chunk failures
 const Settings = lazyWithRetry(() => import("./pages/Settings"));
+const BillingSettings = lazyWithRetry(() => import("./pages/BillingSettings"));
 const Saved = lazyWithRetry(() => import("./pages/Saved"));
 const Notifications = lazyWithRetry(() => import("./pages/Notifications"));
 const PrivacySettings = lazyWithRetry(() => import("./pages/PrivacySettings"));
@@ -306,6 +307,7 @@ const AppRoutes = () => {
           <Route path="/saved" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><Saved /></LazyRoute></SettingsShell></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute requireProfile><LazyRoute><Notifications /></LazyRoute></ProtectedRoute>} />
           <Route path="/settings/privacy" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><PrivacySettings /></LazyRoute></SettingsShell></ProtectedRoute>} />
+          <Route path="/settings/billing" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><BillingSettings /></LazyRoute></SettingsShell></ProtectedRoute>} />
           <Route path="/edit-profile" element={<ProtectedRoute requireProfile><SettingsShell><LazyRoute><EditProfile /></LazyRoute></SettingsShell></ProtectedRoute>} />
 
           {/* Public event preview route (full page — used for deep links) */}

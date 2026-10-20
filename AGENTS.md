@@ -1,3 +1,4 @@
+- Buyer fiscal identity lives in a private user-owned billing table, never public profiles; a server trigger snapshots each order, and the authenticated save RPC fills only missing historical snapshots so later edits cannot rewrite invoice history.
 - Ticket tier edits preserve existing IDs and sold counters; removed tiers are deactivated, never deleted, so historical purchases and QR references stay attached.
 - Management entry breakdown counts purchased root entries once and invitation entries by redeemed invitation identity; daily QR children remain independent for check-in, not extra sales.
 Business product tours belong in the persistent app shell and persist versioned per-user step progress, because navigation must not unmount or restart the walkthrough.
