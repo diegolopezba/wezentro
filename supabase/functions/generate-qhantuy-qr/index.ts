@@ -12,6 +12,7 @@ import {
   loadFeeTerms,
   feeItems,
 } from "../_shared/qhantuy.ts";
+import { computeDiscount } from "../_shared/discount.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -317,6 +318,8 @@ Deno.serve(async (req) => {
         platform_fee_amount: platformFee,
         payout_amount: payoutAmount,
         payment_method: method,
+        discount_code_id: discountCodeId,
+        discount_amount: discountAmount,
 
 
       })
@@ -352,12 +355,18 @@ Deno.serve(async (req) => {
         customer_last_name: buyerLastName,
         detail: `${effectiveTitle}${quantity > 1 ? ` x${quantity}` : ""}`.substring(0, 120),
         items: [
-          {
-            name: effectiveTitle.substring(0, 100),
-            quantity,
-            price: effectivePrice,
-          },
-          ...feeItems(charge, effectivePrice * quantity),
+          discountAmount > 0
+            ? {
+                name: `${effectiveTitle}${quantity > 1 ? ` x${quantity}` : ""} (desc. ${rawCode})`.substring(0, 100),
+                quantity: 1,
+                price: baseAmount,
+              }
+            : {
+                name: effectiveTitle.substring(0, 100),
+                quantity,
+                price: effectivePrice,
+              },
+          ...feeItems(charge, baseAmount),
         ],
         // Only the organizer is an external beneficiary. Zentro's 6% remains
         // in the merchant balance, where Qhantuy also deducts its gateway fee.
