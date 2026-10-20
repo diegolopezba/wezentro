@@ -2046,30 +2046,6 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20261012: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: number
-          signal_type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: number
-          signal_type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: number
-          signal_type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       interaction_events_log_20261013: {
         Row: {
           created_at: string
@@ -2263,6 +2239,30 @@ export type Database = {
         Relationships: []
       }
       interaction_events_log_20261021: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: number
+          signal_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: number
+          signal_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: number
+          signal_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      interaction_events_log_20261022: {
         Row: {
           created_at: string
           event_id: string
@@ -4434,45 +4434,6 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20261012: {
-        Row: {
-          created_at: string
-          id: string
-          is_native: boolean
-          metric_name: string
-          metric_rating: string | null
-          metric_value: number
-          navigation_type: string | null
-          path: string | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name: string
-          metric_rating?: string | null
-          metric_value: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name?: string
-          metric_rating?: string | null
-          metric_value?: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       web_vitals_20261013: {
         Row: {
           created_at: string
@@ -4786,6 +4747,45 @@ export type Database = {
         Relationships: []
       }
       web_vitals_20261021: {
+        Row: {
+          created_at: string
+          id: string
+          is_native: boolean
+          metric_name: string
+          metric_rating: string | null
+          metric_value: number
+          navigation_type: string | null
+          path: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name: string
+          metric_rating?: string | null
+          metric_value: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name?: string
+          metric_rating?: string | null
+          metric_value?: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      web_vitals_20261022: {
         Row: {
           created_at: string
           id: string
