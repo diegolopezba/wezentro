@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { useIsBusinessAccount } from "@/hooks/useIsBusinessAccount";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,8 @@ import { MissingBillingNotice } from "@/components/billing/MissingBillingNotice"
 type Tab = "entradas" | "reservas";
 
 const MyTickets = () => {
-  const [tab, setTab] = useState<Tab>("entradas");
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(searchParams.get("tab") === "reservas" ? "reservas" : "entradas");
   const intro = useFeatureIntro("tickets");
   const isBusinessAccount = useIsBusinessAccount();
 
