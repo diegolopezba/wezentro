@@ -29,7 +29,8 @@ import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { chargeBreakdown, GATEWAY_FEE_LABEL, SERVICE_FEE_LABEL, formatBs } from "@/lib/gatewayFee";
 import { useCheckoutFeeTerms } from "@/hooks/useCheckoutFeeTerms";
-import { computeDiscount, type DiscountType } from "@/lib/discount";
+import { canOfferDiscountCode, computeDiscount, type DiscountType } from "@/lib/discount";
+import { useEventDiscountCodes } from "@/hooks/useEventDiscountCodes";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { TicketAssigneeRow } from "./TicketAssigneeRow";
@@ -109,10 +110,13 @@ export function CheckoutSteps({
   // Qhantuy's commission is added on top of the price and paid by the buyer.
   const feeTerms = useCheckoutFeeTerms({ eventId });
   const [codeInput, setCodeInput] = useState("");
+  const [codeOpen, setCodeOpen] = useState(false);
   const [applied, setApplied] = useState<{ code: string; type: DiscountType; value: number } | null>(null);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [codeChecking, setCodeChecking] = useState(false);
   const canUseCode = canBuyMultiple && !!ticketTierId;
+  const hasCodes = useEventDiscountCodes(eventId, ticketTierId);
+  const offerCode = canOfferDiscountCode({ isFree, canBuyMultiple, hasTier: !!ticketTierId, hasCodes });
   const discount = applied && canUseCode ? computeDiscount(total, applied.type, applied.value) : 0;
   const charge = chargeBreakdown(Number((total - discount).toFixed(2)), feeTerms);
   const applyCode = async () => {
