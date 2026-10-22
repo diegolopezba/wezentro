@@ -119,6 +119,13 @@ export function CheckoutSteps({
   const offerCode = canOfferDiscountCode({ isFree, canBuyMultiple, hasTier: !!ticketTierId, hasCodes });
   const discount = applied && canUseCode ? computeDiscount(total, applied.type, applied.value) : 0;
   const charge = chargeBreakdown(Number((total - discount).toFixed(2)), feeTerms);
+  // A code checked for one entry must not silently follow the buyer to another.
+  useEffect(() => {
+    setApplied(null);
+    setCodeInput("");
+    setCodeError(null);
+    setCodeOpen(false);
+  }, [ticketTierId]);
   const applyCode = async () => {
     const code = codeInput.replace(/\s+/g, "").toUpperCase();
     if (!code) return;
