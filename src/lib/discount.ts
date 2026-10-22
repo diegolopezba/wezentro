@@ -6,3 +6,17 @@ export function computeDiscount(subtotal: number, type: DiscountType, value: num
   const raw = type === "percent" ? (subtotal * Math.min(value, 100)) / 100 : value;
   return Number(Math.min(raw, subtotal).toFixed(2));
 }
+
+/**
+ * The code row only appears for a paid multi-ticket order on an entry the
+ * organizer actually gave codes to — never on free entries, invitations or
+ * venue areas, and never when the event has no usable code.
+ */
+export function canOfferDiscountCode(state: {
+  isFree: boolean;
+  canBuyMultiple: boolean;
+  hasTier: boolean;
+  hasCodes: boolean;
+}): boolean {
+  return !state.isFree && state.canBuyMultiple && state.hasTier && state.hasCodes;
+}

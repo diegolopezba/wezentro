@@ -5241,6 +5241,10 @@ export type Database = {
         Args: { day: string; parent: unknown }
         Returns: undefined
       }
+      event_has_discount_codes: {
+        Args: { _event_id: string; _tier_id: string }
+        Returns: boolean
+      }
       generate_referral_code: { Args: { _user_id: string }; Returns: string }
       get_business_fan_base: {
         Args: { _business_id: string; _limit?: number }
