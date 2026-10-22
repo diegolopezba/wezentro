@@ -53,3 +53,9 @@
 ## Estabilidad del feed Para Ti
 - [x] Evitar que fallos temporales o una función desactualizada dejen Inicio en blanco.
 - [x] Desplegar y comprobar las funciones del feed en staging.
+
+## Códigos de descuento para el comprador
+- [x] Fila "¿Tenés un código de descuento?" dentro de la hoja de compra; solo aparece si el evento tiene códigos activos que aplican a la entrada elegida.
+- [x] Al aplicarlo: píldora verde "Código X aplicado" con Quitar, línea "Descuento (X)" en el desglose y total recalculado.
+- [x] Comprobado de punta a punta en SCZ Week: ZJ2DS y ZCIAY → Bs. 250 − 50 = Bs. 202,03 en el QR bancario; en Dark Garden (sin códigos) la fila no aparece.
+- [ ] Quedan tres pagos de prueba sin cobrar en SCZ Week (ZCIAY, UFAWE ×2); se pueden ignorar o limpiar.
