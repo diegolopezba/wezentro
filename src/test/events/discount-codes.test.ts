@@ -12,3 +12,19 @@ describe("discount codes apply to the order subtotal", () => {
     expect(computeDiscount(100, "fixed", 150)).toBe(100);
   });
 });
+
+describe("the discount code row only appears when it can work", () => {
+  const base = { isFree: false, canBuyMultiple: true, hasTier: true, hasCodes: true };
+  it("stays hidden when the organizer created no code for this event", () => {
+    expect(canOfferDiscountCode({ ...base, hasCodes: false })).toBe(false);
+  });
+  it("stays hidden on free entries and special invitations", () => {
+    expect(canOfferDiscountCode({ ...base, isFree: true })).toBe(false);
+  });
+  it("stays hidden for venue areas, which never take a code", () => {
+    expect(canOfferDiscountCode({ ...base, canBuyMultiple: false, hasTier: false })).toBe(false);
+  });
+  it("shows for a paid entry when the event has a usable code", () => {
+    expect(canOfferDiscountCode(base)).toBe(true);
+  });
+});
