@@ -23,7 +23,7 @@ export const TicketsList = () => {
   const [pastVisible, setPastVisible] = useState(PAST_PAGE_SIZE);
 
   // Fetch events the user is confirmed (approved) to attend
-  const { data: tickets, isLoading } = useQuery({
+  const { data: tickets, isLoading, isFetching } = useQuery({
     queryKey: ["user-tickets", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -244,7 +244,7 @@ export const TicketsList = () => {
     <div className="py-2">
       <MyLoungeBookings />
       <div className="px-4">
-      {isLoading ? (
+      {isLoading || (isFetching && upcoming.length === 0) ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-20 rounded-2xl" />
