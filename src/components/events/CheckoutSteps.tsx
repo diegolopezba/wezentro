@@ -29,7 +29,8 @@ import { useNavigate } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { chargeBreakdown, GATEWAY_FEE_LABEL, SERVICE_FEE_LABEL, formatBs } from "@/lib/gatewayFee";
 import { useCheckoutFeeTerms } from "@/hooks/useCheckoutFeeTerms";
-import { computeDiscount, type DiscountType } from "@/lib/discount";
+import { canOfferDiscountCode, computeDiscount, type DiscountType } from "@/lib/discount";
+import { useEventDiscountCodes } from "@/hooks/useEventDiscountCodes";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { TicketAssigneeRow } from "./TicketAssigneeRow";
@@ -109,12 +110,22 @@ export function CheckoutSteps({
   // Qhantuy's commission is added on top of the price and paid by the buyer.
   const feeTerms = useCheckoutFeeTerms({ eventId });
   const [codeInput, setCodeInput] = useState("");
+  const [codeOpen, setCodeOpen] = useState(false);
   const [applied, setApplied] = useState<{ code: string; type: DiscountType; value: number } | null>(null);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [codeChecking, setCodeChecking] = useState(false);
   const canUseCode = canBuyMultiple && !!ticketTierId;
+  const hasCodes = useEventDiscountCodes(eventId, ticketTierId);
+  const offerCode = canOfferDiscountCode({ isFree, canBuyMultiple, hasTier: !!ticketTierId, hasCodes });
   const discount = applied && canUseCode ? computeDiscount(total, applied.type, applied.value) : 0;
   const charge = chargeBreakdown(Number((total - discount).toFixed(2)), feeTerms);
+  // A code checked for one entry must not silently follow the buyer to another.
+  useEffect(() => {
+    setApplied(null);
+    setCodeInput("");
+    setCodeError(null);
+    setCodeOpen(false);
+  }, [ticketTierId]);
   const applyCode = async () => {
     const code = codeInput.replace(/\s+/g, "").toUpperCase();
     if (!code) return;
@@ -618,16 +629,23 @@ export function CheckoutSteps({
                   </p>
                 )}
               </div>
-              {!isFree && canUseCode && (
+              {offerCode && (
                 <div className="mb-3">
                   {applied ? (
-                    <div className="flex items-center justify-between rounded-full bg-secondary px-4 py-2 text-xs">
-                      <span className="font-semibold text-foreground">Código {applied.code} aplicado</span>
-                      <button type="button" className="text-muted-foreground active:opacity-70" onClick={() => { setApplied(null); setCodeInput(""); }}>
+                    <div className="flex items-center justify-between gap-3 rounded-full bg-success/10 px-4 py-2 text-xs ring-1 ring-success/25">
+                      <span className="flex min-w-0 items-center gap-1.5 font-semibold text-success">
+                        <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">Código {applied.code} aplicado</span>
+                      </span>
+                      <button
+                        type="button"
+                        className="shrink-0 text-muted-foreground active:opacity-70"
+                        onClick={() => { setApplied(null); setCodeInput(""); setCodeError(null); setCodeOpen(true); }}
+                      >
                         Quitar
                       </button>
                     </div>
-                  ) : (
+                  ) : codeOpen ? (
                     <div className="flex gap-2">
                       <Input
                         value={codeInput}
@@ -636,10 +654,19 @@ export function CheckoutSteps({
                         className="h-10 rounded-full text-sm uppercase"
                         autoCapitalize="characters"
                       />
-                      <Button type="button" variant="outline" className="h-10 rounded-full px-4" disabled={!codeInput.trim() || codeChecking} onClick={applyCode}>
+                      <Button type="button" variant="outline" className="h-10 shrink-0 rounded-full px-4" disabled={!codeInput.trim() || codeChecking} onClick={applyCode}>
                         {codeChecking ? <Loader2 className="w-4 h-4 animate-spin" /> : "Aplicar"}
                       </Button>
                     </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setCodeOpen(true)}
+                      className="flex w-full items-center justify-between gap-2 rounded-full px-2 py-1.5 text-xs text-muted-foreground active:opacity-70"
+                    >
+                      <span>¿Tenés un código de descuento?</span>
+                      <ChevronDown className="h-4 w-4 shrink-0" />
+                    </button>
                   )}
                   {codeError && <p className="mt-1.5 px-2 text-xs text-destructive">{codeError}</p>}
                 </div>
