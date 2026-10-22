@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { m, AnimatePresence } from "framer-motion";
 import { chargeBreakdown, GATEWAY_FEE_LABEL, SERVICE_FEE_LABEL, formatBs } from "@/lib/gatewayFee";
 import { useCheckoutFeeTerms } from "@/hooks/useCheckoutFeeTerms";
@@ -82,6 +83,7 @@ export function CheckoutSteps({
   onPaymentConfirmed,
 }: CheckoutStepsProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const billing = useBillingDetails();
   const billingComplete = hasCompleteBilling(billing.data);
   const isBusinessAccount = useIsBusinessAccount();
@@ -369,8 +371,11 @@ export function CheckoutSteps({
   }, [active]);
 
   const handleViewTickets = () => {
+    // Send buyers to the Entradas tab so they learn where tickets live.
+    // Refetch first so the new ticket is there on arrival (never the empty state).
+    queryClient.invalidateQueries({ queryKey: ["user-tickets"] });
     onClose();
-    navigate(eventId ? `/going/${eventId}` : "/tickets");
+    navigate("/tickets?tab=entradas");
   };
 
   const handleDownloadQR = async () => {
