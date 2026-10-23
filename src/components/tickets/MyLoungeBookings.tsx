@@ -51,7 +51,7 @@ export const MyLoungeBookings = () => {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground whitespace-normal break-words line-clamp-2">{b.event.title}</h3>
+            <h3 className="font-semibold text-foreground whitespace-normal break-words">{b.event.title}</h3>
             <p className="text-sm text-muted-foreground truncate">
               {b.area.name} · {AREA_TYPE_LABELS[b.area.area_type]}
             </p>

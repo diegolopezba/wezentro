@@ -190,7 +190,7 @@ export const TicketsList = () => {
           onClick={handleRowClick}
           className="flex-1 min-w-0 text-left active:opacity-80"
         >
-          <h3 className="font-semibold text-foreground whitespace-normal break-words line-clamp-2">
+          <h3 className="font-semibold text-foreground whitespace-normal break-words">
             {event.title}
             {num && num.total > 1 && (
               <span className="text-muted-foreground font-medium"> · Entrada {num.n}</span>
