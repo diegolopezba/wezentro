@@ -217,9 +217,9 @@ export const TicketsList = () => {
               <Calendar className="w-3 h-3" />
               <span>{formattedDate}</span>
             </div>
-            {isUsed || windowClosed ? (
+            {isSpent ? (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground">
-                {isUsed ? "Ya usada" : "Vencida"}
+                Ya usada
               </span>
             ) : isPast ? (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground">
