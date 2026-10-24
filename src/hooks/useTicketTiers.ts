@@ -16,6 +16,8 @@ export interface TicketTier {
   sales_end_at: string | null;
   /** Multi-day events: 1-based day; null = all days (full pass). */
   valid_day?: number | null;
+  scan_from?: string | null;
+  scan_until?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -31,6 +33,8 @@ export interface TicketTierInput {
   unlock_after_tier_id?: string | null;
   sales_end_at?: string | null;
   valid_day?: number | null;
+  scan_from?: string | null;
+  scan_until?: string | null;
 }
 
 
@@ -118,6 +122,8 @@ export const useReplaceTicketTiers = () => {
           unlock_after_tier_id: sequential ? prevId : null,
           sales_end_at: t.sales_end_at ?? null,
           valid_day: t.valid_day ?? null,
+          scan_from: t.scan_from ?? null,
+          scan_until: t.scan_until ?? null,
           is_active: true,
         };
 

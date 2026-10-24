@@ -17,6 +17,9 @@ export interface DraftTier {
   salesEndAt?: string;
   /** Multi-day events: 1-based day, or null for all days (full pass). */
   validDay?: number | null;
+  /** Optional entry window shown on the buyer ticket and enforced at the door. */
+  scanFrom?: string;
+  scanUntil?: string;
 }
 
 export type TicketPricingMode = "single" | "tiers";
@@ -263,6 +266,22 @@ export function TicketTiersEditor({
                         </p>
                       </div>
                     )}
+                    <div className="space-y-1">
+                      <Label className="text-xs">Horario de ingreso (opcional)</Label>
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="space-y-1">
+                          <span className="text-[11px] text-muted-foreground">Desde</span>
+                          <Input type="datetime-local" value={t.scanFrom ?? ""} onChange={(e) => updateTier(t.key, { scanFrom: e.target.value })} />
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[11px] text-muted-foreground">Hasta</span>
+                          <Input type="datetime-local" value={t.scanUntil ?? ""} onChange={(e) => updateTier(t.key, { scanUntil: e.target.value })} />
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Se muestra en la entrada del comprador y el escáner solo la acepta en ese horario.
+                      </p>
+                    </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Deja de venderse (opcional)</Label>
                       <Input

@@ -231,6 +231,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
           description: t.description ?? "",
           salesEndAt: t.sales_end_at ? toLocalInput(t.sales_end_at) : "",
           validDay: t.valid_day ?? null,
+          scanFrom: t.scan_from ? toLocalInput(t.scan_from) : "",
+          scanUntil: t.scan_until ? toLocalInput(t.scan_until) : "",
         }))
       );
     } else {
@@ -251,6 +253,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
       description: t.description ?? "",
       salesEndAt: t.sales_end_at ? toLocalInput(t.sales_end_at) : "",
           validDay: t.valid_day ?? null,
+          scanFrom: t.scan_from ? toLocalInput(t.scan_from) : "",
+          scanUntil: t.scan_until ? toLocalInput(t.scan_until) : "",
     }));
     capture({
       formData: {
@@ -347,6 +351,10 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             toast.error(`Precio inválido para "${t.name}"`);
             return;
           }
+          if (t.scanFrom && t.scanUntil && new Date(t.scanUntil) <= new Date(t.scanFrom)) {
+            toast.error(`El horario de ingreso de "${t.name}" debe terminar después de empezar`);
+            return;
+          }
           cleanTiers.push({
             id: existingTiers.some((existing) => existing.id === t.key) ? t.key : undefined,
             name: t.name.trim(),
@@ -356,6 +364,8 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             display_order: cleanTiers.length,
             sales_end_at: t.salesEndAt ? new Date(t.salesEndAt).toISOString() : null,
             valid_day: t.validDay ?? null,
+            scan_from: t.scanFrom ? new Date(t.scanFrom).toISOString() : null,
+            scan_until: t.scanUntil ? new Date(t.scanUntil).toISOString() : null,
           });
         }
       }

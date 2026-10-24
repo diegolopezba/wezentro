@@ -463,7 +463,7 @@ const Create = () => {
 
 
     // Validate ticket tiers (events only, business + tiers mode)
-    const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number; sales_end_at: string | null; valid_day: number | null }[] = [];
+    const cleanTiers: { name: string; price: number; capacity: number | null; description: string | null; display_order: number; sales_end_at: string | null; valid_day: number | null; scan_from: string | null; scan_until: string | null }[] = [];
     const useTiers = isEvent && isBusiness && pricingMode === "tiers";
     if (useTiers) {
       if (draftTiers.length === 0) {
@@ -481,6 +481,10 @@ const Create = () => {
           toast.error(`Precio inválido para "${t.name}"`);
           return;
         }
+        if (t.scanFrom && t.scanUntil && new Date(t.scanUntil) <= new Date(t.scanFrom)) {
+          toast.error(`El horario de ingreso de "${t.name}" debe terminar después de empezar`);
+          return;
+        }
         cleanTiers.push({
           name: t.name.trim(),
           price,
@@ -489,6 +493,8 @@ const Create = () => {
           display_order: cleanTiers.length,
           sales_end_at: t.salesEndAt ? new Date(t.salesEndAt).toISOString() : null,
           valid_day: multiDay && t.validDay && t.validDay <= 1 + extraDays.length ? t.validDay : null,
+          scan_from: t.scanFrom ? new Date(t.scanFrom).toISOString() : null,
+          scan_until: t.scanUntil ? new Date(t.scanUntil).toISOString() : null,
         });
       }
     }

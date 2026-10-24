@@ -477,6 +477,13 @@
       "when": 1792786026543,
       "tag": "0067_redeem_invite_always_issue_qr",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1792858203277,
+      "tag": "0068_ticket_tier_entry_windows",
+      "breakpoints": true
     }
   ]
 }

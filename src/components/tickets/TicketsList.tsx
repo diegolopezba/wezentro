@@ -41,6 +41,8 @@ export const TicketsList = () => {
           guest_name,
           checked_in_at,
           event_day,
+          scan_from,
+          scan_until,
           buyer:profiles!guestlist_entries_purchased_by_user_id_fkey(
             id,
             username,
@@ -53,6 +55,7 @@ export const TicketsList = () => {
             start_datetime,
             location_name,
             end_datetime,
+            event_days,
             price,
             payment_qr_url,
             creator:profiles!events_creator_id_fkey(
@@ -131,8 +134,11 @@ export const TicketsList = () => {
     const event = ticket.event;
     const num = ticketNumber.get(ticket.id);
     const isUsed = !!ticket.checked_in_at;
-    const eventDate = new Date(event.start_datetime);
-    const formattedDate = format(eventDate, "EEE, d MMM · HH:mm", { locale: es });
+    const dayWindow = ticket.event_day && Array.isArray(event.event_days) ? event.event_days[ticket.event_day - 1] : null;
+    const fromIso = ticket.scan_from || dayWindow?.start || event.start_datetime;
+    const untilIso = ticket.scan_from ? ticket.scan_until : null;
+    const formattedDate = format(new Date(fromIso), "EEE, d MMM · HH:mm", { locale: es }) +
+      (untilIso ? ` – ${format(new Date(untilIso), "HH:mm", { locale: es })}` : "");
 
     const isExtra = !ticket.user_id;
     const subtitle = isExtra
