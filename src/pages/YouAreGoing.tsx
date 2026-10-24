@@ -147,27 +147,38 @@ const YouAreGoing = () => {
           )}
 
           {(() => {
+            // One date per ticket: entry window > its day > event start.
             const scanFrom = (entry as any).scan_from as string | null | undefined;
             const scanUntil = (entry as any).scan_until as string | null | undefined;
-            if (!scanFrom || !scanUntil) return null;
-            const from = new Date(scanFrom);
-            const to = new Date(scanUntil);
-            const fromLabel = from.toDateString() === eventDate.toDateString()
-              ? format(from, "HH:mm")
-              : format(from, "EEE d MMM · HH:mm", { locale: es });
-            const toLabel = to.toDateString() === from.toDateString()
-              ? format(to, "HH:mm")
-              : format(to, "EEE d MMM · HH:mm", { locale: es });
+            const dayNum = (entry as any).event_day as number | null | undefined;
+            const days = (event as any).event_days as { start?: string }[] | null | undefined;
+            const dayStart = dayNum && Array.isArray(days) ? days[dayNum - 1]?.start : null;
+            let label: string;
+            if (scanFrom && scanUntil) {
+              const from = new Date(scanFrom);
+              const to = new Date(scanUntil);
+              const toLabel = to.toDateString() === from.toDateString()
+                ? format(to, "HH:mm")
+                : format(to, "EEE d MMM · HH:mm", { locale: es });
+              label = `${format(from, "EEEE, d 'de' MMMM · HH:mm", { locale: es })} a ${toLabel}`;
+            } else if (dayStart) {
+              label = format(new Date(dayStart), "EEEE, d 'de' MMMM · HH:mm", { locale: es });
+            } else {
+              label = `${formattedDate} · ${formattedTime}`;
+            }
             return (
-              <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#141414]">
-                Ingreso permitido: {fromLabel} a {toLabel}
-              </p>
+              <>
+                {scanFrom && scanUntil && (
+                  <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[#141414]">
+                    Ingreso permitido
+                  </p>
+                )}
+                <p className={`${scanFrom && scanUntil ? "mt-1 text-[#141414]" : "mt-3 text-[#141414]/70"} text-sm font-medium first-letter:uppercase`}>
+                  {label}
+                </p>
+              </>
             );
           })()}
-
-          <p className="mt-3 text-sm font-medium text-[#141414]/70 capitalize">
-            {formattedDate} · {formattedTime}
-          </p>
           {event.location_name && (
             <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs text-[#141414]/50">
               <MapPin className="w-3.5 h-3.5" />
