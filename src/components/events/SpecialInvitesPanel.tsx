@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail, Download, Zap, MessageCircle } from "lucide-react";
+import { Loader2, Plus, Copy, Share2, Check, Ban, Gift, Upload, Mail, Download, Zap, MessageCircle, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +72,7 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
   const [view, setView] = useState<"crear" | "lista">("crear");
   const [validDay, setValidDay] = useState<number | null>(null);
   const [dayFilter, setDayFilter] = useState<string>("__all__");
+  const [search, setSearch] = useState("");
   const { data: eventDays = [] } = useEventDays(eventId);
   const isMultiDay = eventDays.length >= 2;
 
@@ -109,10 +110,19 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
     if (isMultiDay && dayFilter !== "__all__") {
       list = list.filter((i) => (dayFilter === "__pass__" ? i.valid_day == null : String(i.valid_day) === dayFilter));
     }
-    if (!showPills || activeSegment === "__all__") return list;
-    if (activeSegment === "__none__") return list.filter((i) => !i.segment);
-    return list.filter((i) => i.segment === activeSegment);
-  }, [invites, activeSegment, showPills, isMultiDay, dayFilter]);
+    if (showPills && activeSegment !== "__all__") {
+      list = activeSegment === "__none__" ? list.filter((i) => !i.segment) : list.filter((i) => i.segment === activeSegment);
+    }
+    const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const q = norm(search.trim());
+    if (!q) return list;
+    const qDigits = q.replace(/\D/g, "");
+    return list.filter((i) => {
+      const hay = norm([i.rsvp_name, i.guest_name, i.label, i.segment, i.rsvp_email, i.guest_email].filter(Boolean).join(" "));
+      if (hay.includes(q)) return true;
+      return qDigits.length >= 3 && !!i.guest_phone && i.guest_phone.includes(qDigits);
+    });
+  }, [invites, activeSegment, showPills, isMultiDay, dayFilter, search]);
 
   // Drop selections that left the visible segment
   useEffect(() => {
@@ -294,6 +304,28 @@ export function SpecialInvitesPanel({ eventId }: SpecialInvitesPanelProps) {
       )}
 
       {view === "lista" && (<>
+      {invites.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nombre, teléfono o segmento…"
+            className="pl-9 pr-9 rounded-full"
+            inputMode="search"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Limpiar búsqueda"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
       {isMultiDay && (
         <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
           {[
