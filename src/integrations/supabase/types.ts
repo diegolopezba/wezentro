@@ -4054,6 +4054,8 @@ export type Database = {
           name: string
           price: number
           sales_end_at: string | null
+          scan_from: string | null
+          scan_until: string | null
           sold_count: number
           unlock_after_tier_id: string | null
           updated_at: string
@@ -4070,6 +4072,8 @@ export type Database = {
           name: string
           price?: number
           sales_end_at?: string | null
+          scan_from?: string | null
+          scan_until?: string | null
           sold_count?: number
           unlock_after_tier_id?: string | null
           updated_at?: string
@@ -4086,6 +4090,8 @@ export type Database = {
           name?: string
           price?: number
           sales_end_at?: string | null
+          scan_from?: string | null
+          scan_until?: string | null
           sold_count?: number
           unlock_after_tier_id?: string | null
           updated_at?: string
