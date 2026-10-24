@@ -11,8 +11,22 @@ import { useKeyboardAdjust } from "@/hooks/useKeyboardAdjust";
 import { setBusinessIntent, hasBusinessIntent, clearBusinessIntent } from "@/lib/businessIntent";
 import { peekPendingSpecialInvite } from "@/hooks/useSpecialInvites";
 
-const emailSchema = z.string().email("Por favor ingresa un correo válido");
-const passwordSchema = z.string().min(8, "La contraseña debe tener al menos 8 caracteres");
+const INVALID_EMAIL_MSG = "El correo no es válido. Asegurate de que no haya errores en tu correo.";
+const emailSchema = z.string().trim().email(INVALID_EMAIL_MSG);
+const passwordSchema = z.string().min(6, "La contraseña debe tener al menos 6 caracteres");
+
+const DOMAIN_TYPOS: Record<string, string> = {
+  "gmal.com": "gmail.com", "gamil.com": "gmail.com", "gmial.com": "gmail.com", "gmail.co": "gmail.com",
+  "gmai.com": "gmail.com", "gnail.com": "gmail.com", "gmail.con": "gmail.com", "gmaill.com": "gmail.com",
+  "hotmial.com": "hotmail.com", "hotmal.com": "hotmail.com", "hotmai.com": "hotmail.com", "hotmail.co": "hotmail.com",
+  "hotmail.con": "hotmail.com", "hotmil.com": "hotmail.com", "outlok.com": "outlook.com", "outlook.con": "outlook.com",
+  "yaho.com": "yahoo.com", "yahoo.con": "yahoo.com", "icloud.con": "icloud.com", "iclod.com": "icloud.com",
+};
+const emailTypoMessage = (email: string): string | null => {
+  const domain = email.trim().toLowerCase().split("@")[1];
+  const fix = domain && DOMAIN_TYPOS[domain];
+  return fix ? `El correo no es válido. ¿Quisiste decir @${fix}? Revisá que no haya errores.` : null;
+};
 
 interface LocationState {
   from?: { pathname: string };
@@ -104,7 +118,10 @@ const Auth = () => {
       return "Correo o contraseña incorrectos.";
     }
     if (/Password should be/i.test(raw)) {
-      return "La contraseña no cumple los requisitos mínimos.";
+      return "La contraseña debe tener al menos 6 caracteres.";
+    }
+    if (/invalid.*email|email.*invalid|validate email/i.test(raw)) {
+      return INVALID_EMAIL_MSG;
     }
     return raw || "Algo no salió bien. Intenta de nuevo.";
   };
@@ -186,6 +203,8 @@ const Auth = () => {
     } = {};
     try {
       emailSchema.parse(formData.email);
+      const typo = emailTypoMessage(formData.email);
+      if (typo) newErrors.email = typo;
     } catch (e) {
       if (e instanceof z.ZodError) {
         newErrors.email = e.errors[0].message;
@@ -508,6 +527,9 @@ const Auth = () => {
                 >
                   Usar otro correo
                 </button>
+                <p className="text-center text-sm font-medium text-foreground leading-relaxed">
+                  Si usás Hotmail u Outlook, revisá también la pestaña "Otros" y la carpeta Spam.
+                </p>
                 <p className="text-center text-xs text-muted-foreground leading-relaxed">
                   ¿No te llegó? Revisá spam y promociones. Si después de unos
                   minutos sigue sin llegar, probá con otro correo o escribinos a{" "}
