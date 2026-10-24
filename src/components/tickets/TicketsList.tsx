@@ -134,6 +134,9 @@ export const TicketsList = () => {
     const event = ticket.event;
     const num = ticketNumber.get(ticket.id);
     const isUsed = !!ticket.checked_in_at;
+    // A ticket with its own entry window is spent once that window closes.
+    const windowClosed = !!ticket.scan_until && new Date(ticket.scan_until).getTime() < now;
+    const isSpent = isPast || isUsed || windowClosed;
     const dayWindow = ticket.event_day && Array.isArray(event.event_days) ? event.event_days[ticket.event_day - 1] : null;
     const fromIso = ticket.scan_from || dayWindow?.start || event.start_datetime;
     const untilIso = ticket.scan_from ? ticket.scan_until : null;
@@ -150,7 +153,7 @@ export const TicketsList = () => {
       ticket.payment_status === "none" ||
       ticket.payment_status === "confirmed" ||
       !ticket.payment_status;
-    const canShowQr = !isPast && !isUsed && !!ticket.qr_code_token && (isFree || paymentOk);
+    const canShowQr = !isSpent && !!ticket.qr_code_token && (isFree || paymentOk);
 
     const handleRowClick = () => {
       if (isPast) {
@@ -171,7 +174,7 @@ export const TicketsList = () => {
         transition={{ delay: Math.min(index, 6) * 0.05 }}
         className={cn(
           "w-full flex items-center gap-4 p-4 bg-secondary/30 rounded-2xl",
-          (isPast || isUsed) && "opacity-60"
+          isSpent && "opacity-50 grayscale"
         )}
       >
         {/* Event Image */}
@@ -214,9 +217,9 @@ export const TicketsList = () => {
               <Calendar className="w-3 h-3" />
               <span>{formattedDate}</span>
             </div>
-            {isUsed ? (
+            {isSpent ? (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground">
-                Ya fue usado
+                Ya usada
               </span>
             ) : isPast ? (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground">
