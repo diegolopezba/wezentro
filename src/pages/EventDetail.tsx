@@ -544,7 +544,7 @@ const EventDetail = () => {
 
 
       {/* Special guest invitation confirmation */}
-      {hasActiveInvite && (
+      {inviteForThisEvent && (hasActiveInvite || showInviteModal) && (
         <PaymentQRModal
           open={showInviteModal}
           onOpenChange={setShowInviteModal}
@@ -647,7 +647,7 @@ const EventDetail = () => {
         <div className="flex items-center gap-2">
                 {isOnGuestlist && !isPending && (
                   <span className="glow-border">
-                    <Button variant="outline" size="default" className="bg-white text-black border-0 hover:bg-white/90" onClick={() => navigate(`/going/${id}`)}>
+                    <Button variant="outline" size="default" className="bg-white text-black border-0 hover:bg-white/90" onClick={() => navigate(`/tickets?tab=entradas`)}>
                       <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
                     </Button>
                   </span>
@@ -664,7 +664,7 @@ const EventDetail = () => {
                   <Clock className="w-4 h-4 mr-1" /> Pendiente
                 </Button> :
         <span className="glow-border">
-                  <Button variant="outline" size="default" className="bg-white text-black border-0 hover:bg-white/90" onClick={() => navigate(`/going/${id}`)}>
+                  <Button variant="outline" size="default" className="bg-white text-black border-0 hover:bg-white/90" onClick={() => navigate(`/tickets?tab=entradas`)}>
                     <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
                   </Button>
                 </span> :

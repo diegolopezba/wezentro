@@ -478,7 +478,7 @@ const EventDetailModalInner = () => {
           )}
 
           {/* Special guest invitation confirmation */}
-          {hasActiveInvite && (
+          {inviteForThisEvent && (hasActiveInvite || showInviteModal) && (
             <PaymentQRModal
               open={showInviteModal}
               onOpenChange={setShowInviteModal}
@@ -561,7 +561,7 @@ const EventDetailModalInner = () => {
                         <Button
                           variant="secondary"
                           size="default"
-                          onClick={() => navigate(`/going/${id}`)}
+                          onClick={() => navigate(`/tickets?tab=entradas`)}
                           className="bg-white text-black border-0"
                         >
                           <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
@@ -588,7 +588,7 @@ const EventDetailModalInner = () => {
                       <Button
                         variant="secondary"
                         size="default"
-                        onClick={() => navigate(`/going/${id}`)}
+                        onClick={() => navigate(`/tickets?tab=entradas`)}
                         className="bg-white text-black border-0"
                       >
                         <Check className="w-4 h-4 mr-1 text-black" /> Ver entrada
