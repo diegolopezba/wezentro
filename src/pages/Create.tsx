@@ -481,6 +481,10 @@ const Create = () => {
           toast.error(`Precio inválido para "${t.name}"`);
           return;
         }
+        if (t.scanFrom && t.scanUntil && new Date(t.scanUntil) <= new Date(t.scanFrom)) {
+          toast.error(`El horario de ingreso de "${t.name}" debe terminar después de empezar`);
+          return;
+        }
         cleanTiers.push({
           name: t.name.trim(),
           price,

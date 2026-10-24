@@ -351,6 +351,10 @@ export function EditEventSheet({ event, open, onOpenChange, isPost = false, embe
             toast.error(`Precio inválido para "${t.name}"`);
             return;
           }
+          if (t.scanFrom && t.scanUntil && new Date(t.scanUntil) <= new Date(t.scanFrom)) {
+            toast.error(`El horario de ingreso de "${t.name}" debe terminar después de empezar`);
+            return;
+          }
           cleanTiers.push({
             id: existingTiers.some((existing) => existing.id === t.key) ? t.key : undefined,
             name: t.name.trim(),
