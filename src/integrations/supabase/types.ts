@@ -2096,126 +2096,6 @@ export type Database = {
         }
         Relationships: []
       }
-      interaction_events_log_20261017: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: number
-          signal_type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: number
-          signal_type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: number
-          signal_type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      interaction_events_log_20261018: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: number
-          signal_type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: number
-          signal_type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: number
-          signal_type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      interaction_events_log_20261019: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: number
-          signal_type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: number
-          signal_type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: number
-          signal_type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      interaction_events_log_20261020: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: number
-          signal_type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: number
-          signal_type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: number
-          signal_type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      interaction_events_log_20261021: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: number
-          signal_type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: number
-          signal_type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: number
-          signal_type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       interaction_events_log_20261022: {
         Row: {
           created_at: string
@@ -2313,6 +2193,126 @@ export type Database = {
         Relationships: []
       }
       interaction_events_log_20261026: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: number
+          signal_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: number
+          signal_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: number
+          signal_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      interaction_events_log_20261027: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: number
+          signal_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: number
+          signal_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: number
+          signal_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      interaction_events_log_20261028: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: number
+          signal_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: number
+          signal_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: number
+          signal_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      interaction_events_log_20261029: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: number
+          signal_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: number
+          signal_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: number
+          signal_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      interaction_events_log_20261030: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: number
+          signal_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: number
+          signal_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: number
+          signal_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      interaction_events_log_20261031: {
         Row: {
           created_at: string
           event_id: string
@@ -4565,201 +4565,6 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals_20261017: {
-        Row: {
-          created_at: string
-          id: string
-          is_native: boolean
-          metric_name: string
-          metric_rating: string | null
-          metric_value: number
-          navigation_type: string | null
-          path: string | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name: string
-          metric_rating?: string | null
-          metric_value: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name?: string
-          metric_rating?: string | null
-          metric_value?: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      web_vitals_20261018: {
-        Row: {
-          created_at: string
-          id: string
-          is_native: boolean
-          metric_name: string
-          metric_rating: string | null
-          metric_value: number
-          navigation_type: string | null
-          path: string | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name: string
-          metric_rating?: string | null
-          metric_value: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name?: string
-          metric_rating?: string | null
-          metric_value?: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      web_vitals_20261019: {
-        Row: {
-          created_at: string
-          id: string
-          is_native: boolean
-          metric_name: string
-          metric_rating: string | null
-          metric_value: number
-          navigation_type: string | null
-          path: string | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name: string
-          metric_rating?: string | null
-          metric_value: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name?: string
-          metric_rating?: string | null
-          metric_value?: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      web_vitals_20261020: {
-        Row: {
-          created_at: string
-          id: string
-          is_native: boolean
-          metric_name: string
-          metric_rating: string | null
-          metric_value: number
-          navigation_type: string | null
-          path: string | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name: string
-          metric_rating?: string | null
-          metric_value: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name?: string
-          metric_rating?: string | null
-          metric_value?: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      web_vitals_20261021: {
-        Row: {
-          created_at: string
-          id: string
-          is_native: boolean
-          metric_name: string
-          metric_rating: string | null
-          metric_value: number
-          navigation_type: string | null
-          path: string | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name: string
-          metric_rating?: string | null
-          metric_value: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_native?: boolean
-          metric_name?: string
-          metric_rating?: string | null
-          metric_value?: number
-          navigation_type?: string | null
-          path?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       web_vitals_20261022: {
         Row: {
           created_at: string
@@ -4917,6 +4722,201 @@ export type Database = {
         Relationships: []
       }
       web_vitals_20261026: {
+        Row: {
+          created_at: string
+          id: string
+          is_native: boolean
+          metric_name: string
+          metric_rating: string | null
+          metric_value: number
+          navigation_type: string | null
+          path: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name: string
+          metric_rating?: string | null
+          metric_value: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name?: string
+          metric_rating?: string | null
+          metric_value?: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      web_vitals_20261027: {
+        Row: {
+          created_at: string
+          id: string
+          is_native: boolean
+          metric_name: string
+          metric_rating: string | null
+          metric_value: number
+          navigation_type: string | null
+          path: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name: string
+          metric_rating?: string | null
+          metric_value: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name?: string
+          metric_rating?: string | null
+          metric_value?: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      web_vitals_20261028: {
+        Row: {
+          created_at: string
+          id: string
+          is_native: boolean
+          metric_name: string
+          metric_rating: string | null
+          metric_value: number
+          navigation_type: string | null
+          path: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name: string
+          metric_rating?: string | null
+          metric_value: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name?: string
+          metric_rating?: string | null
+          metric_value?: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      web_vitals_20261029: {
+        Row: {
+          created_at: string
+          id: string
+          is_native: boolean
+          metric_name: string
+          metric_rating: string | null
+          metric_value: number
+          navigation_type: string | null
+          path: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name: string
+          metric_rating?: string | null
+          metric_value: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name?: string
+          metric_rating?: string | null
+          metric_value?: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      web_vitals_20261030: {
+        Row: {
+          created_at: string
+          id: string
+          is_native: boolean
+          metric_name: string
+          metric_rating: string | null
+          metric_value: number
+          navigation_type: string | null
+          path: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name: string
+          metric_rating?: string | null
+          metric_value: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_native?: boolean
+          metric_name?: string
+          metric_rating?: string | null
+          metric_value?: number
+          navigation_type?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      web_vitals_20261031: {
         Row: {
           created_at: string
           id: string
