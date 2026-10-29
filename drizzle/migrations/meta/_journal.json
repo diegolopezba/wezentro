@@ -484,6 +484,13 @@
       "when": 1792858203277,
       "tag": "0068_ticket_tier_entry_windows",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1793285088690,
+      "tag": "0069_sales_use_base_amount",
+      "breakpoints": true
     }
   ]
 }
