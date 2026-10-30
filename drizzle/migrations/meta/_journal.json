@@ -491,6 +491,13 @@
       "when": 1793285088690,
       "tag": "0069_sales_use_base_amount",
       "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1793373787783,
+      "tag": "0070_exclude_special_invites_from_legacy_sales",
+      "breakpoints": true
     }
   ]
 }
